@@ -8,6 +8,7 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, Resou
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
+import scala.language.existentials
 import scala.reflect.ClassTag
 
 /**
@@ -21,6 +22,11 @@ sealed abstract class ParameterType[T : ClassTag] {
     * The underlying type.
     */
   private val dataType = implicitly[ClassTag[T]].runtimeClass
+
+  /**
+    * User-readable description of this type to be displayed.
+    */
+  def description = ""
 
   def hasType(givenType: Type): Boolean = {
     givenType match {
@@ -61,9 +67,9 @@ sealed abstract class ParameterType[T : ClassTag] {
 object ParameterType {
 
   /**
-    * All available parameter types.
+    * All available static parameter types.
     */
-  val all: Seq[ParameterType[_]] = {
+  private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType, TaskReferenceType)
   }
 
@@ -73,11 +79,18 @@ object ParameterType {
     * @throws InvalidPluginException If no parameter type is available for the given class.
     */
   def forType(dataType: Type): ParameterType[_] = {
-    all.find(_.hasType(dataType))
-       .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+    dataType match {
+      case enumClass: Class[_] if enumClass.isEnum  =>
+        EnumerationType(enumClass)
+      case _ =>
+        allStaticTypes.find(_.hasType(dataType))
+          .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+    }
   }
 
   object StringType extends ParameterType[String] {
+
+    override def description = "A character string."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): String = {
       str
@@ -86,6 +99,8 @@ object ParameterType {
   }
 
   object CharType extends ParameterType[Char] {
+
+    override def description = "A single character."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
       if(str.length == 1) str(0)
@@ -96,6 +111,8 @@ object ParameterType {
 
   object IntType extends ParameterType[Int] {
 
+    override def description = "An integer number."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
       str.toInt
     }
@@ -104,6 +121,8 @@ object ParameterType {
 
   object DoubleType extends ParameterType[Double] {
 
+    override def description = "A floating-point number."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
       str.toDouble
     }
@@ -111,6 +130,8 @@ object ParameterType {
   }
 
   object BooleanType extends ParameterType[Boolean] {
+
+    override def description = "Either true or false."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
       str.toLowerCase match {
@@ -137,6 +158,8 @@ object ParameterType {
 
   object UriType extends ParameterType[Uri] {
 
+    override def description = "Either a full URI or a prefixed name."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
       Uri.parse(str, prefixes)
     }
@@ -144,21 +167,33 @@ object ParameterType {
 
   object ResourceType extends ParameterType[Resource] {
 
+    override def description = "Either the name of a project resource or a full URI."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
-      resourceLoader.get(str, mustExist = false)
+      if(str.trim.isEmpty)
+        throw new ValidationException("Resource cannot be empty")
+      else
+        resourceLoader.get(str, mustExist = true)
     }
 
   }
 
   object WritableResourceType extends ParameterType[WritableResource] {
 
+    override def description = "Either the name of a project resource or a full URI."
+
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
-      resourceLoader.get(str, mustExist = false)
+      if(str.trim.isEmpty)
+        throw new ValidationException("Resource cannot be empty")
+      else
+        resourceLoader.get(str, mustExist = false)
     }
 
   }
 
   object TaskReferenceType extends ParameterType[TaskReference] {
+
+    override def description = "The name of a task in the same project."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
       TaskReference(Identifier(str))
@@ -168,6 +203,21 @@ object ParameterType {
       value.id
     }
 
+  }
+
+  case class EnumerationType(enumType: Class[_]) extends ParameterType[Enum[_]] {
+    require(enumType.isEnum)
+
+    private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
+
+    private val valueList = enumConstants.map(_.name).mkString(", ")
+
+    override def description = "One of the following values: " + valueList
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager) = {
+      enumConstants.find(_.name == str.trim)
+        .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+    }
   }
 
 }

@@ -150,6 +150,8 @@
     <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
+      <br/>
+      Expected type: @param.dataType.description
     </div>
  </div>
 }
@@ -164,6 +166,8 @@
     <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
+      <br/>
+      Expected type: @param.dataType.description
     </div>
     @if(resources.isEmpty) {
       <span class="no-data-avaliable">No resources found!</span>

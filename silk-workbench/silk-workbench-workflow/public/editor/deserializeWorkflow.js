@@ -22,77 +22,54 @@ function deserializeWorkflow(xml) {
   jsPlumb.reset();
   editorContent.empty();
 
-  // Deserialize all datasets
-  xmlRoot.find('Dataset').each(function() {
-    var xml = $(this);
-    var taskId = xml.attr('task');
-    var opId = xml.attr('id');
-    if(opId === undefined) {
-      opId = taskId
-    }
+  deserializeWorkflowOperator('Operator', 'operator');
+  deserializeWorkflowOperator('Dataset', 'dataset');
 
-    var toolbox = $("#toolbox_" + taskId);
-    toolbox.hide();
-
-    var box = toolbox.children('.dataset').clone(false);
-    box.attr('taskId', taskId);
-    box.attr('id', opId)
-    box.show();
-    box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
-    box.appendTo(editorContent);
-
-    // Make operator draggable
-    jsPlumb.draggable(box);
-
-    // Add endpoints
-    sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
-    targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
-  });
-
-  // Deserialize all operators
-  xmlRoot.find('Operator').each(function() {
-    var xml = $(this);
-    var taskId = xml.attr('task');
-    var opId = xml.attr('id');
-    if(opId === undefined) {
-      opId = taskId
-    }
-
-    var toolbox = $("#toolbox_" + taskId);
-    // Don't hide, operators can be used multiple times
-//    toolbox.hide();
-
-    var box = toolbox.children('.operator').clone(false);
-    box.attr('taskid', taskId);
-    box.attr('id', opId)
-    box.show();
-    box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
-    box.appendTo(editorContent);
-
-    // Make operator draggable
-    jsPlumb.draggable(box);
-
-    // Add endpoints
-    sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
-    targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
-  });
-
-  // Connect endpoints
-  xmlRoot.find('Operator').each(function() {
-    var xml = $(this);
-
-    var taskId = xml.attr('id');
-    // Connect inputs
-    $.each(xml.attr('inputs').split(','), function() {
-      if(this != "") {
-        jsPlumb.connect({source: sourceEndpoints[this], target: targetEndpoints[taskId]});
+  function deserializeWorkflowOperator(elementName, childClass) {
+    xmlRoot.find(elementName).each(function() {
+      var xml = $(this);
+      var taskId = xml.attr('task');
+      var opId = xml.attr('id');
+      if(opId === undefined) {
+        opId = taskId
       }
+
+      var toolbox = $("#toolbox_" + taskId);
+      // Don't hide, workflow operators can be used multiple times
+      //    toolbox.hide();
+
+      var box = toolbox.children('.' + childClass).clone(false);
+      box.attr('taskid', taskId);
+      box.attr('id', opId)
+      box.show();
+      box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
+      box.appendTo(editorContent);
+
+      // Make operator draggable
+      jsPlumb.draggable(box);
+
+      // Add endpoints
+      sourceEndpoints[opId] = jsPlumb.addEndpoint(box, endpointSource);
+      targetEndpoints[opId] = jsPlumb.addEndpoint(box, endpointTarget);
     });
-    // Connect outputs
-    $.each(xml.attr('outputs').split(','), function() {
-      if(this != "") {
-        jsPlumb.connect({source: sourceEndpoints[taskId], target: targetEndpoints[this]});
-      }
-    });
-  });
+  }
+
+  connectEndpoints('Operator');
+  connectEndpoints('Dataset');
+
+  function connectEndpoints(elementName) {
+    // Connect endpoints
+    // Since operators are connected in both directions we only need to look at one direction, i.e. inputs.
+      xmlRoot.find(elementName).each(function() {
+        var xml = $(this);
+
+        var taskId = xml.attr('id');
+        // Connect inputs
+        $.each(xml.attr('inputs').split(','), function() {
+          if(this != "") {
+            jsPlumb.connect({source: sourceEndpoints[this], target: targetEndpoints[taskId]});
+          }
+        });
+      });
+  }
 }

@@ -12,18 +12,16 @@
  * limitations under the License.
  */
 
-package org.silkframework.plugins.dataset.rdf.formatters
+package org.silkframework.plugins.transformer.date
 
-import org.silkframework.entity.Link
-import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
+import org.scalatest.{FlatSpec, Matchers}
 
-case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
+class NumberToDurationTransformerTest extends FlatSpec with Matchers {
 
-  override def format(link: Link, predicateUri: String) = {
-    "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"
-  }
+  val transformer = NumberToDurationTransformer(DateUnit.day)
 
-  override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value) + "\n"
+  "NumberToDurationTransformer" should "convert numbers to days" in {
+    transformer(Seq(Seq("4"))) should equal(Seq("P0Y0M4DT0H0M0.000S"))
+    transformer(Seq(Seq("0"))) should equal(Seq("P0Y0M0DT0H0M0.000S"))
   }
 }

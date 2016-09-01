@@ -53,5 +53,9 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse( """?a\ex:prop[rdf:type = ex:Car]""") should equal(Path(BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
     p.parse( """?a\ex:prop[rdf:type = <http://www.example.org/Car>]""") should equal(Path(BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
   }
+
+  it should "parse language filterss" in {
+    p.parse( """?a/ex:prop[@lang = 'en']""") should equal(Path(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
+  }
 }
 

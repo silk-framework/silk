@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
+import org.silkframework.dataset.{TripleSinkDataset, TripleSink}
 import org.silkframework.dataset.rdf.{SparqlParams, RdfDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
@@ -20,7 +21,7 @@ case class SparqlDataset(
   entityList: String = null,
   @Param("The number of milliseconds to wait between subsequent query")
   pauseTime: Int = 0,
-  @Param("The number of retires if a query fails")
+  @Param("The number of retries if a query fails")
   retryCount: Int = 3,
   @Param("The number of milliseconds to wait until a failed query is retried.")
   retryPause: Int = 1000,
@@ -29,7 +30,7 @@ case class SparqlDataset(
   @Param("True (default), if multiple queries should be executed in parallel for faster retrieval.")
   parallel: Boolean = true,
   @Param("Include useOrderBy in queries to enforce correct order of values.")
-  useOrderBy: Boolean = true) extends RdfDataset {
+  useOrderBy: Boolean = true) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(
@@ -62,4 +63,6 @@ case class SparqlDataset(
     for(graph <- params.graph)
       sparqlEndpoint.update(s"DROP SILENT GRAPH <$graph>")
   }
+
+  override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint)
 }

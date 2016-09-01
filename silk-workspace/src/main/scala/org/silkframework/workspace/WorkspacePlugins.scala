@@ -1,6 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.workspace.activity.custom.RestTaskExecutorFactory
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
@@ -18,6 +19,7 @@ class WorkspacePlugins extends PluginModule {
     linkingActivities :::
     workflowActivities :::
     projectMarshaller :::
+    customTaskActivities :::
     xmlFormats
 
   def workspaceProviders: List[Class[_]] =
@@ -47,5 +49,9 @@ class WorkspacePlugins extends PluginModule {
 
   def projectMarshaller = {
     classOf[XmlZipProjectMarshaling] :: Nil
+  }
+
+  def customTaskActivities = {
+    classOf[RestTaskExecutorFactory] :: Nil
   }
 }

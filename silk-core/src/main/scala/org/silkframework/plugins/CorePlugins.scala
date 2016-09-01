@@ -16,6 +16,7 @@ package org.silkframework.plugins
 
 import org.silkframework.dataset.VariableDataset
 import org.silkframework.plugins.aggegrator.{AverageAggregator, GeometricMeanAggregator, MaximumAggregator, MinimumAggregator, QuadraticMeanAggregator}
+import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.plugins.distance.characterbased._
 import org.silkframework.plugins.distance.equality._
@@ -31,7 +32,7 @@ import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
 import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{MapTransformer, RegexReplaceTransformer, ReplaceTransformer}
-import org.silkframework.plugins.transformer.sequence.GetValueByIndexTransformer
+import org.silkframework.plugins.transformer.sequence.{ValuesToIndexesTransformer, GetValueByIndexTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange}
@@ -43,7 +44,7 @@ import org.silkframework.runtime.plugin.PluginModule
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators
+  override def pluginClasses = datasets ++ transformers ++ measures ++ aggregators ++ customTaskSpecs
 
   private def datasets =
     classOf[InternalDataset] ::
@@ -71,6 +72,7 @@ class CorePlugins extends PluginModule {
         classOf[ConvertCharsetTransformer] ::
         classOf[RemoveValues] ::
         classOf[RemoveStopwords] ::
+        classOf[RemoveRemoteStopwords] ::
         classOf[RemoveEmptyValues] ::
         classOf[RemoveParentheses] ::
         classOf[TrimTransformer] ::
@@ -118,6 +120,7 @@ class CorePlugins extends PluginModule {
         classOf[ValidateDateAfter] ::
         // Sequence
         classOf[GetValueByIndexTransformer] ::
+        classOf[ValuesToIndexesTransformer] ::
         Nil
 
   private def measures =
@@ -149,4 +152,7 @@ class CorePlugins extends PluginModule {
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
         classOf[GeometricMeanAggregator] :: Nil
+
+  private def customTaskSpecs =
+    classOf[RestTaskSpec] :: Nil
 }

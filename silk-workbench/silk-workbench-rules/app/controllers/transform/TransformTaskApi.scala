@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import models.JsonError
-import org.silkframework.config.{DatasetSelection, TransformSpec}
+import org.silkframework.config.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.Restriction
 import org.silkframework.execution.ExecuteTransform
@@ -12,7 +12,6 @@ import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
-import org.silkframework.config.TransformSpec
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
@@ -48,8 +47,17 @@ object TransformTaskApi extends Controller {
   }
   }
 
-  def deleteTransformTask(project: String, task: String) = Action {
-    User().workspace.project(project).removeTask[TransformSpec](task)
+  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean) = Action {
+    val project = User().workspace.project(projectName)
+    if(removeDependentTasks) {
+      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
+        project.removeTask[LinkSpec](dependentTransform.id)
+      }
+      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
+        project.removeTask[LinkSpec](dependentLinking.id)
+      }
+    }
+    project.removeTask[TransformSpec](taskName)
     Ok
   }
 

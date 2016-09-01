@@ -6,7 +6,7 @@ import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{EntitySink, LinkSink}
+import org.silkframework.dataset.{TripleSink, EntitySink, LinkSink}
 import org.silkframework.entity.Link
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.util.StringUtils
@@ -21,7 +21,7 @@ class SparqlSink(params: SparqlParams,
                  endpoint: SparqlEndpoint,
                  formatterOpt: Option[RdfFormatter] = None,
                  /**Maximum number of statements per request. */
-                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink {
+                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -75,13 +75,6 @@ class SparqlSink(params: SparqlParams,
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-    if(body.isEmpty) {
-      beginSparul(true)
-    } else if (statements + 1 > statementsPerRequest) {
-      endSparql()
-      beginSparul(false)
-    }
-
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       writeStatement(subject, property, value)
     }
@@ -93,27 +86,21 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  private def writeStatement(subject: String, property: String, value: String): Unit = {
+  def writeStatement(subject: String, property: String, value: String): Unit = {
+    if(body.isEmpty) {
+      beginSparul(true)
+    } else if (statements + 1 > statementsPerRequest) {
+      endSparql()
+      beginSparul(false)
+    }
+
     val stmtString: String = buildStatementString(subject, property, value)
     body.append(stmtString).append("\n")
     statements += 1
   }
 
   def buildStatementString(subject: String, property: String, value: String): String = {
-    value match {
-      // Check if value is an URI
-      case v if value.startsWith("http") && Try(URI.create(value)).isSuccess =>
-        "<" + subject + "> <" + property + "> <" + v + "> ."
-      // Check if value is a number
-      case StringUtils.integerNumber() =>
-        "<" + subject + "> <" + property + "> \"" + value + "\"^^<http://www.w3.org/2001/XMLSchema#integer> ."
-      case DoubleLiteral(d) =>
-        "<" + subject + "> <" + property + "> \"" + d + "\"^^<http://www.w3.org/2001/XMLSchema#double> ."
-      // Write string values
-      case _ =>
-        val escapedValue = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-        "<" + subject + "> <" + property + "> \"" + escapedValue + "\" ."
-    }
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value)
   }
 
   /**
@@ -148,5 +135,9 @@ class SparqlSink(params: SparqlParams,
     if(statements > 0) { // Else this would throw an exception, because of invalid syntax
       endpoint.update(query)
     }
+  }
+
+  override def writeTriple(subject: String, predicate: String, obj: String): Unit = {
+    writeStatement(subject, predicate, obj)
   }
 }

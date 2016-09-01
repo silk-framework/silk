@@ -7,7 +7,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(id = "inMemory", label = "in-memory", description = "A Dataset that holds all data in-memory.")
-case class InMemoryDataset() extends RdfDataset {
+case class InMemoryDataset() extends RdfDataset with TripleSinkDataset {
 
   private val model = ModelFactory.createDefaultModel()
 
@@ -31,4 +31,6 @@ case class InMemoryDataset() extends RdfDataset {
   override def clear(): Unit = {
     model.removeAll()
   }
+
+  override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 }
