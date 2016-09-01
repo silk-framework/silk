@@ -126,8 +126,9 @@ document.onselectstart = function ()
 // Warn the user when he leaves the editor that any unsaved modifications are lost.
 window.onbeforeunload = confirmExit;
 
-$(function ()
+function initEditor()
 {
+  jsPlumb.reset();
   $("#droppable").droppable({
     drop: function (ev, ui) {
       var draggedClass = $(ui.draggable).attr("class");
@@ -241,7 +242,7 @@ $(function ()
     updateWindowSize();
     updateScore();
   }
-});
+}
 
 function confirmExit() {
   if(confirmOnExit) {
