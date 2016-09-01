@@ -3,8 +3,8 @@ package org.silkframework.workspace.activity.custom
 import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
-import play.api.libs.ws.ning.{NingAsyncHttpClientConfigBuilder, NingWSClient}
-import play.api.libs.ws.{DefaultWSClientConfig, WSClient, WSResponse}
+import play.api.libs.ws.ning.{NingAsyncHttpClientConfigBuilder, NingWSClient, NingWSClientConfig}
+import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -60,10 +60,10 @@ case class RestTaskExecutor(task: ProjectTask[RestTaskSpec]) extends Activity[Un
   }
 
   private def getClient(): NingWSClient = {
-    val clientConfig = new DefaultWSClientConfig()
+    val clientConfig = new NingWSClientConfig()
     val secureDefaults: com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
     val builder = new com.ning.http.client.AsyncHttpClientConfig.Builder(secureDefaults)
-    builder.setCompressionEnabled(true)
+    // No longer supported in version 2.4: builder.setCompressionEnabled(true)
     val secureDefaultsWithSpecificOptions: com.ning.http.client.AsyncHttpClientConfig = builder.build()
     new play.api.libs.ws.ning.NingWSClient(secureDefaultsWithSpecificOptions)
   }

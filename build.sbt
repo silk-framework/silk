@@ -24,7 +24,7 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.2.1", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.3.0", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
@@ -45,7 +45,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.3.10"
+    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.4.8"
   )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))

@@ -1,3 +1,5 @@
 package controllers.workflow
 
-object Assets extends controllers.AssetsBuilder
+import controllers.core.ErrorHandler
+
+object Assets extends controllers.AssetsBuilder(ErrorHandler)

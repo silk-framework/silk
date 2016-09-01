@@ -1,3 +1,3 @@
 package controllers.core
 
-object Assets extends controllers.AssetsBuilder
+object Assets extends controllers.AssetsBuilder(ErrorHandler)

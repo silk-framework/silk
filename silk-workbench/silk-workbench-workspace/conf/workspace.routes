@@ -116,4 +116,4 @@ GET           /activities/updates                                               
 # Assets
 ############################################################################################################################################
 
-GET           /assets/*file                                                     controllers.workspace.Assets.at(path="/public", file)
+GET           /assets/*file                                                     controllers.workspace.Assets.at(path="/public/lib/silk-workbench-workspace", file)

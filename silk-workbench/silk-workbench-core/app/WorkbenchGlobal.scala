@@ -23,8 +23,9 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
     // Collect plugin routes
     pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
     pluginRoutes = pluginRoutes.updated("core", core.Routes)
-    for((prefix, routes) <- pluginRoutes if !(prefix == "core" && context != "/"))
-      routes.setPrefix(context + prefix + "/")
+    pluginRoutes =
+      for((prefix, routes) <- pluginRoutes if !(prefix == "core" && context != "/")) yield
+        (prefix, routes.withPrefix(context + prefix + "/"))
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {

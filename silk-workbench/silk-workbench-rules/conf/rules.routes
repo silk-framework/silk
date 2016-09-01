@@ -1,2 +1,2 @@
 GET        /dialogs/editRestriction/:project/:task                           controllers.rules.Dialogs.restrictionDialog(project: String, task: String, varName: String, restriction: String)
-GET        /assets/*file        controllers.rules.Assets.at(path="/public", file)
+GET        /assets/*file        controllers.rules.Assets.at(path="/public/lib/silk-workbench-rules", file)
