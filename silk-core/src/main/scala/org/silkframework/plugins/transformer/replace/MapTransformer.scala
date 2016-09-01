@@ -29,7 +29,7 @@ case class MapTransformer(
   @Param("Default if the map defines no value")
   default: String) extends SimpleTransformer {
 
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     map.getOrElse(value, default)
   }
 }
