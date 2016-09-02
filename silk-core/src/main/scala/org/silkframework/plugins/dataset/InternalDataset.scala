@@ -16,19 +16,16 @@ import scala.util.Try
   description =
       """Dataset for storing entities between workflow steps."""
 )
-case class InternalDataset(val graphUri: String = null) extends Dataset with TripleSinkDataset with RdfDataset {
-  private val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
+case class InternalDataset(val graphUri: String = null) extends InternalDatasetTrait {
+  protected val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
+}
 
-  override def source: DataSource = internalDatasetPluginImpl.source
-
-  override def linkSink: LinkSink = internalDatasetPluginImpl.linkSink
-
-  override def entitySink: EntitySink = internalDatasetPluginImpl.entitySink
-
-  override def clear() = internalDatasetPluginImpl.clear()
+trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
+  protected def internalDatasetPluginImpl: Dataset
+  private lazy val _internalDatasetPluginImpl = internalDatasetPluginImpl
 
   override def sparqlEndpoint: SparqlEndpoint = {
-    internalDatasetPluginImpl match {
+    _internalDatasetPluginImpl match {
       case rdfDataset: RdfDataset =>
         rdfDataset.sparqlEndpoint
       case _ =>
@@ -37,13 +34,21 @@ case class InternalDataset(val graphUri: String = null) extends Dataset with Tri
   }
 
   override def tripleSink: TripleSink = {
-    internalDatasetPluginImpl match {
+    _internalDatasetPluginImpl match {
       case rdfDataset: TripleSinkDataset =>
         rdfDataset.tripleSink
       case _ =>
         throw new RuntimeException("Internal dataset cannot provide a triple sink!")
     }
   }
+
+  override def source: DataSource = _internalDatasetPluginImpl.source
+
+  override def linkSink: LinkSink = _internalDatasetPluginImpl.linkSink
+
+  override def entitySink: EntitySink = _internalDatasetPluginImpl.entitySink
+
+  override def clear(): Unit = _internalDatasetPluginImpl.clear()
 }
 
 /**
@@ -57,9 +62,9 @@ object InternalDataset {
   private val byGraphDataset: mutable.Map[String, Dataset] = new mutable.HashMap[String, Dataset]()
 
   // The internal dataset for the default graph
-  lazy val default: Dataset = createInternalDataset
+  lazy val default: Dataset = createInternalDataset()
 
-  private def createInternalDataset: Dataset = {
+  private def createInternalDataset(): Dataset = {
     // TODO: For non-in-memory datasets the graph must be handed over
     PluginRegistry.createFromConfigOption[Dataset]("dataset.internal") match {
       case Some(dataset) =>
@@ -87,7 +92,7 @@ object InternalDataset {
         byGraphDataset.synchronized {
           byGraphDataset.getOrElseUpdate(
             graphURI,
-            createInternalDataset
+            createInternalDataset()
           )
         }
       case None =>
