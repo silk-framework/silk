@@ -52,14 +52,30 @@ class Workspace(val provider: WorkspaceProvider) {
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
 
+  /**
+    * Generic export method that marshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
+    *
+    * @param name project name
+    * @param outputStream
+    * @param marshaller object that defines how the project should be marshaled.
+    * @return
+    */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
-    provider.exportProject(name, outputStream, marshaller)
+    marshaller.marshal(project(name).config, outputStream, provider)
   }
 
+  /**
+    * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
+    *
+    * @param name project name
+    * @param inputStream
+    * @param marshaller object that defines how the project should be unmarshaled.
+    */
   def importProject(name: Identifier,
                     inputStream: InputStream,
                     marshaller: ProjectMarshallingTrait) {
-    provider.importProjectMarshaled(name, inputStream, marshaller)
+    project(name)
+    marshaller.unmarshalAndImport(name, provider, inputStream)
     reload()
   }
 
