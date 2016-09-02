@@ -49,21 +49,4 @@ trait WorkspaceProvider {
    * Deletes a task from a project.
    */
   def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit
-
-  /**
-   * Exports a project to a file.
-   * Returns the proposed file name.
-   */
-  @deprecated(message = "Use the methods taking a marshalling object instead", since = "2.6.1")
-  def exportProject(project: Identifier, outputStream: OutputStream): String = {
-    throw new UnsupportedOperationException("The configured workspace provider does not support exporting projects!")
-  }
-
-  /**
-   * Imports a project from a file.
-   */
-  @deprecated(message = "Use the methods taking a marshalling object instead", since = "2.6.1")
-  def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader = EmptyResourceManager): Unit = {
-    throw new UnsupportedOperationException("The configured workspace provider does not support importing projects!")
-  }
 }
