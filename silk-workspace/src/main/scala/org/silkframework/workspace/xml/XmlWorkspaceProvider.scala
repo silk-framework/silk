@@ -78,60 +78,6 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     plugin[T].removeTask(task, res.child(project).child(plugin[T].prefix))
   }
 
-  override def exportProject(project: Identifier, outputStream: OutputStream): String = {
-    require(res.listChildren.contains(project.toString), s"Project $project does not exist.")
-
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
-
-    // Go through all files and create a ZIP entry for each
-    putResources(res.child(project), "")
-
-    def putResources(loader: ResourceLoader, basePath: String): Unit = {
-      for(resName <- loader.list) {
-        zip.putNextEntry(new ZipEntry(basePath + resName))
-        zip.write(loader.get(resName).loadAsBytes)
-      }
-      for(childName <- loader.listChildren) {
-        putResources(loader.child(childName), basePath + childName + "/")
-      }
-    }
-
-    // Close ZIP
-    zip.close()
-
-    //Return proposed file name
-    project.toString + ".zip"
-  }
-
-  override def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader): Unit = {
-    require(!res.listChildren.contains(project.toString), s"Project $project already exists.")
-
-    // Open ZIP
-    val zip = new ZipInputStream(inputStream)
-
-    // Read all ZIP entries
-    try {
-      val projectRes = res.child(project)
-      var entry = zip.getNextEntry
-      while (entry != null) {
-        if (!entry.isDirectory) {
-          projectRes.getInPath(entry.getName).write(zip)
-        }
-        zip.closeEntry()
-        entry = zip.getNextEntry
-      }
-    } catch {
-      case ex: Throwable =>
-        // Something failed. Delete already written project resources and escalate exception.
-        res.delete(project)
-        throw ex;
-    }
-
-    // Close ZIP and reload
-    zip.close()
-  }
-
   private def plugin[T <: TaskSpec : ClassTag] = {
     plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
   }

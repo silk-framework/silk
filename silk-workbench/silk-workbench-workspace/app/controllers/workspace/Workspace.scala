@@ -47,9 +47,9 @@ object Workspace extends Controller {
   }
 
   def importExample(project: String) = Action {
-    val workspaceProvider = User().workspace.provider
+    val workspace = User().workspace
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
-    workspaceProvider.importProjectMarshaled(Identifier(project), inputStream, XmlZipProjectMarshaling())
+    workspace.importProject(Identifier(project), inputStream, XmlZipProjectMarshaling())
 
     User().workspace.reload()
 
