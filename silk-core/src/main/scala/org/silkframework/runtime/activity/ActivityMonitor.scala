@@ -1,6 +1,15 @@
 package org.silkframework.runtime.activity
 import java.util.logging.Logger
 
+/**
+  * Holds the current status and value of an activity.
+  *
+  * @param name The name of this activity.
+  * @param parent The parent activity.
+  * @param progressContribution The factor by which the progress of this activity contributes to the progress of the provided parent activity.
+  * @param initialValue The initial value of this activity.
+  * @tparam T The value type. Set to [[Unit]] if no values are generated.
+  */
 class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None, progressContribution: Double = 0.0, initialValue: Option[T] = None) extends ActivityContext[T] {
 
   /**
