@@ -10,7 +10,7 @@ import java.util.logging.Logger
   * @param initialValue The initial value of this activity.
   * @tparam T The value type. Set to [[Unit]] if no values are generated.
   */
-class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None, progressContribution: Double = 0.0, initialValue: Option[T] = None) extends ActivityContext[T] {
+class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None, progressContribution: Double = 0.0, initialValue: => Option[T] = None) extends ActivityContext[T] {
 
   /**
     * Holds all current child activities.
@@ -19,22 +19,22 @@ class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
 
   /**
+    * Retrieves the logger to be used by the activity.
+    */
+  override val log: Logger = parent match {
+    case None => Logger.getLogger(Activity.loggingPath + "." + name)
+    case Some(p) => Logger.getLogger(p.log.getName + "." + name)
+  }
+
+  /**
     * Holds the current value.
     */
-  override def value: ValueHolder[T] = new ValueHolder[T](initialValue)
+  override val value: ValueHolder[T] = new ValueHolder[T](initialValue)
 
   /**
     * Retrieves current status of the activity.
     */
-  override def status: StatusHolder = new StatusHolder(log, parent.map(_.status), progressContribution)
-
-  /**
-    * Retrieves the logger to be used by the activity.
-    */
-  override def log: Logger = parent match {
-    case None => Logger.getLogger(Activity.loggingPath + "." + name)
-    case Some(p) => Logger.getLogger(p.log.getName + "." + name)
-  }
+  override val status: StatusHolder = new StatusHolder(log, parent.map(_.status), progressContribution)
 
   /**
     * Adds a child activity.

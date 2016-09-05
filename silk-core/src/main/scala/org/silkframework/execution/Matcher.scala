@@ -59,7 +59,6 @@ class Matcher(linkageRule: LinkageRule,
     canceled = false
 
     //Create execution service for the matching tasks
-    val startTime = System.currentTimeMillis()
     val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
