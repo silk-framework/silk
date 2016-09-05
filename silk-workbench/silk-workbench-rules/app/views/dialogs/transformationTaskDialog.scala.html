@@ -58,9 +58,9 @@
 
   $(function() {
     // Add autocompletion
-    $("input[name='sourceType']").autocomplete({
+    $("input[name='transformation_type']").autocomplete({
       source: function( request, response ) {
-        var dataset = $("select[name='source']").val();
+        var dataset = $("select[name='source_dataset']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
           response(data);
         });
