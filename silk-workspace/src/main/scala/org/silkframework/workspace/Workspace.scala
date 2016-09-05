@@ -17,7 +17,6 @@ package org.silkframework.workspace
 import java.io._
 import java.util.logging.Logger
 
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import org.silkframework.util.Identifier
 
 class Workspace(val provider: WorkspaceProvider) {
@@ -34,10 +33,14 @@ class Workspace(val provider: WorkspaceProvider) {
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
   def project(name: Identifier): Project = {
-    projects.find(_.name == name).getOrElse(throw new ProjectNotFoundException(name))
+    findProject(name).getOrElse(throw new ProjectNotFoundException(name))
   }
 
-  def createProject(name: Identifier) = {
+  private def findProject(name: Identifier): Option[Project] = {
+    projects.find(_.name == name)
+  }
+
+  def createProject(name: Identifier): Project = {
     require(!cachedProjects.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
     val projectConfig = ProjectConfig(name)
@@ -47,7 +50,7 @@ class Workspace(val provider: WorkspaceProvider) {
     newProject
   }
 
-  def removeProject(name: Identifier) = {
+  def removeProject(name: Identifier): Unit = {
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
@@ -56,7 +59,7 @@ class Workspace(val provider: WorkspaceProvider) {
     * Generic export method that marshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
     * @param name project name
-    * @param outputStream
+    * @param outputStream the output stream to write the exported project to.
     * @param marshaller object that defines how the project should be marshaled.
     * @return
     */
@@ -68,15 +71,19 @@ class Workspace(val provider: WorkspaceProvider) {
     * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
     * @param name project name
-    * @param inputStream
+    * @param inputStream the input stream to read the project to import from
     * @param marshaller object that defines how the project should be unmarshaled.
     */
   def importProject(name: Identifier,
                     inputStream: InputStream,
                     marshaller: ProjectMarshallingTrait) {
-    project(name)
-    marshaller.unmarshalAndImport(name, provider, inputStream)
-    reload()
+    findProject(name) match {
+      case Some(_) =>
+        throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
+      case None =>
+        marshaller.unmarshalAndImport(name, provider, inputStream)
+        reload()
+    }
   }
 
   def reload() {
