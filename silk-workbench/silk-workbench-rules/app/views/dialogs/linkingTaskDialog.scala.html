@@ -22,7 +22,7 @@
 @prefixes = @{ User().workspace.project(project).config.prefixes }
 
 @widgets.dialog(title = "Linking Task") {
-  <div class="dialog-form">
+  <div class="dialog-form" id="linkingTaskDialogForm">
     @if(task.isEmpty) {
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="linking_task_name" name="linking_task_name"/>
@@ -74,9 +74,10 @@
 
   $(function() {
     // Add autocompletion
-    $("input[name='sourceType']").autocomplete({
+    $("input[name='source_type']").autocomplete({
+      appendTo: "#linkingTaskDialogForm",
       source: function( request, response ) {
-        var dataset = $("select[name='source']").val();
+        var dataset = $("select[name='source_dataset']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
           response(data);
         });
@@ -84,9 +85,10 @@
       minLength: 0
     }).focus(function() { $(this).autocomplete("search"); });
 
-    $("input[name='targetType']").autocomplete({
+    $("input[name='target_type']").autocomplete({
+      appendTo: "#linkingTaskDialogForm",
       source: function( request, response ) {
-        var dataset = $("select[name='target']").val();
+        var dataset = $("select[name='target_dataset']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
           response(data);
         });

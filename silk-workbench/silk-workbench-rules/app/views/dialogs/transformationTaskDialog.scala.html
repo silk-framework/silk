@@ -17,7 +17,7 @@
 @prefixes = @{ User().workspace.project(project).config.prefixes }
 
 @widgets.dialog(title = "Transformation Task") {
-<div class="dialog-form">
+<div class="dialog-form" id="transFormationDialogForm">
   @if(task.isEmpty) {
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input" type="text" id="transformation_task_name" name="linking_task_name"/>
@@ -59,6 +59,7 @@
   $(function() {
     // Add autocompletion
     $("input[name='transformation_type']").autocomplete({
+      appendTo: '#transFormationDialogForm',
       source: function( request, response ) {
         var dataset = $("select[name='source_dataset']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
