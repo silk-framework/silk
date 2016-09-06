@@ -11,7 +11,7 @@ import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object Datasets extends Controller {
+object DatasetApi extends Controller {
 
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
