@@ -67,10 +67,10 @@ object Datasets extends Controller {
     Ok
   }
 
-  def datasetDialog(projectName: String, datasetName: String) = Action { request =>
+  def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset") = Action { request =>
     val project = User().workspace.project(projectName)
     val datasetPlugin = if(datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin))
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title))
   }
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String) = Action { request =>

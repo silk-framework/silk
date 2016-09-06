@@ -7,4 +7,13 @@
     <p>@WorkbenchConfig.get.title, @WorkbenchConfig.get.version</p>
     @content
   </div>
+  <script>
+    $(function() {
+      $("#dialog-cancel-button").hide();
+    });
+
+    function submit() {
+      closeDialog();
+    }
+  </script>
 }

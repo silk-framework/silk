@@ -3,10 +3,11 @@
   knownPrefixes: org.silkframework.config.Prefixes)
 
 @widgets.dialog(title = "Edit Prefixes", submitLabel = "Save Prefixes") {
-  <table id="prefixTable" class="mdl-data-table mdl-js-data-table" style="width: 500px">
+  <table id="prefixTable" class="mdl-data-table mdl-js-data-table">
     <thead>
       <tr>
         <th class="mdl-data-table__cell--non-numeric">Prefix</th>
+        <th class="mdl-data-table__cell--non-numeric">URI</th>
         <th></th>
       </tr>
     </thead>
@@ -14,10 +15,13 @@
     @for(prefix <- prefixes) {
       <tr class="prefix_dialog-row">
         <td class="mdl-data-table__cell--non-numeric">
-          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix" style="width: 400px" >
-            <input class="mdl-textfield__input" type="text" value="@prefix._1: @prefix._2"/>
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix">
+            <input class="mdl-textfield__input" type="text" value="@prefix._1"/>
           </div>
-        </td>
+        <td class="mdl-data-table__cell--non-numeric">
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-uri">
+            <input class="mdl-textfield__input" type="text" value="@prefix._2"/>
+          </div>
         <td>
           <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="$(this).parent().parent().remove()">
             <i class="material-icons">remove</i>
@@ -26,6 +30,7 @@
       </tr>
     }
       <tr>
+        <td></td>
         <td></td>
         <td>
           <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="addRow()">
@@ -38,19 +43,24 @@
 
   <script>
     // Array which contains all known prefixes
-    var availablePrefixes = [
-      @for(prefix <- knownPrefixes) {
-        "@prefix._1: @prefix._2",
-      }
-    ];
+    // var availablePrefixes = [
+    //  @for(prefix <- knownPrefixes) {
+    //    "@prefix._2",
+    //  }
+    //];
 
-    $("#prefixTable input").autocomplete({ appendTo: '#dialog-form', source: availablePrefixes });
+    // $(".prefix_dialog-uri input").autocomplete({ source: availablePrefixes });
 
     //Adds a new prefix row
     function addRow() {
       var row = '<tr class="prefix_dialog-row"> \
         <td class="mdl-data-table__cell--non-numeric"> \
-          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix" style="width: 400px"> \
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix"> \
+            <input class="mdl-textfield__input" type="text" value=""/> \
+          </div> \
+        </td> \
+        <td class="mdl-data-table__cell--non-numeric"> \
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-uri"> \
             <input class="mdl-textfield__input" type="text" value=""/> \
           </div> \
         </td> \
@@ -61,14 +71,14 @@
         </td> \
       </tr>';
       $('#prefixTable tbody tr').last().before(row);
-      $("#prefixTable input").autocomplete({ appendTo: '#dialog-form', source: availablePrefixes });
+      // $(".prefix_dialog-uri input").autocomplete({ source: availablePrefixes });
     }
 
     function submit() {
-      var data = $('#prefixTable .prefix_dialog-row input').map(function() {
-        var value = this.value;
-        var i = value.indexOf(':');
-        return { name: value.substr(0, i).trim(), value: value.substr(i + 1).trim() };
+      var data = $('#prefixTable .prefix_dialog-row').map(function() {
+        var prefix = $(this).find(".prefix_dialog-prefix input").val();
+        var uri = $(this).find(".prefix_dialog-uri input").val();
+        return { name: prefix.trim(), value: uri.trim() };
       });
 
       $.ajax({

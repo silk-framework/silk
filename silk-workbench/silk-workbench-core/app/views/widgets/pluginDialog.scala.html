@@ -8,46 +8,92 @@
 @(name: String,
   plugins: Seq[PluginDescription[_]],
   currentObj: Option[AnyPlugin],
-  resources: List[String])(contents: Html)
+  resources: List[String],
+  title: String = "Edit Properties",
+  submitLabel: String = "OK",
+  secondaryLabel: String = "Secondary")(contents: Html)
 
-@dialog(title = "Edit Properties", width = 500) {
+@dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500) {
   <div id="plugintabs">
-    <ul>
-      @for(plugin <- plugins) {
-        <li><a href='#@plugin.id'>@plugin.label</a></li>
-      }
-    </ul>
+    <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+      <select class="mdl-selectfield__select" id="resource_type_select" name="resource_type_select">
+        @for(plugin <- plugins) {
+          <option value="@plugin.id">@plugin.label</option>
+        }
+      </select>
+      <label class="mdl-selectfield__label" for="resource_type_select">Resource Type</label>
+    </div>
+    <script>
+      var plugin_dialog_submit_delegates = {};
+      // object to hold the different submit functions for each plugin type (e.g., CSV dataset, XML dataset, etc.)
+      var plugin_autoconfigurable = {};
+    </script>
     @for(plugin <- plugins) {
       @createTab(plugin)
     }
   </div>
   <script>
+
     $(function() {
-      $('#plugintabs').tabs({ @for(obj <- currentObj) { active: @(plugins.indexWhere(_.id == obj.plugin.id)) } });
+      function switch_resource_tab(type_id) {
+        $(".resource-tab").hide();
+        $("#" + type_id).show();
+        if (plugin_autoconfigurable[type_id]) {
+          $("#dialog-secondary-button").show();
+        } else {
+          $("#dialog-secondary-button").hide();
+        }
+      }
+
+      $("#resource_type_select").change(function() {
+        var selected_value = $("#resource_type_select option:selected").val();
+        switch_resource_tab(selected_value);
+      });
+
+      @for(obj <- currentObj) {
+        $("#resource_type_select").val("@obj.plugin.id").change();
+      }
+      @if(currentObj.isEmpty) {
+        var first_plugin_id = '@plugins.head.id';
+        $("#resource_type_select").val(first_plugin_id).change();
+      } else {
+        $("#resource_type_select").prop("disabled", "true");
+      }
+
     });
+
+    function submit() {
+      var selected_resource_type = $("#resource_type_select").val();
+      if (plugin_dialog_submit_delegates[selected_resource_type](false)) {
+        closeDialog();
+        reloadWorkspace();
+      }
+    }
+
+    function dialog_secondary() {
+      var selected_resource_type = $("#resource_type_select").val();
+      plugin_dialog_submit_delegates[selected_resource_type](true);
+    }
+
   </script>
   @contents
 }
 
 @createTab(plugin: PluginDescription[_]) = {
-  <div id='@plugin.id'>
-    @for(line <- plugin.description.split('\n')) {
-      @line
-      <br/>
+  <div id="@plugin.id" class="resource-tab">
+    <p>
+      @plugin.description
+    </p>
+
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"/>
+      <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
+    </div>
+
+    @for(param <- plugin.parameters) {
+      @createField(plugin.id, param)
     }
-    <table>
-      <tr>
-        <td>name</td>
-        <td><input type="text" name='@(plugin.id)_name' value='@name'/></td>
-      </tr>
-      @for(param <- plugin.parameters) {
-        @createField(plugin.id, param)
-      }
-    </table>
-    <button onclick='@(plugin.id)_submit(false)'>Ok</button>
-    @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
-      <button onclick='@(plugin.id)_submit(true)'>AutoConfigure</button>
-    }
+
   </div>
 
   <script type="text/javascript">
@@ -56,24 +102,35 @@
       var name = $('[name=\'@(plugin.id)_name\']').val();
       if(name.length === 0) {
         alert("Name is empty.");
-        return;
+        return false;
       }
 
       // Retrieve all plugin parameters
       var parameters = [
         @for(param <- plugin.parameters) {
           { name: '@param.name',
-            value: $('[name=\'@(plugin.id)_@(param.name)\']').val() },
+            value: $('[name=\'@(plugin.id)_@(param.name)\']').val()
+          },
         }
       ];
 
       // Submit dialog
       if(!onlyAutoConfigure) {
-        submit('@plugin.id', name, parameters);
+        savePlugin('@plugin.id', name, parameters);
       } else {
         autoConfigure('@plugin.id', name, parameters);
       }
+
+      return true;
     }
+
+    plugin_dialog_submit_delegates['@plugin.id'] = @(plugin.id)_submit
+    @if(classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(plugin.pluginClass)) {
+      plugin_autoconfigurable['@plugin.id'] = true;
+    } else {
+      plugin_autoconfigurable['@plugin.id'] = false;
+    }
+
   </script>
 }
 
@@ -88,32 +145,34 @@
 }
 
 @createTextField(pluginId: String, param: Parameter) = {
-  <tr>
-    <td>@param.name</td>
-    <td>
-      <input type="text" name='@(pluginId)_@(param.name)' title='@param.description' value='@value(pluginId, param)'/>
-      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description - Expected type: @param.dataType.description"/>
-    </td>
-  </tr>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
+    <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
+      @param.description
+      <br/>
+      Expected type: @param.dataType.description
+    </div>
+ </div>
 }
 
 @createResourceField(pluginId: String, param: Parameter) = {
-  <tr>
-    <td>@param.name</td>
-    <td>
-      <input name='@(pluginId)_@(param.name)' value='@value(pluginId, param)' title='@param.description' type="text" list='@(pluginId)_@(param.name)_list' >
-      <datalist id='@(pluginId)_@(param.name)_list'>
-        @if(resources.isEmpty) {
-          <option>No resources found!</option>
-        } else {
-          @for(resource <- resources) {
-            <option>@resource</option>
-          }
-        }
-      </datalist>
-      <img align="right" src="@Assets.at("img/help.png")" style="cursor:help;" title="@param.description - Expected type: @param.dataType.description"/>
-    </td>
-  </tr>
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
+      @for(resource <- resources) {
+        <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
+      }
+    </select>
+    <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
+      @param.description
+      <br/>
+      Expected type: @param.dataType.description
+    </div>
+    @if(resources.isEmpty) {
+      <span class="no-data-avaliable">No resources found!</span>
+    }
+  </div>
 }
 
 @**

@@ -17,77 +17,51 @@
 @prefixes = @{ User().workspace.project(project).config.prefixes }
 
 @widgets.dialog(title = "Transformation Task") {
-  <table border="0">
-    @if(task.isEmpty) {
-      <tr>
-        <td>Name</td>
-        <td><input name="name" title="Name" size="60"/></td>
-      </tr>
-    }
-    <tr>
-      <td>Source</td>
-      <td>
-        <select name="source" title="Source dataset">
-          @for(dataset <- datasets) {
-            @if(currentInput.isDefined && dataset.id == currentInput.get.inputId) {
-              <option value="@dataset.id" selected="selected">@dataset.id</option>
-            } else {
-              <option value="@dataset.id">@dataset.id</option>
-            }
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td>Type</td>
-      <td>
-        <input name="sourceType" title="Type" @for(t <- transformationTask) { value="@t.data.selection.typeUri.serialize(prefixes)" } style="width: 100%" />
-      </td>
-    </tr>
-    <tr>
-      <td>Restriction</td>
-      <td>
-        <input name="restriction" title="Restrict dataset using SPARQL clauses" size="50"
-               value="@currentInput.map(_.restriction.serialize).getOrElse("")"/>
-        <img title="Edit" style="cursor: pointer" onclick="openRestrictionDialog()" src="@Assets.at("img/wrench-screwdriver.png")" />
-      </td>
-    </tr>
-    <tr>
-      <td>Output</td>
-      <td>
-        <select name="output" title="Output dataset">
-          @for(dataset <- datasets) {
-            @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
-              <option value="@dataset.id" selected="selected">@dataset.id</option>
-            } else {
-              <option value="@dataset.id">@dataset.id</option>
-            }
-          }
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td align="right"><button onclick='submit()'>Ok</button></td>
-    </tr>
-  </table>
+<div class="dialog-form" id="transFormationDialogForm">
+  @if(task.isEmpty) {
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="transformation_task_name" name="linking_task_name"/>
+      <label class="mdl-textfield__label" for="transformation_task_name">Name</label>
+    </div>
+  }
+  @if(currentInput.isDefined) {
+    @widgets.datasetSelect(project, "source", Some(currentInput.get.inputId))
+  } else {
+    @widgets.datasetSelect(project, "source", None)
+  }
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="transformation_type" name="transformation_type" @for(t <- transformationTask) { value="@t.data.selection.typeUri.serialize(prefixes)" } />
+    <label class="mdl-textfield__label" for="transformation_type">Source Type</label>
+  </div>
+  @widgets.restriction("source", currentInput.map(_.restriction.serialize).getOrElse(""))
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+    <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
+      <option value=""></option>
+      @for(dataset <- datasets) {
+        @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
+          <option value="@dataset.id" selected="selected">@dataset.id</option>
+        } else {
+          <option value="@dataset.id">@dataset.id</option>
+        }
+      }
+    </select>
+    <label class="mdl-selectfield__label" for="output_dataset">Output</label>
+  </div>
+</div>
 }
-
-<div id="restrictionDialog"></div>
 
 <script type="text/javascript">
   // The variable name.
   var varName;
   // The name of the currently edited datasource.
   var sourceName;
-  // The currently edited sparql restriction.
-  var sparqlRestriction;
 
   $(function() {
     // Add autocompletion
-    $("input[name='sourceType']").autocomplete({
+    $("input[name='transformation_type']").autocomplete({
+      appendTo: '#transFormationDialogForm',
       source: function( request, response ) {
-        var dataset = $("select[name='source']").val();
+        var dataset = $("select[name='source_dataset']").val();
         $.get('@config.baseUrl/workspace/datasets/@project/' + dataset + '/types', { search: request.term }, function(data) {
           response(data);
         });
@@ -96,33 +70,13 @@
     }).focus(function() { $(this).autocomplete("search"); });
   });
 
-  function openRestrictionDialog() {
-    // Set variables
-    varName = '@Constants.SourceVariable';
-    sourceName = $("select[name='source']").val();
-    sparqlRestriction = $("input[name='restriction']").val();
-
-    $.get('@config.baseUrl/rules/dialogs/editRestriction/@project/' + sourceName,
-          { varName: varName, restriction: sparqlRestriction },
-          function(data) {
-            $('#restrictionDialog').html(data);
-          }).success(function() { $('#restrictionDialog').dialog({ title: 'Restriction', width: 600 }); } )
-  }
-
-  function closeRestrictionDialog(newRestriction) {
-    $("input[name='restriction']").val(newRestriction);
-    $('#restrictionDialog').dialog('close');
-    $('#restrictionDialog').empty();
-    $('#restrictionDialog').dialog('destroy');
-  }
-
   function submit() {
     var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("input[name='name']").val()},
-      source: $("select[name='source']").val(),
-      sourceType: $("input[name='sourceType']").val(),
-      restriction: $("input[name='restriction']").val(),
-      output: $("select[name='output']").val()
+      name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
+      source: $("#source_dataset").val(),
+      sourceType: $("#transformation_type").val(),
+      restriction: $("#source_restriction_textarea").val(),
+      output: $("#output_dataset").val()
     };
 
     if(values.name.length === 0) {
