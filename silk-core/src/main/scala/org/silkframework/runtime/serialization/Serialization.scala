@@ -16,8 +16,6 @@ object Serialization {
     formatTypes.map(_.apply())
   }
 
-  private val printer = new scala.xml.PrettyPrinter(120, 2)
-
   def hasSerialization(value: Any, mimeType: String): Boolean = {
     serializationFormats.exists(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType))
   }
