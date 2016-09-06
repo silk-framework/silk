@@ -23,21 +23,21 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {
 
-  def reload = Action {
+  def reload: Action[AnyContent] = Action {
     User().workspace.reload()
     Ok
   }
 
-  def projects = Action {
+  def projects: Action[AnyContent] = Action {
     Ok(JsonSerializer.projectsJson)
   }
 
-  def getProject(projectName: String) = Action {
+  def getProject(projectName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     Ok(JsonSerializer.projectJson(project))
   }
 
-  def newProject(project: String) = Action {
+  def newProject(project: String): Action[AnyContent] = Action {
     if (User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
@@ -46,12 +46,12 @@ object WorkspaceApi extends Controller {
     }
   }
 
-  def deleteProject(project: String) = Action {
+  def deleteProject(project: String): Action[AnyContent] = Action {
     User().workspace.removeProject(project)
     Ok
   }
 
-  def importProject(project: String) = Action { implicit request =>
+  def importProject(project: String): Action[AnyContent] = Action { implicit request =>
     for (data <- request.body.asMultipartFormData;
          file <- data.files) {
       // Read the project from the received file
@@ -85,7 +85,7 @@ object WorkspaceApi extends Controller {
     * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
     * @return
     */
-  def importProjectViaPlugin(project: String, marshallerId: String) = Action { implicit request =>
+  def importProjectViaPlugin(project: String, marshallerId: String): Action[AnyContent] = Action { implicit request =>
     val marshallerOpt = marshallingPlugins().filter(_.id == marshallerId).headOption
     marshallerOpt match {
       case Some(marshaller) =>
@@ -121,7 +121,7 @@ object WorkspaceApi extends Controller {
     )
   }
 
-  def exportProject(projectName: String) = Action {
+  def exportProject(projectName: String): Action[AnyContent] = Action {
     val marshallers = marshallingPlugins()
     val marshaller = marshallers.filter(_.id == "xmlZip").head
     // Export the project into a byte array
@@ -133,12 +133,12 @@ object WorkspaceApi extends Controller {
     Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
   }
 
-  def availableProjectMarshallingPlugins(p: String) = Action {
+  def availableProjectMarshallingPlugins(p: String): Action[AnyContent] = Action {
     val marshaller = marshallingPlugins()
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
-  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String) = Action {
+  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val marshallerOpt = marshallingPlugins().filter(_.id == marshallerPluginId).headOption
     marshallerOpt match {
@@ -156,7 +156,7 @@ object WorkspaceApi extends Controller {
 
   }
 
-  def executeProject(projectName: String) = Action {
+  def executeProject(projectName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
@@ -171,7 +171,7 @@ object WorkspaceApi extends Controller {
     }
   }
 
-  def importLinkSpec(projectName: String) = Action { implicit request => {
+  def importLinkSpec(projectName: String): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources)
 
@@ -192,7 +192,7 @@ object WorkspaceApi extends Controller {
   }
   }
 
-  def exportLinkSpec(projectName: String, taskName: String) = Action {
+  def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -202,7 +202,7 @@ object WorkspaceApi extends Controller {
     Ok(XmlSerialization.toXml(silkConfig))
   }
 
-  def updatePrefixes(project: String) = Action { implicit request => {
+  def updatePrefixes(project: String): Action[AnyContent] = Action { implicit request => {
     val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
     val projectObj = User().workspace.project(project)
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
@@ -211,13 +211,13 @@ object WorkspaceApi extends Controller {
   }
   }
 
-  def getResources(projectName: String) = Action {
+  def getResources(projectName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
 
     Ok(JsonSerializer.projectResources(project))
   }
 
-  def getResource(projectName: String, resourceName: String) = Action {
+  def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.load)
@@ -225,7 +225,7 @@ object WorkspaceApi extends Controller {
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
   }
 
-  def putResource(projectName: String, resourceName: String) = Action { implicit request => {
+  def putResource(projectName: String, resourceName: String): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
 
@@ -264,7 +264,7 @@ object WorkspaceApi extends Controller {
   }
   }
 
-  def deleteResource(projectName: String, resourceName: String) = Action {
+  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     project.resources.delete(resourceName)
 
