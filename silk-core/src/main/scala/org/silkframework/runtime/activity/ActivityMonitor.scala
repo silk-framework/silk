@@ -2,7 +2,7 @@ package org.silkframework.runtime.activity
 import java.util.logging.Logger
 
 /**
-  * Holds the current status and value of an activity.
+  * Holds the current status and value of an activity, but does not control its execution.
   *
   * @param name The name of this activity.
   * @param parent The parent activity.
