@@ -11,7 +11,7 @@ import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object Datasets extends Controller {
+object DatasetApi extends Controller {
 
   def getDataset(projectName: String, sourceName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -67,10 +67,10 @@ object Datasets extends Controller {
     Ok
   }
 
-  def datasetDialog(projectName: String, datasetName: String) = Action { request =>
+  def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset") = Action { request =>
     val project = User().workspace.project(projectName)
     val datasetPlugin = if(datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin))
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title))
   }
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String) = Action { request =>

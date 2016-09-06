@@ -20,9 +20,9 @@ var helpWidth = 170;
 var contentWidth;
 var contentWidthCallback = function() { };
 // The currently open dialog
-var dialog;
-// The path of the current dialog, e.g., /workspace/mydialog
-var dialogPath;
+var primary_dialog;
+var secondary_dialog;
+var dialogs = {};
 
 $(function() {
 
@@ -37,9 +37,21 @@ $(function() {
   contentWidthCallback();
 
   // Initialize dialog
-  dialog = $('.dialog').dialog({
-    autoOpen: false,
-    modal: true
+  primary_dialog = document.querySelector('#primary_dialog');
+  dialogs['primary'] = primary_dialog;
+  if (! primary_dialog.showModal) {
+    dialogPolyfill.registerDialog(primary_dialog);
+  }
+  primary_dialog.querySelector('.close').addEventListener('click', function() {
+    primary_dialog.close();
+  });
+  secondary_dialog = document.querySelector('#secondary_dialog');
+  dialogs['secondary'] = secondary_dialog;
+  if (! secondary_dialog.showModal) {
+    dialogPolyfill.registerDialog(secondary_dialog);
+  }
+  secondary_dialog.querySelector('.close').addEventListener('click', function() {
+    secondary_dialog.close();
   });
 });
 
@@ -54,28 +66,39 @@ var errorHandler = function(request) {
 /**
  * Opens a dialog.
  */
-function showDialog(path) {
-  dialogPath = path;
-  $.get(path, function(data) {
-    dialog.html(data);
-  }).success(function() { dialog.dialog('open'); } )
-    .fail(function(request) { alert(request.responseText);  })
+function showDialog(path, dialog_key="primary", payload={}) {
+  dialog = dialogs[dialog_key];
+  $.data(dialog, "path", path);
+  $.get(path, payload, function(data) {
+    // inject dialog content into dialog container
+    $(dialog).html(data);
+    // enable MDL JS for dynamically added components
+    componentHandler.upgradeAllRegistered();
+  }).success(function() {
+    dialog.showModal();
+  }).fail(function(request) {
+    alert(request.responseText);
+  });
 }
 
 /**
- * Reloads the current dialog.
+ * Reloads a dialog.
  */
-function reloadDialog() {
-  $.get(dialogPath, function(data) {
-    dialog.html(data);
+function reloadDialog(dialog_key="primary") {
+  dialog = dialogs[dialog_key];
+  var path = $.data(dialog, "path");
+  $.get(path, function(data) {
+    $(dialog).html(data);
+    componentHandler.upgradeAllRegistered();
   }).fail(function(request) { alert(request.responseText);  })
 }
 
 /**
  * Closes current dialog.
  */
-function closeDialog() {
-  dialog.dialog('close');
+function closeDialog(dialog_key="primary") {
+  dialog = dialogs[dialog_key];
+  dialog.close();
 }
 
 /**

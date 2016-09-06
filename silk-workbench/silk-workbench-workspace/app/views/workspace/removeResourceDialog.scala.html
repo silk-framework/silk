@@ -1,0 +1,28 @@
+@(name: String, path: String)
+
+@widgets.dialog(title = "Delete", submitLabel = "Yes, delete it") {
+
+<p>
+  Delete resource: <span class="delete-dialog-resource">@name</span>
+</p>
+
+<script>//<![CDATA[
+
+    function submit() {
+      var path = decodeURIComponent("@path");
+      $.ajax({
+        type: 'DELETE',
+        url: path,
+        success: function(data) {
+          closeDialog("secondary");
+          reloadDialog("primary");
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+
+  //]]>
+  </script>
+}

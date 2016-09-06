@@ -19,6 +19,11 @@
     @printInput(generator.inputGenerators.source.input.build) - @printInput(generator.inputGenerators.target.input.build) - @generator.measure.build.toString
   }
 
+  <script>
+    function submit() {
+      closeDialog();
+    }
+  </script>
 }
 
 @printInput(input: Input) = @{ input match {

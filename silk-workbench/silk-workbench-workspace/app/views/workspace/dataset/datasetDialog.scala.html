@@ -1,16 +1,19 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.dataset.Dataset
 
-@(project: Project, datasetName: String, dataset: Option[Dataset])
+@(project: Project, datasetName: String, dataset: Option[Dataset], title: String = "Edit Dataset")
 
   @widgets.pluginDialog(
     name = datasetName,
     plugins = Dataset.availablePlugins,
     currentObj = dataset,
-    resources = project.resources.list) {
+    resources = project.resources.list,
+    title = title,
+    submitLabel = "Save",
+    secondaryLabel = "Autoconfigure") {
 
     <script type="text/javascript">
-      function submit(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters) {
         // Build dataset xml
         var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
         for(var i in parameters) {
@@ -31,7 +34,9 @@
 
       function autoConfigure(pluginId, name, parameters) {
         var queryString = $.param(parameters);
-        showDialog('@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString);
+        var path = '@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString;
+        closeDialog();
+        showDialog(path);
       }
     </script>
   }

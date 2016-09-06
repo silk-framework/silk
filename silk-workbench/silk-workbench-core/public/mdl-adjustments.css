@@ -77,7 +77,7 @@
 
 #toolbar label {
   font-size: 12px;
-  color: blue;
+  color: #3f51b5;
 }
 
 #error-icons {
@@ -415,4 +415,115 @@
 
 #link-candidate-wrapper .source-value, #link-candidate-wrapper .target-value {
   word-wrap: break-word;
+}
+
+
+/*
+* Dialogs
+*/
+
+.mdl-dialog {
+  /* overwriting the fixed width in eccenca_style.css */
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  min-width: 320px;
+}
+
+.mdl-dialog .mdl-data-table {
+  border: none;
+}
+
+.mdl-dialog .mdl-data-table td .mdl-textfield {
+  padding: 0px;
+}
+
+.mdl-dialog .mdl-data-table td {
+  border: none;
+  padding-top: 0px;
+}
+
+.mdl-dialog .mdl-data-table td, .mdl-dialog .mdl-data-table th {
+  padding: 0 18px 0 0;
+}
+
+.mdl-dialog__title .mdl-spinner {
+  float: right;
+  display: none;
+}
+
+.delete-dialog-resource {
+  font-weight: bold;
+}
+
+.prefix_dialog-prefix {
+  width: 100px;
+}
+
+.prefix_dialog-uri {
+  width: 400px;
+}
+
+.mdl-tabs__tab {
+  outline:none;
+}
+
+/* Plugin Dialog */
+
+#plugintabs .resource-tab {
+  width: 330px;
+}
+
+.no-data-avaliable {
+  color: red;
+  font-style: italic;
+}
+
+.dialog-form {
+  width: 330px;
+}
+
+/* Resource Dialog */
+
+#resource-resources-box {
+  padding: 10px 10px 5px 10px;
+  border: 1px solid rgba(0, 0, 0, .34);
+  border-radius: 3px;
+}
+
+
+.resource-chip {
+  color: rgba(0, 0, 0, .87);
+  background-color: rgba(0, 0, 0, 0.0588235);
+  border-radius: 16px;
+  line-height: 32px;
+  padding-left: 12px;
+  padding-right: 7px;
+  font-size: 13px;
+  margin: 0 5px 5px 0;
+  display: inline-block;
+}
+
+.resource-chip-icon {
+  background-color: rgba(0, 0, 0, .54);
+  color: #eee;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 2px;
+  border-radius: 8px;
+  vertical-align: middle;
+  margin-left: 2px;
+  cursor: pointer;
+}
+
+#resource-tab-panels .mdl-tabs__panel {
+  margin-top: 20px;
+}
+
+.mdl-file-upload {
+  padding: 20px 0;
+}
+
+.mdl-file-upload input {
+  font-size: 16px;
 }
