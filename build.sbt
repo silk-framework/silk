@@ -105,9 +105,17 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
     name := "Silk Plugins Asian"
   )
 
+lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Serialization JSON",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+  )
+
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"
