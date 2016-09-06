@@ -132,7 +132,7 @@ object DatasetTask {
   /**
    * XML serialization format.
    */
-  implicit object DatasetFormat extends XmlFormat[DatasetTask] {
+  implicit object DatasetTaskFormat extends XmlFormat[DatasetTask] {
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetTask = {
       implicit val prefixes = readContext.prefixes

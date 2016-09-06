@@ -1,8 +1,9 @@
 package controllers.workspace
 
+import controllers.util.SerializationUtils
 import models.JsonError
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.dataset.{DatasetTask, Dataset, DatasetPluginAutoConfigurable}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetTask}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.User
@@ -13,12 +14,10 @@ import plugins.Context
 
 object DatasetApi extends Controller {
 
-  def getDataset(projectName: String, sourceName: String) = Action {
+  def getDataset(projectName: String, sourceName: String) = Action { implicit request =>
     val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    val sourceXml = XmlSerialization.toXml(new DatasetTask(task.id, task.data))
-
-    Ok(sourceXml)
+    SerializationUtils.serialize(new DatasetTask(task.id, task.data))
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action {

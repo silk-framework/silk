@@ -3,6 +3,7 @@ package controllers.workspace
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
+import controllers.util.SerializationUtils
 import models.JsonError
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
@@ -12,6 +13,7 @@ import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
+
 import scala.language.existentials
 
 object ActivityApi extends Controller {
@@ -108,24 +110,10 @@ object ActivityApi extends Controller {
     }
   }
 
-  def getActivityValue(projectName: String, taskName: String, activityName: String) = Action { request =>
+  def getActivityValue(projectName: String, taskName: String, activityName: String) = Action { implicit request =>
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
-
-    val mimeTypes = request.acceptedTypes.map(t => t.mediaType + "/" + t.mediaSubType)
-    if (mimeTypes.isEmpty) {
-      // If no MIME type has been specified, we return XML
-      val serializeValue = Serialization.serialize(value, "application/xml")
-      Ok(serializeValue).as("application/xml")
-    } else {
-      mimeTypes.find(Serialization.hasSerialization(value, _)) match {
-        case Some(mimeType) =>
-          val serializeValue = Serialization.serialize(value, mimeType)
-          Ok(serializeValue).as(mimeType)
-        case None =>
-          NotAcceptable(value.toString)
-      }
-    }
+    SerializationUtils.serialize(value)
   }
 
   def recentActivities(maxCount: Int) = Action {
