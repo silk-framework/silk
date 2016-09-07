@@ -1,7 +1,8 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.serialization.{SerializationFormat, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import play.api.libs.json.{JsValue, Json}
+
 import scala.reflect.ClassTag
 
 /**
@@ -19,6 +20,13 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
     */
   def format(value: T, mimeType: String)(implicit writeContext: WriteContext[JsValue]): String = {
     Json.stringify(write(value))
+  }
+
+  /**
+    * Reads a value from a JSON string.
+    */
+  def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): T = {
+    read(Json.parse(value))
   }
 
 }

@@ -39,6 +39,16 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
 
   def clear(): Unit = plugin.clear()
 
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case ds: DatasetTask =>
+      id == ds.id && plugin == ds.plugin &&
+      minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+  }
+
+  override def toString = {
+    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+  }
+
   private class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0

@@ -1,7 +1,7 @@
 package org.silkframework.runtime.serialization
 
 import scala.reflect.ClassTag
-import scala.xml.Node
+import scala.xml.{Node, XML}
 
 /**
  * XML serialization format.
@@ -20,6 +20,13 @@ abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
     val printer = new scala.xml.PrettyPrinter(120, 2)
     val node = write(value)
     printer.format(node)
+  }
+
+  /**
+    * Reads a value from an XML string.
+    */
+  def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): T = {
+    read(XML.loadString(value))
   }
 
 }

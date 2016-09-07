@@ -1,5 +1,7 @@
 package org.silkframework.runtime.serialization
 
+import javax.activation.MimeType
+
 import scala.reflect.ClassTag
 
 /**
@@ -36,5 +38,10 @@ abstract class SerializationFormat[T: ClassTag, U] {
     * Formats a value as string.
     */
   def format(value: T, mimeType: String)(implicit writeContext: WriteContext[U]): String
+
+  /**
+    * Reads a value from a string.
+    */
+  def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): T
 
 }

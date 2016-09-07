@@ -3,6 +3,7 @@ package org.silkframework.runtime.serialization
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.PluginRegistry
 
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -22,11 +23,21 @@ object Serialization {
 
   def serialize(value: Any, mimeType: String): String = {
     implicit val writeContext = WriteContext[Any]()
-    serializationFormats.find(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType)) match {
+    find(value.getClass, mimeType).format(value, mimeType)
+  }
+
+  def deserialize[T: ClassTag](value: String, mimeType: String): T = {
+    implicit val readContext = ReadContext()
+    val valueType = implicitly[ClassTag[T]].runtimeClass
+    find(valueType, mimeType).fromString(value, mimeType).asInstanceOf[T]
+  }
+
+  private def find(valueType: Class[_], mimeType: String) = {
+    serializationFormats.find(f => f.serializedType == valueType && f.mimeTypes.contains(mimeType)) match {
       case Some(format) =>
-        format.format(value, mimeType)
+        format
       case None =>
-        throw new NoSuchElementException(s"No serialization format for type ${value.getClass} for content type $mimeType available.")
+        throw new NoSuchElementException(s"No serialization format for type $valueType for content type $mimeType available.")
     }
   }
 
