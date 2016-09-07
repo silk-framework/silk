@@ -1,9 +1,8 @@
 package org.silkframework.workspace.io
 
-import org.silkframework.config.{LinkSpec, TaskSpec, TransformSpec}
+import org.silkframework.config.{CustomTask, LinkSpec, TaskSpec, TransformSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.config.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
@@ -34,6 +33,7 @@ object WorkspaceIO {
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, project.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, project.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, project.id)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, project.id)
   }
 
   def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
