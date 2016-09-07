@@ -20,16 +20,14 @@ object DatasetApi extends Controller {
     SerializationUtils.serialize(new DatasetTask(task.id, task.data))
   }
 
-  def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action {
+  def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action { implicit request =>
     val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
     val datasetPlugin = task.data
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        val sourceXml = XmlSerialization.toXml(new DatasetTask(task.id, autoConfDataset))
-
-        Ok(sourceXml)
+        SerializationUtils.serialize(new DatasetTask(task.id, autoConfDataset))
       case _ =>
         NotImplemented(JsonError("The dataset type does not support auto-configuration."))
     }
