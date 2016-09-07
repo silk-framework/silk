@@ -7,7 +7,7 @@ import controllers.util.SerializationUtils
 import models.JsonError
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
@@ -111,6 +111,7 @@ object ActivityApi extends Controller {
   }
 
   def getActivityValue(projectName: String, taskName: String, activityName: String) = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serialize(value)

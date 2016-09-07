@@ -1,8 +1,8 @@
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset._
-import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.serialization.Serialization
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
+import play.api.libs.json.JsValue
 
 import scala.reflect.ClassTag
 
@@ -15,8 +15,11 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   private def verify[T: ClassTag](value: T) = {
     val mime = "application/json"
-    val serialized = Serialization.serialize(value, mime)
-    val deserialized = Serialization.deserialize[T](serialized, mime)
+    implicit val readContext = ReadContext()
+    implicit val writeContext = WriteContext[Any]()
+    val format = Serialization.formatForMime[T](mime)
+    val serialized = format.toString(value, mime)
+    val deserialized = format.fromString(serialized, mime)
     value should be (deserialized)
   }
 }

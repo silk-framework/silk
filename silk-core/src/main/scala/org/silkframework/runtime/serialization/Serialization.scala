@@ -4,7 +4,6 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.PluginRegistry
 
 import scala.reflect.ClassTag
-import scala.xml.Node
 
 /**
   * Utility class for serializing values.
@@ -17,23 +16,27 @@ object Serialization {
     formatTypes.map(_.apply())
   }
 
-  def hasSerialization(value: Any, mimeType: String): Boolean = {
-    serializationFormats.exists(f => f.serializedType == value.getClass && f.mimeTypes.contains(mimeType))
+  def hasSerialization(valueType: Class[_], mimeType: String): Boolean = {
+    serializationFormats.exists(f => f.valueType == valueType && f.mimeTypes.contains(mimeType))
   }
 
-  def serialize(value: Any, mimeType: String): String = {
-    implicit val writeContext = WriteContext[Any]()
-    find(value.getClass, mimeType).format(value, mimeType)
-  }
-
-  def deserialize[T: ClassTag](value: String, mimeType: String): T = {
-    implicit val readContext = ReadContext()
+  def formatForType[T: ClassTag, U: ClassTag]: SerializationFormat[T, U] = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
-    find(valueType, mimeType).fromString(value, mimeType).asInstanceOf[T]
+    val serializedType = implicitly[ClassTag[U]].runtimeClass
+    serializationFormats.find(f => f.valueType == valueType && f.serializedType == serializedType) match {
+      case Some(format) =>
+        format.asInstanceOf[SerializationFormat[T, U]]
+      case None =>
+        throw new NoSuchElementException(s"No serialization format for type $valueType for serialization type $serializedType available.")
+    }
   }
 
-  private def find(valueType: Class[_], mimeType: String) = {
-    serializationFormats.find(f => f.serializedType == valueType && f.mimeTypes.contains(mimeType)) match {
+  def formatForMime[T: ClassTag](mimeType: String): SerializationFormat[T, Any] = {
+    formatForMime(implicitly[ClassTag[T]].runtimeClass, mimeType).asInstanceOf[SerializationFormat[T, Any]]
+  }
+
+  def formatForMime(valueType: Class[_], mimeType: String): SerializationFormat[Any, Any] = {
+    serializationFormats.find(f => f.valueType == valueType && f.mimeTypes.contains(mimeType)) match {
       case Some(format) =>
         format
       case None =>
