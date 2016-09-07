@@ -37,7 +37,7 @@ object SerializationUtils {
   /**
     * Tries to deserialize the value found in the request.
     *
-    * @param defaultMimeType The MIME type to be used if the accept header specifies none or accepts any
+    * @param defaultMimeType The MIME type to be used if the content-type header specifies none or accepts any
     * @param func The user provided function to be executed with the parsed value.
     * @param request The HTTP request to get the value from.
     * @param project The project
