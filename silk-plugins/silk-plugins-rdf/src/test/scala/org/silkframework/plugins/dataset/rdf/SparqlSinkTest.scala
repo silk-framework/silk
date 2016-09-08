@@ -12,10 +12,10 @@ class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {
 
   it should "generate valid statements based on the lexical value representation" in {
     val sink = new SparqlSink(SparqlParams(), mock[SparqlEndpoint])
-    sink.buildStatementString("http://a", "http://b", "test") should endWith (" \"test\" .")
-    sink.buildStatementString("http://a", "http://b", "123") should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .")
-    sink.buildStatementString("http://a", "http://b", "123.45") should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .")
-    sink.buildStatementString("http://a", "http://b", "http://url.org") should endWith (" <http://url.org> .")
-    sink.buildStatementString("http://a", "http://b", "http://url.org Some Text") should endWith (" \"http://url.org Some Text\" .")
+    sink.buildStatementString("http://a", "http://b", "test") should endWith (" \"test\" .\n")
+    sink.buildStatementString("http://a", "http://b", "123") should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n")
+    sink.buildStatementString("http://a", "http://b", "123.45") should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
+    sink.buildStatementString("http://a", "http://b", "http://url.org") should endWith (" <http://url.org> .\n")
+    sink.buildStatementString("http://a", "http://b", "http://url.org Some Text") should endWith (" \"http://url.org Some Text\" .\n")
   }
 }
