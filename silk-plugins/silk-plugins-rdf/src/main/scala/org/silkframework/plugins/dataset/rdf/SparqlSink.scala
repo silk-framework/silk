@@ -95,7 +95,7 @@ class SparqlSink(params: SparqlParams,
     }
 
     val stmtString: String = buildStatementString(subject, property, value)
-    body.append(stmtString).append("\n")
+    body.append(stmtString)
     statements += 1
   }
 

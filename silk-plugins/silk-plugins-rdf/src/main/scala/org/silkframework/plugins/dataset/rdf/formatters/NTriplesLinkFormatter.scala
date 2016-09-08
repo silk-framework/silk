@@ -19,11 +19,11 @@ import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
-  override def format(link: Link, predicateUri: String) = {
+  override def format(link: Link, predicateUri: String): String = {
     "<" + link.source + ">  <" + predicateUri + ">  <" + link.target + "> .\n"
   }
 
-  override def formatLiteralStatement(subject: String, predicate: String, value: String) = {
-    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value) + "\n"
+  override def formatLiteralStatement(subject: String, predicate: String, value: String): String = {
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value)
   }
 }
