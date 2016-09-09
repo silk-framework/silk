@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
   *
   * @tparam T The underlying type of this datatype, e.g., Int
   */
-sealed abstract class ParameterType[T : ClassTag] {
+sealed abstract class ParameterType[T: ClassTag] {
 
   /**
     * The underlying type.
@@ -26,20 +26,20 @@ sealed abstract class ParameterType[T : ClassTag] {
   /**
     * User-readable description of this type to be displayed.
     */
-  def description = ""
+  def description: String = ""
 
   def hasType(givenType: Type): Boolean = {
     givenType match {
       case pt: ParameterizedType => pt.getRawType.toString == dataType.toString
-      case t => t.toString == dataType.toString
+      case t: Type => t.toString == dataType.toString
     }
   }
 
   /**
     * Parses a value from its string representation.
     *
-    * @param str The string representation.
-    * @param prefixes The current prefixes for resolving prefixed names
+    * @param str            The string representation.
+    * @param prefixes       The current prefixes for resolving prefixed names
     * @param resourceLoader The current resources for resolving resource references.
     * @return Either returns the parsed value or throws an exception.
     */
@@ -52,12 +52,12 @@ sealed abstract class ParameterType[T : ClassTag] {
     * @param value The value to be serialized.
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
-  def toString(value: T): String = if(value == null) "" else value.toString
+  def toString(value: T): String = Option(value) map (_.toString) getOrElse ""
 
   /**
     * Short name of this type.
     */
-  override def toString = dataType.getSimpleName
+  override def toString: String = dataType.getSimpleName
 
 }
 
@@ -80,17 +80,17 @@ object ParameterType {
     */
   def forType(dataType: Type): ParameterType[_] = {
     dataType match {
-      case enumClass: Class[_] if enumClass.isEnum  =>
+      case enumClass: Class[_] if enumClass.isEnum =>
         EnumerationType(enumClass)
       case _ =>
         allStaticTypes.find(_.hasType(dataType))
-          .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+            .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
     }
   }
 
   object StringType extends ParameterType[String] {
 
-    override def description = "A character string."
+    override def description: String = "A character string."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): String = {
       str
@@ -100,18 +100,22 @@ object ParameterType {
 
   object CharType extends ParameterType[Char] {
 
-    override def description = "A single character."
+    override def description: String = "A single character."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
-      if(str.length == 1) str(0)
-      else throw new ValidationException("Value must be a single character.")
+      if (str.length == 1) {
+        str(0)
+      }
+      else {
+        throw new ValidationException("Value must be a single character.")
+      }
     }
 
   }
 
   object IntType extends ParameterType[Int] {
 
-    override def description = "An integer number."
+    override def description: String = "An integer number."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
       str.toInt
@@ -121,7 +125,7 @@ object ParameterType {
 
   object DoubleType extends ParameterType[Double] {
 
-    override def description = "A floating-point number."
+    override def description: String = "A floating-point number."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
       str.toDouble
@@ -131,7 +135,7 @@ object ParameterType {
 
   object BooleanType extends ParameterType[Boolean] {
 
-    override def description = "Either true or false."
+    override def description: String = "Either true or false."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
       str.toLowerCase match {
@@ -145,12 +149,14 @@ object ParameterType {
 
   object StringMapType extends ParameterType[Map[String, String]] {
 
+    private val utf8: String = "UTF8"
+
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
-      str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), "UTF8"), URLDecoder.decode(v(1), "UTF8"))).toMap
+      str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
     }
 
     override def toString(value: Map[String, String]): String = {
-      val strValues = for((k, v) <- value) yield URLEncoder.encode(k, "UTF8") + ":" + URLEncoder.encode(v, "UTF8")
+      val strValues = for ((k, v) <- value) yield URLEncoder.encode(k, utf8) + ":" + URLEncoder.encode(v, utf8)
       strValues.mkString(",")
     }
 
@@ -158,7 +164,7 @@ object ParameterType {
 
   object UriType extends ParameterType[Uri] {
 
-    override def description = "Either a full URI or a prefixed name."
+    override def description: String = "Either a full URI or a prefixed name."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
       Uri.parse(str, prefixes)
@@ -167,33 +173,35 @@ object ParameterType {
 
   object ResourceType extends ParameterType[Resource] {
 
-    override def description = "Either the name of a project resource or a full URI."
+    override def description: String = "Either the name of a project resource or a full URI."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
-      if(str.trim.isEmpty)
+      if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
-      else
+      } else {
         resourceLoader.get(str, mustExist = true)
+      }
     }
 
   }
 
   object WritableResourceType extends ParameterType[WritableResource] {
 
-    override def description = "Either the name of a project resource or a full URI."
+    override def description: String = "Either the name of a project resource or a full URI."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
-      if(str.trim.isEmpty)
+      if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
-      else
+      } else {
         resourceLoader.get(str, mustExist = false)
+      }
     }
 
   }
 
   object TaskReferenceType extends ParameterType[TaskReference] {
 
-    override def description = "The name of a task in the same project."
+    override def description: String = "The name of a task in the same project."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
       TaskReference(Identifier(str))
@@ -212,12 +220,11 @@ object ParameterType {
 
     private val valueList = enumConstants.map(_.name).mkString(", ")
 
-    override def description = "One of the following values: " + valueList
+    override def description: String = "One of the following values: " + valueList
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager) = {
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
       enumConstants.find(_.name == str.trim)
-        .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+          .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
   }
-
 }

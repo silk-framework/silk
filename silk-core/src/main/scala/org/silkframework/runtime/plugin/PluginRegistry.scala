@@ -60,7 +60,9 @@ object PluginRegistry {
     * @tparam T The type of the plugin.
     * @return The plugin instance, if the given config path is set.
     */
-  def createFromConfigOption[T: ClassTag](configPath: String)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): Option[T] = {
+  def createFromConfigOption[T: ClassTag](configPath: String)
+                                         (implicit prefixes: Prefixes = Prefixes.empty,
+                                          resources: ResourceManager = EmptyResourceManager): Option[T] = {
     val config = Config().getConfig(configPath)
     if(!config.hasPath("plugin")) {
       None
@@ -83,7 +85,7 @@ object PluginRegistry {
   def reflect(pluginInstance: AnyRef): (PluginDescription[_], Map[String, String]) = {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters =
-      for(param <- desc.parameters if param(pluginInstance) != null) yield
+      for(param <- desc.parameters if param(pluginInstance).isDefined) yield
         (param.name, param.stringValue(pluginInstance))
     (desc, parameters.toMap)
   }

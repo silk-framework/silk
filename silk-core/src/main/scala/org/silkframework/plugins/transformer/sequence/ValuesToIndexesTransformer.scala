@@ -23,7 +23,7 @@ import org.silkframework.runtime.plugin.Plugin
       """
 )
 class ValuesToIndexesTransformer extends Transformer {
-  override def apply(values: Seq[Seq[String]]) = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.zipWithIndex map { _._2.toString }
   }
 }
