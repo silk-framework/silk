@@ -24,7 +24,7 @@ import org.silkframework.plugins.distance.equality._
 import org.silkframework.plugins.distance.numeric._
 import org.silkframework.plugins.distance.tokenbased._
 import org.silkframework.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
-import org.silkframework.plugins.transformer.conditional.{IfContains, IfExists}
+import org.silkframework.plugins.transformer.conditional.{IfMatchesRegexTransformer, IfContains, IfExists}
 import org.silkframework.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.plugins.transformer.date._
 import org.silkframework.plugins.transformer.extraction.RegexExtractionTransformer
@@ -33,6 +33,7 @@ import org.silkframework.plugins.transformer.linguistic._
 import org.silkframework.plugins.transformer.normalize._
 import org.silkframework.plugins.transformer.numeric._
 import org.silkframework.plugins.transformer.replace.{MapTransformer, MapTransformerWithDefaultInput, RegexReplaceTransformer, ReplaceTransformer}
+import org.silkframework.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.plugins.transformer.sequence.{GetValueByIndexTransformer, ValuesToIndexesTransformer}
 import org.silkframework.plugins.transformer.substring._
 import org.silkframework.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
@@ -98,6 +99,7 @@ class CorePlugins extends PluginModule {
     // Conditional
     classOf[IfContains] ::
     classOf[IfExists] ::
+    classOf[IfMatchesRegexTransformer] ::
     // Numeric
     classOf[NumReduceTransformer] ::
     classOf[NumOperationTransformer] ::
@@ -124,6 +126,8 @@ class CorePlugins extends PluginModule {
     // Sequence
     classOf[GetValueByIndexTransformer] ::
     classOf[ValuesToIndexesTransformer] ::
+    // Selection
+    classOf[RegexSelectTransformer] ::
     Nil
 
   private def measures =

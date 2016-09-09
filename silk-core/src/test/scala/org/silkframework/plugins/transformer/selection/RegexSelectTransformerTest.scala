@@ -19,4 +19,14 @@ class RegexSelectTransformerTest extends FlatSpec with MustMatchers {
     )
     t.apply(inputs) mustBe Seq(outputValue, "", outputValue)
   }
+
+  it must "return only first match position if oneOnly==true" in {
+    val t = RegexSelectTransformer(oneOnly = true)
+    val inputs = Seq(
+      Seq(outputValue),
+      Seq("a", "b", "c"),
+      Seq("catch")
+    )
+    t.apply(inputs) mustBe Seq(outputValue, "", "")
+  }
 }

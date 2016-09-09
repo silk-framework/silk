@@ -43,17 +43,22 @@ import org.silkframework.runtime.plugin.Plugin
       The result of the transformer is a sequence with the same length of number of regexes.
       For the output value (of the first input) is set to each position in this sequence where
       the related regex also matched.
+
+      If oneOnly is true only the position of the <strong>first</strong> matching regex will be set to the output value.
     """
 )
-case class RegexSelectTransformer() extends Transformer {
+case class RegexSelectTransformer(oneOnly: Boolean = false) extends Transformer {
   override def apply(inputs: Seq[Seq[String]]): Seq[String] = {
     require(inputs.size == 3, "The ")
     require(inputs.head.nonEmpty, "The first input needs to have at least one value!")
     require(inputs(2).nonEmpty, "The 3. input needs to have at least one value!")
     val outputValue = inputs.head.head
     val valueToCheck = inputs(2).head
+    var oneMatched = false
+    def tryMore: Boolean = !oneOnly || !oneMatched
     val outputs = inputs(1) map { regex =>
-      if(regex.r.findFirstMatchIn(valueToCheck).isDefined) {
+      if(tryMore && regex.r.findFirstMatchIn(valueToCheck).isDefined) {
+        oneMatched = true
         outputValue
       } else {
         ""
