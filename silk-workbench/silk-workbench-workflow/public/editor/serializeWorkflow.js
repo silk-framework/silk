@@ -60,6 +60,10 @@ function serializeWorkflowOperator(op, xml, type) {
     taskId = op.id
   }
   operatorXml.setAttribute("task", taskId);
+  var outputPriority = $(op).attr("output_priority")
+  if(outputPriority) {
+    operatorXml.setAttribute("outputPriority", outputPriority);
+  }
   operatorXml.setAttribute("id", op.id);
   operatorXml.setAttribute("inputs", sources);
   operatorXml.setAttribute("outputs", targets);
