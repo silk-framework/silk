@@ -39,10 +39,10 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe testWorkflow.WorkflowDependencyGraph(
       startNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA1", List(), (0, 0), "dsA1")),
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA2", List(), (0, 0), "dsA2"))),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA1", List(), (0, 0), "dsA1", None)),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA2", List(), (0, 0), "dsA2", None))),
       endNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "output", List(), (0, 0), "output"))))
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "output", List(), (0, 0), "output", None))))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == "dsA1").head
     intercept[IllegalStateException] {
       dsA1.addFollowingNode(null)
@@ -141,10 +141,10 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   }
 
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId)
+    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, None)
   }
 
   def dataset(task: String, nodeId: String): WorkflowDataset = {
-    WorkflowDataset(Seq(), task, Seq(), (0, 0), nodeId)
+    WorkflowDataset(Seq(), task, Seq(), (0, 0), nodeId, None)
   }
 }

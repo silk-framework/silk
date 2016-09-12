@@ -33,8 +33,18 @@ sealed trait WorkflowNode {
     * This is necessary since a task can be used multiple times in a workflow.
     */
   def nodeId: NodeReference
+
+  def outputPriority: Option[Double]
 }
 
-case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference], task: String, outputs: Seq[WorkflowNode#NodeReference], errorOutputs: Seq[String], position: (Int, Int), nodeId: WorkflowNode#NodeReference) extends WorkflowNode
+case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
+                            task: String, outputs: Seq[WorkflowNode#NodeReference],
+                            errorOutputs: Seq[String], position: (Int, Int),
+                            nodeId: WorkflowNode#NodeReference,
+                            outputPriority: Option[Double]) extends WorkflowNode
 
-case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference], task: String, outputs: Seq[WorkflowNode#NodeReference], position: (Int, Int), nodeId: WorkflowNode#NodeReference) extends WorkflowNode
+case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
+                           task: String, outputs: Seq[WorkflowNode#NodeReference],
+                           position: (Int, Int),
+                           nodeId: WorkflowNode#NodeReference,
+                           outputPriority: Option[Double]) extends WorkflowNode

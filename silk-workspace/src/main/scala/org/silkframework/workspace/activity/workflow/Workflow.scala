@@ -6,7 +6,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.xml.Node
+import scala.xml.{Text, Elem, Node}
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
@@ -19,12 +19,12 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
-  def nodeById(nodeId: String) = {
+  def nodeById(nodeId: String): WorkflowNode = {
     nodes.find(_.nodeId == nodeId)
         .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
   }
 
-  def toXML = {
+  def toXML: Elem = {
     <Workflow id={id.toString}>
       {for (op <- operators) yield {
         <Operator
@@ -34,7 +34,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         inputs={op.inputs.mkString(",")}
         outputs={op.outputs.mkString(",")}
         errorOutputs={op.errorOutputs.mkString(",")}
-        id={op.nodeId}/>
+        id={op.nodeId}
+        outputPriority={op.outputPriority map (priority => Text(priority.toString))}
+        />
     }}{for (ds <- datasets) yield {
         <Dataset
         posX={ds.position._1.toString}
@@ -42,7 +44,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         task={ds.task}
         inputs={ds.inputs.mkString(",")}
         outputs={ds.outputs.mkString(",")}
-        id={ds.nodeId}/>
+        id={ds.nodeId}
+        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
+        />
     }}
     </Workflow>
   }
@@ -59,9 +63,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     val (start, rest) = nodes.partition(node => pureOutputNodes.contains(node.nodeId))
     sortedOperators ++= start
     var operatorsToSort = rest
-    while (operatorsToSort.size > 0) {
+    while (operatorsToSort.nonEmpty) {
       val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
-      if (satisfied.size == 0) {
+      if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow " + id.toString + "!")
       }
       sortedOperators ++= satisfied
@@ -106,7 +110,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       }
     }
     // Make immutable
-    workflowNodeMap.map(_._2.setToImmutable())
+    workflowNodeMap.foreach(_._2.setToImmutable())
     workflowNodeMap
   }
 
@@ -130,7 +134,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         datasetTask.id.toString
       }
     val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet
-    if (bothInAndOut.size > 0) {
+    if (bothInAndOut.nonEmpty) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
     AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
@@ -186,9 +190,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       mutableNode = false
     }
 
-    def nodeId = workflowNode.nodeId
+    def nodeId: String = workflowNode.nodeId
 
-    def isMutable = mutableNode
+    def isMutable: Boolean = mutableNode
 
     def addPrecedingNode(node: WorkflowDependencyNode): Unit = {
       if (isMutable) {
@@ -206,9 +210,9 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       }
     }
 
-    def followingNodes = _followingNodes
+    def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
 
-    def precedingNodes = _precedingNodes
+    def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
 
     def inputNodes: Seq[WorkflowDependencyNode] = {
       for (
@@ -233,9 +237,26 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
 
 object Workflow {
 
-  def fromXML(xml: Node) = {
-    val id = (xml \ "@id").text
+  private def parseOutputPriority(op: Node): Option[Double] = {
+    val node = ((op \ "@outputPriority"))
+    if (node.isEmpty) {
+      None
+    } else {
+      Some(node.text.toDouble)
+    }
+  }
 
+  private def parseNodeId(op: Node, task: String): String = {
+    val node = ((op \ "@id"))
+    if (node.isEmpty) {
+      task
+    } else {
+      node.text
+    }
+  }
+
+  def fromXML(xml: Node): Workflow = {
+    val id = (xml \ "@id").text
     val operators =
       for (op <- xml \ "Operator") yield {
         val inputStr = (op \ "@inputs").text
@@ -248,14 +269,8 @@ object Workflow {
           outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
           position = ( Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt ),
-          nodeId = {
-            val node = ((op \ "@id"))
-            if (node.isEmpty) {
-              task
-            } else {
-              node.text
-            }
-          }
+          nodeId = parseNodeId(op, task),
+          outputPriority = parseOutputPriority(op)
         )
       }
 
@@ -269,14 +284,8 @@ object Workflow {
           task = task,
           outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
-          nodeId = {
-            val node = ((ds \ "@id"))
-            if (node.isEmpty) {
-              task
-            } else {
-              node.text
-            }
-          }
+          nodeId = parseNodeId(ds, task),
+          outputPriority = parseOutputPriority(ds)
         )
       }
 
