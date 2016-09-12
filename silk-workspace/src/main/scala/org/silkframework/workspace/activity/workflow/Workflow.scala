@@ -78,6 +78,8 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   /**
     * Returns a dependency graph that can be traversed from the start or end nodes and consists of
     * double linked nodes.
+    *
+    * The end nodes are sorted (ASC) by output priority.
     */
   lazy val workflowDependencyGraph: WorkflowDependencyGraph = {
     // Test if this graph can be topologically sorted
@@ -88,8 +90,23 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     val endNodes = inputs.toSet -- outputs
     val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
     val startDependencyNodes = startNodes.map(workflowNodeMap)
-    val endDependencyNodes = endNodes.map(workflowNodeMap)
+    val endDependencyNodes = sortWorkflowNodesByOutputPriority(endNodes.map(workflowNodeMap).toSeq)
     WorkflowDependencyGraph(startDependencyNodes, endDependencyNodes)
+  }
+
+  def sortWorkflowNodesByOutputPriority(nodes: Seq[WorkflowDependencyNode]): Seq[WorkflowDependencyNode] = {
+    nodes.sortWith { case (left, right) =>
+      (left.workflowNode.outputPriority, right.workflowNode.outputPriority) match {
+        case (None, None) =>
+          left.nodeId < right.nodeId
+        case (Some(_), None) =>
+          true
+        case (None, Some(_)) =>
+          false
+        case (Some(leftPrio), Some(rightPrio)) =>
+          leftPrio <= rightPrio
+      }
+    }
   }
 
   private def constructNodeMap: Map[String, WorkflowDependencyNode] = {
@@ -171,7 +188,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
 
   case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
-                                     endNodes: Iterable[WorkflowDependencyNode])
+                                     endNodes: Seq[WorkflowDependencyNode])
 
   /**
     * Since this class is spanning a double linked graph, this node needs to be mutable
