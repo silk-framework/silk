@@ -85,7 +85,7 @@ object PluginRegistry {
   def reflect(pluginInstance: AnyRef): (PluginDescription[_], Map[String, String]) = {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters =
-      for(param <- desc.parameters if param(pluginInstance).isDefined) yield
+      for(param <- desc.parameters if param(pluginInstance) != null) yield
         (param.name, param.stringValue(pluginInstance))
     (desc, parameters.toMap)
   }

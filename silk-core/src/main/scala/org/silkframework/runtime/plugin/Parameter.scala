@@ -25,14 +25,14 @@ case class Parameter(name: String,
   /**
    * Retrieves the current value of this parameter.
    */
-  def apply(obj: AnyRef): Option[AnyRef] = {
-    Option(obj.getClass.getMethod(name).invoke(obj))
+  def apply(obj: AnyRef): AnyRef = {
+    obj.getClass.getMethod(name).invoke(obj)
   }
 
   /**
     * Retrieves the current value of this parameter as string.
     */
   def stringValue(obj: AnyRef): String = {
-    dataType.asInstanceOf[ParameterType[AnyRef]].toString(apply(obj).orNull)
+    dataType.asInstanceOf[ParameterType[AnyRef]].toString(apply(obj))
   }
 }
