@@ -1,16 +1,13 @@
 package org.silkframework.workspace.xml
 
-import java.io._
-import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
-
 import org.silkframework.config._
-import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
-import scala.xml.{Text, XML}
+import scala.xml.XML
 
 /**
   * Holds all projects in a xml-based file structure.

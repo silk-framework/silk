@@ -56,6 +56,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
   override def delete(name: String): Unit = {
     resources -= name
+    children -= name
   }
 
   /**
@@ -63,7 +64,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     */
   private class InMemoryResource(val name: String, val path: String) extends WritableResource {
 
-    override def exists = resources.contains(name)
+    override def exists: Boolean = resources.contains(name)
 
     override def load: InputStream = {
       resources.get(name) match {
