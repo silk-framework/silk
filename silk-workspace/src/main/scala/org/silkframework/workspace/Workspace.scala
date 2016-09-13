@@ -43,7 +43,10 @@ class Workspace(val provider: WorkspaceProvider) {
   def createProject(name: Identifier): Project = {
     require(!cachedProjects.exists(_.name == name), "A project with the name '" + name + "' already exists")
 
-    val projectConfig = ProjectConfig(name)
+    val projectConfig = {
+      val c = ProjectConfig(name)
+      c.copy(projectResourceUriOpt = Some(c.generateDefaultUri))
+    }
     provider.putProject(projectConfig)
     val newProject = new Project(projectConfig, provider)
     cachedProjects :+= newProject

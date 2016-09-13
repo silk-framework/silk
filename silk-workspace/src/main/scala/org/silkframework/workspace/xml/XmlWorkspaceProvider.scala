@@ -10,7 +10,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
-import scala.xml.XML
+import scala.xml.{Text, XML}
 
 /**
   * Holds all projects in a xml-based file structure.
@@ -36,13 +36,15 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     for(projectName <- res.listChildren) yield {
       val configXML = XML.load(res.child(projectName).get("config.xml").load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
-      ProjectConfig(projectName, prefixes)
+      val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
+      ProjectConfig(projectName, prefixes, resourceURI)
     }
   }
 
   override def putProject(config: ProjectConfig): Unit = {
+    val uri = config.resourceUriOrElseDefaultUri
     val configXMl =
-      <ProjectConfig>
+      <ProjectConfig resourceUri={uri}>
         { config.prefixes.toXML }
       </ProjectConfig>
     res.child(config.id).get("config.xml").write { os => configXMl.write(os) }

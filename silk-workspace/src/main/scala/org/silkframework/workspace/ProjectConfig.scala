@@ -14,7 +14,37 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.Prefixes
+import java.util.logging.Logger
+
+import com.typesafe.config.ConfigException
+import org.silkframework.config.{SilkVocab, Config, Prefixes}
 import org.silkframework.util.Identifier
 
-case class ProjectConfig(id: Identifier = Identifier.random, prefixes: Prefixes = Prefixes.default)
+/**
+  * The project specific config.
+  *
+  * @param id
+  * @param prefixes Prefixes that can be used in qualified names instead of providing full URIs.
+  * @param projectResourceUriOpt The URI of the project. Usually this is formed by the id and the config parameter
+  *                           project.resourceUriPrefix. This URI usually does not change anymore, once it is set.
+  */
+case class ProjectConfig(id: Identifier = Identifier.random,
+                         prefixes: Prefixes = Prefixes.default,
+                         projectResourceUriOpt: Option[String] = None) {
+  private val log: Logger = Logger.getLogger(getClass.getName)
+
+  def generateDefaultUri: String = {
+    try {
+      Config().getString("project.resourceUriPrefix") + id.toString
+    } catch {
+      case e: ConfigException.Missing =>
+        log.warning("Application parameter project.resourceUriPrefix is not set. Using default prefix.")
+        "urn:silkframework:project:" + id.toString
+    }
+  }
+
+  /** Returns the project resource URI if set or generates the default URI for this project. */
+  def resourceUriOrElseDefaultUri: String = {
+    projectResourceUriOpt.getOrElse(generateDefaultUri)
+  }
+}

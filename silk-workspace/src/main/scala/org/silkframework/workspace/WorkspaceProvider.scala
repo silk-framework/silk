@@ -18,7 +18,7 @@ trait WorkspaceProvider {
   /**
    * Adds/Updates a project.
    */
-  def putProject(project: ProjectConfig): Unit
+  def putProject(projectConfig: ProjectConfig): Unit
 
   /**
    * Deletes a project.
