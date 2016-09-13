@@ -43,10 +43,22 @@
 }
 
 @content = {
-  <div id="ruleContainer" class="mdl-shadow--2dp">
-    @for(rule <- context.task.data.rules) {
-      @renderRule(rule)
-    }
+  <div id="ruleContainer">
+    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+      <thead>
+        <tr>
+          <th class="mdl-data-table__cell--non-numeric">Name</th>
+          <th class="mdl-data-table__cell--non-numeric">Rule Type</th>
+          <th class="mdl-data-table__cell--non-numeric">Source</th>
+          <th class="mdl-data-table__cell--non-numeric">Target</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for(rule <- context.task.data.rules) {
+          @renderRule(rule)
+        }
+      </tbody>
+    </table>
   </div>
 
   <div id="uriMappingTemplate" style="display: none">
@@ -73,13 +85,14 @@
   </div>
 }
 
-@renderRule(rule: TransformRule) = @{ rule match {
-  case r: DirectMapping => renderDirectRule(r)
-  case r: UriMapping => renderUriRule(r)
-  case r: ObjectMapping => renderObjectRule(r)
-  case r: TypeMapping => renderTypeRule(r)
-  case r: ComplexMapping => renderComplexRule(r)
-}}
+@renderRule(rule: TransformRule) = {
+  <tr>
+    <td class="mdl-data-table__cell--non-numeric">@rule.name</td>
+    <td class="mdl-data-table__cell--non-numeric">@rule.typeString Mapping</td>
+    <td class="mdl-data-table__cell--non-numeric">lorem</td>
+    <td class="mdl-data-table__cell--non-numeric">@rule.targetProperty.serialize(prefixes())</td>
+  </tr>
+}
 
 @renderDirectRule(rule: DirectMapping) = {
   <div class="transformRule directMapping">
