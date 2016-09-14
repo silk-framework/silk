@@ -43,8 +43,15 @@
 }
 
 @content = {
+  <div id="types">
+    @for(rule <- context.task.data.rules) {
+      @if(rule.typeString == "Type") {
+        @renderTypeRule(rule.asInstanceOf[TypeMapping])
+      }
+    }
+  </div>
   <div id="ruleContainer">
-    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
       <thead>
         <tr>
           <th class="mdl-data-table__cell--non-numeric">Name</th>
@@ -55,33 +62,12 @@
       </thead>
       <tbody>
         @for(rule <- context.task.data.rules) {
-          @renderRule(rule)
+          @if(rule.typeString != "Type") {
+            @renderRule(rule)
+          }
         }
       </tbody>
     </table>
-  </div>
-
-  <div id="uriMappingTemplate" style="display: none">
-    @renderRule(UriMapping())
-  </div>
-
-  <div id="typeMappingTemplate" style="display: none">
-    @renderRule(TypeMapping())
-  </div>
-
-  <div id="directMappingTemplate" style="display: none">
-  @renderRule(DirectMapping())
-  </div>
-
-  <div id="objectMappingTemplate" style="display: none">
-  @renderRule(ObjectMapping())
-  </div>
-
-  <div id="dialogDelete" title="Confirm">
-    <p>
-      <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
-      Delete transformation rule?
-    </p>
   </div>
 }
 
@@ -89,161 +75,45 @@
   <tr>
     <td class="mdl-data-table__cell--non-numeric">@rule.name</td>
     <td class="mdl-data-table__cell--non-numeric">@rule.typeString Mapping</td>
-    <td class="mdl-data-table__cell--non-numeric">lorem</td>
-    <td class="mdl-data-table__cell--non-numeric">@rule.targetProperty.serialize(prefixes())</td>
+      @{ rule match {
+        case r: DirectMapping => renderDirectRule(r)
+        case r: UriMapping => renderUriRule(r)
+        case r: ObjectMapping => renderObjectRule(r)
+        case r: ComplexMapping => renderComplexRule(r)
+        case _ =>
+      }}
   </tr>
 }
 
 @renderDirectRule(rule: DirectMapping) = {
-  <div class="transformRule directMapping">
-    <div class="ruleTitle">
-      Direct Mapping
-      @renderRuleButtons()
-    </div>
-    <div class="ruleContents">
-      <table style="width:100%">
-        <tr>
-          <th>Name</th>
-          <th>Source Path</th>
-          <th>Target Property</th>
-        </tr>
-        <tr>
-          <td>
-            <input class="name" value="@rule.name" size="16" style="width:100%" />
-          </td>
-          <td>
-            <input class="source" value="@rule.sourcePath.serializeSimplified(prefixes())" style="width:100%" />
-          </td>
-          <td style="padding-right: 10px">
-            <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
-          </td>
-        </tr>
-      </table>
-    </div>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </div>
+  <td class="mdl-data-table__cell--non-numeric">@rule.sourcePath.serializeSimplified(prefixes())</td>
+  <td class="mdl-data-table__cell--non-numeric">@rule.targetProperty.serialize(prefixes())</td>
 }
 
 @renderUriRule(rule: UriMapping) = {
-  <div class="transformRule uriMapping">
-    <div class="ruleTitle">
-      URI Mapping
-      @renderRuleButtons()
-    </div>
-    <div class="ruleContents">
-      <table style="width:100%">
-        <tr>
-          <th>Name</th>
-          <th>Pattern</th>
-        </tr>
-        <tr>
-          <td>
-            <input class="name" value="@rule.name" size="16" style="width:100%" />
-          </td>
-          <td style="padding-right: 10px">
-            <input class="pattern" value="@rule.pattern" size="45" style="width:100%" />
-          </td>
-        </tr>
-      </table>
-    </div>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </div>
+  <td class="mdl-data-table__cell--non-numeric">@rule.pattern</td>
+  <td class="mdl-data-table__cell--non-numeric">---</td>
 }
 
 @renderObjectRule(rule: ObjectMapping) = {
-  <div class="transformRule objectMapping">
-    <div class="ruleTitle">
-      Object Mapping
-      @renderRuleButtons()
-    </div>
-    <div class="ruleContents">
-      <table style="width:100%">
-        <tr>
-          <th>Name</th>
-          <th>Pattern</th>
-          <th>Target</th>
-        </tr>
-        <tr>
-          <td>
-            <input class="name" value="@rule.name" size="16" style="width:100%" />
-          </td>
-          <td>
-            <input class="pattern" value="@rule.pattern" style="width:100%" />
-          </td>
-          <td style="padding-right: 10px">
-            <input class="target" value="@rule.targetProperty.serialize(prefixes())" style="width:100%" />
-          </td>
-        </tr>
-      </table>
-    </div>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </div>
+  <td class="mdl-data-table__cell--non-numeric">@rule.pattern</td>
+  <td class="mdl-data-table__cell--non-numeric">@rule.targetProperty.serialize(prefixes())</td>
 }
 
 @renderTypeRule(rule: TypeMapping) = {
-  <div class="transformRule typeMapping">
-    <div class="ruleTitle">
-      Type Mapping
-      @renderRuleButtons()
-    </div>
-    <div class="ruleContents">
-      <table style="width:100%">
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-        </tr>
-        <tr>
-          <td>
-            <input class="name" value="@rule.name" size="16" style="width:100%" />
-          </td>
-          <td style="padding-right: 10px">
-            <input class="type" value="@rule.typeUri.serialize(context.project.config.prefixes)" size="45" style="width:100%" />
-          </td>
-        </tr>
-      </table>
-    </div>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </div>
+<div class="resource-chip mdl-shadow--2dp">
+  <span class="resource-chip-label">@rule.typeUri.serialize(context.project.config.prefixes)</span>
+</div>
+<span class="mdl-chip">
+        <span class="mdl-chip__text">Basic Chip</span>
+    </span>
+
+
 }
 
 @renderComplexRule(rule: ComplexMapping) = {
-  <div class="transformRule complexMapping">
-    <div class="ruleTitle">
-      Complex Mapping
-      @renderRuleButtons()
-    </div>
-    <div class="ruleContents">
-      <table style="width:100%">
-        <tr>
-          <th>Name</th>
-          <th>Source Path</th>
-          <th>Target Property</th>
-        </tr>
-        <tr>
-          <td>
-            <input class="name" value="@rule.name" size="16" style="width:100%" />
-          </td>
-          <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@renderRulePath(rule)">
-            @renderRulePath(rule)
-          </td>
-          <td style="padding-right: 10px">
-            <input class="target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")" style="width:100%" />
-          </td>
-        </tr>
-      </table>
-    </div>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </div>
+  <td class="mdl-data-table__cell--non-numeric">@renderRulePath(rule)</td>
+  <td class="mdl-data-table__cell--non-numeric">@rule.target.map(_.serialize(prefixes())).getOrElse("")</td>
 }
 
 @renderRuleButtons() = {
