@@ -43,7 +43,7 @@
 }
 
 @content = {
-  <div id="types">
+  <div id="typeContainer">
     @for(rule <- context.task.data.rules) {
       @if(rule.typeString == "Type") {
         @renderTypeRule(rule.asInstanceOf[TypeMapping])
@@ -72,7 +72,7 @@
 }
 
 @renderRule(rule: TransformRule) = {
-  <tr>
+  <tr class="@{rule.typeString.toLowerCase}Mapping">
     <td class="mdl-data-table__cell--non-numeric">@rule.name</td>
     <td class="mdl-data-table__cell--non-numeric">@rule.typeString Mapping</td>
       @{ rule match {
@@ -101,12 +101,10 @@
 }
 
 @renderTypeRule(rule: TypeMapping) = {
-<div class="resource-chip mdl-shadow--2dp">
-  <span class="resource-chip-label">@rule.typeUri.serialize(context.project.config.prefixes)</span>
-</div>
-<span class="mdl-chip">
-        <span class="mdl-chip__text">Basic Chip</span>
-    </span>
+<span class="mdl-chip mdl-chip--deletable typeMapping">
+  <span class="mdl-chip__text">@rule.typeUri.serialize(context.project.config.prefixes)</span>
+  <span class="mdl-chip__action"><i class="material-icons">cancel</i></span>
+</span>
 
 
 }
