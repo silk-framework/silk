@@ -87,7 +87,8 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val startNodes = outputs.toSet -- inputs
-    val endNodes = inputs.toSet -- outputs
+    val isolatedNodes = singleWorkflowNodes()
+    val endNodes = (inputs.toSet -- outputs) ++ isolatedNodes
     val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
     val startDependencyNodes = startNodes.map(workflowNodeMap)
     val endDependencyNodes = sortWorkflowNodesByOutputPriority(endNodes.map(workflowNodeMap).toSeq)
@@ -176,6 +177,11 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     val outputs = nodes.flatMap(_.outputs).distinct
     val nodesWithInputs = nodes.filter(_.inputs.size > 0).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
+  }
+
+  /** Returns node ids of workflow nodes that have neither inputs nor outputs */
+  def singleWorkflowNodes(): Seq[String] = {
+    nodes.filter(n => n.inputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
   }
 
   /** Returns node ids of workflow nodes that output data into other nodes */
