@@ -54,7 +54,7 @@
     <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
       <thead>
         <tr>
-          <th class="mdl-data-table__cell--non-numeric">Name</th>
+          <!--<th class="mdl-data-table__cell&#45;&#45;non-numeric">Name</th>-->
           <th class="mdl-data-table__cell--non-numeric">Rule Type</th>
           <th class="mdl-data-table__cell--non-numeric">Source</th>
           <th class="mdl-data-table__cell--non-numeric">Target</th>
@@ -72,9 +72,9 @@
 }
 
 @renderRule(rule: TransformRule) = {
-  <tr class="@{rule.typeString.toLowerCase}Mapping">
-    <td class="mdl-data-table__cell--non-numeric">@rule.name</td>
-    <td class="mdl-data-table__cell--non-numeric">@rule.typeString Mapping</td>
+  <tr class="transformRule @{rule.typeString.toLowerCase}Mapping">
+    <!--<td class="mdl-data-table__cell&#45;&#45;non-numeric">@rule.name</td>-->
+    <td class="mdl-data-table__cell--non-numeric"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
         case r: DirectMapping => renderDirectRule(r)
         case r: UriMapping => renderUriRule(r)
@@ -101,7 +101,7 @@
 }
 
 @renderTypeRule(rule: TypeMapping) = {
-<span class="mdl-chip mdl-chip--deletable typeMapping">
+<span class="mdl-chip mdl-chip--deletable">
   <span class="mdl-chip__text">@rule.typeUri.serialize(context.project.config.prefixes)</span>
   <span class="mdl-chip__action"><i class="material-icons">cancel</i></span>
 </span>
