@@ -1,3 +1,7 @@
+#typeContainer {
+  margin-bottom: 10px;
+}
+
 #ruleContainer {
 }
 
@@ -37,6 +41,14 @@
 
 /* Set colors for different mapping types. */
 
+.rule-type-indicator {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 5px;
+}
+
 .directMapping .ruleTitle {
   background-color: #0cc481;
 }
@@ -66,11 +78,6 @@
 
 .typeMapping .ruleTitle {
   background-color: #e59829;
-}
-
-.typeMapping:hover {
-  background-color: #ffeed6;
-  box-shadow: 1px 1px 6px #e59829;
 }
 
 .complexMapping .ruleTitle {
