@@ -335,7 +335,7 @@
 * New Colors for Transform Editor Overview
 */
 
-.directMapping .ruleTitle {
+.directMapping .rule-type-indicator {
   background-color: #B0BEC5;
 }
 
@@ -344,7 +344,7 @@
   box-shadow: 1px 1px 6px #B0BEC5;
 }
 
-.uriMapping .ruleTitle {
+.uriMapping .rule-type-indicator {
   background-color: #80CBC4;
 }
 
@@ -353,7 +353,7 @@
   box-shadow: 1px 1px 6px #80CBC4;
 }
 
-.objectMapping .ruleTitle {
+.objectMapping .rule-type-indicator {
   background-color: #CE93D8;
 }
 
@@ -362,16 +362,7 @@
   box-shadow: 1px 1px 6px #CE93D8;
 }
 
-.typeMapping .ruleTitle {
-  background-color: #90CAF9;
-}
-
-.typeMapping:hover {
-  background-color: #BBDEFB;
-  box-shadow: 1px 1px 6px #90CAF9;
-}
-
-.complexMapping .ruleTitle {
+.complexMapping .rule-type-indicator {
   background-color: #9FA8DA;
 }
 
