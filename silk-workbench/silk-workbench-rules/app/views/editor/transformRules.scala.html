@@ -55,9 +55,9 @@
       <thead>
         <tr>
           <th class="mdl-data-table__cell--non-numeric rule-name">Name</th>
-          <th class="mdl-data-table__cell--non-numeric">Rule Type</th>
-          <th class="mdl-data-table__cell--non-numeric">Source</th>
-          <th class="mdl-data-table__cell--non-numeric">Target</th>
+          <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
+          <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
+          <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
         </tr>
       </thead>
       <tbody>
@@ -74,7 +74,7 @@
 @renderRule(rule: TransformRule) = {
   <tr class="transformRule @{rule.typeString.toLowerCase}Mapping">
     <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
-    <td class="mdl-data-table__cell--non-numeric"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
+    <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
         case r: DirectMapping => renderDirectRule(r)
         case r: UriMapping => renderUriRule(r)
@@ -89,13 +89,13 @@
 }
 
 @renderDirectRule(rule: DirectMapping) = {
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-source">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-source">Source Path</label>
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target Path</label>
@@ -104,7 +104,7 @@
 }
 
 @renderUriRule(rule: UriMapping) = {
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-source">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
       <label class="mdl-textfield__label" for="@{rule.name}-pattern">Pattern</label>
@@ -114,13 +114,13 @@
 }
 
 @renderObjectRule(rule: ObjectMapping) = {
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-source">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
       <label class="mdl-textfield__label" for="@{rule.name}-pattern">Pattern</label>
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target</label>
@@ -138,13 +138,13 @@
 }
 
 @renderComplexRule(rule: ComplexMapping) = {
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-source">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" readonly>
       <label class="mdl-textfield__label" for="@{rule.name}-source">Source Path</label>
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric">
+  <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target Property</label>
