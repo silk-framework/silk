@@ -68,7 +68,8 @@ trait ProjectMarshallingTrait {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().zipWithIndex) {
       val targetProject = if (index == 0) projectName else projectName + index
-      val projectConfig = project.copy(id = targetProject)
+      // Reset URI
+      val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
       WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, projectConfig)
     }
