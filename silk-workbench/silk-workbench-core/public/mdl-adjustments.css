@@ -375,6 +375,14 @@
   display:none;
 }
 
+#ruleTable .mdl-textfield {
+  padding: 5px 0;
+}
+
+#ruleTable .mdl-textfield__input {
+  font-size: 13px;
+}
+
 /*
 * General Editor/Workflow Colors
 */
