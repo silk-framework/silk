@@ -371,6 +371,10 @@
   box-shadow: 1px 1px 6px #9FA8DA;
 }
 
+.typeMapping .rule-name {
+  display:none;
+}
+
 /*
 * General Editor/Workflow Colors
 */
