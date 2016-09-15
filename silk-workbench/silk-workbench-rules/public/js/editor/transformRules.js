@@ -97,7 +97,7 @@ function serializeRules() {
     } else if($(this).hasClass("objectMapping")) {
       serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
     } else if($(this).hasClass("typeMapping")) {
-      serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text())
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
       serializeComplexRule(xmlDoc, ruleXml, name, target)

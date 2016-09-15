@@ -43,31 +43,33 @@
 }
 
 @content = {
-  <div id="typeContainer">
-    @for(rule <- context.task.data.rules) {
-      @if(rule.typeString == "Type") {
-        @renderTypeRule(rule.asInstanceOf[TypeMapping])
-      }
-    }
-  </div>
   <div id="ruleContainer">
-    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
-      <thead>
-        <tr>
-          <th class="mdl-data-table__cell--non-numeric rule-name">Name</th>
-          <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
-          <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
-          <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for(rule <- context.task.data.rules) {
-          @if(rule.typeString != "Type") {
-            @renderRule(rule)
-          }
+    <div id="typeContainer">
+      @for(rule <- context.task.data.rules) {
+        @if(rule.typeString == "Type") {
+          @renderTypeRule(rule.asInstanceOf[TypeMapping])
         }
-      </tbody>
-    </table>
+      }
+    </div>
+    <div id="ruleTable">
+      <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
+        <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric rule-name">Name</th>
+            <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
+            <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
+            <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(rule <- context.task.data.rules) {
+            @if(rule.typeString != "Type") {
+              @renderRule(rule)
+            }
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 }
 
@@ -88,15 +90,23 @@
   </tr>
 }
 
+@renderTypeRule(rule: TypeMapping) = {
+  <span class="mdl-chip mdl-chip--deletable transformRule typeMapping">
+    <span class="rule-name">@rule.name</span>
+    <span class="mdl-chip__text type">@rule.typeUri.serialize(context.project.config.prefixes)</span>
+    <span class="mdl-chip__action"><i class="material-icons">cancel</i></span>
+  </span>
+}
+
 @renderDirectRule(rule: DirectMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-source">Source Path</label>
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target Path</label>
     </div>
@@ -105,7 +115,7 @@
 
 @renderUriRule(rule: UriMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
       <label class="mdl-textfield__label" for="@{rule.name}-pattern">Pattern</label>
     </div>
@@ -115,37 +125,28 @@
 
 @renderObjectRule(rule: ObjectMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
       <label class="mdl-textfield__label" for="@{rule.name}-pattern">Pattern</label>
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target</label>
     </div>
   </td>
 }
 
-@renderTypeRule(rule: TypeMapping) = {
-<span class="mdl-chip mdl-chip--deletable">
-  <span class="mdl-chip__text">@rule.typeUri.serialize(context.project.config.prefixes)</span>
-  <span class="mdl-chip__action"><i class="material-icons">cancel</i></span>
-</span>
-
-
-}
-
 @renderComplexRule(rule: ComplexMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" readonly>
+    <div class="mdl-textfield mdl-js-textfield">
+      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" disabled>
       <label class="mdl-textfield__label" for="@{rule.name}-source">Source Path</label>
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")">
       <label class="mdl-textfield__label" for="@{rule.name}-target">Target Property</label>
     </div>
