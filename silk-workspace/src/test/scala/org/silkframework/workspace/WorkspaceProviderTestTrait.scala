@@ -7,12 +7,15 @@ import org.silkframework.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.runtime.resource.ResourceNotFoundException
 
 /**
   * Created on 9/13/16.
   */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val PROJECTNAME = "ProjectName"
+  val PROJECTNAMEOTHER = "ProjectNameOther"
+  val CHILD = "child"
 
   def createWorkspaceProvider(): WorkspaceProvider
 
@@ -36,7 +39,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   it should "read and write projects" in {
     val project = createProject(PROJECTNAME)
-    val project2 = createProject(PROJECTNAME + "2")
+    val project2 = createProject(PROJECTNAMEOTHER)
     workspace.readProjects().find(_.id == project.id) should be (Some(project.copy(projectResourceUriOpt = Some(project.generateDefaultUri))))
     workspace.readProjects().find(_.id == project2.id) should be (Some(project2.copy(projectResourceUriOpt = Some(project2.generateDefaultUri))))
   }
@@ -62,5 +65,23 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     workspace.readProjects().size shouldBe 2
     workspace.deleteProject(PROJECTNAME)
     workspace.readProjects().size shouldBe 1
+  }
+
+  it should "manage project resources separately and correctly" in {
+    workspace.readProjects().size shouldBe 1
+    createProject(PROJECTNAME)
+    workspace.readProjects().size shouldBe 2
+    val res1 = workspace.projectResources(PROJECTNAME)
+    val res2 = workspace.projectResources(PROJECTNAMEOTHER)
+    res1 should not be theSameInstanceAs (res2)
+    val child1 = res1.get(CHILD)
+    child1.write("content")
+    intercept[ResourceNotFoundException] {
+      res2.get(CHILD, mustExist = true)
+    }
+    val child1Other = res2.get(CHILD)
+    child1 should not be theSameInstanceAs (child1Other)
+    val res1Again = workspace.projectResources(PROJECTNAME)
+    res1Again should be theSameInstanceAs (res1)
   }
 }

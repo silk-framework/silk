@@ -28,6 +28,7 @@ trait User {
 object User {
   private lazy val defaultUser = new FileUser
 
+  @volatile
   var userManager: () => User = () => defaultUser
 
   /**

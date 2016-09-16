@@ -4,7 +4,7 @@ import org.silkframework.config._
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{RefreshableWorkspaceProvider, ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.xml.XML
@@ -12,7 +12,7 @@ import scala.xml.XML
 /**
   * Holds all projects in a xml-based file structure.
   */
-class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
+class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
 
   @volatile
   private var plugins = Map[Class[_], XmlSerializer[_]]()
@@ -79,5 +79,14 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
 
   private def plugin[T <: TaskSpec : ClassTag] = {
     plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
+  }
+
+  /**
+    * Refreshes a project, i.e. cleans all possible caches if there are any for this projects and reloads it
+    * freshly.
+    */
+  override def refreshProject(project: Identifier): Unit = {
+    // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
+    // This is implemented to avoid warnings on project imports.
   }
 }

@@ -1,11 +1,13 @@
 package org.silkframework.workspace.io
 
+import java.util.logging.Logger
+
 import org.silkframework.config.{CustomTask, LinkSpec, TaskSpec, TransformSpec}
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.Dataset
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 
@@ -13,6 +15,7 @@ import scala.reflect.ClassTag
   * Transfers projects between workspaces.
   */
 object WorkspaceIO {
+  private lazy val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**
     * Copies all projects in one workspace to another workspace.
@@ -27,13 +30,21 @@ object WorkspaceIO {
     * Copies a project from one workspace to another workspace
     */
   def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, project: ProjectConfig): Unit = {
-    outputWorkspace.putProject(project)
-    copyResources(inputWorkspace.projectResources(project.id), outputWorkspace.projectResources(project.id))
-    copyTasks[Dataset](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[Workflow](inputWorkspace, outputWorkspace, project.id)
-    copyTasks[CustomTask](inputWorkspace, outputWorkspace, project.id)
+    val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
+    outputWorkspace.putProject(updatedProjectConfig)
+    copyResources(inputWorkspace.projectResources(updatedProjectConfig.id), outputWorkspace.projectResources(updatedProjectConfig.id))
+    copyTasks[Dataset](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
+    copyTasks[Workflow](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
+    outputWorkspace match {
+      case rw: RefreshableWorkspaceProvider =>
+        rw.refreshProject(updatedProjectConfig.id)
+      case _ =>
+        log.warning("Workspace provider of type " + outputWorkspace.getClass.getName + " is not refreshable. Imported project " +
+        updatedProjectConfig.id.toString + " might be inconsistent.")
+    }
   }
 
   def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
