@@ -16,8 +16,6 @@
 
 
   <div id="droppable">
-    @Logger.info("rule Graph")
-    @Logger.info(rule.operator.toString)
     @for(op <- rule.operator) {
       @renderRule(
       rule = op,
@@ -137,6 +135,9 @@
 
         // disable highlighting on hover over connections
         jsPlumb.select().setHoverPaintStyle(null);
+
+        // Don't ask the user to confirm when leaving the view
+        confirmOnExit = false;
       }
 
     });

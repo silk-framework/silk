@@ -54,13 +54,13 @@ sealed trait TransformRule {
 /**
  * A direct mapping between two properties.
  *
- * @param name The name of this mapping
+ * @param name The name of this mapping. For direct mappings usually just the property that is mapped.
  * @param sourcePath The source path
  * @param targetProperty The target property
  */
-case class DirectMapping(name: Identifier = "transform", sourcePath: Path = Path(Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
+case class DirectMapping(name: Identifier = "sourcePath", sourcePath: Path = Path(Nil), targetProperty: Uri = "http://www.w3.org/2000/01/rdf-schema#label") extends TransformRule {
 
-  override val operator = PathInput("sourcePath", sourcePath)
+  override val operator = PathInput(name, sourcePath)
 
   override val target = Some(targetProperty)
 }
