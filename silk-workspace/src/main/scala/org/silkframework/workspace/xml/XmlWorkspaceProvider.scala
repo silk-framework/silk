@@ -4,7 +4,7 @@ import org.silkframework.config._
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.{RefreshableWorkspaceProvider, ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.xml.XML
@@ -78,7 +78,10 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider with 
   }
 
   private def plugin[T <: TaskSpec : ClassTag] = {
-    plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
+    val taskClass = implicitly[ClassTag[T]].runtimeClass
+    plugins.find(_._1.isAssignableFrom(taskClass))
+      .getOrElse(throw new RuntimeException("No plugin available for class " + taskClass))
+      ._2.asInstanceOf[XmlSerializer[T]]
   }
 
   /**
