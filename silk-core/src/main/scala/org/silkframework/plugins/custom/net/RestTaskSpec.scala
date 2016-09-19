@@ -29,10 +29,12 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
                             "this parameter must be overwritten via the task input.")
                         content: String = "",
                         @Param("If this is set to true, specific parameters can be overwritten at execution time. Else inputs are ignored. Parameters that can currently be overwritten: url, content")
-                        readParametersFromInput: Boolean = false
+                        readParametersFromInput: Boolean = false,
+                        @Param("If set to a non-empty String then instead of a normal POST a multipart/form-data file upload request is executed. This value is used as the form parameter name.")
+                        multipartFileParameter: String = ""
                        ) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    if(readParametersFromInput) {
+    if (readParametersFromInput) {
       Some(Seq(inputSchema))
     } else {
       None
@@ -58,7 +60,7 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
     */
   def customize(config: Map[String, String]): RestTaskSpec = {
     var copy = this.copy()
-    for((url, updateFn) <- inputPaths) {
+    for ((url, updateFn) <- inputPaths) {
       config.get(url) foreach { value =>
         copy = updateFn(copy, value)
       }
