@@ -137,6 +137,9 @@
 
         // disable highlighting on hover over connections
         jsPlumb.select().setHoverPaintStyle(null);
+
+        // Don't ask the user to confirm when leaving the view
+        confirmOnExit = false;
       }
 
     });
