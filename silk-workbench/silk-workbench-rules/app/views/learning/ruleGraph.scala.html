@@ -16,8 +16,6 @@
 
 
   <div id="droppable">
-    @Logger.info("rule Graph")
-    @Logger.info(rule.operator.toString)
     @for(op <- rule.operator) {
       @renderRule(
       rule = op,
