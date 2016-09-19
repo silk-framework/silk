@@ -28,9 +28,11 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
                         @Param("The content that is send with a POST or PUT request. For handling this payload dynamically " +
                             "this parameter must be overwritten via the task input.")
                         content: String = "",
-                        @Param("If this is set to true, specific parameters can be overwritten at execution time. Else inputs are ignored. Parameters that can currently be overwritten: url, content")
+                        @Param("If this is set to true, specific parameters can be overwritten at execution time. " +
+                            "Else inputs are ignored. Parameters that can currently be overwritten: url, content")
                         readParametersFromInput: Boolean = false,
-                        @Param("If set to a non-empty String then instead of a normal POST a multipart/form-data file upload request is executed. This value is used as the form parameter name.")
+                        @Param("If set to a non-empty String then instead of a normal POST a multipart/form-data file upload request is executed. " +
+                            "This value is used as the form parameter name.")
                         multipartFileParameter: String = ""
                        ) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
@@ -56,7 +58,7 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
   /**
     * Returns a copy of this [[RestTaskSpec]] with values from the provided config overwriting the config values.
     *
-    * @param config
+    * @param config Parameter map that overwrites parameters of this [[RestTaskSpec]].
     */
   def customize(config: Map[String, String]): RestTaskSpec = {
     var copy = this.copy()
