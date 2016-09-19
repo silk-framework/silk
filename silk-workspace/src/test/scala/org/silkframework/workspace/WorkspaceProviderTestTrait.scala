@@ -2,7 +2,9 @@ package org.silkframework.workspace
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config.LinkSpec
+import org.silkframework.dataset.Dataset
 import org.silkframework.entity.Path
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.input.PathInput
@@ -35,7 +37,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       linkType = "http://www.w3.org/2002/07/owl#sameAs"
     )
 
-  val task = LinkSpec(rule = rule)
+  val dataset = InternalDataset()
+
+  val linkTask = LinkSpec(rule = rule)
 
   it should "read and write projects" in {
     val project = createProject(PROJECTNAME)
@@ -50,15 +54,26 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     project
   }
 
-  it should "read and write tasks" in {
-    workspace.putTask(PROJECTNAME, "task", task)
-    workspace.readTasks[LinkSpec](PROJECTNAME).headOption.map(_._2) should be (Some(task))
+  it should "read and write linking tasks" in {
+    workspace.putTask(PROJECTNAME, "task", linkTask)
+    workspace.readTasks[LinkSpec](PROJECTNAME).headOption.map(_._2) should be (Some(linkTask))
   }
 
-  it should "delete tasks" in {
+  it should "read and write dataset tasks" in {
+    workspace.putTask(PROJECTNAME, "dataset", dataset)
+    workspace.readTasks[Dataset](PROJECTNAME).headOption.map(_._2) should be (Some(dataset))
+  }
+
+  it should "delete linking tasks" in {
     workspace.readTasks[LinkSpec](PROJECTNAME).headOption shouldBe defined
     workspace.deleteTask[LinkSpec](PROJECTNAME, "task")
     workspace.readTasks[LinkSpec](PROJECTNAME).headOption shouldBe empty
+  }
+
+  it should "delete dataset tasks" in {
+    workspace.readTasks[Dataset](PROJECTNAME).headOption shouldBe defined
+    workspace.deleteTask[Dataset](PROJECTNAME, "dataset")
+    workspace.readTasks[Dataset](PROJECTNAME).headOption shouldBe empty
   }
 
   it should "delete projects" in {
