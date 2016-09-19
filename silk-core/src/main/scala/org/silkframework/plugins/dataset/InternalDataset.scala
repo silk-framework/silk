@@ -17,7 +17,7 @@ import scala.util.Try
       """Dataset for storing entities between workflow steps."""
 )
 case class InternalDataset(val graphUri: String = null) extends InternalDatasetTrait {
-  protected val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
+  protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
 }
 
 trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
