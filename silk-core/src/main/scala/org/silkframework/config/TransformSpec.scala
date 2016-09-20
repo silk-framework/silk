@@ -14,9 +14,12 @@ import scala.xml.{Node, Null}
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
-case class TransformSpec(selection: DatasetSelection, rules: Seq[TransformRule], outputs: Seq[Identifier] = Seq.empty, errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpec {
+case class TransformSpec(selection: DatasetSelection,
+                         rules: Seq[TransformRule],
+                         outputs: Seq[Identifier] = Seq.empty,
+                         errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpec {
 
-  def entitySchema = {
+  def entitySchema: EntitySchema = {
     EntitySchema(
       typeUri = selection.typeUri,
       paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
@@ -24,12 +27,12 @@ case class TransformSpec(selection: DatasetSelection, rules: Seq[TransformRule],
     )
   }
 
-  override def inputSchemataOpt = Some(Seq(entitySchema))
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entitySchema))
 
-  override def outputSchemaOpt = {
+  override def outputSchemaOpt: Option[EntitySchema] = {
     Some(
       EntitySchema(
-        typeUri = rules.collect{ case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
+        typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
         paths = rules.flatMap(_.target).map(Path(_)).toIndexedSeq
       )
     )
