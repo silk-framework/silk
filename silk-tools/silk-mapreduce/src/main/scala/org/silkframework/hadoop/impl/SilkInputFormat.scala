@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce._
 import org.silkframework.cache.Partition
 
 import scala.collection.immutable.HashSet
+import org.silkframework.hadoop.SilkConfiguration
 
 class SilkInputFormat extends InputFormat[NullWritable, EntityPair]
 {
@@ -86,8 +87,8 @@ class SilkInputFormat extends InputFormat[NullWritable, EntityPair]
       sourcePartition = config.sourceCache.read(silkInputSplit.blockIndex, silkInputSplit.sourcePartition)
       targetPartition = config.targetCache.read(silkInputSplit.blockIndex, silkInputSplit.targetPartition)
 
-      sourceIndices = sourcePartition.entities.map(entity => HashSet(linkSpec.rule.index(entity, 0.0).flatten.toSeq : _*))
-      targetIndices = targetPartition.entities.map(entity => HashSet(linkSpec.rule.index(entity, 0.0).flatten.toSeq : _*))
+      sourceIndices = sourcePartition.entities.map(entity => HashSet(linkSpec.rule.index(entity, true, 0.0).flatten.toSeq : _*))
+      targetIndices = targetPartition.entities.map(entity => HashSet(linkSpec.rule.index(entity, false, 0.0).flatten.toSeq : _*))
 
       context.setStatus("Comparing partition " + silkInputSplit.sourcePartition + " and " + silkInputSplit.targetPartition)
     }
