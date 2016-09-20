@@ -50,10 +50,11 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema)
     //Select
     var sparql = "SELECT DISTINCT "
-    sparql += "?" + sparqlEntitySchema.variable + " "
+    var selectVariables = "?" + sparqlEntitySchema.variable + " "
     for (i <- sparqlEntitySchema.paths.indices) {
-      sparql += "?" + varPrefix + i + " "
+      selectVariables += "?" + varPrefix + i + " "
     }
+    sparql += selectVariables
     sparql += "\n"
 
     //Body
@@ -70,6 +71,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     for (graph <- graphUri if !graph.isEmpty) sparql += "}\n" // END graph
     sparql += "}" // END WHERE
     if(useOrderBy) sparql +=" ORDER BY ?" + sparqlEntitySchema.variable
+
+    sparql = "SELECT " + selectVariables + "\nWHERE {\n" + sparql + "\n}"
 
     val sparqlResults = endpoint.select(sparql)
 
