@@ -45,7 +45,7 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
 
   final private val inputPaths = IndexedSeq[(String, (RestTaskSpec, String) => RestTaskSpec)](
     // The URL that the POST, GET or PUT request should be executed against. This will overwrite the task spec URL if set.
-    SilkVocab.RestTaskPropertyURL -> ((task: RestTaskSpec, newVal: String) => task.copy(url = newVal)),
+    SilkVocab.RestTaskPropertyURL -> ((task: RestTaskSpec, newVal: String) => task.copy(url = newVal.trim)),
     // The content String that should be send in case of PUT or POST
     SilkVocab.RestTaskPropertyContent -> ((task: RestTaskSpec, newVal: String) => task.copy(content = newVal))
   )

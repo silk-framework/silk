@@ -45,7 +45,7 @@ case class RestTaskExecutor(task: ProjectTask[RestTaskSpec]) extends Activity[Un
                              restTaskSpec: RestTaskSpec): Future[WSResponse] = {
     val wsClient = getClient()
     import restTaskSpec._
-    var request = wsClient.url(url)
+    var request = wsClient.url(url.trim)
     if (accept.trim != "") {
       request = request.withHeaders("Accept" -> accept)
     }
