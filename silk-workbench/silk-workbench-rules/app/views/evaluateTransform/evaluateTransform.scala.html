@@ -1,7 +1,7 @@
 @import org.silkframework.config.TransformSpec
 @import plugins.Context
 
-@(context: Context[TransformSpec], offset: Int, limit: Int)
+@(context: Context[TransformSpec], offset: Int, limit: Int)(implicit session: play.api.mvc.Session)
 
 @header = {
 }

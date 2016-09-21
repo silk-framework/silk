@@ -1,6 +1,6 @@
 @import controllers.core.routes.Assets
 
-@(welcome: Html)
+@(welcome: Html)(implicit session: play.api.mvc.Session)
 
 @exampleName = @{ "movies" }
 

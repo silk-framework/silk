@@ -5,7 +5,7 @@
 @import controllers.linking.routes
 @import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpec])
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

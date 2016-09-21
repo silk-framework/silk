@@ -26,6 +26,7 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
                            mdlStyle: Option[Resource],
                            tabs: Tabs = Tabs(),
                            loggedOut: Resource) {
+  var showLogoutButton: Boolean = false
 }
 
 object WorkbenchConfig {

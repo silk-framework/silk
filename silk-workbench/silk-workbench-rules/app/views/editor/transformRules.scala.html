@@ -10,7 +10,7 @@
 @import org.silkframework.rule.ComplexMapping
 @import org.silkframework.runtime.serialization.XmlSerialization
 
-@(context: Context[TransformSpec])
+@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />

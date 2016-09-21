@@ -81,12 +81,12 @@ object DatasetApi extends Controller {
     }
   }
 
-  def dataset(project: String, task: String) = Action { request =>
+  def dataset(project: String, task: String) = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
     Ok(views.html.workspace.dataset.dataset(context))
   }
 
-  def table(project: String, task: String, maxEntities: Int) = Action { request =>
+  def table(project: String, task: String, maxEntities: Int) = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
     val source = context.task.data.source
 
@@ -98,7 +98,7 @@ object DatasetApi extends Controller {
     Ok(views.html.workspace.dataset.table(context, paths, entities))
   }
 
-  def sparql(project: String, task: String, query: String = "") = Action { request =>
+  def sparql(project: String, task: String, query: String = "") = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
 
     context.task.data match {

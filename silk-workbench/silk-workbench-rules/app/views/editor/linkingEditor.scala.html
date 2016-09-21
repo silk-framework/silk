@@ -6,7 +6,7 @@
 @import controllers.rules.routes.Assets
 @import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpec])
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

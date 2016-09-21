@@ -10,7 +10,7 @@ import plugins.Context
 
 object ExecuteTransformTab extends Controller {
 
-  def execute(project: String, task: String) = Action { request =>
+  def execute(project: String, task: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     Ok(views.html.executeTransform.executeTransform(context))
   }

@@ -12,7 +12,7 @@
 @**
  * Overview page of all activities and their status
  *@
-@()
+@()(implicit session: play.api.mvc.Session)
 
 @header = {
   <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />

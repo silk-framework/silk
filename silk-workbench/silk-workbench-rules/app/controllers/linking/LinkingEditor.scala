@@ -13,7 +13,7 @@ import scala.util.control.NonFatal
 
 object LinkingEditor extends Controller {
 
-  def editor(project: String, task: String) = Action { request =>
+  def editor(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.editor.linkingEditor(context))
   }

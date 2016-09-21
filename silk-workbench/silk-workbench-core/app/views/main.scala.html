@@ -1,7 +1,9 @@
 @import controllers.core.routes.Assets
 @import plugins.Context
+@import controllers.core.Start
+@import config.WorkbenchConfig
 
-@(context: Option[Context[_]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)
+@(context: Option[Context[_]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 
 <!DOCTYPE html>
 
@@ -86,6 +88,13 @@
         <header class="mdl-layout__header">
           <div class="mdl-layout__header-row">
             <span class="mdl-layout-title">@config.workbench.title</span>
+            @if(WorkbenchConfig.get.showLogoutButton && session.get("loggedIn")==Some("true")) {
+              <span class="logout-button">
+                <form action="@{Start.deployPath + "logout"}" method="post">
+                  <input type="submit" value="Logout" />
+                </form>
+              </span>
+            }
           </div>
         </header>
         }

@@ -8,7 +8,7 @@ import play.api.mvc.{Action, AnyContent, Controller}
 
 object Workspace extends Controller {
 
-  def index: Action[AnyContent] = Action {
+  def index: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.workspace.workspace())
   }
 
@@ -16,7 +16,7 @@ object Workspace extends Controller {
     Ok(views.html.workspace.workspaceTree(User().workspace))
   }
 
-  def activities: Action[AnyContent] = Action {
+  def activities: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.workspace.activities())
   }
 

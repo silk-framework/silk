@@ -29,22 +29,22 @@ object Learning extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def start(project: String, task: String) = Action { request =>
+  def start(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.start(context))
   }
 
-  def learn(project: String, task: String) = Action { request =>
+  def learn(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.learn(context))
   }
 
-  def activeLearn(project: String, task: String) = Action { request =>
+  def activeLearn(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.activeLearn(context))
   }
 
-  def activeLearnTest(project: String, task: String) = Action { request =>
+  def activeLearnTest(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.activeLearnTest(context))
   }
@@ -266,7 +266,7 @@ object Learning extends Controller {
     Ok.chunked(Widgets.statusStream(stream1 interleave stream2))
   }
 
-  def population(project: String, task: String) = Action { request =>
+  def population(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.population(context))
   }
