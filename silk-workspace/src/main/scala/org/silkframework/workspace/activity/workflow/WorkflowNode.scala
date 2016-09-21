@@ -38,13 +38,16 @@ sealed trait WorkflowNode {
 }
 
 case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
-                            task: String, outputs: Seq[WorkflowNode#NodeReference],
-                            errorOutputs: Seq[String], position: (Int, Int),
+                            task: String,
+                            outputs: Seq[WorkflowNode#NodeReference],
+                            errorOutputs: Seq[String],
+                            position: (Int, Int),
                             nodeId: WorkflowNode#NodeReference,
                             outputPriority: Option[Double]) extends WorkflowNode
 
 case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
-                           task: String, outputs: Seq[WorkflowNode#NodeReference],
+                           task: String,
+                           outputs: Seq[WorkflowNode#NodeReference],
                            position: (Int, Int),
                            nodeId: WorkflowNode#NodeReference,
                            outputPriority: Option[Double]) extends WorkflowNode
