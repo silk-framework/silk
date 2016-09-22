@@ -214,9 +214,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
         // Not refreshable
     }
   }
+}
 
-  case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
-    override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-    override def outputSchemaOpt: Option[EntitySchema] = None
-  }
+case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def outputSchemaOpt: Option[EntitySchema] = None
 }
