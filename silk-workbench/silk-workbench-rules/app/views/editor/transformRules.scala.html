@@ -25,9 +25,11 @@
     <li>
       <button id="add-uri-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
     </li>
+<!--
     <li>
       <button id="add-type-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
     </li>
+-->
     <li>
       <button id="add-direct-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
     </li>
@@ -71,6 +73,23 @@
       </table>
     </div>
   </div>
+  <table id="uriMappingTemplate" class="rule-template">
+    <tbody>
+      @renderRule(UriMapping())
+    </tbody>
+  </table>
+
+  <table id="directMappingTemplate" class="rule-template">
+    <tbody>
+      @renderRule(DirectMapping())
+    </tbody>
+  </table>
+
+  <table id="objectMappingTemplate" class="rule-template">
+    <tbody>
+      @renderRule(ObjectMapping())
+    </tbody>
+  </table>
 }
 
 @renderRule(rule: TransformRule) = {

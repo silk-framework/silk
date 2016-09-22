@@ -244,21 +244,22 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
 
 function addRule(template) {
   // Clone rule template
-  var newRule = $(template).children().clone();
+  var newRule = $(template + " tbody").children().clone();
   var nameInput = newRule.find(".name");
   nameInput.val(generateRuleName(nameInput.val()));
-  newRule.appendTo("#ruleContainer");
+  newRule.appendTo("#ruleTable table tbody");
+  componentHandler.upgradeAllRegistered();
 
-  // Add autocompletion
-  newRule.find(".source").autocomplete({
-    source: apiUrl + "/sourcePathCompletions",
-    minLength: 0
-  }).focus(function() { $(this).autocomplete("search"); });
-
-  newRule.find(".target").autocomplete({
-    source: apiUrl + "/targetPathCompletions",
-    minLength: 0
-  }).focus(function() { $(this).autocomplete("search"); });
+//  // Add autocompletion
+//  newRule.find(".source").autocomplete({
+//    source: apiUrl + "/sourcePathCompletions",
+//    minLength: 0
+//  }).focus(function() { $(this).autocomplete("search"); });
+//
+//  newRule.find(".target").autocomplete({
+//    source: apiUrl + "/targetPathCompletions",
+//    minLength: 0
+//  }).focus(function() { $(this).autocomplete("search"); });
 
   // Set modification flag
   modified();
