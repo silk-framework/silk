@@ -383,6 +383,10 @@
   font-size: 13px;
 }
 
+.rule-template {
+  display: none;
+}
+
 /*
 * General Editor/Workflow Colors
 */
