@@ -2,8 +2,8 @@ package controllers.linking
 
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.config.LinkSpec
 import org.silkframework.entity.{Entity, Link}
+import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
 import org.silkframework.workspace.User

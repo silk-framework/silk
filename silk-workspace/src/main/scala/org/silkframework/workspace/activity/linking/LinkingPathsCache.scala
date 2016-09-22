@@ -1,9 +1,8 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{DatasetSelection, LinkSpec}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.rule.{DatasetSelection, LinkSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.config.LinkSpec
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._

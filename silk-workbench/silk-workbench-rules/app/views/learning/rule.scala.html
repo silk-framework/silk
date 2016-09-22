@@ -1,8 +1,9 @@
-@import org.silkframework.config.LinkSpec
+@import org.silkframework.rule.LinkSpec
 @import plugins.Context
 
+@import org.silkframework.rule.evaluation.ReferenceLinks
 @(population: org.silkframework.learning.individual.Population,
-  referenceLinks: org.silkframework.evaluation.ReferenceLinks,
+  referenceLinks: ReferenceLinks,
   context: Context[LinkSpec])
 
 @defining(3) { threshold =>

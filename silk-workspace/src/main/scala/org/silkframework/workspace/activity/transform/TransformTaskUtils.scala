@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.ProjectTask
 
 /**

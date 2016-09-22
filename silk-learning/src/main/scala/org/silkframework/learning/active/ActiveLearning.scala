@@ -14,16 +14,15 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.config.LinkSpec
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Path
-import org.silkframework.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Timer}

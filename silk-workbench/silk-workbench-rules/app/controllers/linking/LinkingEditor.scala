@@ -1,8 +1,8 @@
 package controllers.linking
 
-import org.silkframework.config.LinkSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.evaluation.LinkageRuleEvaluator
+import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.evaluation.LinkageRuleEvaluator
 import org.silkframework.util.DPair
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}

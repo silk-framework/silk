@@ -14,8 +14,8 @@
 
 package org.silkframework.learning
 
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 /**
  * The input of the learning algorithm.

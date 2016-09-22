@@ -14,9 +14,9 @@
 
 package org.silkframework.learning
 
-import org.silkframework.evaluation.LinkageRuleEvaluator
 import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.genlink.GenLinkLearner
+import org.silkframework.rule.evaluation.LinkageRuleEvaluator
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**

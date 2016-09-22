@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.individual.fitness
 
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 trait FitnessFunction extends (ReferenceEntities => LinkageRule => Double)

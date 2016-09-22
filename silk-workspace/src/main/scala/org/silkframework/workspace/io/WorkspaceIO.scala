@@ -2,8 +2,9 @@ package org.silkframework.workspace.io
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{CustomTask, LinkSpec, TaskSpec, TransformSpec}
+import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.Dataset
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow

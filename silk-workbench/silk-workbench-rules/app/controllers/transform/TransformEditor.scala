@@ -1,6 +1,6 @@
 package controllers.transform
 
-import org.silkframework.config.TransformSpec
+import org.silkframework.rule.TransformSpec
 import org.silkframework.util.DPair
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.TransformPathsCache

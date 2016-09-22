@@ -4,12 +4,12 @@ import java.util
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
-import org.silkframework.config.LinkSpec
+import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.collection.JavaConverters._
 

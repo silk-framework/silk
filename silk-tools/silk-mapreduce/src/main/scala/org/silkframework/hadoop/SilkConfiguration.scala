@@ -15,10 +15,11 @@
 package org.silkframework.hadoop
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.silkframework.config.LinkingConfig
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.hadoop.impl.HadoopEntityCache
+import org.silkframework.rule.LinkingConfig
 import org.silkframework.runtime.serialization.ReadContext
+
 import scala.xml.XML
 
 object SilkConfiguration {

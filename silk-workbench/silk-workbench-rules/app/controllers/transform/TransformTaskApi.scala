@@ -4,11 +4,10 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import models.JsonError
-import org.silkframework.config.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.Restriction
-import org.silkframework.execution.ExecuteTransform
-import org.silkframework.rule.TransformRule
+import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}

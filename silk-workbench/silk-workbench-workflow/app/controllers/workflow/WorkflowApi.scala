@@ -2,8 +2,8 @@ package controllers.workflow
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.{SinkTrait, DataSource}
-import org.silkframework.execution.ExecuteTransformResult
-import org.silkframework.execution.ExecuteTransformResult.RuleResult
+import org.silkframework.rule.execution.ExecuteTransformResult
+import org.silkframework.rule.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}

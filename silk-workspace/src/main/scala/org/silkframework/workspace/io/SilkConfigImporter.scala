@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace.io
 
-import org.silkframework.config.LinkingConfig
+import org.silkframework.rule.LinkingConfig
 import org.silkframework.workspace.Project
 
 /**

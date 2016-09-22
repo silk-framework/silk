@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpec
-import org.silkframework.execution.{ExecuteTransform, ExecuteTransformResult}
+import org.silkframework.rule.execution.{ExecuteTransform, ExecuteTransformResult}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask

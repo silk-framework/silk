@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.LinkSpec
 import org.silkframework.learning.{LearningActivity, LearningConfiguration, LearningInput, LearningResult}
+import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask

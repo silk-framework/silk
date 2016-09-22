@@ -14,8 +14,8 @@
 
 package org.silkframework.learning
 
-import org.silkframework.evaluation.EvaluationResult
 import org.silkframework.learning.individual.Population
+import org.silkframework.rule.evaluation.EvaluationResult
 
 import scala.language.postfixOps
 

@@ -1,9 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{LinkSpec, RuntimeConfig}
-import org.silkframework.dataset.{DataSource, DatasetTask}
-import org.silkframework.execution.{GenerateLinks, Linking}
-import org.silkframework.rule.TransformedDataSource
+import org.silkframework.rule.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
@@ -30,7 +28,7 @@ case class GenerateLinksFactory(
 
   def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
-      RuntimeConfig(
+      RuntimeLinkingConfig(
         includeReferenceLinks = includeReferenceLinks,
         useFileCache = useFileCache,
         partitionSize = partitionSize,
@@ -40,7 +38,7 @@ case class GenerateLinksFactory(
   }
 }
 
-class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeConfig, writeOutputs: Boolean) extends Activity[Linking] {
+class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeLinkingConfig, writeOutputs: Boolean) extends Activity[Linking] {
 
   @volatile
   private var generateLinks: Option[GenerateLinks] = None

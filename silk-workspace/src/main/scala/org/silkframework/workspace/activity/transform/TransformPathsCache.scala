@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpec
 import org.silkframework.entity.EntitySchema
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._

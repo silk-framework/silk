@@ -14,16 +14,15 @@
 
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.config.{LinkSpec, RuntimeConfig}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, Index, Link, Path}
-import org.silkframework.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.learning.active.UnlabeledLinkPool
-import org.silkframework.plugins.distance.equality.EqualityMetric
-import org.silkframework.plugins.transformer.normalize.TrimTransformer
+import org.silkframework.rule.plugins.distance.equality.EqualityMetric
+import org.silkframework.rule.plugins.transformer.normalize.TrimTransformer
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
-import org.silkframework.rule.{LinkageRule, Operator}
+import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
 import org.silkframework.util.{DPair, Identifier}
@@ -38,7 +37,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
-  def runtimeConfig = RuntimeConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
+  def runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   class LinkPoolGenerator(inputs: DPair[DataSource],
                           linkSpec: LinkSpec,

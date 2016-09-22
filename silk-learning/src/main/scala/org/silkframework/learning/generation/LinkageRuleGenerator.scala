@@ -14,9 +14,9 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.{AggregationNode, LinkageRuleNode}
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.util.Random
 

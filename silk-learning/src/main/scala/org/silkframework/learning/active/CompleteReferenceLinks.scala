@@ -15,8 +15,8 @@
 package org.silkframework.learning.active
 
 import org.silkframework.entity.Link
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.learning.individual.Population
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 /**
  * Completes a set of reference links i.e. makes sure that it contains at least one positive and one negative link.
