@@ -1,8 +1,8 @@
 @import plugins.Context
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import controllers.workflow.routes.Assets
-@import org.silkframework.workspace.activity.workflow.WorkflowExecutor
 @import views.html.workspace.activity.taskActivityControl
+@import org.silkframework.workspace.activity.workflow.OldWorkflowExecutor
 
 @(context: Context[Workflow])
 
@@ -28,7 +28,7 @@
       <div class="spacer"/>
     </li>
     <li>
-      @taskActivityControl(context.task.activity[WorkflowExecutor], showButtons = true)
+      @taskActivityControl(context.task.activity[OldWorkflowExecutor], showButtons = true)
     </li>
   </ul>
 }

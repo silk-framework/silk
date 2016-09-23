@@ -5,7 +5,7 @@ import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
-import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, OldWorkflowExecutorFactory}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
 
 import scala.language.existentials
@@ -40,7 +40,8 @@ class WorkspacePlugins extends PluginModule {
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
   def workflowActivities: List[Class[_]] =
-    classOf[WorkflowExecutorFactory] :: Nil
+    classOf[LocalWorkflowExecutorFactory] ::
+    classOf[OldWorkflowExecutorFactory] :: Nil
 
   def xmlFormats = {
     TypesFormat.getClass :: Nil

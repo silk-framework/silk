@@ -1,12 +1,12 @@
 package controllers.workflow
 
 import controllers.util.ProjectUtils._
-import org.silkframework.dataset.{SinkTrait, DataSource}
+import org.silkframework.dataset.{DataSource, SinkTrait}
 import org.silkframework.rule.execution.ExecuteTransformResult
 import org.silkframework.rule.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutor}
+import org.silkframework.workspace.activity.workflow.{Workflow, OldWorkflowExecutor}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
@@ -37,7 +37,7 @@ object WorkflowApi extends Controller {
   def executeWorkflow(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val workflow = project.task[Workflow](taskName)
-    val activity = workflow.activity[WorkflowExecutor].control
+    val activity = workflow.activity[OldWorkflowExecutor].control
     if (activity.status().isRunning)
       PreconditionFailed
     else {
@@ -49,7 +49,7 @@ object WorkflowApi extends Controller {
   def status(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[WorkflowExecutor].value
+    val report = workflow.activity[OldWorkflowExecutor].value
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
@@ -104,7 +104,7 @@ object WorkflowApi extends Controller {
   private def executeVariableWorkflow(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, DataSource],
                                       replaceSinks: Map[String, SinkTrait]): Unit = {
-    val executor = new WorkflowExecutor(task, replaceDataSources, replaceSinks)
+    val executor = new OldWorkflowExecutor(task, replaceDataSources, replaceSinks)
     Activity(executor).startBlocking()
   }
 }

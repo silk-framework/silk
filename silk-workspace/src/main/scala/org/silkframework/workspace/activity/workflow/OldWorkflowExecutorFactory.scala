@@ -9,12 +9,13 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   id = "ExecuteWorkflow",
   label = "Execute Workflow",
   categories = Array("LinkSpecification"),
-  description = "Executes the workflow."
+  description = "Executes the workflow (old executor)."
 )
-case class WorkflowExecutorFactory() extends TaskActivityFactory[Workflow, WorkflowExecutor] {
+case class OldWorkflowExecutorFactory() extends TaskActivityFactory[Workflow, OldWorkflowExecutor] {
 
   override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReport] = {
-    new WorkflowExecutor(task)
+    new OldWorkflowExecutor(task)
   }
 
 }
+

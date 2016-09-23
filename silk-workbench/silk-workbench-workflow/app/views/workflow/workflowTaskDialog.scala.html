@@ -1,7 +1,7 @@
 @(project: String, task: String)
 
-@import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.workspace.User
+@import org.silkframework.workspace.activity.workflow.Workflow
 
 @workflowTask = @{ User().workspace.project(project).tasks[Workflow].find(_.id == task) }
 
