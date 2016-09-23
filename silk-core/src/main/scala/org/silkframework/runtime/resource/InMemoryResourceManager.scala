@@ -21,19 +21,22 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
   /**
     * Retrieves a name resource.
     *
-    * @param name The name of the resource.
+    * @param name      The name of the resource.
     * @param mustExist If true, an ResourceNotFoundException is thrown if the resource does not exist
     * @return The resource.
     * @throws ResourceNotFoundException If no resource with the given name has been found.
     */
   override def get(name: String, mustExist: Boolean): WritableResource = {
-    val path = basePath + name
+    val path = basePath + "/" + name
+
     resources.get(name) match {
       case Some(data) => new InMemoryResource(name, path)
       case None if !mustExist => new InMemoryResource(name, path)
       case None if mustExist => throw new ResourceNotFoundException(s"Resource $name not found in path $basePath")
     }
   }
+
+  var label = "no name"
 
   /**
     * Lists all available resources.
@@ -47,7 +50,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       case Some(childMgr) => childMgr
       case None =>
         val childMgr = new InMemoryResourceManagerBase(basePath + "/" + name, Some(this))
-        children += ((name,  childMgr))
+        children += ((name, childMgr))
         childMgr
     }
   }
@@ -56,6 +59,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
   override def delete(name: String): Unit = {
     resources -= name
+    children -= name
   }
 
   /**
@@ -63,7 +67,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     */
   private class InMemoryResource(val name: String, val path: String) extends WritableResource {
 
-    override def exists = resources.contains(name)
+    override def exists: Boolean = resources.contains(name)
 
     override def load: InputStream = {
       resources.get(name) match {
@@ -86,4 +90,5 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       resources += ((name, bytes))
     }
   }
+
 }

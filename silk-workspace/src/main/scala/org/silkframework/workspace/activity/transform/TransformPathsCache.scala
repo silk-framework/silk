@@ -11,14 +11,14 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
  */
 class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[EntitySchema] {
 
-  override def name = s"Paths cache ${task.id}"
+  override def name: String = s"Paths cache ${task.id}"
 
-  override def initialValue = Some(EntitySchema.empty)
+  override def initialValue: Option[EntitySchema] = Some(EntitySchema.empty)
 
   /**
    * Loads the most frequent paths.
    */
-  override def run(context: ActivityContext[EntitySchema]) = {
+  override def run(context: ActivityContext[EntitySchema]): Unit = {
     val transform = task.data
 
     //Create an entity description from the transformation task

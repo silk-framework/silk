@@ -9,12 +9,12 @@ import plugins.Context
 
 object TransformEditor extends Controller {
 
-  def start(project: String, task: String) = Action { request =>
+  def start(project: String, task: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     Ok(views.html.editor.transformRules(context))
   }
 
-  def editor(project: String, task: String, rule: String) = Action { request =>
+  def editor(project: String, task: String, rule: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     context.task.data.rules.find(_.name == rule) match {
       case Some(r) => Ok(views.html.editor.transformEditor(context, r))

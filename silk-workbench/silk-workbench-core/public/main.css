@@ -233,3 +233,7 @@ div#newproject {
 #comet_div {
   display: none;
 }
+
+.logout-button {
+  float:right; !important
+}

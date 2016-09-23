@@ -24,7 +24,9 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
                            welcome: Resource,
                            about: Resource,
                            mdlStyle: Option[Resource],
-                           tabs: Tabs = Tabs()) {
+                           tabs: Tabs = Tabs(),
+                           loggedOut: Resource) {
+  var showLogoutButton: Boolean = false
 }
 
 object WorkbenchConfig {
@@ -49,7 +51,8 @@ object WorkbenchConfig {
                config.getBoolean("workbench.tabs.learn").getOrElse(true),
                config.getBoolean("workbench.tabs.referenceLinks").getOrElse(true),
                config.getBoolean("workbench.tabs.status").getOrElse(true)
-             )
+             ),
+      loggedOut = resourceLoader.get("loggedOut.html")
     )
   }
 

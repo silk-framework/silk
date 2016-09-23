@@ -7,7 +7,7 @@ import plugins.Context
 
 object Editor extends Controller {
 
-  def editor(project: String, task: String) = Action { request =>
+  def editor(project: String, task: String) = Action { implicit request =>
     val context = Context.get[Workflow](project, task, request.path)
     Ok(views.html.workflow.editor.editor(context))
   }

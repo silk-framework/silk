@@ -4,7 +4,7 @@ import controllers.core.{Stream, Widgets}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.config.LinkSpec
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.Dataset
 import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.workspace.User
@@ -13,7 +13,7 @@ import plugins.Context
 
 object GenerateLinks extends Controller {
 
-  def generateLinks(project: String, task: String) = Action { request =>
+  def generateLinks(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.generateLinks.generateLinks(context))
   }

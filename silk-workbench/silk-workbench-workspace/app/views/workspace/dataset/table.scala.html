@@ -3,7 +3,7 @@
 @import org.silkframework.dataset.Dataset
 @import plugins.Context
 
-@(context: plugins.Context[Dataset], paths: IndexedSeq[Path], entities: Seq[Entity])
+@(context: plugins.Context[Dataset], paths: IndexedSeq[Path], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
 
 @header = {
 }

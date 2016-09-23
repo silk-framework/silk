@@ -2,7 +2,7 @@ package org.silkframework.config
 
 import java.io.File
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config => TypesafeConfig, ConfigFactory}
 
 /**
  * Holds the configuration properties
@@ -34,6 +34,6 @@ object Config {
     fullConfig.resolve()
   }
 
-  def apply() = config
+  def apply(): TypesafeConfig = config
 
 }

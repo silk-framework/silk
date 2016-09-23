@@ -13,6 +13,24 @@ import org.silkframework.workspace.{Project, ProjectTask}
 class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   behavior of "Workflow"
 
+  val DS_A = "dsA"
+  val DS_A1 = "dsA1"
+  val DS_A2 = "dsA2"
+  val DS_B = "dsB"
+  val DS_B1 = "dsB1"
+  val DS_B2 = "dsB2"
+  val TRANSFORM = "transform"
+  val TRANSFORM_1 = "transform1"
+  val TRANSFORM_2 = "transform2"
+  val LINKS = "links"
+  val OUTPUT = "output"
+  val LINKING = "linking"
+  val GENERATE_OUTPUT = "generateOutput"
+  val WORKFLOW = "workflow"
+  val OP_1 = "op1"
+  val OP_2 = "op2"
+  val DS_C = "dsC"
+
   it should "support sorting its workflow operators topologically" in {
     val project = mock[Project]
     val workflow = testWorkflow
@@ -23,7 +41,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       when(project.taskOption[Dataset](dataset.task)).thenReturn(Some(datasetTask))
     }
     val sortedWorkflowNodes = workflow.topologicalSortedNodes.map(_.nodeId)
-    sortedWorkflowNodes mustBe Seq("dsA1", "dsA2", "transform1", "transform2", "dsB1", "dsB2", "links", "output", "linking", "generateOutput")
+    sortedWorkflowNodes mustBe Seq(DS_A1, DS_A2, TRANSFORM_1, TRANSFORM_2, DS_B1, DS_B2, LINKING, LINKS, GENERATE_OUTPUT, OUTPUT)
   }
 
   it should "detect circular workflows" in {
@@ -39,16 +57,18 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe testWorkflow.WorkflowDependencyGraph(
       startNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA1", List(), (0, 0), "dsA1")),
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "dsA2", List(), (0, 0), "dsA2"))),
-      endNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), "output", List(), (0, 0), "output"))))
-    val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == "dsA1").head
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
+      endNodes = Seq(
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None)),
+        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None))
+      ))
+    val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
       dsA1.addFollowingNode(null)
     }
     var current = dsA1
-    for (nextLabel <- Seq("transform1", "dsB1", "linking", "links", "generateOutput", "output")) {
+    for (nextLabel <- Seq(TRANSFORM_1, DS_B1, LINKING, LINKS, GENERATE_OUTPUT, OUTPUT)) {
       current.followingNodes.size mustBe 1
       val next = current.followingNodes.head
       next.nodeId mustBe nextLabel
@@ -58,74 +78,102 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       }
       current = next
     }
-    current mustBe dag.endNodes.head
+    dag.endNodes must contain (current)
   }
 
   it should "sort correctly for a workflow ending in an operator" in {
     val sortedNodes = testWorkflowEndingInOperator.topologicalSortedNodes
-    sortedNodes.map(_.nodeId) mustBe Seq("dsA", "dsB", "transform")
+    sortedNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, TRANSFORM)
+  }
+
+  it should "sort by output priority" in {
+    val nodes = Seq(
+      dataset(DS_A, DS_A, outputPriority = None, outputs = Seq(TRANSFORM, LINKING)),
+      dataset(DS_B, DS_B, outputPriority = Some(5.0), outputs = Seq(LINKING), inputs = Seq(TRANSFORM)),
+      dataset(LINKS, LINKS, outputPriority = Some(3), inputs = Seq(LINKING), outputs = Seq(GENERATE_OUTPUT)),
+      dataset(OUTPUT, OUTPUT, outputPriority = None),
+      operator(task = TRANSFORM, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM, outputPriority = Some(1.5)),
+      operator(task = LINKING, inputs = Seq(DS_A, DS_B), outputs = Seq(LINKS), LINKING, outputPriority = None),
+      operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT, outputPriority = Some(0.5))
+    ).map(n => testWorkflow.WorkflowDependencyNode(n))
+    testWorkflow.sortWorkflowNodesByOutputPriority(nodes).map(_.nodeId) mustBe Seq(
+      GENERATE_OUTPUT, TRANSFORM, LINKS, DS_B, DS_A, LINKING, OUTPUT)
   }
 
   it should "build the DAG correctly for a workflow ending in an operator" in {
     val dag = testWorkflowEndingInOperator.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set("dsA", "dsB")
-    dag.endNodes.map(_.nodeId) mustBe Set("transform")
+    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B)
+    dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM)
   }
 
   it should "sort correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val sortedNodes = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.topologicalSortedNodes
-    sortedNodes.map(_.nodeId) mustBe Seq("dsA", "dsB", "dsC", "transform", "op1", "op2")
+    sortedNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, DS_C, TRANSFORM, OP_1, OP_2)
   }
 
   it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set("dsA", "dsB", "dsC")
-    dag.endNodes.map(_.nodeId) mustBe Set("transform", "op1", "op2")
+    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B, DS_C)
+    dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM, OP_1, OP_2)
+  }
+
+  it should "put workflow nodes that have neither input nor output into the end nodes" in {
+    singleNodeWorkflow.workflowDependencyGraph.endNodes.map(_.nodeId) mustBe Seq(OP_1)
   }
 
   val testWorkflow: Workflow = {
     Workflow(
-      Identifier("workflow"),
+      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = "transform1", inputs = Seq("dsA1"), outputs = Seq("dsB1"), "transform1"),
-        operator(task = "transform2", inputs = Seq("dsA2"), outputs = Seq("dsB1"), "transform2"),
-        operator(task = "linking", inputs = Seq("dsB1", "dsB1"), outputs = Seq("links"), "linking"),
-        operator(task = "generateOutput", inputs = Seq("links"), outputs = Seq("output"), "generateOutput")
+        operator(task = TRANSFORM_1, inputs = Seq(DS_A1), outputs = Seq(DS_B1), TRANSFORM_1),
+        operator(task = TRANSFORM_2, inputs = Seq(DS_A2), outputs = Seq(DS_B1), TRANSFORM_2),
+        operator(task = LINKING, inputs = Seq(DS_B1, DS_B1), outputs = Seq(LINKS), LINKING),
+        operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT)
       ),
       datasets = Seq(
-        dataset("dsA1", "dsA1"),
-        dataset("dsA2", "dsA2"),
-        dataset("dsB", "dsB1"),
-        dataset("dsB", "dsB2"),
-        dataset("links", "links"),
-        dataset("output", "output")
+        dataset(DS_A1, DS_A1, outputs = Seq(TRANSFORM_1)),
+        dataset(DS_A2, DS_A2, outputs = Seq(TRANSFORM_2)),
+        dataset(DS_B, DS_B1, outputs = Seq(LINKING, LINKING)),
+        dataset(DS_B, DS_B2),
+        dataset(LINKS, LINKS, inputs = Seq(LINKING), outputs = Seq(GENERATE_OUTPUT)),
+        dataset(OUTPUT, OUTPUT, inputs = Seq(GENERATE_OUTPUT))
       ))
   }
 
   val testWorkflowEndingInOperator: Workflow = {
     Workflow(
-      Identifier("workflow"),
+      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = "transform", inputs = Seq("dsA", "dsB"), outputs = Seq(), "transform")
+        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM)
       ),
       datasets = Seq(
-        dataset("dsA", "dsA"),
-        dataset("dsB", "dsB")
+        dataset(DS_A, DS_A, outputs = Seq(TRANSFORM)),
+        dataset(DS_B, DS_B, outputs = Seq(TRANSFORM))
       ))
   }
 
   val testWorkflowWithMultipleEndNodesAndDisjunctDataFlows: Workflow = {
     Workflow(
-      Identifier("workflow"),
+      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = "transform", inputs = Seq("dsA", "dsB"), outputs = Seq(), "transform"),
-        operator(task = "op1", inputs = Seq("dsC"), outputs = Seq(), "op1"),
-        operator(task = "op2", inputs = Seq("dsC"), outputs = Seq(), "op2")
+        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM, outputPriority = Some(1.5)),
+        operator(task = OP_1, inputs = Seq(DS_C), outputs = Seq(), OP_1),
+        operator(task = OP_2, inputs = Seq(DS_C), outputs = Seq(), OP_2)
       ),
       datasets = Seq(
-        dataset("dsA", "dsA"),
-        dataset("dsB", "dsB"),
-        dataset("dsC", "dsC")
+        dataset(DS_A, DS_A, outputs = Seq(TRANSFORM)),
+        dataset(DS_B, DS_B, outputs = Seq(TRANSFORM)),
+        dataset(DS_C, DS_C, outputs = Seq(OP_1, OP_2))
+      ))
+  }
+
+  val singleNodeWorkflow: Workflow = {
+    Workflow(
+      Identifier(WORKFLOW),
+      operators = Seq(
+        operator(task = OP_1, inputs = Seq(), outputs = Seq(), OP_1)
+      ),
+      datasets = Seq(
       ))
   }
 
@@ -133,18 +181,22 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     Workflow(
       Identifier("circularWorkflow"),
       operators = Seq(
-        operator(task = "transform1", inputs = Seq("transform2"), outputs = Seq("transform2"), "transform1"),
-        operator(task = "transform2", inputs = Seq("transform1"), outputs = Seq("transform1"), "transform2")
+        operator(task = TRANSFORM_1, inputs = Seq(TRANSFORM_2), outputs = Seq(TRANSFORM_2), TRANSFORM_1),
+        operator(task = TRANSFORM_2, inputs = Seq(TRANSFORM_1), outputs = Seq(TRANSFORM_1), TRANSFORM_2)
       ),
       datasets = Seq()
     )
   }
 
-  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId)
+  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None): WorkflowOperator = {
+    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority)
   }
 
-  def dataset(task: String, nodeId: String): WorkflowDataset = {
-    WorkflowDataset(Seq(), task, Seq(), (0, 0), nodeId)
+  def dataset(task: String,
+              nodeId: String,
+              outputPriority: Option[Double] = None,
+              inputs: Seq[String] = Seq(),
+              outputs: Seq[String] = Seq()): WorkflowDataset = {
+    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority)
   }
 }

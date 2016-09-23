@@ -23,7 +23,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Adds/Updates a project.
     */
   override def putProject(project: ProjectConfig): Unit = {
-    projects += ((project.id, new InMemoryProject(project)))
+    projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
   }
 
   /**

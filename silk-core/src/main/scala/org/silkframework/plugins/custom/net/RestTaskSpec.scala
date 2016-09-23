@@ -28,11 +28,15 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
                         @Param("The content that is send with a POST or PUT request. For handling this payload dynamically " +
                             "this parameter must be overwritten via the task input.")
                         content: String = "",
-                        @Param("If this is set to true, specific parameters can be overwritten at execution time. Else inputs are ignored. Parameters that can currently be overwritten: url, content")
-                        readParametersFromInput: Boolean = false
+                        @Param("If this is set to true, specific parameters can be overwritten at execution time. " +
+                            "Else inputs are ignored. Parameters that can currently be overwritten: url, content")
+                        readParametersFromInput: Boolean = false,
+                        @Param("If set to a non-empty String then instead of a normal POST a multipart/form-data file upload request is executed. " +
+                            "This value is used as the form parameter name.")
+                        multipartFileParameter: String = ""
                        ) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    if(readParametersFromInput) {
+    if (readParametersFromInput) {
       Some(Seq(inputSchema))
     } else {
       None
@@ -41,7 +45,7 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
 
   final private val inputPaths = IndexedSeq[(String, (RestTaskSpec, String) => RestTaskSpec)](
     // The URL that the POST, GET or PUT request should be executed against. This will overwrite the task spec URL if set.
-    SilkVocab.RestTaskPropertyURL -> ((task: RestTaskSpec, newVal: String) => task.copy(url = newVal)),
+    SilkVocab.RestTaskPropertyURL -> ((task: RestTaskSpec, newVal: String) => task.copy(url = newVal.trim)),
     // The content String that should be send in case of PUT or POST
     SilkVocab.RestTaskPropertyContent -> ((task: RestTaskSpec, newVal: String) => task.copy(content = newVal))
   )
@@ -54,11 +58,11 @@ case class RestTaskSpec(@Param("The URL to execute this request against. This ca
   /**
     * Returns a copy of this [[RestTaskSpec]] with values from the provided config overwriting the config values.
     *
-    * @param config
+    * @param config Parameter map that overwrites parameters of this [[RestTaskSpec]].
     */
   def customize(config: Map[String, String]): RestTaskSpec = {
     var copy = this.copy()
-    for((url, updateFn) <- inputPaths) {
+    for ((url, updateFn) <- inputPaths) {
       config.get(url) foreach { value =>
         copy = updateFn(copy, value)
       }

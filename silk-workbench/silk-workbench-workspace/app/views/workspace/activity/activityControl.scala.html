@@ -1,5 +1,5 @@
 @import controllers.core.routes.Assets
-@import controllers.workspace.routes.WorkspaceApi
+@import controllers.workspace.routes.ActivityApi
 @import controllers.workspace.routes.Workspace
 
 @(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
@@ -88,7 +88,7 @@
   function startActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(WorkspaceApi.startActivity(project, task.getOrElse(""), activity, blocking = false).url)',
+      url: '@Html(ActivityApi.startActivity(project, task.getOrElse(""), activity, blocking = false).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -100,7 +100,7 @@
   function stopActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(WorkspaceApi.cancelActivity(project, task.getOrElse(""), activity).url)',
+      url: '@Html(ActivityApi.cancelActivity(project, task.getOrElse(""), activity).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -112,7 +112,7 @@
   function restartActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(WorkspaceApi.restartActivity(project, task.getOrElse(""), activity).url)',
+      url: '@Html(ActivityApi.restartActivity(project, task.getOrElse(""), activity).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -123,7 +123,7 @@
 
   $( window ).load(function() {
     setTimeout(function () {
-      $("#activity_control_wrapper").append('<iframe src="@WorkspaceApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
+      $("#activity_control_wrapper").append('<iframe src="@ActivityApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
     }, 1);
   });
 </script>

@@ -3,7 +3,7 @@
 @import controllers.rules.routes.Assets
 @import org.silkframework.config.TransformSpec
 
-@(context: Context[TransformSpec], rule: TransformRule)
+@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
 @import org.silkframework.workspace.User
 @import org.silkframework.rule.input.Transformer

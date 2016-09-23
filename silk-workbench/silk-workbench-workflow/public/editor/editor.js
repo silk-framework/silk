@@ -108,24 +108,6 @@ $(function () {
   jsPlumb.bind("click", function(conn, originalEvent) {
     jsPlumb.detach(conn);
   });
-
-//  // Update whenever a new connection has been established
-//  jsPlumb.bind("connection", function(info) {
-//    modifyLinkSpec();
-//  });
-//
-//  // Update whenever a connection has been removed
-//  jsPlumb.bind("connectionDetached", function(info) {
-//    modifyLinkSpec();
-//  });
-//
-//  // Update whenever a parameter has been changed
-//  $(document).on('change', "input[type!='text']", function(info) {
-//    modifyLinkSpec();
-//  });
-//  $(document).on('keyup', "input[type='text']", function(info) {
-//    modifyLinkSpec();
-//  });
 });
 
 function removeElement(elementId) {

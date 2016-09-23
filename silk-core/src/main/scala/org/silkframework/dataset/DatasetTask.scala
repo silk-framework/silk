@@ -39,6 +39,16 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
 
   def clear(): Unit = plugin.clear()
 
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case ds: DatasetTask =>
+      id == ds.id && plugin == ds.plugin &&
+      minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+  }
+
+  override def toString = {
+    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+  }
+
   private class EntitySinkWrapper extends EntitySink {
 
     private var entityCount: Int = 0
@@ -132,7 +142,7 @@ object DatasetTask {
   /**
    * XML serialization format.
    */
-  implicit object DatasetFormat extends XmlFormat[DatasetTask] {
+  implicit object DatasetTaskFormat extends XmlFormat[DatasetTask] {
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetTask = {
       implicit val prefixes = readContext.prefixes

@@ -13,7 +13,18 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
+
+  // The assembly plugin cannot resolve multiple dependencies to commons logging
+  assemblyMergeStrategy in assembly := {
+    case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
+    case PathList(xs @ _*) if xs.last endsWith ".class" => MergeStrategy.first
+    case PathList(xs @ _*) if xs.last endsWith ".xsd" => MergeStrategy.first
+    case PathList(xs @ _*) if xs.last endsWith ".dtd" => MergeStrategy.first
+    case other =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(other)
+  }
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -105,9 +116,17 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
     name := "Silk Plugins Asian"
   )
 
+lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Serialization JSON",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+  )
+
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"
@@ -194,10 +213,18 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     }
   )
 
+lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
+  .dependsOn(core, plugins)
+  .aggregate(core, plugins)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk MapReduce"
+  )
+
 //////////////////////////////////////////////////////////////////////////////
 // Root
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val root = (project in file("."))
-  .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
+  .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)

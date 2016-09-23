@@ -6,7 +6,7 @@
 @import controllers.rules.routes.Assets
 @import org.silkframework.config.LinkSpec
 
-@(context: Context[LinkSpec])
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -152,11 +152,20 @@
     <div class="droppable_outer">
 
       <div id="droppable" class="mdl-shadow--2dp">
-        @for(op <- context.task.data.rule.operator) {
-          @renderRule(
-            rule = op,
-            prefixes = context.project.config.prefixes
-          )
+        @context.task.data.rule.operator match {
+          case Some(op) => {
+            @renderRule(
+              rule = op,
+              prefixes = context.project.config.prefixes
+            )
+          }
+          case None => {
+            <script type="text/javascript">
+              $(function() {
+                initEditor();
+              });
+            </script>
+          }
         }
       </div>
 

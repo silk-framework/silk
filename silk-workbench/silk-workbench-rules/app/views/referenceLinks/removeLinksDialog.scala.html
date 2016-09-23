@@ -2,7 +2,7 @@
 
 @(project: String, task: String)
 
-@widgets.dialog(title = "Remove Reference Links", width = 500) {
+@widgets.dialog(title = "Remove Reference Links", submitLabel = "Delete") {
   <table border="0">
     <tr>
       <td>
@@ -11,10 +11,6 @@
         <input type="checkbox" id="removeUnlabeled"><label for="removeUnlabeled">Unlabeled</label>
       </td>
       <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td align="right"><button onclick='submit()'>Delete</button></td>
     </tr>
   </table>
 

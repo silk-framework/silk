@@ -4,7 +4,7 @@
 @import controllers.transform.routes.ExecuteTransformTab
 @import org.silkframework.config.TransformSpec
 
-@(context: Context[TransformSpec])
+@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <script type="text/javascript">

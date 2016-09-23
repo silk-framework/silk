@@ -19,9 +19,9 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
   @volatile
   private var canceled = false
 
-  override def initialValue = Some(WorkflowExecutionReport())
+  override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport())
 
-  override def run(context: ActivityContext[WorkflowExecutionReport]) = {
+  override def run(context: ActivityContext[WorkflowExecutionReport]): Unit = {
     canceled = false
     val operators = workflow.operators
     val internalDataset = InternalDataset(graphUri = null)
@@ -52,11 +52,13 @@ class WorkflowExecutor(task: ProjectTask[Workflow],
     val variableDatasets = workflow.variableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.size > 0) {
-      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " + notCoveredVariableDatasets.mkString(", "))
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " +
+          notCoveredVariableDatasets.mkString(", "))
     }
     val notCoveredVariableSinks = variableDatasets.sinks.filter(!replaceSinks.contains(_))
     if (notCoveredVariableSinks.size > 0) {
-      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " + notCoveredVariableSinks.mkString(", "))
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " +
+          notCoveredVariableSinks.mkString(", "))
     }
   }
 

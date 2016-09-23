@@ -1,31 +1,24 @@
 @()
 
-@widgets.dialog(title = "Import Project", width = 400) {
-  <table border="0">
-    <tr>
-      <td>Name</td>
-      <td><input name="name" title="Project Name" size="25" value="unnamed"/></td>
-    </tr>
-    <tr>
-      <td>File</td>
-      <td>
-        <form enctype="multipart/form-data">
-          <input name="file" type="file" size="10"/>
-        </form>
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td align="right"><button onclick='submit()'>Ok</button></td>
-    </tr>
-  </table>
+@widgets.dialog(title = "Import Project", submitLabel = "Import") {
 
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="project_name" name="project_name"/>
+    <label class="mdl-textfield__label" for="project_name">Name</label>
+  </div>
+  <div>
+    <input name="file" type="file"/>
+  </div>
 
   <script>//<![CDATA[
+
     function submit() {
-      var name = $("input[name='name']").val();
+      var name = $("input[name='project_name']").val();
       var file = $("input[name='file']").val();
       var formData = new FormData($('form')[0]);
+
+      $("#dialog-progress-spinner").show();
+      $("#dialog-submit-button").prop("disabled", true);
 
       $.ajax({
         type: 'POST',
@@ -39,10 +32,14 @@
         contentType: false,
         processData: false,
         success: function(data) {
-          $('.dialog').dialog('close');
+          $("#dialog-progress-spinner").hide();
+          $("#dialog-submit-button").prop("disabled", false);
+          closeDialog();
           reloadWorkspace();
         },
         error: function(request) {
+          $("#dialog-progress-spinner").hide();
+          $("#dialog-submit-button").prop("disabled", false);
           alert(request.responseText);
         }
       });

@@ -92,7 +92,7 @@ object LinkingTaskApi extends Controller {
       case Some(xml) =>
         try {
           //Collect warnings while parsing linkage rule
-          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
+          val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
             //Load linkage rule
             val updatedRule = XmlSerialization.fromXml[LinkageRule](xml.head)
             //Update linking task

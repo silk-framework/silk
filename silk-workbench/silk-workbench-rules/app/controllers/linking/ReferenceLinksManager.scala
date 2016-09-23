@@ -13,7 +13,7 @@ import plugins.Context
 
 object ReferenceLinksManager extends Controller {
 
-  def referenceLinksView(project: String, task: String) = Action { request =>
+  def referenceLinksView(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }

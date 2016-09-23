@@ -10,7 +10,7 @@
 @import org.silkframework.rule.ComplexMapping
 @import org.silkframework.runtime.serialization.XmlSerialization
 
-@(context: Context[TransformSpec])
+@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
@@ -26,16 +26,16 @@
 @toolbar = {
   <ul>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
+      <button id="add-uri-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
     </li>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
+      <button id="add-type-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
     </li>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
+      <button id="add-direct-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
     </li>
     <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#objectMappingTemplate')">Add Object Mapping</button>
+      <button id="add-object-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#objectMappingTemplate')">Add Object Mapping</button>
     </li>
     <li>
       @* widgets.taskActivityControl(context, context.task.activity[PathsCache].name) *@

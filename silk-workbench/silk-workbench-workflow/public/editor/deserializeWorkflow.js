@@ -30,6 +30,7 @@ function deserializeWorkflow(xml) {
       var xml = $(this);
       var taskId = xml.attr('task');
       var opId = xml.attr('id');
+      var outputPriority = xml.attr('outputPriority')
       if(opId === undefined) {
         opId = taskId
       }
@@ -39,6 +40,9 @@ function deserializeWorkflow(xml) {
       //    toolbox.hide();
 
       var box = toolbox.children('.' + childClass).clone(false);
+      if(outputPriority) {
+        box.attr('output_priority', outputPriority);
+      }
       box.attr('taskid', taskId);
       box.attr('id', opId)
       box.show();

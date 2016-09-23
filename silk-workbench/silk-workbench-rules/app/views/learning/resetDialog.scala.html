@@ -2,16 +2,13 @@
 
 @(project: String, task: String)
 
-@widgets.dialog(title = "Reset active learning", width = 500) {
+@widgets.dialog(title = "Reset active learning", submitLabel = "Reset") {
 <div>
   This will remove all reference links from this task and restart active learning!
 </div>
-<div>
-  <button title="Reset active learning" onclick='resetActiveLearning()'>Reset</button>
-</div>
 
 <script>
-  function resetActiveLearning() {
+  function submit() {
     $.ajax({
       type: 'POST',
       url: '@routes.Learning.resetActiveLearning(project, task)',

@@ -14,10 +14,11 @@ import org.silkframework.runtime.plugin.Plugin
 )
 case class FilterByRegex(regex: String, negate: Boolean = false) extends Transformer {
 
-  override def apply(values: Seq[Seq[String]]) = {
-    if(!negate)
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
+    if(!negate) {
       values.head.filter(str => str.matches(regex))
-    else
+    } else {
       values.head.filterNot(str => str.matches(regex))
+    }
   }
 }

@@ -14,9 +14,9 @@
     resources = Nil) {
 
   <script type="text/javascript">
-    function submit(pluginId, name, parameters) {
+    function savePlugin(pluginId, name, parameters) {
       $.post(
-        '@Html(routes.WorkspaceApi.postActivityConfig(activity.project.name, "", activity.name).url)',
+        '@Html(routes.ActivityApi.postActivityConfig(activity.project.name, "", activity.name).url)',
         parameters
       ).done(function() {
         closeDialog();

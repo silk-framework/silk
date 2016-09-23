@@ -1,13 +1,10 @@
 package org.silkframework.workspace.xml
 
-import java.io._
-import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
-
 import org.silkframework.config._
-import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.xml.XML
@@ -15,7 +12,7 @@ import scala.xml.XML
 /**
   * Holds all projects in a xml-based file structure.
   */
-class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
+class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
 
   @volatile
   private var plugins = Map[Class[_], XmlSerializer[_]]()
@@ -36,13 +33,15 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     for(projectName <- res.listChildren) yield {
       val configXML = XML.load(res.child(projectName).get("config.xml").load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
-      ProjectConfig(projectName, prefixes)
+      val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
+      ProjectConfig(projectName, prefixes, resourceURI)
     }
   }
 
   override def putProject(config: ProjectConfig): Unit = {
+    val uri = config.resourceUriOrElseDefaultUri
     val configXMl =
-      <ProjectConfig>
+      <ProjectConfig resourceUri={uri}>
         { config.prefixes.toXML }
       </ProjectConfig>
     res.child(config.id).get("config.xml").write { os => configXMl.write(os) }
@@ -78,61 +77,19 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider {
     plugin[T].removeTask(task, res.child(project).child(plugin[T].prefix))
   }
 
-  override def exportProject(project: Identifier, outputStream: OutputStream): String = {
-    require(res.listChildren.contains(project.toString), s"Project $project does not exist.")
-
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
-
-    // Go through all files and create a ZIP entry for each
-    putResources(res.child(project), "")
-
-    def putResources(loader: ResourceLoader, basePath: String): Unit = {
-      for(resName <- loader.list) {
-        zip.putNextEntry(new ZipEntry(basePath + resName))
-        zip.write(loader.get(resName).loadAsBytes)
-      }
-      for(childName <- loader.listChildren) {
-        putResources(loader.child(childName), basePath + childName + "/")
-      }
-    }
-
-    // Close ZIP
-    zip.close()
-
-    //Return proposed file name
-    project.toString + ".zip"
-  }
-
-  override def importProject(project: Identifier, inputStream: InputStream, resources: ResourceLoader): Unit = {
-    require(!res.listChildren.contains(project.toString), s"Project $project already exists.")
-
-    // Open ZIP
-    val zip = new ZipInputStream(inputStream)
-
-    // Read all ZIP entries
-    try {
-      val projectRes = res.child(project)
-      var entry = zip.getNextEntry
-      while (entry != null) {
-        if (!entry.isDirectory) {
-          projectRes.getInPath(entry.getName).write(zip)
-        }
-        zip.closeEntry()
-        entry = zip.getNextEntry
-      }
-    } catch {
-      case ex: Throwable =>
-        // Something failed. Delete already written project resources and escalate exception.
-        res.delete(project)
-        throw ex;
-    }
-
-    // Close ZIP and reload
-    zip.close()
-  }
-
   private def plugin[T <: TaskSpec : ClassTag] = {
-    plugins(implicitly[ClassTag[T]].runtimeClass).asInstanceOf[XmlSerializer[T]]
+    val taskClass = implicitly[ClassTag[T]].runtimeClass
+    plugins.find(_._1.isAssignableFrom(taskClass))
+      .getOrElse(throw new RuntimeException("No plugin available for class " + taskClass))
+      ._2.asInstanceOf[XmlSerializer[T]]
+  }
+
+  /**
+    * Refreshes a project, i.e. cleans all possible caches if there are any for this projects and reloads it
+    * freshly.
+    */
+  override def refreshProject(project: Identifier): Unit = {
+    // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
+    // This is implemented to avoid warnings on project imports.
   }
 }

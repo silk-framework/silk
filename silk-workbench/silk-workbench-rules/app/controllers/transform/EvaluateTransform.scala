@@ -9,7 +9,7 @@ import plugins.Context
 
 object EvaluateTransform extends Controller {
 
-  def evaluate(project: String, task: String, offset: Int, limit: Int) = Action { request =>
+  def evaluate(project: String, task: String, offset: Int, limit: Int) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     Ok(views.html.evaluateTransform.evaluateTransform(context, offset, limit))
   }

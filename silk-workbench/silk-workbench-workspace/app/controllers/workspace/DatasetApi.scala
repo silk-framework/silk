@@ -1,64 +1,58 @@
 package controllers.workspace
 
+import controllers.util.SerializationUtils
+import controllers.util.SerializationUtils._
 import models.JsonError
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.dataset.{DatasetTask, Dataset, DatasetPluginAutoConfigurable}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetTask}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object Datasets extends Controller {
+object DatasetApi extends Controller {
 
-  def getDataset(projectName: String, sourceName: String) = Action {
-    val project = User().workspace.project(projectName)
+  def getDataset(projectName: String, sourceName: String) = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    val sourceXml = XmlSerialization.toXml(new DatasetTask(task.id, task.data))
-
-    Ok(sourceXml)
+    serialize(new DatasetTask(task.id, task.data))
   }
 
-  def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action {
-    val project = User().workspace.project(projectName)
+  def getDatasetAutoConfigured(projectName: String, sourceName: String) = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
     val datasetPlugin = task.data
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        val sourceXml = XmlSerialization.toXml(new DatasetTask(task.id, autoConfDataset))
-
-        Ok(sourceXml)
+        serialize(new DatasetTask(task.id, autoConfDataset))
       case _ =>
         NotImplemented(JsonError("The dataset type does not support auto-configuration."))
     }
   }
 
   def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean) = Action { implicit request => {
-    val project = User().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources)
-    request.body.asXml match {
-      case Some(xml) =>
-        try {
-          val dataset = XmlSerialization.fromXml[DatasetTask](xml.head)
-          if(autoConfigure) {
-            dataset.plugin match {
-              case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-                project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
-                Ok
-              case _ =>
-                NotImplemented(JsonError("The dataset type does not support auto-configuration."))
-            }
-          } else {
-            project.updateTask(dataset.id, dataset.data)
-            Ok
+    implicit val project = User().workspace.project(projectName)
+    try {
+      deserialize() { dataset: DatasetTask =>
+        if(autoConfigure) {
+          dataset.plugin match {
+            case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
+              project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
+              Ok
+            case _ =>
+              NotImplemented(JsonError("The dataset type does not support auto-configuration."))
           }
-        } catch {
-          case ex: Exception => BadRequest(JsonError(ex))
+        } else {
+          project.updateTask(dataset.id, dataset.data)
+          Ok
         }
-      case None => BadRequest(JsonError("Expecting dataset in request body as text/xml."))
+      }
+    } catch {
+      case ex: Exception => BadRequest(JsonError(ex))
     }
   }}
 
@@ -67,10 +61,10 @@ object Datasets extends Controller {
     Ok
   }
 
-  def datasetDialog(projectName: String, datasetName: String) = Action { request =>
+  def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset") = Action { request =>
     val project = User().workspace.project(projectName)
     val datasetPlugin = if(datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin))
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title))
   }
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String) = Action { request =>
@@ -87,12 +81,12 @@ object Datasets extends Controller {
     }
   }
 
-  def dataset(project: String, task: String) = Action { request =>
+  def dataset(project: String, task: String) = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
     Ok(views.html.workspace.dataset.dataset(context))
   }
 
-  def table(project: String, task: String, maxEntities: Int) = Action { request =>
+  def table(project: String, task: String, maxEntities: Int) = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
     val source = context.task.data.source
 
@@ -104,7 +98,7 @@ object Datasets extends Controller {
     Ok(views.html.workspace.dataset.table(context, paths, entities))
   }
 
-  def sparql(project: String, task: String, query: String = "") = Action { request =>
+  def sparql(project: String, task: String, query: String = "") = Action { implicit request =>
     val context = Context.get[Dataset](project, task, request.path)
 
     context.task.data match {

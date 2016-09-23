@@ -33,7 +33,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
 
   private val logger = Logger.getLogger(classOf[LinkingXmlSerializer].getName)
 
-  override def prefix = "linking"
+  override def prefix: String = "linking"
 
   /**
    * Loads all tasks of this module.
@@ -59,14 +59,14 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Removes a specific task.
    */
-  def removeTask(name: Identifier, resources: ResourceManager) = {
+  def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name.toString)
   }
 
   /**
    * Writes an updated task.
    */
-  def writeTask(data: Task[LinkSpec], resources: ResourceManager) = {
+  def writeTask(data: Task[LinkSpec], resources: ResourceManager): Unit = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 
