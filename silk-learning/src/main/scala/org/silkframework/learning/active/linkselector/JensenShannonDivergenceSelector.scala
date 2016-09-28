@@ -15,8 +15,8 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.{Entity, Link}
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
 
 import scala.math.log

@@ -1,0 +1,2 @@
+org.silkframework.rule.plugins.RulePlugins
+org.silkframework.rule.execution.local.LocalExecutionPlugins

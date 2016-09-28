@@ -18,10 +18,10 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.config.TransformSpec
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._

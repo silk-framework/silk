@@ -1,9 +1,9 @@
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.config.LinkSpec
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Path
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.util.DPair
 

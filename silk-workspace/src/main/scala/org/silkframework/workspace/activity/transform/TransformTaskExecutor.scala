@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TransformSpec
 import org.silkframework.dataset.{DataSource, SinkTrait}
-import org.silkframework.execution.ExecuteTransform
+import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.activity.TaskExecutor
 
 class TransformTaskExecutor extends TaskExecutor[TransformSpec] {

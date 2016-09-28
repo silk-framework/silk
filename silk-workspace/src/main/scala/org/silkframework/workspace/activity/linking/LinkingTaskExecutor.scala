@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.LinkSpec
 import org.silkframework.dataset._
-import org.silkframework.execution.GenerateLinks
+import org.silkframework.rule.execution.GenerateLinks
+import org.silkframework.rule.LinkSpec
 import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.TaskExecutor
 

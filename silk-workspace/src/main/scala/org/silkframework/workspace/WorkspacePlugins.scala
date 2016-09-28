@@ -1,13 +1,13 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.workspace.activity.custom.RestTaskExecutorFactory
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory}
-import org.silkframework.workspace.activity.workflow.WorkflowExecutorFactory
-import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, FileWorkspaceProvider}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, OldWorkflowExecutorFactory}
+import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
+
 import scala.language.existentials
 
 class WorkspacePlugins extends PluginModule {
@@ -19,7 +19,6 @@ class WorkspacePlugins extends PluginModule {
     linkingActivities :::
     workflowActivities :::
     projectMarshaller :::
-    customTaskActivities :::
     xmlFormats
 
   def workspaceProviders: List[Class[_]] =
@@ -41,7 +40,8 @@ class WorkspacePlugins extends PluginModule {
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
   def workflowActivities: List[Class[_]] =
-    classOf[WorkflowExecutorFactory] :: Nil
+    classOf[LocalWorkflowExecutorFactory] ::
+    classOf[OldWorkflowExecutorFactory] :: Nil
 
   def xmlFormats = {
     TypesFormat.getClass :: Nil
@@ -49,9 +49,5 @@ class WorkspacePlugins extends PluginModule {
 
   def projectMarshaller = {
     classOf[XmlZipProjectMarshaling] :: Nil
-  }
-
-  def customTaskActivities = {
-    classOf[RestTaskExecutorFactory] :: Nil
   }
 }

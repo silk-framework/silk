@@ -1,7 +1,6 @@
 @import plugins.Context
-@import org.silkframework.rule.TransformRule
+@import org.silkframework.rule.{TransformRule, TransformSpec}
 @import controllers.rules.routes.Assets
-@import org.silkframework.config.TransformSpec
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 

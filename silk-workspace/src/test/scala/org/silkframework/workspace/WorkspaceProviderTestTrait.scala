@@ -4,20 +4,21 @@ import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.plugins.custom.net.RestTaskSpec
 import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.plugins.distance.characterbased.QGramsMetric
-import org.silkframework.rule.{DirectMapping, LinkageRule}
+import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
+import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.util.{Uri, Identifier}
-import org.silkframework.workspace.activity.workflow.{WorkflowDataset, WorkflowOperator, Workflow}
+import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 
 /**
   * Created on 9/13/16.
   */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
+
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
   val CHILD = "child"
@@ -26,6 +27,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val DATASET_ID = "dataset1"
   val LINKING_TASK_ID = "linking1"
   val CUSTOM_TASK_ID = "custom1"
+
+  PluginRegistry.registerPlugin(classOf[TestCustomTask])
 
   def createWorkspaceProvider(): WorkspaceProvider
 
@@ -70,7 +73,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       ))
   }
 
-  val customTask: CustomTask = RestTaskSpec()
+  val customTask: CustomTask = TestCustomTask(stringParam = "xxx", numberParam = 12)
 
   it should "read and write projects" in {
     val project = createProject(PROJECT_NAME)
@@ -211,4 +214,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
         // Not refreshable
     }
   }
+}
+
+case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def outputSchemaOpt: Option[EntitySchema] = None
 }

@@ -4,18 +4,16 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import models.JsonError
-import org.silkframework.config.{DatasetSelection, LinkSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{Link, Restriction}
-import org.silkframework.evaluation.ReferenceLinks
-import org.silkframework.execution.{GenerateLinks => GenerateLinksActivity}
+import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.evaluation.ReferenceLinks
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.config.LinkSpec
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}

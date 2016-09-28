@@ -3,10 +3,9 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.util.DPair
 @import controllers.rules.routes.Assets
-@import org.silkframework.config.TransformSpec
-
-@import org.silkframework.config.LinkSpec
-@import org.silkframework.config.TransformSpec
+@import org.silkframework.rule.LinkSpec
+@import org.silkframework.rule.TransformSpec
+@import org.silkframework.rule.LinkSpec
 @(project: String, task: String)
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset] }

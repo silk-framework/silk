@@ -19,11 +19,11 @@ import java.util.logging.{Level, Logger}
 
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
-import org.silkframework.execution.{ExecuteTransform, GenerateLinks}
+import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
+import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.config.TransformSpec
 import org.silkframework.util.CollectLogs
 import org.silkframework.util.StringUtils._
 

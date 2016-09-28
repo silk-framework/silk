@@ -16,8 +16,8 @@ package org.silkframework.server.model
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.LinkingConfig
 import org.silkframework.entity.Link
+import org.silkframework.rule.LinkingConfig
 import org.silkframework.runtime.resource.FileResourceManager
 
 /**

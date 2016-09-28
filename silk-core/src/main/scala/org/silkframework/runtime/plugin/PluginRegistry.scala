@@ -63,10 +63,10 @@ object PluginRegistry {
   def createFromConfigOption[T: ClassTag](configPath: String)
                                          (implicit prefixes: Prefixes = Prefixes.empty,
                                           resources: ResourceManager = EmptyResourceManager): Option[T] = {
-    val config = Config().getConfig(configPath)
-    if(!config.hasPath("plugin")) {
+    if(!Config().hasPath(configPath + ".plugin")) {
       None
     } else {
+      val config = Config().getConfig(configPath)
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
       // Check if there are any configuration parameters available for this plugin

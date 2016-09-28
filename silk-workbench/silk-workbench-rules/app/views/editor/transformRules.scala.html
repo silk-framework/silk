@@ -1,13 +1,10 @@
 @import org.silkframework.entity.ForwardOperator
 @import plugins.Context
-@import org.silkframework.rule.TransformRule
+@import org.silkframework.rule.{ComplexMapping, DirectMapping, ObjectMapping, TransformRule, TransformSpec, TypeMapping, UriMapping}
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.entity.Path
 @import org.silkframework.workspace.activity.transform.TransformPathsCache
 @import controllers.rules.routes.Assets
-@import org.silkframework.config.TransformSpec
-@import org.silkframework.rule.{DirectMapping, ObjectMapping, TypeMapping, UriMapping}
-@import org.silkframework.rule.ComplexMapping
 @import org.silkframework.runtime.serialization.XmlSerialization
 
 @(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)

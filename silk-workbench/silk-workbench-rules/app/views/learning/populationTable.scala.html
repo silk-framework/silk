@@ -1,10 +1,14 @@
+@import org.silkframework.rule.evaluation.ReferenceEntities
+@import org.silkframework.rule.evaluation.EvaluationResult
+@import org.silkframework.rule.evaluation.LinkageRuleEvaluator
+
 @(project: String, task: String,
   individuals: Seq[org.silkframework.learning.individual.Individual],
-  referenceEntities: org.silkframework.evaluation.ReferenceEntities)
+  referenceEntities: ReferenceEntities)
 
 @import org.silkframework.learning.individual.Individual
-@import org.silkframework.evaluation.{ReferenceEntities, LinkageRuleEvaluator, EvaluationResult}
-@import org.silkframework.evaluation.statistics.LinkageRuleComplexity
+@import org.silkframework.rule.evaluation.ReferenceEntities
+@import org.silkframework.rule.evaluation.statistics.LinkageRuleComplexity
 @import org.apache.commons.lang3.StringEscapeUtils
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import controllers.rules.routes.Assets

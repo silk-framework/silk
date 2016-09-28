@@ -42,16 +42,23 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
   )
 
+lazy val rules = (project in file("silk-rules"))
+  .dependsOn(core % "test->test;compile->compile")
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Rules"
+  )
+
 lazy val learning = (project in file("silk-learning"))
-  .dependsOn(core)
+  .dependsOn(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Learning"
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(core, learning)
-  .aggregate(core, learning)
+  .dependsOn(rules, learning)
+  .aggregate(rules, learning)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
@@ -95,7 +102,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
-  .dependsOn(core)
+  .dependsOn(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins SpatialTemporal",
@@ -109,7 +116,7 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
   )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
-  .dependsOn(core)
+  .dependsOn(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins Asian"

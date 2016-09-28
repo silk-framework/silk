@@ -16,6 +16,7 @@ package org.silkframework.workspace.io
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
@@ -32,7 +33,7 @@ object SilkConfigExporter {
 
     LinkingConfig(
       prefixes = project.config.prefixes,
-      runtime = new RuntimeConfig(),
+      runtime = new RuntimeLinkingConfig(),
       sources = linkSpec.dataSelections.map(_.inputId).map(findDataset).toSeq,
       linkSpecs = linkSpec :: Nil,
       outputs = linkSpec.outputs.map(findDataset)

@@ -18,6 +18,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.entity.{Entity, EntitySchema, Index}
+import org.silkframework.config.RuntimeConfig
 
 import scala.collection.mutable.ArrayBuffer
 

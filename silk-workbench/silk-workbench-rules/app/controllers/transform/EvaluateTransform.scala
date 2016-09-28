@@ -1,8 +1,8 @@
 package controllers.transform
 
-import org.silkframework.config.TransformSpec
 import org.silkframework.dataset.{Dataset, DatasetTask}
-import org.silkframework.execution.{EvaluateTransform => EvaluateTransformTask}
+import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context

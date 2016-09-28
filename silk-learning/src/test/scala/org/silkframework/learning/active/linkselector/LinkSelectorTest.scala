@@ -15,9 +15,9 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity._
-import org.silkframework.evaluation.ReferenceEntities
-import org.silkframework.plugins.aggegrator.MinimumAggregator
-import org.silkframework.plugins.distance.equality.EqualityMetric
+import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.rule.plugins.aggegrator.MinimumAggregator
+import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
 import org.silkframework.util.{DPair, Uri}

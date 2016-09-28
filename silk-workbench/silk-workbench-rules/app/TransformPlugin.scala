@@ -1,4 +1,4 @@
-import org.silkframework.config.TransformSpec
+import org.silkframework.rule.TransformSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.rules.routes.Assets

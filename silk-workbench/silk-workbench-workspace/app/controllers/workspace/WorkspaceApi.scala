@@ -12,12 +12,14 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
+import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
+
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 

@@ -17,7 +17,8 @@ package org.silkframework.workspace.xml
 import java.util.logging.Logger
 
 import org.silkframework.config._
-import org.silkframework.evaluation.ReferenceLinksReader
+import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._

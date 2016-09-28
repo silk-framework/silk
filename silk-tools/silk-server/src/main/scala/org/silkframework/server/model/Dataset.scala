@@ -15,9 +15,10 @@
 package org.silkframework.server.model
 
 import org.silkframework.cache.MemoryEntityCache
-import org.silkframework.config.{LinkSpec, LinkingConfig}
+import org.silkframework.config.LinkSpec
 import org.silkframework.entity.Link
-import org.silkframework.execution.{Loader, Matcher}
+import org.silkframework.rule.execution.{Loader, Matcher}
+import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.util.DPair
 
 /**

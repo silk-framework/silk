@@ -15,12 +15,12 @@
 package org.silkframework.learning.generation
 
 import org.silkframework.entity.{Entity, Path}
-import org.silkframework.evaluation.ReferenceEntities
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.FunctionNode
-import org.silkframework.plugins.transformer.normalize.LowerCaseTransformer
-import org.silkframework.plugins.transformer.substring.StripUriPrefixTransformer
-import org.silkframework.plugins.transformer.tokenization.Tokenizer
+import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
+import org.silkframework.rule.plugins.transformer.substring.StripUriPrefixTransformer
+import org.silkframework.rule.plugins.transformer.tokenization.Tokenizer
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.util.DPair
 

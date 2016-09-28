@@ -1,7 +1,7 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
-import org.silkframework.evaluation.ReferenceEntities
+import org.silkframework.rule.evaluation.ReferenceEntities
 
 /**
  * Selects the links with the best aggregated confidence over all linkage rules.

@@ -64,7 +64,7 @@ object InternalDataset {
   // The internal dataset for the default graph
   lazy val default: Dataset = createInternalDataset()
 
-  private def createInternalDataset(): Dataset = {
+  def createInternalDataset(): Dataset = {
     // TODO: For non-in-memory datasets the graph must be handed over
     PluginRegistry.createFromConfigOption[Dataset]("dataset.internal") match {
       case Some(dataset) =>

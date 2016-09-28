@@ -1,4 +1,4 @@
-import org.silkframework.config.LinkSpec
+import org.silkframework.rule.LinkSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.rules.routes.Assets

@@ -27,7 +27,7 @@ import org.silkframework.util.FileUtils._
 class FileEntityCache(val entitySchema: EntitySchema,
                       val indexFunction: (Entity => Index),
                       dir: File,
-                      runtimeConfig: RuntimeConfig = RuntimeConfig()) extends EntityCache {
+                      runtimeConfig: RuntimeConfig) extends EntityCache {
 
   private val logger = Logger.getLogger(getClass.getName)
 
