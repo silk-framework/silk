@@ -18,7 +18,7 @@ import java.io.File
 import java.util.logging.Logger
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.silkframework.config.LinkSpec
+import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.execution.Loader
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.DPair
