@@ -1,0 +1,21 @@
+@(ruleName: String)
+
+@widgets.dialog(title = "Delete", submitLabel = "Yes, delete it") {
+
+<p>
+  Delete rule: <span class="delete-dialog-resource">@ruleName</span>
+</p>
+<p>This action cannot be undone!</p>
+
+<script>//<![CDATA[
+
+    function submit() {
+      console.log("@ruleName");
+      $('#@ruleName').remove();
+      modified();
+      closeDialog();
+    }
+
+  //]]>
+  </script>
+}

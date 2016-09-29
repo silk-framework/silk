@@ -108,7 +108,7 @@
 }
 
 @renderRule(rule: TransformRule) = {
-  <tr class="transformRule @{rule.typeString.toLowerCase}Mapping">
+  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping">
     <td class="mdl-data-table__cell non-numeric rule-name">@rule.name</td>
     <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
@@ -123,7 +123,7 @@
         <button class="mdl-button mdl-js-button mdl-button--icon edit-button">
           <i class="material-icons">edit</i>
         </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon">
+        <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')">
           <i class="material-icons">delete</i>
         </button>
       </div>
