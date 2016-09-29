@@ -253,12 +253,10 @@ function addRule(template) {
 
   var textfields = newRule.find(".mdl-textfield");
   $.each(textfields, function(index, value) {
-    console.log(index);
     value.removeAttribute("data-upgraded");
     var classes = value.className;
     var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
     value.className = new_classes;
-    console.log(value);
   });
 
   newRule.appendTo("#ruleTable table tbody");
@@ -280,10 +278,7 @@ function addRule(template) {
 }
 
 function deleteRule(node) {
-  // Remember rule
-  currentRule = node;
-  // Show confirmation dialog
-  $("#dialogDelete").dialog("open");
+  showDialog(baseUrl + '/transform/dialogs/deleteRule/' + encodeURIComponent(node));
 }
 
 function openRule(name) {
