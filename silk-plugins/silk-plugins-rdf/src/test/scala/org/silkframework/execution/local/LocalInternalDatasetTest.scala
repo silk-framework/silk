@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import org.scalatest.{FlatSpec, MustMatchers}
 
 /**
-  * Created on 9/2/16.
+  * Tests the internal dataset. This test is located in this module as the default is to use the RDF-based one from this module.
   */
 class LocalInternalDatasetTest extends FlatSpec with MustMatchers {
   "LocalInternalDataset" should "store and retrieve data" in {
