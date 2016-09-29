@@ -245,8 +245,22 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
 function addRule(template) {
   // Clone rule template
   var newRule = $(template + " tbody").children().clone();
-  var nameInput = newRule.find(".name");
-  nameInput.val(generateRuleName(nameInput.val()));
+  var nameInput = newRule.find(".rule-name");
+  nameInput.text(generateRuleName(nameInput.text()));
+
+  // remove dynamic mdl classes and attributes
+  // (otherwise componentHandler.upgradeAllRegistered() won't work)
+
+  var textfields = newRule.find(".mdl-textfield");
+  $.each(textfields, function(index, value) {
+    console.log(index);
+    value.removeAttribute("data-upgraded");
+    var classes = value.className;
+    var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
+    value.className = new_classes;
+    console.log(value);
+  });
+
   newRule.appendTo("#ruleTable table tbody");
   componentHandler.upgradeAllRegistered();
 
@@ -294,7 +308,7 @@ function generateRuleName(prefix) {
   var count = 0;
   do {
     count = count + 1;
-    if($("#ruleContainer").find(".name").filter(function() { return $(this).val() == prefix + count } ).length == 0) {
+    if($("#ruleContainer").find(".rule-name").filter(function() { return $(this).text() == prefix + count } ).length == 0) {
       return prefix + count;
     }
   } while (count < 1000);
