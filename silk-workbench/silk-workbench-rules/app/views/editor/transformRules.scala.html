@@ -61,6 +61,7 @@
             <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
             <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
             <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
+            <th class="mdl-data-table__cell rule-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -90,11 +91,25 @@
       @renderRule(ObjectMapping())
     </tbody>
   </table>
+
+  <script type="text/javascript">
+    $("#ruleTable tr").mouseenter(function() {
+      $(this).find(".rule-action-buttons").show();
+    });
+    $("#ruleTable tr").mouseleave(function() {
+      $(this).find(".rule-action-buttons").hide();
+    });
+    $(".edit-button").click(function() {
+      var ruleName = $(this).parent().parent().parent().find('.rule-name').text();
+      openRule(ruleName);
+    });
+  </script>
+
 }
 
 @renderRule(rule: TransformRule) = {
   <tr class="transformRule @{rule.typeString.toLowerCase}Mapping">
-    <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
+    <td class="mdl-data-table__cell non-numeric rule-name">@rule.name</td>
     <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
         case r: DirectMapping => renderDirectRule(r)
@@ -103,6 +118,16 @@
         case r: ComplexMapping => renderComplexRule(r)
         case _ =>
       }}
+    <td class="mdl-data-table__cell rule-actions">
+      <div class="rule-action-buttons">
+        <button class="mdl-button mdl-js-button mdl-button--icon edit-button">
+          <i class="material-icons">edit</i>
+        </button>
+        <button class="mdl-button mdl-js-button mdl-button--icon">
+          <i class="material-icons">delete</i>
+        </button>
+      </div>
+    </td>
     <script class="ruleXML" type="application/xml">
       @XmlSerialization.toXml[TransformRule](rule)
     </script>
