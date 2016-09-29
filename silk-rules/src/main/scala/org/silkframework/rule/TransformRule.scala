@@ -1,11 +1,9 @@
 package org.silkframework.rule
 
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization._
 import org.silkframework.util._
 

@@ -1,5 +1,7 @@
 package org.silkframework.rule.execution.local
 
+import java.util.logging.Logger
+
 import org.silkframework.config.Task
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution}
@@ -14,6 +16,7 @@ import scala.util.control.NonFatal
   * Created on 7/20/16.
   */
 class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalExecution] {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[EntityTable],
@@ -22,12 +25,13 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
                        context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val input = inputs.head
     val transformSpec = task.data
-    val transformedEntities = mapEntities(transformSpec, input.entities)
+    val transformedEntities = mapEntities(task, input.entities)
     assert(transformSpec.outputSchemaOpt.isDefined)
     Some(GenericEntityTable(transformedEntities, transformSpec.outputSchemaOpt.get))
   }
 
-  private def mapEntities(transform: TransformSpec, entities: Traversable[Entity]) = {
+  private def mapEntities(task: Task[TransformSpec], entities: Traversable[Entity]) = {
+    val transform = task.data
     val subjectRule = transform.rules.find(_.target.isEmpty)
     val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
 
@@ -40,6 +44,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
           } catch {
             case NonFatal(ex) =>
               // TODO forward error
+              log.warning("Error during execution of transform rule " + rules.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
               Seq.empty
           }
         }
