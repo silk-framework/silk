@@ -331,6 +331,32 @@
 
 
 
+/**** Transform Editorr ******/
+
+#ruleTable .mdl-textfield {
+  padding: 5px 0;
+}
+
+#ruleTable .mdl-textfield__input {
+  font-size: 13px;
+}
+
+.rule-template {
+  display: none;
+}
+
+.rule-name {
+  display: none;
+}
+
+.rule-actions {
+  min-width: 160px;
+}
+
+.rule-action-buttons {
+  display: none;
+}
+
 /*
 * New Colors for Transform Editor Overview
 */
@@ -371,21 +397,7 @@
   box-shadow: 1px 1px 6px #9FA8DA;
 }
 
-.typeMapping .rule-name {
-  display:none;
-}
 
-#ruleTable .mdl-textfield {
-  padding: 5px 0;
-}
-
-#ruleTable .mdl-textfield__input {
-  font-size: 13px;
-}
-
-.rule-template {
-  display: none;
-}
 
 /*
 * General Editor/Workflow Colors
