@@ -11,7 +11,7 @@ class LocalExecutionTest extends FlatSpec with ShouldMatchers {
 
   private val ID: String = "id"
 
-  ignore should "return the different dataset for the different id" in {
+  it should "return the different dataset for the different id" in {
     for(useLocalInternalDatasets <- Seq(true, false)) {
       val execution = LocalExecution(useLocalInternalDatasets = useLocalInternalDatasets)
       val noneDs = execution.createInternalDataset(None)
@@ -23,7 +23,7 @@ class LocalExecutionTest extends FlatSpec with ShouldMatchers {
     }
   }
 
-  ignore should "return the same dataset for the same id" in {
+  it should "return the same dataset for the same id" in {
     for(useLocalInternalDatasets <- Seq(true, false)) {
       val execution = LocalExecution(useLocalInternalDatasets = useLocalInternalDatasets)
       execution.createInternalDataset(None) should be theSameInstanceAs  execution.createInternalDataset(None)
