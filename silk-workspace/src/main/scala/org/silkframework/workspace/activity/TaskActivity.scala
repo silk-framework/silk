@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import java.lang.reflect.ParameterizedType
+import java.lang.reflect.{ParameterizedType, Type}
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, HasValue, Status}
@@ -12,11 +12,14 @@ import scala.reflect.ClassTag
 /**
   * Holds an activity that is part of an task.
   *
-  * @param task The task this activity belongs to.
+  * @param task           The task this activity belongs to.
   * @param initialFactory The initial activity factory for generating the activity.
   * @tparam DataType The type of the task.
   */
-class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType], initialFactory: TaskActivityFactory[DataType, ActivityType]) extends WorkspaceActivity {
+class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType],
+                                                                                         initialFactory: TaskActivityFactory[DataType, ActivityType])
+    extends WorkspaceActivity {
+  final val activityClassName = classOf[Activity[_]].getName
 
   @volatile
   private var currentControl = Activity(initialFactory(task))
@@ -58,10 +61,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     val oldControl = currentControl
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
-    for(subscriber <- oldControl.status.subscribers) {
+    for (subscriber <- oldControl.status.subscribers) {
       currentControl.status.onUpdate(subscriber)
     }
-    for(subscriber <- oldControl.value.subscribers) {
+    for (subscriber <- oldControl.value.subscribers) {
       currentControl.value.onUpdate(subscriber)
     }
   }
@@ -72,12 +75,38 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Retrieves the value type of the activity.
     */
   def valueType: Class[_] = {
-    val activityInterface = activityType.getGenericInterfaces.find(_.getTypeName.startsWith(classOf[Activity[_]].getName)).get.asInstanceOf[ParameterizedType]
+    val activityInterface = {
+      val at = activityType
+      val gi = getAllInterfacesRecursively(at, activityClassName)
+      gi.find(_.getTypeName.startsWith(activityClassName)) match {
+        case Some(activityTrait) =>
+          activityTrait.asInstanceOf[ParameterizedType]
+        case None =>
+          throw new Exception("Not able to get value type of activity " + at.getName)
+      }
+    }
     val valueType = activityInterface.getActualTypeArguments.apply(0)
     val valueClass = valueType match {
       case pt: ParameterizedType => pt.getRawType.asInstanceOf[Class[_]]
-      case t => t.asInstanceOf[Class[_]]
+      case t: Type => t.asInstanceOf[Class[_]]
     }
     valueClass
+  }
+
+  private def getAllInterfacesRecursively(clazz: Type, stopAtClassPrefix: String): List[Type] = {
+    if(clazz.getTypeName.startsWith(stopAtClassPrefix)) {
+      List(clazz)
+    } else {
+      val recursiveTypes: List[Type] = clazz match {
+        case c: Class[_] =>
+          val genericInterfaces = c.getGenericInterfaces.toList
+          genericInterfaces ++ genericInterfaces.flatMap(getAllInterfacesRecursively(_, stopAtClassPrefix))
+        case pt: ParameterizedType =>
+          getAllInterfacesRecursively(pt.getRawType, stopAtClassPrefix)
+        case t: Type =>
+          List()
+      }
+      clazz :: recursiveTypes
+    }
   }
 }
