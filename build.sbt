@@ -12,6 +12,8 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "4.0",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging

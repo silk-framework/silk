@@ -17,7 +17,8 @@ package org.silkframework.workspace
 import java.io.File
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.Config
+import com.google.inject.Inject
+import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.xml._
 
@@ -28,6 +29,8 @@ class FileUser extends User {
 }
 
 object FileUser {
+  @Inject
+  val configMgr: Config = DefaultConfig.instance
 
   lazy val workspaceDir = {
     val elds_home = System.getenv("ELDS_HOME")
@@ -41,7 +44,7 @@ object FileUser {
     try {
       // Load the workspace provider from configuration or use the default file-based one
       val provider =
-        if(Config().hasPath("workspace.provider"))
+        if(configMgr().hasPath("workspace.provider"))
           PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
         else
           new FileWorkspaceProvider(workspaceDir.getAbsolutePath)

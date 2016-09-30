@@ -2,12 +2,20 @@ package org.silkframework.config
 
 import java.io.File
 
-import com.typesafe.config.{Config => TypesafeConfig, ConfigFactory}
+import com.google.inject.ImplementedBy
+import com.google.inject.name.Named
+import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 
 /**
  * Holds the configuration properties
  */
-object Config {
+@ImplementedBy(classOf[DefaultConfig])
+trait Config {
+  def apply(): TypesafeConfig
+}
+
+@Named("default")
+class DefaultConfig extends Config {
 
   // Overwrite default logging pattern for java.util.logging
   if(System.getProperty("java.util.logging.SimpleFormatter.format") == null) {
@@ -35,5 +43,9 @@ object Config {
   }
 
   def apply(): TypesafeConfig = config
+}
 
+object DefaultConfig {
+  // This default initialization needed for usages that don't involve dependency injection
+  val instance = new DefaultConfig()
 }
