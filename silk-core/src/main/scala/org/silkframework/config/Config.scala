@@ -31,6 +31,7 @@ class DefaultConfig extends Config {
   }
 
   private def init(): TypesafeConfig = {
+    ConfigFactory.invalidateCaches()
     var fullConfig = ConfigFactory.load()
     // Check if we are running as part of the eccenca Linked Data Suite
     if (fullConfig.hasPath("elds.home")) {
@@ -66,5 +67,5 @@ class DefaultConfig extends Config {
 
 object DefaultConfig {
   // This default initialization needed for usages that don't involve dependency injection
-  val instance = new DefaultConfig()
+  lazy val instance = new DefaultConfig()
 }

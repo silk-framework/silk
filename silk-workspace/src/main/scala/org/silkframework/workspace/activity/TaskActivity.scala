@@ -3,9 +3,9 @@ package org.silkframework.workspace.activity
 import java.lang.reflect.{ParameterizedType, Type}
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, HasValue, Status}
+import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.ProjectTask
 
 import scala.reflect.ClassTag
 
