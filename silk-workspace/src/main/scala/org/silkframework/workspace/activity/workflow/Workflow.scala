@@ -256,6 +256,11 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
   override def outputSchemaOpt: Option[EntitySchema] = None
+
+  /**
+    * The tasks that are referenced by this workflow.
+    */
+  override def referencedTasks = (operators ++ datasets).map(_.task).toSet
 }
 
 object Workflow {

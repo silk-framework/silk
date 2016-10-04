@@ -38,6 +38,8 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
+  override def referencedTasks =  Set(selection.inputId)
+
 }
 
 /**

@@ -4,8 +4,8 @@ import org.silkframework.workspace.{ProjectNotFoundException, TaskNotFoundExcept
 import play.api.PlayException.ExceptionSource
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.routing.Router
 import play.api.{Application, GlobalSettings}
-import play.core.Router.Routes
 import plugins.WorkbenchPlugins
 
 import scala.concurrent.Future
@@ -15,7 +15,7 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
   /** The context path of this application, i.e. the URI prefix */
   protected var context: String = _
 
-  private var pluginRoutes: Map[String, Routes] = _
+  private var pluginRoutes: Map[String, Router] = _
 
   override def beforeStart(app: Application) {
     // Set context path

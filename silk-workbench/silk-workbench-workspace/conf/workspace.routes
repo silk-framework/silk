@@ -81,6 +81,9 @@ GET           /projects/:project/resources/:name                                
 PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
 
+# Tasks
+GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
+
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)
 POST          /projects/:project/activities/:activity/start                     controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = false)
