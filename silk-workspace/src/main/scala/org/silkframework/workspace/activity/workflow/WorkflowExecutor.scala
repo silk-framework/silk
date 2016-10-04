@@ -25,9 +25,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /** Returns a map of datasets that can replace variable datasets used as data sinks in a workflow */
   protected def replaceSinks: Map[String, Dataset]
 
-  protected val workflow = workflowTask.data
-  protected val project = workflowTask.project
-  protected val workflowNodes = workflow.nodes
+  protected def currentWorkflow = workflowTask.data
+
+  protected def project = workflowTask.project
+  protected def workflowNodes = currentWorkflow.nodes
 
   protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
@@ -36,23 +37,31 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     val activity = workflowRunContext.activityContext
     val monitor = new ActivityMonitor[ExecutionReport](task.id, Some(activity))
     val result = ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, monitor)
-    if(monitor.value.isDefined)
+    if (monitor.value.isDefined) {
       activity.value() = activity.value().withReport(task.id, monitor.value())
+    }
     result
   }
 
   /** Return error if VariableDataset is used in output and input */
   protected def checkVariableDatasets(): Unit = {
-    val variableDatasets = workflow.variableDatasets(project)
+    val variableDatasets = currentWorkflow.variableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
-      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " + notCoveredVariableDatasets.mkString(", "))
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " +
+          notCoveredVariableDatasets.mkString(", "))
     }
     val notCoveredVariableSinks = variableDatasets.sinks.filter(!replaceSinks.contains(_))
     if (notCoveredVariableSinks.nonEmpty) {
-      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " + notCoveredVariableSinks.mkString(", "))
+      throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " +
+          notCoveredVariableSinks.mkString(", "))
     }
   }
 
-  case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport], alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set())
+  protected def workflow(implicit workflowRunContext: WorkflowRunContext): Workflow = workflowRunContext.workflow
+
+  case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
+                                workflow: Workflow,
+                                alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set())
+
 }

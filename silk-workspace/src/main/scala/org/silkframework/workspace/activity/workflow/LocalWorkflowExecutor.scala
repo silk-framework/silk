@@ -42,7 +42,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     canceled = false
 
     implicit val workflowRunContext = WorkflowRunContext(
-      activityContext = context
+      activityContext = context,
+      workflow = currentWorkflow
     )
 
     checkVariableDatasets()
@@ -52,26 +53,26 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     for (endNode <- DAG.endNodes) {
       executeWorkflowNode(endNode, entitySchemaOpt = None)
     }
-    if(workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
+    if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
       throw new WorkflowException("Not all workflow nodes were executed! Executed " +
           workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
     }
   }
 
-    private def clearInternalDatasets(): Unit = {
-      // Clear all internal datasets used as output before writing
-      for (datasetTask <- workflow.inputDatasets(project)
-           if datasetTask.data.isInstanceOf[InternalDataset]) {
-        val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-        usedDatasetTask.data.clear()
-      }
+  private def clearInternalDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    // Clear all internal datasets used as output before writing
+    for (datasetTask <- workflow.inputDatasets(project)
+         if datasetTask.data.isInstanceOf[InternalDataset]) {
+      val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
+      usedDatasetTask.data.clear()
     }
+  }
 
   override def cancelExecution(): Unit = {
     canceled = true
   }
 
-  def executeWorkflowNode(node: workflow.WorkflowDependencyNode,
+  def executeWorkflowNode(node: WorkflowDependencyNode,
                           entitySchemaOpt: Option[EntitySchema])
                          (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
     // Execute this node
@@ -88,7 +89,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  private def executeWorkflowOperatorInput(input: workflow.WorkflowDependencyNode,
+  private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
                                            schemaOpt: Option[EntitySchema])
                                           (implicit workflowRunContext: WorkflowRunContext): Some[EntityTable] = {
     executeWorkflowNode(input, schemaOpt) match {
@@ -101,7 +102,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   /** Execute nodes of type [[WorkflowOperator]]. */
-  private def executeWorkflowOperator(operatorNode: workflow.WorkflowDependencyNode,
+  private def executeWorkflowOperator(operatorNode: WorkflowDependencyNode,
                                       entitySchemaOpt: Option[EntitySchema],
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
@@ -129,9 +130,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  private def executeWorkflowOperatorInputs(operatorNode: workflow.WorkflowDependencyNode,
+  private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
                                             schemataOpt: Option[Seq[EntitySchema]],
-                                            inputs: Seq[workflow.WorkflowDependencyNode])
+                                            inputs: Seq[WorkflowDependencyNode])
                                            (implicit workflowRunContext: WorkflowRunContext): Seq[Some[EntityTable]] = {
     schemataOpt match {
       case Some(schemata) =>
@@ -146,9 +147,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  private def checkInputsAgainstSchema(operatorNode: workflow.WorkflowDependencyNode,
-                                       inputs: Seq[workflow.WorkflowDependencyNode],
-                                       schemata: Seq[EntitySchema]): Seq[workflow.WorkflowDependencyNode] = {
+  private def checkInputsAgainstSchema(operatorNode: WorkflowDependencyNode,
+                                       inputs: Seq[WorkflowDependencyNode],
+                                       schemata: Seq[EntitySchema]): Seq[WorkflowDependencyNode] = {
     if (schemata.size < inputs.size) {
       throw new WorkflowException("Number of inputs is larger than the number of input schemata for workflow node "
           + operatorNode.nodeId + ". This cannot be handled!")
@@ -160,8 +161,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       /* TODO: In some cases it should be possible to say "Node does not need an input, but if an input is given, use this schema"
                since this is not possible currently, we ignore this if branch
        */
-//    } else if(schemata.nonEmpty && inputs.isEmpty) {
-//      throw new WorkflowException("No inputs found for workflow node " + operatorNode.nodeId + "! There were " + schemata.size + " inputs expected.")
+      //    } else if(schemata.nonEmpty && inputs.isEmpty) {
+      //      throw new WorkflowException("No inputs found for workflow node " + operatorNode.nodeId + "! There were " + schemata.size + " inputs expected.")
     } else {
       inputs
     }
@@ -171,7 +172,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * These nodes are treated specially, i.e. they are written to only once. So all preceding nodes don't
     * need to be re-evaluated each time.
     */
-  private def executeWorkflowDataset(datasetNode: workflow.WorkflowDependencyNode,
+  private def executeWorkflowDataset(datasetNode: WorkflowDependencyNode,
                                      entitySchemaOpt: Option[EntitySchema],
                                      dataset: WorkflowDataset)
                                     (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
