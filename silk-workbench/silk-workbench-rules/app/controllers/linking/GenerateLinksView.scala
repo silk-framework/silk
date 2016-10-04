@@ -11,7 +11,7 @@ import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object GenerateLinks extends Controller {
+object GenerateLinksView extends Controller {
 
   def generateLinks(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
