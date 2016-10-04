@@ -35,6 +35,8 @@ case class ScoringSpec(selection: DatasetSelection, rules: Seq[ScoringRule], out
       )
     )
   }
+
+  override def referencedTasks =  Set(selection.inputId)
 }
 
 object ScoringSpec {

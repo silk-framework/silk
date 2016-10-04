@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
+import org.silkframework.util.Identifier
 
 /**
   * Base trait of all task specifications.
@@ -21,5 +22,10 @@ trait TaskSpec {
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
   def outputSchemaOpt: Option[EntitySchema]
+
+  /**
+    * The tasks that are referenced by this task.
+    */
+  def referencedTasks: Set[Identifier] = Set.empty
 
 }
