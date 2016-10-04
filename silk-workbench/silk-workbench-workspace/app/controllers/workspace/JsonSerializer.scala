@@ -31,10 +31,10 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-        "dataset" -> tasksJson[Dataset](project),
-        "transform" -> tasksJson[TransformSpec](project),
-        "linking" -> tasksJson[LinkSpec](project),
-        "workflow" -> tasksJson[Workflow](project)
+      "dataset" -> tasksJson[Dataset](project),
+      "transform" -> tasksJson[TransformSpec](project),
+      "linking" -> tasksJson[LinkSpec](project),
+      "workflow" -> tasksJson[Workflow](project)
       )
     )
   }
@@ -79,14 +79,20 @@ object JsonSerializer {
   def activityStatus(project: String, task: String, activity: String, status: Status): JsValue = {
     JsObject(
       ("project" -> JsString(project)) ::
-          ("task" -> JsString(task)) ::
-          ("activity" -> JsString(activity)) ::
-          ("statusName" -> JsString(status.name)) ::
-          ("isRunning" -> JsBoolean(status.isRunning)) ::
-          ("progress" -> JsNumber(status.progress * 100.0)) ::
-          ("message" -> JsString(status.toString)) ::
-          ("failed" -> JsBoolean(status.failed)) ::
-          ("timestamp" -> JsNumber(status.timestamp)) :: Nil
+      ("task" -> JsString(task)) ::
+      ("activity" -> JsString(activity)) ::
+      ("statusName" -> JsString(status.name)) ::
+      ("isRunning" -> JsBoolean(status.isRunning)) ::
+      ("progress" -> JsNumber(status.progress * 100.0)) ::
+      ("message" -> JsString(status.toString)) ::
+      ("failed" -> JsBoolean(status.failed)) ::
+      ("timestamp" -> JsNumber(status.timestamp)) :: Nil
+    )
+  }
+
+  def taskMetadata(task: TaskSpec) = {
+    JsObject(
+      ("referenceTasks" -> JsArray(task.referencedTasks.toSeq.map(JsString(_)))) :: Nil
     )
   }
 
@@ -97,26 +103,24 @@ object JsonSerializer {
   def logRecord(record: LogRecord) = {
     JsObject(
       ("activity" -> JsString(record.getLoggerName.substring(record.getLoggerName.lastIndexOf('.') + 1))) ::
-          ("level" -> JsString(record.getLevel.getName)) ::
-          ("message" -> JsString(record.getMessage)) ::
-          ("timestamp" -> JsNumber(record.getMillis)) :: Nil
+      ("level" -> JsString(record.getLevel.getName)) ::
+      ("message" -> JsString(record.getMessage)) ::
+      ("timestamp" -> JsNumber(record.getMillis)) :: Nil
     )
   }
 
   def pluginConfig(pluginConfig: PluginDescription[_]) = {
     JsObject(
       ("id" -> JsString(pluginConfig.id)) ::
-          ("label" -> JsString(pluginConfig.label)) ::
-          ("description" -> JsString(pluginConfig.description)) ::
-          Nil
+      ("label" -> JsString(pluginConfig.label)) ::
+      ("description" -> JsString(pluginConfig.description)) :: Nil
     )
   }
 
   def marshaller(marshaller: ProjectMarshallingTrait) = {
     JsObject(
       ("id" -> JsString(marshaller.id)) ::
-          ("label" -> JsString(marshaller.name)) ::
-          Nil
+      ("label" -> JsString(marshaller.name)) :: Nil
     )
   }
 }
