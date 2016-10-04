@@ -23,7 +23,9 @@ case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionTy
       internalDatasets.synchronized {
         internalDatasets.getOrElseUpdate(
           internalDatasetId,
-          LocalInternalDataset()
+          new InternalDatasetTrait {
+            override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
+          }
         )
       }
     } else {
