@@ -2,7 +2,7 @@ package controllers.workspace
 
 import java.util.logging.LogRecord
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
@@ -90,9 +90,10 @@ object JsonSerializer {
     )
   }
 
-  def taskMetadata(task: TaskSpec) = {
+  def taskMetadata(task: Task[TaskSpec]) = {
     JsObject(
-      ("referenceTasks" -> JsArray(task.referencedTasks.toSeq.map(JsString(_)))) :: Nil
+      ("id" -> JsString(task.id)) ::
+      ("referencedTasks" -> JsArray(task.referencedTasks.toSeq.map(JsString(_)))) :: Nil
     )
   }
 
