@@ -57,11 +57,11 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe testWorkflow.WorkflowDependencyGraph(
       startNodes = Set(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
       endNodes = Seq(
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None)),
-        testWorkflow.WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None))
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -95,7 +95,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       operator(task = TRANSFORM, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM, outputPriority = Some(1.5)),
       operator(task = LINKING, inputs = Seq(DS_A, DS_B), outputs = Seq(LINKS), LINKING, outputPriority = None),
       operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT, outputPriority = Some(0.5))
-    ).map(n => testWorkflow.WorkflowDependencyNode(n))
+    ).map(n => WorkflowDependencyNode(n))
     testWorkflow.sortWorkflowNodesByOutputPriority(nodes).map(_.nodeId) mustBe Seq(
       GENERATE_OUTPUT, TRANSFORM, LINKS, DS_B, DS_A, LINKING, OUTPUT)
   }

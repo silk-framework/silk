@@ -13,7 +13,7 @@ class OldWorkflowExecutor(task: ProjectTask[Workflow],
                           replaceSinks: Map[String, SinkTrait] = Map.empty) extends Activity[WorkflowExecutionReport] {
 
   val log = Logger.getLogger(getClass.getName)
-  private val workflow = task.data
+  private def workflow = task.data
   private val project = task.project
 
   @volatile
