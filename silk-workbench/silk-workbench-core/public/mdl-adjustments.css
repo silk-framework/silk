@@ -331,7 +331,7 @@
 
 
 
-/**** Transform Editorr ******/
+/**** Transform Editor ******/
 
 #ruleTable .mdl-textfield {
   padding: 5px 0;
@@ -355,6 +355,16 @@
 
 .rule-action-buttons {
   display: none;
+}
+
+#typeContainer {
+  display: inline-block;
+}
+
+#rule-type-textfield {
+  padding-bottom: 3px;
+  vertical-align: bottom;
+  padding-top: 5px;
 }
 
 /*
