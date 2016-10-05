@@ -31,24 +31,26 @@ class DefaultConfig extends Config {
   }
 
   private def init(): TypesafeConfig = {
-    ConfigFactory.invalidateCaches()
-    var fullConfig = ConfigFactory.load()
-    // Check if we are running as part of the eccenca Linked Data Suite
-    if (fullConfig.hasPath("elds.home")) {
-      val eldsHome = fullConfig.getString("elds.home")
-      val eldsConfig = ConfigFactory.parseFile(new File(eldsHome + "/etc/dataintegration/dataintegration.conf"))
-      fullConfig = eldsConfig.withFallback(fullConfig)
+    this.synchronized {
+      ConfigFactory.invalidateCaches()
+      var fullConfig = ConfigFactory.load()
+      // Check if we are running as part of the eccenca Linked Data Suite
+      if (fullConfig.hasPath("elds.home")) {
+        val eldsHome = fullConfig.getString("elds.home")
+        val eldsConfig = ConfigFactory.parseFile(new File(eldsHome + "/etc/dataintegration/dataintegration.conf"))
+        fullConfig = eldsConfig.withFallback(fullConfig)
+      }
+      // Check if we are running as part of the Play Framework
+      val playConfig1 = new File(System.getProperty("user.home") + "/conf/reference.conf")
+      val playConfig2 = new File(System.getProperty("user.home") + "/conf/application.conf")
+      if (playConfig1.exists()) {
+        fullConfig = ConfigFactory.parseFile(playConfig1).withFallback(fullConfig)
+      }
+      if (playConfig2.exists()) {
+        fullConfig = ConfigFactory.parseFile(playConfig2).withFallback(fullConfig)
+      }
+      fullConfig.resolve()
     }
-    // Check if we are running as part of the Play Framework
-    val playConfig1 = new File(System.getProperty("user.home") + "/conf/reference.conf")
-    val playConfig2 = new File(System.getProperty("user.home") + "/conf/application.conf")
-    if (playConfig1.exists()) {
-      fullConfig = ConfigFactory.parseFile(playConfig1).withFallback(fullConfig)
-    }
-    if (playConfig2.exists()) {
-      fullConfig = ConfigFactory.parseFile(playConfig2).withFallback(fullConfig)
-    }
-    fullConfig.resolve()
   }
 
   def apply(): TypesafeConfig = {
