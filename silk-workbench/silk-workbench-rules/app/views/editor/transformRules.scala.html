@@ -46,12 +46,17 @@
 
 @content = {
   <div id="ruleContainer">
-    <div id="typeContainer">
-      @for(rule <- context.task.data.rules) {
-        @if(rule.typeString == "Type") {
-          @renderTypeRule(rule.asInstanceOf[TypeMapping])
+    <div id="typeUI">
+      <div id="typeContainer">
+        @for(rule <- context.task.data.rules) {
+          @if(rule.typeString == "Type") {
+            @renderTypeRule(rule.asInstanceOf[TypeMapping])
+          }
         }
-      }
+      </div>
+      <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
+        <input class="mdl-textfield__input" type="text">
+      </div>
     </div>
     <div id="ruleTable">
       <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
@@ -73,6 +78,9 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <div id="typeTemplate" class="rule-template type-template">
+    @renderTypeRule(TypeMapping())
   </div>
   <table id="uriMappingTemplate" class="rule-template">
     <tbody>
@@ -102,6 +110,14 @@
     $(".edit-button").click(function() {
       var ruleName = $(this).parent().parent().parent().find('.rule-name').text();
       openRule(ruleName);
+    });
+    $("#rule-type-textfield input").bind("enter", function(e) {
+      addRule("#typeTemplate");
+    });
+    $("#rule-type-textfield input").keyup(function(e) {
+      if (e.keyCode == 13) {
+        $(this).trigger("enter");
+      }
     });
   </script>
 
@@ -135,10 +151,10 @@
 }
 
 @renderTypeRule(rule: TypeMapping) = {
-  <span class="mdl-chip mdl-chip--deletable transformRule typeMapping">
+  <span id="@{rule.typeString.toLowerCase}-@{rule.name}" class="mdl-chip mdl-chip--deletable transformRule typeMapping">
     <span class="rule-name">@rule.name</span>
     <span class="mdl-chip__text type">@rule.typeUri.serialize(context.project.config.prefixes)</span>
-    <span class="mdl-chip__action"><i class="material-icons">cancel</i></span>
+    <button class="mdl-chip__action" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')"><i class="material-icons">cancel</i></button>
   </span>
 }
 

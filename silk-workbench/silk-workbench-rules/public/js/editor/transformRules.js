@@ -242,24 +242,40 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
   xmlDoc.documentElement.appendChild(ruleXml);
 }
 
+function addType(typeString) {
+  console.log(typeString);
+}
+
 function addRule(template) {
-  // Clone rule template
-  var newRule = $(template + " tbody").children().clone();
-  var nameInput = newRule.find(".rule-name");
-  nameInput.text(generateRuleName(nameInput.text()));
 
-  // remove dynamic mdl classes and attributes
-  // (otherwise componentHandler.upgradeAllRegistered() won't work)
+  if (template == "#typeTemplate") {
+    var newRule = $(template + " .typeMapping").clone();
+    var nameInput = newRule.find(".rule-name");
+    nameInput.text(generateRuleName(nameInput.text()));
+    var typeString = $("#rule-type-textfield input").val();
+    newRule.find(".type").text(typeString);
+    newRule.appendTo("#typeContainer");
+    $("#rule-type-textfield input").val("");
+  } else {
+    // Clone rule template
+    var newRule = $(template + " tbody").children().clone();
+    var nameInput = newRule.find(".rule-name");
+    nameInput.text(generateRuleName(nameInput.text()));
 
-  var textfields = newRule.find(".mdl-textfield");
-  $.each(textfields, function(index, value) {
-    value.removeAttribute("data-upgraded");
-    var classes = value.className;
-    var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
-    value.className = new_classes;
-  });
+    // remove dynamic mdl classes and attributes
+    // (otherwise componentHandler.upgradeAllRegistered() won't work)
 
-  newRule.appendTo("#ruleTable table tbody");
+    var textfields = newRule.find(".mdl-textfield");
+    $.each(textfields, function(index, value) {
+      value.removeAttribute("data-upgraded");
+      var classes = value.className;
+      var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
+      value.className = new_classes;
+    });
+
+    newRule.appendTo("#ruleTable table tbody");
+  }
+
   componentHandler.upgradeAllRegistered();
 
 //  // Add autocompletion
