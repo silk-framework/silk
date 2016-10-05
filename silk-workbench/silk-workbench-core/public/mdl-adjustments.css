@@ -367,6 +367,10 @@
   padding-top: 5px;
 }
 
+.transformRule .rule-actions .delete-button {
+  color: #CB4335;
+}
+
 /*
 * New Colors for Transform Editor Overview
 */
