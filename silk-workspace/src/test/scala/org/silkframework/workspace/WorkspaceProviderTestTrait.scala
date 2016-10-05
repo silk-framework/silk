@@ -208,7 +208,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   private def refreshProject(projectName: String): Unit = {
     workspace match {
       case w: RefreshableWorkspaceProvider =>
-        w.refreshProject(projectName)
+        w.refresh()
       case _ =>
         // Not refreshable
     }

@@ -85,10 +85,9 @@ class XmlWorkspaceProvider(res: ResourceManager) extends WorkspaceProvider with 
   }
 
   /**
-    * Refreshes a project, i.e. cleans all possible caches if there are any for this projects and reloads it
-    * freshly.
+    * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refreshProject(project: Identifier): Unit = {
+  override def refresh(): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
   }
