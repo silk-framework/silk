@@ -22,6 +22,9 @@ object ProjectMarshallerRegistry {
     )
   }
 
+  /**
+    * Retrieves a marshaller by its plugin id.
+    */
   def marshallerById(marshallerId: String): Option[ProjectMarshallingTrait] = {
     marshallingPlugins.find(_.id == marshallerId)
   }
