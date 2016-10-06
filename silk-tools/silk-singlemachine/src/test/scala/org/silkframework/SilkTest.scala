@@ -4,14 +4,16 @@ import java.io.File
 import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.util.ConfigTestTrait
 
 import scala.io.Source
 
-class SilkTest extends FlatSpec with Matchers {
+class SilkTest extends FlatSpec with Matchers with ConfigTestTrait {
 
   val exampleDir = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")
   val linkSpecFile = new File(exampleDir, "linkSpec.xml")
   val outputFile = new File(exampleDir, "links.nt")
+  val projectFile = new File(exampleDir, "project.zip")
   outputFile.delete()
 
   "Silk" should "execute the example link spec" in {
@@ -19,5 +21,19 @@ class SilkTest extends FlatSpec with Matchers {
     outputFile.exists() should be(true)
     Source.fromFile(outputFile).getLines().size should be (110)
   }
+
+  "Silk" should "execute workflows" in {
+    val project = Silk.executeProject(projectFile, "workflow")
+    val output = project.resources.get("output.nt")
+    Source.fromInputStream(output.load).getLines().size should be (110)
+  }
+
+  /** The properties that should be changed.
+    * If the value is [[None]] then the property value is removed,
+    * else it is set to the new value.
+    */
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "dataset.internal.plugin" -> Some("inMemory")
+  )
 
 }

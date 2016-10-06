@@ -61,6 +61,7 @@ object Silk {
    * The execution is configured using the following properties:
    *  - 'configFile' (required): The configuration file
    *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
+   *  - 'task' (optional): If the config file is a project, this specifies the task to be executed.
    *  - 'threads' (optional): The number of threads to be be used for matching.
    *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
@@ -95,6 +96,8 @@ object Silk {
       executeFile(configFile, linkSpec, numThreads, reload)
     } else {
       val task = System.getProperty("task")
+      if(task == null)
+        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been given")
       executeProject(configFile, task)
     }
   }
@@ -184,7 +187,7 @@ object Silk {
     * @param projectFile The project file
     * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
     */
-  private def executeProject(projectFile: File, taskName: Identifier) = {
+  def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Import project
     val workspaceProvider = InMemoryWorkspaceProvider()
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
@@ -198,6 +201,8 @@ object Silk {
     // Execute task
     val executor = LocalWorkflowExecutor(task)
     Activity(executor).startBlocking()
+
+    project
   }
 
   /**
