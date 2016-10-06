@@ -61,13 +61,9 @@ object WorkspaceApi extends Controller {
       // Read the project from the received file
       val inputStream = new FileInputStream(file.ref.file)
       try {
-        marshallerForFile(file.filename) match {
-          case Some(marshaller) =>
-            val workspace = User().workspace
-            workspace.importProject(project, inputStream, marshaller)
-          case _ =>
-            throw new IllegalArgumentException("No handler found for " + project + " files")
-        }
+        val marshaller = marshallerForFile(file.filename)
+        val workspace = User().workspace
+        workspace.importProject(project, inputStream, marshaller)
       } finally {
         inputStream.close()
       }

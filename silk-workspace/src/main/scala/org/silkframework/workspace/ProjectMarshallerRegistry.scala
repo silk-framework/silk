@@ -33,15 +33,19 @@ object ProjectMarshallerRegistry {
     * Retrieves an suitable marshalller for a given filename.
     *
     * @param fileName The filename, e.g., project.zip
+    * @throws IllegalArgumentException If no marshaller could be found for the given file name.
     */
-  def marshallerForFile(fileName: String): Option[ProjectMarshallingTrait] = {
+  def marshallerForFile(fileName: String): ProjectMarshallingTrait = {
     val dotIndex = fileName.lastIndexOf('.')
     if (dotIndex < 0) {
       throw new IllegalArgumentException("No recognizable file name suffix in uploaded file.")
     }
     val suffix = fileName.substring(dotIndex + 1)
     val marshallers = marshallingPluginsByFileHandler()
-    marshallers.get(suffix)
+    marshallers.get(suffix) match {
+      case Some(m) => m
+      case None => throw new IllegalArgumentException("No handler found for " + suffix + " files")
+    }
   }
 
   private def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
