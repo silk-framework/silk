@@ -25,7 +25,7 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
   }
 
   // Removes the property value if newValue is None, else sets it to the new value
-  private def updateProperty(key: String, newValue: Option[String]): String = {
+  private def updateProperty(key: String, newValue: Option[String]): Unit = {
     newValue match {
       case Some(v) =>
         System.setProperty(key, v)
