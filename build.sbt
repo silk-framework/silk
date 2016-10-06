@@ -206,8 +206,8 @@ lazy val workbench = (project in file("silk-workbench"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
-  .dependsOn(core, plugins)
-  .aggregate(core, plugins)
+  .dependsOn(rules, workspace, plugins)
+  .aggregate(rules, workspace, plugins)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk SingleMachine",

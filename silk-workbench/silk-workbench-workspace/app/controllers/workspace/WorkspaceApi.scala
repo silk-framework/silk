@@ -19,11 +19,13 @@ import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTas
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, JsObject}
 import play.api.mvc._
-
+import org.silkframework.workspace.ProjectMarshallerRegistry
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object WorkspaceApi extends Controller {
+
+  import ProjectMarshallerRegistry._
 
   def reload: Action[AnyContent] = Action {
     User().workspace.reload()
@@ -58,21 +60,10 @@ object WorkspaceApi extends Controller {
          file <- data.files) {
       // Read the project from the received file
       val inputStream = new FileInputStream(file.ref.file)
-      val dotIndex = file.filename.lastIndexOf('.')
-      if (dotIndex < 0) {
-        throw new IllegalArgumentException("No recognizable file name suffix in uploaded file.")
-      }
-      val suffix = file.filename.substring(dotIndex + 1)
-      val marshallers = marshallingPluginsByFileHandler()
       try {
-        marshallers.get(suffix) match {
-          case Some(marshaller) =>
-            val marshaller = marshallers(suffix)
-            val workspace = User().workspace
-            workspace.importProject(project, inputStream, marshaller)
-          case _ =>
-            throw new IllegalArgumentException("No handler found for " + suffix + " files")
-        }
+        val marshaller = marshallerForFile(file.filename)
+        val workspace = User().workspace
+        workspace.importProject(project, inputStream, marshaller)
       } finally {
         inputStream.close()
       }
@@ -88,7 +79,7 @@ object WorkspaceApi extends Controller {
     * @return
     */
   def importProjectViaPlugin(project: String, marshallerId: String): Action[AnyContent] = Action { implicit request =>
-    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerId).headOption
+    val marshallerOpt = marshallerById(marshallerId)
     marshallerOpt match {
       case Some(marshaller) =>
         for (data <- request.body.asMultipartFormData;
@@ -108,24 +99,8 @@ object WorkspaceApi extends Controller {
     }
   }
 
-  def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
-    marshallingPlugins().map { mp =>
-      mp.suffix.map(s => (s, mp))
-    }.flatten.toMap
-  }
-
-  def marshallingPlugins(): Seq[ProjectMarshallingTrait] = {
-    implicit val prefixes = Prefixes.empty
-    implicit val resources = EmptyResourceManager
-    val pluginConfigs = PluginRegistry.availablePluginsForClass(classOf[ProjectMarshallingTrait])
-    pluginConfigs.map(pc =>
-      PluginRegistry.create[ProjectMarshallingTrait](pc.id)
-    )
-  }
-
   def exportProject(projectName: String): Action[AnyContent] = Action {
-    val marshallers = marshallingPlugins()
-    val marshaller = marshallers.filter(_.id == "xmlZip").head
+    val marshaller = marshallerById("xmlZip").get
     // Export the project into a byte array
     val outputStream = new ByteArrayOutputStream()
     val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
@@ -136,13 +111,13 @@ object WorkspaceApi extends Controller {
   }
 
   def availableProjectMarshallingPlugins(p: String): Action[AnyContent] = Action {
-    val marshaller = marshallingPlugins()
+    val marshaller = marshallingPlugins
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
-    val marshallerOpt = marshallingPlugins().filter(_.id == marshallerPluginId).headOption
+    val marshallerOpt = marshallerById(marshallerPluginId)
     marshallerOpt match {
       case Some(marshaller) =>
         // Export the project into a byte array
