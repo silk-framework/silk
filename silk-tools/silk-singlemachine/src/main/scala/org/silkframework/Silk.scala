@@ -14,19 +14,22 @@
 
 package org.silkframework
 
-import java.io.{File, OutputStreamWriter}
+import java.io.{File, FileInputStream, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 
 import com.google.inject.Inject
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.CollectLogs
+import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.util.StringUtils._
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
 import scala.xml.XML
@@ -45,9 +48,6 @@ object Silk {
   val DefaultThreads = max(8, Runtime.getRuntime.availableProcessors())
 
   private val logger = Logger.getLogger(Silk.getClass.getName)
-
-  //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.7.2")
 
   // Initialize Log4j
   val ca = new ConsoleAppender()
@@ -91,7 +91,12 @@ object Silk {
       case _ => true
     }
 
-    executeFile(configFile, linkSpec, numThreads, reload)
+    if(configFile.getName.endsWith(".xml")) {
+      executeFile(configFile, linkSpec, numThreads, reload)
+    } else {
+      val task = System.getProperty("task")
+      executeProject(configFile, task)
+    }
   }
 
   /**
@@ -171,6 +176,28 @@ object Silk {
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
     Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink), Seq())).startBlocking() // TODO: Allow to set error output
+  }
+
+  /**
+    * Executes a Silk project.
+    *
+    * @param projectFile The project file
+    * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
+    */
+  private def executeProject(projectFile: File, taskName: Identifier) = {
+    // Import project
+    val workspaceProvider = InMemoryWorkspaceProvider()
+    val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
+    marshaller.unmarshalAndImport("project", workspaceProvider, new FileInputStream(projectFile))
+
+    // Create a workspace from the import and get task
+    val workspace = new Workspace(workspaceProvider)
+    val project = workspace.project("project")
+    val task = project.task[Workflow](taskName)
+
+    // Execute task
+    val executor = LocalWorkflowExecutor(task)
+    Activity(executor).startBlocking()
   }
 
   /**
