@@ -10,6 +10,8 @@ import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.workspace.ProjectTask
 
+import scala.util.control.NonFatal
+
 /**
   * A local workflow executor. This is not thread safe.
   *
@@ -106,27 +108,36 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       entitySchemaOpt: Option[EntitySchema],
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
-    project.anyTaskOption(operator.task) match {
-      case Some(operatorTask) =>
-        val schemataOpt = operatorTask.data.inputSchemataOpt
-        val inputs = operatorNode.inputNodes
-        val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
+    try {
+      project.anyTaskOption(operator.task) match {
+        case Some(operatorTask) =>
+          val schemataOpt = operatorTask.data.inputSchemataOpt
+          val inputs = operatorNode.inputNodes
+          val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
-        if (inputResults.exists(_.isEmpty)) {
-          throw new WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
-        }
-        val result = execute(operatorTask, inputResults.flatten, entitySchemaOpt)
-        // Throw exception if result was promised, but not returned
-        if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-          throw new WorkflowException(s"In workflow ${workflow.id.toString} operator node ${operatorNode.nodeId} defined an output " +
-              s"schema, but did not return any result!")
-        }
-        log.info("Finished execution of " + operator.nodeId)
-        workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-        updateProgress(operatorNode.nodeId)
-        result
-      case None =>
-        throw new WorkflowException("No operator task found with id " + operator.task)
+          if (inputResults.exists(_.isEmpty)) {
+            throw new WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
+          }
+          val result = execute(operatorTask, inputResults.flatten, entitySchemaOpt)
+          // Throw exception if result was promised, but not returned
+          if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
+            throw new WorkflowException(s"In workflow ${workflow.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+                s"schema, but did not return any result!")
+          }
+          log.info("Finished execution of " + operator.nodeId)
+          workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
+          updateProgress(operatorNode.nodeId)
+          result
+        case None =>
+          throw new WorkflowException("No operator task found with id " + operator.task)
+      }
+    } catch {
+      case ex: WorkflowException =>
+        throw ex
+      case NonFatal(ex) =>
+        log.warning("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId)
+        throw new WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
+          ". Cause: " + ex.getMessage, Some(ex))
     }
   }
 
