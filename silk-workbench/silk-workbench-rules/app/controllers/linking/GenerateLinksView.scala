@@ -6,12 +6,12 @@ import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.rule.execution.GenerateLinks
 import org.silkframework.workspace.User
-import org.silkframework.workspace.activity.linking.GenerateLinksActivity
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object GenerateLinks extends Controller {
+object GenerateLinksView extends Controller {
 
   def generateLinks(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
@@ -29,7 +29,7 @@ object GenerateLinks extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
-    val linking = task.activity[GenerateLinksActivity].value
+    val linking = task.activity[GenerateLinks].value
     val schemata = task.data.entityDescriptions
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
@@ -65,14 +65,14 @@ object GenerateLinks extends Controller {
   def linksStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.activityValue(task.activity[GenerateLinksActivity].control)
+    val stream = Stream.activityValue(task.activity[GenerateLinks].control)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.status(task.activity[GenerateLinksActivity].control.status)
+    val stream = Stream.status(task.activity[GenerateLinks].control.status)
     Ok.chunked(Widgets.statusStream(stream))
   }
 

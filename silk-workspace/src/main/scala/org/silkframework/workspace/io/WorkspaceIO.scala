@@ -41,7 +41,7 @@ object WorkspaceIO {
     copyTasks[CustomTask](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
     outputWorkspace match {
       case rw: RefreshableWorkspaceProvider =>
-        rw.refreshProject(updatedProjectConfig.id)
+        rw.refresh()
       case _ =>
         log.warning("Workspace provider of type " + outputWorkspace.getClass.getName + " is not refreshable. Imported project " +
         updatedProjectConfig.id.toString + " might be inconsistent.")

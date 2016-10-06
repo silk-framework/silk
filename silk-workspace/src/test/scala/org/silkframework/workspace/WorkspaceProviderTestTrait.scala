@@ -5,20 +5,19 @@ import org.silkframework.config._
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
-import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
+import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.rule._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 
 /**
   * Created on 9/13/16.
   */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
-
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
   val CHILD = "child"
@@ -209,7 +208,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   private def refreshProject(projectName: String): Unit = {
     workspace match {
       case w: RefreshableWorkspaceProvider =>
-        w.refreshProject(projectName)
+        w.refresh()
       case _ =>
         // Not refreshable
     }

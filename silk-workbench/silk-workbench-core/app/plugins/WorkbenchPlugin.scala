@@ -2,7 +2,7 @@ package plugins
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.Project
-import play.core.Router.Routes
+import play.api.routing.Router
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 
 import scala.reflect.ClassTag
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
  */
 trait WorkbenchPlugin {
 
-  def routes: Map[String, Routes] = Map.empty
+  def routes: Map[String, Router] = Map.empty
 
   /**
    * The task types to be added to the Workspace.

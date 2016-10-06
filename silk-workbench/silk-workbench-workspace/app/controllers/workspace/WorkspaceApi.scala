@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, JsObject}
 import play.api.mvc._
 
 import scala.language.existentials
@@ -271,5 +271,11 @@ object WorkspaceApi extends Controller {
     project.resources.delete(resourceName)
 
     Ok
+  }
+
+  def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    Ok(JsonSerializer.taskMetadata(task))
   }
 }

@@ -28,10 +28,11 @@ import scala.util.control.NonFatal
 
 
 /**
- * A task that belongs to a project.
- *
- * @tparam TaskType The data type that specifies the properties of this task.
- */
+  * A task that belongs to a project.
+  * [[ProjectTask]] instances are mutable, this means that the task data returned on successive calls can be different.
+  *
+  * @tparam TaskType The data type that specifies the properties of this task.
+  */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
                                                    module: Module[TaskType]) extends Task[TaskType] {
@@ -50,7 +51,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     implicit val resources = module.project.resources
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
-    for(factory <- factories) {
+    for (factory <- factories) {
       try {
         activities ::= new TaskActivity(this, factory)
       } catch {
@@ -69,26 +70,26 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def project = module.project
 
   /**
-   * Retrieves the current data of this task.
-   */
+    * Retrieves the current data of this task.
+    */
   def data = currentData
 
   def task: Task[TaskType] = PlainTask(id, currentData)
 
   def init() = {
     // Start autorun activities
-    for(activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
+    for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
   }
 
   /**
-   * Updates the data of this task.
-   */
+    * Updates the data of this task.
+    */
   def update(newData: TaskType) = synchronized {
     // Update data
     currentData = newData
     // (Re)Schedule write
-    for(writer <- scheduledWriter) {
+    for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
@@ -96,33 +97,33 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
-   * All activities that belong to this task.
-   */
+    * All activities that belong to this task.
+    */
   def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
 
   /**
-   * Retrieves an activity by type.
-   *
-   * @tparam T The type of the requested activity
-   * @return The activity control for the requested activity
-   */
+    * Retrieves an activity by type.
+    *
+    * @tparam T The type of the requested activity
+    * @return The activity control for the requested activity
+    */
   def activity[T <: HasValue : ClassTag]: TaskActivity[TaskType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
     val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
-                                                                                         s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
+        s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
     act.asInstanceOf[TaskActivity[TaskType, T]]
   }
 
   /**
-   * Retrieves an activity by name.
-   *
-   * @param activityName The name of the requested activity
-   * @return The activity control for the requested activity
-   */
+    * Retrieves an activity by name.
+    *
+    * @param activityName The name of the requested activity
+    * @return The activity control for the requested activity
+    */
   def activity(activityName: String): TaskActivity[TaskType, _ <: HasValue] = {
     taskActivities.find(_.name == activityName)
-      .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity named '$activityName'. " +
-                                                  s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
+        .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity named '$activityName'. " +
+            s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }
 
   private object Writer extends Runnable {
@@ -131,12 +132,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       module.provider.putTask(project.name, id, data)
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
-      for(activity <- taskActivities if activity.autoRun) {
+      for (activity <- taskActivities if activity.autoRun) {
         activity.control.cancel()
         activity.control.start()
       }
     }
   }
+
 }
 
 object ProjectTask {

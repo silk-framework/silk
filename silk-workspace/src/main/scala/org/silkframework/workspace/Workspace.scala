@@ -90,6 +90,10 @@ class Workspace(val provider: WorkspaceProvider) {
   }
 
   def reload() {
+    provider match {
+      case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
+      case _ => // Do nothing
+    }
     cachedProjects = loadProjects()
   }
 

@@ -95,6 +95,8 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
   override def outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
+
+  override def referencedTasks = dataSelections.map(_.inputId).toSet
 }
 
 object LinkSpec {

@@ -197,56 +197,6 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
                                      endNodes: Seq[WorkflowDependencyNode])
 
   /**
-    * Since this class is spanning a double linked graph, this node needs to be mutable
-    * until the graph has been constructed. Afterwards the node is set to immutable and cannot
-    * be changed anymore.
-    *
-    * @param workflowNode
-    */
-  case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
-    private var mutableNode = true
-
-    private var _precedingNodes = Set.empty[WorkflowDependencyNode]
-    private var _followingNodes = Set.empty[WorkflowDependencyNode]
-
-    def setToImmutable(): Unit = {
-      mutableNode = false
-    }
-
-    def nodeId: String = workflowNode.nodeId
-
-    def isMutable: Boolean = mutableNode
-
-    def addPrecedingNode(node: WorkflowDependencyNode): Unit = {
-      if (isMutable) {
-        _precedingNodes += node
-      } else {
-        throw new IllegalStateException("Cannot add node to preceding nodes! This node is set to immutable!")
-      }
-    }
-
-    def addFollowingNode(node: WorkflowDependencyNode): Unit = {
-      if (isMutable) {
-        _followingNodes += node
-      } else {
-        throw new IllegalStateException("Cannot add node to following nodes! This node is set to immutable!")
-      }
-    }
-
-    def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
-
-    def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
-
-    def inputNodes: Seq[WorkflowDependencyNode] = {
-      for (
-        input <- workflowNode.inputs;
-        pNode <- precedingNodes.filter(_.nodeId == input)) yield {
-        pNode
-      }
-    }
-  }
-
-  /**
     * A workflow does not have any inputs.
     */
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq())
@@ -256,6 +206,11 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
   override def outputSchemaOpt: Option[EntitySchema] = None
+
+  /**
+    * The tasks that are referenced by this workflow.
+    */
+  override def referencedTasks = (operators ++ datasets).map(_.task).toSet
 }
 
 object Workflow {
@@ -313,5 +268,55 @@ object Workflow {
       }
 
     new Workflow(if (id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
+  }
+}
+
+/**
+  * Since this class is spanning a double linked graph, this node needs to be mutable
+  * until the graph has been constructed. Afterwards the node is set to immutable and cannot
+  * be changed anymore.
+  *
+  * @param workflowNode
+  */
+case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
+  private var mutableNode = true
+
+  private var _precedingNodes = Set.empty[WorkflowDependencyNode]
+  private var _followingNodes = Set.empty[WorkflowDependencyNode]
+
+  def setToImmutable(): Unit = {
+    mutableNode = false
+  }
+
+  def nodeId: String = workflowNode.nodeId
+
+  def isMutable: Boolean = mutableNode
+
+  def addPrecedingNode(node: WorkflowDependencyNode): Unit = {
+    if (isMutable) {
+      _precedingNodes += node
+    } else {
+      throw new IllegalStateException("Cannot add node to preceding nodes! This node is set to immutable!")
+    }
+  }
+
+  def addFollowingNode(node: WorkflowDependencyNode): Unit = {
+    if (isMutable) {
+      _followingNodes += node
+    } else {
+      throw new IllegalStateException("Cannot add node to following nodes! This node is set to immutable!")
+    }
+  }
+
+  def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
+
+  def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
+
+  def inputNodes: Seq[WorkflowDependencyNode] = {
+    for (
+      input <- workflowNode.inputs;
+      pNode <- precedingNodes.filter(_.nodeId == input)) yield {
+      pNode
+    }
   }
 }

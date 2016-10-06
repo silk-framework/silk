@@ -2,9 +2,10 @@ package org.silkframework.plugins.dataset
 
 import java.net.{URI, URISyntaxException}
 
-import org.silkframework.config.Config
-import org.silkframework.dataset.rdf.{SparqlEndpoint, RdfDataset}
+import com.google.inject.Inject
+import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
 import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
 import scala.collection.mutable
@@ -56,7 +57,10 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
   * At the moment, the default can only be set programmatically and not in the configuration.
   */
 object InternalDataset {
-  val internalDatasetGraphPrefix = Try(Config().getString("dataset.internal.graphPrefix")).
+  @Inject
+  private val configMgr: Config = DefaultConfig.instance
+
+  lazy val internalDatasetGraphPrefix = Try(configMgr().getString("dataset.internal.graphPrefix")).
       getOrElse("http://silkframework.org/internal/")
 
   private val byGraphDataset: mutable.Map[String, Dataset] = new mutable.HashMap[String, Dataset]()

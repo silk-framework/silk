@@ -17,6 +17,7 @@ package org.silkframework
 import java.io.{File, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 
+import com.google.inject.Inject
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -34,9 +35,9 @@ import scala.xml.XML
  * Executes the complete Silk workflow.
  */
 object Silk {
-
-  // Initialize config
-  Config()
+  @Inject
+  private val config: Config = DefaultConfig.instance
+  config()
 
   /**
    * The default number of threads to be used for matching.
@@ -176,6 +177,7 @@ object Silk {
    * Main method to allow Silk to be started from the command line.
    */
   def main(args: Array[String]) {
+    config()
     val logs = CollectLogs() {
       execute()
     }

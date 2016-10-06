@@ -1,17 +1,17 @@
 package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.silkframework.util.ConfigTestTrait
 
 /**
   * Created on 9/2/16.
   */
-class LocalExecutionTest extends FlatSpec with ShouldMatchers {
+class LocalExecutionTest extends FlatSpec with ShouldMatchers with ConfigTestTrait {
   behavior of "Local Execution"
-  System.setProperty("dataset.internal.plugin", "inMemory")
 
   private val ID: String = "id"
 
-  ignore should "return the different dataset for the different id" in {
+  it should "return the different dataset for the different id" in {
     for(useLocalInternalDatasets <- Seq(true, false)) {
       val execution = LocalExecution(useLocalInternalDatasets = useLocalInternalDatasets)
       val noneDs = execution.createInternalDataset(None)
@@ -23,7 +23,7 @@ class LocalExecutionTest extends FlatSpec with ShouldMatchers {
     }
   }
 
-  ignore should "return the same dataset for the same id" in {
+  it should "return the same dataset for the same id" in {
     for(useLocalInternalDatasets <- Seq(true, false)) {
       val execution = LocalExecution(useLocalInternalDatasets = useLocalInternalDatasets)
       execution.createInternalDataset(None) should be theSameInstanceAs  execution.createInternalDataset(None)
@@ -37,4 +37,12 @@ class LocalExecutionTest extends FlatSpec with ShouldMatchers {
     execution1.createInternalDataset(None) should not be theSameInstanceAs (execution2.createInternalDataset(None))
     execution1.createInternalDataset(Some(ID)) should not be theSameInstanceAs (execution2.createInternalDataset(Some(ID)))
   }
+
+  /** The properties that should be changed.
+    * If the value is [[None]] then the property value is removed,
+    * else it is set to the new value.
+    */
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "dataset.internal.plugin" -> Some("inMemory")
+  )
 }

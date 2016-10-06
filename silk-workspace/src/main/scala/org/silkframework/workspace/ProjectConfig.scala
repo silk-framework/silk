@@ -16,8 +16,9 @@ package org.silkframework.workspace
 
 import java.util.logging.Logger
 
+import com.google.inject.Inject
 import com.typesafe.config.ConfigException
-import org.silkframework.config.{SilkVocab, Config, Prefixes}
+import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.util.Identifier
 
 /**
@@ -31,20 +32,30 @@ import org.silkframework.util.Identifier
 case class ProjectConfig(id: Identifier = Identifier.random,
                          prefixes: Prefixes = Prefixes.default,
                          projectResourceUriOpt: Option[String] = None) {
-  private val log: Logger = Logger.getLogger(getClass.getName)
 
   def generateDefaultUri: String = {
-    try {
-      Config().getString("project.resourceUriPrefix") + id.toString
-    } catch {
-      case e: ConfigException.Missing =>
-        log.warning("Application parameter project.resourceUriPrefix is not set. Using default prefix.")
-        "urn:silkframework:project:" + id.toString
-    }
+    ProjectConfig.defaultUriPrefix + id.toString
   }
 
   /** Returns the project resource URI if set or generates the default URI for this project. */
   def resourceUriOrElseDefaultUri: String = {
     projectResourceUriOpt.getOrElse(generateDefaultUri)
+  }
+}
+
+object ProjectConfig {
+  @Inject
+  private val configMgr: Config = DefaultConfig.instance
+
+  private val log: Logger = Logger.getLogger(getClass.getName)
+
+  lazy val defaultUriPrefix: String = {
+    try {
+      configMgr().getString("project.resourceUriPrefix")
+    } catch {
+      case e: ConfigException.Missing =>
+        log.warning("Application parameter project.resourceUriPrefix is not set. Using default prefix.")
+        "urn:silkframework:project:"
+    }
   }
 }

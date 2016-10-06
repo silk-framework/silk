@@ -8,11 +8,11 @@ GET           /:project/:task/editor/widgets/paths                              
 GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
 
 # Generate Links
-GET           /:project/:task/generateLinks                                                 controllers.linking.GenerateLinks.generateLinks(project: String, task: String)
-GET           /:project/:task/generateLinksDialog                                           controllers.linking.GenerateLinks.generateLinksDialog(project: String, task: String)
-GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                    controllers.linking.GenerateLinks.links(project: String, task: String, sorting: String, filter: String, page: Int)
-GET           /:project/:task/generateLinks/linksStream                                     controllers.linking.GenerateLinks.linksStream(project: String, task: String)
-GET           /:project/:task/generateLinks/statusStream                                    controllers.linking.GenerateLinks.statusStream(project: String, task: String)
+GET           /:project/:task/generateLinks                                                 controllers.linking.GenerateLinksView.generateLinks(project: String, task: String)
+GET           /:project/:task/generateLinksDialog                                           controllers.linking.GenerateLinksView.generateLinksDialog(project: String, task: String)
+GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                    controllers.linking.GenerateLinksView.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/generateLinks/linksStream                                     controllers.linking.GenerateLinksView.linksStream(project: String, task: String)
+GET           /:project/:task/generateLinks/statusStream                                    controllers.linking.GenerateLinksView.statusStream(project: String, task: String)
 
 # Reference Links
 GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)

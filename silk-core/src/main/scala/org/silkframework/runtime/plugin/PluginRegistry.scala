@@ -5,7 +5,8 @@ import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
 
-import org.silkframework.config.{Config, Prefixes}
+import com.google.inject.Inject
+import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 import scala.collection.JavaConversions._
@@ -16,6 +17,8 @@ import scala.reflect.ClassTag
  * Registry of all available plugins.
  */
 object PluginRegistry {
+  @Inject
+  private val configMgr: Config = DefaultConfig.instance
 
   private val log = Logger.getLogger(getClass.getName)
   
@@ -63,10 +66,10 @@ object PluginRegistry {
   def createFromConfigOption[T: ClassTag](configPath: String)
                                          (implicit prefixes: Prefixes = Prefixes.empty,
                                           resources: ResourceManager = EmptyResourceManager): Option[T] = {
-    if(!Config().hasPath(configPath + ".plugin")) {
+    if(!configMgr().hasPath(configPath + ".plugin")) {
       None
     } else {
-      val config = Config().getConfig(configPath)
+      val config = configMgr().getConfig(configPath)
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
       // Check if there are any configuration parameters available for this plugin
