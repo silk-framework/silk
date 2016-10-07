@@ -1,15 +1,13 @@
 package org.silkframework.config
 
 import java.io.File
+import javax.inject.Named
 
-import com.google.inject.ImplementedBy
-import com.google.inject.name.Named
 import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 
 /**
   * Holds the configuration properties
   */
-@ImplementedBy(classOf[DefaultConfig])
 trait Config {
   /** Returns an instance of the current [[TypesafeConfig]] */
   def apply(): TypesafeConfig

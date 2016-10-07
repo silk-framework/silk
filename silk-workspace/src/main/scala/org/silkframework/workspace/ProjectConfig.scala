@@ -15,8 +15,8 @@
 package org.silkframework.workspace
 
 import java.util.logging.Logger
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import com.typesafe.config.ConfigException
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.util.Identifier
@@ -45,7 +45,7 @@ case class ProjectConfig(id: Identifier = Identifier.random,
 
 object ProjectConfig {
   @Inject
-  private val configMgr: Config = DefaultConfig.instance
+  private var configMgr: Config = DefaultConfig.instance
 
   private val log: Logger = Logger.getLogger(getClass.getName)
 

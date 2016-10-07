@@ -16,8 +16,8 @@ package org.silkframework.workspace
 
 import java.io.File
 import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.xml._
@@ -30,7 +30,7 @@ class FileUser extends User {
 
 object FileUser {
   @Inject
-  val configMgr: Config = DefaultConfig.instance
+  private var configMgr: Config = DefaultConfig.instance
 
   lazy val workspaceDir = {
     val elds_home = System.getenv("ELDS_HOME")

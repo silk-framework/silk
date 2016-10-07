@@ -41,6 +41,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override protected def write(data: EntityTable, dataset: Dataset): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
+    var lastLog = startTime
     data match {
       case LinksTable(links, linkType) =>
         val sink = dataset.linkSink
@@ -60,6 +61,13 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         for (entity <- et.entities) {
           sink.writeEntity(entity.uri, entity.values)
           entityCount += 1
+          if(entityCount % 10000 == 0) {
+            val currentTime = System.currentTimeMillis()
+            if(currentTime - 2000 > lastLog) {
+              logger.info("Writing entities: " + entityCount)
+              lastLog = currentTime
+            }
+          }
         }
         sink.close()
         val time = (System.currentTimeMillis - startTime) / 1000.0
