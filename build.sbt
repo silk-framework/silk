@@ -15,6 +15,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
+  parallelExecution in Test := false,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
