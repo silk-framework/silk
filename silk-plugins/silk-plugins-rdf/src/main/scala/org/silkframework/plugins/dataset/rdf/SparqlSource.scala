@@ -3,10 +3,9 @@ package org.silkframework.plugins.dataset.rdf
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.util.Uri
 
@@ -20,12 +19,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
   private val entityUris = Option(params.entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
-    val entityRetriever =
-      if(params.parallel)
-        new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
-      else
-        new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
-
+    val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
     entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), None)
   }
 
@@ -33,12 +27,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     if(entities.isEmpty) {
       Seq.empty
     } else {
-      val entityRetriever =
-        if (params.parallel)
-          new ParallelEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
-        else
-          new SimpleEntityRetriever(sparqlEndpoint, params.pageSize, params.graph, params.useOrderBy)
-
+      val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
       entityRetriever.retrieve(entitySchema, entities, None).toSeq
     }
   }

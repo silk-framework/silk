@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlEndpoint}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.util.Uri
 
@@ -36,16 +36,18 @@ trait EntityRetriever {
  * Factory for creating EntityRetriever entities.
  */
 object EntityRetriever {
-  //Uses the parallel entity retriever by default as it is generally significantly faster.
-  var useParallelRetriever = true
 
   /**
-   * Creates a new EntityRetriever instance.
+   * Creates a new EntityRetriever instance for specific strategy.
    */
-  def apply(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None): EntityRetriever = {
-    if (useParallelRetriever)
-      new ParallelEntityRetriever(endpoint, pageSize, graphUri)
-    else
-      new SimpleEntityRetriever(endpoint, pageSize, graphUri)
+  def apply(endpoint: SparqlEndpoint, strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true): EntityRetriever = {
+    strategy match {
+      case EntityRetrieverStrategy.simple =>
+        new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy, useSubSelect = false)
+      case EntityRetrieverStrategy.subQuery =>
+        new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy, useSubSelect = true)
+      case EntityRetrieverStrategy.parallel =>
+        new ParallelEntityRetriever(endpoint, pageSize, graphUri, useOrderBy)
+    }
   }
 }
