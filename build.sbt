@@ -12,8 +12,9 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
-  libraryDependencies += "com.google.inject" % "guice" % "4.0",
+  libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
+  libraryDependencies += "javax.inject" % "javax.inject" % "1",
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
@@ -206,7 +207,7 @@ lazy val workbench = (project in file("silk-workbench"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
-  .dependsOn(rules, workspace, plugins)
+  .dependsOn(rules, workspace, plugins, core % "test->test")
   .aggregate(rules, workspace, plugins)
   .settings(commonSettings: _*)
   .settings(

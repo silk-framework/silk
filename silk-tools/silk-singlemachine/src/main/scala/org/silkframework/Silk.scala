@@ -16,18 +16,17 @@ package org.silkframework
 
 import java.io.{File, FileInputStream, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
-import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.util.StringUtils._
+import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
@@ -39,8 +38,8 @@ import scala.xml.XML
  */
 object Silk {
   @Inject
-  private val config: Config = DefaultConfig.instance
-  config()
+  private var configMgr: Config = DefaultConfig.instance
+  configMgr()
 
   /**
    * The default number of threads to be used for matching.
@@ -209,7 +208,7 @@ object Silk {
    * Main method to allow Silk to be started from the command line.
    */
   def main(args: Array[String]) {
-    config()
+    configMgr()
     val logs = CollectLogs() {
       execute()
     }

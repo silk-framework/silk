@@ -4,8 +4,8 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
  */
 object PluginRegistry {
   @Inject
-  private val configMgr: Config = DefaultConfig.instance
+  private var configMgr: Config = DefaultConfig.instance
 
   private val log = Logger.getLogger(getClass.getName)
   

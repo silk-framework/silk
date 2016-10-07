@@ -1,6 +1,8 @@
 package org.silkframework.config
 
-import com.google.inject.{Guice, Inject}
+import javax.inject.Inject
+
+import com.google.inject.Guice
 import com.typesafe.config.{Config => TypesafeConfig}
 import net.codingwell.scalaguice.ScalaModule
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -12,6 +14,7 @@ class ConfigTest extends FlatSpec with MustMatchers {
   it should "inject into Scala objects" in {
     Guice.createInjector(new ScalaModule() {
       def configure() {
+        bind[Config].to(classOf[DefaultConfig])
         bind[ConfigTestHelper.type].toInstance(ConfigTestHelper)
       }
     })
@@ -39,7 +42,7 @@ class TestConfig extends Config {
 
 object ConfigTestHelper {
   @Inject
-  private val configMgr: Config = DefaultConfig.instance
+  private var configMgr: Config = DefaultConfig.instance
 
   def get(): Config = configMgr
 }

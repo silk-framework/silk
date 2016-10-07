@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset
 
 import java.net.{URI, URISyntaxException}
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
@@ -58,7 +58,7 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
   */
 object InternalDataset {
   @Inject
-  private val configMgr: Config = DefaultConfig.instance
+  private var configMgr: Config = DefaultConfig.instance
 
   lazy val internalDatasetGraphPrefix = Try(configMgr().getString("dataset.internal.graphPrefix")).
       getOrElse("http://silkframework.org/internal/")
