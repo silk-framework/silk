@@ -27,9 +27,9 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entitySchema))
+  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entitySchema))
 
-  override def outputSchemaOpt: Some[EntitySchema] = {
+  override lazy val outputSchemaOpt: Some[EntitySchema] = {
     Some(
       EntitySchema(
         typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
@@ -38,7 +38,7 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
-  override def referencedTasks =  Set(selection.inputId)
+  override lazy val referencedTasks =  Set(selection.inputId)
 
 }
 

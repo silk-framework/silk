@@ -34,22 +34,22 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val transform = task.data
     val subjectRule = transform.rules.find(_.target.isEmpty)
     val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
-
+    val outputSchema = transform.outputSchemaOpt.get
     for(entity <- entities.view) yield {
       val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
       val values =
-        for(rules <- propertyRules) yield {
+        for(rule <- propertyRules) yield {
           try {
-            rules(entity)
+            rule(entity)
+            Seq()
           } catch {
             case NonFatal(ex) =>
               // TODO forward error
-              log.warning("Error during execution of transform rule " + rules.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
+              log.warning("Error during execution of transform rule " + rule.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
               Seq.empty
           }
         }
-
-      new Entity(uri, values, transform.outputSchemaOpt.get)
+      new Entity(uri, values, outputSchema)
     }
   }
 }

@@ -86,7 +86,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     * The schemata of the input data for this task.
     * A separate entity schema is returned for each input.
     */
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
+  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = {
     Some(entityDescriptions.toSeq)
   }
 
@@ -94,9 +94,9 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  override def outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
+  override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
 
-  override def referencedTasks = dataSelections.map(_.inputId).toSet
+  override lazy val referencedTasks = dataSelections.map(_.inputId).toSet
 }
 
 object LinkSpec {
