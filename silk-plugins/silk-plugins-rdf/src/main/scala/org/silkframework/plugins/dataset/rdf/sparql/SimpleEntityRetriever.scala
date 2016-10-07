@@ -22,7 +22,7 @@ import org.silkframework.util.Uri
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
  */
-class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true) extends EntityRetriever {
+class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true, useSubSelect: Boolean = true) extends EntityRetriever {
   private val varPrefix = "v"
 
   /**
@@ -72,7 +72,9 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     sparql += "}" // END WHERE
     if(useOrderBy) sparql +=" ORDER BY ?" + sparqlEntitySchema.variable
 
-    sparql = "SELECT " + selectVariables + "\nWHERE {\n" + sparql + "\n}"
+    if(useSubSelect) {
+      sparql = "SELECT " + selectVariables + "\nWHERE {\n" + sparql + "\n}"
+    }
 
     val sparqlResults = endpoint.select(sparql)
 

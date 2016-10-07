@@ -6,7 +6,7 @@ import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.SparqlParams
+import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
@@ -155,7 +155,7 @@ object ProjectUtils {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
-      val inmemoryModelSink = new SparqlSink(SparqlParams(parallel = false), new JenaModelEndpoint(model))
+      val inmemoryModelSink = new SparqlSink(SparqlParams(strategy = EntityRetrieverStrategy.simple), new JenaModelEndpoint(model))
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
