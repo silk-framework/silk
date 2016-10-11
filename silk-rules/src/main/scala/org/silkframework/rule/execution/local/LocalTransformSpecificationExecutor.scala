@@ -41,7 +41,6 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         for(rule <- propertyRules) yield {
           try {
             rule(entity)
-            Seq()
           } catch {
             case NonFatal(ex) =>
               // TODO forward error
