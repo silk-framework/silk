@@ -4,8 +4,9 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, TripleSinkDataset}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.execution.{DatasetExecutor, TaskException}
+import org.silkframework.util.Uri
 
 /**
   * Created on 7/20/16.
@@ -39,39 +40,52 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   }
 
   override protected def write(data: EntityTable, dataset: Dataset): Unit = {
+    data match {
+      case LinksTable(links, linkType) =>
+        writeLinks(dataset, links, linkType)
+      case TripleEntityTable(entities) =>
+        writeTriples(dataset, entities)
+      case et: EntityTable =>
+        writeEntities(dataset, et)
+    }
+  }
+
+  private def writeEntities(dataset: Dataset, entityTable: EntityTable): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
-    data match {
-      case LinksTable(links, linkType) =>
-        val sink = dataset.linkSink
-        sink.writeLinks(links, linkType.uri)
-        val time = (System.currentTimeMillis - startTime) / 1000.0
-        logger.log(Level.INFO, "Finished writing " + entityCount + " links in " + time + " seconds")
-      case TripleEntityTable(entities) =>
-        dataset match {
-          case rdfDataset: TripleSinkDataset =>
-            writeTriples(entities, rdfDataset)
-          case _ =>
-            throw new TaskException("Cannot write triples to non-RDF dataset!")
+    val sink = dataset.entitySink
+    sink.open(entityTable.entitySchema.paths.map(_.propertyUri.get.toString))
+    for (entity <- entityTable.entities) {
+      sink.writeEntity(entity.uri, entity.values)
+      entityCount += 1
+      if(entityCount % 10000 == 0) {
+        val currentTime = System.currentTimeMillis()
+        if(currentTime - 2000 > lastLog) {
+          logger.info("Writing entities: " + entityCount)
+          lastLog = currentTime
         }
-      case et: EntityTable =>
-        val sink = dataset.entitySink
-        sink.open(et.entitySchema.paths.map(_.propertyUri.get.toString))
-        for (entity <- et.entities) {
-          sink.writeEntity(entity.uri, entity.values)
-          entityCount += 1
-          if(entityCount % 10000 == 0) {
-            val currentTime = System.currentTimeMillis()
-            if(currentTime - 2000 > lastLog) {
-              logger.info("Writing entities: " + entityCount)
-              lastLog = currentTime
-            }
-          }
-        }
-        sink.close()
-        val time = (System.currentTimeMillis - startTime) / 1000.0
-        logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + data.entitySchema.typeUri + "' in " + time + " seconds")
+      }
+    }
+    sink.close()
+    val time = (System.currentTimeMillis - startTime) / 1000.0
+    logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
+  }
+
+  private def writeLinks(dataset: Dataset, links: Seq[Link], linkType: Uri): Unit = {
+    val startTime = System.currentTimeMillis()
+    val sink = dataset.linkSink
+    sink.writeLinks(links, linkType.uri)
+    val time = (System.currentTimeMillis - startTime) / 1000.0
+    logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
+  }
+
+  private def writeTriples(dataset: Dataset, entities: Traversable[Entity]): Unit = {
+    dataset match {
+      case rdfDataset: TripleSinkDataset =>
+        writeTriples(entities, rdfDataset)
+      case _ =>
+        throw new TaskException("Cannot write triples to non-RDF dataset!")
     }
   }
 
