@@ -269,6 +269,13 @@ object Workflow {
 
     new Workflow(if (id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
   }
+
+  /**
+    * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
+    */
+  def autoLayout(): Workflow = {
+    ??? // TODO
+  }
 }
 
 /**

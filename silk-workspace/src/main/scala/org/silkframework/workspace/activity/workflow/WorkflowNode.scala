@@ -37,6 +37,20 @@ sealed trait WorkflowNode {
   def nodeId: NodeReference
 
   def outputPriority: Option[Double]
+
+  def copyNode(task: Identifier = task,
+               inputs: Seq[NodeReference] = inputs,
+               outputs: Seq[NodeReference] = outputs,
+               position: (Int, Int) = position,
+               nodeId: NodeReference = nodeId,
+               outputPriority: Option[Double] = outputPriority): WorkflowNode = {
+    this match {
+      case wo: WorkflowOperator =>
+        wo.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
+      case wd: WorkflowDataset =>
+        wd.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
+    }
+  }
 }
 
 case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
