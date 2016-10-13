@@ -97,7 +97,7 @@
 @connectOperators(op: Operator) = {
   <script type="text/javascript">
     // Initialization
-    $(function() {
+    jsPlumb.bind("ready", function() {
       initEditor();
 
       var dropArea = $('#droppable');
@@ -113,6 +113,7 @@
 
       saveInstance();
     });
+
   </script>
 }
 
