@@ -6,7 +6,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.xml.{Text, Elem, Node}
+import scala.xml.{Elem, Node, Text}
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
@@ -35,8 +35,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         outputs={op.outputs.mkString(",")}
         errorOutputs={op.errorOutputs.mkString(",")}
         id={op.nodeId}
-        outputPriority={op.outputPriority map (priority => Text(priority.toString))}
-        />
+        outputPriority={op.outputPriority map (priority => Text(priority.toString))}/>
     }}{for (ds <- datasets) yield {
         <Dataset
         posX={ds.position._1.toString}
@@ -45,35 +44,39 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
         inputs={ds.inputs.mkString(",")}
         outputs={ds.outputs.mkString(",")}
         id={ds.nodeId}
-        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
-        />
+        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}/>
     }}
     </Workflow>
   }
 
   /**
-    * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow.
+    * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
+    * in which layer this operator would be executed.
     */
-  lazy val topologicalSortedNodes: IndexedSeq[WorkflowNode] = {
+  lazy val topologicalSortedNodesWithLayerIndex: IndexedSeq[(WorkflowNode, Int)] = {
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val pureOutputNodes = outputs.toSet -- inputs
     var done = pureOutputNodes
-    var sortedOperators = Vector.empty[WorkflowNode]
+    var sortedOperators = Vector.empty[(WorkflowNode, Int)]
     val (start, rest) = nodes.partition(node => pureOutputNodes.contains(node.nodeId))
-    sortedOperators ++= start
+    var layer = 1
+    sortedOperators ++= start.map((_, layer))
     var operatorsToSort = rest
     while (operatorsToSort.nonEmpty) {
+      layer += 1
       val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow " + id.toString + "!")
       }
-      sortedOperators ++= satisfied
+      sortedOperators ++= satisfied.map((_, layer))
       done ++= satisfied.map(_.nodeId)
       operatorsToSort = unsatisfied
     }
     sortedOperators
   }
+
+  lazy val topologicalSortedNodes = topologicalSortedNodesWithLayerIndex.map(_._1)
 
   /**
     * Returns a dependency graph that can be traversed from the start or end nodes and consists of
@@ -187,7 +190,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   /** Returns node ids of workflow nodes that output data into other nodes */
   def outputWorkflowNodeIds(): Seq[String] = {
     val inputs = nodes.flatMap(_.inputs).distinct
-    val nodesWithOutputs = nodes.filter(_.outputs.size > 0).map(_.nodeId)
+    val nodesWithOutputs = nodes.filter(_.outputs.nonEmpty).map(_.nodeId)
     (inputs ++ nodesWithOutputs).distinct
   }
 
@@ -210,7 +213,37 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   /**
     * The tasks that are referenced by this workflow.
     */
-  override def referencedTasks = (operators ++ datasets).map(_.task).toSet
+  override def referencedTasks: Set[Identifier] = (operators ++ datasets).map(_.task).toSet
+
+  /**
+    * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
+    */
+  def autoLayout(layoutConfig: WorkflowLayoutConfig): Workflow = {
+    val operatorsByLayer = topologicalSortedNodesWithLayerIndex.groupBy(_._2)
+    val operatorsAutoPositioned = for ((layerNr, operators) <- operatorsByLayer) yield {
+      autoLayoutWorkflowNodes(operators.map(_._1), layerNr, layoutConfig: WorkflowLayoutConfig)
+    }
+    val (workflowDatasets, workflowOperators) = operatorsAutoPositioned.flatten.toSeq.partition(_.isInstanceOf[WorkflowDataset])
+    this.copy(datasets = workflowDatasets.map(_.asInstanceOf[WorkflowDataset]), operators = workflowOperators.map(_.asInstanceOf[WorkflowOperator]))
+  }
+
+  // Create workflow element for frontend model and set its layout
+  private def autoLayoutWorkflowNodes(workflowOperators: Seq[WorkflowNode],
+                                      layerNr: Int,
+                                      layoutConfig: WorkflowLayoutConfig): Seq[WorkflowNode] = {
+    def calculateElementPosition(elementIndexInLayer: Int): (Int, Int) = {
+      import layoutConfig._
+
+      val xPosition = offsetX + layerNr * (elementWidth + horizontalPadding)
+      val yPosition = offsetY + elementIndexInLayer * (elementHeight + verticalPadding)
+      (xPosition, yPosition)
+    }
+
+    for ((element, index) <- workflowOperators.zipWithIndex) yield {
+      val newPosition = calculateElementPosition(index)
+      element.copyNode(position = newPosition)
+    }
+  }
 }
 
 object Workflow {
@@ -246,7 +279,7 @@ object Workflow {
           task = task,
           outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
           errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
-          position = ( Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt ),
+          position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
           nodeId = parseNodeId(op, task),
           outputPriority = parseOutputPriority(op)
         )
@@ -268,13 +301,6 @@ object Workflow {
       }
 
     new Workflow(if (id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
-  }
-
-  /**
-    * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
-    */
-  def autoLayout(): Workflow = {
-    ??? // TODO
   }
 }
 
