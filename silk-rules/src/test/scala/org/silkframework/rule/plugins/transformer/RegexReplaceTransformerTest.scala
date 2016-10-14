@@ -30,6 +30,6 @@ class RegexReplaceTransformerTest extends PluginTest {
     transformer1.evaluate("abcdef1") should equal("1")
   }
 
-  override def pluginObject: Any = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
+  override def pluginObject = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
 
 }
