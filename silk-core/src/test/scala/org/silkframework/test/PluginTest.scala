@@ -7,6 +7,9 @@ import org.silkframework.runtime.plugin.PluginRegistry
 
 /**
   * Can be mixed in into a test to check for basic properties of a plugin.
+  * Currently checks that:
+  *  - The plugin is serializable (and the serialization is correct according to the plugins serialization operator)
+  *  - The plugin is valid (e.g., the parameter types are allowed)
   */
 abstract class PluginTest extends FlatSpec with ShouldMatchers {
 
