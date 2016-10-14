@@ -19,7 +19,7 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 
   override def beforeStart(app: Application) {
     // Set context path
-    context = app.configuration.getString("application.context").getOrElse("/")
+    context = app.configuration.getString("play.http.context").getOrElse("/")
     // Collect plugin routes
     pluginRoutes = WorkbenchPlugins().map(_.routes).reduce(_ ++ _)
     pluginRoutes = pluginRoutes.updated("core", core.Routes)
