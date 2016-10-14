@@ -15,9 +15,10 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 
-class TokenwiseStringDistanceTest extends FlatSpec with Matchers {
-  val metric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs who", nonStopwordWeight = 0.1, stopwordWeight = 0.001)
+class TokenwiseStringDistanceTest extends PluginTest {
+  lazy val metric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "and or in on the a from thy mr mrs who", nonStopwordWeight = 0.1, stopwordWeight = 0.001)
 
   "TokenwiseStringDistance" should "return distance 0 (several seditious scribes, several seditious scribes)" in {
     metric.evaluate("several seditious scribes", "several seditious scribes", 1.0) should equal(0.0)
@@ -113,6 +114,8 @@ class TokenwiseStringDistanceTest extends FlatSpec with Matchers {
     tokenWiseScore should equal(jaccardScore)
 
   }
+
+  override def pluginObject = metric
 
 
 

@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class DateTimeMetricTest extends FlatSpec with Matchers {
-  val metric = new DateTimeMetric()
+class DateTimeMetricTest extends PluginTest {
+  lazy val metric = new DateTimeMetric()
 
   "DateTimeMetric" should "return 0.0 for equal values" in {
     metric.evaluate("2010-09-24T05:00:00", "2010-09-24T05:00:00") should be(approximatelyEqualTo(0.0))
@@ -28,4 +29,6 @@ class DateTimeMetricTest extends FlatSpec with Matchers {
   "DateTimeMetric" should "return the correct similarity" in {
     metric.evaluate("2001-10-26T21:32:10", "2001-10-26T21:32:40") should be(approximatelyEqualTo(30.0))
   }
+
+  override def pluginObject = metric
 }

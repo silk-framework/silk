@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class QGramsMetricTest extends FlatSpec with Matchers {
-  val metric = new QGramsMetric()
+class QGramsMetricTest extends PluginTest {
+  lazy val metric = new QGramsMetric()
   val t = 0.9
 
   "QGramsMetric" should "return 1.0 if the input strings do not share a single q-gram" in {
@@ -34,4 +35,6 @@ class QGramsMetricTest extends FlatSpec with Matchers {
     //q-grams = (#a, ab, b#) and (#a, ac, c#), matchingQGrams = 1, numQGrams = 5
     metric.evaluate("ab", "ac", t) should be(approximatelyEqualTo(4.0 / 5.0))
   }
+
+  override def pluginObject = metric
 }

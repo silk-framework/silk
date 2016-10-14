@@ -17,12 +17,13 @@ package org.silkframework.rule.plugins.distance.numeric
 
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class InsideNumericIntervalTest extends FlatSpec with Matchers {
+class InsideNumericIntervalTest extends PluginTest {
 
-  val m = new InsideNumericInterval()
+  lazy val m = new InsideNumericInterval()
 
   "InsideNumericInterval" should "return 0.0 if a number is inside an interval" in {
     m.evaluate("5", "3-6") should be(approximatelyEqualTo(0.0))
@@ -58,4 +59,6 @@ class InsideNumericIntervalTest extends FlatSpec with Matchers {
     m.evaluate("2-5", "3-6") should be(approximatelyEqualTo(1.0))
     m.evaluate("2-5", "4-6") should be(approximatelyEqualTo(1.0))
   }
+
+  override def pluginObject = m
 }
