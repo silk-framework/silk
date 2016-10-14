@@ -14,16 +14,18 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
-
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 
+class ParseDataTransformerTest extends PluginTest {
 
-class ParseDataTransformerTest extends FlatSpec with Matchers {
-  val transformer = new ParseDateTransformer("dd.MM.yyyy")
+  val transformer = ParseDateTransformer("dd.MM.yyyy")
 
   "ParseDataTransformer" should "parse dates" in {
     transformer(Seq(Seq("03.04.2015"))) should equal(Seq("2015-04-03"))
     transformer(Seq(Seq("3.4.2015"))) should equal(Seq("2015-04-03"))
     transformer(Seq(Seq("03.4.2015"))) should equal(Seq("2015-04-03"))
   }
+
+  override def pluginObject = ParseDateTransformer("dd.MM.yyyy")
 }
