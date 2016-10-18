@@ -110,11 +110,11 @@ body{
   color: #1484d4;
 }
 
-._jsPlumb_endpoint {
+.jsplumb-endpoint {
   z-index: 2;
 }
 
-._jsPlumb_connector {
+.jsplumb-endpoint {
   cursor: pointer;
 }
 
