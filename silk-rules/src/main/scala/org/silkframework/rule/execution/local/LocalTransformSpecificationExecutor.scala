@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import java.util.logging.Logger
 
-import org.silkframework.config.Task
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution}
 import org.silkframework.execution.{ExecutionReport, Executor}
@@ -24,10 +24,10 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val input = inputs.head
-    val transformSpec = task.data
+    val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val transformedEntities = mapEntities(task, input.entities)
     assert(transformSpec.outputSchemaOpt.isDefined)
-    Some(GenericEntityTable(transformedEntities, transformSpec.outputSchemaOpt.get))
+    Some(GenericEntityTable(transformedEntities, transformSpec.outputSchemaOpt.get, PlainTask(task.id, transformSpec)))
   }
 
   private def mapEntities(task: Task[TransformSpec], entities: Traversable[Entity]) = {
