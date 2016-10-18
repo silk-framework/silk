@@ -266,9 +266,11 @@ body{
   border: 2px solid #f1d21e;
 }
 
+/*
 .highlighted {
   border: 4px solid #ff0000;
 }
+*/
 
 .new-path {
   width: 165px;
