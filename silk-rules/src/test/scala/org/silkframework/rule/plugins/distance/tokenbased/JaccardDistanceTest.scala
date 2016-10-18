@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class JaccardDistanceTest extends FlatSpec with Matchers {
-  val distance = new JaccardDistance()
+class JaccardDistanceTest extends PluginTest {
+  lazy val distance = new JaccardDistance()
 
   "JaccardDistance" should "return jaccard coefficient" in {
     distance("A" :: "B" :: Nil, "C" :: "D" :: Nil) should be(approximatelyEqualTo(1.0))
@@ -27,6 +28,8 @@ class JaccardDistanceTest extends FlatSpec with Matchers {
     distance("A" :: "B" :: "C" :: Nil, "A" :: "B" :: "D" :: Nil) should be(approximatelyEqualTo(0.5))
     distance("A" :: "B" :: "C" :: Nil, "A" :: "B" :: "C" :: Nil) should be(approximatelyEqualTo(0.0))
   }
+
+  override def pluginObject = distance
 
 //  "JaccardDistance" should "index one values if the limit is 0" in {
 //    distance.index(Set("A", "B", "C"), 0.0).size should equal (1)

@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.{TripleSinkDataset, TripleSink}
-import org.silkframework.dataset.rdf.{SparqlParams, RdfDataset}
+import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
+import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
@@ -27,8 +27,8 @@ case class SparqlDataset(
   retryPause: Int = 1000,
   @Param("Additional parameters to be appended to every request e.g. &soft-limit=1")
   queryParameters: String = "",
-  @Param("True (default), if multiple queries should be executed in parallel for faster retrieval.")
-  parallel: Boolean = true,
+  @Param("The strategy use for retrieving entities: simple: Retrieve all entities using a single query; subQuery: Use a single query, but wrap it for improving the performance on Virtuoso; parallel: Use a separate Query for each entity property.")
+  strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
   @Param("Include useOrderBy in queries to enforce correct order of values.")
   useOrderBy: Boolean = true) extends RdfDataset with TripleSinkDataset {
 
@@ -44,7 +44,7 @@ case class SparqlDataset(
       retryCount = retryCount,
       retryPause = retryPause,
       queryParameters = queryParameters,
-      parallel = parallel,
+      strategy = strategy,
       useOrderBy = useOrderBy
     )
 

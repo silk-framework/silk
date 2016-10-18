@@ -4,12 +4,12 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.transform.TransformTaskUtils._
+import org.silkframework.workspace.activity.PathsCacheTrait
 
 /**
  * Holds the most frequent paths.
  */
-class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[EntitySchema] {
+class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[EntitySchema] with PathsCacheTrait {
 
   override def name: String = s"Paths cache ${task.id}"
 
@@ -27,10 +27,7 @@ class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[Ent
     //Check if paths have not been loaded yet or if the restriction has been changed
     if (context.value().paths.isEmpty || currentEntityDesc.typeUri != context.value().typeUri) {
       // Retrieve the data sources
-      val source = task.dataSource
-      //Retrieve most frequent paths
-      context.status.update("Retrieving frequent paths", 0.0)
-      val paths = source.retrievePaths(transform.selection.typeUri, 1)
+      val paths = retrievePathsOfInput(task.data.selection.inputId, Some(transform.selection), task, context)
       //Add the frequent paths to the entity description
       context.value() = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)
     }

@@ -10,12 +10,12 @@ package org.silkframework.dataset.rdf
  * @param retryCount The number of retries if a query fails
  * @param retryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  * @param queryParameters Additional parameters to be appended to every request e.g. &soft-limit=1
- * @param parallel True, if multiple queries should be executed in parallel for faster retrieval.
+ * @param strategy Strategy used for retrieving entities.
 */
 case class SparqlParams(uri: String = "", user: String = null, password: String = null,
                         graph: Option[String] = None, pageSize: Int = 1000, entityList: String = null,
                         pauseTime: Int = 0, retryCount: Int = 3, retryPause: Int = 1000,
-                        queryParameters: String = "", parallel: Boolean = true, useOrderBy: Boolean = true) {
+                        queryParameters: String = "", strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel, useOrderBy: Boolean = true) {
 
   /**
    * The login as option pair of user and password.

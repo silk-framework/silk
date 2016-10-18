@@ -14,10 +14,10 @@
 
 package org.silkframework
 
-import java.io.{File, OutputStreamWriter}
+import java.io.{File, FileInputStream, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
-import com.google.inject.Inject
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -25,8 +25,10 @@ import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.CollectLogs
 import org.silkframework.util.StringUtils._
+import org.silkframework.util.{CollectLogs, Identifier}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
 import scala.xml.XML
@@ -36,8 +38,8 @@ import scala.xml.XML
  */
 object Silk {
   @Inject
-  private val config: Config = DefaultConfig.instance
-  config()
+  private var configMgr: Config = DefaultConfig.instance
+  configMgr()
 
   /**
    * The default number of threads to be used for matching.
@@ -45,9 +47,6 @@ object Silk {
   val DefaultThreads = max(8, Runtime.getRuntime.availableProcessors())
 
   private val logger = Logger.getLogger(Silk.getClass.getName)
-
-  //Print welcome message on start-up
-  println("Silk Link Discovery Framework - Version 2.7.2")
 
   // Initialize Log4j
   val ca = new ConsoleAppender()
@@ -61,6 +60,7 @@ object Silk {
    * The execution is configured using the following properties:
    *  - 'configFile' (required): The configuration file
    *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
+   *  - 'task' (optional): If the config file is a project, this specifies the task to be executed.
    *  - 'threads' (optional): The number of threads to be be used for matching.
    *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
@@ -91,7 +91,14 @@ object Silk {
       case _ => true
     }
 
-    executeFile(configFile, linkSpec, numThreads, reload)
+    if(configFile.getName.endsWith(".xml")) {
+      executeFile(configFile, linkSpec, numThreads, reload)
+    } else {
+      val task = System.getProperty("task")
+      if(task == null)
+        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been given")
+      executeProject(configFile, task)
+    }
   }
 
   /**
@@ -174,10 +181,34 @@ object Silk {
   }
 
   /**
+    * Executes a Silk project.
+    *
+    * @param projectFile The project file
+    * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
+    */
+  def executeProject(projectFile: File, taskName: Identifier): Project = {
+    // Import project
+    val workspaceProvider = InMemoryWorkspaceProvider()
+    val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
+    marshaller.unmarshalAndImport("project", workspaceProvider, new FileInputStream(projectFile))
+
+    // Create a workspace from the import and get task
+    val workspace = new Workspace(workspaceProvider)
+    val project = workspace.project("project")
+    val task = project.task[Workflow](taskName)
+
+    // Execute task
+    val executor = LocalWorkflowExecutor(task)
+    Activity(executor).startBlocking()
+
+    project
+  }
+
+  /**
    * Main method to allow Silk to be started from the command line.
    */
   def main(args: Array[String]) {
-    config()
+    configMgr()
     val logs = CollectLogs() {
       execute()
     }

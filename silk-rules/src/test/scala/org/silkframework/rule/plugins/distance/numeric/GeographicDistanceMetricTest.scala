@@ -17,10 +17,11 @@ package org.silkframework.rule.plugins.distance.numeric
 
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class GeographicDistanceMetricTest extends FlatSpec with Matchers {
+class GeographicDistanceMetricTest extends PluginTest {
 
   "GeographicDistanceMetric" should "return 0.0 if the coordinates are equal" in {
     val metric = new GeographicDistanceMetric()
@@ -40,4 +41,6 @@ class GeographicDistanceMetricTest extends FlatSpec with Matchers {
 
     metric.evaluate("POINT(-0.1167 51.5000)", "POINT(13.4000 52.5167)") should be(approximatelyEqualTo(930600.26))
   }
+
+  override def pluginObject = GeographicDistanceMetric()
 }

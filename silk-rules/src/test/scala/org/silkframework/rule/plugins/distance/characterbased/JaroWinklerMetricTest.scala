@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class JaroWinklerMetricTest extends FlatSpec with Matchers {
-  val metric = new JaroWinklerDistance()
+class JaroWinklerMetricTest extends PluginTest {
+  lazy val metric = new JaroWinklerDistance()
 
   //Use cases from William E. Winkler : Overview of Record Linkage and Current Research Directions
   //Some tests are disabled because many web sources report different results
@@ -49,4 +50,6 @@ class JaroWinklerMetricTest extends FlatSpec with Matchers {
   }
 
   private def sim(str1: String, str2: String) = 1.0 - metric.evaluate(str1, str2)
+
+  override def pluginObject = metric
 }

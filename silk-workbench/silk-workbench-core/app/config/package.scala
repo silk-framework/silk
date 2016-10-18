@@ -7,7 +7,7 @@ import play.api.Play.current
 package object config {
 
   /* The baseUrl where the application is deployed */
-  lazy val baseUrl = Play.configuration.getString("application.context").getOrElse("").stripSuffix("/")
+  lazy val baseUrl = Play.configuration.getString("play.http.context").getOrElse("").stripSuffix("/")
 
   def workbench = WorkbenchConfig.get
 }

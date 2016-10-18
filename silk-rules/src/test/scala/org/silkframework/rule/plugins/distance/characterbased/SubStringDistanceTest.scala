@@ -1,14 +1,14 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 
 /**
   * Created on 4/5/16.
   */
-class SubStringDistanceTest extends FlatSpec with Matchers {
-  behavior of "SubStringDistance"
+class SubStringDistanceTest extends PluginTest {
 
-  val substring = new SubStringDistance()
+  lazy val substring = new SubStringDistance()
   def eval(str1: String, str2: String) = substring.evaluate(str1, str2, 1.0)
 
   it should "calculate correct relative distances " in {
@@ -27,4 +27,6 @@ class SubStringDistanceTest extends FlatSpec with Matchers {
     eval(str1, str2) shouldBe 1.0
     s.evaluate(str1, str2) shouldBe 0.0
   }
+
+  override def pluginObject = substring
 }

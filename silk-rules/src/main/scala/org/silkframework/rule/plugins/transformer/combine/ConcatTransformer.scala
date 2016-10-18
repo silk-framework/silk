@@ -35,6 +35,6 @@ case class ConcatTransformer(glue: String = "") extends Transformer {
   }
 
   private def evaluate(strings: Seq[String]) = {
-    (strings.head /: strings.tail)(_ + glue + _)
+    strings.mkString(glue)
   }
 }

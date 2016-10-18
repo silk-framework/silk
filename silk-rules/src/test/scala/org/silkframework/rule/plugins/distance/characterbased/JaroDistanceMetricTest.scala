@@ -15,15 +15,17 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class JaroDistanceMetricTest extends FlatSpec with Matchers {
-  val metric = new JaroDistanceMetric()
+class JaroDistanceMetricTest extends PluginTest {
+
+  lazy val metric = new JaroDistanceMetric()
 
   //Use cases from William E. Winkler : Overview of Record Linkage and Current Research Directions
   //Some tests are disabled because many web sources report different results
-  "JaroDistanceMetric" should "pass the original test cases from William E. Winkler" in {
+  it should "pass the original test cases from William E. Winkler" in {
     sim("SHACKLEFORD", "SHACKELFORD") should be(approximatelyEqualTo(0.970))
     sim("DUNNINGHAM", "CUNNIGHAM") should be(approximatelyEqualTo(0.896))
     sim("NICHLESON", "NICHULSON") should be(approximatelyEqualTo(0.926))
@@ -43,7 +45,7 @@ class JaroDistanceMetricTest extends FlatSpec with Matchers {
     //sim("JON", "JAN") should be (approximatelyEqualTo (0.000))
   }
 
-  "JaroDistanceMetric" should "be commutative" in {
+  it should "be commutative" in {
     sim("DIXON", "DICKSONX") should be(approximatelyEqualTo(0.767))
     sim("DICKSONX", "DIXON") should be(approximatelyEqualTo(0.767))
     sim("MARTHA", "MARHTA") should be(approximatelyEqualTo(0.944))
@@ -51,4 +53,7 @@ class JaroDistanceMetricTest extends FlatSpec with Matchers {
   }
 
   private def sim(str1: String, str2: String) = 1.0 - metric.evaluate(str1, str2)
+
+  override def pluginObject = metric
+
 }

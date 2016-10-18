@@ -14,14 +14,12 @@
 
 package org.silkframework.rule.plugins.distance.numeric
 
-
-
-import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
+class NumMetricTest extends PluginTest {
 
-class NumMetricTest extends FlatSpec with Matchers {
-  val metric = new NumMetric(minValue = 0.0, maxValue = 1.0)
+  lazy val metric = NumMetric(minValue = 0.0, maxValue = 1.0)
   val t = 0.9
 
   "NumMetric" should "return abs(num1 - num2)" in {
@@ -34,4 +32,6 @@ class NumMetricTest extends FlatSpec with Matchers {
     metric.evaluate("123456", "123456", t) should be(approximatelyEqualTo(0.0))
     metric.evaluate("0.3", "0.3", t) should be(approximatelyEqualTo(0.0))
   }
+
+  override def pluginObject = metric
 }

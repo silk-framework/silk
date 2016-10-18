@@ -4,6 +4,7 @@ import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.StringUtils.DoubleLiteral
+import NumberToDurationTransformer._
 
 @Plugin(
    id = "numberToDuration",
@@ -12,8 +13,6 @@ import org.silkframework.util.StringUtils.DoubleLiteral
    description = "Converts a number to an xsd:duration. The base unit may be one of the following: 'day', 'month', 'year'."
  )
 case class NumberToDurationTransformer(unit: DateUnit = DateUnit.day) extends SimpleTransformer {
-
-  private val datatypeFactory = DatatypeFactory.newInstance()
 
   override def evaluate(value: String) = {
     val number = value match { case DoubleLiteral(d) => d }
@@ -24,4 +23,8 @@ case class NumberToDurationTransformer(unit: DateUnit = DateUnit.day) extends Si
     }
     duration.toString
   }
+}
+
+object NumberToDurationTransformer {
+  private val datatypeFactory = DatatypeFactory.newInstance()
 }
