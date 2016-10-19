@@ -46,16 +46,23 @@
 
 @content = {
   <div id="ruleContainer">
-    <div id="typeUI">
-      <div id="typeContainer">
-        @for(rule <- context.task.data.rules) {
-          @if(rule.typeString == "Type") {
-            @renderTypeRule(rule.asInstanceOf[TypeMapping])
-          }
-        }
+    <div id="ruleConfigContainer" class="demo-card-square mdl-card mdl-shadow--2dp">
+      <div class="mdl-card__title">
+        <h2 class="mdl-card__title-text">Configuration</h2>
       </div>
-      <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
-        <input class="mdl-textfield__input" type="text">
+      <div class="mdl-card__supporting-text">
+        <div id="typeUI">
+          <div id="typeContainer">
+            @for(rule <- context.task.data.rules) {
+            @if(rule.typeString == "Type") {
+            @renderTypeRule(rule.asInstanceOf[TypeMapping])
+            }
+            }
+          </div>
+          <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
+            <input class="mdl-textfield__input" type="text">
+          </div>
+        </div>
       </div>
     </div>
     <div id="ruleTable">
