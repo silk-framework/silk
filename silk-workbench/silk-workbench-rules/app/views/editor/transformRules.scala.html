@@ -101,12 +101,13 @@
   </table>
 
   <script type="text/javascript">
-    $("#ruleTable tr").mouseenter(function() {
-      $(this).find(".rule-action-buttons").show();
-    });
-    $("#ruleTable tr").mouseleave(function() {
-      $(this).find(".rule-action-buttons").hide();
-    });
+    // No mouseovers, as this is problematic on touch devices
+    // $("#ruleTable tr").mouseenter(function() {
+    //   $(this).find(".rule-action-buttons").show();
+    // });
+    // $("#ruleTable tr").mouseleave(function() {
+    //   $(this).find(".rule-action-buttons").hide();
+    // });
     $(".edit-button").click(function() {
       var ruleName = $(this).parent().parent().parent().find('.rule-name').text();
       openRule(ruleName);
