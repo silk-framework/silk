@@ -333,6 +333,11 @@
 
 /**** Transform Editor ******/
 
+#ruleConfigContainer {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
 #ruleTable .mdl-textfield {
   padding: 5px 0;
 }
