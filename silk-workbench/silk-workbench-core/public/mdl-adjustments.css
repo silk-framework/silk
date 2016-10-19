@@ -353,9 +353,11 @@
   min-width: 160px;
 }
 
+/*
 .rule-action-buttons {
   display: none;
 }
+*/
 
 #typeContainer {
   display: inline-block;
