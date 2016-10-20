@@ -76,7 +76,7 @@
             </div>
           </div>
         </div>
-        <div id="uriTemplateContainer" class="mdl-grid">
+        <div class="mdl-grid">
           <div class="mdl-cell mdl-cell--2-col di-vertical-align">
             <span class="config-label">URI Template</span>
           </div>
@@ -200,8 +200,11 @@
 }
 
 @renderUriRule(rule: UriMapping) = {
-  <div class="mdl-textfield mdl-js-textfield">
-    <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+  <div class="transformRule uriMapping">
+    <span class="rule-name">@rule.name</span>
+    <div class="mdl-textfield mdl-js-textfield">
+      <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+    </div>
   </div>
 }
 
