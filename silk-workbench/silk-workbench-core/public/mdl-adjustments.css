@@ -338,6 +338,23 @@
   width: 100%;
 }
 
+.di-vertical-align:before {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  width: 0px;
+}
+
+.mdl-card__title-text .di-highlight {
+  /*font-style: italic;*/
+  font-weight: bold;
+}
+
+#ruleConfigContainer .mdl-grid {
+  padding: 0 8px;
+}
+
 #ruleTable .mdl-textfield {
   padding: 5px 0;
 }
