@@ -331,3 +331,9 @@ function toggleRuleConfig() {
   var buttons = $("#ruleConfigContainer .mdl-card__title button");
   confContent.toggle(50, function() { buttons.toggle(); });
 }
+
+function toggleRule(ruleId) {
+  var expandedRule = $("#" + ruleId + "__expanded");
+  var buttons = $("#" + ruleId + " .rule-toggle button");
+  expandedRule.toggle(50, function() { buttons.toggle(); });
+}

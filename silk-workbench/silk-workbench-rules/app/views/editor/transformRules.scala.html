@@ -48,10 +48,10 @@
   <div id="ruleContainer">
     <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title di-vertical-align">
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();">
+        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();" style="display: none;">
           <i class="material-icons">expand_less</i>
         </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();" style="display: none;">
+        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();">
           <i class="material-icons">expand_more</i>
         </button>
         <h2 class="mdl-card__title-text">Configuration:&nbsp;<span class="di-highlight">@context.task.id</span></h2>
@@ -95,6 +95,7 @@
         <thead>
           <tr>
             <th class="mdl-data-table__cell--non-numeric rule-name">Name</th>
+            <th class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</th>
             <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
             <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
             <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
@@ -128,32 +129,36 @@
   </table>
 
   <script type="text/javascript">
-    // No mouseovers, as this is problematic on touch devices
-    // $("#ruleTable tr").mouseenter(function() {
-    //   $(this).find(".rule-action-buttons").show();
-    // });
-    // $("#ruleTable tr").mouseleave(function() {
-    //   $(this).find(".rule-action-buttons").hide();
-    // });
-    $(".edit-button").click(function() {
-      var ruleName = $(this).parent().parent().parent().find('.rule-name').text();
-      openRule(ruleName);
-    });
-    $("#rule-type-textfield input").bind("enter", function(e) {
-      addRule("#typeTemplate");
-    });
-    $("#rule-type-textfield input").keyup(function(e) {
-      if (e.keyCode == 13) {
-        $(this).trigger("enter");
-      }
+    $().ready( function() {
+
+      $(".edit-button").click(function() {
+        var ruleName = $(this).parent().parent().parent().find('.rule-name').text();
+        openRule(ruleName);
+      });
+      $("#rule-type-textfield input").bind("enter", function(e) {
+        addRule("#typeTemplate");
+      });
+      $("#rule-type-textfield input").keyup(function(e) {
+        if (e.keyCode == 13) {
+          $(this).trigger("enter");
+        }
+      });
     });
   </script>
 
 }
 
 @renderRule(rule: TransformRule) = {
-  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping">
-    <td class="mdl-data-table__cell non-numeric rule-name">@rule.name</td>
+  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact">
+    <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
+    <td class="mdl-data-table__cell--non-numeric rule-toggle">
+      <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
+        <i class="material-icons">expand_less</i>
+      </button>
+      <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
+        <i class="material-icons">expand_more</i>
+      </button>
+    </td>
     <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
         case r: DirectMapping => renderDirectRule(r)
@@ -175,6 +180,12 @@
     <script class="ruleXML" type="application/xml">
       @XmlSerialization.toXml[TransformRule](rule)
     </script>
+  </tr>
+  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
+    <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
+    <td colspan="5" class="mdl-data-table__cell--non-numeric">
+      <h2>Foo Bar!</h2>
+    </td>
   </tr>
 }
 
