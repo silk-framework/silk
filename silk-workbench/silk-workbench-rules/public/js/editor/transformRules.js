@@ -259,7 +259,7 @@ function addRule(template) {
     $("#rule-type-textfield input").val("");
   } else {
     // Clone rule template
-    var newRule = $(template + " tbody").children().clone();
+    var newRule = $(template).children().clone();
     var nameInput = newRule.find(".rule-name");
     nameInput.text(generateRuleName(nameInput.text()));
 
@@ -274,7 +274,7 @@ function addRule(template) {
       value.className = new_classes;
     });
 
-    newRule.appendTo("#ruleTable table tbody");
+    newRule.appendTo("#ruleTable table");
   }
 
   componentHandler.upgradeAllRegistered();
