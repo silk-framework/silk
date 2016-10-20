@@ -42,6 +42,13 @@ object Task {
   implicit def taskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
 
   /**
+    * Enables pattern matching over tasks.
+    */
+  def unapply[T <: TaskSpec](task: Task[T]): Option[(Identifier, T)] = {
+    Some(task.id, task.data)
+  }
+
+  /**
     * XML serialization format.
     */
   private class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
