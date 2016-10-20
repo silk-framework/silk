@@ -48,19 +48,34 @@
   <div id="ruleContainer">
     <div id="ruleConfigContainer" class="demo-card-square mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title">
-        <h2 class="mdl-card__title-text">Configuration</h2>
+        <h2 class="mdl-card__title-text">Configuration:&nbsp;<span class="di-highlight">@context.task.id</span></h2>
       </div>
       <div class="mdl-card__supporting-text">
-        <div id="typeUI">
-          <div id="typeContainer">
-            @for(rule <- context.task.data.rules) {
-            @if(rule.typeString == "Type") {
-            @renderTypeRule(rule.asInstanceOf[TypeMapping])
-            }
-            }
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--2-col di-vertical-align">
+            <span class="config-label">Entity Types</span>
           </div>
-          <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
-            <input class="mdl-textfield__input" type="text">
+          <div class="mdl-cell mdl-cell--10-col">
+            <div id="typeUI">
+              <div id="typeContainer">
+                @for(rule <- context.task.data.rules) {
+                  @if(rule.typeString == "Type") {
+                    @renderTypeRule(rule.asInstanceOf[TypeMapping])
+                  }
+                }
+              </div>
+              <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
+                <input class="mdl-textfield__input" type="text">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--2-col di-vertical-align">
+            <span class="config-label">URI Template</span>
+          </div>
+          <div class="mdl-cell mdl-cell--10-col">
+            lalalalala
           </div>
         </div>
       </div>
