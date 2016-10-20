@@ -49,47 +49,6 @@
   margin-right: 5px;
   border-radius: 5px;
 }
-
-.directMapping .ruleTitle {
-  background-color: #0cc481;
-}
-
-.directMapping:hover {
-  background-color: #d6fff0;
-  box-shadow: 1px 1px 6px #0cc481;
-}
-
-.uriMapping .ruleTitle {
-  background-color: #1484d4;
-}
-
-.uriMapping:hover {
-  background-color: #d6eeff;
-  box-shadow: 1px 1px 6px #1484d4;
-}
-
-.objectMapping .ruleTitle {
-  background-color: #C354BF;
-}
-
-.objectMapping:hover {
-  background-color: #f2d7ff;
-  box-shadow: 1px 1px 6px #C354BF;
-}
-
-.typeMapping .ruleTitle {
-  background-color: #e59829;
-}
-
-.complexMapping .ruleTitle {
-  background-color: #c35454;
-}
-
-.complexMapping:hover {
-  background-color: #ffd7d7;
-  box-shadow: 1px 1px 6px #c35454;
-}
-
 /* General Properties */
 
 .ui-autocomplete {
