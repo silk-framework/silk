@@ -376,12 +376,26 @@
   padding: 5px 0;
 }
 
+.transformRule td {
+  border-bottom: none;
+}
+
+.di-rule__expanded td {
+  border-top: none;
+  border-right: none;
+}
+
 .uriMapping .mdl-textfield {
   width: 100%;
 }
 
 #ruleTable .mdl-textfield__input {
   font-size: 13px;
+}
+
+td.rule-toggle, th.rule-toggle {
+  padding-left: 5px;
+  padding-right: 0px;
 }
 
 .rule-template {
