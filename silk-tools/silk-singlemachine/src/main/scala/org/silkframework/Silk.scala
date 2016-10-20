@@ -190,10 +190,10 @@ object Silk {
     // Create workspace provider
     val workspaceProvider = new InMemoryWorkspaceProvider() {
       /**
-        * Read resources from the current directory if available and fallback to using the project resources.
+        * Read and write resources from/to the current directory.
         */
       override def projectResources(name: Identifier): ResourceManager = {
-        FallbackResourceManager(FileResourceManager(new File(".")), projects(name).resources)
+        FileResourceManager(new File("."))
       }
     }
 
