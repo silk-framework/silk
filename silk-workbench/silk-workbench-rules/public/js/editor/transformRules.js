@@ -325,3 +325,9 @@ function generateRuleName(prefix) {
     }
   } while (count < 1000);
 }
+
+function toggleRuleConfig() {
+  var confContent = $("#ruleConfigContainer .mdl-card__supporting-text");
+  var buttons = $("#ruleConfigContainer .mdl-card__title button");
+  confContent.toggle(50, function() { buttons.toggle(); });
+}

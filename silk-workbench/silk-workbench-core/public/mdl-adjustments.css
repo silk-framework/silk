@@ -338,12 +338,28 @@
   width: 100%;
 }
 
+#ruleConfigContainer .mdl-card__title button {
+  margin-right: 5px;
+}
+
+#ruleConfigContainer .mdl-card__supporting-text {
+  padding-top: 0px;
+}
+
 .di-vertical-align:before {
   content: "";
   display: inline-block;
   height: 100%;
   vertical-align: middle;
   width: 0px;
+}
+
+.config-label {
+  margin-left: 19px;
+}
+
+#ruleConfigContainer .mdl-card__title-text {
+  margin-bottom: 3px;
 }
 
 .mdl-card__title-text .di-highlight {
