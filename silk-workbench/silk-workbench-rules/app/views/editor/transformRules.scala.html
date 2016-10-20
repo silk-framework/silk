@@ -76,12 +76,16 @@
             </div>
           </div>
         </div>
-        <div class="mdl-grid">
+        <div id="uriTemplateContainer" class="mdl-grid">
           <div class="mdl-cell mdl-cell--2-col di-vertical-align">
             <span class="config-label">URI Template</span>
           </div>
           <div class="mdl-cell mdl-cell--10-col">
-            lalalalala
+            @for(rule <- context.task.data.rules) {
+              @if(rule.typeString == "URI") {
+                @renderUriRule(rule.asInstanceOf[UriMapping])
+              }
+            }
           </div>
         </div>
       </div>
@@ -99,7 +103,7 @@
         </thead>
         <tbody>
           @for(rule <- context.task.data.rules) {
-            @if(rule.typeString != "Type") {
+            @if(rule.typeString != "Type" && rule.typeString != "URI") {
               @renderRule(rule)
             }
           }
@@ -110,11 +114,6 @@
   <div id="typeTemplate" class="rule-template type-template">
     @renderTypeRule(TypeMapping())
   </div>
-  <table id="uriMappingTemplate" class="rule-template">
-    <tbody>
-      @renderRule(UriMapping())
-    </tbody>
-  </table>
 
   <table id="directMappingTemplate" class="rule-template">
     <tbody>
@@ -201,12 +200,9 @@
 }
 
 @renderUriRule(rule: UriMapping) = {
-  <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
-    </div>
-  </td>
-  <td class="mdl-data-table__cell--non-numeric">---</td>
+  <div class="mdl-textfield mdl-js-textfield">
+    <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+  </div>
 }
 
 @renderObjectRule(rule: ObjectMapping) = {

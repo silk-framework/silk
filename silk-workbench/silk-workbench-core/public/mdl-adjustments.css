@@ -375,6 +375,10 @@
   padding: 5px 0;
 }
 
+#uriTemplateContainer .mdl-textfield {
+  width: 100%;
+}
+
 #ruleTable .mdl-textfield__input {
   font-size: 13px;
 }
