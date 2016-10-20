@@ -102,13 +102,11 @@
             <th class="mdl-data-table__cell rule-actions">Actions</th>
           </tr>
         </thead>
-        <tbody>
           @for(rule <- context.task.data.rules) {
             @if(rule.typeString != "Type" && rule.typeString != "URI") {
               @renderRule(rule)
             }
           }
-        </tbody>
       </table>
     </div>
   </div>
@@ -117,15 +115,11 @@
   </div>
 
   <table id="directMappingTemplate" class="rule-template">
-    <tbody>
       @renderRule(DirectMapping())
-    </tbody>
   </table>
 
   <table id="objectMappingTemplate" class="rule-template">
-    <tbody>
       @renderRule(ObjectMapping())
-    </tbody>
   </table>
 
   <script type="text/javascript">
@@ -149,45 +143,52 @@
 }
 
 @renderRule(rule: TransformRule) = {
-  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact">
-    <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
-    <td class="mdl-data-table__cell--non-numeric rule-toggle">
-      <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
-        <i class="material-icons">expand_less</i>
-      </button>
-      <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
-        <i class="material-icons">expand_more</i>
-      </button>
-    </td>
-    <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
+  <tbody class="complete-rule">
+    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact">
+      <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
+      <td class="mdl-data-table__cell--non-numeric rule-toggle">
+        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
+          <i class="material-icons">expand_less</i>
+        </button>
+        <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
+          <i class="material-icons">expand_more</i>
+        </button>
+      </td>
+      <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
       @{ rule match {
-        case r: DirectMapping => renderDirectRule(r)
-        case r: UriMapping => renderUriRule(r)
-        case r: ObjectMapping => renderObjectRule(r)
-        case r: ComplexMapping => renderComplexRule(r)
-        case _ =>
+      case r: DirectMapping => renderDirectRule(r)
+      case r: UriMapping => renderUriRule(r)
+      case r: ObjectMapping => renderObjectRule(r)
+      case r: ComplexMapping => renderComplexRule(r)
+      case _ =>
       }}
-    <td class="mdl-data-table__cell rule-actions">
-      <div class="rule-action-buttons">
-        <button class="mdl-button mdl-js-button mdl-button--icon edit-button">
-          <i class="material-icons">edit</i>
-        </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')">
-          <i class="material-icons">delete</i>
-        </button>
-      </div>
-    </td>
-    <script class="ruleXML" type="application/xml">
-      @XmlSerialization.toXml[TransformRule](rule)
-    </script>
-  </tr>
-  <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
-    <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
-    <td colspan="3" class="mdl-data-table__cell--non-numeric">
-      <h2>Foo Bar!</h2>
-    </td>
-    <td class="mdl-data-table__cell--non-numeric">&nbsp;</td>
-  </tr>
+      <td class="mdl-data-table__cell rule-actions">
+        <div class="rule-action-buttons">
+          <button class="mdl-button mdl-js-button mdl-button--icon edit-button">
+            <i class="material-icons">edit</i>
+          </button>
+          <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')">
+            <i class="material-icons">delete</i>
+          </button>
+        </div>
+      </td>
+      <script class="ruleXML" type="application/xml">
+        @XmlSerialization.toXml[TransformRule](rule)
+      </script>
+    </tr>
+    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
+      <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
+      <td colspan="4" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
+        <div>
+          In wîp sone vil geben alsô er verluren schedelîchem nu der er nieman trôstes. Diu, daz ouch tûsenden selbe
+          lande im ie diz liute der, maere iuch. Lande nieman tûsenden haete er edel er des der ie was. Kampfe dâ im noch
+          komen iuch eine Tristan trôstes sterkete der was. Tûsenden des geben vâlant zuoversiht waere ze künec ie und
+          Tristan wolte komen lân waz Tristan ouch iuch.
+        </div>
+      </td>
+      <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
+    </tr>
+  </tbody>
 }
 
 @renderTypeRule(rule: TypeMapping) = {

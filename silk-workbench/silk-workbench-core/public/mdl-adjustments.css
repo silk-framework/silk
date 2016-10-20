@@ -372,8 +372,39 @@
   padding: 0 8px;
 }
 
+#ruleTable table {
+  table-layout: fixed;
+}
+
+th.rule-toggle {
+  width: 30px;
+}
+
+th.rule-actions {
+  width: 120px;
+}
+
+/* overflow doesn't respect padding-right (of the table cell),
+   so we need to use an inner div */
+.di-rule__expanded-content div {
+  overflow: hidden;
+}
+
 #ruleTable .mdl-textfield {
   padding: 5px 0;
+}
+
+/*
+  The next two rules allow to have a hover effect over several
+  rows instead of just one. The individual rows are contained
+  in a <tbody class="complete-rule"> element
+  see http://stackoverflow.com/questions/3076708/can-we-have-multiple-tbody-in-same-table
+*/
+#ruleTable .mdl-data-table tbody tr:hover {
+    background-color: transparent;
+}
+.complete-rule:hover {
+  background-color: #eee;
 }
 
 .transformRule td {
