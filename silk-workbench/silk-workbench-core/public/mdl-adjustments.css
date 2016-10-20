@@ -388,6 +388,8 @@ th.rule-actions {
    so we need to use an inner div */
 .di-rule__expanded-content div {
   overflow: hidden;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 #ruleTable .mdl-textfield {
