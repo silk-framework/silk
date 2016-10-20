@@ -5,7 +5,7 @@ import java.io.{InputStream, OutputStream}
 /**
   * A resource that cannot be written.
   */
-class ReadOnlyResource(resource: Resource) extends WritableResource {
+case class ReadOnlyResource(resource: Resource) extends WritableResource {
 
   override def name: String = resource.name
 
