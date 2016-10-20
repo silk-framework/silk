@@ -59,8 +59,7 @@ object Silk {
    * Executes Silk.
    * The execution is configured using the following properties:
    *  - 'configFile' (required): The configuration file
-   *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
-   *  - 'task' (optional): If the config file is a project, this specifies the task to be executed.
+   *  - 'task' (optional): The task (link specification or workflow) to be executed.
    *  - 'threads' (optional): The number of threads to be be used for matching.
    *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
@@ -77,7 +76,9 @@ object Silk {
       case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
     }
 
-    val linkSpec = System.getProperty("linkSpec")
+    var task = System.getProperty("task")
+    if(task == null)
+      task = System.getProperty("linkSpec") // Legacy parameter
 
     val numThreads = System.getProperty("threads") match {
       case IntLiteral(num) => num
@@ -92,9 +93,8 @@ object Silk {
     }
 
     if(configFile.getName.endsWith(".xml")) {
-      executeFile(configFile, linkSpec, numThreads, reload)
+      executeFile(configFile, task, numThreads, reload)
     } else {
-      val task = System.getProperty("task")
       if(task == null)
         throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been given")
       executeProject(configFile, task)
