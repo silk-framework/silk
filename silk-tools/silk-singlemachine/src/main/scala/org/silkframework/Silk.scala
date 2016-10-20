@@ -23,7 +23,7 @@ import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.runtime.resource.{FallbackResourceManager, FileResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
@@ -187,8 +187,17 @@ object Silk {
     * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
     */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
+    // Create workspace provider
+    val workspaceProvider = new InMemoryWorkspaceProvider() {
+      /**
+        * Read resources from the current directory if available and fallback to using the project resources.
+        */
+      override def projectResources(name: Identifier): ResourceManager = {
+        FallbackResourceManager(FileResourceManager(new File(".")), projects(name).resources)
+      }
+    }
+
     // Import project
-    val workspaceProvider = InMemoryWorkspaceProvider()
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
     marshaller.unmarshalAndImport("project", workspaceProvider, new FileInputStream(projectFile))
 
