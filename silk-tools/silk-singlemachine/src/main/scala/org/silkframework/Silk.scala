@@ -96,7 +96,7 @@ object Silk {
       executeFile(configFile, task, numThreads, reload)
     } else {
       if(task == null)
-        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been given")
+        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been specified using the 'task' property.")
       executeProject(configFile, task)
     }
   }
