@@ -21,7 +21,7 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) {
+class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
   require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   def evaluate(path: Path): Seq[String] = {
