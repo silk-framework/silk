@@ -11,13 +11,20 @@ import scala.xml.{Node, Null}
 /**
   * This class contains all the required parameters to execute a transform task.
   *
+  * @param selection Selects the entities that are covered by this transformation.
+  * @param rules The mapping rules
+  * @param outputs The identifier of the output to which all transformed entities are to be written
+  * @param errorOutputs The identifier of the output to received erroneous entities.
+  * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
+  *
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
 case class TransformSpec(selection: DatasetSelection,
                          rules: Seq[TransformRule],
                          outputs: Seq[Identifier] = Seq.empty,
-                         errorOutputs: Seq[Identifier] = Seq.empty) extends TaskSpec {
+                         errorOutputs: Seq[Identifier] = Seq.empty,
+                         targetVocabularies: Seq[String] = Seq.empty) extends TaskSpec {
 
   def entitySchema: EntitySchema = {
     EntitySchema(
@@ -57,9 +64,10 @@ object TransformSpec {
       val rules = (node \ "TransformRule").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
+      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary" \ "@uri").map(_.text)
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rules, sinks, errorSinks)
+      TransformSpec(datasetSelection, rules, sinks, errorSinks, targetVocabularies)
     }
 
     /**
@@ -76,6 +84,11 @@ object TransformSpec {
           {value.errorOutputs.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
       }}
+        <TargetVocabularies> {
+            for(targetVocabulary <- value.targetVocabularies) yield {
+              <Vocabulary uri={targetVocabulary} />
+            }
+        }</TargetVocabularies>
       </TransformSpec>
     }
   }
