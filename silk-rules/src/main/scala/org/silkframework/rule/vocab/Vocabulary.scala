@@ -9,25 +9,6 @@ case class Vocabulary(info: Info, classes: Traversable[VocabularyClass], propert
 object Vocabulary {
 
   /**
-    * XML serialization format for a sequence of vocabularies.
-    */
-  implicit object VocabularySeqFormat extends XmlFormat[Seq[Vocabulary]] {
-
-    def read(node: Node)(implicit readContext: ReadContext) = {
-      for(vocabNode <- node \ "Vocabulary") yield
-        VocabularyFormat.read(vocabNode)
-    }
-
-    def write(desc: Seq[Vocabulary])(implicit writeContext: WriteContext[Node]): Node = {
-      <Vocabularies>{
-        for(vocabulary <- desc) yield {
-          VocabularyFormat.write(vocabulary)
-        }
-      }</Vocabularies>
-    }
-  }
-
-  /**
     * XML serialization format for vocabularies.
     */
   implicit object VocabularyFormat extends XmlFormat[Vocabulary] {
