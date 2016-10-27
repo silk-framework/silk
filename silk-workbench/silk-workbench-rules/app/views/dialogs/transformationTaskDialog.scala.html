@@ -47,6 +47,10 @@
     </select>
     <label class="mdl-selectfield__label" for="output_dataset">Output</label>
   </div>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="target_vocabularies" name="target_vocabularies" @for(t <- transformationTask) { value="@t.targetVocabularies.mkString(", ")" } />
+    <label class="mdl-textfield__label" for="target_vocabularies">Target Vocabularies</label>
+  </div>
 </div>
 }
 
@@ -76,7 +80,8 @@
       source: $("#source_dataset").val(),
       sourceType: $("#transformation_type").val(),
       restriction: $("#source_restriction_textarea").val(),
-      output: $("#output_dataset").val()
+      output: $("#output_dataset").val(),
+      targetVocabularies: $("#target_vocabularies").val()
     };
 
     if(values.name.length === 0) {

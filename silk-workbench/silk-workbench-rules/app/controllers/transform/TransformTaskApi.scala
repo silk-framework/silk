@@ -29,16 +29,17 @@ object TransformTaskApi extends Controller {
 
     val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
+    val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim)
 
     proj.tasks[TransformSpec].find(_.id == task) match {
       //Update existing task
       case Some(oldTask) => {
-        val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs)
+        val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
         proj.updateTask(task, updatedTransformSpec)
       }
       //Create new task with no rule
       case None => {
-        val transformSpec = TransformSpec(input, Seq.empty, outputs)
+        val transformSpec = TransformSpec(input, Seq.empty, outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
       }
     }
