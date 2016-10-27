@@ -64,7 +64,7 @@ object TransformSpec {
       val rules = (node \ "TransformRule").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
-      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary" \ "@uri").map(_.text)
+      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text)
 
       // Create and return a TransformSpecification instance.
       TransformSpec(datasetSelection, rules, sinks, errorSinks, targetVocabularies)
@@ -75,6 +75,7 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
+        {value.selection.toXML(true)}
         {value.rules.map(toXml[TransformRule])}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutputs.isEmpty) {
