@@ -1,6 +1,6 @@
 package org.silkframework.rule.vocab
 
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.runtime.plugin.PluginRegistry
 
 trait VocabularyManager {
 
@@ -8,16 +8,12 @@ trait VocabularyManager {
 
 }
 
-class RdfVocabularyManager(endpoint: SparqlEndpoint) extends VocabularyManager {
-
-  override def get(uri: String): Vocabulary = ???
-
-}
-
 object VocabularyManager {
 
-  def apply(sparqlEndpoint: SparqlEndpoint): VocabularyManager = {
-    new RdfVocabularyManager(sparqlEndpoint)
+  private lazy val instance = {
+    PluginRegistry.createFromConfig[VocabularyManager]("vocabulary.manager")
   }
+
+  def apply() = instance
 
 }

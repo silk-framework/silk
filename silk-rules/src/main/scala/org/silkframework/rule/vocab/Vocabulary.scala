@@ -67,7 +67,7 @@ case class VocabularyClass(info: Info)
 
 case class VocabularyProperty(info: Info, domain: Option[VocabularyClass], range: Option[VocabularyClass])
 
-case class Info(uri: String, label: String, description: String)
+case class Info(uri: String, label: Option[String] = None, description: Option[String] = None)
 
 object Info {
 
@@ -76,14 +76,14 @@ object Info {
     def read(node: Node)(implicit readContext: ReadContext) = {
       Info(
         uri = (node \ "@uri").text,
-        label = (node \ "@label").text,
-        description = node.text.trim
+        label = (node \ "@label").headOption.filter(_.nonEmpty).map(_.text),
+        description = if(node.text.trim.nonEmpty) Some(node.text.trim) else None
       )
     }
 
     def write(desc: Info)(implicit writeContext: WriteContext[Node]): Node = {
-      <Info uri={desc.uri} label={desc.label}>
-        {desc}
+      <Info uri={desc.uri} label={desc.label.getOrElse("")}>
+        {desc.description.getOrElse("")}
       </Info>
     }
   }

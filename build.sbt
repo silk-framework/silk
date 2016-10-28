@@ -74,7 +74,7 @@ lazy val workspace = (project in file("silk-workspace"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(core, core % "test->test")
+  .dependsOn(core, rules, workspace, core % "test->test")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
