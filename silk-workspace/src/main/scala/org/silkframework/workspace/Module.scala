@@ -29,7 +29,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   private var cachedTasks: TreeMap[Identifier, ProjectTask[TaskData]] = null
 
   /**
-    * Holds all issues that occured during loading.
+    * Holds all issues that occurred during loading.
     */
   @volatile
   private var error: Option[ValidationException] = None
@@ -40,7 +40,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def loadingError: Option[ValidationException] = error
 
   def hasTaskType[T : ClassTag]: Boolean = {
-    implicitly[ClassTag[T]].runtimeClass == implicitly[ClassTag[TaskData]].runtimeClass
+    implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }
 
   def taskType: String = {

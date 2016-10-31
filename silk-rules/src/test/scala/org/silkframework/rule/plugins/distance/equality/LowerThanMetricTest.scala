@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class LowerThanMetricTest extends FlatSpec with Matchers {
-  val metric = new LowerThanMetric()
+class LowerThanMetricTest extends PluginTest {
+  lazy val metric = new LowerThanMetric()
   val t = 1.0
 
   "LowerThanMetric" should "return 0.0 if the source number is smaller than the target number and 1.0 otherwise" in {
@@ -35,4 +36,6 @@ class LowerThanMetricTest extends FlatSpec with Matchers {
     metric.evaluate("aaa", "aab", t) should be(approximatelyEqualTo(0.0))
     metric.evaluate("aab", "aaa", t) should be(approximatelyEqualTo(1.0))
   }
+
+  override def pluginObject = metric
 }

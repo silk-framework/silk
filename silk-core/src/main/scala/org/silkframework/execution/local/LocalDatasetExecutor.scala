@@ -2,6 +2,7 @@ package org.silkframework.execution.local
 
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, TripleSinkDataset}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
@@ -17,10 +18,10 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Dataset, schema: EntitySchema): EntityTable = {
+  override def read(dataset: Task[Dataset], schema: EntitySchema): EntityTable = {
     schema match {
       case TripleEntitySchema.schema =>
-        dataset match {
+        dataset.data match {
           case rdfDataset: RdfDataset =>
             val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
             val tripleEntities = sparqlResult.bindings.view map { resultMap =>
@@ -29,21 +30,21 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
               val o = resultMap("o").value
               new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(o)), TripleEntitySchema.schema)
             }
-            TripleEntityTable(tripleEntities)
+            TripleEntityTable(tripleEntities, dataset)
           case _ =>
-            throw new TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
+            throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
         }
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
-        GenericEntityTable(entities, entitySchema = schema)
+        GenericEntityTable(entities, entitySchema = schema, dataset)
     }
   }
 
-  override protected def write(data: EntityTable, dataset: Dataset): Unit = {
+  override protected def write(data: EntityTable, dataset: Task[Dataset]): Unit = {
     data match {
-      case LinksTable(links, linkType) =>
+      case LinksTable(links, linkType, _) =>
         writeLinks(dataset, links, linkType)
-      case TripleEntityTable(entities) =>
+      case TripleEntityTable(entities, _) =>
         writeTriples(dataset, entities)
       case et: EntityTable =>
         writeEntities(dataset, et)
@@ -105,9 +106,5 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       }
     }
     sink.close()
-  }
-
-  protected def emptyResult: GenericEntityTable = {
-    GenericEntityTable(Seq(), entitySchema = EntitySchema.empty)
   }
 }

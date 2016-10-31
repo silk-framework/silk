@@ -15,13 +15,14 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 
 
 
 
-class LevenshteinDistanceTest extends FlatSpec with Matchers {
+class LevenshteinDistanceTest extends PluginTest {
 
-  val metric = new LevenshteinDistance()
+  lazy val metric = new LevenshteinDistance()
 
   "LevenshteinDistance" should "return distance 0 for equal strings" in {
     metric.evaluate("kitten", "kitten") should equal(0)
@@ -44,6 +45,8 @@ class LevenshteinDistanceTest extends FlatSpec with Matchers {
     (metric.indexValue("Sunday", 3) matches metric.indexValue("Saturday", 3)) should equal(true)
     (metric.indexValue("Sunday", 4) matches metric.indexValue("Saturday", 4)) should equal(true)
   }
+
+  override def pluginObject = metric
 
 //  "LevenshteinDistance" should "index '0' to the first block" in {
 //    metric.indexValue("0", 0.0) should equal(Set(Seq(0)))

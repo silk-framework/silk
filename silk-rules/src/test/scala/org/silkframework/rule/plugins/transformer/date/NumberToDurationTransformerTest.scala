@@ -15,13 +15,16 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.test.PluginTest
 
-class NumberToDurationTransformerTest extends FlatSpec with Matchers {
+class NumberToDurationTransformerTest extends PluginTest {
 
   val transformer = NumberToDurationTransformer(DateUnit.day)
 
-  "NumberToDurationTransformer" should "convert numbers to days" in {
+  it should "convert numbers to days" in {
     transformer(Seq(Seq("4"))) should equal(Seq("P0Y0M4DT0H0M0.000S"))
     transformer(Seq(Seq("0"))) should equal(Seq("P0Y0M0DT0H0M0.000S"))
   }
+
+  override def pluginObject = NumberToDurationTransformer(DateUnit.day)
 }

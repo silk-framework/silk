@@ -16,16 +16,20 @@ package org.silkframework.rule.plugins.aggregator
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.plugins.aggegrator.MinimumAggregator
+import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class MinimumAggregatorTest extends FlatSpec with Matchers {
+class MinimumAggregatorTest extends PluginTest {
+
   val aggregator = new MinimumAggregator()
 
-  "MinAggregator" should "return the minimum" in {
+  it should "return the minimum" in {
     aggregator.evaluate((1, 1.0) :: (1, 1.0) :: (1, 1.0) :: Nil).get should be(approximatelyEqualTo(1.0))
     aggregator.evaluate((1, 1.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.0))
     aggregator.evaluate((1, 0.4) :: (1, 0.5) :: (1, 0.6) :: Nil).get should be(approximatelyEqualTo(0.4))
     aggregator.evaluate((1, 0.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.0))
   }
+
+  override def pluginObject = MinimumAggregator()
 }

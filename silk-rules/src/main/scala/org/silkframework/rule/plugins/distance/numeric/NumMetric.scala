@@ -30,6 +30,8 @@ import scala.math._
   description = "Computes the numeric distance between two numbers."
 )
 case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = Double.PositiveInfinity) extends SimpleDistanceMeasure {
+
+  @transient
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
 
   private val indexEnabled = {

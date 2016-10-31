@@ -16,19 +16,20 @@ package org.silkframework.rule.plugins.transformer
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
+import org.silkframework.test.PluginTest
 
+class RegexReplaceTransformerTest extends PluginTest {
 
-class RegexReplaceTransformerTest extends FlatSpec with Matchers {
-
-  val transformer = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
-
-  "RegexReplaceTransformerTest" should "return 'abc'" in {
+  it should "return 'abc'" in {
+    val transformer = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
     transformer.evaluate("a0b1c2") should equal("012")
   }
 
-  val transformer1 = new RegexReplaceTransformer(regex = "[a-z]*", replace = "")
-
-  "RegexReplaceTransformerTest" should "return '1'" in {
+  it should "return '1'" in {
+    val transformer1 = new RegexReplaceTransformer(regex = "[a-z]*", replace = "")
     transformer1.evaluate("abcdef1") should equal("1")
   }
+
+  override def pluginObject = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
+
 }

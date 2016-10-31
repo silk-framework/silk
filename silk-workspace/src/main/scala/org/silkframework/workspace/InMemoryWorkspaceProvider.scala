@@ -10,9 +10,9 @@ import scala.reflect.ClassTag
   label = "in-memory",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
-case class InMemoryWorkspaceProvider() extends WorkspaceProvider {
+case class InMemoryWorkspaceProvider() extends WorkspaceProvider with RefreshableWorkspaceProvider {
 
-  private var projects = Map[Identifier, InMemoryProject]()
+  protected var projects = Map[Identifier, InMemoryProject]()
 
   /**
     * Reads all projects from the workspace.
@@ -64,7 +64,12 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     projects(project).tasks -= task
   }
 
-  private class InMemoryProject(val config: ProjectConfig) {
+  /**
+    * No refresh needed.
+    */
+  override def refresh(): Unit = {}
+
+  protected class InMemoryProject(val config: ProjectConfig) {
 
     var tasks: Map[Identifier, Any] = Map.empty
 

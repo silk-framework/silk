@@ -51,4 +51,8 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     User.userManager = oldUserManager
     super.afterAll()
   }
+
+  def project: Project = {
+    User().workspace.project(projectId)
+  }
 }

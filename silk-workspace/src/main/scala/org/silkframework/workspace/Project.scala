@@ -139,7 +139,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * Retrieves all tasks of a specific type.
    */
   def tasks[T <: TaskSpec : ClassTag]: Seq[ProjectTask[T]] = {
-    module[T].tasks
+    val targetType = implicitly[ClassTag[T]].runtimeClass
+    module[T].tasks.filter(task => targetType.isAssignableFrom(task.data.getClass))
   }
 
   /**

@@ -23,7 +23,7 @@ import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.runtime.resource.{FallbackResourceManager, FileResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
@@ -59,8 +59,7 @@ object Silk {
    * Executes Silk.
    * The execution is configured using the following properties:
    *  - 'configFile' (required): The configuration file
-   *  - 'linkSpec' (optional): The link specifications to be executed. If not given, all link specifications are executed.
-   *  - 'task' (optional): If the config file is a project, this specifies the task to be executed.
+   *  - 'task' (optional): The task (link specification or workflow) to be executed.
    *  - 'threads' (optional): The number of threads to be be used for matching.
    *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
@@ -77,7 +76,9 @@ object Silk {
       case _ => throw new IllegalArgumentException("No configuration file specified. Please set the 'configFile' property")
     }
 
-    val linkSpec = System.getProperty("linkSpec")
+    var task = System.getProperty("task")
+    if(task == null)
+      task = System.getProperty("linkSpec") // Legacy parameter
 
     val numThreads = System.getProperty("threads") match {
       case IntLiteral(num) => num
@@ -92,11 +93,10 @@ object Silk {
     }
 
     if(configFile.getName.endsWith(".xml")) {
-      executeFile(configFile, linkSpec, numThreads, reload)
+      executeFile(configFile, task, numThreads, reload)
     } else {
-      val task = System.getProperty("task")
       if(task == null)
-        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been given")
+        throw new IllegalArgumentException("The given config file appears to be a project, but no task name has been specified using the 'task' property.")
       executeProject(configFile, task)
     }
   }
@@ -187,8 +187,17 @@ object Silk {
     * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
     */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
+    // Create workspace provider
+    val workspaceProvider = new InMemoryWorkspaceProvider() {
+      /**
+        * Read and write resources from/to the current directory.
+        */
+      override def projectResources(name: Identifier): ResourceManager = {
+        FileResourceManager(new File("."))
+      }
+    }
+
     // Import project
-    val workspaceProvider = InMemoryWorkspaceProvider()
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
     marshaller.unmarshalAndImport("project", workspaceProvider, new FileInputStream(projectFile))
 
