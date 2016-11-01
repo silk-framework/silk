@@ -11,7 +11,6 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.8",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
-  libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
