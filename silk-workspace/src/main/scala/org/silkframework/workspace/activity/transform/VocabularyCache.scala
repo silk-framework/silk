@@ -21,10 +21,8 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends Activity[Vocabul
     if(transform.targetVocabularies.nonEmpty) {
       val vocabManager = VocabularyManager()
       val vocabularies = for (vocab <- transform.targetVocabularies) yield vocabManager.get(vocab)
-      context.value() = Vocabularies(vocabularies)
+      context.value() = Vocabularies(vocabularies.toSeq.sortBy(_.info.uri))
     }
   }
-
-
 
 }

@@ -24,7 +24,7 @@ case class TransformSpec(selection: DatasetSelection,
                          rules: Seq[TransformRule],
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Seq[String] = Seq.empty) extends TaskSpec {
+                         targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
   def entitySchema: EntitySchema = {
     EntitySchema(
