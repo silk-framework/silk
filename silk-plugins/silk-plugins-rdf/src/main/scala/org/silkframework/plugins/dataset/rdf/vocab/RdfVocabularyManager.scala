@@ -1,9 +1,15 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.rule.vocab.{Info, Vocabulary, VocabularyClass, VocabularyManager}
+import org.silkframework.rule.vocab.{Info, Vocabulary, VocabularyManager}
+import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.{RdfWorkspaceProvider, User}
 
+@Plugin(
+  id = "rdf",
+  label = "RDF",
+  description = "Loads vocabularies from the RDF workspace"
+)
 case class RdfVocabularyManager() extends VocabularyManager {
 
   private lazy val loader = new VocabularyLoader(workspaceSparqlEndpoint)
