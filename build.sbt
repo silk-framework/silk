@@ -156,7 +156,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .settings(
     name := "Silk Workbench Core",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "org.silkframework.buildInfo"
+    buildInfoPackage := "org.silkframework.buildInfo",
+    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
