@@ -51,4 +51,8 @@ trait SingleProjectWorkspaceProviderTestTrait extends WordSpec with BeforeAndAft
   override def afterAll(): Unit = {
     User.userManager = oldUserManager
   }
+
+  def project: Project = {
+    User().workspace.project(projectId)
+  }
 }
