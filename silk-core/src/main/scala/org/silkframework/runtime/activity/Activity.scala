@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.Executors
+
 import org.silkframework.util.StringUtils._
 
 import scala.concurrent.ExecutionContext
@@ -56,9 +58,10 @@ object Activity {
 
   /**
    * The execution context used to run activities.
+   * Per default uses a fixed thread pool with as many threads as cores on the machine.
    */
   @volatile
-  var executionContext: ExecutionContext = ExecutionContext.global
+  var executionContext: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors()))
 
   /**
     * The base path into which all activity output is logged
