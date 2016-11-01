@@ -4,7 +4,9 @@ var modificationTimer;
 
 $(function() {
   // Make rules sortable
-  $("#ruleTable tbody").sortable();
+  $("#ruleTable table").sortable({
+    items: "> tbody"
+  });
   //$("#typeContainer").sortable();
 
   // Initialize deletion dialog
