@@ -21,7 +21,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override def read(dataset: Task[Dataset], schema: EntitySchema): EntityTable = {
     schema match {
       case TripleEntitySchema.schema =>
-        dataset match {
+        dataset.data match {
           case rdfDataset: RdfDataset =>
             val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
             val tripleEntities = sparqlResult.bindings.view map { resultMap =>
@@ -32,7 +32,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
             }
             TripleEntityTable(tripleEntities, dataset)
           case _ =>
-            throw new TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
+            throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
         }
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
