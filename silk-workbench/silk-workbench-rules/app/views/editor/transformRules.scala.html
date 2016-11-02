@@ -137,6 +137,10 @@
           $(this).trigger("enter");
         }
       });
+      $("#rule-type-textfield input").autocomplete({
+        source: apiUrl + "/targetPathCompletions",
+        minLength: 0
+      }).focus(function() { $(this).autocomplete("search"); });
     });
   </script>
 
