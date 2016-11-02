@@ -35,12 +35,14 @@ $(function() {
   // Add autocompletion
    $(".source").autocomplete({
      source: apiUrl + "/sourcePathCompletions",
-     minLength: 0
+     minLength: 0,
+     position: { my: "left bottom", at: "left top", collision: "flip" }
    }).focus(function() { $(this).autocomplete("search"); });
 
    $(".target").autocomplete({
     source: apiUrl + "/targetPathCompletions",
-    minLength: 0
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
    }).focus(function() { $(this).autocomplete("search"); });
 });
 
@@ -284,16 +286,18 @@ function addRule(template) {
 
   componentHandler.upgradeAllRegistered();
 
-//  // Add autocompletion
-//  newRule.find(".source").autocomplete({
-//    source: apiUrl + "/sourcePathCompletions",
-//    minLength: 0
-//  }).focus(function() { $(this).autocomplete("search"); });
-//
-//  newRule.find(".target").autocomplete({
-//    source: apiUrl + "/targetPathCompletions",
-//    minLength: 0
-//  }).focus(function() { $(this).autocomplete("search"); });
+  // Add autocompletion
+  newRule.find(".source").autocomplete({
+    source: apiUrl + "/sourcePathCompletions",
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
+  }).focus(function() { $(this).autocomplete("search"); });
+
+  newRule.find(".target").autocomplete({
+    source: apiUrl + "/targetPathCompletions",
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
+  }).focus(function() { $(this).autocomplete("search"); });
 
   // Set modification flag
   modified();
