@@ -162,10 +162,10 @@
 
 /* jsPlump */
 
-._jsPlumb_endpoint {
+.jsplumb-endpoint {
   z-index: 2;
 }
 
-._jsPlumb_connector {
+.jsplumb-connector {
   cursor: pointer;
 }
