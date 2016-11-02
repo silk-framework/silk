@@ -277,10 +277,8 @@ function addRule(template) {
     });
 
     newRule.appendTo("#ruleTable table");
-    console.log(newRule);
-    console.log(newRule.offset().top);
     $(".mdl-layout__content").animate({
-      scrollTop: newRule.offset().top
+      scrollTop: $("#content").height()
      }, 300);
   }
 
