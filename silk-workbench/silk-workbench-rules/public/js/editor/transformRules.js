@@ -277,6 +277,11 @@ function addRule(template) {
     });
 
     newRule.appendTo("#ruleTable table");
+    console.log(newRule);
+    console.log(newRule.offset().top);
+    $(".mdl-layout__content").animate({
+      scrollTop: newRule.offset().top
+     }, 300);
   }
 
   componentHandler.upgradeAllRegistered();
