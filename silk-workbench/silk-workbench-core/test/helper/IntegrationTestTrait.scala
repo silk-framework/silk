@@ -314,7 +314,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   }
 
   def executeVariableWorkflowLocalExecutor(projectId: String, workflowId: String, xmlBody: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/workflowV2/workflows/$projectId/$workflowId/executeOnPayload")
+    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
     val response = request.post(xmlBody)
     checkResponse(response)
   }
