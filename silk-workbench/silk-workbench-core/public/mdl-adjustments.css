@@ -403,6 +403,10 @@
   table-layout: fixed;
 }
 
+.rule-toggle {
+  display: none;
+}
+
 th.rule-toggle {
   width: 30px;
 }
