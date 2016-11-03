@@ -486,9 +486,15 @@ td.rule-toggle, th.rule-toggle {
   padding-top: 5px;
 }
 
+#ruleTable button {
+  color: rgba(0, 0, 0, 0.541176);
+}
+
+/*
 .transformRule .rule-actions .delete-button {
   color: #CB4335;
 }
+*/
 
 /*
 * New Colors for Transform Editor Overview
