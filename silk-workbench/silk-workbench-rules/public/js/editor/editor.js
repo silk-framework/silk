@@ -38,6 +38,8 @@ var instanceSaved = false;
 
 var confirmOnExit = false;
 
+var defaultRadius = 4;
+
 // Set jsPlumb default values
 jsPlumb.Defaults.Container = "droppable";
 jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
@@ -67,7 +69,7 @@ var endpointValueSource = {
   endpoint: "Dot",
   paintStyle: {
     fillStyle: "#3187CF",
-    radius: 4
+    radius: defaultRadius
   },
   connectorStyle: valueConnectorStyle,
   connectorHoverStyle: valueConnectorHoverStyle,
@@ -82,7 +84,7 @@ var endpointValueTarget = {
   endpoint: "Dot",
   paintStyle: {
     fillStyle: "#3187CF",
-    radius: 4
+    radius: defaultRadius
   },
   connectorStyle: valueConnectorStyle,
   isTarget: true,
@@ -95,7 +97,7 @@ var endpointSimilaritySource = {
   endpoint: "Dot",
   paintStyle: {
     fillStyle: "#BF5741",
-    radius: 4
+    radius: defaultRadius
   },
   connectorStyle: similarityConnectorStyle,
   connectorHoverStyle: similarityConnectorHoverStyle,
@@ -110,7 +112,7 @@ var endpointSimilarityTarget = {
   endpoint: "Dot",
   paintStyle: {
     fillStyle: "#BF5741",
-    radius: 4
+    radius: defaultRadius
   },
   connectorStyle: similarityConnectorStyle,
   isTarget: true,

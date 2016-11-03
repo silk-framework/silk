@@ -17,7 +17,7 @@ package org.silkframework.plugins.spatial.utils
 import java.util.logging.{Level, Logger}
 
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.operation.distance.DistanceOp.closestPoints
+import com.vividsolutions.jts.operation.distance.DistanceOp.nearestPoints
 import com.vividsolutions.jts.simplify.{DouglasPeuckerSimplifier, TopologyPreservingSimplifier}
 import org.geotools.geometry.jts.JTS.{orthodromicDistance, transform}
 import org.geotools.referencing.CRS.{decode, findMathTransform}
@@ -251,7 +251,7 @@ object Utils {
           else
             return Double.PositiveInfinity
         case Constants.MIN_DISTANCE =>
-          val points = closestPoints(geometry1, geometry2)
+          val points = nearestPoints(geometry1, geometry2)
           val normalizedDistance = orthodromicDistance(points(0), points(1), decode("EPSG:" + Constants.DEFAULT_SRID)) / limit
           if (normalizedDistance <= 1.0)
             return normalizedDistance
