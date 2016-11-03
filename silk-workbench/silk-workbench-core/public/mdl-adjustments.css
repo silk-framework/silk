@@ -359,6 +359,33 @@
   margin-left: 19px;
 }
 
+.mdl-chip.typeMapping {
+  float: left;
+  margin: 2px 3px 2px 0px;
+}
+
+#uri {
+  display: inline-block;
+  width: 90%;
+}
+
+.uri-ui--replacement div {
+  display: inline-block;
+  font-size: 16px;
+  color: rgba(0,0,0,.26);
+  padding-top: 24px;
+  padding-bottom: 25px;
+}
+
+.uriMapping {
+  display: inline-block;
+  width: 50%;
+}
+
+.uriMapping .mdl-textfield {
+  width: 100%;
+}
+
 #ruleConfigContainer .mdl-card__title-text {
   margin-bottom: 3px;
 }
@@ -416,10 +443,6 @@ th.rule-actions {
 .di-rule__expanded td {
   border-top: none;
   border-right: none;
-}
-
-.uriMapping .mdl-textfield {
-  width: 100%;
 }
 
 #ruleTable .mdl-textfield__input {

@@ -81,11 +81,19 @@
             <span class="config-label">URI Template</span>
           </div>
           <div class="mdl-cell mdl-cell--10-col">
-            @for(rule <- context.task.data.rules) {
-              @if(rule.typeString == "URI") {
-                @renderUriRule(rule.asInstanceOf[UriMapping])
+            <div class="uri-ui uri-ui--defined di-vertical-align">
+              @for(rule <- context.task.data.rules) {
+                @if(rule.typeString == "URI") {
+                  @renderUriRule(rule.asInstanceOf[UriMapping])
+                }
               }
-            }
+            </div>
+            <div class="uri-ui uri-ui--replacement di-vertical-align">
+              <div>(default template)</div>
+              <button class="mdl-button mdl-js-button mdl-button--icon" onclick="addURIMapping()">
+                <i class="material-icons">edit</i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -110,6 +118,11 @@
       </table>
     </div>
   </div>
+
+  <div id="uriMappingTemplate" class="rule-template">
+    @renderUriRule(UriMapping())
+  </div>
+
   <div id="typeTemplate" class="rule-template type-template">
     @renderTypeRule(TypeMapping())
   </div>
@@ -217,11 +230,16 @@
 }
 
 @renderUriRule(rule: UriMapping) = {
-  <div class="transformRule uriMapping">
-    <span class="rule-name">@rule.name</span>
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+  <div id="uri">
+    <div class="transformRule uriMapping">
+      <span class="rule-name">@rule.name</span>
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+      </div>
     </div>
+    <button class="mdl-button mdl-js-button mdl-button--icon" onclick="deleteRule('uri')">
+      <i class="material-icons">delete</i>
+    </button>
   </div>
 }
 

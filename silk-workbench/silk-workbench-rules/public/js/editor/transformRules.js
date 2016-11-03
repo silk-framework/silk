@@ -44,6 +44,9 @@ $(function() {
     minLength: 0,
     position: { my: "left bottom", at: "left top", collision: "flip" }
    }).focus(function() { $(this).autocomplete("search"); });
+
+   // toggle URI mapping UI
+   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 });
 
 function modified() {
@@ -251,6 +254,11 @@ function addType(typeString) {
   console.log(typeString);
 }
 
+function addURIMapping() {
+  addRule("#uriMappingTemplate");
+  $(".uri-ui").toggle();
+}
+
 function addRule(template) {
 
   if (template == "#typeTemplate") {
@@ -261,22 +269,17 @@ function addRule(template) {
     newRule.find(".type").text(typeString);
     newRule.appendTo("#typeContainer");
     $("#rule-type-textfield input").val("");
+  } else if(template == "#uriMappingTemplate") {
+    var newRule = $(template).children().clone();
+    resetMDLTextfields(newRule);
+    newRule.appendTo(".uri-ui--defined");
   } else {
     // Clone rule template
     var newRule = $(template).children().clone();
     var nameInput = newRule.find(".rule-name");
     nameInput.text(generateRuleName(nameInput.text()));
 
-    // remove dynamic mdl classes and attributes
-    // (otherwise componentHandler.upgradeAllRegistered() won't work)
-
-    var textfields = newRule.find(".mdl-textfield");
-    $.each(textfields, function(index, value) {
-      value.removeAttribute("data-upgraded");
-      var classes = value.className;
-      var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
-      value.className = new_classes;
-    });
+    resetMDLTextfields(newRule);
 
     newRule.appendTo("#ruleTable table");
     $(".mdl-layout__content").animate({
@@ -301,6 +304,19 @@ function addRule(template) {
 
   // Set modification flag
   modified();
+}
+
+function resetMDLTextfields(element) {
+  // remove dynamic mdl classes and attributes
+  // (otherwise componentHandler.upgradeAllRegistered() won't work)
+
+  var textfields = element.find(".mdl-textfield");
+  $.each(textfields, function(index, value) {
+    value.removeAttribute("data-upgraded");
+    var classes = value.className;
+    var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
+    value.className = new_classes;
+  });
 }
 
 function deleteRule(node) {
@@ -345,4 +361,18 @@ function toggleRule(ruleId) {
   var expandedRule = $("#" + ruleId + "__expanded");
   var buttons = $("#" + ruleId + " .rule-toggle button");
   expandedRule.toggle(50, function() { buttons.toggle(); });
+}
+
+function uriMappingExists() {
+  return $(".uri-ui--defined").children()[0] != null;
+}
+
+function showURIMapping(defined) {
+  if (defined) {
+    $(".uri-ui--defined").show();
+    $(".uri-ui--replacement").hide();
+  } else {
+    $(".uri-ui--defined").hide();
+    $(".uri-ui--replacement").show();
+  }
 }
