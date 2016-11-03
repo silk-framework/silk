@@ -8,4 +8,8 @@ class TransformDialogs extends Controller {
     Ok(views.html.dialogs.transformationTaskDialog(projectName, taskName))
   }
 
+  def deleteRuleDialog(ruleName: String) = Action {
+    Ok(views.html.dialogs.deleteRuleDialog(ruleName))
+  }
+
 }

@@ -4,7 +4,10 @@ var modificationTimer;
 
 $(function() {
   // Make rules sortable
-  $("#ruleContainer").sortable();
+  $("#ruleTable table").sortable({
+    items: "> tbody"
+  });
+  //$("#typeContainer").sortable();
 
   // Initialize deletion dialog
   $("#dialogDelete").dialog({
@@ -32,13 +35,18 @@ $(function() {
   // Add autocompletion
    $(".source").autocomplete({
      source: apiUrl + "/sourcePathCompletions",
-     minLength: 0
+     minLength: 0,
+     position: { my: "left bottom", at: "left top", collision: "flip" }
    }).focus(function() { $(this).autocomplete("search"); });
 
    $(".target").autocomplete({
     source: apiUrl + "/targetPathCompletions",
-    minLength: 0
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
    }).focus(function() { $(this).autocomplete("search"); });
+
+   // toggle URI mapping UI
+   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 });
 
 function modified() {
@@ -84,9 +92,9 @@ function serializeRules() {
   var xmlDoc = $.parseXML('<TransformRules></TransformRules>');
 
   // Collect all rules
-  $("#ruleContainer").children(".transformRule").each(function() {
+  $("#ruleContainer .transformRule").each(function() {
     // Read name
-    var name = $(this).find(".name").val();
+    var name = $(this).find(".rule-name").text();
     // Read source and target
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
@@ -97,7 +105,7 @@ function serializeRules() {
     } else if($(this).hasClass("objectMapping")) {
       serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
     } else if($(this).hasClass("typeMapping")) {
-      serializeTypeMapping(xmlDoc, name, $(this).find(".type").val())
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text())
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
       serializeComplexRule(xmlDoc, ruleXml, name, target)
@@ -242,33 +250,77 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
   xmlDoc.documentElement.appendChild(ruleXml);
 }
 
+function addType(typeString) {
+  console.log(typeString);
+}
+
+function addURIMapping() {
+  addRule("#uriMappingTemplate");
+  $(".uri-ui").toggle();
+}
+
 function addRule(template) {
-  // Clone rule template
-  var newRule = $(template).children().clone();
-  var nameInput = newRule.find(".name");
-  nameInput.val(generateRuleName(nameInput.val()));
-  newRule.appendTo("#ruleContainer");
+
+  if (template == "#typeTemplate") {
+    var newRule = $(template + " .typeMapping").clone();
+    var nameInput = newRule.find(".rule-name");
+    nameInput.text(generateRuleName(nameInput.text()));
+    var typeString = $("#rule-type-textfield input").val();
+    newRule.find(".type").text(typeString);
+    newRule.appendTo("#typeContainer");
+    $("#rule-type-textfield input").val("");
+  } else if(template == "#uriMappingTemplate") {
+    var newRule = $(template).children().clone();
+    resetMDLTextfields(newRule);
+    newRule.appendTo(".uri-ui--defined");
+  } else {
+    // Clone rule template
+    var newRule = $(template).children().clone();
+    var nameInput = newRule.find(".rule-name");
+    nameInput.text(generateRuleName(nameInput.text()));
+
+    resetMDLTextfields(newRule);
+
+    newRule.appendTo("#ruleTable table");
+    $(".mdl-layout__content").animate({
+      scrollTop: $("#content").height()
+     }, 300);
+  }
+
+  componentHandler.upgradeAllRegistered();
 
   // Add autocompletion
   newRule.find(".source").autocomplete({
     source: apiUrl + "/sourcePathCompletions",
-    minLength: 0
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
   }).focus(function() { $(this).autocomplete("search"); });
 
   newRule.find(".target").autocomplete({
     source: apiUrl + "/targetPathCompletions",
-    minLength: 0
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
   }).focus(function() { $(this).autocomplete("search"); });
 
   // Set modification flag
   modified();
 }
 
+function resetMDLTextfields(element) {
+  // remove dynamic mdl classes and attributes
+  // (otherwise componentHandler.upgradeAllRegistered() won't work)
+
+  var textfields = element.find(".mdl-textfield");
+  $.each(textfields, function(index, value) {
+    value.removeAttribute("data-upgraded");
+    var classes = value.className;
+    var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
+    value.className = new_classes;
+  });
+}
+
 function deleteRule(node) {
-  // Remember rule
-  currentRule = node;
-  // Show confirmation dialog
-  $("#dialogDelete").dialog("open");
+  showDialog(baseUrl + '/transform/dialogs/deleteRule/' + encodeURIComponent(node));
 }
 
 function openRule(name) {
@@ -293,8 +345,34 @@ function generateRuleName(prefix) {
   var count = 0;
   do {
     count = count + 1;
-    if($("#ruleContainer").find(".name").filter(function() { return $(this).val() == prefix + count } ).length == 0) {
+    if($("#ruleContainer").find(".rule-name").filter(function() { return $(this).text() == prefix + count } ).length == 0) {
       return prefix + count;
     }
   } while (count < 1000);
+}
+
+function toggleRuleConfig() {
+  var confContent = $("#ruleConfigContainer .mdl-card__supporting-text");
+  var buttons = $("#ruleConfigContainer .mdl-card__title button");
+  confContent.toggle(50, function() { buttons.toggle(); });
+}
+
+function toggleRule(ruleId) {
+  var expandedRule = $("#" + ruleId + "__expanded");
+  var buttons = $("#" + ruleId + " .rule-toggle button");
+  expandedRule.toggle(50, function() { buttons.toggle(); });
+}
+
+function uriMappingExists() {
+  return $(".uri-ui--defined").children()[0] != null;
+}
+
+function showURIMapping(defined) {
+  if (defined) {
+    $(".uri-ui--defined").show();
+    $(".uri-ui--replacement").hide();
+  } else {
+    $(".uri-ui--defined").hide();
+    $(".uri-ui--replacement").show();
+  }
 }
