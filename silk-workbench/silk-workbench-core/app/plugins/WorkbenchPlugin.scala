@@ -12,8 +12,6 @@ import scala.reflect.ClassTag
  */
 trait WorkbenchPlugin {
 
-  def routes: Map[String, Router] = Map.empty
-
   /**
    * The task types to be added to the Workspace.
    */

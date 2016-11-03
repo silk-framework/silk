@@ -12,7 +12,7 @@ import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 import scala.xml.Elem
 
-object WorkflowApi extends Controller {
+class WorkflowApi extends Controller {
 
   def getWorkflow(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)

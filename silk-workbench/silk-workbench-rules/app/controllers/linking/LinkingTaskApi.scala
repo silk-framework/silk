@@ -21,7 +21,7 @@ import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
-object LinkingTaskApi extends Controller {
+class LinkingTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 

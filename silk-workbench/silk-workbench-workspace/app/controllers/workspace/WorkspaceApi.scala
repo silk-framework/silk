@@ -23,7 +23,7 @@ import org.silkframework.workspace.ProjectMarshallerRegistry
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object WorkspaceApi extends Controller {
+class WorkspaceApi extends Controller {
 
   import ProjectMarshallerRegistry._
 

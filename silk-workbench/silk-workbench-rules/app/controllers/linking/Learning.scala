@@ -24,7 +24,7 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
 import plugins.Context
 
-object Learning extends Controller {
+class Learning extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 

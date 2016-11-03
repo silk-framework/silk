@@ -7,7 +7,7 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object TransformEditor extends Controller {
+class TransformEditor extends Controller {
 
   def start(project: String, task: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)

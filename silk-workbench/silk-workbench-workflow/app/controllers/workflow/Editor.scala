@@ -5,7 +5,7 @@ import org.silkframework.workspace.activity.workflow.{Workflow, OldWorkflowExecu
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object Editor extends Controller {
+class Editor extends Controller {
 
   def editor(project: String, task: String) = Action { implicit request =>
     val context = Context.get[Workflow](project, task, request.path)

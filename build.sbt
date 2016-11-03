@@ -27,7 +27,9 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
-  }
+  },
+  // Use dependency injected routes in Play modules
+  routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////

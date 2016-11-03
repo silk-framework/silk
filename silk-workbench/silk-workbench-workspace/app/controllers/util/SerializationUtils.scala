@@ -1,6 +1,5 @@
 package controllers.util
 
-import controllers.workspace.ActivityApi._
 import models.JsonError
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.workspace.Project
@@ -11,7 +10,7 @@ import play.api.mvc._
 import scala.reflect.ClassTag
 import scala.xml.Node
 
-object SerializationUtils {
+object SerializationUtils extends Results {
 
   /**
     * Tries to serialize a given value based on the accept header.

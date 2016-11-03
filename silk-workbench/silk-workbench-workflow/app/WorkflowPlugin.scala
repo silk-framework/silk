@@ -7,8 +7,6 @@ import plugins.{Context, WorkbenchPlugin}
  */
 case class WorkflowPlugin() extends WorkbenchPlugin {
 
-  override def routes = Map("workflow" -> workflow.Routes)
-
   override def tasks = {
     Seq(WorkflowTaskActions)
   }
