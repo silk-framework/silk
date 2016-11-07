@@ -6,7 +6,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 
-object CustomTasks extends Controller {
+class CustomTasks extends Controller {
 
   def getTask(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)

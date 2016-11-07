@@ -4,7 +4,7 @@ import config.WorkbenchConfig
 import play.api.mvc.{Action, Controller}
 import play.twirl.api.Html
 
-object Branding extends Controller {
+class Branding extends Controller {
 
   def logo = Action {
     val imgStream = WorkbenchConfig.get.logo.load

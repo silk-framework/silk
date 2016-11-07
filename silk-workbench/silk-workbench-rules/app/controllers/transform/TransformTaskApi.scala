@@ -17,7 +17,7 @@ import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
-object TransformTaskApi extends Controller {
+class TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 

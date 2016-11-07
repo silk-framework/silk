@@ -8,8 +8,6 @@ import controllers.rules.routes.Assets
  */
 case class LinkingPlugin() extends WorkbenchPlugin {
 
-  override def routes = Map("rules" -> rules.Routes, "linking" -> linking.Routes)
-
   override def tasks = {
     Seq(LinkingTaskActions)
   }

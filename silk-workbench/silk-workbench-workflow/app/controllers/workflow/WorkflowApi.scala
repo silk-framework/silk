@@ -1,18 +1,18 @@
 package controllers.workflow
 
 import controllers.util.ProjectUtils._
-import org.silkframework.dataset.{DataSource, SinkTrait}
+import org.silkframework.dataset.{DataSource, Dataset, SinkTrait}
 import org.silkframework.rule.execution.ExecuteTransformResult
 import org.silkframework.rule.execution.ExecuteTransformResult.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.workspace.activity.workflow.{Workflow, OldWorkflowExecutor}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, OldWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 import scala.xml.Elem
 
-object WorkflowApi extends Controller {
+class WorkflowApi extends Controller {
 
   def getWorkflow(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
@@ -72,7 +72,8 @@ object WorkflowApi extends Controller {
     * @param workflowTaskName
     * @return
     */
-  def postVariableWorkflowInput(projectName: String, workflowTaskName: String) = Action { request =>
+  @deprecated("Use postVariableWorkflowInput.", since = "v3.1.1")
+  def postVariableWorkflowInputOld(projectName: String, workflowTaskName: String) = Action { request =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -84,6 +85,25 @@ object WorkflowApi extends Controller {
         // Create sinks and resources for variable datasets, all resources are returned in the response
         val sink2ResourceMap = variableDatasets.sinks.map(s => (s, s + "_file_resource")).toMap
         val sinks = createInMemorySink(xmlRoot, sink2ResourceMap)
+        executeVariableWorkflowOld(workflowTask, dataSources, sinks)
+        Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))
+      case _ =>
+        UnsupportedMediaType("Only XML supported")
+    }
+  }
+
+  def postVariableWorkflowInput(projectName: String, workflowTaskName: String) = Action { request =>
+    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    request.body match {
+      case AnyContentAsXml(xmlRoot) =>
+        val workflow = workflowTask.data
+        val variableDatasets = workflow.variableDatasets(project)
+        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+        // Create data sources from request payload
+        val dataSources = createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources")
+        // Create sinks and resources for variable datasets, all resources are returned in the response
+        val sink2ResourceMap = variableDatasets.sinks.map(s => (s, s + "_file_resource")).toMap
+        val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
         executeVariableWorkflow(workflowTask, dataSources, sinks)
         Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))
       case _ =>
@@ -92,7 +112,8 @@ object WorkflowApi extends Controller {
   }
 
   /** Generate result XML for all variable sinks in the workflow. */
-  private def variableSinkResultXML(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]): Elem = {
+  private def variableSinkResultXML(resourceManager: ResourceManager,
+                                    sink2ResourceMap: Map[String, String]): Elem = {
     <WorkflowResults>
       {for ((sinkId, resourceId) <- sink2ResourceMap) yield {
       val resource = resourceManager.get(resourceId, mustExist = true)
@@ -102,6 +123,15 @@ object WorkflowApi extends Controller {
   }
 
   private def executeVariableWorkflow(task: ProjectTask[Workflow],
+                                      replaceDataSources: Map[String, Dataset],
+                                      replaceSinks: Map[String, Dataset]): Unit = {
+    val executor = LocalWorkflowExecutor(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
+    Activity(executor).startBlocking()
+  }
+
+  /** Execute a variable workflow on the old workflow executor. */
+  @deprecated("Use executeVariableWorkflow, which uses the new workflow executor.", since = "v3.1.1")
+  private def executeVariableWorkflowOld(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, DataSource],
                                       replaceSinks: Map[String, SinkTrait]): Unit = {
     val executor = new OldWorkflowExecutor(task, replaceDataSources, replaceSinks)

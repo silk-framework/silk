@@ -7,7 +7,7 @@ import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object EvaluateTransform extends Controller {
+class EvaluateTransform extends Controller {
 
   def evaluate(project: String, task: String, offset: Int, limit: Int) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)

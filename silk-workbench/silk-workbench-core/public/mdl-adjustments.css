@@ -331,54 +331,191 @@
 
 
 
+/**** Transform Editor ******/
+
+#ruleConfigContainer {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+#ruleConfigContainer .mdl-card__title button {
+  margin-right: 5px;
+}
+
+#ruleConfigContainer .mdl-card__supporting-text {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.di-vertical-align:before {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  width: 0px;
+}
+
+.config-label {
+  margin-left: 19px;
+}
+
+.mdl-chip.typeMapping {
+  float: left;
+  margin: 2px 3px 2px 0px;
+}
+
+#uri {
+  display: inline-block;
+  width: 90%;
+}
+
+.uri-ui--replacement div {
+  display: inline-block;
+  font-size: 16px;
+  color: rgba(0,0,0,.26);
+  padding-top: 24px;
+  padding-bottom: 25px;
+}
+
+.uriMapping {
+  display: inline-block;
+  width: 50%;
+}
+
+.uriMapping .mdl-textfield {
+  width: 100%;
+}
+
+#ruleConfigContainer .mdl-card__title-text {
+  margin-bottom: 3px;
+}
+
+.mdl-card__title-text .di-highlight {
+  /*font-style: italic;*/
+  font-weight: bold;
+}
+
+#ruleConfigContainer .mdl-grid {
+  padding: 0 8px;
+}
+
+#ruleTable table {
+  table-layout: fixed;
+}
+
+.rule-toggle {
+  display: none;
+}
+
+th.rule-toggle {
+  width: 30px;
+}
+
+th.rule-actions {
+  width: 120px;
+}
+
+/* overflow doesn't respect padding-right (of the table cell),
+   so we need to use an inner div */
+.di-rule__expanded-content div {
+  overflow: hidden;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+#ruleTable .mdl-textfield {
+  padding: 5px 0;
+}
+
+/*
+  The next two rules allow to have a hover effect over several
+  rows instead of just one. The individual rows are contained
+  in a <tbody class="complete-rule"> element
+  see http://stackoverflow.com/questions/3076708/can-we-have-multiple-tbody-in-same-table
+*/
+#ruleTable .mdl-data-table tbody tr:hover {
+    background-color: transparent;
+}
+.complete-rule:hover {
+  background-color: #eee;
+}
+
+.transformRule td {
+  border-bottom: none;
+}
+
+.di-rule__expanded td {
+  border-top: none;
+  border-right: none;
+}
+
+#ruleTable .mdl-textfield__input {
+  font-size: 13px;
+}
+
+td.rule-toggle, th.rule-toggle {
+  padding-left: 5px;
+  padding-right: 0px;
+}
+
+.rule-template {
+  display: none;
+}
+
+.rule-name {
+  display: none;
+}
+
+.rule-actions {
+  min-width: 160px;
+}
+
+/*
+.rule-action-buttons {
+  display: none;
+}
+*/
+
+#typeContainer {
+  display: inline-block;
+}
+
+#rule-type-textfield {
+  padding-bottom: 3px;
+  vertical-align: bottom;
+  padding-top: 5px;
+}
+
+#ruleTable button {
+  color: rgba(0, 0, 0, 0.541176);
+}
+
+/*
+.transformRule .rule-actions .delete-button {
+  color: #CB4335;
+}
+*/
+
 /*
 * New Colors for Transform Editor Overview
 */
 
-.directMapping .ruleTitle {
+.directMapping .rule-type-indicator {
   background-color: #B0BEC5;
 }
 
-.directMapping:hover {
-  background-color: #CFD8DC;
-  box-shadow: 1px 1px 6px #B0BEC5;
-}
-
-.uriMapping .ruleTitle {
+.uriMapping .rule-type-indicator {
   background-color: #80CBC4;
 }
 
-.uriMapping:hover {
-  background-color: #B2DFDB;
-  box-shadow: 1px 1px 6px #80CBC4;
-}
-
-.objectMapping .ruleTitle {
+.objectMapping .rule-type-indicator {
   background-color: #CE93D8;
 }
 
-.objectMapping:hover {
-  background-color: #E1BEE7;
-  box-shadow: 1px 1px 6px #CE93D8;
-}
-
-.typeMapping .ruleTitle {
-  background-color: #90CAF9;
-}
-
-.typeMapping:hover {
-  background-color: #BBDEFB;
-  box-shadow: 1px 1px 6px #90CAF9;
-}
-
-.complexMapping .ruleTitle {
+.complexMapping .rule-type-indicator {
   background-color: #9FA8DA;
 }
 
-.complexMapping:hover {
-  background-color: #C5CAE9;
-  box-shadow: 1px 1px 6px #9FA8DA;
-}
 
 /*
 * General Editor/Workflow Colors

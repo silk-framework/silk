@@ -14,7 +14,8 @@ import scala.reflect.ClassTag
   * @tparam TaskType The type of the task the generate activities belong to
   * @tparam ActivityType The type of activity that is generated and by which the activity will be identified within the task
   */
-abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag] extends AnyPlugin with (ProjectTask[TaskType] => Activity[ActivityType#ValueType]) {
+abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag] extends AnyPlugin
+    with (ProjectTask[TaskType] => Activity[ActivityType#ValueType]) {
 
   /** True, if this activity shall be executed automatically after startup */
   def autoRun: Boolean = false
@@ -36,5 +37,5 @@ abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType
   /**
     * Returns the type of generated activities.
     */
-  def activityType = implicitly[ClassTag[ActivityType]].runtimeClass
+  def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
 }

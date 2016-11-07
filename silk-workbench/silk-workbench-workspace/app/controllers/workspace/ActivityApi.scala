@@ -16,7 +16,7 @@ import play.api.mvc._
 
 import scala.language.existentials
 
-object ActivityApi extends Controller {
+class ActivityApi extends Controller {
 
   def getProjectActivities(projectName: String) = Action {
     val project = User().workspace.project(projectName)

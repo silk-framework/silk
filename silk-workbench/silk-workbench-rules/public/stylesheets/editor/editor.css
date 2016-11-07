@@ -110,11 +110,11 @@ body{
   color: #1484d4;
 }
 
-._jsPlumb_endpoint {
+.jsplumb-endpoint {
   z-index: 2;
 }
 
-._jsPlumb_connector {
+.jsplumb-endpoint {
   cursor: pointer;
 }
 
@@ -266,9 +266,11 @@ body{
   border: 2px solid #f1d21e;
 }
 
+/*
 .highlighted {
   border: 4px solid #ff0000;
 }
+*/
 
 .new-path {
   width: 165px;
