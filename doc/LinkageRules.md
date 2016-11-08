@@ -20,7 +20,7 @@ Every path statement begins with a variable (as defined in the datasets), which 
 The following operators can be used to traverse the graph:
 
 ----------------------------------------------------------------------------------------------------------------------
-Operator Name              Use                             Description
+Operator Name              Use                               Description
 -------- ---------------- --------------------------------- ----------------------------------------------------------
 /        forward           `<path_segment>/<property>`       Moves forward from a subject resource (set) through a 
          operator                                            property to its object resource (set).
