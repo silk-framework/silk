@@ -21,19 +21,18 @@ The following operators can be used to traverse the graph:
 
 ----------------------------------------------------------------------------------------------------------------------
 Operator Name              Use                             Description
--------- ----------------- ------------------------------- -----------------------------------------------------------
-/        forward operator | `<path_segment>/<property>`    Moves forward from a subject resource (set) through a 
-                                                           property to its object resource (set).
+-------- ---------------- --------------------------------- ----------------------------------------------------------
+/        forward           `<path_segment>/<property>`       Moves forward from a subject resource (set) through a 
+         operator                                            property to its object resource (set).
 
-\\       reverse operator | `<path_segment>\<property>`    Moves backward from an object resource (set) through a
-                                                           property to its subject resource (set).
+\\       reverse           `<path_segment>\<property>`       Moves backward from an object resource (set) through a
+         operator                                            property to its subject resource (set).
 
-[ ]      filter operator  | `<code><path_segment>\         Reduces the currently selected set of resources to the ones 
-                            [<property> <comp_operator>    matching the filter expression. comp\_operator may be one of
-                            <value>\]</code> <code>         &gt;, <, >=, &lt;=, =, !=
-                            <path_segment>\[@lang
-                            <comp_operator> <value>\]
-                            </code>`
+[ ]      filter            `<path_segment>`                  Reduces the currently selected set of resources to the ones 
+         operator          `[<property> <comp_operator>`     matching the filter expression. comp\_operator may be one of
+                           `<value>]`                        &gt;, <, >=, &lt;=, =, !=
+                           `<path_segment>[@lang`
+                           `<comp_operator> <value>]`
 
 ------------------------------------------------------------------------------------------------------------------------
 
