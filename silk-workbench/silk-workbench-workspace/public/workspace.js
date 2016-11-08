@@ -80,6 +80,9 @@ function putTask(path, xml) {
     data: xml,
     error: function(request) {
       alert(request.responseText);
+    },
+    success: function(request) {
+      reloadWorkspace();
     }
   });
 }
