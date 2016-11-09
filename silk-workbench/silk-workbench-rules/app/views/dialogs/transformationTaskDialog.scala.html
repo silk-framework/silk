@@ -66,8 +66,12 @@
           response(data);
         });
       },
-      minLength: 0
+      minLength: 0,
+      close: function(event, ui) {
+        $("#transformation_type").parent().addClass("is-dirty");
+      }
     }).focus(function() { $(this).autocomplete("search"); });
+
   });
 
   function submit() {
