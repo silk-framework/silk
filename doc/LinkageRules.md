@@ -19,22 +19,22 @@ Every path statement begins with a variable (as defined in the datasets), which 
 
 The following operators can be used to traverse the graph:
 
-----------------------------------------------------------------------------------------------------------------------
-Operator Name              Use                               Description
--------- ---------------- --------------------------------- ----------------------------------------------------------
-/        forward           `<path_segment>/<property>`       Moves forward from a subject resource (set) through a 
-         operator                                            property to its object resource (set).
+---------------------------------------------------------------------------------------------------------------------
+Operator Name             Use                               Description
+-------- ---------------- --------------------------------- ---------------------------------------------------------
+/        forward          `<path_segment>/<property>`       Moves forward from a subject resource (set) through a
+         operator                                           property to its object resource (set).
 
-\\       reverse           `<path_segment>\<property>`       Moves backward from an object resource (set) through a
-         operator                                            property to its subject resource (set).
+\\       reverse          `<path_segment>\<property>`       Moves backward from an object resource (set) through a
+         operator                                           property to its subject resource (set).
 
-[ ]      filter            `<path_segment>`                  Reduces the currently selected set of resources to the ones 
-         operator          `[<property> <comp_operator>`     matching the filter expression. comp\_operator may be one of
-                           `<value>]`                        &gt;, <, >=, &lt;=, =, !=
-                           `<path_segment>[@lang`
-                           `<comp_operator> <value>]`
+[ ]      filter           `<path_segment>`                  Reduces the currently selected set of resources to the ones
+         operator         `[<property> <comp_operator>`     matching the filter expression. comp\_operator may be one of
+                          `<value>]`                        &gt;, <, >=, &lt;=, =, !=
+                          `<path_segment>[@lang`
+                          `<comp_operator> <value>]`
 
-------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
 
 ### Examples
 
