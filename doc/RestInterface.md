@@ -32,25 +32,25 @@ For instance, a dataset may read a CSV-file or a linkage rule may read a stopwor
 A dataset description holds all properties needed to read entities from a dataset.
 The dataset may either be local (e.g., a resource) or remote (e.g., accessed through queries).
 
-| Resource | Description |
-| --- | --- |
-| `GET projects/<project>/datasets/<name> ` | Retrieves the properties of a specific dataset. |   
-| `PUT projects/<project>/datasets/<name> ` | Creates or updates a dataset. |   
-| `DELETE projects/<project>/datasets/<name> ` | Deletes a dataset. |   
+| Resource                                     | Description                                     |
+| -------------------------------------------- | ----------------------------------------------- |
+| `GET projects/<project>/datasets/<name> `    | Retrieves the properties of a specific dataset. |   
+| `PUT projects/<project>/datasets/<name> `    | Creates or updates a dataset.                   |   
+| `DELETE projects/<project>/datasets/<name> ` | Deletes a dataset.                              |   
 
 ### Start/Stop Activities
 
 Each project or task may provide one or more activities. An activity is a unit of work that can be executed in the background.
 
-| Resource | Description |
-| --- | --- |
-| `POST activities/start` | Starts an activity. |
-| `POST activities/cancel` | Cancels an activity. |
-| `GET activities/config` | Retrieves the configuration of an activity as key-value pairs. |
-| `POST activities/config` | Updates the configuration of an activity. |
-| `GET activities/status` | Retrieves the status of an activity. |
-| `GET activities/updates` | Retrieves a Comet stream of Javascript calls to updateStatus whenever |
-|                          | the status changes. Can be used to avoid status polling. |
+| Resource                  | Description                                                           |
+| ------------------------- | --------------------------------------------------------------------- |
+| `POST activities/start`   | Starts an activity.                                                   |
+| `POST activities/cancel`  | Cancels an activity.                                                  |
+| `GET activities/config`   | Retrieves the configuration of an activity as key-value pairs.        |
+| `POST activities/config`  | Updates the configuration of an activity.                             |
+| `GET activities/status`   | Retrieves the status of an activity.                                  |
+| `GET activities/updates`  | Retrieves a Comet stream of Javascript calls to updateStatus whenever |
+|                           | the status changes. Can be used to avoid status polling.              |
 
 All resources support three parameters:
 
