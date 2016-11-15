@@ -13,7 +13,7 @@ import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object DatasetApi extends Controller {
+class DatasetApi extends Controller {
 
   def getDataset(projectName: String, sourceName: String) = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)

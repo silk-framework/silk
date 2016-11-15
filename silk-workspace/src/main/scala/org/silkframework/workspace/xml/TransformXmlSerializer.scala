@@ -49,11 +49,11 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     try {
       implicit val resources = projectResources
       implicit val readContext = ReadContext(resources)
-      val dataset = DatasetSelection.fromXML(XML.load(taskResources.get("dataset.xml").load))
+      // Currently the transform spec is distributed in two xml files
+      val datasetXml = XML.load(taskResources.get("dataset.xml").load)
       val rulesXml = XML.load(taskResources.get("rules.xml").load)
-      val rules = (rulesXml \ "TransformRule").map(fromXml[TransformRule])
-      val outputs = (rulesXml \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
-      (name, TransformSpec(dataset, rules, outputs))
+      val xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
+      (name, fromXml[TransformSpec](xml))
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)

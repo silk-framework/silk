@@ -25,6 +25,9 @@ sealed trait TransformRule {
   /** The target property URI. */
   def target: Option[Uri]
 
+  /** String representation of rule type */
+  def typeString: String
+
   /**
    * Generates the transformed values.
    *
@@ -61,6 +64,8 @@ case class DirectMapping(name: Identifier = "sourcePath", sourcePath: Path = Pat
   override val operator = PathInput(name, sourcePath)
 
   override val target = Some(targetProperty)
+
+  override val typeString = "Direct"
 }
 
 /**
@@ -83,6 +88,8 @@ case class UriMapping(name: Identifier = "uri", pattern: String = "http://exampl
   }
 
   override val target = None
+
+  override val typeString = "URI"
 }
 
 /**
@@ -105,6 +112,9 @@ case class ObjectMapping(name: Identifier = "object", pattern: String = "http://
   }
 
   override val target = Some(targetProperty)
+
+  override val typeString = "Object"
+
 }
 
 /**
@@ -118,6 +128,9 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
   override val target = Some(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
+
+  override val typeString = "Type"
+
 }
 
 /**
@@ -127,7 +140,11 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
  * @param operator The input operator tree
  * @param target The target property URI
  */
-case class ComplexMapping(name: Identifier = "mapping", operator: Input, target: Option[Uri] = None) extends TransformRule
+case class ComplexMapping(name: Identifier = "mapping", operator: Input, target: Option[Uri] = None) extends TransformRule {
+
+  override val typeString = "Complex"
+
+}
 
 /**
  * Creates new transform rules.

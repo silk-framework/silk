@@ -28,11 +28,10 @@
     @header
 
     <!-- MDL inclusions: -->
+    <link type="text/css" href="@Assets.at("libs/mdl/material.css")" rel="stylesheet" />
     @if(config.workbench.mdlStyle.isDefined) {
       <link type="text/css" href="@config.baseUrl/core/mdlStyle" rel="stylesheet" />
-    } else {
-      <link type="text/css" href="@Assets.at("libs/mdl/material.css")" rel="stylesheet" />
-     }
+    }
     <link type="text/css" href="@Assets.at("mdl-adjustments.css")" rel="stylesheet" />
     <link type="text/css" href="@Assets.at("libs/mdl-selectfield-master/mdl-selectfield.min.css")" rel="stylesheet" />
     <link type="text/css" href="@Assets.at("libs/dialog-polyfill-master/dialog-polyfill.css")" rel="stylesheet" />
@@ -120,13 +119,15 @@
           @toolbar
         </div>
       </div>
-      <div id="content" class="mdl-tabs__panel is-active">
-        @content
-      </div>
-      <div id="dialogContainer">
-        <div class="dialog">
+      <main class="mdl-layout__content">
+        <div id="content" class="mdl-tabs__panel is-active">
+          @content
         </div>
-      </div>
+        <div id="dialogContainer">
+          <div class="dialog">
+          </div>
+        </div>
+      </main>
     </div>
  </body>
 </html>

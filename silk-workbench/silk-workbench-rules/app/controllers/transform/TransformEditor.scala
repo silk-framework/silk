@@ -7,7 +7,7 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object TransformEditor extends Controller {
+class TransformEditor extends Controller {
 
   def start(project: String, task: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
@@ -18,7 +18,7 @@ object TransformEditor extends Controller {
     val context = Context.get[TransformSpec](project, task, request.path)
     context.task.data.rules.find(_.name == rule) match {
       case Some(r) => Ok(views.html.editor.transformEditor(context, r))
-      case None => NotFound(s"No rule named '$rule' found!")
+      case None => NotFound(s"No rule named '$rule' found!. Available rules: ${context.task.data.rules.map(_.name).mkString(", ")}")
     }
   }
 

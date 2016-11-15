@@ -27,7 +27,9 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
-  }
+  },
+  // Use dependency injected routes in Play modules
+  routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -74,7 +76,7 @@ lazy val workspace = (project in file("silk-workspace"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(core, core % "test->test")
+  .dependsOn(core, rules, workspace, core % "test->test")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
@@ -155,13 +157,14 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .settings(
     name := "Silk Workbench Core",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "org.silkframework.buildInfo"
+    buildInfoPackage := "org.silkframework.buildInfo",
+    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore, pluginsRdf)
-  .aggregate(workbenchCore)
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf)
+  .aggregate(workbenchCore, pluginsRdf)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace"

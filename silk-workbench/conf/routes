@@ -1,10 +1,9 @@
-# Redirect call to individual modules
-->         /core             core.Routes
-->         /workspace        workspace.Routes
+GET        /               controllers.Workbench.index
 
+# Redirect call to individual modules
+->         /core           core.Routes
+->         /workspace      workspace.Routes
 ->         /rules          rules.Routes
 ->         /linking        linking.Routes
 ->         /transform      transform.Routes
 ->         /workflow       workflow.Routes
-
-# Note: Plugin routes are handled automatically in the WorkbenchGlobal object

@@ -6,7 +6,7 @@ import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{PrefixRegistry, User}
 import play.api.mvc.{Action, AnyContent, Controller}
 
-object Workspace extends Controller {
+class Workspace extends Controller {
 
   def index: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.workspace.workspace())

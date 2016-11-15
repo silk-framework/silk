@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
-object ReferenceLinksManager extends Controller {
+class ReferenceLinksManager extends Controller {
 
   def referenceLinksView(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)

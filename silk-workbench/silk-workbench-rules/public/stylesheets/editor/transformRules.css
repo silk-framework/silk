@@ -1,9 +1,10 @@
 #ruleContainer {
-  width: 490px;
-  background: url("../../img/editor/grid.png") repeat scroll 0 0;
-  border:1px solid #d9d9d9;
 }
 
+#ruleTable {
+}
+
+/*
 .transformRule {
   width: 470px;
   margin: 10px;
@@ -14,6 +15,7 @@
   -moz-transition: background-color 0.25s ease-in;
   transition: background-color 0.25s ease-in;
 }
+*/
 
 .ruleTitle {
   font-style: italic;
@@ -40,51 +42,13 @@
 
 /* Set colors for different mapping types. */
 
-.directMapping .ruleTitle {
-  background-color: #0cc481;
+.rule-type-indicator {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 5px;
 }
-
-.directMapping:hover {
-  background-color: #d6fff0;
-  box-shadow: 1px 1px 6px #0cc481;
-}
-
-.uriMapping .ruleTitle {
-  background-color: #1484d4;
-}
-
-.uriMapping:hover {
-  background-color: #d6eeff;
-  box-shadow: 1px 1px 6px #1484d4;
-}
-
-.objectMapping .ruleTitle {
-  background-color: #C354BF;
-}
-
-.objectMapping:hover {
-  background-color: #f2d7ff;
-  box-shadow: 1px 1px 6px #C354BF;
-}
-
-.typeMapping .ruleTitle {
-  background-color: #e59829;
-}
-
-.typeMapping:hover {
-  background-color: #ffeed6;
-  box-shadow: 1px 1px 6px #e59829;
-}
-
-.complexMapping .ruleTitle {
-  background-color: #c35454;
-}
-
-.complexMapping:hover {
-  background-color: #ffd7d7;
-  box-shadow: 1px 1px 6px #c35454;
-}
-
 /* General Properties */
 
 .ui-autocomplete {

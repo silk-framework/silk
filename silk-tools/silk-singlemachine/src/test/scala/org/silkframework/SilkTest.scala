@@ -26,6 +26,10 @@ class SilkTest extends FlatSpec with Matchers {
     val project = Silk.executeProject(projectFile, "workflow")
     val output = project.resources.get("output.nt")
     Source.fromInputStream(output.load).getLines().size should be (110)
+    // Clean up
+    project.resources.delete("output.nt")
+    project.resources.delete("source.nt")
+    project.resources.delete("target.nt")
   }
 
 }

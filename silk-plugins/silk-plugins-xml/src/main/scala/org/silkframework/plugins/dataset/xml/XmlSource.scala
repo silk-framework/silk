@@ -122,7 +122,13 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
         case op :: opsTail =>
           op match {
             case ForwardOperator(p) =>
-              val forwardNodes = node \ p.uri
+              val forwardNodes =
+                if(p.uri.startsWith("@")) {
+                  val attr = node.attributes.find(_.key == p.uri.tail).get
+                  attr.value
+                } else {
+                  node \ p.uri
+                }
               forwardNodes flatMap { forwardNode =>
                 evaluateOperators(forwardNode, opsTail, node :: parentNodes)
               }

@@ -11,7 +11,7 @@ import plugins.Context
 
 import scala.util.control.NonFatal
 
-object LinkingEditor extends Controller {
+class LinkingEditor extends Controller {
 
   def editor(project: String, task: String) = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
