@@ -188,14 +188,7 @@ object Silk {
     */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
-    val workspaceProvider = new InMemoryWorkspaceProvider() {
-      /**
-        * Read and write resources from/to the current directory.
-        */
-      override def projectResources(name: Identifier): ResourceManager = {
-        FileResourceManager(new File("."))
-      }
-    }
+    val workspaceProvider = new InMemoryWorkspaceProvider()
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)

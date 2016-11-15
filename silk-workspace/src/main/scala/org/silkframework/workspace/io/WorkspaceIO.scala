@@ -8,6 +8,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
@@ -21,19 +22,19 @@ object WorkspaceIO {
   /**
     * Copies all projects in one workspace to another workspace.
     */
-  def copyProjects(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider): Unit = {
+  def copyProjects(inputWorkspace: WorkspaceProvider, inputResources: ResourceRepository, outputWorkspace: WorkspaceProvider, outputResources: ResourceRepository): Unit = {
     for(project <- inputWorkspace.readProjects()) {
-      copyProject(inputWorkspace, outputWorkspace, project)
+      copyProject(inputWorkspace, inputResources.get(project.id), outputWorkspace, outputResources.get(project.id), project)
     }
   }
 
   /**
     * Copies a project from one workspace to another workspace
     */
-  def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, project: ProjectConfig): Unit = {
+  def copyProject(inputWorkspace: WorkspaceProvider, inputResources: ResourceManager, outputWorkspace: WorkspaceProvider, outputResources: ResourceManager, project: ProjectConfig): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
-    copyResources(inputWorkspace.projectResources(updatedProjectConfig.id), outputWorkspace.projectResources(updatedProjectConfig.id))
+    copyResources(inputResources, outputResources)
     copyTasks[Dataset](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)

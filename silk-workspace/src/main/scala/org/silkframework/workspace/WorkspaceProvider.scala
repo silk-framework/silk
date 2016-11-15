@@ -5,6 +5,7 @@ import java.io.{InputStream, OutputStream}
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
 
@@ -24,11 +25,6 @@ trait WorkspaceProvider {
    * Deletes a project.
    */
   def deleteProject(name: Identifier): Unit
-
-  /**
-   * Retrieves the project resources (e.g. associated files).
-   */
-  def projectResources(name: Identifier): ResourceManager
 
   /**
    * Retrieves the project cache folder.

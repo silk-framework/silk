@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.xml._
 
 class FileUser extends User {
@@ -50,7 +51,7 @@ object FileUser {
           new FileWorkspaceProvider(workspaceDir.getAbsolutePath)
 
       // Create workspace
-      new Workspace(provider)
+      new Workspace(provider, ResourceRepository())
     }
     catch {
       case ex: Exception => {

@@ -34,11 +34,6 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   }
 
   /**
-    * Retrieves the project resources (e.g. associated files).
-    */
-  override def projectResources(name: Identifier): ResourceManager = projects(name).resources
-
-  /**
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = projects(name).cache

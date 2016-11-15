@@ -18,8 +18,9 @@ import java.io._
 import java.util.logging.Logger
 
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.resources.ResourceRepository
 
-class Workspace(val provider: WorkspaceProvider) {
+class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository = ResourceRepository()) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
@@ -48,7 +49,7 @@ class Workspace(val provider: WorkspaceProvider) {
       c.copy(projectResourceUriOpt = Some(c.generateDefaultUri))
     }
     provider.putProject(projectConfig)
-    val newProject = new Project(projectConfig, provider)
+    val newProject = new Project(projectConfig, provider, repository.get(name))
     cachedProjects :+= newProject
     newProject
   }
@@ -67,7 +68,7 @@ class Workspace(val provider: WorkspaceProvider) {
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
-    marshaller.marshal(project(name).config, outputStream, provider)
+    marshaller.marshal(project(name).config, outputStream, provider, repository.get(name))
   }
 
   /**
@@ -84,7 +85,7 @@ class Workspace(val provider: WorkspaceProvider) {
       case Some(_) =>
         throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
       case None =>
-        marshaller.unmarshalAndImport(name, provider, inputStream)
+        marshaller.unmarshalAndImport(name, provider, repository.get(name), inputStream)
         reload()
     }
   }
@@ -100,7 +101,7 @@ class Workspace(val provider: WorkspaceProvider) {
   private def loadProjects(): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
       logger.info("Loading project: " + projectConfig.id)
-      new Project(projectConfig, provider)
+      new Project(projectConfig, provider, repository.get(projectConfig.id))
     }
   }
 }

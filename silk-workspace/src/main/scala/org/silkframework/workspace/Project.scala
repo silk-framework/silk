@@ -34,11 +34,9 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: WorkspaceProvider) {
+class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: WorkspaceProvider, val resources: ResourceManager) {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
-
-  val resources: ResourceManager = provider.projectResources(initialConfig.id)
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 

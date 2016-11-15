@@ -13,6 +13,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workspace.resources.ResourceRepository
 
 /**
   * Created on 9/13/16.
@@ -34,6 +35,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val refreshTest = withRefresh(PROJECT_NAME)(_)
 
   private val workspace = createWorkspaceProvider()
+
+  private val repository = ResourceRepository()
 
   val rule =
     LinkageRule(
@@ -182,8 +185,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     workspace.readProjects().size shouldBe 1
     createProject(PROJECT_NAME)
     workspace.readProjects().size shouldBe 2
-    val res1 = workspace.projectResources(PROJECT_NAME)
-    val res2 = workspace.projectResources(PROJECT_NAME_OTHER)
+    val res1 = repository.get(PROJECT_NAME)
+    val res2 = repository.get(PROJECT_NAME_OTHER)
     res1 should not be theSameInstanceAs (res2)
     val child1 = res1.get(CHILD)
     child1.write("content")
@@ -192,7 +195,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     }
     val child1Other = res2.get(CHILD)
     child1 should not be theSameInstanceAs (child1Other)
-    val res1Again = workspace.projectResources(PROJECT_NAME)
+    val res1Again = repository.get(PROJECT_NAME)
     res1Again should be theSameInstanceAs res1
   }
 
