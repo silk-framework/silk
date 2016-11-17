@@ -9,12 +9,3 @@ trait ResourceRepository {
   def get(project: Identifier): ResourceManager
 
 }
-
-object ResourceRepository {
-
-  /**
-    * Returns the configured default repository.
-    */
-  lazy val default = PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
-
-}

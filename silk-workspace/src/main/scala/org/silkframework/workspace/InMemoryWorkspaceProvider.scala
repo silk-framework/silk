@@ -48,7 +48,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Reads all tasks of a specific type from a project.
     */
-  override def readTasks[T: ClassTag](project: Identifier): Seq[(Identifier, T)] = {
+  override def readTasks[T: ClassTag](project: Identifier, projectResources: ResourceManager): Seq[(Identifier, T)] = {
     for((id, task: T) <- projects(project).tasks.toSeq) yield (id, task)
   }
 

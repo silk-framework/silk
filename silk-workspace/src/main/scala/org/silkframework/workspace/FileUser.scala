@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.resources.ResourceRepository
+import org.silkframework.workspace.resources.{PerProjectFileRepository, ResourceRepository}
 import org.silkframework.workspace.xml._
 
 class FileUser extends User {
@@ -50,8 +50,14 @@ object FileUser {
         else
           new FileWorkspaceProvider(workspaceDir.getAbsolutePath)
 
+      val repository =
+        if(configMgr().hasPath("workspace.repository"))
+          PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
+        else
+          new PerProjectFileRepository(workspaceDir.getAbsolutePath)
+
       // Create workspace
-      new Workspace(provider, ResourceRepository.default)
+      new Workspace(provider, repository)
     }
     catch {
       case ex: Exception => {

@@ -15,5 +15,5 @@ case class PerProjectFileRepository(dir: String) extends ResourceRepository {
 
   val resourceManager = FileResourceManager(new File(dir))
 
-  override def get(project: Identifier): ResourceManager = resourceManager.child(project)
+  override def get(project: Identifier): ResourceManager = resourceManager.child(project).child("resources")
 }

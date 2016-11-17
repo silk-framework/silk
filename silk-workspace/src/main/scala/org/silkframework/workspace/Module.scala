@@ -89,7 +89,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
       try {
-        val tasks = provider.readTasks(project.name)
+        val tasks = provider.readTasks(project.name, project.resources)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
           for ((name, data) <- tasks) yield (name, new ProjectTask(name, data, this))
         }

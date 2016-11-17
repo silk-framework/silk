@@ -20,7 +20,7 @@ import java.util.logging.Logger
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
-class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository = ResourceRepository.default) {
+class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 

@@ -34,7 +34,7 @@ trait WorkspaceProvider {
   /**
    * Reads all tasks of a specific type from a project.
    */
-  def readTasks[T <: TaskSpec : ClassTag](project: Identifier): Seq[(Identifier, T)]
+  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[(Identifier, T)]
 
   /**
    * Adds/Updates a task in a project.

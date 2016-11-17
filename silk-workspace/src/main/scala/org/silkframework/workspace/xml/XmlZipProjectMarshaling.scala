@@ -40,8 +40,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     val xmlResourceManager = InMemoryResourceManager()
     val xmlWorkspaceProvider = new XmlWorkspaceProvider(xmlResourceManager)
     // Load project into temporary XML workspace provider
-    exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider)
-    WorkspaceIO.copyResources(resourceManager, xmlWorkspaceProvider.projectResources(project.id))
+    exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
+                  Some(resourceManager), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
 
     // Go through all files and create a ZIP entry for each
     putResources(xmlResourceManager.child(project.id), "")
@@ -75,9 +75,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceManager: ResourceManager,
                                   inputStream: InputStream): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(projectName, inputStream)
-    val projectResources = xmlWorkspaceProvider.projectResources(projectName)
-    importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider)
-    WorkspaceIO.copyResources(projectResources, resourceManager)
+    val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
+    importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
   }
 
   private def createWorkspaceFromInputStream(projectName: Identifier,
@@ -102,6 +101,10 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       zip.close()
     }
     new XmlWorkspaceProvider(resourceManager)
+  }
+
+  private def getProjectResources(provider: XmlWorkspaceProvider, project: Identifier): ResourceManager = {
+    provider.resources.child(project).child("resources")
   }
 
   /** Handler for file suffix */

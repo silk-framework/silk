@@ -38,6 +38,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   private val repository = InMemoryResourceRepository()
 
+  private val projectResources = repository.get(PROJECT_NAME)
+
   val rule =
     LinkageRule(
       operator = Some(
@@ -93,14 +95,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   it should "read and write linking tasks" in {
     workspace.putTask(PROJECT_NAME, LINKING_TASK_ID, linkTask)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(linkTask)
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTask)
     }
   }
 
   it should "read and write dataset tasks" in {
     workspace.putTask(PROJECT_NAME, DATASET_ID, dataset)
     refreshTest {
-      val ds = workspace.readTasks[Dataset](PROJECT_NAME).headOption.map(_._2).get
+      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.map(_._2).get
       ds shouldBe dataset
     }
   }
@@ -108,67 +110,67 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   it should "read and write transformation tasks" in {
     workspace.putTask(PROJECT_NAME, TRANSFORM_ID, transformTask)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(transformTask)
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(transformTask)
     }
   }
 
   it should "read and write workflows" in {
     workspace.putTask(PROJECT_NAME, WORKFLOW_ID, miniWorkflow)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME).headOption.map(_._2) shouldBe Some(miniWorkflow)
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(miniWorkflow)
     }
   }
 
   it should "read and write Custom tasks" in {
     workspace.putTask(PROJECT_NAME, CUSTOM_TASK_ID, customTask)
     refreshTest {
-      workspace.readTasks[CustomTask](PROJECT_NAME).headOption.map(_._2) shouldBe Some(customTask)
+      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(customTask)
     }
   }
 
   it should "delete custom tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[CustomTask](PROJECT_NAME, CUSTOM_TASK_ID)
     refreshTest {
-      workspace.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete workflow tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[Workflow](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[Workflow](PROJECT_NAME, WORKFLOW_ID)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete linking tasks" in {
-    workspace.readTasks[LinkSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(linkTask)
+    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTask)
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[LinkSpec](PROJECT_NAME, LINKING_TASK_ID)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete transform tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[TransformSpec](PROJECT_NAME, TRANSFORM_ID)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete dataset tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[Dataset](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[Dataset](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspace.readTasks[Dataset](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
