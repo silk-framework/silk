@@ -36,7 +36,12 @@ trait Resource {
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
-    Source.fromInputStream(load)(codec).getLines.mkString("\n")
+    val source = Source.fromInputStream(load)(codec)
+    try {
+      source.getLines.mkString("\n")
+    } finally {
+      source.close()
+    }
   }
 
   /**
