@@ -75,8 +75,9 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceManager: ResourceManager,
                                   inputStream: InputStream): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(projectName, inputStream)
+    val projectResources = xmlWorkspaceProvider.resources.child(projectName).child("resources")
     importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider)
-    WorkspaceIO.copyResources(xmlWorkspaceProvider.resources, resourceManager)
+    WorkspaceIO.copyResources(projectResources, resourceManager)
   }
 
   private def createWorkspaceFromInputStream(projectName: Identifier,

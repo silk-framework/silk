@@ -28,7 +28,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
-import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
@@ -190,8 +190,8 @@ object Silk {
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
     val projectId = Identifier("project")
-    val workspaceProvider = new InMemoryWorkspaceProvider()
-    val resourceRepository = new InMemoryResourceRepository
+    val workspaceProvider = InMemoryWorkspaceProvider()
+    val resourceRepository = FileRepository(".")
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
