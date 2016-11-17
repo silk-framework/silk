@@ -1,10 +1,9 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.vocab.{Vocabularies, Vocabulary, VocabularyManager}
+import org.silkframework.rule.vocab.{Vocabularies, VocabularyManager}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.workspace.{ProjectTask, RdfWorkspaceProvider, User}
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.PathsCacheTrait
 
 /**
@@ -24,5 +23,4 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends Activity[Vocabul
       context.value() = Vocabularies(vocabularies.toSeq.sortBy(_.info.uri))
     }
   }
-
 }
