@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
-import org.silkframework.workspace.resources.ResourceRepository
+import org.silkframework.workspace.resources.{InMemoryResourceRepository, ResourceRepository}
 
 /**
   * Created on 9/13/16.
@@ -36,7 +36,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   private val workspace = createWorkspaceProvider()
 
-  private val repository = ResourceRepository()
+  private val repository = InMemoryResourceRepository()
 
   val rule =
     LinkageRule(
