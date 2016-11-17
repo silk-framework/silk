@@ -6,6 +6,7 @@ import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, ResourceManager, UrlResourceManager}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
 
@@ -36,10 +37,11 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                        resourceManager: ResourceManager): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
-    val resourceManager = UrlResourceManager(InMemoryResourceManager())
-    val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
+    val xmlResourceManager = InMemoryResourceManager()
+    val xmlWorkspaceProvider = new XmlWorkspaceProvider(xmlResourceManager)
     // Load project into temporary XML workspace provider
-    exportProject(project.id, workspaceProvider, resourceManager, exportToWorkspace = xmlWorkspaceProvider, exportToRepository = resourceManager)
+    exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider)
+    WorkspaceIO.copyResources(resourceManager, xmlResourceManager.child("resources"))
 
     // Go through all files and create a ZIP entry for each
     putResources(resourceManager.child(project.id), "")
@@ -73,7 +75,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceManager: ResourceManager,
                                   inputStream: InputStream): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(projectName, inputStream)
-    importProject(projectName, workspaceProvider, resourceManager, importFromWorkspace = xmlWorkspaceProvider, importFromRepository = xmlWorkspaceProvider.resources)
+    importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider)
+    WorkspaceIO.copyResources(xmlWorkspaceProvider.resources, resourceManager)
   }
 
   private def createWorkspaceFromInputStream(projectName: Identifier,

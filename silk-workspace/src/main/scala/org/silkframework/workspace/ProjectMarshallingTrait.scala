@@ -68,26 +68,22 @@ trait ProjectMarshallingTrait {
     */
   protected def importProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
-                              resourceRepository: ResourceManager,
-                              importFromWorkspace: WorkspaceProvider,
-                              importFromRepository: ResourceManager): Unit = {
+                              importFromWorkspace: WorkspaceProvider): Unit = {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().zipWithIndex) {
       val targetProject = if (index == 0) projectName else projectName + index
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      WorkspaceIO.copyProject(importFromWorkspace, importFromRepository, workspaceProvider, resourceRepository, projectConfig)
+      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, projectConfig)
     }
   }
 
   protected def exportProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
-                              resourceRepository: ResourceManager,
-                              exportToWorkspace: WorkspaceProvider,
-                              exportToRepository: ResourceManager): Unit = {
+                              exportToWorkspace: WorkspaceProvider): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
-    WorkspaceIO.copyProject(workspaceProvider, resourceRepository, exportToWorkspace, exportToRepository, project)
+    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, project)
   }
 }

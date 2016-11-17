@@ -21,20 +21,21 @@ object WorkspaceIO {
 
   /**
     * Copies all projects in one workspace to another workspace.
+    * Does not copy resources.
     */
-  def copyProjects(inputWorkspace: WorkspaceProvider, inputResources: ResourceRepository, outputWorkspace: WorkspaceProvider, outputResources: ResourceRepository): Unit = {
+  def copyProjects(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider): Unit = {
     for(project <- inputWorkspace.readProjects()) {
-      copyProject(inputWorkspace, inputResources.get(project.id), outputWorkspace, outputResources.get(project.id), project)
+      copyProject(inputWorkspace, outputWorkspace, project)
     }
   }
 
   /**
-    * Copies a project from one workspace to another workspace
+    * Copies a project from one workspace to another workspace.
+    * Does not copy resources.
     */
-  def copyProject(inputWorkspace: WorkspaceProvider, inputResources: ResourceManager, outputWorkspace: WorkspaceProvider, outputResources: ResourceManager, project: ProjectConfig): Unit = {
+  def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, project: ProjectConfig): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
-    copyResources(inputResources, outputResources)
     copyTasks[Dataset](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, updatedProjectConfig.id)
