@@ -12,8 +12,9 @@ trait ResourceRepository {
 
 object ResourceRepository {
 
-  private lazy val instance = PluginRegistry.createFromConfig("workspace.repository")
-
-  def apply(): ResourceRepository = instance
+  /**
+    * Returns the configured default repository.
+    */
+  lazy val default = PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
 
 }

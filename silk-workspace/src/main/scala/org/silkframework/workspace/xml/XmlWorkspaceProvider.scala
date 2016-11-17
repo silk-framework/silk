@@ -12,7 +12,7 @@ import scala.xml.XML
 /**
   * Holds all projects in a xml-based file structure.
   */
-class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
+class XmlWorkspaceProvider(resources: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
 
   @volatile
   private var plugins = Map[Class[_], XmlSerializer[_]]()
@@ -56,6 +56,10 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     */
   def projectCache(name: Identifier): ResourceManager = {
     resources.child(name)
+  }
+
+  def projectResources(project: Identifier): ResourceManager = {
+    resources.child(project).child("resources")
   }
 
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier): Seq[(Identifier, T)] = {

@@ -41,10 +41,10 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     val xmlWorkspaceProvider = new XmlWorkspaceProvider(xmlResourceManager)
     // Load project into temporary XML workspace provider
     exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider)
-    WorkspaceIO.copyResources(resourceManager, xmlResourceManager.child("resources"))
+    WorkspaceIO.copyResources(resourceManager, xmlWorkspaceProvider.projectResources(project.id))
 
     // Go through all files and create a ZIP entry for each
-    putResources(resourceManager.child(project.id), "")
+    putResources(xmlResourceManager.child(project.id), "")
 
     def putResources(loader: ResourceLoader, basePath: String): Unit = {
       for (resName <- loader.list) {
@@ -75,7 +75,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceManager: ResourceManager,
                                   inputStream: InputStream): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(projectName, inputStream)
-    val projectResources = xmlWorkspaceProvider.resources.child(projectName).child("resources")
+    val projectResources = xmlWorkspaceProvider.projectResources(projectName)
     importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider)
     WorkspaceIO.copyResources(projectResources, resourceManager)
   }

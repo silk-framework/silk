@@ -51,7 +51,7 @@ object FileUser {
           new FileWorkspaceProvider(workspaceDir.getAbsolutePath)
 
       // Create workspace
-      new Workspace(provider, ResourceRepository())
+      new Workspace(provider, ResourceRepository.default)
     }
     catch {
       case ex: Exception => {
