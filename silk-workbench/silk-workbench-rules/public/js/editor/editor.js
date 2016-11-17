@@ -131,6 +131,8 @@ window.onbeforeunload = confirmExit;
 function initEditor()
 {
   jsPlumb.reset();
+  handler = new DynamicEndpointHandler();
+
   $("#droppable").droppable({
     drop: function (ev, ui) {
       var draggedClass = $(ui.draggable).attr("class");
@@ -244,6 +246,7 @@ function initEditor()
     updateWindowSize();
     updateScore();
   }
+
 }
 
 function confirmExit() {
