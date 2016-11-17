@@ -40,11 +40,12 @@ object WorkspaceIO {
     outputWorkspace.putProject(updatedProjectConfig)
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
-    copyTasks[Dataset](inputWorkspace, outputWorkspace, outputResources, updatedProjectConfig.id)
-    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, outputResources, updatedProjectConfig.id)
-    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, outputResources, updatedProjectConfig.id)
-    copyTasks[Workflow](inputWorkspace, outputWorkspace, outputResources, updatedProjectConfig.id)
-    copyTasks[CustomTask](inputWorkspace, outputWorkspace, outputResources, updatedProjectConfig.id)
+    val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager))
+    copyTasks[Dataset](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     outputWorkspace match {
       case rw: RefreshableWorkspaceProvider =>
         rw.refresh()
@@ -67,8 +68,8 @@ object WorkspaceIO {
     }
   }
 
-  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, resources: Option[ResourceManager], projectName: Identifier): Unit = {
-    for((taskName, taskData) <- inputWorkspace.readTasks[T](projectName, resources.getOrElse(EmptyResourceManager))) {
+  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, resources: ResourceManager, projectName: Identifier): Unit = {
+    for((taskName, taskData) <- inputWorkspace.readTasks[T](projectName, resources)) {
       outputWorkspace.putTask(projectName, taskName, taskData)
     }
   }
