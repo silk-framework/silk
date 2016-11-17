@@ -33,6 +33,18 @@ case class Parameter(name: String,
     * Retrieves the current value of this parameter as string.
     */
   def stringValue(obj: AnyRef): String = {
-    dataType.asInstanceOf[ParameterType[AnyRef]].toString(apply(obj))
+    formatValue(apply(obj))
+  }
+
+  def stringDefaultValue: Option[String] = {
+    for(value <- defaultValue) yield formatValue(value)
+  }
+
+  def stringExampleValue: Option[String] = {
+    for(value <- exampleValue) yield formatValue(value)
+  }
+
+  private def formatValue(value: AnyRef) = {
+    dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 }
