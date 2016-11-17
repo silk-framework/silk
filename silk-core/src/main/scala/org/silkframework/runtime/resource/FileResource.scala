@@ -15,6 +15,8 @@ class FileResource(val file: File) extends WritableResource {
 
   def exists = file.exists()
 
+  def size = Some(file.length)
+
   override def load = {
     new BufferedInputStream(new FileInputStream(file))
   }

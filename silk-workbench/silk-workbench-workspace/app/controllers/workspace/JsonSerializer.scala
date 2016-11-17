@@ -7,6 +7,7 @@ import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -46,7 +47,22 @@ object JsonSerializer {
   )
 
   def projectResources(project: Project) = {
-    JsArray(project.resources.list.map(JsString))
+    JsArray(
+      project.resources.list.map(r => resourceProperties(project.resources.get(r)))
+    )
+  }
+
+  def resourceProperties(resource: Resource) = {
+    val sizeValue = resource.size match {
+      case Some(size) => JsNumber(BigDecimal.decimal(size))
+      case None => JsNull
+    }
+
+    Json.obj(
+      "relativePath" -> resource.name,
+      "absolutePath" -> resource.path,
+      "size" -> sizeValue
+    )
   }
 
   def projectActivities(project: Project) = JsArray(

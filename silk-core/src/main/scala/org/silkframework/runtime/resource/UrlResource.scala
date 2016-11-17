@@ -36,6 +36,8 @@ case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readT
     )
   }
 
+  override def size = None
+
   private def handleStream[T](handleStreamFN: InputStream => T, failValue: T): T = {
     var is: InputStream = null
     try {

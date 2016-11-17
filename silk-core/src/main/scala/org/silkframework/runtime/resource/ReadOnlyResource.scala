@@ -13,6 +13,8 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
 
   override def exists = resource.exists
 
+  override def size = resource.size
+
   override def load: InputStream = resource.load
 
   override def write(write: (OutputStream) => Unit): Unit = {

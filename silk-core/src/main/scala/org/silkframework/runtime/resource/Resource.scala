@@ -25,6 +25,12 @@ trait Resource {
   def exists: Boolean
 
   /**
+    * Returns the size of this resource in bytes.
+    * Returns None if the size is not known.
+    */
+  def size: Option[Long]
+
+  /**
    * Loads the resource.
    *
    * @return An input stream for reading the resource.

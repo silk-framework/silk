@@ -45,4 +45,6 @@ case class OutputStreamWritableResource(outputStream: OutputStream) extends Writ
   override def exists: Boolean = {
     outputStream != null
   }
+
+  override def size = None
 }
