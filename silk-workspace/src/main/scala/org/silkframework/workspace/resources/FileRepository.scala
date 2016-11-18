@@ -9,7 +9,7 @@ import org.silkframework.util.Identifier
 @Plugin(
   id = "file",
   label = "File Resources",
-  description = ""
+  description = "Holds all resources in a specified folder."
 )
 case class FileRepository(dir: String) extends ResourceRepository {
 

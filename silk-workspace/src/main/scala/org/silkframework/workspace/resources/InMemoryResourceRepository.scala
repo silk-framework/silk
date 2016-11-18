@@ -9,11 +9,11 @@ import org.silkframework.util.Identifier
 @Plugin(
   id = "inMemory",
   label = "In-Memory Resources",
-  description = ""
+  description = "Holds all resource in-memory."
 )
 case class InMemoryResourceRepository() extends ResourceRepository {
 
   val resourceManager = InMemoryResourceManager()
 
-  override def get(project: Identifier): ResourceManager = resourceManager.child(project)
+  override def get(project: Identifier): ResourceManager = resourceManager.child(project).child("resources")
 }
