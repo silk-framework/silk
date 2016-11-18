@@ -8,7 +8,7 @@ import org.silkframework.util.Identifier
 
 @Plugin(
   id = "inMemory",
-  label = "In-Memory Resources",
+  label = "In-memory resources",
   description = "Holds all resource in-memory."
 )
 case class InMemoryResourceRepository() extends ResourceRepository {

@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 @Plugin(
   id = "inMemory",
-  label = "in-memory",
+  label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
 case class InMemoryWorkspaceProvider() extends WorkspaceProvider with RefreshableWorkspaceProvider {

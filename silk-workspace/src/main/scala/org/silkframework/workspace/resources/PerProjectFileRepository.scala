@@ -8,7 +8,7 @@ import org.silkframework.util.Identifier
 
 @Plugin(
   id = "projectFile",
-  label = "File Resources",
+  label = "Per-project file resources",
   description = "Holds all resources in project specific directories."
 )
 case class PerProjectFileRepository(dir: String) extends ResourceRepository {
