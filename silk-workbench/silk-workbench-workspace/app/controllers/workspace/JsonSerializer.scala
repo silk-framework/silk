@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import java.io.File
 import java.util.logging.LogRecord
 
 import org.silkframework.config.{Task, TaskSpec}
@@ -7,7 +8,7 @@ import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -47,19 +48,30 @@ object JsonSerializer {
   )
 
   def projectResources(project: Project) = {
-    JsArray(
-      project.resources.list.map(r => resourceProperties(project.resources.get(r)))
-    )
+    JsArray(resourcesArray(project.resources))
   }
 
-  def resourceProperties(resource: Resource) = {
+  def resourcesArray(resources: ResourceManager, pathPrefix: String = ""): Seq[JsValue] = {
+    val directResources =
+      for(resourceName <- resources.list) yield
+        resourceProperties(resources.get(resourceName), pathPrefix)
+
+    val childResources =
+      for(resourceName <- resources.listChildren) yield
+        resourcesArray(resources.child(resourceName), pathPrefix + resourceName + File.separator)
+
+    directResources ++ childResources.flatten
+  }
+
+  def resourceProperties(resource: Resource, pathPrefix: String = "") = {
     val sizeValue = resource.size match {
       case Some(size) => JsNumber(BigDecimal.decimal(size))
       case None => JsNull
     }
 
     Json.obj(
-      "relativePath" -> resource.name,
+      "name" -> resource.name,
+      "relativePath" -> JsString(pathPrefix + resource.name),
       "absolutePath" -> resource.path,
       "size" -> sizeValue
     )
