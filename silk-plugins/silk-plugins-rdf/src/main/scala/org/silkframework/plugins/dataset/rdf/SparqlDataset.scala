@@ -7,7 +7,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
 
 @Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
-  @Param("The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
+  @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
   endpointURI: String,
   @Param("Login required for authentication")
   login: String = null,

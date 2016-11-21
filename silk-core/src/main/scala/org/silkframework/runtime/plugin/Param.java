@@ -11,6 +11,13 @@ import java.lang.annotation.*;
 public @interface Param {
 
   /**
+   * A human-readable label for the annotated parameter.
+   * If not provided the label will be generated from the parameter name.
+   * Thus, overwriting the label is usually not necessary.
+   */
+  String label() default "";
+
+  /**
    * The description for the annotated parameter.
    */
   String value();

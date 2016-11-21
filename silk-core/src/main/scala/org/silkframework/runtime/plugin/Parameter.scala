@@ -16,8 +16,19 @@ package org.silkframework.runtime.plugin
 
 import scala.language.existentials
 
+/**
+  * A plugin parameter.
+  *
+  * @param name The parameter name as used by the plugin class
+  * @param dataType The type of the parameter
+  * @param label A human-readable label of the parameter
+  * @param description A human-readable description of the parameter
+  * @param defaultValue The default value, if any
+  * @param exampleValue An example value for this parameter
+  */
 case class Parameter(name: String,
                      dataType: ParameterType[_],
+                     label: String,
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None) {
