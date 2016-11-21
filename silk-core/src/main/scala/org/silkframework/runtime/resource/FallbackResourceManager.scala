@@ -64,6 +64,15 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
         None
     }
 
+    override def modificationTime = {
+      if(primaryResource.exists)
+        primaryResource.modificationTime
+      else if(fallbackResource.exists)
+        fallbackResource.modificationTime
+      else
+        None
+    }
+
     /**
       * Preferred method for writing to a resource.
       *

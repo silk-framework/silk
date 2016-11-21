@@ -69,11 +69,17 @@ object JsonSerializer {
       case None => JsNull
     }
 
+    val modificationValue = resource.modificationTime match {
+      case Some(time) => JsString(time.toString)
+      case None => JsNull
+    }
+
     Json.obj(
       "name" -> resource.name,
       "relativePath" -> JsString(pathPrefix + resource.name),
       "absolutePath" -> resource.path,
-      "size" -> sizeValue
+      "size" -> sizeValue,
+      "modificationDate" -> modificationValue
     )
   }
 

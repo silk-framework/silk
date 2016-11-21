@@ -47,4 +47,6 @@ case class OutputStreamWritableResource(outputStream: OutputStream) extends Writ
   }
 
   override def size = None
+
+  override def modificationTime = None
 }

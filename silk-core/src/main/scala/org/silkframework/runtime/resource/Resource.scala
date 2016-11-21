@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io.{ByteArrayOutputStream, InputStream}
+import java.time.Instant
 
 import scala.io.{Codec, Source}
 
@@ -29,6 +30,12 @@ trait Resource {
     * Returns None if the size is not known.
     */
   def size: Option[Long]
+
+  /**
+    * The time that the resource was last modified.
+    * Returns None if the time is not known.
+    */
+  def modificationTime: Option[Instant]
 
   /**
    * Loads the resource.

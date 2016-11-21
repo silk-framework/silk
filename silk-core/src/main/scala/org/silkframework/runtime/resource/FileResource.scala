@@ -1,6 +1,8 @@
 package org.silkframework.runtime.resource
 
 import java.io._
+import java.nio.file.Files
+import java.time.Instant
 
 /**
   * A resource on the file system.
@@ -16,6 +18,8 @@ class FileResource(val file: File) extends WritableResource {
   def exists = file.exists()
 
   def size = Some(file.length)
+
+  def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
 
   override def load = {
     new BufferedInputStream(new FileInputStream(file))

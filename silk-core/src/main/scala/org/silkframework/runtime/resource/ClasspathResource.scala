@@ -15,6 +15,8 @@ class ClasspathResource(val path: String) extends Resource {
 
   def size = None
 
+  def modificationTime = None
+
   override def load = {
     getClass.getClassLoader.getResourceAsStream(path)
   }
