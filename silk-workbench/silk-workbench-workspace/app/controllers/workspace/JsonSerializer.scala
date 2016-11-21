@@ -79,7 +79,7 @@ object JsonSerializer {
       "relativePath" -> JsString(pathPrefix + resource.name),
       "absolutePath" -> resource.path,
       "size" -> sizeValue,
-      "modificationDate" -> modificationValue
+      "modified" -> modificationValue
     )
   }
 
