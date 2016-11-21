@@ -15,10 +15,11 @@ case class RdfVocabularyManager() extends VocabularyManager {
   private lazy val loader = new VocabularyLoader(workspaceSparqlEndpoint)
 
   override def get(uri: String): Vocabulary = {
+    val classes = loader.retrieveClasses(uri)
     Vocabulary(
       info = Info(uri, None, None),
-      classes = loader.retrieveClasses(uri),
-      properties = Traversable.empty
+      classes = classes,
+      properties = loader.retrieveProperties(uri, classes)
     )
   }
 
