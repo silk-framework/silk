@@ -40,7 +40,7 @@ case class TransformSpec(selection: DatasetSelection,
     Some(
       EntitySchema(
         typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-        paths = rules.flatMap(_.target).map(Path(_)).toIndexedSeq
+        paths = rules.flatMap(_.target).map(mt => Path(mt.propertyUri)).toIndexedSeq
       )
     )
   }

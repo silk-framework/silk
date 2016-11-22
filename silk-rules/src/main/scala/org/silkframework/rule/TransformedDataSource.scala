@@ -32,7 +32,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    transform.rules.flatMap(_.target).map(Path(_)).distinct.toIndexedSeq
+    transform.rules.flatMap(_.target).map(mt => Path(mt.propertyUri)).distinct.toIndexedSeq
   }
 
   /**
@@ -61,7 +61,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     val subjectRule = transform.rules.find(_.target.isEmpty)
     val pathRules =
       for(path <- entitySchema.paths) yield {
-        transform.rules.filter(_.target == path.propertyUri)
+        transform.rules.filter(_.target.map(_.propertyUri) == path.propertyUri)
       }
 
     val sourceEntitySchema =

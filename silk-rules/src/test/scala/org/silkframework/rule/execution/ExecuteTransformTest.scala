@@ -8,7 +8,7 @@ import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.rule.execution.{ExecuteTransform, ExecuteTransformResult}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
-import org.silkframework.rule.{ComplexMapping, DatasetSelection}
+import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingTarget}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -64,7 +64,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
 
   private def mapping(id: String, prop: String) = {
     val transformation = TransformInput(inputs = Seq(PathInput(path = Path(prop))), transformer = transformerWithExceptions())
-    ComplexMapping(name = Identifier(id), operator = transformation, target = Some(Uri(prop + "Target")))
+    ComplexMapping(name = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 
   private def datasetSelection(): DatasetSelection = {

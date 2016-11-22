@@ -217,7 +217,7 @@
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
     </div>
   </td>
 }
@@ -244,7 +244,7 @@
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.propertyUri.serialize(prefixes())">
     </div>
   </td>
 }
@@ -257,7 +257,7 @@
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
     </div>
   </td>
 }

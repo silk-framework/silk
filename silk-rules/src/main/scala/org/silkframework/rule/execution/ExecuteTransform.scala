@@ -45,7 +45,7 @@ class ExecuteTransform(input: DataSource,
     var errorResults = ExecuteTransformResult.initial(propertyRules)
     try {
       // Open outputs
-      val properties = propertyRules.map(_.target.get.uri)
+      val properties = propertyRules.map(_.target.get.propertyUri.uri)
       for (output <- outputs) output.open(properties)
       val inputProperties = entitySchema.paths.map( p =>
         p.propertyUri.map(_.uri).getOrElse(p.toString)).toIndexedSeq
