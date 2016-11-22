@@ -198,6 +198,8 @@ class TransformTaskApi extends Controller {
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String) = Action {
     val (project, task) = projectAndTask(projectName, taskName)
+    val prefixes = project.config.prefixes
+    val maxCompletions = 20
 
     // Collect all caches with MappingCandidates and suggest completions
     val mappingCandidates = {
@@ -211,10 +213,18 @@ class TransformTaskApi extends Controller {
     }
 
     val mappingCompletions = mappingCandidates.flatten.sortBy(-_.confidence).map(_.uri.toString)
-    val prefixCompletions = project.config.prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
+    val prefixCompletions = prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
+    val completions = mappingCompletions ++ prefixCompletions
 
     // Filter all completions that match the search term
-    val matches = (mappingCompletions ++ prefixCompletions).filter(_.contains(term))
+    var matches = completions.filter(_.contains(term)).take(maxCompletions)
+
+    // If no completions match, return some suggestions anyway
+    if(matches.isEmpty)
+      matches = completions.take(maxCompletions)
+
+    // Remove duplicates and shorten URIs
+    matches = matches.distinct.map(prefixes.shorten)
 
     // Convert to JSON and return
     Ok(JsArray(matches.map(JsString)))
