@@ -633,7 +633,7 @@ function updateScore() {
 function addEndpoints(boxId, boxClass) {
   var boxEndpoints = {};
   // todo: instead of doing search() over the class string, maybe using something like $.hasClass would be more intuitive
-  if (boxClass.search(/aggregate/) != -1) {
+  if ((boxClass.search(/aggregator/) != -1) || (boxClass.search(/aggregate/) != -1)) {
     boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointSimilarityTarget);
     boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointSimilaritySource);
   }
