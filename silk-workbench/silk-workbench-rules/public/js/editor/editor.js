@@ -136,7 +136,7 @@ function initEditor()
   $("#droppable").droppable({
     drop: function (ev, ui) {
       var draggedClass = $(ui.draggable).attr("class");
-      var boxid = ui.helper.attr('id');
+      var boxId = ui.helper.attr('id');
 
       // Check if we still need to add endpoints to the dropped element
       if(jsPlumb.getEndpoints(ui.helper) === undefined) {
@@ -144,38 +144,21 @@ function initEditor()
         ui.helper.appendTo(this);
 
         // Set operator name to current id
-        $('#' + boxid + " .handler label").text(boxid);
+        $('#' + boxId + " .handler label").text(boxId);
 
         // Make operator draggable
-        jsPlumb.draggable($('#' + boxid));
+        jsPlumb.draggable($('#' + boxId));
 
-        if (draggedClass.search(/aggregator/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
-          jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-        }
-        else if (draggedClass.search(/comparator/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueTarget);
-          jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-        }
-        else if (draggedClass.search(/transform/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueSource);
-          jsPlumb.addEndpoint(boxid, endpointValueTarget);
-        }
-        else if (draggedClass.search(/source/) != -1 || draggedClass.search(/target/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueSource);
-        }
-        else {
-          alert("Invalid Element dropped: " + draggedClass);
-        }
+        addEndpoints(boxId, draggedClass);
 
         // fix the position of the new added box
-        var offset = $('#' + boxid).offset();
+        var offset = $('#' + boxId).offset();
         var scrollleft = $("#droppable").scrollLeft();
         var scrolltop = $("#droppable").scrollTop();
         var top = offset.top-118+scrolltop+scrolltop;
         var left = offset.left-504+scrollleft+scrollleft;
-        $('#' + boxid).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
-        jsPlumb.repaint(boxid);
+        $('#' + boxId).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
+        jsPlumb.repaint(boxId);
         modifyLinkSpec();
       }
     }
@@ -519,45 +502,26 @@ function loadInstance(index) {
   });
 
   for (var i = 0; i<elements.length; i++) {
-    var endpoint_right = null;
-    var endpoint_left = null;
     var box = elements[i][0].clone();
-    var boxid = box.attr('id');
-    var boxclass = box.attr('class');
+    var boxId = box.attr('id');
+    var boxClass = box.attr('class');
 
     $("#droppable").append(box);
 
-    if (boxclass.search(/aggregate/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-    }
-    else if (boxclass.search(/compare/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-    }
-    else if (boxclass.search(/transform/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
-    }
-    else if (boxclass.search(/source/) != -1 || boxclass.search(/target/) != -1) {
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
-    }
-    else {
-      alert("Invalid Element dropped: " + boxclass);
-    }
+    var boxEndpoints = addEndpoints(boxId, boxClass);
 
-    endpoints[boxid] = endpoint_left;
-    elements[i][2] = endpoint_right;
+    endpoints[boxId] = boxEndpoints.left;
+    elements[i][2] = boxEndpoints.right;
     jsPlumb.draggable(box);
   }
 
   for(var j = 0; j < elements.length; j++) {
-    var endp_left = elements[j][2];
-    var endp_right = endpoints[elements[j][1]];
-    if (endp_left && endp_right) {
+    var endpoint_left = elements[j][2];
+    var endpoint_right = endpoints[elements[j][1]];
+    if (endpoint_left && endpoint_right) {
       jsPlumb.connect({
-        sourceEndpoint: endp_left,
-        targetEndpoint: endp_right
+        sourceEndpoint: endpoint_left,
+        targetEndpoint: endpoint_right
       });
     }
   }
@@ -666,3 +630,28 @@ function updateScore() {
   });
 }
 
+function addEndpoints(boxId, boxClass) {
+  var boxEndpoints = {};
+  // todo: instead of doing search() over the class string, maybe using something like $.hasClass would be more intuitive
+  if (boxClass.search(/aggregate/) != -1) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointSimilarityTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointSimilaritySource);
+  }
+  // todo: these classes should be named consistently, not sometimes "compareDiv", and sometimes "comparators"
+  else if ((boxClass.search(/comparator/) != -1) || (boxClass.search(/compare/) != -1)) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointSimilaritySource);
+  }
+  else if (boxClass.search(/transform/) != -1) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
+  }
+  else if (boxClass.search(/source/) != -1 || boxClass.search(/target/) != -1) {
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
+  }
+  else {
+    alert("Invalid Element dropped: " + boxClass);
+  }
+
+  return boxEndpoints;
+}
