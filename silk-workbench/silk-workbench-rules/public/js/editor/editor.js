@@ -663,5 +663,6 @@ function updateScore() {
         setTimeout('updateScore()', 2000);
       }
     }
-  })
+  });
 }
+
