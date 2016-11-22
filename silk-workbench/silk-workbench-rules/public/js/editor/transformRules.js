@@ -33,17 +33,8 @@ $(function() {
   $("#ruleContainer").on("sortupdate", function( event, ui ) { modified() } );
 
   // Add autocompletion
-   $(".source").autocomplete({
-     source: apiUrl + "/sourcePathCompletions",
-     minLength: 0,
-     position: { my: "left bottom", at: "left top", collision: "flip" }
-   }).focus(function() { $(this).autocomplete("search"); });
-
-   $(".target").autocomplete({
-    source: apiUrl + "/targetPathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" }
-   }).focus(function() { $(this).autocomplete("search"); });
+  addSourceAutocomplete($(".source"));
+  addTargetAutocomplete($(".target"));
 
    // toggle URI mapping UI
    uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
@@ -290,17 +281,8 @@ function addRule(template) {
   componentHandler.upgradeAllRegistered();
 
   // Add autocompletion
-  newRule.find(".source").autocomplete({
-    source: apiUrl + "/sourcePathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" }
-  }).focus(function() { $(this).autocomplete("search"); });
-
-  newRule.find(".target").autocomplete({
-    source: apiUrl + "/targetPathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" }
-  }).focus(function() { $(this).autocomplete("search"); });
+  addSourceAutocomplete(newRule.find(".source"));
+  addTargetAutocomplete(newRule.find(".target"));
 
   // Set modification flag
   modified();
@@ -375,4 +357,26 @@ function showURIMapping(defined) {
     $(".uri-ui--defined").hide();
     $(".uri-ui--replacement").show();
   }
+}
+
+function addSourceAutocomplete(sourceInputs) {
+  sourceInputs.autocomplete({
+    source: apiUrl + "/sourcePathCompletions",
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" }
+  }).focus(function() { $(this).autocomplete("search"); });
+}
+
+function addTargetAutocomplete(targetInputs) {
+  targetInputs.each(function() {
+    var sourceInput = $(this).closest("tr").find(".source");
+    $(this).autocomplete({
+      source: function( request, response ) {
+        request.sourcePath = sourceInput.val();
+        $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
+      },
+      minLength: 0,
+      position: { my: "left bottom", at: "left top", collision: "flip" }
+    }).focus(function() { $(this).autocomplete("search"); });
+  });
 }
