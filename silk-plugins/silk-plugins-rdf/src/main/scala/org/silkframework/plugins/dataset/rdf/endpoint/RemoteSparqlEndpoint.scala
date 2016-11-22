@@ -70,6 +70,35 @@ case class RemoteSparqlEndpoint(val sparqlParams: SparqlParams) extends SparqlEn
     }
   }
 
+  override def construct(query: String): String = {
+    val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
+    //Open connection
+    val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
+    httpConnection.setRequestProperty("ACCEPT", "text/turtle")
+    //Set authentication
+    for ((user, password) <- sparqlParams.login) {
+      httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
+    }
+
+    try {
+      val inputStream = httpConnection.getInputStream
+      val result = Source.fromInputStream(inputStream).getLines().mkString("\n")
+      inputStream.close()
+      result
+    } catch {
+      case ex: IOException =>
+        val errorStream = httpConnection.getErrorStream
+        if (errorStream != null) {
+          val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+          throw new IOException(errorMessage, ex)
+        } else {
+          throw ex
+        }
+    } finally {
+      httpConnection.disconnect()
+    }
+  }
+
   override def update(query: String): Unit = {
     //Open a new HTTP connection
     val connection = new URL(sparqlParams.uri).openConnection().asInstanceOf[HttpURLConnection]
