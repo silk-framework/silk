@@ -3,6 +3,7 @@
 @import controllers.workflow.routes.Assets
 @import views.html.workspace.activity.taskActivityControl
 @import org.silkframework.workspace.activity.workflow.OldWorkflowExecutor
+@import models.workflow.WorkflowConfig
 
 @(context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
@@ -28,7 +29,7 @@
       <div class="spacer"/>
     </li>
     <li>
-      @taskActivityControl(context.task.activity[OldWorkflowExecutor], showButtons = true)
+      @taskActivityControl(context.task.activity(WorkflowConfig.executorName), showButtons = true)
     </li>
   </ul>
 }
