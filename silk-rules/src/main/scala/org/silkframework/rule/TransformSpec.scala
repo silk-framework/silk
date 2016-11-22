@@ -64,7 +64,7 @@ object TransformSpec {
       val rules = (node \ "TransformRule").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
-      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text)
+      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
       // Create and return a TransformSpecification instance.
       TransformSpec(datasetSelection, rules, sinks, errorSinks, targetVocabularies)
