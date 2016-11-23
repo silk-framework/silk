@@ -20,62 +20,65 @@ import org.silkframework.util.Uri
 import scala.ref.WeakReference
 
 /**
- * Represents an RDF path.
- */
+  * Represents an RDF path.
+  */
 final class Path private(val operators: List[PathOperator]) extends Serializable {
 
   private val serializedFull = serialize()
 
   /**
-   * Serializes this path using the Silk RDF path language.
-   */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty) = operators.map(_.serialize).mkString
+    * Serializes this path using the Silk RDF path language.
+    */
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = operators.map(_.serialize).mkString
 
   /**
-   * Serializes this path using the simplified notation.
-   */
-  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty) = {
+    * Serializes this path using the simplified notation.
+    */
+  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
     operators.map(_.serialize).mkString.stripPrefix("/")
   }
 
   /**
-   * Returns the property URI, if this is a simple forward path of length 1.
-   * Otherwise, returns none.
-   */
+    * Returns the property URI, if this is a simple forward path of length 1.
+    * Otherwise, returns none.
+    */
   def propertyUri: Option[Uri] = operators match {
     case ForwardOperator(prop) :: Nil => Some(prop)
     case _ => None
   }
 
-  override def toString = serializedFull
+  override def toString: String = serializedFull
 
   /**
-   * Tests if this path equals another path
-   */
-  override def equals(other: Any) = {
+    * Tests if this path equals another path
+    */
+  override def equals(other: Any): Boolean = {
     //Because of the path cache it is sufficient to compare by reference
-//    other match {
-//      case otherPath: Path => this eq otherPath
-//      case _ => false
-//    }
+    //    other match {
+    //      case otherPath: Path => this eq otherPath
+    //      case _ => false
+    //    }
     // As paths are serializable now, comparing by reference no longer suffices
-      other match {
-        case p: Path => serializedFull == p.serializedFull
-        case _ => false
-      }
+    other match {
+      case p: Path => serializedFull == p.serializedFull
+      case _ => false
+    }
 
   }
 
-  override def hashCode = toString.hashCode
+  override def hashCode: Int = toString.hashCode
+
+  /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
+  def asStringTypedPath: TypedPath = TypedPath(this, StringValueType)
 }
 
 object Path {
   private var pathCache = Map[String, WeakReference[Path]]()
 
   /**
-   * Creates a new path.
-   * Returns a cached copy if available.
-   */
+    * Creates a new path.
+    * Returns a cached copy if available.
+    */
   def apply(operators: List[PathOperator]): Path = {
     val path = new Path(operators)
 
@@ -100,8 +103,8 @@ object Path {
   }
 
   /**
-   * Creates a path consisting of a single property
-   */
+    * Creates a path consisting of a single property
+    */
   def apply(property: String): Path = {
     apply(Uri(property))
   }
@@ -114,9 +117,9 @@ object Path {
   }
 
   /**
-   * Parses a path string.
-   * Returns a cached copy if available.
-   */
+    * Parses a path string.
+    * Returns a cached copy if available.
+    */
   def parse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
     new PathParser(prefixes).parse(pathStr)
   }

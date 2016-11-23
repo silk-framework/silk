@@ -172,8 +172,9 @@ class TransformTaskApi extends Controller {
 
     // Add known paths
     if (task.activity[TransformPathsCache].value != null) {
-      val knownPaths = task.activity[TransformPathsCache].value.paths
-      completions ++= knownPaths.map(_.serializeSimplified(project.config.prefixes)).sorted
+      val knownPaths = task.activity[TransformPathsCache].value.typedPaths
+      // TODO: The paths could be typed, discuss
+      completions ++= knownPaths.map(_.path.serializeSimplified(project.config.prefixes)).sorted
     }
 
     // Add known prefixes last

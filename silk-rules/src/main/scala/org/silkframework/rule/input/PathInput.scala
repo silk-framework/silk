@@ -57,11 +57,11 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
   }
 
   private def eval(entity: Entity) = {
-    if(path.operators.isEmpty)
+    if(path.operators.isEmpty) {
       Seq(entity.uri)
-    else {
+    } else {
       var index = cachedPathIndex
-      if(index == -1 || index >= entity.desc.paths.size || entity.desc.paths(index) != path) {
+      if(index == -1 || index >= entity.desc.typedPaths.size || entity.desc.typedPaths(index).path != path) {
         index = entity.desc.pathIndex(path)
         cachedPathIndex = index
       }

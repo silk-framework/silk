@@ -66,19 +66,20 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
       for ((node, index) <- elements.zipWithIndex) {
         // Generate URI
         val uri =
-          if (uriPattern.isEmpty)
+          if (uriPattern.isEmpty) {
             index.toString
-          else
+          } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = Path.parse(m.group(1))
               val string = node.evaluate(path).mkString
               URLEncoder.encode(string, "UTF8")
             })
+          }
 
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.paths) yield node.evaluate(path)
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.path)
           f(new Entity(uri, values, entityDesc))
         }
       }

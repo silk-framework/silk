@@ -68,7 +68,7 @@ class ActiveLearning(config: LearningConfiguration,
     var pool = context.value().pool
 
     //Build unlabeled pool
-    val poolPaths = context.value().pool.entityDescs.map(_.paths)
+    val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
       context.status.updateMessage("Loading pool")
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, paths)

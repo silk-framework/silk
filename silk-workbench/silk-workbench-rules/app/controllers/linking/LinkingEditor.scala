@@ -33,7 +33,7 @@ class LinkingEditor extends Controller {
     } else {
 
       val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
-      val paths = entityDescs.map(_.paths.map(_.serialize(prefixes)))
+      val paths = entityDescs.map(_.typedPaths.map(_.path.serialize(prefixes)))
       if (groupPaths) {
         Ok(views.html.editor.paths(sourceNames, paths, onlySource = false))
       } else {

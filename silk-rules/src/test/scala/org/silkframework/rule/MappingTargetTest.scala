@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity.{CustomValueType, FloatValueType}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Uri
 

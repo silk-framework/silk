@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}

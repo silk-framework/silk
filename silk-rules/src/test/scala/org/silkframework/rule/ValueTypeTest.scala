@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 
 /**

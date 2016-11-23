@@ -105,7 +105,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             })
           }
 
-        val values = for (path <- entityDesc.paths) yield evaluateSilkPath(traverser.node, path, traverser.parents)
+        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents)
         f(new Entity(uri, values, entityDesc))
       }
     }

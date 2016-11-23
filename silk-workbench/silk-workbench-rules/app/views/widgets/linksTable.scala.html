@@ -183,7 +183,7 @@
       @project.config.prefixes.shorten(entity.uri)
     </span>
     <ul>
-      @for((path, index) <- entity.desc.paths.zipWithIndex) {
+      @for((path, index) <- entity.desc.typedPaths.map(_.path).zipWithIndex) {
         @renderValues(path, entity.evaluate(index), divClassPrefix)
       }
     </ul>

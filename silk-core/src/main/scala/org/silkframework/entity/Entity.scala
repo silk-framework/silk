@@ -22,7 +22,7 @@ import scala.xml.Node
  * A single entity.
  */
 class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
-  require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
+  require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty)
@@ -84,7 +84,7 @@ object Entity {
 
     //Read Values
     def readValue = Seq.fill(stream.readInt)(stream.readUTF)
-    val values = IndexedSeq.fill(desc.paths.size)(readValue)
+    val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
 
     new Entity(uri, values, desc)
   }

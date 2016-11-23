@@ -40,7 +40,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val entityDescCity =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/City"),
-      paths = IndexedSeq(Path.parse("?a/rdfs:label"))
+      typedPaths = IndexedSeq(Path.parse("?a/rdfs:label").asStringTypedPath)
     )
 
   "FileDataSource" should "return all cities" in {
@@ -60,7 +60,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val entityDescPerson =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/Person"),
-      paths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
+      typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities).map(_.asStringTypedPath)
     )
 
   val persons = dataset.source.retrieve(entityDescPerson).toList

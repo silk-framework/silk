@@ -60,14 +60,14 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]) = {
     val subjectRule = transform.rules.find(_.target.isEmpty)
     val pathRules =
-      for(path <- entitySchema.paths) yield {
-        transform.rules.filter(_.target.map(_.propertyUri) == path.propertyUri)
+      for(typedPath <- entitySchema.typedPaths) yield {
+        transform.rules.filter(_.target.map(_.propertyUri) == typedPath.path.propertyUri)
       }
 
     val sourceEntitySchema =
       EntitySchema(
         typeUri = transform.selection.typeUri,
-        paths = pathRules.flatten.flatMap(_.paths).distinct.toIndexedSeq,
+        typedPaths = pathRules.flatten.flatMap(_.paths).map(_.asStringTypedPath).distinct.toIndexedSeq,
         filter = transform.selection.restriction
       )
 

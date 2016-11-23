@@ -20,7 +20,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     basePath = "/root",
     uriSuffixPattern = "/someSuffix"
   )
-  val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1"), Path("http://prop2")))
+  val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1").asStringTypedPath, Path("http://prop2").asStringTypedPath))
   val inputs = Seq(GenericEntityTable(
     entities = Seq(new Entity(
       "http://entity1",
@@ -37,7 +37,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
   }
 
   it should "return the specified result if an outputSchema was defined" in {
-    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(Path("a"))))
+    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(Path("a").asStringTypedPath)))
     val result = exec.execute(PlainTask(Identifier("id"), task), inputs = inputs, outputSchemaOpt = outputSchema, execution = localExecutionContext)
     result mustBe defined
     val entities = result.get.entities
@@ -49,7 +49,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
 
   it should "use the inputPath if defined" in {
     val adaptedTask = task.copy(inputPath = "<http://prop2>")
-    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(Path("a"))))
+    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(Path("a").asStringTypedPath)))
     val result = exec.execute(PlainTask(Identifier("id"), adaptedTask), inputs = inputs, outputSchemaOpt = outputSchema, execution = localExecutionContext)
     result mustBe defined
     val entities = result.get.entities
