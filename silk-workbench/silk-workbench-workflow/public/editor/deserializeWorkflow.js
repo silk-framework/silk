@@ -18,10 +18,6 @@ function deserializeWorkflow(xml) {
   var sourceEndpoints = {};
   var targetEndpoints = {};
 
-  // Delete current operators
-  jsPlumb.reset();
-  editorContent.empty();
-
   deserializeWorkflowOperator('Operator', 'operator');
   deserializeWorkflowOperator('Dataset', 'dataset');
 
