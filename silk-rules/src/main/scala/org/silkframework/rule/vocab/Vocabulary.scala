@@ -43,7 +43,7 @@ object Vocabulary {
 
     def write(desc: Vocabulary)(implicit writeContext: WriteContext[Node]): Node = {
       <Vocabulary>
-        ( InfoFormat.write(desc.info) )
+        { InfoFormat.write(desc.info) }
         <Classes>{
           for(cl <- desc.classes) yield {
             <Class>

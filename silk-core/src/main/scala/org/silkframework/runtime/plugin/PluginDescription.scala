@@ -133,13 +133,19 @@ object PluginDescription {
 
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
       val pluginParam = annotations.headOption
+
+      val label = pluginParam match {
+        case Some(p) if p.label().nonEmpty => p.label()
+        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+      }
+
       val (description, exampleValue) = pluginParam map { pluginParam =>
         val ex = pluginParam.example()
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, description, defaultValue, exampleValue)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue)
     }
   }
 

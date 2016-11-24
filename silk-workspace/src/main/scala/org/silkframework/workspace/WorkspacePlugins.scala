@@ -45,7 +45,8 @@ class WorkspacePlugins extends PluginModule {
     classOf[OldWorkflowExecutorFactory] :: Nil
 
   def xmlFormats = {
-    TypesFormat.getClass :: Nil
+    TypesFormat.getClass ::
+    VocabularyCache.ValueFormat.getClass ::  Nil
   }
 
   def projectMarshaller = {

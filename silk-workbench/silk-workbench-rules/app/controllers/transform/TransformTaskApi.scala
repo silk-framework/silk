@@ -5,14 +5,14 @@ import java.util.logging.{Level, Logger}
 import controllers.util.ProjectUtils._
 import models.JsonError
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.Restriction
+import org.silkframework.entity.{Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
-import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
@@ -29,7 +29,7 @@ class TransformTaskApi extends Controller {
 
     val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
-    val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim)
+    val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
     proj.tasks[TransformSpec].find(_.id == task) match {
       //Update existing task
@@ -187,14 +187,44 @@ class TransformTaskApi extends Controller {
     Ok(JsArray(matches.map(JsString)))
   }
 
-  def targetPathCompletions(projectName: String, taskName: String, term: String) = Action {
+  /**
+    * Given a search term, returns possible completions for target paths.
+    *
+    * @param projectName The name of the project
+    * @param taskName The name of the transformation
+    * @param sourcePath The source path to be completed. If none, types will be suggested
+    * @param term The search term
+    * @return
+    */
+  def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String) = Action {
     val (project, task) = projectAndTask(projectName, taskName)
+    val prefixes = project.config.prefixes
+    val maxCompletions = 20
 
-    // Collect known prefixes
-    val prefixCompletions = project.config.prefixes.prefixMap.keys
+    // Collect all caches with MappingCandidates and suggest completions
+    val mappingCandidates = {
+      for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
+        val candidates = activity.value.asInstanceOf[MappingCandidates]
+        sourcePath match {
+          case Some(path) => candidates.suggestProperties(Path.parse(path))
+          case None => candidates.suggestTypes
+        }
+      }
+    }
+
+    val mappingCompletions = mappingCandidates.flatten.sortBy(-_.confidence).map(_.uri.toString)
+    val prefixCompletions = prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
+    val completions = mappingCompletions ++ prefixCompletions
 
     // Filter all completions that match the search term
-    val matches = prefixCompletions.filter(_.contains(term)).toSeq.sorted.map(_ + ":")
+    var matches = completions.filter(_.contains(term)).take(maxCompletions)
+
+    // If no completions match, return some suggestions anyway
+    if(matches.isEmpty)
+      matches = completions.take(maxCompletions)
+
+    // Remove duplicates and shorten URIs
+    matches = matches.distinct.map(prefixes.shorten)
 
     // Convert to JSON and return
     Ok(JsArray(matches.map(JsString)))

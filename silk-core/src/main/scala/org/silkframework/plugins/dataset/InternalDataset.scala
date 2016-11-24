@@ -6,7 +6,7 @@ import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
-import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
+import org.silkframework.runtime.plugin.{Param, Plugin, PluginRegistry}
 
 import scala.collection.mutable
 import scala.util.Try
@@ -17,7 +17,10 @@ import scala.util.Try
   description =
       """Dataset for storing entities between workflow steps."""
 )
-case class InternalDataset(val graphUri: String = null) extends InternalDatasetTrait {
+case class InternalDataset(
+  @Param(label = "graph URI", value = "The RDF graph that is used for storing internal data")
+  graphUri: String = null) extends InternalDatasetTrait {
+
   protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
 }
 
