@@ -5,6 +5,7 @@ import java.util.logging.LogRecord
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
@@ -125,9 +126,25 @@ object JsonSerializer {
   }
 
   def taskMetadata(task: Task[TaskSpec]) = {
-    JsObject(
-      ("id" -> JsString(task.id)) ::
-      ("referencedTasks" -> JsArray(task.referencedTasks.toSeq.map(JsString(_)))) :: Nil
+    val referencedTasks = JsArray(task.referencedTasks.toSeq.map(JsString(_)))
+    val inputSchemata = task.inputSchemataOpt match {
+      case Some(schemata) => JsArray(schemata.map(entitySchema))
+      case None => JsNull
+    }
+    val outputSchema = task.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+
+    Json.obj(
+      "id" -> JsString(task.id),
+      "referencedTasks" -> referencedTasks,
+      "inputSchemata" -> inputSchemata,
+      "outputSchema" -> outputSchema
+    )
+  }
+
+  def entitySchema(schema: EntitySchema) = {
+    val paths = for(path <- schema.paths) yield JsString(path.serializeSimplified)
+    Json.obj(
+      "paths" -> JsArray(paths)
     )
   }
 
