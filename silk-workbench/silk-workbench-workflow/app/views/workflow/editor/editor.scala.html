@@ -18,28 +18,29 @@
 
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/workflow/workflows/@context.project.name/@context.task.id';
+    var editor = null;
   </script>
 }
 
 @toolbar = {
-  <ul>
-    <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="commitWorkflow()" >Save</button>
-    </li>
-    <li>
-      <div class="spacer"/>
-    </li>
-    <li>
-      @taskActivityControl(context.task.activity(WorkflowConfig.executorName), showButtons = true)
-    </li>
-  </ul>
+<ul>
+  <li>
+    <button class="mdl-button mdl-js-button mdl-button--raised" onclick="commitWorkflow()" >Save</button>
+  </li>
+  <li>
+    <div class="spacer"/>
+  </li>
+  <li>
+    @taskActivityControl(context.task.activity(WorkflowConfig.executorName), showButtons = true)
+  </li>
+</ul>
 }
 
 @content = {
-  @toolbox(context.project)
+@toolbox(context.project)
 
-  <div id="editorContent" style="position: relative;" class="mdl-shadow--2dp">
-  </div>
+<div id="editorContent" style="position: relative;" class="mdl-shadow--2dp">
+</div>
 }
 
 @main(Some(context))(header)(toolbar)(content)
