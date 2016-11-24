@@ -4,6 +4,7 @@
 @import org.silkframework.rule.similarity.DistanceMeasure
 @import controllers.workspace.routes
 @import controllers.rules.routes.Assets
+@import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.LinkSpec
 
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
@@ -14,7 +15,7 @@
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/jsPlumb-2.1.7.js")"></script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.8-min.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
