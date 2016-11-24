@@ -1,3 +1,48 @@
+function WorkflowEditor() {
+
+  this.handler = new DynamicEndpointHandler();
+
+  this.styles = {};
+  this.styles.connectors = {};
+  this.styles.endpoints = {};
+
+  this.styles.connectors.plain = {
+    lineWidth: 4,
+    strokeStyle: "#61B7CF",
+    joinstyle: "round"
+  };
+  this.styles.connectors.hover = {
+    strokeStyle: "#216477"
+  }
+
+  this.styles.endpoints.source = {
+    anchor: "RightMiddle",
+    endpoint: "Dot",
+    paintStyle: {
+      fillStyle: "#3187CF",
+      radius: 4
+    },
+    connectorStyle: this.styles.connectors.plain,
+    connectorHoverStyle: this.styles.connectors.hover,
+    connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
+    connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
+    isSource: true,
+    maxConnections: -1
+  }
+  this.styles.endpoints.target = {
+    anchor: "LeftMiddle",
+    endpoint: "Dot",
+    paintStyle: {
+      fillStyle: "#3187CF",
+      radius: 4
+    },
+    connectorStyle: this.styles.connectors.plain,
+    isTarget: true,
+    maxConnections: -1
+  }
+}
+
+
 var connectorStyle = {
   lineWidth: 4,
   strokeStyle: "#61B7CF",
@@ -108,6 +153,11 @@ $(function () {
   jsPlumb.bind("click", function(conn, originalEvent) {
     jsPlumb.detach(conn);
   });
+
+  editor = new WorkflowEditor();
+  editor.handler.styles = editor.styles.endpoints;
+  editor.handler.bindEvents();
+
 });
 
 function removeElement(elementId) {
