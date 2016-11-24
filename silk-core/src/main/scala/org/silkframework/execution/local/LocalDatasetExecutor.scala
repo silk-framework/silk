@@ -3,9 +3,9 @@ package org.silkframework.execution.local
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf._
 import org.silkframework.dataset.{Dataset, TripleSinkDataset}
-import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.util.Uri
 
@@ -14,6 +14,11 @@ import org.silkframework.util.Uri
   */
 class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
+
+  final val LANGUAGE_ENC_PREFIX = "lg"
+  final val DATA_TYPE_ENC_PREFIX = "dt"
+  final val URI_ENC_PREFIX = "ur"
+  final val BLANK_NODE_ENC_PREFIX = "bn"
 
   /**
     * Reads data from a dataset.
@@ -27,8 +32,19 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
             val tripleEntities = sparqlResult.bindings.view map { resultMap =>
               val s = resultMap("s").value
               val p = resultMap("p").value
-              val o = resultMap("o").value
-              new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(o)), TripleEntitySchema.schema)
+              val (value, typ) = resultMap("o") match {
+                case PlainLiteral(v) =>
+                  (v, "")
+                case LanguageLiteral(v, l) =>
+                  (v, s"$LANGUAGE_ENC_PREFIX=$l")
+                case DataTypeLiteral(v, dt) =>
+                  (v, s"$DATA_TYPE_ENC_PREFIX=$dt")
+                case BlankNode(bn) =>
+                  (bn, s"$BLANK_NODE_ENC_PREFIX")
+                case Resource(uri) =>
+                  (uri, s"$URI_ENC_PREFIX")
+              }
+              new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
             }
             TripleEntityTable(tripleEntities, dataset)
           case _ =>
@@ -56,7 +72,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     val sink = dataset.entitySink
-    sink.open(entityTable.entitySchema.typedPaths.map(_.path.propertyUri.get.toString))
+    sink.openWithTypedPath(entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
@@ -86,7 +102,22 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case rdfDataset: TripleSinkDataset =>
         writeTriples(entities, rdfDataset)
       case _ =>
-        throw new TaskException("Cannot write triples to non-RDF dataset!")
+        throw TaskException("Cannot write triples to non-RDF dataset!")
+    }
+  }
+
+  def convertToValueType(encodedType: String): ValueType = {
+    encodedType.take(2) match {
+      case DATA_TYPE_ENC_PREFIX =>
+        CustomValueType(encodedType.drop(3))
+      case LANGUAGE_ENC_PREFIX =>
+        LanguageValueType(encodedType.drop(3))
+      case URI_ENC_PREFIX =>
+        UriValueType
+      case BLANK_NODE_ENC_PREFIX =>
+        BlankNodeValueType
+      case _ =>
+        StringValueType
     }
   }
 
@@ -94,12 +125,13 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     val sink = tripleSinkDataset.tripleSink
     sink.init()
     for (entity <- entities) {
-      if (entity.values.size != 3) {
-        throw new scala.RuntimeException("Did not get exactly 3 values for triple entity!")
+      if (entity.values.size != 4) {
+        throw new scala.RuntimeException("Did not get exactly 4 values for triple entity!")
       }
       try {
-        val Seq(s, p, o) = entity.values.map(_.head)
-        sink.writeTriple(s, p, o)
+        val Seq(s, p, o, encodedType) = entity.values.map(_.head)
+        val valueType = convertToValueType(encodedType)
+        sink.writeTriple(s, p, o, valueType)
       } catch {
         case e: Exception =>
           throw new scala.RuntimeException("Triple entity with empty values")

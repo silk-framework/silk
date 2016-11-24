@@ -111,7 +111,9 @@ object ValueType {
     Right(DoubleValueType),
     Right(BooleanValueType),
     Right(IntegerValueType),
-    Right(UriValueType)
+    Right(UriValueType),
+    Right(AutoDetectValueType),
+    Right(BlankNodeValueType)
   )
 
   val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
@@ -125,6 +127,18 @@ object ValueType {
       case Right(obj) => (obj.getClass, id)
     }
   }.toMap
+}
+
+/**
+  * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
+  * lexical form, e.g. "1" can be an Int, but also a String.
+  */
+object AutoDetectValueType extends ValueType with Serializable {
+  /** returns true if the lexical string is a representation of this type */
+  override def validate(lexicalString: String): Boolean = true
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = None
 }
 
 /** A custom type that is used for all types not covered by any other types. */
@@ -211,6 +225,13 @@ object UriValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(new URI(lexicalString)).isSuccess
   }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = None
+}
+
+object BlankNodeValueType extends ValueType with Serializable {
+  override def validate(lexicalString: String): Boolean = true // FIXME: No blank node lexical validation
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None

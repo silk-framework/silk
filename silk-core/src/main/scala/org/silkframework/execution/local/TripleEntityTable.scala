@@ -17,8 +17,8 @@ object TripleEntitySchema {
     typedPaths = IndexedSeq(
       TypedPath(Path(SilkVocab.tripleSubject), UriValueType),
       TypedPath(Path(SilkVocab.triplePredicate), UriValueType),
-      // FIXME: For now this can only be String, because we would need to have different types here
-      TypedPath(Path(SilkVocab.tripleObject), StringValueType)
+      TypedPath(Path(SilkVocab.tripleObject), StringValueType),
+      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType)
     )
   )
 }

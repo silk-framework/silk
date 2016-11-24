@@ -31,4 +31,5 @@ object SilkVocab {
   val tripleSubject = namespace + "tripleSubject"
   val triplePredicate = namespace + "triplePredicate"
   val tripleObject = namespace + "tripleObject"
+  val tripleObjectValueType = namespace + "tripleObjectValueType"
 }

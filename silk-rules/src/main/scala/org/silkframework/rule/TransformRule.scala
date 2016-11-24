@@ -1,11 +1,13 @@
 package org.silkframework.rule
 
+import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.util._
+import scala.language.implicitConversions
 
 import scala.xml.{Node, Null}
 
@@ -52,7 +54,7 @@ sealed trait TransformRule {
   }
 }
 
-case class MappingTarget(propertyUri: Uri, valueType: ValueType = StringValueType)
+case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType)
 
 object MappingTarget {
 
@@ -78,6 +80,8 @@ object MappingTarget {
       </MappingTarget>
     }
   }
+
+  implicit def toTypedProperty(mt: MappingTarget): TypedProperty = TypedProperty(mt.propertyUri.uri, mt.valueType)
 
 }
 
