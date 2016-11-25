@@ -14,7 +14,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
 
   it should "serialize object property triples" in {
     format("http://testurl") mustBe
-      s"$S_P <http://testurl> .\n"
+        s"$S_P <http://testurl> .\n"
   }
 
   private def format(objectValue: String, valueType: ValueType = AutoDetectValueType): String = {
@@ -38,7 +38,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
 
   it should "serialize triples with StringValueType" in {
     format("31", StringValueType) mustBe
-      s"""$S_P "31" .$NL"""
+        s"""$S_P "31" .$NL"""
   }
 
   it should "serialize triples with LanguageValueType" in {
@@ -57,7 +57,37 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with BlankNodeValueType" in {
-    format("bla45532532532532", BlankNodeValueType) must startWith
-        s"""$S_P _:""" // Jena constructs new blank node ids
+    format("bla45532532532532", BlankNodeValueType) must startWith regex
+        (s"""$S_P _:""") // Jena constructs new blank node ids
+  }
+
+  it should "serialize triples with BooleanValueType" in {
+    format("true", BooleanValueType) mustBe
+        s"""$S_P "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .$NL"""
+  }
+
+  it should "serialize triples with DoubleValueType" in {
+    format("4.2", DoubleValueType) mustBe
+        s"""$S_P "4.2"^^<http://www.w3.org/2001/XMLSchema#double> .$NL"""
+  }
+
+  it should "serialize triples with FloatValueType" in {
+    format("2.3", FloatValueType) mustBe
+        s"""$S_P "2.3"^^<http://www.w3.org/2001/XMLSchema#float> .$NL"""
+  }
+
+  it should "serialize triples with IntValueType" in {
+    format("42", IntValueType) mustBe
+        s"""$S_P "42"^^<http://www.w3.org/2001/XMLSchema#int> .$NL"""
+  }
+
+  it should "serialize triples with IntegerValueType" in {
+    format("543255432543254322354444444432", IntegerValueType) mustBe
+        s"""$S_P "543255432543254322354444444432"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
+  }
+
+  it should "serialize triples with LongValueType" in {
+    format("54325543254325432235", LongValueType) mustBe
+        s"""$S_P "54325543254325432235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
   }
 }

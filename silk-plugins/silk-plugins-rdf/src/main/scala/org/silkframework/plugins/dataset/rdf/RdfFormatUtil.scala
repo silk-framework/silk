@@ -18,6 +18,13 @@ import scala.util.Try
   * Created on 8/31/16.
   */
 object RdfFormatUtil {
+  final val BOOLEAN_JENA_TYPE = NodeFactory.getType(XSD.xboolean.getURI)
+  final val DOUBLE_JENA_TYPE = NodeFactory.getType(XSD.xdouble.getURI)
+  final val FLOAT_JENA_TYPE = NodeFactory.getType(XSD.xfloat.getURI)
+  final val INT_JENA_TYPE = NodeFactory.getType(XSD.xint.getURI)
+  final val INTEGER_JENA_TYPE = NodeFactory.getType(XSD.integer.getURI)
+  final val LONG_JENA_TYPE = NodeFactory.getType(XSD.xlong.getURI)
+
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
     val objNode = resolveObjectValue(value, valueType)
@@ -51,9 +58,9 @@ object RdfFormatUtil {
     valueType match {
       case AutoDetectValueType =>
         autoDetectValueType(lexicalValue)
-      case CustomValueType(typeUri) =>
-        model.createLiteral(lexicalValue).asNode()
-      case UriValueType =>
+      case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
+        model.createLiteral(lexicalValue).asNode() // Hack: Jena needs an implementation for each type URI, so serialize as String and attach datatype later
+      case UriValueType if UriValueType.validate(lexicalValue) =>
         model.createResource(lexicalValue).asNode
       case StringValueType =>
         model.createLiteral(lexicalValue).asNode
@@ -61,9 +68,20 @@ object RdfFormatUtil {
         model.createLiteral(lexicalValue, lang).asNode
       case BlankNodeValueType =>
         model.createResource(new AnonId(lexicalValue)).asNode
+      case BooleanValueType =>
+        model.createTypedLiteral(lexicalValue, BOOLEAN_JENA_TYPE).asNode()
+      case DoubleValueType =>
+        model.createTypedLiteral(lexicalValue, DOUBLE_JENA_TYPE).asNode()
+      case FloatValueType =>
+        model.createTypedLiteral(lexicalValue, FLOAT_JENA_TYPE).asNode()
+      case IntValueType =>
+        model.createTypedLiteral(lexicalValue, INT_JENA_TYPE).asNode()
+      case IntegerValueType =>
+        model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
+      case LongValueType =>
+        model.createTypedLiteral(lexicalValue, LONG_JENA_TYPE).asNode()
       case _ =>
-        // TODO: Support all ValueTypes with the appropriate method
-        autoDetectValueType(lexicalValue)
+        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string $lexicalValue! Validation failed.")
     }
   }
 
