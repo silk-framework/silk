@@ -6,8 +6,9 @@
 @import org.silkframework.workspace.activity.transform.TransformPathsCache
 @import controllers.rules.routes.Assets
 @import org.silkframework.runtime.serialization.XmlSerialization
+@import org.silkframework.rule.vocab.Vocabularies
 
-@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
@@ -192,9 +193,7 @@
     <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
       <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
       <td colspan="4" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
-        <div>
-          &hellip; additional information &hellip;
-        </div>
+        @renderDetails(rule)
       </td>
       <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
     </tr>
@@ -260,6 +259,24 @@
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")">
     </div>
   </td>
+}
+
+@renderDetails(rule: TransformRule) = {
+  <div class="target-property-info">
+    @rule.target match {
+      case Some(uri) => {
+        @vocabularies.findProperty(uri.uri) match {
+          case Some(prop) => {
+            @prop
+          }
+          case None => {
+            Property @uri not found in target vocabularies.
+          }
+        }
+      }
+      case None => { }
+    }
+  </div>
 }
 
 @renderRulePath(rule: ComplexMapping) = {@if(rule.paths.size == 1) {@rule.paths.head.serializeSimplified(prefixes())} else {(multiple)}}

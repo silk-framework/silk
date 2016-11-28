@@ -4,7 +4,17 @@ import org.silkframework.rule.vocab.Info.InfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import scala.xml.Node
 
-case class Vocabulary(info: Info, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty])
+case class Vocabulary(info: Info, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty]) {
+
+  def getClass(uri: String): Option[VocabularyClass] = {
+    classes.find(_.info.uri == uri)
+  }
+
+  def getProperty(uri: String): Option[VocabularyProperty] = {
+    properties.find(_.info.uri == uri)
+  }
+
+}
 
 object Vocabulary {
 
