@@ -1,0 +1,18 @@
+@import org.silkframework.rule.vocab.VocabularyProperty
+
+@*
+* Shows details information for a vocabulary property.
+*@
+@(name: String, property: Option[VocabularyProperty])
+
+@property match {
+  case Some(prop) => { @renderProperty(prop) }
+  case None => { Property @name not found in target vocabularies. }
+}
+
+@renderProperty(prop: VocabularyProperty) = {
+  @prop.info.label match {
+    case Some(label) => { @label }
+    case None => { no label }
+  }
+}
