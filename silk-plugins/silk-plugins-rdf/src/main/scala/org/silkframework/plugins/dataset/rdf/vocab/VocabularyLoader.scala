@@ -1,10 +1,18 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.rule.vocab.{Info, VocabularyClass, VocabularyProperty}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.rule.vocab.{Info, Vocabulary, VocabularyClass, VocabularyProperty}
 
 private class VocabularyLoader(endpoint: SparqlEndpoint) {
+
+  def retrieveVocabulary(uri: String): Vocabulary = {
+    val classes = retrieveClasses(uri)
+    Vocabulary(
+      info = Info(uri, None, None),
+      classes = classes,
+      properties = retrieveProperties(uri, classes)
+    )
+  }
 
   def retrieveClasses(uri: String): Traversable[VocabularyClass] = {
     val classQuery =
