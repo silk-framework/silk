@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 @Plugin(
   id = "inMemory",
-  label = "in-memory",
+  label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
 case class InMemoryWorkspaceProvider() extends WorkspaceProvider with RefreshableWorkspaceProvider {
@@ -34,11 +34,6 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   }
 
   /**
-    * Retrieves the project resources (e.g. associated files).
-    */
-  override def projectResources(name: Identifier): ResourceManager = projects(name).resources
-
-  /**
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = projects(name).cache
@@ -53,7 +48,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Reads all tasks of a specific type from a project.
     */
-  override def readTasks[T: ClassTag](project: Identifier): Seq[(Identifier, T)] = {
+  override def readTasks[T: ClassTag](project: Identifier, projectResources: ResourceManager): Seq[(Identifier, T)] = {
     for((id, task: T) <- projects(project).tasks.toSeq) yield (id, task)
   }
 

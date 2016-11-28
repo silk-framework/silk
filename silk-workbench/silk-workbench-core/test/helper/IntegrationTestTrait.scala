@@ -11,6 +11,7 @@ import org.silkframework.dataset.rdf.RdfNode
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
 
@@ -34,7 +35,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider]("inMemoryRdfWorkspace", Map.empty)
-    val replacementWorkspace = new Workspace(provider)
+    val replacementWorkspace = new Workspace(provider, InMemoryResourceRepository())
     val rdfWorkspaceUser = new User {
       /**
         * The current workspace of this user.
@@ -84,6 +85,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
       "loans" -> Seq("http://dataset/loans/"),
       "unemployment" -> Seq("http://dataset/unemployment/")
     ))
+    checkResponse(response)
+  }
+
+  def listResources(projectId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources")
+    val response = request.get
     checkResponse(response)
   }
 

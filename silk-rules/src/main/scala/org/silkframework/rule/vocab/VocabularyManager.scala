@@ -1,10 +1,11 @@
 package org.silkframework.rule.vocab
 
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.util.Identifier
 
 trait VocabularyManager {
 
-  def get(uri: String): Vocabulary
+  def get(uri: String, project: Identifier): Vocabulary
 
 }
 

@@ -2,21 +2,21 @@
 # Workspace
 ############################################################################################################################################
 
-GET           /                                                                 controllers.workspace.Workspace.index
-GET           /tree                                                             controllers.workspace.Workspace.tree
-GET           /allActivities                                                    controllers.workspace.Workspace.activities
+GET           /                                                                 controllers.workspace.WorkspaceController.index
+GET           /tree                                                             controllers.workspace.WorkspaceController.tree
+GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities
 
-GET           /dialogs/newproject                                               controllers.workspace.Workspace.newProjectDialog()
-GET           /dialogs/importproject                                            controllers.workspace.Workspace.importProjectDialog()
-GET           /dialogs/removetask/:name/:path                                   controllers.workspace.Workspace.removeTaskDialog(name: String, path: String)
-GET           /dialogs/removeresource/:name/:path                               controllers.workspace.Workspace.removeResourceDialog(name: String, path: String)
-GET           /dialogs/importlinkspec/:project                                  controllers.workspace.Workspace.importLinkSpecDialog(project: String)
-GET           /dialogs/prefixes/:project                                        controllers.workspace.Workspace.prefixDialog(project: String)
-GET           /dialogs/resources/:project                                       controllers.workspace.Workspace.resourcesDialog(project: String)
-GET           /dialogs/executeProject/:project                                  controllers.workspace.Workspace.executeProjectDialog(project: String)
-GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.Workspace.projectActivityConfigDialog(project: String, activity: String)
-GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.Workspace.taskActivityConfigDialog(project: String, task: String, activity: String)
-POST          /:project/importExample                                           controllers.workspace.Workspace.importExample(project: String)
+GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
+GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
+GET           /dialogs/removetask/:name/:path                                   controllers.workspace.WorkspaceController.removeTaskDialog(name: String, path: String)
+GET           /dialogs/removeresource/:name/:path                               controllers.workspace.WorkspaceController.removeResourceDialog(name: String, path: String)
+GET           /dialogs/importlinkspec/:project                                  controllers.workspace.WorkspaceController.importLinkSpecDialog(project: String)
+GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
+GET           /dialogs/resources/:project                                       controllers.workspace.WorkspaceController.resourcesDialog(project: String)
+GET           /dialogs/executeProject/:project                                  controllers.workspace.WorkspaceController.executeProjectDialog(project: String)
+GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.WorkspaceController.projectActivityConfigDialog(project: String, activity: String)
+GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.WorkspaceController.taskActivityConfigDialog(project: String, task: String, activity: String)
+POST          /:project/importExample                                           controllers.workspace.WorkspaceController.importExample(project: String)
 
 ############################################################################################################################################
 # Datasets
@@ -80,6 +80,7 @@ GET           /projects/:project/resources                                      
 GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
 PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)

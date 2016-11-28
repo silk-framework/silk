@@ -1,12 +1,17 @@
 @import org.silkframework.rule.LinkSpec
 @import plugins.Context
-
+@import controllers.rules.routes.Assets
 @import org.silkframework.rule.evaluation.ReferenceLinks
+@import controllers.core.routes.{Assets => CoreAssets}
+
 @(population: org.silkframework.learning.individual.Population,
   referenceLinks: ReferenceLinks,
   context: Context[LinkSpec])
 
 @defining(3) { threshold =>
+
+  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.8-min.js")"></script>
+  <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
 
   @if(population.isEmpty) {
     <div class="alert alert-info"><strong>No linkage rule learned yet.</strong></div>

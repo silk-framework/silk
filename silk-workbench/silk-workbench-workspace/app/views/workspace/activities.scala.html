@@ -6,7 +6,7 @@
 
 @import scala.runtime.BoxedUnit
 @import controllers.workspace.routes.ActivityApi
-@import controllers.workspace.routes.Workspace
+@import controllers.workspace.routes.WorkspaceController
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
 @**
@@ -146,7 +146,7 @@
     </div>
     @if(activity.config.nonEmpty) {
       <div class="activity-button-edit">
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.projectActivityConfigDialog(project.name, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.name, activity.name).url')" />
       </div>
     }
   </li>
@@ -167,7 +167,7 @@
     </div>
     <div class="activity-button-edit">
       @if(activity.config.nonEmpty) {
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
       }
     </div>
     <div class="activity-button-value">

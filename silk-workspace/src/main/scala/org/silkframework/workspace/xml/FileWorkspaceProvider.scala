@@ -5,7 +5,7 @@ import org.silkframework.runtime.resource.{FileResourceManager, UrlResourceManag
 
 @Plugin(
   id = "file",
-  label = "Filesystem",
-  description = "Workspace on filesystem"
+  label = "Workspace on filesystem",
+  description = "Holds the workspace in a specified directory on the filesystem."
 )
 case class FileWorkspaceProvider(dir: String) extends XmlWorkspaceProvider(UrlResourceManager(new FileResourceManager(dir)))

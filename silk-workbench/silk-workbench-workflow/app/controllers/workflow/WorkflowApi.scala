@@ -8,21 +8,33 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, OldWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 import scala.xml.Elem
 
 class WorkflowApi extends Controller {
 
+  def getWorkflows(projectName: String) = Action {
+    val project = fetchProject(projectName)
+    val workflowTasks = project.tasks[Workflow]
+    val workflowIdsJson = workflowTasks map { task =>
+      JsString(task.id.toString)
+    }
+    Ok(JsArray(workflowIdsJson))
+  }
+
+  private def fetchProject(projectName: String) = User().workspace.project(projectName)
+
   def getWorkflow(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
 
     Ok(workflow.data.toXML)
   }
 
   def putWorkflow(projectName: String, taskName: String) = Action { request =>
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = Workflow.fromXML(request.body.asXml.get.head).copy(id = taskName)
     project.updateTask[Workflow](taskName, workflow)
 
@@ -35,7 +47,7 @@ class WorkflowApi extends Controller {
   }
 
   def executeWorkflow(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[OldWorkflowExecutor].control
     if (activity.status().isRunning)
@@ -47,7 +59,7 @@ class WorkflowApi extends Controller {
   }
 
   def status(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val report = workflow.activity[OldWorkflowExecutor].value
 

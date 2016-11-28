@@ -1,15 +1,17 @@
 @import plugins.Context
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import controllers.workflow.routes.Assets
+@import controllers.core.routes.{Assets => CoreAssets}
 @import views.html.workspace.activity.taskActivityControl
 @import org.silkframework.workspace.activity.workflow.OldWorkflowExecutor
+@import models.workflow.WorkflowConfig
 
 @(context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
 
-  <script type="text/javascript" src="@Assets.at("libs/jsPlumb-2.1.7.js")"></script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.8-min.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/serializeWorkflow.js")"></script>
   <script type="text/javascript" src="@Assets.at("editor/deserializeWorkflow.js")"></script>
@@ -28,7 +30,7 @@
       <div class="spacer"/>
     </li>
     <li>
-      @taskActivityControl(context.task.activity[OldWorkflowExecutor], showButtons = true)
+      @taskActivityControl(context.task.activity(WorkflowConfig.executorName), showButtons = true)
     </li>
   </ul>
 }

@@ -1,6 +1,7 @@
 package controllers.core
 
 import org.silkframework.runtime.plugin.{Parameter, ParameterType, PluginRegistry}
+import org.silkframework.util.StringUtils
 import play.api.libs.json._
 import play.api.mvc.{Action, Controller}
 
@@ -42,9 +43,10 @@ class PluginApi extends Controller {
       }
 
       Json.obj(
+        "title" -> JsString(param.label),
         "description" -> JsString(param.description),
         "type" -> JsString(param.dataType.name),
-        "defaultValue" -> defaultValue
+        "value" -> defaultValue
       )
     }
   }

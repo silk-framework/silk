@@ -17,7 +17,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
       val p = context.project.name
       val t = context.task.id
       if (config.workbench.tabs.editor)
-        tabs ::= Tab("Editor", s"workflow/$p/$t/editor")
+        tabs ::= Tab("Editor", s"workflow/editor/$p/$t")
     }
     tabs.reverse
   }
@@ -40,7 +40,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
 
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
-      Some(s"workflow/$project/$task/editor")
+      Some(s"workflow/editor/$project/$task")
 
     /** The path to delete the task by sending a DELETE HTTP request. */
     override def delete(project: String, task: String) =

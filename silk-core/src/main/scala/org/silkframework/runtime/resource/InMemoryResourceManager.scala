@@ -69,6 +69,15 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
     override def exists: Boolean = resources.contains(name)
 
+    override def size = {
+      resources.get(name) match {
+        case Some(data) => Some(data.length.toLong)
+        case None => None
+      }
+    }
+
+    override def modificationTime = None
+
     override def load: InputStream = {
       resources.get(name) match {
         case Some(data) => new ByteArrayInputStream(data)

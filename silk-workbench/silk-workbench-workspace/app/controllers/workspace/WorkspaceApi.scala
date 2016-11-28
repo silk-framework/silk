@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import java.io.{ByteArrayOutputStream, FileInputStream}
+import java.io.{ByteArrayOutputStream, File, FileInputStream}
 import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
@@ -20,6 +20,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, JsObject}
 import play.api.mvc._
 import org.silkframework.workspace.ProjectMarshallerRegistry
+
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -192,6 +193,18 @@ class WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
 
     Ok(JsonSerializer.projectResources(project))
+  }
+
+  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val resource = project.resources.getInPath(resourcePath, File.separatorChar)
+
+    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
+      case -1 => ""
+      case index => resourcePath.substring(0, index + 1)
+    }
+
+    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
   }
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {

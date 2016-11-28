@@ -13,6 +13,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workspace.resources.{InMemoryResourceRepository, ResourceRepository}
 
 /**
   * Created on 9/13/16.
@@ -34,6 +35,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val refreshTest = withRefresh(PROJECT_NAME)(_)
 
   private val workspace = createWorkspaceProvider()
+
+  private val repository = InMemoryResourceRepository()
+
+  private val projectResources = repository.get(PROJECT_NAME)
 
   val rule =
     LinkageRule(
@@ -90,14 +95,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   it should "read and write linking tasks" in {
     workspace.putTask(PROJECT_NAME, LINKING_TASK_ID, linkTask)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(linkTask)
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTask)
     }
   }
 
   it should "read and write dataset tasks" in {
     workspace.putTask(PROJECT_NAME, DATASET_ID, dataset)
     refreshTest {
-      val ds = workspace.readTasks[Dataset](PROJECT_NAME).headOption.map(_._2).get
+      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.map(_._2).get
       ds shouldBe dataset
     }
   }
@@ -105,67 +110,67 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   it should "read and write transformation tasks" in {
     workspace.putTask(PROJECT_NAME, TRANSFORM_ID, transformTask)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(transformTask)
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(transformTask)
     }
   }
 
   it should "read and write workflows" in {
     workspace.putTask(PROJECT_NAME, WORKFLOW_ID, miniWorkflow)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME).headOption.map(_._2) shouldBe Some(miniWorkflow)
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(miniWorkflow)
     }
   }
 
   it should "read and write Custom tasks" in {
     workspace.putTask(PROJECT_NAME, CUSTOM_TASK_ID, customTask)
     refreshTest {
-      workspace.readTasks[CustomTask](PROJECT_NAME).headOption.map(_._2) shouldBe Some(customTask)
+      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(customTask)
     }
   }
 
   it should "delete custom tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[CustomTask](PROJECT_NAME, CUSTOM_TASK_ID)
     refreshTest {
-      workspace.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete workflow tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[Workflow](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[Workflow](PROJECT_NAME, WORKFLOW_ID)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete linking tasks" in {
-    workspace.readTasks[LinkSpec](PROJECT_NAME).headOption.map(_._2) shouldBe Some(linkTask)
+    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTask)
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[LinkSpec](PROJECT_NAME, LINKING_TASK_ID)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete transform tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[TransformSpec](PROJECT_NAME, TRANSFORM_ID)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
   it should "delete dataset tasks" in {
     refreshProject(PROJECT_NAME)
-    workspace.readTasks[Dataset](PROJECT_NAME).headOption shouldBe defined
+    workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[Dataset](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspace.readTasks[Dataset](PROJECT_NAME).headOption shouldBe empty
+      workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe empty
     }
   }
 
@@ -182,8 +187,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     workspace.readProjects().size shouldBe 1
     createProject(PROJECT_NAME)
     workspace.readProjects().size shouldBe 2
-    val res1 = workspace.projectResources(PROJECT_NAME)
-    val res2 = workspace.projectResources(PROJECT_NAME_OTHER)
+    val res1 = repository.get(PROJECT_NAME)
+    val res2 = repository.get(PROJECT_NAME_OTHER)
     res1 should not be theSameInstanceAs (res2)
     val child1 = res1.get(CHILD)
     child1.write("content")
@@ -192,7 +197,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     }
     val child1Other = res2.get(CHILD)
     child1 should not be theSameInstanceAs (child1Other)
-    val res1Again = workspace.projectResources(PROJECT_NAME)
+    val res1Again = repository.get(PROJECT_NAME)
     res1Again should be theSameInstanceAs res1
   }
 

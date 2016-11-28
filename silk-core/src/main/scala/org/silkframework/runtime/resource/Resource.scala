@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io.{ByteArrayOutputStream, InputStream}
+import java.time.Instant
 
 import scala.io.{Codec, Source}
 
@@ -25,6 +26,18 @@ trait Resource {
   def exists: Boolean
 
   /**
+    * Returns the size of this resource in bytes.
+    * Returns None if the size is not known.
+    */
+  def size: Option[Long]
+
+  /**
+    * The time that the resource was last modified.
+    * Returns None if the time is not known.
+    */
+  def modificationTime: Option[Instant]
+
+  /**
    * Loads the resource.
    *
    * @return An input stream for reading the resource.
@@ -36,7 +49,12 @@ trait Resource {
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
-    Source.fromInputStream(load)(codec).getLines.mkString("\n")
+    val source = Source.fromInputStream(load)(codec)
+    try {
+      source.getLines.mkString("\n")
+    } finally {
+      source.close()
+    }
   }
 
   /**

@@ -55,6 +55,24 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       */
     override def exists: Boolean = primaryResource.exists || fallbackResource.exists
 
+    override def size = {
+      if(primaryResource.exists)
+        primaryResource.size
+      else if(fallbackResource.exists)
+        fallbackResource.size
+      else
+        None
+    }
+
+    override def modificationTime = {
+      if(primaryResource.exists)
+        primaryResource.modificationTime
+      else if(fallbackResource.exists)
+        fallbackResource.modificationTime
+      else
+        None
+    }
+
     /**
       * Preferred method for writing to a resource.
       *
