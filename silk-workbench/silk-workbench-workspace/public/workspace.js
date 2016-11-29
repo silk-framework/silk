@@ -98,9 +98,9 @@ function deleteTask(path) {
 }
 
 function deleteTaskConfirm(name, path) {
-  showDialog(baseUrl + '/workspace/dialogs/removetask/' + name + "/" + encodeURIComponent(path));
+  showDialog(baseUrl + '/workspace/dialogs/removetask/' + name + "?path=" + encodeURIComponent(path));
 }
 
 function deleteResourceConfirm(name, path) {
-  showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + "/" + encodeURIComponent(path), "secondary");
+  showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + "?path=" + encodeURIComponent(path), "secondary");
 }
