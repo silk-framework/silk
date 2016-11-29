@@ -3,7 +3,7 @@ package org.silkframework.workspace.resources
 import java.io.File
 
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager, UrlResourceManager}
 import org.silkframework.util.Identifier
 
 @Plugin(
@@ -13,7 +13,7 @@ import org.silkframework.util.Identifier
 )
 case class FileRepository(dir: String) extends ResourceRepository {
 
-  val resourceManager = FileResourceManager(new File(dir))
+  val resourceManager = UrlResourceManager(FileResourceManager(new File(dir)))
 
   override def get(project: Identifier): ResourceManager = resourceManager
 }
