@@ -40,14 +40,14 @@ function WorkflowEditor() {
   }
 
   this.handler = new DynamicEndpointHandler();
-  this.handler.styles = editor.styles.endpoints;
+  this.handler.styles = this.styles.endpoints;
 
   var _this = this;
 
   // Set jsPlumb default values
   jsPlumb.setContainer("editorContent");
 
-  this.bindEvents() {
+  this.bindEvents = function() {
     // Make operators draggable
     $('.toolboxOperator').draggable({
       init: function() {
@@ -116,15 +116,6 @@ function WorkflowEditor() {
 
   };
 
-  this.loadWorkflow = function() {
-    $.get(apiUrl, function(data) {
-      this.deserializeWorkflow($(data));
-    })
-    .fail(function(msg) {
-      alert( "Error loading workflow from backend: " + msg);
-    })
-  };
-
   this.deserializeWorkflow = function(xml) {
     // Retrieve the xml root element
     var xmlRoot = xml.children('Workflow');
@@ -190,6 +181,15 @@ function WorkflowEditor() {
     }
   };
 
+  this.loadWorkflow = function() {
+    $.get(apiUrl, function(data) {
+      this.deserializeWorkflow($(data));
+    })
+    .fail(function(msg) {
+      alert( "Error loading workflow from backend: " + msg);
+    })
+  };
+
   this.removeElement = function(elementId) {
     //We need to set a time-out here as a element should not remove its own parent in its event handler
     setTimeout(function() {
@@ -200,6 +200,9 @@ function WorkflowEditor() {
       $('#toolbox' + elementId.substring(elementId.indexOf("_"))).show();
     }, 100);
   };
+
+  this.bindEvents();
+
 }
 
 

@@ -30,8 +30,6 @@ function DynamicEndpointHandler() {
   var connectionMovedToSameEndpoint = false;
   var _this = this;
 
-  this.bindEvents();
-
   /**
   * Add a new dynamic endpoint to the DOM element with <code>elementId</code>.
   * @param elementId - The element to add the endpoint to.
@@ -121,6 +119,8 @@ function DynamicEndpointHandler() {
       console.log("connection aborted ...");
     });
   }
+
+  this.bindEvents();
 
 }
 
