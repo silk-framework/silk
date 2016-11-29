@@ -380,10 +380,10 @@ function addTargetAutocomplete(targetInputs) {
     }).focus(function() { $(this).autocomplete("search"); });
 
     // Update the property details on every change
-    var details = $(this).closest(".complete-rule").find(".rule-details-property");
-    $.get(editorUrl + '/widgets/property', { property: $(this).val() }, function(data) { details.html(data); });
-    $(this).on("blur", function() {
-      $.get(editorUrl + '/widgets/property', { property: $(this).val() }, function(data) { details.html(data); });
-    });
+//    var details = $(this).closest(".complete-rule").find(".di-rule__expanded-property-details");
+//    $.get(editorUrl + '/widgets/property', { property: $(this).val() }, function(data) { details.html(data); });
+//    $(this).on("blur", function() {
+//      $.get(editorUrl + '/widgets/property', { property: $(this).val() }, function(data) { details.html(data); });
+//    });
   });
 }
