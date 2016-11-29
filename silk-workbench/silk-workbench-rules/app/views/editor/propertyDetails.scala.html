@@ -11,6 +11,11 @@
 }
 
 @renderProperty(prop: VocabularyProperty) = {
+  @prop.info.description match {
+    case Some(desc) => { @desc }
+    case None => { no description }
+  }
+
   @prop.info.label match {
     case Some(label) => { @label }
     case None => { no label }
