@@ -36,7 +36,7 @@ object Vocabulary {
 
     def readClasses(node: Node)(implicit readContext: ReadContext) = {
       for(classNode <- node \ "Classes" \ "Class") yield {
-        VocabularyClass(InfoFormat.read((node \ "Info").head))
+        VocabularyClass(InfoFormat.read((classNode \ "Info").head))
       }
     }
 
@@ -44,9 +44,9 @@ object Vocabulary {
       val classMap = classes.map(c => (c.info.uri, c)).toMap
       for(propertyNode <- node \ "Properties" \ "Property") yield {
         VocabularyProperty(
-          info = InfoFormat.read((node \ "Info").head),
-          domain = (node \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
-          range = (node \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
+          info = InfoFormat.read((propertyNode \ "Info").head),
+          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
+          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
         )
       }
     }
