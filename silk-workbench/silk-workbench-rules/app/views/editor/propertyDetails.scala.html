@@ -1,9 +1,10 @@
 @import org.silkframework.rule.vocab.VocabularyProperty
+@import org.silkframework.config.Prefixes
 
 @*
 * Shows details information for a vocabulary property.
 *@
-@(name: String, property: Option[VocabularyProperty])
+@(name: String, property: Option[VocabularyProperty], prefixes: Prefixes = Prefixes.default)
 
 @property match {
   case Some(prop) => { @renderProperty(prop) }
@@ -11,21 +12,38 @@
 }
 
 @renderProperty(prop: VocabularyProperty) = {
-  <dl>
-    <dt>Label:</dt>
-    <dd>
-      @prop.info.label match {
-        case Some(label) => { @label }
-        case None => { no label }
-      }
-    </dd>
+<div class="di-rule-grey-box">
+  <div class="di-rule-property-header"><span class="di-rule-property-name">@renderPropertyName(prop)</span> (<span class="di-rule-property-domain">@renderPropertyDomain(prop)</span>, <span class="di-rule-property-range">@renderPropertyRange(prop)</span>)</div>
+  <div class="di-rule-property-description">
+    @renderPropertyDescription(prop)
+  </div>
+</div>
+}
 
-    <dt>Description:</dt>
-    <dd>
-      @prop.info.description match {
-        case Some(desc) => { @desc }
-        case None => { no description }
-      }
-    </dd>
-  </dl>
+@renderPropertyName(prop: VocabularyProperty) = {
+  @prop.info.label match {
+    case Some(label) => { @label }
+    case None => { no label }
+  }
+}
+
+@renderPropertyDescription(prop: VocabularyProperty) = {
+  @prop.info.description match {
+    case Some(desc) => { @desc }
+    case None => { no description }
+  }
+}
+
+@renderPropertyDomain(prop: VocabularyProperty) = {
+  @prop.domain match {
+    case Some(domain) => { @prefixes.shorten(domain.info.uri) }
+    case None => { (unspecified) }
+  }
+}
+
+@renderPropertyRange(prop: VocabularyProperty) = {
+  @prop.range match {
+    case Some(range) => { @prefixes.shorten(range.info.uri) }
+    case None => { (unspecified) }
+  }
 }

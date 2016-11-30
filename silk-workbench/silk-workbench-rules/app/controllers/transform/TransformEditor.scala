@@ -29,7 +29,7 @@ class TransformEditor extends Controller {
     val vocabularies = context.task.activity[VocabularyCache].value
     val uri = Uri.parse(property, context.project.config.prefixes)
 
-    Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri)))
+    Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri), context.project.config.prefixes))
   }
 
   def paths(projectName: String, taskName: String) = Action {
