@@ -256,11 +256,16 @@ function addRule(template) {
   if (template == "#typeTemplate") {
     var newRule = $(template + " .typeMapping").clone();
     var nameInput = newRule.find(".rule-name");
-    nameInput.text(generateRuleName(nameInput.text()));
+    var ruleName = generateRuleName(nameInput.text());
+    nameInput.text(ruleName);
+    var ruleId = "type-" + ruleName;
+    newRule.attr("id", ruleId);
     var typeString = $("#rule-type-textfield input").val();
     newRule.find(".type").text(typeString);
     newRule.appendTo("#typeContainer");
     $("#rule-type-textfield input").val("");
+    var deleteButton = newRule.find("button");
+    deleteButton.attr("onclick", "deleteRule('" + ruleId + "');");
   } else if(template == "#uriMappingTemplate") {
     var newRule = $(template).children().clone();
     resetMDLTextfields(newRule);
@@ -268,8 +273,20 @@ function addRule(template) {
   } else {
     // Clone rule template
     var newRule = $(template).children().clone();
+
     var nameInput = newRule.find(".rule-name");
-    nameInput.text(generateRuleName(nameInput.text()));
+    var oldRuleName = nameInput.text();
+    var newRuleName = generateRuleName(oldRuleName);
+    nameInput.text(newRuleName);
+
+    var ruleRows = newRule.find("tr");
+    $.each(ruleRows, function(index, row) {
+      row = $(row);
+      var ruleId = row.attr("id");
+      ruleId = ruleId.replace(oldRuleName, newRuleName);
+      row.attr("id", ruleId);
+      row.find("button.delete-button").attr("onclick", "deleteRule('" + ruleId + "');");
+    })
 
     resetMDLTextfields(newRule);
 
