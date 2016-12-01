@@ -36,8 +36,9 @@ $(function() {
   addSourceAutocomplete($(".source"));
   addTargetAutocomplete($(".target"));
 
-   // toggle URI mapping UI
-   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
+  // toggle URI mapping UI
+  uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
+
 });
 
 function modified() {
@@ -347,6 +348,17 @@ function toggleRule(ruleId) {
 
 function uriMappingExists() {
   return $(".uri-ui--defined").children()[0] != null;
+}
+
+function checkForEmptyURIMapping() {
+  var pattern = $("#uri-pattern").val();
+  console.log(pattern);
+  if (pattern == "") {
+    console.log("empty URI pattern");
+    $('#uri').remove();
+    showURIMapping(false);
+    modified();
+  }
 }
 
 function showURIMapping(defined) {
