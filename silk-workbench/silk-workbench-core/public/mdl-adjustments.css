@@ -664,3 +664,8 @@ td.rule-toggle, th.rule-toggle {
 .mdl-file-upload input {
   font-size: 16px;
 }
+
+/* Fix blurry tooltip problem */
+.mdl-tooltip {
+  will-change: unset;
+}
