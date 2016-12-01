@@ -16,6 +16,8 @@ import org.silkframework.workspace.User
 )
 case class RdfFilesVocabularyManager() extends VocabularyManager {
 
+  private val prefix = "urn:"
+
   override def get(uri: String, project: Identifier): Vocabulary = {
     // Get resource
     val vocabularyResource = User().workspace.project(project).resources.get(uri)
@@ -28,11 +30,11 @@ case class RdfFilesVocabularyManager() extends VocabularyManager {
 
     // Create vocabulary loader
     val dataset = DatasetFactory.createMem()
-    dataset.addNamedModel(uri, model)
+    dataset.addNamedModel(prefix + uri, model)
     val endpoint = new JenaDatasetEndpoint(dataset)
     val loader = new VocabularyLoader(endpoint)
 
     // Load vocabulary
-    loader.retrieveVocabulary(uri)
+    loader.retrieveVocabulary(prefix + uri)
   }
 }

@@ -61,3 +61,36 @@ th,td
 {
   padding: 5px;
 }
+
+/* rule details */
+.di-rule__expanded .di-rule-grey-box {
+  background-color: #dadada;
+  padding: 4px 8px;
+}
+
+.di-rule__expanded .di-rule-grey-box:nth-of-type(1n+2) {
+  margin-top: 5px;
+}
+
+.di-rule__expanded dl {
+  margin: 0px;
+}
+
+.di-rule__expanded dt {
+  float: left;
+  margin-right: 10px;
+}
+
+.di-rule__expanded dd {
+}
+
+.di-rule-property-name {
+  font-weight: bold;
+}
+
+.di-rule-property-domain, .di-rule-property-range {
+}
+
+.di-rule-property-description {
+  font-style: italic;
+}

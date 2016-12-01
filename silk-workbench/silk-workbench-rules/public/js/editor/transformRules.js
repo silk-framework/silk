@@ -376,7 +376,20 @@ function addTargetAutocomplete(targetInputs) {
         $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
       },
       minLength: 0,
-      position: { my: "left bottom", at: "left top", collision: "flip" }
+      position: { my: "left bottom", at: "left top", collision: "flip" } ,
+      close: function(event, ui) { modified(); } ,
+      focus: function(event, ui) { changePropertyDetails(ui.item.value, $(this));}
     }).focus(function() { $(this).autocomplete("search"); });
+
+    // Update the property details on every change
+    changePropertyDetails($(this).val(), $(this));
+    $(this).keyup(function() {
+      changePropertyDetails($(this).val(), $(this));
+    });
   });
+}
+
+function changePropertyDetails(propertyName, element) {
+  var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");
+  $.get(editorUrl + '/widgets/property', { property: propertyName }, function(data) { details.html(data); });
 }

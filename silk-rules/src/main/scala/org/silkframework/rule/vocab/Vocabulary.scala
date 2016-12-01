@@ -4,7 +4,17 @@ import org.silkframework.rule.vocab.Info.InfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import scala.xml.Node
 
-case class Vocabulary(info: Info, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty])
+case class Vocabulary(info: Info, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty]) {
+
+  def getClass(uri: String): Option[VocabularyClass] = {
+    classes.find(_.info.uri == uri)
+  }
+
+  def getProperty(uri: String): Option[VocabularyProperty] = {
+    properties.find(_.info.uri == uri)
+  }
+
+}
 
 object Vocabulary {
 
@@ -26,17 +36,17 @@ object Vocabulary {
 
     def readClasses(node: Node)(implicit readContext: ReadContext) = {
       for(classNode <- node \ "Classes" \ "Class") yield {
-        VocabularyClass(InfoFormat.read((node \ "Info").head))
+        VocabularyClass(InfoFormat.read((classNode \ "Info").head))
       }
     }
 
     def readProperties(node: Node, classes: Seq[VocabularyClass])(implicit readContext: ReadContext) = {
-      val classMap = classes.map(c => (c.info.uri, c)).toMap
+      val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(Info(uri)))
       for(propertyNode <- node \ "Properties" \ "Property") yield {
         VocabularyProperty(
-          info = InfoFormat.read((node \ "Info").head),
-          domain = (node \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
-          range = (node \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
+          info = InfoFormat.read((propertyNode \ "Info").head),
+          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
+          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
         )
       }
     }
