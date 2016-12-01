@@ -41,12 +41,12 @@ object Vocabulary {
     }
 
     def readProperties(node: Node, classes: Seq[VocabularyClass])(implicit readContext: ReadContext) = {
-      val classMap = classes.map(c => (c.info.uri, c)).toMap
+      val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(Info(uri)))
       for(propertyNode <- node \ "Properties" \ "Property") yield {
         VocabularyProperty(
           info = InfoFormat.read((propertyNode \ "Info").head),
-          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).flatMap(classMap.get),
-          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).flatMap(classMap.get)
+          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
+          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
         )
       }
     }
