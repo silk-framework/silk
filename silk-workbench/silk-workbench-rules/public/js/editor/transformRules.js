@@ -352,9 +352,7 @@ function uriMappingExists() {
 
 function checkForEmptyURIMapping() {
   var pattern = $("#uri-pattern").val();
-  console.log(pattern);
   if (pattern.match(/^\s*$/)) { // if empty or only whitespace
-    console.log("empty URI pattern");
     $('#uri').remove();
     showURIMapping(false);
     modified();
