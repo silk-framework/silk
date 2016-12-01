@@ -1,9 +1,9 @@
 package controllers.transform
 
 import org.silkframework.rule.TransformSpec
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.User
-import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import play.api.mvc.{Action, Controller}
 import plugins.Context
 
@@ -11,7 +11,9 @@ class TransformEditor extends Controller {
 
   def start(project: String, task: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    Ok(views.html.editor.transformRules(context))
+    val vocabularies = context.task.activity[VocabularyCache].value
+
+    Ok(views.html.editor.transformRules(context, vocabularies))
   }
 
   def editor(project: String, task: String, rule: String) = Action { implicit request =>
@@ -20,6 +22,14 @@ class TransformEditor extends Controller {
       case Some(r) => Ok(views.html.editor.transformEditor(context, r))
       case None => NotFound(s"No rule named '$rule' found!. Available rules: ${context.task.data.rules.map(_.name).mkString(", ")}")
     }
+  }
+
+  def propertyDetails(project: String, task: String, property: String) = Action { implicit request =>
+    val context = Context.get[TransformSpec](project, task, request.path)
+    val vocabularies = context.task.activity[VocabularyCache].value
+    val uri = Uri.parse(property, context.project.config.prefixes)
+
+    Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri), context.project.config.prefixes))
   }
 
   def paths(projectName: String, taskName: String) = Action {
