@@ -45,8 +45,8 @@ object Vocabulary {
       for(propertyNode <- node \ "Properties" \ "Property") yield {
         VocabularyProperty(
           info = InfoFormat.read((propertyNode \ "Info").head),
-          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
-          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
+          domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).flatMap(classMap.get),
+          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).flatMap(classMap.get)
         )
       }
     }
