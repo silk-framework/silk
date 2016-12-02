@@ -54,7 +54,16 @@ sealed trait TransformRule {
   }
 }
 
-case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType)
+case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType) {
+
+  override def toString: String = {
+    if(valueType == AutoDetectValueType)
+      propertyUri.toString
+    else
+      s"$propertyUri ($valueType)"
+  }
+
+}
 
 object MappingTarget {
 

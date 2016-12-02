@@ -133,7 +133,7 @@ object ValueType {
   * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
   * lexical form, e.g. "1" can be an Int, but also a String.
   */
-object AutoDetectValueType extends ValueType with Serializable {
+case object AutoDetectValueType extends ValueType with Serializable {
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true
 
@@ -157,7 +157,7 @@ case class LanguageValueType(language: String) extends ValueType {
   override def uri: Option[String] = None // These are always strings
 }
 
-object IntValueType extends ValueType with Serializable {
+case object IntValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toInt).isSuccess
   }
@@ -166,7 +166,7 @@ object IntValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "int")
 }
 
-object LongValueType extends ValueType with Serializable {
+case object LongValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toLong).isSuccess
   }
@@ -175,7 +175,7 @@ object LongValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "long")
 }
 
-object StringValueType extends ValueType with Serializable {
+case object StringValueType extends ValueType with Serializable {
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true // Always true
 
@@ -183,7 +183,7 @@ object StringValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "string") // In RDF this can be omitted
 }
 
-object FloatValueType extends ValueType with Serializable {
+case object FloatValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toFloat).isSuccess
   }
@@ -192,7 +192,7 @@ object FloatValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "float")
 }
 
-object DoubleValueType extends ValueType with Serializable {
+case object DoubleValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toDouble).isSuccess
   }
@@ -201,7 +201,7 @@ object DoubleValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "double")
 }
 
-object BooleanValueType extends ValueType with Serializable {
+case object BooleanValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toBoolean).isSuccess
   }
@@ -210,7 +210,7 @@ object BooleanValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "boolean")
 }
 
-object IntegerValueType extends ValueType with Serializable {
+case object IntegerValueType extends ValueType with Serializable {
   val integerRegex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
 
   override def validate(lexicalString: String): Boolean = {
@@ -221,7 +221,7 @@ object IntegerValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "integer")
 }
 
-object UriValueType extends ValueType with Serializable {
+case object UriValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = {
     Try(new URI(lexicalString)).isSuccess
   }
@@ -230,7 +230,7 @@ object UriValueType extends ValueType with Serializable {
   override def uri: Option[String] = None
 }
 
-object BlankNodeValueType extends ValueType with Serializable {
+case object BlankNodeValueType extends ValueType with Serializable {
   override def validate(lexicalString: String): Boolean = true // FIXME: No blank node lexical validation
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
