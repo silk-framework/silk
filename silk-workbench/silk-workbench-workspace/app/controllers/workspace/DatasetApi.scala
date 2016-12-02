@@ -92,7 +92,7 @@ class DatasetApi extends Controller {
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntitySchema(firstTypes, paths)
+    val entityDesc = EntitySchema(firstTypes, paths.map(_.asStringTypedPath))
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
     Ok(views.html.workspace.dataset.table(context, paths, entities))

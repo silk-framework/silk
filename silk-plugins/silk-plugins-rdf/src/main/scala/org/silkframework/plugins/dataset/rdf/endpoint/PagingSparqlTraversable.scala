@@ -59,7 +59,7 @@ object PagingSparqlTraversable {
 
       val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
 
-      val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, Literal(node.text))
+      val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, PlainLiteral(node.text))
 
       val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
         blankNodeCount += 1

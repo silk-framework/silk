@@ -43,7 +43,9 @@ object SerializationUtils extends Results {
     * @tparam T The expected parsed type.
     * @return A HTTP result. If the serialization succeeds, this will be the result returned by the user-provided function.
     */
-  def deserialize[T: ClassTag](defaultMimeType: String = "application/xml")(func: T => Result)(implicit request: Request[AnyContent], project: Project): Result = {
+  def deserialize[T: ClassTag](defaultMimeType: String = "application/xml")
+                              (func: T => Result)
+                              (implicit request: Request[AnyContent], project: Project): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 

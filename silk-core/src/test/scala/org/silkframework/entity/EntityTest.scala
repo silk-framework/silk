@@ -8,7 +8,7 @@ import org.silkframework.util.Uri
 
 class EntityTest extends FlatSpec with Matchers {
 
-  val schema = EntitySchema(typeUri = Uri(""), paths = IndexedSeq(Path("path1"), Path("path2")), filter = Restriction.empty)
+  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
 
   val entity1 = new Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema)
 

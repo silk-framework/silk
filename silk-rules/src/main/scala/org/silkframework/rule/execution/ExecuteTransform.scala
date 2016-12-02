@@ -1,9 +1,9 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.dataset.{DataSource, EntitySink}
+import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.execution.ExecuteTransformResult.RuleError
-import org.silkframework.rule.{DatasetSelection, TransformRule}
+import org.silkframework.rule.{DatasetSelection, MappingTarget, TransformRule}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**
@@ -27,7 +27,7 @@ class ExecuteTransform(input: DataSource,
   lazy val entitySchema: EntitySchema = {
     EntitySchema(
       typeUri = selection.typeUri,
-      paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
+      typedPaths = rules.flatMap(_.paths).distinct.map(_.asStringTypedPath).toIndexedSeq,
       filter = selection.restriction
     )
   }
@@ -45,10 +45,12 @@ class ExecuteTransform(input: DataSource,
     var errorResults = ExecuteTransformResult.initial(propertyRules)
     try {
       // Open outputs
-      val properties = propertyRules.map(_.target.get.uri)
-      for (output <- outputs) output.open(properties)
-      val inputProperties = entitySchema.paths.map( p =>
-        p.propertyUri.map(_.uri).getOrElse(p.toString)).toIndexedSeq
+      val properties = propertyRules.map(_.target.get)
+      for (output <- outputs) output.open(properties map MappingTarget.toTypedProperty)
+      val inputProperties = entitySchema.typedPaths.map { p =>
+        val uri = p.propertyUri.map(_.uri).getOrElse(p.path.toString)
+        TypedProperty(uri, p.valueType)
+      }.toIndexedSeq
       for (errorOutput <- errorOutputs) errorOutput.open(inputProperties)
 
       // Transform all entities and write to outputs
