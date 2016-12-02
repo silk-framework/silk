@@ -64,10 +64,12 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
         transform.rules.filter(_.target.map(_.propertyUri) == typedPath.path.propertyUri)
       }
 
+    val allRules = (subjectRule ++ pathRules.flatten).toSeq
+
     val sourceEntitySchema =
       EntitySchema(
         typeUri = transform.selection.typeUri,
-        typedPaths = pathRules.flatten.flatMap(_.paths).map(_.asStringTypedPath).distinct.toIndexedSeq,
+        typedPaths = allRules.flatMap(_.paths).map(_.asStringTypedPath).distinct.toIndexedSeq,
         filter = transform.selection.restriction
       )
 
