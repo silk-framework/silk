@@ -148,6 +148,9 @@
           $(this).trigger("enter");
         }
       });
+      $("#rule-type-textfield input").blur(function() {
+        addRule("#typeTemplate");
+      });
       $("#rule-type-textfield input").autocomplete({
         source: apiUrl + "/targetPathCompletions",
         minLength: 0
@@ -230,7 +233,7 @@
     <div class="transformRule uriMapping">
       <span class="rule-name">@rule.name</span>
       <div class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern" onblur="checkForEmptyURIMapping();">
       </div>
     </div>
     <button class="mdl-button mdl-js-button mdl-button--icon" onclick="deleteRule('uri')">
