@@ -1,5 +1,7 @@
 package org.silkframework.workspace.xml
 
+import java.util.logging.{Level, Logger}
+
 import org.silkframework.config._
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
@@ -7,12 +9,15 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 import scala.xml.XML
 
 /**
   * Holds all projects in a xml-based file structure.
   */
 class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
+
+  private val log = Logger.getLogger(classOf[XmlWorkspaceProvider].getName)
 
   @volatile
   private var plugins = Map[Class[_], XmlSerializer[_]]()
@@ -30,11 +35,19 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   }
 
   override def readProjects(): Seq[ProjectConfig] = {
-    for(projectName <- resources.listChildren) yield {
+    resources.listChildren.flatMap(loadProject)
+  }
+
+  private def loadProject(projectName: String): Option[ProjectConfig] = {
+    try {
       val configXML = XML.load(resources.child(projectName).get("config.xml").load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
       val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
-      ProjectConfig(projectName, prefixes, resourceURI)
+      Some(ProjectConfig(projectName, prefixes, resourceURI))
+    } catch {
+      case NonFatal(ex) =>
+        log.log(Level.WARNING, s"Could not load project $projectName", ex)
+        None
     }
   }
 
