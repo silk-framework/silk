@@ -88,6 +88,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     checkResponse(response)
   }
 
+  def listResources(projectId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources")
+    val response = request.get
+    checkResponse(response)
+  }
+
   /**
     * Uploads a file and creates a resource in the project.
     *

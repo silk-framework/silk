@@ -8,7 +8,7 @@ x: Int, y: Int, display: Boolean)
 
 @operatorBox("Compare", id, plugin, parameterValues, x, y, display) {
 <div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_required" class="param_label">Required</label>
+  <label id="@{GenerateId(id, display)}_param_required" class="param_label" tabindex="-1">Required</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_required">
     If required is set, the parent aggregation should only generate a result if this
     operator yields a value.
@@ -17,14 +17,14 @@ x: Int, y: Int, display: Boolean)
   <input type="checkbox" name="required" @if(required) {checked="checked"}/>
 </div>
 <div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_threshold" class="param_label">Threshold</label>
+  <label id="@{GenerateId(id, display)}_param_threshold" class="param_label" tabindex="-1">Threshold</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_threshold">
     The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.
   </div>
   <input class="param_value" type="text" name="threshold" value="@threshold"/>
 </div>
 <div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_weight" class="param_label">Weight</label>
+  <label id="@{GenerateId(id, display)}_param_weight" class="param_label" tabindex="-1">Weight</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_weight">
     The weight parameter can be used by the parent aggregation when combining
     its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average

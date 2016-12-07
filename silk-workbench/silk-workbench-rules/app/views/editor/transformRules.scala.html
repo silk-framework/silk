@@ -6,8 +6,9 @@
 @import org.silkframework.workspace.activity.transform.TransformPathsCache
 @import controllers.rules.routes.Assets
 @import org.silkframework.runtime.serialization.XmlSerialization
+@import org.silkframework.rule.vocab.Vocabularies
 
-@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
@@ -17,6 +18,7 @@
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
+    var editorUrl = '@config.baseUrl/transform/@context.project.name/@context.task.id/editor';
   </script>
 }
 
@@ -146,6 +148,9 @@
           $(this).trigger("enter");
         }
       });
+      $("#rule-type-textfield input").blur(function() {
+        addRule("#typeTemplate");
+      });
       $("#rule-type-textfield input").autocomplete({
         source: apiUrl + "/targetPathCompletions",
         minLength: 0
@@ -191,9 +196,10 @@
     </tr>
     <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
       <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
-      <td colspan="4" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
-        <div>
-          &hellip; additional information &hellip;
+      <td class="mdl-data-table__cell--non-numeric"/>
+      <td class="mdl-data-table__cell--non-numeric"/>
+      <td colspan="2" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
+        <div id="@{rule.name}_details" class="di-rule__expanded-property-details">
         </div>
       </td>
       <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
@@ -227,7 +233,7 @@
     <div class="transformRule uriMapping">
       <span class="rule-name">@rule.name</span>
       <div class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern" onblur="checkForEmptyURIMapping();">
       </div>
     </div>
     <button class="mdl-button mdl-js-button mdl-button--icon" onclick="deleteRule('uri')">

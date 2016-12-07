@@ -8,8 +8,8 @@ GET           /allActivities                                                    
 
 GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
-GET           /dialogs/removetask/:name/:path                                   controllers.workspace.WorkspaceController.removeTaskDialog(name: String, path: String)
-GET           /dialogs/removeresource/:name/:path                               controllers.workspace.WorkspaceController.removeResourceDialog(name: String, path: String)
+GET           /dialogs/removetask/:name                                         controllers.workspace.WorkspaceController.removeTaskDialog(name: String, path: String)
+GET           /dialogs/removeresource/:name                                     controllers.workspace.WorkspaceController.removeResourceDialog(name: String, path: String)
 GET           /dialogs/importlinkspec/:project                                  controllers.workspace.WorkspaceController.importLinkSpecDialog(project: String)
 GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
 GET           /dialogs/resources/:project                                       controllers.workspace.WorkspaceController.resourcesDialog(project: String)

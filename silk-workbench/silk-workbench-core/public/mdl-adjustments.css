@@ -403,10 +403,6 @@
   table-layout: fixed;
 }
 
-.rule-toggle {
-  display: none;
-}
-
 th.rule-toggle {
   width: 30px;
 }
@@ -663,4 +659,9 @@ td.rule-toggle, th.rule-toggle {
 
 .mdl-file-upload input {
   font-size: 16px;
+}
+
+/* Fix blurry tooltip problem */
+.mdl-tooltip {
+  will-change: unset;
 }

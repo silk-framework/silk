@@ -223,7 +223,7 @@ class Learning extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].control.status, _.isInstanceOf[Finished])
     Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
   }
 

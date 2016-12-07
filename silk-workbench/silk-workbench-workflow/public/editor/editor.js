@@ -71,13 +71,63 @@ function WorkflowEditor() {
             operatorId = taskId + counter;
           }
 
-          if(counter > 1) {
-            suffix = '' + counter;
+    // Make operators draggable
+    $('.toolboxOperator').draggable({
+        init: function() {
+
+          this.helper = function() {
+            var counter = 1;
+            var box = $(this).children('.operator,.dataset').clone(false);
+            // Generate a new id for the operator of the form operator_name
+            var boxId = $(this).attr('id');
+            var taskId = boxId.substring(boxId.indexOf("_") + 1)
+            var suffix = '';
+            // Count up if element id already exists
+            if(counter > 1) {
+              operatorId = taskId + counter;
+            } else {
+              operatorId = taskId;
+            }
+            while($('#' + operatorId).length > 0) {
+              // Count up because an operator with this id already exists
+              counter = counter + 1;
+              operatorId = taskId + counter;
+            }
+
+            if(counter > 1) {
+              suffix = '' + counter;
+            }
+            box.attr('taskid', taskId)
+            box.attr('id', taskId + suffix);
+            box.show();
+            return box;
           }
-          box.attr('taskid', taskId)
-          box.attr('id', taskId + suffix);
-          box.show();
-          return box;
+          return this;
+        }
+      }.init()
+    );
+
+    // Handle dropped operators
+    $("#editorContent").droppable({
+      drop: function (ev, ui) {
+        // Check if we still need to add endpoints to the dropped element
+        if(jsPlumb.getEndpoints(ui.helper) === undefined) {
+          var id = ui.helper.attr('id');
+          // Hide operator in toolbox
+  //        if($(ui.helper).hasClass('dataset')) {
+  //          ui.draggable.hide();
+  //        }
+
+          // Add operator to editor contents
+          $.ui.ddmanager.current.cancelHelperRemoval = true;
+          ui.helper.appendTo(this);
+
+          // Make operator draggable
+          jsPlumb.draggable(ui.helper);
+
+          // Add endpoints
+          jsPlumb.addEndpoint(id, endpointSource);
+          jsPlumb.addEndpoint(id, endpointTarget);
         }
         return this;
       }
@@ -204,7 +254,6 @@ function WorkflowEditor() {
   this.bindEvents();
 
 }
-
 
 
 $(function () {
