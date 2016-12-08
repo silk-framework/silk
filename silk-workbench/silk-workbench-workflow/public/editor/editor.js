@@ -38,6 +38,18 @@ function WorkflowEditor() {
     isTarget: true,
     maxConnections: 1
   }
+  this.styles.endpoints.dynamic_target = {
+    anchor: "LeftMiddle",
+    endpoint: "Dot",
+    paintStyle: {
+      fillStyle: "red",
+      radius: 4
+    },
+    connectorStyle: this.styles.connectors.plain,
+    isTarget: true,
+    maxConnections: 1
+  }
+
 
   this.handler = new DynamicEndpointHandler();
   this.handler.styles = this.styles.endpoints;
@@ -91,7 +103,6 @@ function WorkflowEditor() {
         // Check if we still need to add endpoints to the dropped element
         if(jsPlumb.getEndpoints(ui.helper) === undefined) {
           var id = ui.helper.attr('id');
-          console.log("drop: " + id);
           // Hide operator in toolbox
           // if($(ui.helper).hasClass('dataset')) {
           //   ui.draggable.hide();
@@ -106,7 +117,17 @@ function WorkflowEditor() {
 
           // Add endpoints
           jsPlumb.addEndpoint(id, _this.styles.endpoints.source);
-          jsPlumb.addEndpoint(id, _this.styles.endpoints.target);
+          var inputCardinality = ui.helper.data().inputCardinality;
+          if (inputCardinality == -1) {
+            _this.handler.addDynamicEndpoint(id, "dynamic_target");
+            // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
+          } else {
+            var endpoints = []
+            for (index = 0; index < inputCardinality; index++) {
+              endpoints.push(jsPlumb.addEndpoint(id, _this.styles.endpoints.target));
+            }
+            _this.handler.repaintEndpoints(id, endpoints);
+          }
         }
       }
     });
@@ -160,7 +181,17 @@ function WorkflowEditor() {
 
         // Add endpoints
         sourceEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.source);
-        targetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.target);
+        var inputCardinality = $(box).data().inputCardinality;
+        targetEndpoints[opId] = [];
+        if (inputCardinality == -1) {
+          targetEndpoints[opId].push(_this.handler.addDynamicEndpoint(box, "dynamic_target"));
+          // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
+        } else {
+          for (index = 0; index < inputCardinality; index++) {
+            targetEndpoints[opId].push(jsPlumb.addEndpoint(box, _this.styles.endpoints.target));
+          }
+          _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
+        }
       });
     }
 
@@ -175,9 +206,16 @@ function WorkflowEditor() {
 
         var taskId = xml.attr('id');
         // Connect inputs
-        $.each(xml.attr('inputs').split(','), function() {
-          if(this != "") {
-            jsPlumb.connect({source: sourceEndpoints[this], target: targetEndpoints[taskId]});
+        var inputCardinality = $("#" + taskId).data().inputCardinality;
+        $.each(xml.attr('inputs').split(','), function(index, value) {
+          if(value != "") {
+            jsPlumb.connect({source: sourceEndpoints[value], target: targetEndpoints[taskId][index]});
+            if (inputCardinality == -1) {
+              // these are dynamic enpoints, so we need to get the last one and push it on the stack of
+              // endpoints for this taskId, to make it available in the next iteration of the loop
+              var openEndpoint = _this.handler.getOpenDynamicEndpoint(taskId);
+              targetEndpoints[taskId].push(openEndpoint);
+            }
           }
         });
       });
