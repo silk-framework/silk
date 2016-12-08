@@ -59,6 +59,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       throw new WorkflowException("Not all workflow nodes were executed! Executed " +
           workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
     }
+
+    // Collect task reports
+    val taskReports =
+      for((id, taskContext) <- workflowRunContext.taskContexts if taskContext.value.isDefined) yield {
+        (id, taskContext.value())
+      }
+    context.value() = WorkflowExecutionReport(taskReports)
   }
 
   private def clearInternalDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
