@@ -13,7 +13,7 @@ trait ClearableDatasetGraphTrait { this: RdfDataset =>
     val uri = new URI(graphToClear)
     sparqlEndpoint.update(
       s"""
-        |DROP GRAPH <${uri.toString}>
+        |DROP SILENT GRAPH <${uri.toString}>
       """.stripMargin)
   }
 
@@ -22,5 +22,8 @@ trait ClearableDatasetGraphTrait { this: RdfDataset =>
     */
   def graphToClear: String
 
+  /**
+    * True if the dataset graph should be cleared before workflow execution.
+    */
   def clearGraphBeforeExecution: Boolean
 }

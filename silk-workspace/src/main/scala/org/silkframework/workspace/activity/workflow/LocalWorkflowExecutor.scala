@@ -4,6 +4,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.ClearableDatasetGraphTrait
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
@@ -49,7 +50,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     )
 
     checkVariableDatasets()
-    clearInternalDatasets()
+    clearOutputDatasets()
 
     val DAG = workflow.workflowDependencyGraph
     for (endNode <- DAG.endNodes) {
@@ -61,12 +62,22 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  private def clearInternalDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    // Clear all internal datasets used as output before writing
-    for (datasetTask <- workflow.inputDatasets(project)
-         if datasetTask.data.isInstanceOf[InternalDatasetTrait]) {
+  private def clearOutputDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    // Clear all internal datasets and input datasets that are configured so
+    for (datasetTask <- workflow.outputDatasets(project)
+         if datasetTask.data.isInstanceOf[InternalDatasetTrait] ||
+             datasetTask.data.isInstanceOf[ClearableDatasetGraphTrait]) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      usedDatasetTask.data.clear()
+      usedDatasetTask.data match {
+        case idd: InternalDatasetTrait =>
+          idd.clear()
+        case cdd: ClearableDatasetGraphTrait =>
+          if(cdd.clearGraphBeforeExecution) {
+            cdd.clearGraph()
+          }
+        case other: Dataset =>
+          log.warning("Unhandled input dataset type: " + other.getClass.getName)
+      }
     }
   }
 
