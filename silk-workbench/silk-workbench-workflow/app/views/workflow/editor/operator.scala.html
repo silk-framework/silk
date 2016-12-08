@@ -8,7 +8,7 @@
 @(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
 <div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
-     data-input-cardinality="@inputCardinality().toString().trim()">
+     data-input-cardinality="@inputCardinality()">
   <div class="operatorHeader">
     <div class="operatorHeaderText">
       @taskActions.name
@@ -24,10 +24,10 @@
   </div>
 </div>
 
-@inputCardinality() = {
-  @task.data.inputSchemataOpt match {
+@inputCardinality() = @{
+  task.data.inputSchemataOpt match {
     case Some(inputs) => {
-      @inputs.size
+      inputs.size
     }
     case None => {
       -1
