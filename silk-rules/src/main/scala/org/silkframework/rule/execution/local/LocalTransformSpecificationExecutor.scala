@@ -27,13 +27,14 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
-    val mapper = new Mapper(task, schema, context)
-    val transformedEntities = mapper.map(input.entities)
-    context.value() = mapper.report.build()
+    val transformedEntities = new TransformedEntities(input.entities, task, schema, context)
     Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
   }
 
-  private class Mapper(task: Task[TransformSpec], outputSchema: EntitySchema, context: ActivityContext[ExecutionReport]) {
+  private class TransformedEntities(entities: Traversable[Entity],
+                                    task: Task[TransformSpec],
+                                    outputSchema: EntitySchema,
+                                    context: ActivityContext[ExecutionReport]) extends Traversable[Entity] {
 
     private val transform = task.data
 
@@ -41,12 +42,11 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
 
     private val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
 
-    val report = new TransformReportBuilder(propertyRules)
+    private val report = new TransformReportBuilder(propertyRules)
 
     private var errorFlag = false
 
-    def map(entities: Traversable[Entity]) = {
-
+    override def foreach[U](f: (Entity) => U): Unit = {
       // For each schema path, collect all rules that map to it
       val rulesPerPath =
       for(path <- outputSchema.typedPaths.map(_.path)) yield {
@@ -58,7 +58,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         }
       }
 
-      for(entity <- entities.view) yield {
+      for(entity <- entities) {
         errorFlag = false
         val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
         val values =
@@ -71,8 +71,10 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         else
           report.incrementEntityCounter()
 
-        new Entity(uri, values, outputSchema)
+        f(new Entity(uri, values, outputSchema))
       }
+
+      context.value() = report.build()
     }
 
     private def evaluateRule(entity: Entity)(rule: TransformRule): Seq[String] = {
@@ -87,7 +89,6 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
           Seq.empty
       }
     }
-
   }
 
 }
