@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.{DataSource, TripleSink, TripleSinkDataset}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
@@ -47,7 +47,7 @@ case class FileDataset(
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
   }
 
-  override def sparqlEndpoint = {
+  override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createMem()
     val inputStream = file.load
@@ -56,8 +56,8 @@ case class FileDataset(
 
     // Retrieve model
     val model =
-      if (!graph.trim.isEmpty) dataset.getNamedModel(graph)
-      else dataset.getDefaultModel
+      if (!graph.trim.isEmpty) { dataset.getNamedModel(graph) }
+      else { dataset.getDefaultModel }
 
     new JenaModelEndpoint(model)
   }
