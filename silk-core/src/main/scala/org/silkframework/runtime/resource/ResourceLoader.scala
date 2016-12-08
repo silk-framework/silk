@@ -21,7 +21,7 @@ trait ResourceLoader {
     * All resources in all subdirectories of the base path will be returned.
     */
   def listRecursive: List[String] = {
-    val children = for (child <- this.listChildren) yield this.child(child).listRecursive
+    val children = for (child <- this.listChildren) yield this.child(child).listRecursive.map(resource => child + "/" + resource)
     this.list ++ children.flatten
   }
 
