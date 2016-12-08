@@ -2,8 +2,8 @@ package controllers.workflow
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.{DataSource, Dataset, SinkTrait}
-import org.silkframework.rule.execution.ExecuteTransformResult
-import org.silkframework.rule.execution.ExecuteTransformResult.RuleResult
+import org.silkframework.rule.execution.{TransformReport}
+import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, OldWorkflowExecutor, Workflow}
@@ -67,7 +67,7 @@ class WorkflowApi extends Controller {
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
 
     for {
-      (name, res: ExecuteTransformResult) <- report.taskReports
+      (name, res: TransformReport) <- report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
       lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"

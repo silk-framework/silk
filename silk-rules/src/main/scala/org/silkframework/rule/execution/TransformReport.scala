@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.rule.execution.ExecuteTransformResult._
+import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.rule.TransformRule
 import org.silkframework.util.Identifier
 
@@ -12,27 +12,11 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class ExecuteTransformResult(entityCounter: Long = 0L, entityErrorCounter: Long = 0L,
-                                  ruleResults: Map[Identifier, RuleResult] = Map.empty) extends ExecutionReport {
-
-  def withError(ruleName: Identifier, ruleError: RuleError) = {
-    val updatedRuleResult = ruleResults.getOrElse(ruleName, RuleResult()).withError(ruleError)
-    copy(ruleResults = ruleResults + ((ruleName, updatedRuleResult)))
-  }
-
+case class TransformReport(entityCounter: Long = 0L, entityErrorCounter: Long = 0L,
+                           ruleResults: Map[Identifier, RuleResult] = Map.empty) extends ExecutionReport {
 }
 
-object ExecuteTransformResult {
-
-  // The maximum number of erroneous values to be held for each rule.
-  val maxSampleErrors = 10
-
-  /**
-    * Generates the initial transform state for a given set of rules.
-    */
-  def initial(rules: Seq[TransformRule]) = {
-    ExecuteTransformResult(0L, 0L, rules.map(rule => (rule.name, RuleResult())).toMap)
-  }
+object TransformReport {
 
   /**
     * The transformation statistics for a single mapping rule.
@@ -43,14 +27,22 @@ object ExecuteTransformResult {
     */
   case class RuleResult(errorCount: Long = 0L, sampleErrors: IndexedSeq[RuleError] = IndexedSeq.empty) {
 
+    /**
+      * Increases the error counter, but does not add a new sample error.
+      */
+    def withError() = {
+      copy(
+        errorCount = errorCount + 1
+      )
+    }
+
+    /**
+      * Increases the error counter and adds a new sample error.
+      */
     def withError(error: RuleError) = {
       copy(
         errorCount = errorCount + 1,
-        sampleErrors =
-          if(sampleErrors.size < maxSampleErrors)
-            sampleErrors :+ error
-          else
-            sampleErrors
+        sampleErrors :+ error
       )
     }
 
@@ -63,6 +55,6 @@ object ExecuteTransformResult {
     * @param value The erroneous value
     * @param exception The cause
     */
-  case class RuleError(entity: String, value: Seq[Seq[String]], exception: Exception)
+  case class RuleError(entity: String, value: Seq[Seq[String]], exception: Throwable)
 
 }

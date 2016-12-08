@@ -6,7 +6,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.rule.execution.{ExecuteTransform, ExecuteTransformResult}
+import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingTarget}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
@@ -33,8 +33,8 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
       outputs = Seq(outputMock),
       errorOutputs = Seq(errorOutputMock)
     )
-    val contextMock = mock[ActivityContext[ExecuteTransformResult]]
-    val executeTransformResultHolder = new ValueHolder[ExecuteTransformResult](None)
+    val contextMock = mock[ActivityContext[TransformReport]]
+    val executeTransformResultHolder = new ValueHolder[TransformReport](None)
     when(contextMock.value).thenReturn(executeTransformResultHolder)
     when(contextMock.status).thenReturn(mock[StatusHolder])
     execute.run(contextMock)

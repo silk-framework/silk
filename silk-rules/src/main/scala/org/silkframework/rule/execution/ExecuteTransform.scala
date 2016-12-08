@@ -2,9 +2,11 @@ package org.silkframework.rule.execution
 
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.rule.execution.ExecuteTransformResult.RuleError
+import org.silkframework.rule.execution.TransformReport.RuleError
 import org.silkframework.rule.{DatasetSelection, MappingTarget, TransformRule}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
+
+import scala.util.control.NonFatal
 
 /**
   * Executes a set of transformation rules.
@@ -13,7 +15,7 @@ class ExecuteTransform(input: DataSource,
                        selection: DatasetSelection,
                        rules: Seq[TransformRule],
                        outputs: Seq[EntitySink] = Seq.empty,
-                       errorOutputs: Seq[EntitySink]) extends Activity[ExecuteTransformResult] {
+                       errorOutputs: Seq[EntitySink]) extends Activity[TransformReport] {
 
   require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -32,17 +34,15 @@ class ExecuteTransform(input: DataSource,
     )
   }
 
-  override val initialValue = Some(ExecuteTransformResult())
+  override val initialValue = Some(TransformReport())
 
-  def run(context: ActivityContext[ExecuteTransformResult]): Unit = {
+  def run(context: ActivityContext[TransformReport]): Unit = {
     isCanceled = false
     // Retrieve entities
     val entities = input.retrieve(entitySchema)
 
     // Transform statistics
-    var entityCounter = 0L
-    var entityErrorCounter = 0L
-    var errorResults = ExecuteTransformResult.initial(propertyRules)
+    val report = new TransformReportBuilder(propertyRules)
     try {
       // Open outputs
       val properties = propertyRules.map(_.target.get)
@@ -56,17 +56,16 @@ class ExecuteTransform(input: DataSource,
       // Transform all entities and write to outputs
       var count = 0
       for (entity <- entities) {
-        entityCounter += 1
+        report.incrementEntityCounter()
         val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri)
         var success = true
         val values = propertyRules.map { r =>
           try {
             r(entity)
           } catch {
-            case ex: Exception =>
+            case NonFatal(ex) =>
               success = false
-              val values = r.paths.map(entity.evaluate)
-              errorResults = errorResults.withError(r.name, RuleError(uri, values, ex))
+              report.addError(r, entity, ex)
               Seq()
           }
         }
@@ -75,7 +74,7 @@ class ExecuteTransform(input: DataSource,
             output.writeEntity(uri, values)
           }
         } else {
-          entityErrorCounter += 1
+          report.incrementEntityErrorCounter()
           for (errorOutput <- errorOutputs) {
             errorOutput.writeEntity(uri, entity.values)
           }
@@ -84,14 +83,14 @@ class ExecuteTransform(input: DataSource,
           return
         count += 1
         if (count % 1000 == 0) {
-          context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
+          context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
         }
       }
       context.status.update(s"$count entities written to ${outputs.size} outputs", 1.0)
     } finally {
       // Set final value
-      context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
+      context.value.update(report.build())
       // Close outputs
       for (output <- outputs) output.close()
       for (errorOutput <- errorOutputs) errorOutput.close()

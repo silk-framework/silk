@@ -16,6 +16,7 @@ import scala.util.control.NonFatal
   * Created on 7/20/16.
   */
 class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalExecution] {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   override def execute(task: Task[TransformSpec],
@@ -26,17 +27,26 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
-    val transformedEntities = mapEntities(task, input.entities, schema)
+    val transformedEntities = new Mapper(task, schema, context).map(input.entities)
     Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
   }
 
-  private def mapEntities(task: Task[TransformSpec], entities: Traversable[Entity], outputSchema: EntitySchema) = {
-    val transform = task.data
-    val subjectRule = transform.rules.find(_.target.isEmpty)
-    val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
+  private class Mapper(task: Task[TransformSpec], outputSchema: EntitySchema, context: ActivityContext[ExecutionReport]) {
 
-    // For each schema path, collect all rules that map to it
-    val rulesPerPath =
+    private val transform = task.data
+
+    private val subjectRule = transform.rules.find(_.target.isEmpty)
+
+    private val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
+
+    private val report = new TransformReportBuilder(propertyRules)
+
+    private var errorFlag = false
+
+    def map(entities: Traversable[Entity]) = {
+
+      // For each schema path, collect all rules that map to it
+      val rulesPerPath =
       for(path <- outputSchema.typedPaths.map(_.path)) yield {
         path.propertyUri match {
           case Some(property) =>
@@ -46,27 +56,38 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         }
       }
 
-    for(entity <- entities.view) yield {
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-      val values =
-        for(rules <- rulesPerPath) yield {
-          rules.flatMap(evaluateRule(task, entity))
-        }
+      for(entity <- entities.view) yield {
+        errorFlag = false
+        val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
+        val values =
+          for(rules <- rulesPerPath) yield {
+            rules.flatMap(evaluateRule(entity))
+          }
 
-      new Entity(uri, values, outputSchema)
+        if(errorFlag)
+          report.incrementEntityErrorCounter()
+        else
+          report.incrementEntityCounter()
+
+        new Entity(uri, values, outputSchema)
+      }
     }
+
+    private def evaluateRule(entity: Entity)(rule: TransformRule): Seq[String] = {
+      try {
+        rule(entity)
+      } catch {
+        case NonFatal(ex) =>
+          // TODO decrease log level as the log is now in the report
+          log.warning("Error during execution of transform rule " + rule.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
+          report.addError(rule, entity, ex)
+          errorFlag = true
+          Seq.empty
+      }
+    }
+
   }
 
-  private def evaluateRule(task: Task[TransformSpec], entity: Entity)(rule: TransformRule): Seq[String] = {
-    try {
-      rule(entity)
-    } catch {
-      case NonFatal(ex) =>
-        // TODO forward error
-        log.warning("Error during execution of transform rule " + rule.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
-        Seq.empty
-    }
-  }
 }
 
 
