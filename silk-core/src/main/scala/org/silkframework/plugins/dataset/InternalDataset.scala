@@ -33,7 +33,7 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
       case rdfDataset: RdfDataset =>
         rdfDataset.sparqlEndpoint
       case _ =>
-        throw new RuntimeException("Internal dataset is not ")
+        throw new RuntimeException("Internal dataset implementation is no RdfDataset, cannot return SparqlEndpoint. ")
     }
   }
 

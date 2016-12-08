@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
-import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.workspace.ProjectTask
 
@@ -56,7 +56,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       executeWorkflowNode(endNode, entitySchemaOpt = None)
     }
     if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-      throw new WorkflowException("Not all workflow nodes were executed! Executed " +
+      throw WorkflowException("Not all workflow nodes were executed! Executed " +
           workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
     }
   }
@@ -64,7 +64,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def clearInternalDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
     // Clear all internal datasets used as output before writing
     for (datasetTask <- workflow.inputDatasets(project)
-         if datasetTask.data.isInstanceOf[InternalDataset]) {
+         if datasetTask.data.isInstanceOf[InternalDatasetTrait]) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       usedDatasetTask.data.clear()
     }
@@ -98,7 +98,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case e@Some(entityTable) =>
         e
       case None =>
-        throw new WorkflowException(s"In workflow ${workflow.id.toString} operator node ${input.nodeId} defined an input" +
+        throw WorkflowException(s"In workflow ${workflow.id.toString} operator node ${input.nodeId} defined an input" +
             s" schema for input $input, but did not receive any result.")
     }
   }
@@ -116,12 +116,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
           if (inputResults.exists(_.isEmpty)) {
-            throw new WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
+            throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
           }
           val result = execute(operatorTask, inputResults.flatten, entitySchemaOpt)
           // Throw exception if result was promised, but not returned
           if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-            throw new WorkflowException(s"In workflow ${workflow.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+            throw WorkflowException(s"In workflow ${workflow.id.toString} operator node ${operatorNode.nodeId} defined an output " +
                 s"schema, but did not return any result!")
           }
           log.info("Finished execution of " + operator.nodeId)
@@ -129,14 +129,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           updateProgress(operatorNode.nodeId)
           result
         case None =>
-          throw new WorkflowException("No operator task found with id " + operator.task)
+          throw WorkflowException("No operator task found with id " + operator.task)
       }
     } catch {
       case ex: WorkflowException =>
         throw ex
       case NonFatal(ex) =>
         log.warning("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId)
-        throw new WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
+        throw WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
           ". Cause: " + ex.getMessage, Some(ex))
     }
   }
@@ -162,7 +162,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        inputs: Seq[WorkflowDependencyNode],
                                        schemata: Seq[EntitySchema]): Seq[WorkflowDependencyNode] = {
     if (schemata.size < inputs.size) {
-      throw new WorkflowException("Number of inputs is larger than the number of input schemata for workflow node "
+      throw WorkflowException("Number of inputs is larger than the number of input schemata for workflow node "
           + operatorNode.nodeId + ". This cannot be handled!")
     } else if (schemata.nonEmpty && inputs.size < schemata.size && inputs.nonEmpty) {
       // TODO: Temporary hack: Duplicate last input if more schemata are defined. Remove as soon as explicit task ports are implemented.
@@ -173,7 +173,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                since this is not possible currently, we ignore this if branch
        */
       //    } else if(schemata.nonEmpty && inputs.isEmpty) {
-      //      throw new WorkflowException("No inputs found for workflow node " + operatorNode.nodeId + "! There were " + schemata.size + " inputs expected.")
+      //      throw WorkflowException("No inputs found for workflow node " + operatorNode.nodeId + "! There were " + schemata.size + " inputs expected.")
     } else {
       inputs
     }
@@ -219,7 +219,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
         execute(resolvedDataset, Seq(entityTable), None)
       case None =>
-        throw new WorkflowException("No dataset task found with id " + workflowDataset.task)
+        throw WorkflowException("No dataset task found with id " + workflowDataset.task)
     }
   }
 
@@ -233,11 +233,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           case Some(entityTable) =>
             entityTable
           case None =>
-            throw new WorkflowException(s"In workflow ${workflow.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
+            throw WorkflowException(s"In workflow ${workflow.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
                 s"not return any result!")
         }
       case None =>
-        throw new WorkflowException("No dataset task found with id " + workflowDataset.task)
+        throw WorkflowException("No dataset task found with id " + workflowDataset.task)
     }
   }
 
