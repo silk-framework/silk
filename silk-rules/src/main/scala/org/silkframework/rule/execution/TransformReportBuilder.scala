@@ -5,6 +5,10 @@ import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.util.Identifier
 
+/**
+  * A builder for generating transform reports.
+  * Not thread safe!
+  */
 private class TransformReportBuilder(rules: Seq[TransformRule]) {
 
   private var entityCounter = 0L
