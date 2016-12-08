@@ -97,6 +97,6 @@ object ExecutorRegistry extends ExecutorRegistry {
                                                                context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[ExecType#DataType] = {
 
     val exec = executor(task.data, execution)
-    exec.execute(task, inputs, outputSchema, execution)
+    exec.execute(task, inputs, outputSchema, execution, context)
   }
 }
