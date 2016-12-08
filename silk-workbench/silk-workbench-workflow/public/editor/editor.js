@@ -71,41 +71,18 @@ function WorkflowEditor() {
             operatorId = taskId + counter;
           }
 
-    // Make operators draggable
-    $('.toolboxOperator').draggable({
-        init: function() {
 
-          this.helper = function() {
-            var counter = 1;
-            var box = $(this).children('.operator,.dataset').clone(false);
-            // Generate a new id for the operator of the form operator_name
-            var boxId = $(this).attr('id');
-            var taskId = boxId.substring(boxId.indexOf("_") + 1)
-            var suffix = '';
-            // Count up if element id already exists
-            if(counter > 1) {
-              operatorId = taskId + counter;
-            } else {
-              operatorId = taskId;
-            }
-            while($('#' + operatorId).length > 0) {
-              // Count up because an operator with this id already exists
-              counter = counter + 1;
-              operatorId = taskId + counter;
-            }
-
-            if(counter > 1) {
-              suffix = '' + counter;
-            }
-            box.attr('taskid', taskId)
-            box.attr('id', taskId + suffix);
-            box.show();
-            return box;
+          if(counter > 1) {
+            suffix = '' + counter;
           }
-          return this;
+          box.attr('taskid', taskId)
+          box.attr('id', taskId + suffix);
+          box.show();
+          return box;
         }
-      }.init()
-    );
+        return this;
+      }
+    }.init());
 
     // Handle dropped operators
     $("#editorContent").droppable({
@@ -131,8 +108,7 @@ function WorkflowEditor() {
         }
         return this;
       }
-      }.init()
-    );
+    });
 
     // Handle dropped operators
     $("#editorContent").droppable({
@@ -168,6 +144,7 @@ function WorkflowEditor() {
 
   this.deserializeWorkflow = function(xml) {
     // Retrieve the xml root element
+    console.log(xml.children('Workflow'));
     var xmlRoot = xml.children('Workflow');
     // Find the editor contents to put the operators into
     var editorContent = $("#editorContent");
@@ -233,7 +210,7 @@ function WorkflowEditor() {
 
   this.loadWorkflow = function() {
     $.get(apiUrl, function(data) {
-      this.deserializeWorkflow($(data));
+      _this.deserializeWorkflow($(data));
     })
     .fail(function(msg) {
       alert( "Error loading workflow from backend: " + msg);
@@ -258,9 +235,11 @@ function WorkflowEditor() {
 
 $(function () {
 
-  editor = new WorkflowEditor();
-  // Load workflow from backend
-  editor.loadWorkflow();
+  jsPlumb.ready(function() {
+    editor = new WorkflowEditor();
+    // Load workflow from backend
+    editor.loadWorkflow();
+  });
 
 });
 
