@@ -87,35 +87,11 @@ function WorkflowEditor() {
     // Handle dropped operators
     $("#editorContent").droppable({
       drop: function (ev, ui) {
+
         // Check if we still need to add endpoints to the dropped element
         if(jsPlumb.getEndpoints(ui.helper) === undefined) {
           var id = ui.helper.attr('id');
-          // Hide operator in toolbox
-  //        if($(ui.helper).hasClass('dataset')) {
-  //          ui.draggable.hide();
-  //        }
-
-          // Add operator to editor contents
-          $.ui.ddmanager.current.cancelHelperRemoval = true;
-          ui.helper.appendTo(this);
-
-          // Make operator draggable
-          jsPlumb.draggable(ui.helper);
-
-          // Add endpoints
-          jsPlumb.addEndpoint(id, endpointSource);
-          jsPlumb.addEndpoint(id, endpointTarget);
-        }
-        return this;
-      }
-    });
-
-    // Handle dropped operators
-    $("#editorContent").droppable({
-      drop: function (ev, ui) {
-        // Check if we still need to add endpoints to the dropped element
-        if(jsPlumb.getEndpoints(ui.helper) === undefined) {
-          var id = ui.helper.attr('id');
+          console.log("drop: " + id);
           // Hide operator in toolbox
           // if($(ui.helper).hasClass('dataset')) {
           //   ui.draggable.hide();
