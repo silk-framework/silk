@@ -27,7 +27,9 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
-    val transformedEntities = new Mapper(task, schema, context).map(input.entities)
+    val mapper = new Mapper(task, schema, context)
+    val transformedEntities = mapper.map(input.entities)
+    context.value() = mapper.report.build()
     Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
   }
 
@@ -39,7 +41,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
 
     private val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
 
-    private val report = new TransformReportBuilder(propertyRules)
+    val report = new TransformReportBuilder(propertyRules)
 
     private var errorFlag = false
 
