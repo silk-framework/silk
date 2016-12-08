@@ -29,7 +29,7 @@
 
 @render(getPageLinks())
 @for(statistics <- linkingStatistics) {
-  @renderStatistics(statistics)
+  @linkingReport(statistics, links.size)
 }
 
 @render(pageLinks: Seq[EvalLink]) = {
@@ -275,26 +275,4 @@
 
 @id(link: EvalLink, prefix: String = "") = @{
   prefix + link.hashCode
-}
-
-@renderStatistics(statistics: LinkingStatistics) = {
-  <div class="linkingStatistics">
-    <div class="linkingStatisticsHeader">
-      Linking Statistics
-    </div>
-    <table>
-      <tr>
-        <td>Number of source entities:</td>
-        <td>@statistics.entityCount.source</td>
-      </tr>
-      <tr>
-        <td>Number of target entities:</td>
-        <td>@statistics.entityCount.target</td>
-      </tr>
-      <tr>
-        <td>Number of links:</td>
-        <td>@links.size</td>
-      </tr>
-    </table>
-  </div>
 }

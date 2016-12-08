@@ -20,6 +20,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     val output = execution.createInternalDataset(None) // TODO: Is this needed?
     val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(output.linkSink))
     val linking = Activity(activity).startBlockingAndGetValue()
+    context.value() = linking
     Some(LinksTable(linking.links, linkSpec.rule.linkType, PlainTask(task.id, linkSpec)))
   }
 

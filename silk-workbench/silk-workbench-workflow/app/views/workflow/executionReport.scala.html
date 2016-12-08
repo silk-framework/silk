@@ -2,9 +2,11 @@
 @import org.silkframework.workspace.activity.workflow.WorkflowExecutionReport
 @import org.silkframework.rule.execution.TransformReport
 @import views.html.executeTransform.transformStatistics
+@import views.html.widgets.linkingReport
 @import org.silkframework.config.Prefixes
 @import org.silkframework.execution.ExecutionReport
 @import org.silkframework.workspace.activity.workflow.Workflow
+@import org.silkframework.rule.execution.Linking
 
 @(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
@@ -19,12 +21,12 @@
   <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
       @for(taskId <- report.taskReports.keys) {
-        <a href="#tab-@taskId" class="mdl-tabs__tab is-active">@taskId</a>
+        <a href="#tab-@taskId" class="mdl-tabs__tab">@taskId</a>
       }
     </div>
 
     @for((taskId, taskReport) <- report.taskReports) {
-      <div class="mdl-tabs__panel is-active" id="tab-@taskId">
+      <div class="mdl-tabs__panel" id="tab-@taskId">
         @renderTaskReport(taskReport)
       </div>
     }
@@ -36,6 +38,9 @@
   @taskReport match {
     case transformReport: TransformReport => {
       @transformStatistics(transformReport, prefixes)
+    }
+    case linking: Linking => {
+      @linkingReport(linking.statistics, linking.links.size)
     }
     case _ => {
       No report
