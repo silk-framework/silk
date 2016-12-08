@@ -75,7 +75,7 @@ class Learning extends Controller {
     def sortedPaths(sourceOrTarget: Boolean): Seq[Path] = {
       val rules = activeLearn.value().population.individuals.map(_.node.build)
       val allSourcePaths = rules.map(rule => collectPaths(rule, sourceOrTarget))
-      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).paths
+      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).typedPaths.map(_.path)
       val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_ == p))
       sortedSchemaPaths
     }

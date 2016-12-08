@@ -112,12 +112,32 @@
 
     <xs:element name="TransformRule">
         <xs:complexType>
-            <xs:choice minOccurs="1" maxOccurs="1">
-                <xs:element ref="Input"/>
-                <xs:element ref="TransformInput"/>
-            </xs:choice>
+          <xs:sequence>
+                <xs:choice minOccurs="1" maxOccurs="1">
+                    <xs:element ref="Input"/>
+                    <xs:element ref="TransformInput"/>
+                </xs:choice>
+                <xs:element ref="MappingTarget" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="targetProperty" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="MappingTarget">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ValueType" />
+            </xs:sequence>
+            <xs:attribute name="uri" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ValueType">
+        <xs:complexType>
+            <xs:attribute name="nodeType" type="xs:string" />
+            <xs:attribute name="uri" type="xs:string" />
+            <xs:attribute name="lang" type="xs:string" />
         </xs:complexType>
     </xs:element>
 

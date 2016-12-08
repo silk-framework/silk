@@ -19,7 +19,7 @@ import java.util.logging.{Level, Logger}
 
 import com.hp.hpl.jena.query.{QueryExecution, QuerySolution, ResultSet}
 import com.hp.hpl.jena.update.UpdateProcessor
-import org.silkframework.dataset.rdf.{BlankNode, Literal, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.dataset.rdf.{BlankNode, DataTypeLiteral, LanguageLiteral, PlainLiteral, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedMap
@@ -112,7 +112,14 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   private def toSilkNode(node: com.hp.hpl.jena.rdf.model.RDFNode) = node match {
     case r: com.hp.hpl.jena.rdf.model.Resource if !r.isAnon => Resource(r.getURI)
     case r: com.hp.hpl.jena.rdf.model.Resource => BlankNode(r.getId.getLabelString)
-    case l: com.hp.hpl.jena.rdf.model.Literal => Literal(l.getString)
+    case l: com.hp.hpl.jena.rdf.model.Literal => {
+      val dataType = Option(l.getDatatypeURI)
+      val lang = Option(l.getLanguage).filterNot(_.isEmpty)
+      val lexicalValue = l.getString
+      dataType.map(DataTypeLiteral(lexicalValue, _)).
+          orElse(lang.map(LanguageLiteral(lexicalValue, _))).
+          getOrElse(PlainLiteral(lexicalValue))
+    }
     case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
   }
 }

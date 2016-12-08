@@ -32,7 +32,7 @@ private object EmptyDataset extends Dataset {
      *
      * @param properties The list of properties of the entities to be written.
      */
-    override def open(properties: Seq[String]): Unit = {}
+    override def open(properties: Seq[TypedProperty]): Unit = {}
 
     override def close(): Unit = {}
   }

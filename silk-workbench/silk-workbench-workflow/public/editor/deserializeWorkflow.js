@@ -19,7 +19,6 @@ function deserializeWorkflow(xml) {
   var targetEndpoints = {};
 
   // Delete current operators
-  jsPlumb.reset();
   editorContent.empty();
 
   deserializeWorkflowOperator('Operator', 'operator');

@@ -43,7 +43,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
-    if(entitySchema.paths.size <= 1)
+    if(entitySchema.typedPaths.size <= 1)
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
     else
       new EntityTraversable(entitySchema, entities, limit)
@@ -57,7 +57,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.paths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema), path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema), path.path)
 
       pathRetrievers.foreach(_.start())
 

@@ -3,6 +3,7 @@
 @import plugins.WorkbenchPlugin.TaskActions
 @import org.silkframework.util.Identifier
 @import controllers.workflow.routes.Assets
+@import org.silkframework.config.TaskSpec
 
 @(project: org.silkframework.workspace.Project)
 
@@ -32,7 +33,7 @@
 @**
  * A single operator in the toolbox.
  *@
-@toolboxOperator(task: ProjectTask[_], taskActions: TaskActions[_]) = {
+@toolboxOperator(task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_]) = {
   <div id="toolbox_@task.id" class="toolboxOperator" title="@task.id">
     @*<img src="@icon">*@
     @task.id

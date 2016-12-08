@@ -1,18 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.ByteArrayOutputStream
-import java.net.URI
 import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{TripleSink, EntitySink, LinkSink}
-import org.silkframework.entity.Link
+import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
+import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
-import org.silkframework.util.StringUtils
-import org.silkframework.util.StringUtils.DoubleLiteral
-
-import scala.util.Try
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
@@ -29,9 +24,9 @@ class SparqlSink(params: SparqlParams,
 
   private var statements = 0
 
-  private var properties = Seq[String]()
+  private var properties = Seq[TypedProperty]()
 
-  override def open(properties: Seq[String]) {
+  override def open(properties: Seq[TypedProperty]) {
     this.properties = properties
   }
 
@@ -76,7 +71,7 @@ class SparqlSink(params: SparqlParams,
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
-      writeStatement(subject, property, value)
+      writeStatement(subject, property.propertyUri, value, property.valueType)
     }
   }
 
@@ -86,7 +81,7 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  def writeStatement(subject: String, property: String, value: String): Unit = {
+  def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
     if(body.isEmpty) {
       beginSparul(true)
     } else if (statements + 1 > statementsPerRequest) {
@@ -94,13 +89,13 @@ class SparqlSink(params: SparqlParams,
       beginSparul(false)
     }
 
-    val stmtString: String = buildStatementString(subject, property, value)
+    val stmtString: String = buildStatementString(subject, property, value, valueType)
     body.append(stmtString)
     statements += 1
   }
 
-  def buildStatementString(subject: String, property: String, value: String): String = {
-    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value)
+  def buildStatementString(subject: String, property: String, value: String, valueType: ValueType): String = {
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value, valueType)
   }
 
   /**
@@ -137,7 +132,7 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def writeTriple(subject: String, predicate: String, obj: String): Unit = {
-    writeStatement(subject, predicate, obj)
+  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType): Unit = {
+    writeStatement(subject, predicate, obj, valueType)
   }
 }

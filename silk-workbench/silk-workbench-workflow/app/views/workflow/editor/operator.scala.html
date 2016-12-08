@@ -3,8 +3,11 @@
 @import controllers.workflow.routes.Assets
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.activity.workflow.Workflow
+@import org.silkframework.config.TaskSpec
 
-@(project: Project, task: ProjectTask[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+
+
 
 <div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
   <div class="operatorHeader">

@@ -37,8 +37,8 @@ class GenerateLinksView extends Controller {
       linking.links.headOption.flatMap(_.entities) match {
         case Some(entities) =>
           // Check if the entities got all paths that are used in the linkage rule
-          schemata.source.paths.forall(entities.source.desc.paths.contains) &&
-          schemata.target.paths.forall(entities.target.desc.paths.contains)
+          schemata.source.typedPaths.forall(entities.source.desc.typedPaths.contains) &&
+          schemata.target.typedPaths.forall(entities.target.desc.typedPaths.contains)
         case None => false
       }
     }

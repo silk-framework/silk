@@ -45,7 +45,7 @@ class TransformEditor extends Controller {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
     } else {
-      val paths = DPair(pathsCache.value().paths.map(_.serialize(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().typedPaths.map(_.path.serialize(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true))
     }
   }
