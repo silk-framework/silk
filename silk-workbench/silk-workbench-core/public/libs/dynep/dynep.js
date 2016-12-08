@@ -42,7 +42,8 @@ function DynamicEndpointHandler() {
     newEndpoint.dynamic = true;
     newEndpoint.dynepType = type;
 
-    this.repaintEndpoints(elementId);
+    this.repaintDynamicEndpoints(elementId);
+    return newEndpoint;
   }
 
   /**
@@ -52,7 +53,7 @@ function DynamicEndpointHandler() {
   */
   this.removeDynamicEndpoint = function(elementId, endpoint) {
     this.jsPlumbInstance.deleteEndpoint(endpoint);
-    this.repaintEndpoints(elementId);
+    this.repaintDynamicEndpoints(elementId);
   }
 
   /**
@@ -60,8 +61,12 @@ function DynamicEndpointHandler() {
   *   adding or removing an endpoint.
   * @param elementId The element on which to repaint endpoints.
   */
-  this.repaintEndpoints = function(elementId) {
+  this.repaintDynamicEndpoints = function(elementId) {
     var endpoints = this.getDynamicEndpoints(elementId);
+    this.repaintEndpoints(elementId, endpoints);
+  }
+
+  this.repaintEndpoints = function(elementId, endpoints) {
     var endpointCount = endpoints.length;
     $.each(endpoints, function(index, value) {
       var position = 1 / (endpointCount + 1) * (index + 1) ;
@@ -82,6 +87,11 @@ function DynamicEndpointHandler() {
     } else {
       return undefined;
     }
+  }
+
+  this.getOpenDynamicEndpoint = function(elementId) {
+    var endpoints = this.getDynamicEndpoints(elementId);
+    return endpoints[endpoints.length - 1];
   }
 
   this.bindEvents = function() {
