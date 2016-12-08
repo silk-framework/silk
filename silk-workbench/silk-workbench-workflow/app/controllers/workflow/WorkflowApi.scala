@@ -61,7 +61,7 @@ class WorkflowApi extends Controller {
   def status(projectName: String, taskName: String) = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[OldWorkflowExecutor].value
+    val report = workflow.activity[LocalWorkflowExecutor].value
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
