@@ -1,12 +1,14 @@
 @import org.silkframework.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
+@import org.silkframework.config.TaskSpec
 
 @import org.silkframework.workspace.ProjectTask
-@(project: Project, task: ProjectTask[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-<div class="dataset" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
-  <div class="dataset-bottom"></div>
+<div class="dataset" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
+     data-input-cardinality="@inputCardinality().toString().trim()">
+<div class="dataset-bottom"></div>
   <div class="dataset-contents">
     <div class="dataset-buttons">
       <img src="@Assets.at("img/delete.png")" style="float:right" onclick="editor.removeElement($(this).parent().parent().parent().attr('id'))"/>
@@ -18,3 +20,14 @@
   </div>
   <div class="dataset-top"></div>
 </div>
+
+@inputCardinality() = {
+  @task.data.inputSchemataOpt match {
+    case Some(inputs) => {
+      @inputs.size
+    }
+    case None => {
+      -1
+    }
+  }
+}
