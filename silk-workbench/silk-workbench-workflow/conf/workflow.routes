@@ -1,7 +1,7 @@
 GET        /dialogs/:project/workflowDialog                     controllers.workflow.Dialogs.workflowTaskDialog(project: String)
 
 GET        /editor/:project/:task                               controllers.workflow.WorkflowEditorController.editor(project: String, task: String)
-GET        /editor/:project/:task/report                        controllers.workflow.WorkflowEditorController.report(project: String, task: String)
+GET        /report/:project/:task                               controllers.workflow.WorkflowEditorController.report(project: String, task: String)
 
 GET        /workflows/:project                                  controllers.workflow.WorkflowApi.getWorkflows(project: String)
 

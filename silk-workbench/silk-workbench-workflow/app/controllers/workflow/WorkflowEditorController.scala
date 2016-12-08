@@ -14,6 +14,6 @@ class WorkflowEditorController extends Controller {
   def report(project: String, task: String) = Action { implicit request =>
     val context = Context.get[Workflow](project, task, request.path)
     val report = context.task.activity[LocalWorkflowExecutor].value
-    Ok(views.html.workflow.executionReport(report))
+    Ok(views.html.workflow.executionReport(report, context.project.config.prefixes, context))
   }
 }

@@ -16,8 +16,10 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     if(context.task.data.isInstanceOf[Workflow]) {
       val p = context.project.name
       val t = context.task.id
-      if (config.workbench.tabs.editor)
+      if (config.workbench.tabs.editor) {
         tabs ::= Tab("Editor", s"workflow/editor/$p/$t")
+        tabs ::= Tab("Report", s"workflow/report/$p/$t")
+      }
     }
     tabs.reverse
   }

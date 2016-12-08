@@ -3,8 +3,9 @@
 @import org.silkframework.rule.execution.TransformReport.RuleResult
 @import org.silkframework.rule.execution.TransformReport.RuleError
 @import org.silkframework.rule.TransformSpec
+@import org.silkframework.config.Prefixes
 
-@(context: Context[TransformSpec], statistics: TransformReport)
+@(statistics: TransformReport, prefixes: Prefixes)
 
 @if(statistics.ruleResults.isEmpty) {
   <div>
@@ -48,7 +49,7 @@
           <tr>
             <td></td>
             <td>
-              <a href="@entity" target="_blank" >@context.project.config.prefixes.shorten(entity)</a>
+              <a href="@entity" target="_blank" >@prefixes.shorten(entity)</a>
             </td>
             <td>@values.flatten.mkString(", ")</td>
             <td>@exception.getMessage</td>
