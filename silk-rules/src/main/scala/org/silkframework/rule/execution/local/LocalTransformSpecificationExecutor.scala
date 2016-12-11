@@ -9,6 +9,7 @@ import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.Status.Finished
 
 import scala.util.control.NonFatal
 
@@ -58,6 +59,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         }
       }
 
+      var count = 0
       for(entity <- entities) {
         errorFlag = false
         val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
@@ -66,12 +68,18 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
             rules.flatMap(evaluateRule(entity))
           }
 
+        f(new Entity(uri, values, outputSchema))
+
         if(errorFlag)
           report.incrementEntityErrorCounter()
         else
           report.incrementEntityCounter()
 
-        f(new Entity(uri, values, outputSchema))
+        count += 1
+        if (count % 1000 == 0) {
+          context.value.update(report.build())
+          context.status.updateMessage(s"Executing ($count Entities)")
+        }
       }
 
       context.value() = report.build()
