@@ -73,7 +73,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       * Listeners for updates to task reports.
       * We need to hold them to prevent their garbage collection.
       */
-    val taskReportListeners = {
+    private val taskReportListeners = {
       for((task, context) <- taskContexts) yield {
         val listener = new TaskReportListener(task)
         context.value.onUpdate(listener)
