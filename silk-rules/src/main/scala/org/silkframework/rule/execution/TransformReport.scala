@@ -14,6 +14,14 @@ import org.silkframework.util.Identifier
   */
 case class TransformReport(entityCounter: Long = 0L, entityErrorCounter: Long = 0L,
                            ruleResults: Map[Identifier, RuleResult] = Map.empty) extends ExecutionReport {
+
+  lazy val summary: Seq[(String, String)] = {
+    Seq(
+      "number of entities" -> entityCounter.toString,
+      "number of errors" -> entityErrorCounter.toString
+    )
+  }
+
 }
 
 object TransformReport {

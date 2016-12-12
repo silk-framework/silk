@@ -9,4 +9,5 @@ case class WorkflowExecutionReport(taskReports: Map[Identifier, ExecutionReport]
     copy(taskReports = taskReports + ((taskId, executionReport)))
   }
 
+  override def summary: Seq[(String, String)] = Seq.empty
 }
