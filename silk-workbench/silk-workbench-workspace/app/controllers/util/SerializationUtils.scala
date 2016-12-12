@@ -12,19 +12,21 @@ import scala.xml.Node
 
 object SerializationUtils extends Results {
 
+  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle")
+
   /**
     * Tries to serialize a given value based on the accept header.
     *
     * @param value The value to be serialized
-    * @param defaultMimeType The MIME type to be used if the accept header specifies none or accepts any
+    * @param defaultMimeTypes The MIME types to be used if the accept header specifies none or accepts any
     * @param request The HTTP request to be used for content negotiation
     * @param project The project
     * @return A HTTP result
     */
-  def serialize(value: Any, defaultMimeType: String = "application/xml")(implicit request: Request[AnyContent], project: Project): Result = {
+  def serialize(value: Any, defaultMimeTypes: Seq[String] = defaultMimeTypes)(implicit request: Request[AnyContent], project: Project): Result = {
     implicit val writeContext = WriteContext[Any](prefixes = project.config.prefixes)
 
-    mimeType(value.getClass, request.acceptedTypes, defaultMimeType) match {
+    mimeType(value.getClass, request.acceptedTypes, defaultMimeTypes) match {
       case Some(mimeType) =>
         val serializeValue = Serialization.formatForMime(value.getClass, mimeType).toString(value, mimeType)
         Ok(serializeValue).as(mimeType)
@@ -49,7 +51,7 @@ object SerializationUtils extends Results {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
-    mimeType(valueType, request.mediaType.toList, defaultMimeType) match {
+    mimeType(valueType, request.mediaType.toList, Seq(defaultMimeType)) match {
       case Some(mimeType) =>
         // Get the data from the body. We optimize the cases for xml and json as Play already parsed these.
         val value =
@@ -66,10 +68,10 @@ object SerializationUtils extends Results {
     }
   }
 
-  private def mimeType(valueType: Class[_], mediaTypes: Seq[MediaType], defaultMimeType: String): Option[String] = {
+  private def mimeType(valueType: Class[_], mediaTypes: Seq[MediaType], defaultMimeTypes: Seq[String]): Option[String] = {
     val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)
     if (mimeTypes.isEmpty || mimeTypes.contains("*/*")) {
-      Some(defaultMimeType)
+      defaultMimeTypes.find(Serialization.hasSerialization(valueType, _))
     } else {
       mimeTypes.find(Serialization.hasSerialization(valueType, _))
     }
