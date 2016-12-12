@@ -1,4 +1,6 @@
 
+import java.util.logging.{Level, Logger}
+
 import models.JsonError
 import org.silkframework.workspace.{ProjectNotFoundException, TaskNotFoundException}
 import play.api.PlayException.ExceptionSource
@@ -12,6 +14,8 @@ import scala.concurrent.{ExecutionException, Future}
 
 trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractors {
 
+  private val log = Logger.getLogger(getClass.getName)
+
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
     //TODO  Should return HTML pages if the accept header includes HTML
     //    val res =
@@ -22,13 +26,13 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
     //
     //    Future.successful(res)
 
-    Future.successful(handleError(ex))
+    Future.successful(handleError(request.path, ex))
   }
 
-  private def handleError(ex: Throwable): Result = {
+  private def handleError(requestPath: String, ex: Throwable): Result = {
     ex match {
       case _: ExceptionSource if Option(ex.getCause).isDefined =>
-        handleError(ex.getCause)
+        handleError(requestPath, ex.getCause)
       case _: ProjectNotFoundException | _: TaskNotFoundException =>
         NotFound(JsonError(ex))
       case executionException: ExecutionException =>
@@ -39,6 +43,7 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
             InternalServerError("Unknown error.")
         }
       case _ =>
+        log.log(Level.INFO, s"Error handling request to $requestPath", ex)
         InternalServerError(JsonError(ex))
     }
   }
