@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, Status}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
@@ -63,7 +63,31 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       * Holds the execution reports for each task.
       */
     val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
-      workflow.nodes.map(node => (node.task, new ActivityMonitor[ExecutionReport](node.task, Some(activityContext)))).toMap
+      for(node <- workflow.nodes) yield {
+        val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
+        (node.task, taskMonitor)
+      }
+    }.toMap
+
+    /**
+      * Listeners for updates to task reports.
+      * We need to hold them to prevent their garbage collection.
+      */
+    val taskReportListeners = {
+      for((task, context) <- taskContexts) yield {
+        val listener = new TaskReportListener(task)
+        context.value.onUpdate(listener)
+        listener
+      }
+    }
+
+    /**
+      * Updates the workflow execution report on each update of a task report.
+      */
+    private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
+      def apply(report: ExecutionReport): Unit = activityContext.synchronized {
+        activityContext.value() = activityContext.value().withReport(task, report)
+      }
     }
 
   }
