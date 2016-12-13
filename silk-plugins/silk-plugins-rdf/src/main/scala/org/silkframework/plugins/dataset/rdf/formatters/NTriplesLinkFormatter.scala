@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
@@ -23,7 +23,7 @@ case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
     "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
   }
 
-  override def formatLiteralStatement(subject: String, predicate: String, value: String): String = {
-    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value)
+  override def formatLiteralStatement(subject: String, predicate: String, value: String, valueType: ValueType): String = {
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value, valueType)
   }
 }

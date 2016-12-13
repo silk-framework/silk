@@ -1,7 +1,7 @@
 package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.entity.{Entity, EntitySchema, Link, Path}
+import org.silkframework.entity._
 import org.silkframework.util.Uri
 
 case class LinksTable(links: Seq[Link], linkType: Uri, task: Task[TaskSpec]) extends EntityTable {
@@ -21,6 +21,6 @@ case class LinksTable(links: Seq[Link], linkType: Uri, task: Task[TaskSpec]) ext
 
 object LinksTable {
 
-  val linkEntitySchema = EntitySchema("", IndexedSeq(Path("targetUri"), Path("confidence")))
+  val linkEntitySchema = EntitySchema("", IndexedSeq(TypedPath(Path("targetUri"), UriValueType), TypedPath(Path("confidence"), DoubleValueType)))
 
 }

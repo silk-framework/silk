@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.csv
 
 import java.io._
 
-import org.silkframework.dataset.DataSink
-import org.silkframework.runtime.resource.{WritableResource, FileResource, Resource}
+import org.silkframework.dataset.{DataSink, TypedProperty}
+import org.silkframework.runtime.resource.{FileResource, Resource, WritableResource}
 
 class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSink {
 
@@ -13,13 +13,13 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
   }
 
   @volatile
-  private var out: Writer = null
+  private var out: Writer = _
 
   def write(s: String): Unit = {
     out.write(s)
   }
 
-  def open(properties: Seq[String] = Seq.empty) {
+  def open(properties: Seq[TypedProperty] = Seq.empty) {
     javaFile match {
       case Some(file) =>
         // Use a buffered writer that directly writes to the file
@@ -28,12 +28,13 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
         out = new StringWriter()
     }
     //Write header
-    if(properties.nonEmpty)
-      out.write(properties.mkString(settings.separator.toString) + "\n")
+    if(properties.nonEmpty) {
+      out.write(properties.map(_.propertyUri).mkString(settings.separator.toString) + "\n")
+    }
   }
 
   def close() {
-    if (out != null) {
+    if (Option(out).isDefined) {
       out.close()
       // If we are using a string writer, we still need to write the data to the resource
       out match {

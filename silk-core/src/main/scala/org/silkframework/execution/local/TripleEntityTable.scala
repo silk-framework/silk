@@ -1,7 +1,7 @@
 package org.silkframework.execution.local
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity._
 import org.silkframework.util.Uri
 
 /**
@@ -14,10 +14,11 @@ case class TripleEntityTable(entities: Traversable[Entity], task: Task[TaskSpec]
 object TripleEntitySchema {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.TripleSchemaType),
-    paths = IndexedSeq(
-      Path(SilkVocab.tripleSubject),
-      Path(SilkVocab.triplePredicate),
-      Path(SilkVocab.tripleObject)
+    typedPaths = IndexedSeq(
+      TypedPath(Path(SilkVocab.tripleSubject), UriValueType),
+      TypedPath(Path(SilkVocab.triplePredicate), UriValueType),
+      TypedPath(Path(SilkVocab.tripleObject), StringValueType),
+      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType)
     )
   )
 }

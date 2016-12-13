@@ -37,7 +37,7 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
       Seq(
         EntitySchema(
           typeUri = Uri(""),
-          paths = IndexedSeq(path)
+          typedPaths = IndexedSeq(path.asStringTypedPath)
         )
       )
     }

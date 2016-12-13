@@ -37,4 +37,13 @@ case class BlankNode(value: String) extends RdfNode
 /**
  * An RDF literal.
  */
-case class Literal(value: String) extends RdfNode
+sealed trait Literal extends RdfNode
+
+/** A plain literal */
+case class PlainLiteral(value: String) extends Literal
+
+/** A language literal */
+case class LanguageLiteral(value: String, language: String) extends Literal
+
+/** A data type literal */
+case class DataTypeLiteral(value: String, dataType: String) extends Literal

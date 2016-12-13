@@ -17,6 +17,7 @@ package org.silkframework.util
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 
 import scala.language.implicitConversions
+import scala.util.Try
 
 object StringUtils {
   implicit def toStringUtils(str: String): StringUtils = new StringUtils(str)
@@ -24,52 +25,31 @@ object StringUtils {
   val integerNumber = """^\s*[+-]?(?:(?:[1-9][0-9]*)|(?:0))\s*$""".r
 
   object IntLiteral {
-    def apply(x: Int) = x.toString
+    def apply(x: Int): String = x.toString
 
     def unapply(x: String): Option[Int] = {
-      if(x == null) {
-        None
-      }
-      else {
-        try {
-          Some(x.toInt)
-        } catch {
-          case _: NumberFormatException => None
-        }
+      Option(x) flatMap { s =>
+        Try(s.toInt).toOption
       }
     }
   }
 
   object DoubleLiteral {
-    def apply(x: Double) = x.toString
+    def apply(x: Double): String = x.toString
 
     def unapply(x: String): Option[Double] = {
-      if(x == null) {
-        None
-      }
-      else {
-        try {
-          Some(x.toDouble)
-        } catch {
-          case _: NumberFormatException => None
-        }
+      Option(x) flatMap { s =>
+        Try(s.toDouble).toOption
       }
     }
   }
 
   object BooleanLiteral {
-    def apply(x: Boolean) = x.toString
+    def apply(x: Boolean): String = x.toString
 
     def unapply(x: String): Option[Boolean] = {
-      if(x == null) {
-        None
-      }
-      else {
-        try {
-          Some(x.toBoolean)
-        } catch {
-          case _: NumberFormatException => None
-        }
+      Option(x) flatMap { s =>
+        Try(s.toBoolean).toOption
       }
     }
   }
@@ -78,7 +58,7 @@ object StringUtils {
 
     private val datatypeFactory = DatatypeFactory.newInstance()
 
-    def apply(x: XMLGregorianCalendar) = x.toString
+    def apply(x: XMLGregorianCalendar): String = x.toString
 
     def unapply(x: String): Option[XMLGregorianCalendar] = {
       try {
@@ -89,13 +69,14 @@ object StringUtils {
       }
     }
   }
+
 }
 
 class StringUtils(str: String) {
 
   /**
-   * Returns a stream of all q-grams in this string.
-   */
+    * Returns a stream of all q-grams in this string.
+    */
   def qGrams(q: Int): Stream[String] = {
     val boundary = "#" * (q - 1)
 
@@ -103,19 +84,20 @@ class StringUtils(str: String) {
   }
 
   /**
-   * Undos all camel case words in this string.
-   * e.g. helloWorld is converted to "Hello World"
-   */
-  def undoCamelCase = {
-    str.flatMap(c => if(c.isUpper) " " + c else c.toString).capitalize.trim
+    * Undos all camel case words in this string.
+    * e.g. helloWorld is converted to "Hello World"
+    */
+  def undoCamelCase: String = {
+    str.flatMap(c => if (c.isUpper) " " + c else c.toString).capitalize.trim
   }
 
   /**
-   * Uncapitalizes a string.
-   * e.g. HelloWorld is converted to helloWorld.
-   * @return
-   */
-  def uncapitalize = {
+    * Uncapitalizes a string.
+    * e.g. HelloWorld is converted to helloWorld.
+    *
+    * @return
+    */
+  def uncapitalize: String = {
     str.head.toLower + str.tail
   }
 }

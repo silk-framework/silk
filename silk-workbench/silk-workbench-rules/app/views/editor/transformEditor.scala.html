@@ -81,7 +81,7 @@
     <li>
       <label>Target Property:</label>
       <div id="input_targetproperty" class="mdl-textfield mdl-js-textfield">
-        <input id="targetproperty" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.serialize(context.project.config.prefixes)).getOrElse("")" />
+        <input id="targetproperty" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.propertyUri.serialize(context.project.config.prefixes)).getOrElse("")" />
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_targetproperty">
         The target property.

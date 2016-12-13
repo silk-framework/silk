@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -11,12 +11,11 @@ import scala.xml.{Node, Null}
 /**
   * This class contains all the required parameters to execute a transform task.
   *
-  * @param selection Selects the entities that are covered by this transformation.
-  * @param rules The mapping rules
-  * @param outputs The identifier of the output to which all transformed entities are to be written
-  * @param errorOutputs The identifier of the output to received erroneous entities.
+  * @param selection          Selects the entities that are covered by this transformation.
+  * @param rules              The mapping rules
+  * @param outputs            The identifier of the output to which all transformed entities are to be written
+  * @param errorOutputs       The identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
-  *
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
@@ -29,7 +28,8 @@ case class TransformSpec(selection: DatasetSelection,
   def entitySchema: EntitySchema = {
     EntitySchema(
       typeUri = selection.typeUri,
-      paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
+      // FIXME: Transform rule inputs are not typed, allow typed input paths? Until then use String value type.
+      typedPaths = rules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
       filter = selection.restriction
     )
   }
@@ -40,12 +40,12 @@ case class TransformSpec(selection: DatasetSelection,
     Some(
       EntitySchema(
         typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-        paths = rules.flatMap(_.target).map(Path(_)).toIndexedSeq
+        typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
       )
     )
   }
 
-  override lazy val referencedTasks =  Set(selection.inputId)
+  override lazy val referencedTasks = Set(selection.inputId)
 
 }
 
@@ -75,8 +75,7 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
-        {value.selection.toXML(true)}
-        {value.rules.map(toXml[TransformRule])}<Outputs>
+        {value.selection.toXML(true)}{value.rules.map(toXml[TransformRule])}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutputs.isEmpty) {
         Null
@@ -84,12 +83,11 @@ object TransformSpec {
         <ErrorOutputs>
           {value.errorOutputs.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
-      }}
-        <TargetVocabularies> {
-            for(targetVocabulary <- value.targetVocabularies) yield {
-              <Vocabulary uri={targetVocabulary} />
-            }
-        }</TargetVocabularies>
+      }}<TargetVocabularies>
+        {for (targetVocabulary <- value.targetVocabularies) yield {
+            <Vocabulary uri={targetVocabulary}/>
+        }}
+      </TargetVocabularies>
       </TransformSpec>
     }
   }

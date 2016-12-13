@@ -16,7 +16,6 @@ package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
@@ -27,31 +26,34 @@ case class SparqlEntitySchema(variable: String = "a", restrictions: SparqlRestri
   /**
    * Retrieves the index of a given path.
    */
-  def pathIndex(path: Path) = {
+  def pathIndex(path: Path): Int = {
     var index = 0
     while(path != paths(index)) {
       index += 1
-      if(index >= paths.size)
+      if(index >= paths.size) {
         throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${paths.mkString(", ")}.")
+      }
     }
     index
   }
 
-  def isEmpty = restrictions.isEmpty && paths.isEmpty
+  def isEmpty: Boolean = restrictions.isEmpty && paths.isEmpty
 }
 
 object SparqlEntitySchema {
+  final val A = "a"
 
   /**
    * Creates an empty entity description.
    */
-  def empty = SparqlEntitySchema("a", SparqlRestriction.empty, IndexedSeq.empty)
+  def empty: SparqlEntitySchema = SparqlEntitySchema(A, SparqlRestriction.empty, IndexedSeq.empty)
 
-  def fromSchema(entitySchema: EntitySchema) = {
-    var sparqlRestriction = new SparqlRestrictionBuilder("a")(Prefixes.empty).apply(entitySchema.filter)
-    if(entitySchema.typeUri.uri.nonEmpty)
-      sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql("a", s"?a a <${entitySchema.typeUri}>")
-    SparqlEntitySchema("a", sparqlRestriction, entitySchema.paths)
+  def fromSchema(entitySchema: EntitySchema): SparqlEntitySchema = {
+    var sparqlRestriction = new SparqlRestrictionBuilder(A)(Prefixes.empty).apply(entitySchema.filter)
+    if(entitySchema.typeUri.uri.nonEmpty) {
+      sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(A, s"?a a <${entitySchema.typeUri}>")
+    }
+    SparqlEntitySchema(A, sparqlRestriction, entitySchema.typedPaths.map(_.path))
   }
 
   /**
@@ -61,7 +63,7 @@ object SparqlEntitySchema {
     /**
      * Deserialize an EntityDescription from XML.
      */
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): SparqlEntitySchema = {
       val variable = (node \ "Variable").text.trim
       new SparqlEntitySchema(
         variable = variable,

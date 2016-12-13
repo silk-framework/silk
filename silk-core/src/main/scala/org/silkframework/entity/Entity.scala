@@ -22,18 +22,19 @@ import scala.xml.Node
  * A single entity.
  */
 class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
-  require(values.size == desc.paths.size, "Must provide the same number of value sets as there are paths in the schema.")
+  require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   def evaluate(path: Path): Seq[String] = {
-    if(path.operators.isEmpty)
+    if(path.operators.isEmpty) {
       Seq(uri)
-    else
+    } else {
       evaluate(desc.pathIndex(path))
+    }
   }
 
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
-  def toXML = {
+  def toXML: Node = {
     <Entity uri={uri}> {
       for (valueSet <- values) yield {
         <Val> {
@@ -57,16 +58,23 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     }
   }
 
-  override def toString = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
+  override def toString: String = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   override def equals(other: Any): Boolean = other match {
     case o: Entity => this.uri == o.uri && this.values == o.values && this.desc == o.desc
     case _ => false
   }
+
+  override def hashCode(): Int = {
+    var hashCode = uri.hashCode
+    hashCode = hashCode * 31 + values.foldLeft(0)(31 * _ + _.hashCode())
+    hashCode = hashCode * 31 + desc.hashCode()
+    hashCode
+  }
 }
 
 object Entity {
-  def fromXML(node: Node, desc: EntitySchema) = {
+  def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
       uri = (node \ "@uri").text.trim,
       values = {
@@ -78,13 +86,13 @@ object Entity {
     )
   }
 
-  def deserialize(stream: DataInput, desc: EntitySchema) = {
+  def deserialize(stream: DataInput, desc: EntitySchema): Entity = {
     //Read URI
     val uri = stream.readUTF()
 
     //Read Values
     def readValue = Seq.fill(stream.readInt)(stream.readUTF)
-    val values = IndexedSeq.fill(desc.paths.size)(readValue)
+    val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
 
     new Entity(uri, values, desc)
   }
