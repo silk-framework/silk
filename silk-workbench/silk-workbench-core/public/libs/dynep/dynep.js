@@ -108,7 +108,12 @@ function DynamicEndpointHandler() {
     this.jsPlumbInstance.bind("connectionDetached", function(info) {
       var targetEndpoint = info.targetEndpoint;
       if (targetEndpoint.dynamic) {
-        _this.removeDynamicEndpoint(info.targetId, targetEndpoint);
+        setTimeout(function() {
+          // We need a little delay before removing the endpoint, as this will
+          // also remove any attached connections. If the detachment was already
+          // started elsewhere, we may get dangling pointers.
+          _this.removeDynamicEndpoint(info.targetId, targetEndpoint);
+        }, 10);
       }
     });
 
