@@ -161,6 +161,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
   }
 
+  /** Returns all Dataset tasks that are used as input in the workflow */
   def inputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
     for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
          dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {
@@ -168,6 +169,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     }
   }
 
+  /** Returns all Dataset tasks that are uesd as output in the workflow */
   def outputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
     for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {

@@ -1,9 +1,7 @@
 package org.silkframework.workspace.resources
 
-import java.io.File
-
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.resource.{FileResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
 @Plugin(
