@@ -141,7 +141,6 @@ function WorkflowEditor() {
 
   this.deserializeWorkflow = function(xml) {
     // Retrieve the xml root element
-    console.log(xml.children('Workflow'));
     var xmlRoot = xml.children('Workflow');
     // Find the editor contents to put the operators into
     var editorContent = $("#editorContent");
