@@ -85,7 +85,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       * Updates the workflow execution report on each update of a task report.
       */
     private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
-      def apply(report: ExecutionReport): Unit = activityContext.synchronized {
+      def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
         activityContext.value() = activityContext.value().withReport(task, report)
       }
     }
