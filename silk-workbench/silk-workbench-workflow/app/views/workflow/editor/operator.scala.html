@@ -7,14 +7,13 @@
 
 @(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-
-
-<div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}" >
+<div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
+     data-input-cardinality="@inputCardinality()">
   <div class="operatorHeader">
     <div class="operatorHeaderText">
       @taskActions.name
     </div>
-    <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+    <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="editor.removeElement($(this).parent().parent().attr('id'))"/>
   </div>
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
@@ -24,3 +23,14 @@
     }
   </div>
 </div>
+
+@inputCardinality() = @{
+  task.data.inputSchemataOpt match {
+    case Some(inputs) => {
+      inputs.size
+    }
+    case None => {
+      -1
+    }
+  }
+}
