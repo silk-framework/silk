@@ -122,8 +122,7 @@ function DynamicEndpointHandler() {
         connectionMovedToSameEndpoint = false;
         var originalTargetEndpoint = info.originalTargetEndpoint;
         if (originalTargetEndpoint.dynamic) {
-          _this.jsPlumbInstance.deleteEndpoint(originalTargetEndpoint);
-          _this.repaintEndpoints(info.targetId);
+          _this.removeDynamicEndpoint(info.originalTargetId, originalTargetEndpoint);
         }
       } else {
         connectionMovedToSameEndpoint = true;
