@@ -131,7 +131,6 @@ window.onbeforeunload = confirmExit;
 function initEditor()
 {
   jsPlumb.reset();
-  handler = new DynamicEndpointHandler();
 
   $("#droppable").droppable({
     drop: function (ev, ui) {

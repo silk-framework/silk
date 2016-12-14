@@ -42,7 +42,7 @@ function WorkflowEditor() {
     anchor: "LeftMiddle",
     endpoint: "Dot",
     paintStyle: {
-      fillStyle: "red",
+      fillStyle: "#3187CF",
       radius: 4
     },
     connectorStyle: this.styles.connectors.plain,
