@@ -40,6 +40,29 @@
   white-space: nowrap;
 }
 
+.transformRule .mdl-grid {
+  padding: 0px;
+  margin: 0px;
+}
+
+.transformRule .mdl-cell.di-rule-target-value {
+  margin: 0;
+}
+
+.transformRule .mdl-cell.di-rule-target-type {
+  margin: 0 0 0 14px;
+}
+
+.mdl-cell.mdl-cell--4-col.di-rule-target-type::before {
+  content: "(";
+  color: rgba(0,0,0,.54);
+}
+
+.mdl-cell.mdl-cell--4-col.di-rule-target-type::after {
+  content: ")";
+  color: rgba(0,0,0,.54);
+}
+
 /* Set colors for different mapping types. */
 
 .rule-type-indicator {

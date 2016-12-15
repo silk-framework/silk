@@ -224,8 +224,17 @@
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+    <div class="mdl-grid">
+      <div class="mdl-cell mdl-cell--8-col di-rule-target-value">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+        </div>
+      </div>
+      <div class="mdl-cell mdl-cell--4-col di-rule-target-type">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="text" id="@{rule.name}-target-type" value="@rule.mappingTarget.valueType">
+        </div>
+      </div>
     </div>
   </td>
 }
