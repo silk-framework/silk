@@ -145,7 +145,7 @@
 
       $.ajax({
         type: 'DELETE',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         success: function(data) {
           reloadDialog();
         },
@@ -165,7 +165,7 @@
       $('#dialog-progress-spinner').show();
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;
@@ -220,7 +220,7 @@
       var name = $("#output_resource_name").val();
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         success: function() {
           reloadDialog();
         },
