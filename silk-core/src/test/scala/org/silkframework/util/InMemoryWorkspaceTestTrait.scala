@@ -1,7 +1,6 @@
-package browser.workbench
+package org.silkframework.util
 
 import org.scalatest.Suite
-import org.silkframework.util.ConfigTestTrait
 
 /**
   * A trait that will configure the workspace to be in-memory.
