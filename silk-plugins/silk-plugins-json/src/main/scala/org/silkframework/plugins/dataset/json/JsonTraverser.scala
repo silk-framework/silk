@@ -8,10 +8,11 @@ import play.api.libs.json._
 import scala.io.Codec
 
 /**
- * Data structure to traverse JSON files.
- * @param parentOpt
- * @param value
- */
+  * Data structure to traverse JSON files.
+  *
+  * @param parentOpt
+  * @param value
+  */
 case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
@@ -25,39 +26,45 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
   }
 
   /**
-   * Collects all paths from an json node. For an array, only the first object is considered.
-   * @param path Path prefix to be prepended to all found paths
-   * @return Sequence of all found paths
-   */
+    * Collects all paths from an json node. For an array, only the first object is considered.
+    *
+    * @param path Path prefix to be prepended to all found paths
+    * @return Sequence of all found paths
+    */
   def collectPaths(path: Seq[PathOperator] = Nil): Seq[Seq[PathOperator]] = {
     value match {
       case obj: JsObject =>
         obj.keys.toSeq.flatMap(key => asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key)))
       case array: JsArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path)
-      case _ => if(path.nonEmpty) Seq(path) else Seq()
+      case _ => if (path.nonEmpty) Seq(path) else Seq()
     }
   }
 
   /**
-   * Selects all elements in a JSON node matching a path.
-   */
+    * Selects all elements in a JSON node matching a path.
+    */
   def select(path: Seq[String]): Seq[JsonTraverser] = {
     value match {
       case obj: JsObject if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
       case array: JsArray if array.value.nonEmpty =>
         array.value.flatMap(value => keepParent(value).select(path))
-      case _ =>
+      case array: JsArray =>
+        Seq()
+      case other: JsValue if path.isEmpty =>
         Seq(this)
+      case other: JsValue if path.nonEmpty =>
+        Seq()
     }
   }
 
   /**
-   * Retrieves all values under a given path.
-   * @param path The path starting from the given json node.
-   * @return All found values
-   */
+    * Retrieves all values under a given path.
+    *
+    * @param path The path starting from the given json node.
+    * @return All found values
+    */
   def evaluate(path: Seq[PathOperator]): Seq[String] = {
     path match {
       case ForwardOperator(prop) :: tail =>
@@ -69,7 +76,7 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
           case None =>
             Nil
         }
-      case (p @ PropertyFilter(prop, _, _)) :: tail =>
+      case (p@PropertyFilter(prop, _, _)) :: tail =>
         this.value match {
           case obj: JsObject if p.evaluate("\"" + nodeToString(obj.value(prop.uri)) + "\"") =>
             evaluate(tail)
@@ -93,8 +100,8 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
   def evaluate(path: Path): Seq[String] = evaluate(path.operators)
 
   /**
-   * Converts a simple json node, such as a number, to a string.
-   */
+    * Converts a simple json node, such as a number, to a string.
+    */
   private def nodeToString(json: JsValue): String = {
     json match {
       case JsBoolean(value) => value.toString
