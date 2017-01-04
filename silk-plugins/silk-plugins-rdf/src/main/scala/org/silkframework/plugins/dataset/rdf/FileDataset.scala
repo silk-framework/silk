@@ -16,7 +16,10 @@ import org.silkframework.util.Uri
 @Plugin(
   id = "file",
   label = "RDF dump",
-  description = "Dataset which retrieves and writes all entities from/to an RDF file.")
+  description =
+"""Dataset which retrieves and writes all entities from/to an RDF file.
+The dataset is loaded in-memory and thus the size is restricted by the available memory.
+Large datasets should be loaded into an external RDF store and retrieved using the Sparql dataset instead.""")
 case class FileDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: WritableResource,
