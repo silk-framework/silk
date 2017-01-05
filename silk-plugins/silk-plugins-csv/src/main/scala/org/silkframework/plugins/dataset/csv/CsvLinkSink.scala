@@ -9,14 +9,14 @@ import org.silkframework.runtime.resource.{Resource, WritableResource}
  */
 class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink(file, settings) with LinkSink {
 
-  override def writeLink(link: Link, predicateUri: String) {
-    write(link.source + settings.separator + link.target + "\n")
-  }
-
   /**
-   * Initialize the link sink
-   */
+    * Initialize the link sink
+    */
   override def init(): Unit = {
     open(Seq(TypedProperty("link source", StringValueType), TypedProperty("link target", StringValueType)))
+  }
+
+  override def writeLink(link: Link, predicateUri: String) {
+    write(Seq(link.source, link.target))
   }
 }
