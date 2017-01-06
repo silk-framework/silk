@@ -75,10 +75,11 @@ case class CsvDataset
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
     // Skip one more line if header was detected and property list set
-    val skipHeader = if (csvSource.propertyList.size > 0) 1 else 0
+    val skipHeader = 0 // if (csvSource.propertyList.nonEmpty) 1 else 0
     CsvDataset(
       file = file,
-      properties = CsvSourceHelper.serialize(csvSource.propertyList),
+      // Uncommented to work with schema changes in datasets
+      properties = "", // CsvSourceHelper.serialize(csvSource.propertyList),
       separator = if (detectedSeparator == "\t") "\\t" else detectedSeparator,
       arraySeparator = arraySeparator,
       quote = quote,
