@@ -91,16 +91,17 @@ function serializeRules() {
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
     if($(this).hasClass("directMapping")) {
-      serializeDirectMapping(xmlDoc, name, source, target)
+      var nodeType = $(this).find(".target-type").val();
+      serializeDirectMapping(xmlDoc, name, source, target, nodeType);
     } else if($(this).hasClass("uriMapping")) {
-      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val());
     } else if($(this).hasClass("objectMapping")) {
-      serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
+      serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target);
     } else if($(this).hasClass("typeMapping")) {
-      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text())
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text());
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
-      serializeComplexRule(xmlDoc, ruleXml, name, target)
+      serializeComplexRule(xmlDoc, ruleXml, name, target);
     }
   });
 
@@ -113,19 +114,30 @@ function serializeRules() {
  * Serializes a direct mapping.
  * A direct mapping is a 1-to-1 mapping between two properties
  */
-function serializeDirectMapping(xmlDoc, name, source, target) {
+function serializeDirectMapping(xmlDoc, name, source, target, nodeType) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
   ruleXml.setAttribute("targetProperty", target);
+  //ruleXml.setAttribute("targetType", type);
 
   // Add simple source
   var sourceXml = xmlDoc.createElement("Input");
   sourceXml.setAttribute("path", source);
   ruleXml.appendChild(sourceXml);
 
+
+  // Add MappingTarget
+  var mappingType = xmlDoc.createElement("MappingTarget");
+  var valueType = xmlDoc.createElement("ValueType");
+  valueType.setAttribute("nodeType", nodeType);
+  mappingType.appendChild(valueType);
+  ruleXml.appendChild(mappingType);
+
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
+
+  console.log(ruleXml);
 }
 
 /**
@@ -415,6 +427,102 @@ function addTargetAutocomplete(targetInputs) {
     });
   });
 }
+
+function addTypeSelections(typeSelects) {
+  var types = [
+    { label: "Autodetect", value: "AutoDetectValueType$", category: "" } ,
+    { label: "Resource", value: "UriValueType$", category: "" } ,
+    { label: "Boolean", value: "BooleanValueType$", category: "Literals" } ,
+    { label: "String", value: "StringValueType$", category: "Literals" } ,
+    { label: "Integer", value: "IntegerValueType$", category: "Literals (Numbers)" } ,
+    { label: "Long", value: "LongValueType$", category: "Literals (Numbers)" } ,
+    { label: "Float", value: "FloatValueType$", category: "Literals (Numbers)" } ,
+    { label: "Double", value: "DoubleValueType$", category: "Literals (Numbers)" } ,
+  ];
+  var currentCategory = "";
+  var target = typeSelects;
+  $.each(types, function(index, value) {
+    if ( value.category != currentCategory ) {
+      currentCategory = value.category;
+      typeSelects.append("<optgroup label='" + currentCategory + "'/>");
+      target = typeSelects.find("optgroup:last-child");
+    }
+    target.append("<option value='" + value.value + "'>" + value.label + "</option>");
+  });
+  typeSelects.change(function() {
+    modified();
+  });
+}
+
+function addTypeAutocomplete(typeInputs) {
+  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+    _create: function() {
+      this._super();
+      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+    },
+    _renderMenu: function( ul, items ) {
+      var that = this,
+        currentCategory = "";
+      $.each( items, function( index, item ) {
+        var li;
+        if ( item.category != currentCategory ) {
+          ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
+          currentCategory = item.category;
+        }
+        li = that._renderItemData( ul, item );
+        if ( item.category ) {
+          li.attr( "aria-label", item.category + " : " + item.label );
+        }
+      });
+    }
+  });
+  typeInputs.catcomplete({
+    source: [
+      { label: "Autodetect", category: "" } ,
+      { label: "Boolean", category: "" } ,
+      { label: "String", category: "Strings" } ,
+      { label: "Language String", category: "Strings" } ,
+      { label: "Integer", category: "Numbers" } ,
+      { label: "Float", category: "Numbers" } ,
+      { label: "Double", category: "Numbers" } ,
+      { label: "Date", category: "Dates" } ,
+      { label: "Time", category: "Dates" } ,
+      { label: "DateTime", category: "Dates" } ,
+      { label: "Duration", category: "Dates" } ,
+      { label: "Year", category: "Dates" } ,
+      { label: "Month", category: "Dates" } ,
+      { label: "Day", category: "Dates" } ,
+      { label: "Year-Month", category: "Dates" } ,
+      { label: "Month-Day", category: "Dates" } ,
+
+//      "xsd:string" ,
+//      "xsd:boolean" ,
+//      "xsd:float" ,
+//      "xsd:double" ,
+//      "xsd:integer" ,
+//      "xsd:date" ,
+//      "xsd:time" ,
+//      "xsd:duration" ,
+//      "xsd:dateTime" ,
+//      "xsd:gYear" ,
+//      "xsd:gYearMonth" ,
+//      "xsd:gMonthDay" ,
+//      "xsd:gDay" ,
+//      "xsd:gMonth" ,
+
+    ] ,
+    minLength: 0,
+    position: { my: "left bottom", at: "left top", collision: "flip" } ,
+  }).focus(function() { $(this).catcomplete("search"); });
+}
+
+//function addTargetTypeAutocomplete(inputs) {
+//  inputs.each(function() {
+//    $(this).autocomplete({
+//      minLength: 0
+//    })
+//  })
+//}
 
 function changePropertyDetails(propertyName, element) {
   var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");

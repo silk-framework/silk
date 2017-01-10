@@ -157,6 +157,8 @@
         source: apiUrl + "/targetPathCompletions",
         minLength: 0
       }).focus(function() { $(this).autocomplete("search"); });
+      // addTypeAutocomplete($(".target-type"));
+      addTypeSelections($(".di-rule-target-type select"));
     });
   </script>
 
@@ -231,9 +233,16 @@
         </div>
       </div>
       <div class="mdl-cell mdl-cell--4-col di-rule-target-type">
+<!--
         <div class="mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input" type="text" id="@{rule.name}-target-type" value="@rule.mappingTarget.valueType">
+          <input class="mdl-textfield__input target-type" type="text" id="@{rule.name}-target-type" value="@rule.mappingTarget.valueType" placeholder="&lt;no label&gt;">
         </div>
+-->
+        <div class="mdl-selectfield mdl-js-selectfield">
+          <select class="mdl-selectfield__select target-type">
+          </select>
+        </div>
+
       </div>
     </div>
   </td>

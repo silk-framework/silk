@@ -117,3 +117,20 @@ th,td
 .di-rule-property-description {
   font-style: italic;
 }
+
+/* autocomplete categories */
+.ui-autocomplete-category {
+  font-weight: bold;
+  padding: .2em .4em;
+  margin: .8em 0 .2em;
+  line-height: 1.5;
+}
+
+/* target type select */
+.di-rule-target-type .mdl-selectfield {
+  padding: 4px 0;
+}
+
+.di-rule-target-type .mdl-selectfield__select {
+  font-size: 13px;
+}
