@@ -439,6 +439,8 @@ function addTypeSelections(typeSelects) {
     { label: "Float", value: "FloatValueType$", category: "Literals (Numbers)" } ,
     { label: "Double", value: "DoubleValueType$", category: "Literals (Numbers)" } ,
   ];
+
+  // fill the select lists
   var currentCategory = "";
   var target = typeSelects;
   $.each(types, function(index, value) {
@@ -449,6 +451,14 @@ function addTypeSelections(typeSelects) {
     }
     target.append("<option value='" + value.value + "'>" + value.label + "</option>");
   });
+
+  // select correct element
+  $.each(typeSelects, function(index, value) {
+    var targetType = $(value).data('originalTargetType');
+    $(value).val(targetType + "$");
+  });
+
+  // register changes
   typeSelects.change(function() {
     modified();
   });
