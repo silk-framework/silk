@@ -139,7 +139,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       dependentTasks
     } else {
       val indirectlyDependendTasks = dependentTasks.flatMap(_.findDependentTasks(true))
-      dependentTasks ++ indirectlyDependendTasks
+      indirectlyDependendTasks ++ dependentTasks
     }
   }
 
