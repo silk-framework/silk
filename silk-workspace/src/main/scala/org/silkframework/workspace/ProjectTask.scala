@@ -126,6 +126,23 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
             s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }
 
+  /**
+    * Finds all project tasks that reference this task.
+    *
+    * @param recursive Whether to return tasks that indirectly refer to this task.
+    */
+  def findDependentTasks(recursive: Boolean): Seq[ProjectTask[_]] = {
+    // Find all tasks that reference this task
+    val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
+
+    if(!recursive) {
+      dependentTasks
+    } else {
+      val indirectlyDependendTasks = dependentTasks.flatMap(_.findDependentTasks(true))
+      dependentTasks ++ indirectlyDependendTasks
+    }
+  }
+
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
