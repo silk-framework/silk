@@ -217,10 +217,18 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * Removes a task of any type.
     *
     * @param taskName The name of the task
+    * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     */
-  def removeAnyTask(taskName: Identifier): Unit = {
+  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
+    // Find the module which holds the named task and remove it
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
       m.remove(taskName)
+    }
+
+    if(removeDependentTasks) {
+      for(dependentTask <- anyTask(taskName).findDependentTasks(true)) {
+        removeAnyTask(dependentTask.id, removeDependentTasks = true)
+      }
     }
   }
 

@@ -83,6 +83,7 @@ DELETE        /projects/:project/resources/:name                                
 GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
+DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
 
 # Project Activities
