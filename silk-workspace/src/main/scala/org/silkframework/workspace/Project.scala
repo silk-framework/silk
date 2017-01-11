@@ -226,8 +226,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     }
 
     if(removeDependentTasks) {
-      for(dependentTask <- anyTask(taskName).findDependentTasks(true)) {
-        removeAnyTask(dependentTask.id, removeDependentTasks = true)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
+        removeAnyTask(dependentTask.id, removeDependentTasks = false)
       }
     }
   }
