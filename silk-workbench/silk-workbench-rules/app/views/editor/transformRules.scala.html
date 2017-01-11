@@ -138,6 +138,11 @@
   </table>
 
   <script type="text/javascript">
+
+    var prefixes = {};
+    @for((key, value) <- context.project.config.prefixes) {
+      prefixes["@key"] = "@value";
+    }
     $().ready( function() {
 
       $("#rule-type-textfield input").bind("enter", function(e) {
@@ -233,16 +238,10 @@
         </div>
       </div>
       <div class="mdl-cell mdl-cell--4-col di-rule-target-type">
-<!--
-        <div class="mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input target-type" type="text" id="@{rule.name}-target-type" value="@rule.mappingTarget.valueType" placeholder="&lt;no label&gt;">
-        </div>
--->
         <div class="mdl-selectfield mdl-js-selectfield">
           <select class="mdl-selectfield__select target-type" data-original-target-type="@rule.mappingTarget.valueType">
           </select>
         </div>
-
       </div>
     </div>
   </td>
@@ -282,8 +281,18 @@
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
+    <div class="mdl-grid">
+      <div class="mdl-cell mdl-cell--8-col di-rule-target-value">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
+        </div>
+      </div>
+      <div class="mdl-cell mdl-cell--4-col di-rule-target-type">
+        <div class="mdl-selectfield mdl-js-selectfield">
+          <select class="mdl-selectfield__select target-type" data-original-target-type="@rule.target.map(_.valueType).getOrElse("")">
+          </select>
+        </div>
+      </div>
     </div>
   </td>
 }

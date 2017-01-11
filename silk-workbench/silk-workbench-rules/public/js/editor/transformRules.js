@@ -101,7 +101,8 @@ function serializeRules() {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").text());
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
-      serializeComplexRule(xmlDoc, ruleXml, name, target);
+      var nodeType = $(this).find(".target-type").val();
+      serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType);
     }
   });
 
@@ -118,26 +119,23 @@ function serializeDirectMapping(xmlDoc, name, source, target, nodeType) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
-  ruleXml.setAttribute("targetProperty", target);
-  //ruleXml.setAttribute("targetType", type);
 
   // Add simple source
   var sourceXml = xmlDoc.createElement("Input");
   sourceXml.setAttribute("path", source);
   ruleXml.appendChild(sourceXml);
 
-
   // Add MappingTarget
-  var mappingType = xmlDoc.createElement("MappingTarget");
+  var mappingTarget = xmlDoc.createElement("MappingTarget");
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
   var valueType = xmlDoc.createElement("ValueType");
   valueType.setAttribute("nodeType", nodeType);
-  mappingType.appendChild(valueType);
-  ruleXml.appendChild(mappingType);
+  mappingTarget.appendChild(valueType);
+  ruleXml.appendChild(mappingTarget);
 
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
-
-  console.log(ruleXml);
 }
 
 /**
@@ -244,14 +242,42 @@ function serializeTypeMapping(xmlDoc, name, type) {
  * Serializes a complex rule.
  * For complex rules the rule contents are left untouched.
  */
-function serializeComplexRule(xmlDoc, ruleXml, name, target) {
+function serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType) {
   // Update name
   ruleXml.setAttribute("name", name);
-  // Update target
-  ruleXml.setAttribute("targetProperty", target);
+
+  var mappingTarget = ruleXml.getElementsByTagName("MappingTarget")[0];
+  var valueType = mappingTarget.getElementsByTagName("ValueType")[0];
+  valueType.setAttribute("nodeType", nodeType);
+  mappingTarget.appendChild(valueType);
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
+
   // Add to document
   xmlDoc.importNode(ruleXml, true);
+
+//  console.log(ruleXml);
   xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * For curie, replace a prefix a with a full namespace and
+ * return the resulting full URI.
+ * Prefixes are provided as an object with { prefix: namespace }.
+ */
+function replacePrefix(curie, prefixes) {
+  var curie_pattern = /^([a-z|_]+)\:.*?/;
+  var match = null;
+  if (match = curie.match(curie_pattern)) {
+    var namespace = null;
+    if (namespace = prefixes[match[1]]) {
+      return curie.replace(match[0], namespace);
+    } else {
+      return curie;
+    }
+  } else {
+    return curie;
+  }
 }
 
 function addType(typeString) {
@@ -464,75 +490,68 @@ function addTypeSelections(typeSelects) {
   });
 }
 
-function addTypeAutocomplete(typeInputs) {
-  $.widget( "custom.catcomplete", $.ui.autocomplete, {
-    _create: function() {
-      this._super();
-      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
-    },
-    _renderMenu: function( ul, items ) {
-      var that = this,
-        currentCategory = "";
-      $.each( items, function( index, item ) {
-        var li;
-        if ( item.category != currentCategory ) {
-          ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
-          currentCategory = item.category;
-        }
-        li = that._renderItemData( ul, item );
-        if ( item.category ) {
-          li.attr( "aria-label", item.category + " : " + item.label );
-        }
-      });
-    }
-  });
-  typeInputs.catcomplete({
-    source: [
-      { label: "Autodetect", category: "" } ,
-      { label: "Boolean", category: "" } ,
-      { label: "String", category: "Strings" } ,
-      { label: "Language String", category: "Strings" } ,
-      { label: "Integer", category: "Numbers" } ,
-      { label: "Float", category: "Numbers" } ,
-      { label: "Double", category: "Numbers" } ,
-      { label: "Date", category: "Dates" } ,
-      { label: "Time", category: "Dates" } ,
-      { label: "DateTime", category: "Dates" } ,
-      { label: "Duration", category: "Dates" } ,
-      { label: "Year", category: "Dates" } ,
-      { label: "Month", category: "Dates" } ,
-      { label: "Day", category: "Dates" } ,
-      { label: "Year-Month", category: "Dates" } ,
-      { label: "Month-Day", category: "Dates" } ,
-
-//      "xsd:string" ,
-//      "xsd:boolean" ,
-//      "xsd:float" ,
-//      "xsd:double" ,
-//      "xsd:integer" ,
-//      "xsd:date" ,
-//      "xsd:time" ,
-//      "xsd:duration" ,
-//      "xsd:dateTime" ,
-//      "xsd:gYear" ,
-//      "xsd:gYearMonth" ,
-//      "xsd:gMonthDay" ,
-//      "xsd:gDay" ,
-//      "xsd:gMonth" ,
-
-    ] ,
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" } ,
-  }).focus(function() { $(this).catcomplete("search"); });
-}
-
-//function addTargetTypeAutocomplete(inputs) {
-//  inputs.each(function() {
-//    $(this).autocomplete({
-//      minLength: 0
-//    })
-//  })
+//function addTypeAutocomplete(typeInputs) {
+//  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+//    _create: function() {
+//      this._super();
+//      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+//    },
+//    _renderMenu: function( ul, items ) {
+//      var that = this,
+//        currentCategory = "";
+//      $.each( items, function( index, item ) {
+//        var li;
+//        if ( item.category != currentCategory ) {
+//          ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
+//          currentCategory = item.category;
+//        }
+//        li = that._renderItemData( ul, item );
+//        if ( item.category ) {
+//          li.attr( "aria-label", item.category + " : " + item.label );
+//        }
+//      });
+//    }
+//  });
+//  typeInputs.catcomplete({
+//    source: [
+//      { label: "Autodetect", category: "" } ,
+//      { label: "Boolean", category: "" } ,
+//      { label: "String", category: "Strings" } ,
+//      { label: "Language String", category: "Strings" } ,
+//      { label: "Integer", category: "Numbers" } ,
+//      { label: "Float", category: "Numbers" } ,
+//      { label: "Double", category: "Numbers" } ,
+//      { label: "Date", category: "Dates" } ,
+//      { label: "Time", category: "Dates" } ,
+//      { label: "DateTime", category: "Dates" } ,
+//      { label: "Duration", category: "Dates" } ,
+//      { label: "Year", category: "Dates" } ,
+//      { label: "Month", category: "Dates" } ,
+//      { label: "Day", category: "Dates" } ,
+//      { label: "Year-Month", category: "Dates" } ,
+//      { label: "Month-Day", category: "Dates" } ,
+//
+////      "xsd:string" ,
+////      "xsd:boolean" ,
+////      "xsd:float" ,
+////      "xsd:double" ,
+////      "xsd:integer" ,
+////      "xsd:date" ,
+////      "xsd:time" ,
+////      "xsd:duration" ,
+////      "xsd:dateTime" ,
+////      "xsd:gYear" ,
+////      "xsd:gYearMonth" ,
+////      "xsd:gMonthDay" ,
+////      "xsd:gDay" ,
+////      "xsd:gMonth" ,
+//
+//    ] ,
+//    minLength: 0,
+//    position: { my: "left bottom", at: "left top", collision: "flip" } ,
+//  }).focus(function() { $(this).catcomplete("search"); });
 //}
+
 
 function changePropertyDetails(propertyName, element) {
   var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");
