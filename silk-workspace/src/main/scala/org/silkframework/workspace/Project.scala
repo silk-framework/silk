@@ -183,7 +183,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T): Unit = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     module[T].add(name, taskData)
   }
@@ -196,7 +196,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T): Unit = {
     module[T].taskOption(name) match {
       case Some(task) => task.update(taskData)
       case None => addTask[T](name, taskData)
@@ -204,13 +204,24 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
-   * Removes a task.
+   * Removes a task of a specific type.
    *
    * @param taskName The name of the task
    * @tparam T The task type
    */
   def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
     module[T].remove(taskName)
+  }
+
+  /**
+    * Removes a task of any type.
+    *
+    * @param taskName The name of the task
+    */
+  def removeAnyTask(taskName: Identifier): Unit = {
+    for(m <- modules.find(_.taskOption(taskName).isDefined)) {
+      m.remove(taskName)
+    }
   }
 
   /**
@@ -238,14 +249,14 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag]() = {
+  def registerModule[T <: TaskSpec : ClassTag](): Unit = {
     modules = modules :+ new Module[T](provider, this)
   }
 
   /**
    * Registers a new executor for a specific task type.
    */
-  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]) = {
+  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]): Unit = {
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
   }
