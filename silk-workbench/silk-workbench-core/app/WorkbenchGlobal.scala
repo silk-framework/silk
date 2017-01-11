@@ -16,6 +16,10 @@ trait WorkbenchGlobal extends GlobalSettings with Rendering with AcceptExtractor
 
   private val log = Logger.getLogger(getClass.getName)
 
+  override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
+    Future.successful(BadRequest(JsonError(error)))
+  }
+
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
     //TODO  Should return HTML pages if the accept header includes HTML
     //    val res =
