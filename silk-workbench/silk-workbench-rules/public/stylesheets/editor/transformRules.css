@@ -233,11 +233,11 @@ th.rule-actions {
   background-color: #eee;
 }
 
-.transformRule td {
+#ruleTable .transformRule td {
   border-bottom: none;
 }
 
-.di-rule__expanded td {
+#ruleTable .di-rule__expanded td {
   border-top: none;
   border-right: none;
 }
