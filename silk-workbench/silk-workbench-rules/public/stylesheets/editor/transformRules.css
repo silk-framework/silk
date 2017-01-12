@@ -54,14 +54,20 @@
 }
 
 .mdl-cell.mdl-cell--4-col.di-rule-target-type::before {
-  content: "(";
-  color: rgba(0,0,0,.54);
+  content: "Type";
+  color: rgb(255, 255, 255);
+  background-color: rgb(119, 119, 119);
+  padding: 2.1px 6.3px 3.2px 6.3px;
+  border-radius: 2.6px;
+  font-size: 10.5px;
+  margin-right: 5px;
+  font-weight: bold;
 }
 
-.mdl-cell.mdl-cell--4-col.di-rule-target-type::after {
+/*.mdl-cell.mdl-cell--4-col.di-rule-target-type::after {
   content: ")";
   color: rgba(0,0,0,.54);
-}
+}*/
 
 /* Set colors for different mapping types. */
 
