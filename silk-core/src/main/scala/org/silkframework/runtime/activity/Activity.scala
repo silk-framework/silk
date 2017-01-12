@@ -7,6 +7,7 @@ import org.silkframework.util.StringUtils._
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
+import scala.math.max
 
 /**
  * An activity is a unit of work that can be executed in the background.
@@ -63,7 +64,9 @@ object Activity {
    */
   @volatile
   var executionContext: ExecutionContext = {
-    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors(), ActivityThreadFactory))
+    val minimumNumberOfThreads = 4
+    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
+    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threadCount, ActivityThreadFactory))
   }
 
   /**
