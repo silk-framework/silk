@@ -125,19 +125,22 @@ object JsonSerializer {
     )
   }
 
-  def taskMetadata(task: Task[TaskSpec]) = {
-    val referencedTasks = JsArray(task.referencedTasks.toSeq.map(JsString(_)))
-    val inputSchemata = task.inputSchemataOpt match {
+  def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
+    val inputSchemata = task.data.inputSchemataOpt match {
       case Some(schemata) => JsArray(schemata.map(entitySchema))
       case None => JsNull
     }
-    val outputSchema = task.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+    val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+
+    val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
+    val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
 
     Json.obj(
       "id" -> JsString(task.id),
-      "referencedTasks" -> referencedTasks,
       "inputSchemata" -> inputSchemata,
-      "outputSchema" -> outputSchema
+      "outputSchema" -> outputSchema,
+      "referencedTasks" -> referencedTasks,
+      "dependentTasks" -> dependentTasks
     )
   }
 
