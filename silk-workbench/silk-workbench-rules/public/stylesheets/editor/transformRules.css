@@ -4,19 +4,6 @@
 #ruleTable {
 }
 
-/*
-.transformRule {
-  width: 470px;
-  margin: 10px;
-  background-color: #ffffff;
-  border-radius: 5px;
-  box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.5);
-  -webkit-transition: background-color 0.25s ease-in;
-  -moz-transition: background-color 0.25s ease-in;
-  transition: background-color 0.25s ease-in;
-}
-*/
-
 .ruleTitle {
   font-style: italic;
   padding: 4px;
@@ -133,10 +120,10 @@ th,td
 }
 
 /* target type select */
-.di-rule-target-type .mdl-selectfield {
+.rule-target-type .mdl-selectfield {
   padding: 4px 0;
 }
 
-.di-rule-target-type .mdl-selectfield__select {
+.rule-target-type .mdl-selectfield__select {
   font-size: 13px;
 }

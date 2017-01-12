@@ -87,11 +87,11 @@ function serializeRules() {
   $("#ruleContainer .transformRule").each(function() {
     // Read name
     var name = $(this).find(".rule-name").text();
-    // Read source and target
+    // Read source, target property and target type
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
+    var nodeType = $(this).find(".rule-target-type select").val();
     if($(this).hasClass("directMapping")) {
-      var nodeType = $(this).find(".target-type").val();
       serializeDirectMapping(xmlDoc, name, source, target, nodeType);
     } else if($(this).hasClass("uriMapping")) {
       serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val());
@@ -101,7 +101,6 @@ function serializeRules() {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").text());
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
-      var nodeType = $(this).find(".target-type").val();
       serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType);
     }
   });
@@ -488,70 +487,8 @@ function addTypeSelections(typeSelects) {
   typeSelects.change(function() {
     modified();
   });
+
 }
-
-//function addTypeAutocomplete(typeInputs) {
-//  $.widget( "custom.catcomplete", $.ui.autocomplete, {
-//    _create: function() {
-//      this._super();
-//      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
-//    },
-//    _renderMenu: function( ul, items ) {
-//      var that = this,
-//        currentCategory = "";
-//      $.each( items, function( index, item ) {
-//        var li;
-//        if ( item.category != currentCategory ) {
-//          ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
-//          currentCategory = item.category;
-//        }
-//        li = that._renderItemData( ul, item );
-//        if ( item.category ) {
-//          li.attr( "aria-label", item.category + " : " + item.label );
-//        }
-//      });
-//    }
-//  });
-//  typeInputs.catcomplete({
-//    source: [
-//      { label: "Autodetect", category: "" } ,
-//      { label: "Boolean", category: "" } ,
-//      { label: "String", category: "Strings" } ,
-//      { label: "Language String", category: "Strings" } ,
-//      { label: "Integer", category: "Numbers" } ,
-//      { label: "Float", category: "Numbers" } ,
-//      { label: "Double", category: "Numbers" } ,
-//      { label: "Date", category: "Dates" } ,
-//      { label: "Time", category: "Dates" } ,
-//      { label: "DateTime", category: "Dates" } ,
-//      { label: "Duration", category: "Dates" } ,
-//      { label: "Year", category: "Dates" } ,
-//      { label: "Month", category: "Dates" } ,
-//      { label: "Day", category: "Dates" } ,
-//      { label: "Year-Month", category: "Dates" } ,
-//      { label: "Month-Day", category: "Dates" } ,
-//
-////      "xsd:string" ,
-////      "xsd:boolean" ,
-////      "xsd:float" ,
-////      "xsd:double" ,
-////      "xsd:integer" ,
-////      "xsd:date" ,
-////      "xsd:time" ,
-////      "xsd:duration" ,
-////      "xsd:dateTime" ,
-////      "xsd:gYear" ,
-////      "xsd:gYearMonth" ,
-////      "xsd:gMonthDay" ,
-////      "xsd:gDay" ,
-////      "xsd:gMonth" ,
-//
-//    ] ,
-//    minLength: 0,
-//    position: { my: "left bottom", at: "left top", collision: "flip" } ,
-//  }).focus(function() { $(this).catcomplete("search"); });
-//}
-
 
 function changePropertyDetails(propertyName, element) {
   var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");
