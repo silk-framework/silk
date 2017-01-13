@@ -84,6 +84,15 @@ class StringUtils(str: String) {
   }
 
   /**
+    * Converts a string to upper camel case.
+    * e.g. "Hello World" is converted to HelloWorld
+    * @return
+    */
+  def upperCamelCase: String = {
+    str.split("\\s").map(_.capitalize).mkString("").trim
+  }
+
+  /**
     * Undos all camel case words in this string.
     * e.g. helloWorld is converted to "Hello World"
     */
