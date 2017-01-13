@@ -261,6 +261,13 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
+  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    project.removeAnyTask(taskName, removeDependentTasks)
+
+    Ok
+  }
+
   def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
