@@ -204,6 +204,18 @@ th.rule-toggle {
   width: 30px;
 }
 
+th.rule-type {
+  width: 180px;
+}
+
+th.rule-target-type {
+  width: 120px;
+}
+
+.rule-source .mdl-textfield, .rule-target-property .mdl-textfield {
+    width: 100%;
+}
+
 th.rule-actions {
   width: 120px;
 }
@@ -259,9 +271,11 @@ td.rule-toggle, th.rule-toggle {
   display: none;
 }
 
+/*
 .rule-actions {
   min-width: 160px;
 }
+*/
 
 /*
 .rule-action-buttons {
