@@ -209,6 +209,16 @@ function serializeObjectMapping(xmlDoc, name, pattern, target) {
     }
   }
 
+  // Add MappingTarget
+  var mappingTarget = xmlDoc.createElement("MappingTarget");
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
+  var valueType = xmlDoc.createElement("ValueType");
+  // The nodeType of object mappings is always Resource (UriValueType):
+  valueType.setAttribute("nodeType", "UriValueType$");
+  mappingTarget.appendChild(valueType);
+  ruleXml.appendChild(mappingTarget);
+
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
 }
@@ -330,7 +340,9 @@ function addRule(template) {
     newRule.appendTo("#ruleTable table");
     $(".mdl-layout__content").animate({
       scrollTop: $("#content").height()
-     }, 300);
+    }, 300);
+
+    addTypeSelections(newRule.find('select'));
   }
 
   componentHandler.upgradeAllRegistered();
@@ -454,6 +466,7 @@ function addTargetAutocomplete(targetInputs) {
 }
 
 function addTypeSelections(typeSelects) {
+  console.log(typeSelects);
   var types = [
     { label: "Autodetect", value: "AutoDetectValueType$", category: "" } ,
     { label: "Resource", value: "UriValueType$", category: "" } ,
