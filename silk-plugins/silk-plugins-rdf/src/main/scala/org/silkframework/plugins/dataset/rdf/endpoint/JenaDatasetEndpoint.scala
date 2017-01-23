@@ -1,12 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{ByteArrayInputStream, OutputStream, StringWriter}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream, StringWriter}
 import java.util.logging.Logger
 
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
 import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.apache.jena.riot.{Lang, RDFLanguages}
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, GraphStoreTrait}
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
@@ -55,17 +55,16 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
 case class JenaDatasetWritingOutputStream(dataset: Dataset, contentLang: Lang, graph: String) extends OutputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private lazy val writer = {
-    new StringWriter()
+  private lazy val outputStream = {
+    new ByteArrayOutputStream()
   }
 
   override def write(i: Int): Unit = {
-    writer.write(i)
+    outputStream.write(i)
   }
 
   override def close(): Unit = {
-    val input = writer.toString
     val model = dataset.getNamedModel(graph)
-    model.read(new ByteArrayInputStream(input.getBytes()), null, contentLang.getName)
+    model.read(new ByteArrayInputStream(outputStream.toByteArray), null, contentLang.getName)
   }
 }
