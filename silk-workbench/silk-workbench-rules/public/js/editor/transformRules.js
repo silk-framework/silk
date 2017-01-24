@@ -254,16 +254,19 @@ function addURIMapping() {
 function addRule(template) {
 
   if (template == "#typeTemplate") {
+    var typeTextfield = $("#rule-type-textfield");
+    var typeInput = $("#rule-type-textfield input");
     var newRule = $(template + " .typeMapping").clone();
     var nameInput = newRule.find(".rule-name");
     var ruleName = generateRuleName(nameInput.text());
     nameInput.text(ruleName);
     var ruleId = "type-" + ruleName;
     newRule.attr("id", ruleId);
-    var typeString = $("#rule-type-textfield input").val();
+    var typeString = typeInput.val();
     newRule.find(".type").text(typeString);
     newRule.appendTo("#typeContainer");
-    $("#rule-type-textfield input").val("");
+    typeInput.val("");
+    typeTextfield.removeClass("is-dirty");
     var deleteButton = newRule.find("button");
     deleteButton.attr("onclick", "deleteRule('" + ruleId + "');");
   } else if(template == "#uriMappingTemplate") {

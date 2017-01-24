@@ -142,6 +142,7 @@
 
       $("#rule-type-textfield input").bind("enter", function(e) {
         if ($(this).val() != '') {
+          $(this).autocomplete("close");
           addRule("#typeTemplate");
         }
       });
