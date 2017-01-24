@@ -20,6 +20,15 @@
           "search", "state", "wholerow"
         ]
       });
+
+      var to = false;
+      $('#configRootSearch').keyup(function () {
+        if(to) { clearTimeout(to); }
+        to = setTimeout(function () {
+          var v = $('#configRootSearch').val();
+          $('#configRoot').jstree(true).search(v);
+        }, 250);
+      });
     });
   </script>
 }
@@ -28,6 +37,11 @@
 }
 
 @content = {
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="configRootSearch">
+    <label class="mdl-textfield__label" for="configRootSearch">Search</label>
+  </div>
+
   <div id="configRoot">
     @render(config.root())
   </div>
