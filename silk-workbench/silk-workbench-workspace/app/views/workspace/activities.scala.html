@@ -3,21 +3,22 @@
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.TaskActivity
-
+@import controllers.core.routes.{Assets => CoreAssets}
 @import scala.runtime.BoxedUnit
 @import controllers.workspace.routes.ActivityApi
 @import controllers.workspace.routes.WorkspaceController
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
+
 @**
  * Overview page of all activities and their status
  *@
 @()(implicit session: play.api.mvc.Session)
 
 @header = {
-  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/style.min.css")" type="text/css" />
   <link rel="stylesheet" href="@Assets.at("workspace.css")" type="text/css" />
-  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script src="@CoreAssets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $( window ).load(function () {

@@ -1,0 +1,79 @@
+@import com.typesafe.config.Config
+@import scala.collection.JavaConversions._
+@import com.typesafe.config.ConfigObject
+@import com.typesafe.config.ConfigValue
+@import com.typesafe.config.ConfigRenderOptions
+@import controllers.core.routes.Assets
+
+@(config: Config)(implicit session: play.api.mvc.Session)
+
+@header = {
+  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script type="application/javascript" >
+    $(function () {
+      $('#configRoot').jstree({
+        "core" : {
+          "themes": {"stripes": true}
+        },
+        "plugins" : [
+          "search", "state", "wholerow"
+        ]
+      });
+
+      var to = false;
+      $('#configRootSearch').keyup(function () {
+        if(to) { clearTimeout(to); }
+        to = setTimeout(function () {
+          var v = $('#configRootSearch').val();
+          $('#configRoot').jstree(true).search(v);
+        }, 250);
+      });
+    });
+  </script>
+}
+
+@toolbar = {
+}
+
+@content = {
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="configRootSearch">
+    <label class="mdl-textfield__label" for="configRootSearch">Search</label>
+  </div>
+
+  <div id="configRoot">
+    @render(config.root())
+  </div>
+}
+
+@render(obj: ConfigObject) = {
+  <ul>
+  @for(entry <- obj.entrySet().toSeq.sortBy(_.getKey)) {
+    <li>
+      @entry.getKey
+      @entry.getValue match {
+        case childObj: ConfigObject => {
+          @render(childObj)
+        }
+        case value => {
+          @renderValue(value)
+        }
+      }
+    </li>
+  }
+  </ul>
+}
+
+@renderValue(value: ConfigValue) = {
+  <ul>
+    <li data-jstree='{"disabled":true}' >Value: @value.render(ConfigRenderOptions.defaults())</li>
+    <li data-jstree='{"disabled":true}' >
+      Comments: @value.origin().comments().mkString(", ")
+    </li>
+    <li data-jstree='{"disabled":true}' >Origin: @value.origin().filename()</li>
+  </ul>
+}
+
+@main(None, "config")(header)(toolbar)(content)
+
