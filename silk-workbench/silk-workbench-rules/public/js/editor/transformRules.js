@@ -242,10 +242,6 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target) {
   xmlDoc.documentElement.appendChild(ruleXml);
 }
 
-function addType(typeString) {
-  console.log(typeString);
-}
-
 function addURIMapping() {
   addRule("#uriMappingTemplate");
   $(".uri-ui").toggle();
