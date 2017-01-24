@@ -388,9 +388,10 @@ function showURIMapping(defined) {
 
 function addSourceAutocomplete(sourceInputs) {
   sourceInputs.autocomplete({
-    source: apiUrl + "/sourcePathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" }
+    source: apiUrl + "/sourcePathCompletions" ,
+    minLength: 0 ,
+    position: { my: "left bottom", at: "left top", collision: "flip" } ,
+    close: function(event, ui) { modified(); }
   }).focus(function() { $(this).autocomplete("search"); });
 }
 
