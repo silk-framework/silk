@@ -67,9 +67,9 @@
 
 @renderValue(value: ConfigValue) = {
   <ul>
-    <li>Value: @value.render(ConfigRenderOptions.defaults())</li>
-    <li>Origin: @value.origin().filename()</li>
-    <li>
+    <li data-jstree='{"disabled":true}' >Value: @value.render(ConfigRenderOptions.defaults())</li>
+    <li data-jstree='{"disabled":true}' >Origin: @value.origin().filename()</li>
+    <li data-jstree='{"disabled":true}' >
       Comments: @value.origin().comments().mkString(", ")
     </li>
   </ul>
