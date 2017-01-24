@@ -141,8 +141,8 @@
     $().ready( function() {
 
       $("#rule-type-textfield input").bind("enter", function(e) {
+        $(this).autocomplete("close");
         if ($(this).val() != '') {
-          $(this).autocomplete("close");
           addRule("#typeTemplate");
         }
       });
