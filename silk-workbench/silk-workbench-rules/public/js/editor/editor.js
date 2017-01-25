@@ -486,6 +486,10 @@ function redo() {
 }
 
 function loadInstance(index) {
+
+  // we need to reset jsPlumb to prevent mess-ups due to removing and deleting elements
+  initEditor();
+
   //console.log("loadInstance("+index+")");
   reverting = true;
   instanceIndex = index;
