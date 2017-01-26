@@ -151,20 +151,18 @@
           addRule("#typeTemplate");
         }
       });
-      $("#rule-type-textfield input").keyup(function(e) {
+      $("input").keyup(function(e) {
         if (e.keyCode == 13) {
-          $(this).trigger("enter");
+          $(this).autocomplete("close");
+          if ($(this).is($("#rule-type-textfield input"))) {
+            $(this).trigger("enter");
+          }
         }
       });
       $("#rule-type-textfield input").blur(function() {
         $(this).trigger("enter");
       });
-      $("#rule-type-textfield input").autocomplete({
-        source: apiUrl + "/targetPathCompletions",
-        minLength: 0
-      }).focus(function() { $(this).autocomplete("search"); });
-      // addTypeAutocomplete($(".target-type"));
-      addTypeSelections($(".rule-target-type select"));
+      addTypeAutocomplete($("#rule-type-textfield input"));
     });
   </script>
 

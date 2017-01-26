@@ -289,10 +289,6 @@ function replacePrefix(curie, prefixes) {
   }
 }
 
-function addType(typeString) {
-  console.log(typeString);
-}
-
 function addURIMapping() {
   addRule("#uriMappingTemplate");
   $(".uri-ui").toggle();
@@ -301,16 +297,19 @@ function addURIMapping() {
 function addRule(template) {
 
   if (template == "#typeTemplate") {
+    var typeTextfield = $("#rule-type-textfield");
+    var typeInput = $("#rule-type-textfield input");
     var newRule = $(template + " .typeMapping").clone();
     var nameInput = newRule.find(".rule-name");
     var ruleName = generateRuleName(nameInput.text());
     nameInput.text(ruleName);
     var ruleId = "type-" + ruleName;
     newRule.attr("id", ruleId);
-    var typeString = $("#rule-type-textfield input").val();
+    var typeString = typeInput.val();
     newRule.find(".type").text(typeString);
     newRule.appendTo("#typeContainer");
-    $("#rule-type-textfield input").val("");
+    typeInput.val("");
+    typeTextfield.removeClass("is-dirty");
     var deleteButton = newRule.find("button");
     deleteButton.attr("onclick", "deleteRule('" + ruleId + "');");
   } else if(template == "#uriMappingTemplate") {
@@ -435,11 +434,22 @@ function showURIMapping(defined) {
   }
 }
 
+function addTypeAutocomplete(typeInputs) {
+  typeInputs.autocomplete({
+    source: apiUrl + "/targetPathCompletions" ,
+    minLength: 0 ,
+    select: function(event, ui) {
+      window.setTimeout(function() { $("#rule-type-textfield input").trigger("enter"); }, 5);
+    }
+  }).focus(function() { $(this).autocomplete("search"); });
+}
+
 function addSourceAutocomplete(sourceInputs) {
   sourceInputs.autocomplete({
-    source: apiUrl + "/sourcePathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" }
+    source: apiUrl + "/sourcePathCompletions" ,
+    minLength: 0 ,
+    position: { my: "left bottom", at: "left top", collision: "flip" } ,
+    close: function(event, ui) { modified(); }
   }).focus(function() { $(this).autocomplete("search"); });
 }
 
