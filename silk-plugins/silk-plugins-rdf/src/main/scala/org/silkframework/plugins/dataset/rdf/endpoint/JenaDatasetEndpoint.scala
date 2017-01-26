@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream, Strin
 import java.util.logging.Logger
 
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
@@ -24,6 +25,16 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
 
   override def graphStoreEndpoint(graph: String): String = {
     graph
+  }
+
+  /**
+    * Returns a copy of a specific graph of the underlying Dataset.
+    * @param graphURI The URI of the graph to return.
+    */
+  def graphAsModelCopy(graphURI: String): Model = {
+    val model = ModelFactory.createDefaultModel()
+    model.add(dataset.getNamedModel(graphURI))
+    model
   }
 
   override def postDataToGraph(graph: String,
