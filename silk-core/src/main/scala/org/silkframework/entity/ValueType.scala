@@ -117,8 +117,8 @@ object ValueType {
   )
 
   val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
-    case l@Left(clazz) => (clazz.getName.split("\\.").last, l)
-    case r@Right(obj) => (obj.getClass.getName.split("\\.").last, r)
+    case l@Left(clazz) => (clazz.getSimpleName.stripSuffix("$"), l)
+    case r@Right(obj) => (obj.getClass.getSimpleName.stripSuffix("$"), r)
   }.toMap
 
   val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map { case (id, classOrObj) =>

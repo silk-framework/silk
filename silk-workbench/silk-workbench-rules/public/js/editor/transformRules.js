@@ -478,14 +478,14 @@ function addTargetAutocomplete(targetInputs) {
 function addTypeSelections(typeSelects) {
   console.log(typeSelects);
   var types = [
-    { label: "Autodetect", value: "AutoDetectValueType$", category: "" } ,
-    { label: "Resource", value: "UriValueType$", category: "" } ,
-    { label: "Boolean", value: "BooleanValueType$", category: "Literals" } ,
-    { label: "String", value: "StringValueType$", category: "Literals" } ,
-    { label: "Integer", value: "IntegerValueType$", category: "Literals (Numbers)" } ,
-    { label: "Long", value: "LongValueType$", category: "Literals (Numbers)" } ,
-    { label: "Float", value: "FloatValueType$", category: "Literals (Numbers)" } ,
-    { label: "Double", value: "DoubleValueType$", category: "Literals (Numbers)" } ,
+    { label: "Autodetect", value: "AutoDetectValueType", category: "" } ,
+    { label: "Resource", value: "UriValueType", category: "" } ,
+    { label: "Boolean", value: "BooleanValueType", category: "Literals" } ,
+    { label: "String", value: "StringValueType", category: "Literals" } ,
+    { label: "Integer", value: "IntegerValueType", category: "Literals (Numbers)" } ,
+    { label: "Long", value: "LongValueType", category: "Literals (Numbers)" } ,
+    { label: "Float", value: "FloatValueType", category: "Literals (Numbers)" } ,
+    { label: "Double", value: "DoubleValueType", category: "Literals (Numbers)" } ,
   ];
 
   // fill the select lists
@@ -503,7 +503,7 @@ function addTypeSelections(typeSelects) {
   // select correct element
   $.each(typeSelects, function(index, value) {
     var targetType = $(value).data('originalTargetType');
-    $(value).val(targetType + "$");
+    $(value).val(targetType);
   });
 
   // register changes
