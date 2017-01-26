@@ -60,7 +60,8 @@ object ValueType {
   }
 
   def valueTypeById(valueTypeId: String): Either[Class[_], ValueType] = {
-    valueTypeMapByStringId.get(valueTypeId) match {
+    // The stripping of '$' at the end is for being backward compatible to older project data
+    valueTypeMapByStringId.get(valueTypeId.stripSuffix("$")) match {
       case None =>
         throw new IllegalArgumentException("Invalid value type ID: " + valueTypeId + ". Valid values: " +
             valueTypeMapByStringId.keys.toSeq.sortWith(_ < _).mkString(", "))
