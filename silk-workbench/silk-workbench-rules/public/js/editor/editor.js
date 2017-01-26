@@ -42,7 +42,7 @@ var defaultRadius = 4;
 
 // Set jsPlumb default values
 jsPlumb.Defaults.Container = "droppable";
-jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
+jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000, stop: function() { saveInstance(); } };
 
 var valueConnectorStyle = {
   lineWidth: 4,
@@ -166,6 +166,8 @@ function initEditor()
   if (inEditorEnv) {
     $('body').attr('onresize', 'updateWindowSize();');
   }
+
+
 
   // Delete connections on clicking them
   jsPlumb.bind("click", function(conn, originalEvent) {
@@ -486,6 +488,10 @@ function redo() {
 }
 
 function loadInstance(index) {
+
+  // we need to reset jsPlumb to prevent mess-ups due to removing and deleting elements
+  initEditor();
+
   //console.log("loadInstance("+index+")");
   reverting = true;
   instanceIndex = index;
