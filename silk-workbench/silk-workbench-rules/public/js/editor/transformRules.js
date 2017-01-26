@@ -87,20 +87,21 @@ function serializeRules() {
   $("#ruleContainer .transformRule").each(function() {
     // Read name
     var name = $(this).find(".rule-name").text();
-    // Read source and target
+    // Read source, target property and target type
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
+    var nodeType = $(this).find(".rule-target-type select").val();
     if($(this).hasClass("directMapping")) {
-      serializeDirectMapping(xmlDoc, name, source, target)
+      serializeDirectMapping(xmlDoc, name, source, target, nodeType);
     } else if($(this).hasClass("uriMapping")) {
-      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val())
+      serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val());
     } else if($(this).hasClass("objectMapping")) {
-      serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target)
+      serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target);
     } else if($(this).hasClass("typeMapping")) {
-      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text())
+      serializeTypeMapping(xmlDoc, name, $(this).find(".type").text());
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
-      serializeComplexRule(xmlDoc, ruleXml, name, target)
+      serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType);
     }
   });
 
@@ -113,16 +114,24 @@ function serializeRules() {
  * Serializes a direct mapping.
  * A direct mapping is a 1-to-1 mapping between two properties
  */
-function serializeDirectMapping(xmlDoc, name, source, target) {
+function serializeDirectMapping(xmlDoc, name, source, target, nodeType) {
   // Create new rule
   var ruleXml = xmlDoc.createElement("TransformRule");
   ruleXml.setAttribute("name", name);
-  ruleXml.setAttribute("targetProperty", target);
 
   // Add simple source
   var sourceXml = xmlDoc.createElement("Input");
   sourceXml.setAttribute("path", source);
   ruleXml.appendChild(sourceXml);
+
+  // Add MappingTarget
+  var mappingTarget = xmlDoc.createElement("MappingTarget");
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
+  var valueType = xmlDoc.createElement("ValueType");
+  valueType.setAttribute("nodeType", nodeType);
+  mappingTarget.appendChild(valueType);
+  ruleXml.appendChild(mappingTarget);
 
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
@@ -200,6 +209,16 @@ function serializeObjectMapping(xmlDoc, name, pattern, target) {
     }
   }
 
+  // Add MappingTarget
+  var mappingTarget = xmlDoc.createElement("MappingTarget");
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
+  var valueType = xmlDoc.createElement("ValueType");
+  // The nodeType of object mappings is always Resource (UriValueType):
+  valueType.setAttribute("nodeType", "UriValueType$");
+  mappingTarget.appendChild(valueType);
+  ruleXml.appendChild(mappingTarget);
+
   // Add to document
   xmlDoc.documentElement.appendChild(ruleXml);
 }
@@ -232,14 +251,42 @@ function serializeTypeMapping(xmlDoc, name, type) {
  * Serializes a complex rule.
  * For complex rules the rule contents are left untouched.
  */
-function serializeComplexRule(xmlDoc, ruleXml, name, target) {
+function serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType) {
   // Update name
   ruleXml.setAttribute("name", name);
-  // Update target
-  ruleXml.setAttribute("targetProperty", target);
+
+  var mappingTarget = ruleXml.getElementsByTagName("MappingTarget")[0];
+  var valueType = mappingTarget.getElementsByTagName("ValueType")[0];
+  valueType.setAttribute("nodeType", nodeType);
+  mappingTarget.appendChild(valueType);
+  target = replacePrefix(target, prefixes);
+  mappingTarget.setAttribute("uri", target);
+
   // Add to document
   xmlDoc.importNode(ruleXml, true);
+
+//  console.log(ruleXml);
   xmlDoc.documentElement.appendChild(ruleXml);
+}
+
+/**
+ * For curie, replace a prefix a with a full namespace and
+ * return the resulting full URI.
+ * Prefixes are provided as an object with { prefix: namespace }.
+ */
+function replacePrefix(curie, prefixes) {
+  var curie_pattern = /^([a-z|_]+)\:.*?/;
+  var match = null;
+  if (match = curie.match(curie_pattern)) {
+    var namespace = null;
+    if (namespace = prefixes[match[1]]) {
+      return curie.replace(match[0], namespace);
+    } else {
+      return curie;
+    }
+  } else {
+    return curie;
+  }
 }
 
 function addType(typeString) {
@@ -293,7 +340,9 @@ function addRule(template) {
     newRule.appendTo("#ruleTable table");
     $(".mdl-layout__content").animate({
       scrollTop: $("#content").height()
-     }, 300);
+    }, 300);
+
+    addTypeSelections(newRule.find('select'));
   }
 
   componentHandler.upgradeAllRegistered();
@@ -414,6 +463,44 @@ function addTargetAutocomplete(targetInputs) {
       changePropertyDetails($(this).val(), $(this));
     });
   });
+}
+
+function addTypeSelections(typeSelects) {
+  console.log(typeSelects);
+  var types = [
+    { label: "Autodetect", value: "AutoDetectValueType$", category: "" } ,
+    { label: "Resource", value: "UriValueType$", category: "" } ,
+    { label: "Boolean", value: "BooleanValueType$", category: "Literals" } ,
+    { label: "String", value: "StringValueType$", category: "Literals" } ,
+    { label: "Integer", value: "IntegerValueType$", category: "Literals (Numbers)" } ,
+    { label: "Long", value: "LongValueType$", category: "Literals (Numbers)" } ,
+    { label: "Float", value: "FloatValueType$", category: "Literals (Numbers)" } ,
+    { label: "Double", value: "DoubleValueType$", category: "Literals (Numbers)" } ,
+  ];
+
+  // fill the select lists
+  var currentCategory = "";
+  var target = typeSelects;
+  $.each(types, function(index, value) {
+    if ( value.category != currentCategory ) {
+      currentCategory = value.category;
+      typeSelects.append("<optgroup label='" + currentCategory + "'/>");
+      target = typeSelects.find("optgroup:last-child");
+    }
+    target.append("<option value='" + value.value + "'>" + value.label + "</option>");
+  });
+
+  // select correct element
+  $.each(typeSelects, function(index, value) {
+    var targetType = $(value).data('originalTargetType');
+    $(value).val(targetType + "$");
+  });
+
+  // register changes
+  typeSelects.change(function() {
+    modified();
+  });
+
 }
 
 function changePropertyDetails(propertyName, element) {

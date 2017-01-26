@@ -51,10 +51,10 @@
     <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title di-vertical-align">
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();" style="display: none;">
-          <i class="material-icons">keyboard_arrow_right</i>
+          <i class="material-icons">expand_more</i>
         </button>
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();">
-          <i class="material-icons">expand_more</i>
+          <i class="material-icons">expand_less</i>
         </button>
         <h2 class="mdl-card__title-text">Configuration:&nbsp;<span class="di-highlight">@context.task.id</span></h2>
       </div>
@@ -108,7 +108,8 @@
             <th class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</th>
             <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
             <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
-            <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
+            <th class="mdl-data-table__cell--non-numeric rule-target-property">Target Property</th>
+            <th class="mdl-data-table__cell--non-numeric rule-target-type">Target Type</th>
             <th class="mdl-data-table__cell rule-actions">Actions</th>
           </tr>
         </thead>
@@ -138,6 +139,11 @@
   </table>
 
   <script type="text/javascript">
+
+    var prefixes = {};
+    @for((key, value) <- context.project.config.prefixes) {
+      prefixes["@key"] = "@value";
+    }
     $().ready( function() {
 
       $("#rule-type-textfield input").bind("enter", function(e) {
@@ -157,6 +163,8 @@
         source: apiUrl + "/targetPathCompletions",
         minLength: 0
       }).focus(function() { $(this).autocomplete("search"); });
+      // addTypeAutocomplete($(".target-type"));
+      addTypeSelections($(".rule-target-type select"));
     });
   </script>
 
@@ -168,10 +176,10 @@
       <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
       <td class="mdl-data-table__cell--non-numeric rule-toggle">
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
-          <i class="material-icons">expand_less</i>
+          <i class="material-icons">expand_more</i>
         </button>
         <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
-          <i class="material-icons">expand_more</i>
+          <i class="material-icons">expand_less</i>
         </button>
       </td>
       <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
@@ -200,7 +208,7 @@
       <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
       <td class="mdl-data-table__cell--non-numeric"/>
       <td class="mdl-data-table__cell--non-numeric"/>
-      <td colspan="2" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
+      <td colspan="3" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
         <div id="@{rule.name}_details" class="di-rule__expanded-property-details">
         </div>
       </td>
@@ -223,9 +231,15 @@
       <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
+  <td class="mdl-data-table__cell--non-numeric rule-target-property">
     <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+    </div>
+  </td>
+  <td class="mdl-data-table__cell--non-numeric rule-target-type">
+    <div class="mdl-selectfield mdl-js-selectfield">
+      <select class="mdl-selectfield__select" data-original-target-type="@rule.mappingTarget.valueType">
+      </select>
     </div>
   </td>
 }
@@ -250,9 +264,15 @@
       <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
+  <td class="mdl-data-table__cell--non-numeric rule-target-property">
     <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.propertyUri.serialize(prefixes())">
+    </div>
+  </td>
+  <td class="mdl-data-table__cell--non-numeric rule-target-type">
+    <div class="mdl-selectfield mdl-js-selectfield">
+      <select class="mdl-selectfield__select" data-original-target-type="@rule.targetProperty.valueType" disabled>
+      </select>
     </div>
   </td>
 }
@@ -263,9 +283,15 @@
       <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" disabled>
     </div>
   </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
+  <td class="mdl-data-table__cell--non-numeric rule-target-property">
     <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
+    </div>
+  </td>
+  <td class="mdl-data-table__cell--non-numeric rule-target-type">
+    <div class="mdl-selectfield mdl-js-selectfield">
+      <select class="mdl-selectfield__select" data-original-target-type="@rule.target.map(_.valueType).getOrElse("")">
+      </select>
     </div>
   </td>
 }
