@@ -1,5 +1,6 @@
 package org.silkframework.serialization.json
 
+import org.silkframework.config.TaskMetaData
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import play.api.libs.json._
@@ -20,8 +21,9 @@ object JsonSerializers {
           Dataset(
             id = (value \ "type").as[JsString].value,
             params = (value \ "parameters").as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
-          )
-        )
+          ),
+        metaData = TaskMetaData.empty
+      )
     }
 
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]) = {

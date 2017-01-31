@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{PlainTask, TaskMetaData, TaskSpec}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -70,9 +70,9 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData) = {
-    val task = new ProjectTask(name, taskData, this)
-    provider.putTask(project.name, name, taskData)
+  def add(name: Identifier, taskData: TaskData, metaData: TaskMetaData) = {
+    val task = new ProjectTask(name, taskData, metaData, this)
+    provider.putTask(project.name, task)
     task.init()
     cachedTasks += ((name, task))
   }
@@ -91,7 +91,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
       try {
         val tasks = provider.readTasks(project.name, project.resources)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
-          for ((name, data) <- tasks) yield (name, new ProjectTask(name, data, this))
+          for (task <- tasks) yield (task.id, new ProjectTask(task.id, task.data, task.metaData, this))
         }
       } catch {
         case NonFatal(ex) =>

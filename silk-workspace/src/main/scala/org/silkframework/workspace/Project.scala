@@ -183,9 +183,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T): Unit = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: TaskMetaData): Unit = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
-    module[T].add(name, taskData)
+    module[T].add(name, taskData, metaData)
   }
 
   /**
@@ -196,10 +196,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T): Unit = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: TaskMetaData): Unit = {
     module[T].taskOption(name) match {
       case Some(task) => task.update(taskData)
-      case None => addTask[T](name, taskData)
+      case None => addTask[T](name, taskData, metaData)
     }
   }
 

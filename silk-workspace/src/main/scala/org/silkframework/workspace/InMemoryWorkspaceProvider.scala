@@ -1,9 +1,12 @@
 package org.silkframework.workspace
 
+import org.silkframework.config.{Task, TaskMetaData}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
+
 import scala.reflect.ClassTag
+import scala.xml.MetaData
 
 @Plugin(
   id = "inMemory",
@@ -41,8 +44,8 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T: ClassTag](project: Identifier, task: Identifier, data: T): Unit = {
-    projects(project).tasks += ((task, data))
+  override def putTask[T: ClassTag](project: Identifier, task: Task[T]): Unit = {
+    projects(project).tasks += ((task.id, task))
   }
 
   /**
@@ -66,7 +69,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
 
   protected class InMemoryProject(val config: ProjectConfig) {
 
-    var tasks: Map[Identifier, Any] = Map.empty
+    var tasks: Map[Identifier, Task[_]] = Map.empty
 
     val resources = new InMemoryResourceManager
 

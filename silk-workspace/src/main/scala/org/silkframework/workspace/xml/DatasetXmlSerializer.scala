@@ -37,7 +37,7 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, Dataset] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[Dataset]] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
@@ -54,7 +54,7 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
         }
     }
 
-    tasks.toMap
+    tasks
   }
 
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
@@ -62,7 +62,8 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
     val dataset = XmlSerialization.fromXml[DatasetTask](XML.load(resources.get(name).load))
-    (dataset.id, dataset.plugin)
+
+    dataset
   }
 
   /**

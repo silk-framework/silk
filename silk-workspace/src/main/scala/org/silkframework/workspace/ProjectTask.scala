@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskMetaData, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -35,12 +35,16 @@ import scala.util.control.NonFatal
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
+                                                   initialMetaData: TaskMetaData,
                                                    module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
   @volatile
   private var currentData: TaskType = initialData
+
+  @volatile
+  private var currentMetaData: TaskMetaData = initialMetaData
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -72,9 +76,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current data of this task.
     */
-  def data = currentData
+  override def data = currentData
 
-  def task: Task[TaskType] = PlainTask(id, currentData)
+  /**
+    * Retrieves the current meta data of this task.
+    */
+  override def metaData = currentMetaData
 
   def init() = {
     // Start autorun activities
@@ -146,7 +153,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(project.name, id, data)
+      module.provider.putTask(project.name, ProjectTask.this)
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
