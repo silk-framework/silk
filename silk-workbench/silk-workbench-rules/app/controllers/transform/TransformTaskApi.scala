@@ -12,9 +12,9 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
-import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache}
+import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString}
+import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 class TransformTaskApi extends Controller {
@@ -202,34 +202,72 @@ class TransformTaskApi extends Controller {
     val prefixes = project.config.prefixes
     val maxCompletions = 20
 
+    val vocabularyCache = task.activity[VocabularyCache].value
+
     // Collect all caches with MappingCandidates and suggest completions
     val mappingCandidates = {
       for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
         val candidates = activity.value.asInstanceOf[MappingCandidates]
         sourcePath match {
-          case Some(path) => candidates.suggestProperties(Path.parse(path))
-          case None => candidates.suggestTypes
+          case Some(path) =>
+            val propertyCandidates = candidates.suggestProperties(Path.parse(path))
+            for(propertyCandidate <- propertyCandidates) yield {
+              val property = vocabularyCache.findProperty(propertyCandidate.uri.toString)
+              Completion(
+                value = propertyCandidate.uri.toString,
+                confidence = propertyCandidate.confidence,
+                label = property.flatMap(_.info.label),
+                description = property.flatMap(_.info.description),
+                category = activity.name,
+                completionType = "Completion"
+              )
+            }
+          case None =>
+            val typeCandidates = candidates.suggestTypes
+            for(typeCandidate <- typeCandidates) yield {
+              val clazz = vocabularyCache.findClass(typeCandidate.uri.toString)
+              Completion(
+                value = typeCandidate.uri.toString,
+                confidence = typeCandidate.confidence,
+                label = clazz.flatMap(_.info.label),
+                description = clazz.flatMap(_.info.description),
+                category = activity.name,
+                completionType = "Completion"
+              )
+            }
         }
       }
     }
 
-    val mappingCompletions = mappingCandidates.flatten.sortBy(-_.confidence).map(_.uri.toString)
-    val prefixCompletions = prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
-    val completions = mappingCompletions ++ prefixCompletions
+    val mappingCompletions = mappingCandidates.flatten.sortBy(-_.confidence)
+    //val prefixCompletions = prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
+    val completions = mappingCompletions// ++ prefixCompletions
 
     // Filter all completions that match the search term
-    var matches = completions.filter(_.contains(term)).take(maxCompletions)
+    var matches = completions.filter(_.value.contains(term)).take(maxCompletions)
 
     // If no completions match, return some suggestions anyway
     if(matches.isEmpty)
       matches = completions.take(maxCompletions)
 
     // Remove duplicates and shorten URIs
-    matches = matches.distinct.map(prefixes.shorten)
+    matches = matches.distinct.map(c => c.copy(value = prefixes.shorten(c.value)))
+
+    def completionToJson(completion: Completion) = {
+      Json.obj(
+        "value" -> completion.value,
+        "label" -> completion.label,
+        "description" -> completion.description,
+        "category" -> completion.category,
+        "completionType" -> completion.completionType
+      )
+    }
 
     // Convert to JSON and return
-    Ok(JsArray(matches.map(JsString)))
+    Ok(JsArray(matches.map(completionToJson)))
   }
+
+  private case class Completion(value: String, confidence: Double, label: Option[String], description: Option[String], category: String, completionType: String)
 
   /**
    * Transform entities bundled with the request according to the transformation task.
