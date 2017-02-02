@@ -29,15 +29,14 @@ object TargetPathAutcompletion {
     // Retrieve all available completions
     val completions = retrieveAllCompletions(project, task, sourcePath)
 
-    // Filter all completions that match the search term
-    val normalizedTerm = normalizeTerm(term)
-    val matches = completions.filter(_.matches(normalizedTerm))
-
-    // If no completions match, return some suggestions anyway
-    if (term.isEmpty)
+    if (term.isEmpty) {
+      // If the term is empty, return some completions anyway
       completions.take(maxCompletions)
-    else
-      matches
+    } else {
+      // Filter all completions that match the search term
+      val normalizedTerm = normalizeTerm(term)
+      completions.filter(_.matches(normalizedTerm))
+    }
   }
 
   /**
@@ -49,7 +48,7 @@ object TargetPathAutcompletion {
         Seq(
           Completion(
             value = "",
-            label = Some("Transformation does not define any target vocabulary"),
+            label = Some("No matches, transformation does not specify target vocabulary."),
             description = None,
             category = "VocabularyCache",
             isCompletion = false
@@ -80,7 +79,7 @@ object TargetPathAutcompletion {
           Seq(
             Completion(
               value = "",
-              label = Some(s"${activity.name} failed to load"),
+              label = Some(s"${activity.name} failed to load."),
               description = None,
               category = activity.name,
               isCompletion = false
@@ -121,7 +120,7 @@ object TargetPathAutcompletion {
           Seq(
             Completion(
               value = "",
-              label = Some(s"${activity.name} failed to load"),
+              label = Some(s"${activity.name} failed to load."),
               description = None,
               category = activity.name,
               isCompletion = false
