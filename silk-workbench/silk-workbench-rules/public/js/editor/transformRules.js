@@ -32,6 +32,40 @@ $(function() {
 
   $("#ruleContainer").on("sortupdate", function( event, ui ) { modified() } );
 
+  var categoryDictionary = {
+    "MatchingCandidateCache": "Suggestions" ,
+    "VocabularyCache": "Vocabulary Matches"
+  }
+
+  // define custom target property autocomplete widget:
+  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+    _create: function() {
+      this._super();
+      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+    },
+    _renderMenu: function( ul, items ) {
+      var that = this,
+        currentCategory = "";
+      $.each( items, function( index, item ) {
+        var li;
+        if ( item.category != currentCategory ) {
+          ul.append( "<li class='ui-autocomplete-category'>" + translateTerm(item.category, categoryDictionary) + "</li>" );
+          currentCategory = item.category;
+        }
+        li = that._renderItemData( ul, item );
+        if ( item.category ) {
+          li.attr( "aria-label", item.category + " : " + item.label );
+        }
+      });
+    },
+    _renderItem: function( ul, item ) {
+      var label = item.label ? item.label : getLocalName(item.value);
+      return $( "<li>" )
+        .append( "<div><span class='ui-autocomplete-property-label'>" + label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
+        .appendTo( ul );
+     }
+  });
+
   // Add autocompletion
   addSourceAutocomplete($(".source"));
   addTargetAutocomplete($(".target"));
@@ -40,6 +74,19 @@ $(function() {
   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 
 });
+
+function getLocalName(uri) {
+  var localNameDelimiterPattern = /[\/#:]/;
+  return uri.split(localNameDelimiterPattern).pop();
+}
+
+function translateTerm(term, dictionary) {
+  if (term in dictionary) {
+    return dictionary[term];
+  } else {
+    return term;
+  }
+}
 
 function modified() {
   confirmOnExit = true;
@@ -456,7 +503,7 @@ function addSourceAutocomplete(sourceInputs) {
 function addTargetAutocomplete(targetInputs) {
   targetInputs.each(function() {
     var sourceInput = $(this).closest("tr").find(".source");
-    $(this).autocomplete({
+    $(this).catcomplete({
       source: function( request, response ) {
         request.sourcePath = sourceInput.val();
         $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
@@ -465,7 +512,7 @@ function addTargetAutocomplete(targetInputs) {
       position: { my: "left bottom", at: "left top", collision: "flip" } ,
       close: function(event, ui) { modified(); } ,
       focus: function(event, ui) { changePropertyDetails(ui.item.value, $(this));}
-    }).focus(function() { $(this).autocomplete("search"); });
+    }).focus(function() { $(this).catcomplete("search"); });
 
     // Update the property details on every change
     changePropertyDetails($(this).val(), $(this));
@@ -476,7 +523,7 @@ function addTargetAutocomplete(targetInputs) {
 }
 
 function addTypeSelections(typeSelects) {
-  console.log(typeSelects);
+
   var types = [
     { label: "Autodetect", value: "AutoDetectValueType", category: "" } ,
     { label: "Resource", value: "UriValueType", category: "" } ,
