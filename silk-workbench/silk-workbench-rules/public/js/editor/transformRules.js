@@ -515,9 +515,19 @@ function addSourceAutocomplete(sourceInputs) {
 function addTargetAutocomplete(targetInputs) {
   targetInputs.each(function() {
     var sourceInput = $(this).closest("tr").find(".source");
+    var patternInput = $(this).closest("tr").find(".pattern");
     $(this).catcomplete({
       source: function( request, response ) {
-        request.sourcePath = sourceInput.val();
+        if(sourceInput.length > 0) {
+          // We got a mapping that specifies a source property
+          request.sourcePath = sourceInput.val();
+        } else if(patternInput.length > 0) {
+          // We got a mapping that specifies a URI pattern of the form http://example.org/{ID}
+          // We try to take the first path inside the parentheses.
+          // If this fails, the endpoint will still suggest properties from the vocabulary
+          request.sourcePath = patternInput.val().split(/[\{\}]/)[1];
+        }
+
         $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
       },
       minLength: 0,
