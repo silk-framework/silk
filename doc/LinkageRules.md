@@ -9,7 +9,7 @@ Linkage rules are represented as trees, which are built from four types of opera
   Multiple transformation operators can be nested in order to apply a chain of transformations.
 - **Comparison Operator:** Evaluates the similarity between two entities based on the values that are returned by two property or transformation operators by applying a distance measureand a distance threshold. 
   Examples of distance measures include Levenshtein, Jaccard, or geographic distance. 
-- **Aggregation Operator:** Due to the fact that, in most cases, the similarity of two entities cannot be determined by evaluating a single comparison, an aggregation operator combines the similarity scores from multiple comparison or aggregation operators $\vec{s}$ into a single score according to a specific aggregation function. 
+- **Aggregation Operator:** Due to the fact that, in most cases, the similarity of two entities cannot be determined by evaluating a single comparison, an aggregation operator combines the similarity scores from multiple comparison or aggregation operators into a single score according to a specific aggregation function.
   Examples of common aggregation functions include the weighted average or yielding the minimum score of all operators.
 
 ## Path Inputs
