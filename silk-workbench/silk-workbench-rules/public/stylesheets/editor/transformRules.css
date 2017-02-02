@@ -113,10 +113,21 @@ th,td
 
 /* autocomplete categories */
 .ui-autocomplete-category {
+  font-size: 120%;
   font-weight: bold;
   padding: .2em .4em;
   margin: .8em 0 .2em;
   line-height: 1.5;
+}
+
+.ui-autocomplete-property-label {
+  font-weight: bold;
+}
+
+.ui-autocomplete-property-uri {
+  font-size: 85%;
+  font-style: italic;
+  margin-left: 10px;
 }
 
 /* target type select */
