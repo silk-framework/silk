@@ -7,6 +7,7 @@
 @import controllers.rules.routes.Assets
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import org.silkframework.rule.vocab.Vocabularies
+@import org.silkframework.rule.MappingTarget
 
 @(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
 
@@ -131,11 +132,11 @@
   </div>
 
   <table id="directMappingTemplate" class="rule-template">
-      @renderRule(DirectMapping())
+      @renderRule(DirectMapping(mappingTarget = MappingTarget("")))
   </table>
 
   <table id="objectMappingTemplate" class="rule-template">
-      @renderRule(ObjectMapping())
+      @renderRule(ObjectMapping(targetProperty = MappingTarget("")))
   </table>
 
   <script type="text/javascript">

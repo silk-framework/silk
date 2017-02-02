@@ -1,12 +1,12 @@
 package controllers.transform
 
-import org.silkframework.config.{Prefixes, Task}
+import controllers.transform.TargetPathAutcompletion.Completion
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
-import org.silkframework.workspace.{Project, ProjectTask, User}
 import org.silkframework.workspace.activity.transform.{MappingCandidates, VocabularyCache}
-import play.api.libs.json.{JsArray, JsValue, Json}
+import org.silkframework.workspace.{Project, ProjectTask}
+import play.api.libs.json.{JsValue, Json}
 
 /**
   * Generates autocompletions for mapping target paths.
@@ -34,7 +34,7 @@ object TargetPathAutcompletion {
     val matches = completions.filter(_.matches(normalizedTerm))
 
     // If no completions match, return some suggestions anyway
-    if (matches.isEmpty)
+    if (term.isEmpty)
       completions.take(maxCompletions)
     else
       matches
@@ -45,8 +45,20 @@ object TargetPathAutcompletion {
     */
   private def retrieveAllCompletions(project: Project, task: ProjectTask[TransformSpec], sourcePath: Option[String]): Seq[Completion] = {
     val mappingCompletions = sourcePath match {
-      case Some(path) => retrievePropertyCompletions(task, path)
-      case None => retrieveTypeCompletions(task)
+      case _ if task.data.targetVocabularies.isEmpty =>
+        Seq(
+          Completion(
+            value = "",
+            label = Some("Transformation does not define any target vocabulary"),
+            description = None,
+            category = "VocabularyCache",
+            isCompletion = false
+          )
+        )
+      case Some(path) =>
+        retrievePropertyCompletions(task, path)
+      case None =>
+        retrieveTypeCompletions(task)
     }
     val prefixCompletions = retrievePrefixCompletions(project.config.prefixes)
 
@@ -64,18 +76,30 @@ object TargetPathAutcompletion {
     val vocabularyCache = task.activity[VocabularyCache].value
     val mappingCandidates = {
       for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
-        val candidates = activity.value.asInstanceOf[MappingCandidates]
-        val propertyCandidates = candidates.suggestProperties(Path.parse(sourcePath))
-        for (propertyCandidate <- propertyCandidates) yield {
-          val property = vocabularyCache.findProperty(propertyCandidate.uri.toString)
-          Completion(
-            value = prefixes.shorten(propertyCandidate.uri.toString),
-            confidence = propertyCandidate.confidence,
-            label = property.flatMap(_.info.label),
-            description = property.flatMap(_.info.description),
-            category = activity.name,
-            completionType = "Completion"
+        if(activity.status.failed) {
+          Seq(
+            Completion(
+              value = "",
+              label = Some(s"${activity.name} failed to load"),
+              description = None,
+              category = activity.name,
+              isCompletion = false
+            )
           )
+        } else {
+          val candidates = activity.value.asInstanceOf[MappingCandidates]
+          val propertyCandidates = candidates.suggestProperties(Path.parse(sourcePath))
+          for (propertyCandidate <- propertyCandidates) yield {
+            val property = vocabularyCache.findProperty(propertyCandidate.uri.toString)
+            Completion(
+              value = prefixes.shorten(propertyCandidate.uri.toString),
+              confidence = propertyCandidate.confidence,
+              label = property.flatMap(_.info.label),
+              description = property.flatMap(_.info.description),
+              category = activity.name,
+              isCompletion = true
+            )
+          }
         }
       }
     }
@@ -93,18 +117,30 @@ object TargetPathAutcompletion {
     val vocabularyCache = task.activity[VocabularyCache].value
     val mappingCandidates = {
       for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
-        val candidates = activity.value.asInstanceOf[MappingCandidates]
-        val typeCandidates = candidates.suggestTypes
-        for (typeCandidate <- typeCandidates) yield {
-          val clazz = vocabularyCache.findClass(typeCandidate.uri.toString)
-          Completion(
-            value = prefixes.shorten(typeCandidate.uri.toString),
-            confidence = typeCandidate.confidence,
-            label = clazz.flatMap(_.info.label),
-            description = clazz.flatMap(_.info.description),
-            category = activity.name,
-            completionType = "Completion"
+        if(activity.status.failed) {
+          Seq(
+            Completion(
+              value = "",
+              label = Some(s"${activity.name} failed to load"),
+              description = None,
+              category = activity.name,
+              isCompletion = false
+            )
           )
+        } else {
+          val candidates = activity.value.asInstanceOf[MappingCandidates]
+          val typeCandidates = candidates.suggestTypes
+          for (typeCandidate <- typeCandidates) yield {
+            val clazz = vocabularyCache.findClass(typeCandidate.uri.toString)
+            Completion(
+              value = prefixes.shorten(typeCandidate.uri.toString),
+              confidence = typeCandidate.confidence,
+              label = clazz.flatMap(_.info.label),
+              description = clazz.flatMap(_.info.description),
+              category = activity.name,
+              isCompletion = true
+            )
+          }
         }
       }
     }
@@ -120,11 +156,10 @@ object TargetPathAutcompletion {
     for(prefix <- prefixes.prefixMap.keys.toSeq.sorted) yield {
       Completion(
         value = prefix + ":",
-        confidence = Double.MinValue,
         label = None,
         description = None,
         category = "Prefixes",
-        completionType = "Completion"
+        isCompletion = true
       )
     }
   }
@@ -144,9 +179,9 @@ object TargetPathAutcompletion {
     * @param label A user readable label if available
     * @param description A user readable description if available
     * @param category The category to be shown in the autocompletion
-    * @param completionType The type of the completion: One of Completion|Error
+    * @param isCompletion True, if this is a valid completion. False, if this is a (error) message.
     */
-  case class Completion(value: String, confidence: Double, label: Option[String], description: Option[String], category: String, completionType: String) {
+  case class Completion(value: String, confidence: Double = Double.MinValue, label: Option[String], description: Option[String], category: String, isCompletion: Boolean) {
 
     /**
       * Checks if a term matches this completion.
@@ -154,7 +189,7 @@ object TargetPathAutcompletion {
       * @param normalizedTerm the term normalized using normalizeTerm(term)
       */
     def matches(normalizedTerm: String): Boolean = {
-      normalizeTerm(value).contains(normalizedTerm)
+      normalizeTerm(value).contains(normalizedTerm) || label.exists(l => normalizeTerm(l).contains(normalizedTerm))
     }
 
     def toJson: JsValue = {
@@ -163,7 +198,7 @@ object TargetPathAutcompletion {
         "label" -> label,
         "description" -> description,
         "category" -> category,
-        "completionType" -> completionType
+        "isCompletion" -> isCompletion
       )
     }
 
