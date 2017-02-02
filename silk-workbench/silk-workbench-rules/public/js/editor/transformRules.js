@@ -76,8 +76,12 @@ $(function() {
 });
 
 function getLocalName(uri) {
-  var localNameDelimiterPattern = /[\/#:]/;
-  return uri.split(localNameDelimiterPattern).pop();
+  if (uri) {}
+    var localNameDelimiterPattern = /[\/#:]/;
+    return uri.split(localNameDelimiterPattern).pop();
+  } else {
+    return "(no URI defined)";
+  }
 }
 
 function translateTerm(term, dictionary) {
