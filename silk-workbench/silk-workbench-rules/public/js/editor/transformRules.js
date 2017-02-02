@@ -60,10 +60,18 @@ $(function() {
     },
     _renderItem: function( ul, item ) {
       var label = item.label ? item.label : getLocalName(item.value);
-      return $( "<li>" )
-        .append( "<div><span class='ui-autocomplete-property-label'>" + label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
-        .appendTo( ul );
-     }
+      if ( item.isCompletion ) {
+        return $( "<li>" )
+          .append( "<div><span class='ui-autocomplete-property-label'>" + label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
+          .appendTo( ul );
+      } else {
+        return $("<li class='ui-autocomplete-warning'>").
+          append( "<div>" + item.label + "</div>").
+          prop("disabled", true).
+          appendTo( ul );
+      }
+
+    }
   });
 
   // Add autocompletion
@@ -76,7 +84,7 @@ $(function() {
 });
 
 function getLocalName(uri) {
-  if (uri) {}
+  if (uri) {
     var localNameDelimiterPattern = /[\/#:]/;
     return uri.split(localNameDelimiterPattern).pop();
   } else {

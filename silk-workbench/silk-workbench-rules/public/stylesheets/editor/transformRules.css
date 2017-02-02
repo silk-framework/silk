@@ -130,6 +130,18 @@ th,td
   margin-left: 10px;
 }
 
+.ui-autocomplete-warning {
+  color: red;
+  cursor: default;
+}
+
+.ui-autocomplete-warning:hover, ui-autocomplete-warning.ui-state-focus {
+  cursor: default;
+  background: transparent;
+  color: red;
+  border-color: transparent;
+}
+
 /* target type select */
 .rule-target-type .mdl-selectfield {
   padding: 4px 0;
