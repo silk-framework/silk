@@ -1,14 +1,15 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.entity.{Path, ValueType}
-import org.silkframework.rule.expressions.{ExpressionParser, Expressions}
-import org.silkframework.rule.{ComplexMapping, DirectMapping, MappingTarget, TransformRule}
+import org.silkframework.rule.expressions.ExpressionParser
+import org.silkframework.rule._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import play.api.libs.json.{JsString, JsValue}
 
 /**
-  * Created by risele on 2/3/2017.
+  *
   */
 object TransformRuleJsonFormat extends JsonFormat[TransformRule] {
   /**
@@ -24,12 +25,32 @@ object TransformRuleJsonFormat extends JsonFormat[TransformRule] {
           sourcePath = Path.parse((value \ "source").as[JsString].value),
           mappingTarget =  MappingTargetJsonFormat.read((value \ "mappingTarget").get)
         )
+      case Some(JsString("ObjectMapping")) =>
+        ObjectMapping(
+          name = (value \ "name").as[JsString].value,
+          pattern = (value \ "pattern").as[JsString].value,
+          targetProperty = Uri.parse((value \ "targetProperty").as[JsString].value, prefixes)
+        )
+      case Some(JsString("UriMapping")) =>
+        UriMapping(
+          name = (value \ "name").as[JsString].value,
+          pattern = (value \ "pattern").as[JsString].value
+        )
+      case Some(JsString("TypeMapping")) =>
+        TypeMapping(
+          name = (value \ "name").as[JsString].value,
+          typeUri = Uri.parse((value \ "typeUri").as[JsString].value, prefixes)
+        )
       case Some(JsString("ComplexMapping")) =>
         ComplexMapping(
           name = (value \ "name").as[JsString].value,
           operator = ExpressionParser.parse((value \ "sourceExpression").as[JsString].value),
           target = (value \ "mappingTarget").toOption.map(MappingTargetJsonFormat.read)
         )
+      case Some(mappingType) =>
+        throw new ValidationException(s"Invalid mapping type: $mappingType")
+      case None =>
+        throw new ValidationException(s"Attribtue 'mappingType' is missing.")
     }
   }
 
