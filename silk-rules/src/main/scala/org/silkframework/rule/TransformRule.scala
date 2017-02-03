@@ -144,7 +144,7 @@ case class UriMapping(name: Identifier = "uri", pattern: String = "http://exampl
   */
 case class ObjectMapping(name: Identifier = "object",
                          pattern: String = "http://example.org/{ID}",
-                         targetProperty: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
+                         targetProperty: Uri = "http://www.w3.org/2002/07/owl#sameAs") extends TransformRule {
 
   override val operator = {
     val inputs =
@@ -157,7 +157,7 @@ case class ObjectMapping(name: Identifier = "object",
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
 
-  override val target = Some(targetProperty)
+  override val target = Some(MappingTarget(targetProperty, UriValueType))
 
   override val typeString = "Object"
 
@@ -244,7 +244,7 @@ object TransformRule {
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None) if isPattern(inputs) =>
       UriMapping(id, buildPattern(inputs))
     // Object Mapping
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target)) if isPattern(inputs) =>
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(MappingTarget(target, UriValueType))) if isPattern(inputs) =>
       ObjectMapping(id, buildPattern(inputs), target)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
