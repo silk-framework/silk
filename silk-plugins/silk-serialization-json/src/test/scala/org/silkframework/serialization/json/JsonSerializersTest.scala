@@ -1,3 +1,5 @@
+package org.silkframework.serialization.json
+
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.PluginRegistry
