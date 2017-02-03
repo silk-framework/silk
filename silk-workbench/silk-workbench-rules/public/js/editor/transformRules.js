@@ -274,7 +274,7 @@ function serializeObjectMapping(xmlDoc, name, pattern, target) {
   mappingTarget.setAttribute("uri", target);
   var valueType = xmlDoc.createElement("ValueType");
   // The nodeType of object mappings is always Resource (UriValueType):
-  valueType.setAttribute("nodeType", "UriValueType$");
+  valueType.setAttribute("nodeType", "UriValueType");
   mappingTarget.appendChild(valueType);
   ruleXml.appendChild(mappingTarget);
 
