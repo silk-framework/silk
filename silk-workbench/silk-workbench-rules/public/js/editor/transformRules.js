@@ -494,13 +494,13 @@ function showURIMapping(defined) {
 }
 
 function addTypeAutocomplete(typeInputs) {
-  typeInputs.autocomplete({
+  typeInputs.catcomplete({
     source: apiUrl + "/targetPathCompletions" ,
     minLength: 0 ,
     select: function(event, ui) {
       window.setTimeout(function() { $("#rule-type-textfield input").trigger("enter"); }, 5);
-    }
-  }).focus(function() { $(this).autocomplete("search"); });
+    } ,
+  }).focus(function() { $(this).catcomplete("search"); });
 }
 
 function addSourceAutocomplete(sourceInputs) {
