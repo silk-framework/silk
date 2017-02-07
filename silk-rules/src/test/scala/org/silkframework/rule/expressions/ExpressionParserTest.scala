@@ -4,6 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.plugins.transformer.numeric.{AggregateNumbersTransformer, LogarithmTransformer}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.replace.ReplaceTransformer
 
 class ExpressionParserTest extends FlatSpec with Matchers {
 
@@ -12,7 +13,7 @@ class ExpressionParserTest extends FlatSpec with Matchers {
 
   behavior of "ExpressionParser"
 
-  implicit val prefixes = Prefixes(Map("f" -> "http://eccenca.org/kpiExample"))
+  implicit val prefixes = Prefixes(Map("f" -> "http://example.org/prefix"))
 
   it should "parse constants" in {
     check(
@@ -107,10 +108,17 @@ class ExpressionParserTest extends FlatSpec with Matchers {
     )
   }
 
-  it should "parse function invocations with parameters" in {
+  it should "parse function invocations with a single parameter" in {
     check(
       expr = "log[base:16](x)",
       result = func(LogarithmTransformer(base = 16), path("x"))
+    )
+  }
+
+  it should "parse function invocations with multiple parameters" in {
+    check(
+      expr = "replace[search:x;replace:y](x)",
+      result = func(ReplaceTransformer(search = "x", replace = "y"), path("x"))
     )
   }
 
