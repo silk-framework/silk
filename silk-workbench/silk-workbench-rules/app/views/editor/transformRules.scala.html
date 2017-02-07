@@ -8,6 +8,7 @@
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import org.silkframework.rule.vocab.Vocabularies
 @import org.silkframework.rule.MappingTarget
+@import org.silkframework.rule.expressions.ExpressionWriter
 
 @(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
 
@@ -280,7 +281,7 @@
 @renderComplexRule(rule: ComplexMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" disabled>
+      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@ExpressionWriter(rule.operator)(prefixes())" disabled>
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property">
@@ -295,8 +296,6 @@
     </div>
   </td>
 }
-
-@renderRulePath(rule: ComplexMapping) = {@if(rule.paths.size == 1) {@rule.paths.head.serializeSimplified(prefixes())} else {(multiple)}}
 
 @prefixes() = @{ context.project.config.prefixes }
 
