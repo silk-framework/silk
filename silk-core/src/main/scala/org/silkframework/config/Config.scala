@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import java.io.File
+import java.util.logging.Logger
 import javax.inject.Named
 
 import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
@@ -35,8 +36,23 @@ class DefaultConfig extends Config {
       // Check if we are running as part of the eccenca Linked Data Suite
       if (fullConfig.hasPath("elds.home")) {
         val eldsHome = fullConfig.getString("elds.home")
-        val eldsConfig = ConfigFactory.parseFile(new File(eldsHome + "/etc/dataintegration/dataintegration.conf"))
+        val configFile = new File(eldsHome + "/etc/dataintegration/dataintegration.conf")
+        // since elds.home is defined, the config should exist in the location defined in configFile
+        if (!configFile.exists) {
+          throw new RuntimeException(
+            "Mandatory configuration file ${ELDS_HOME}/etc/dataintegration/dataintegration.conf is missing. " +
+            "Possible fix: Map a volume with the config file to this location."
+          )
+        }
+        val eldsConfig = ConfigFactory.parseFile(configFile)
         fullConfig = eldsConfig.withFallback(fullConfig)
+      }
+      // if elds.home is not defined, we can't throw an exception, just a warning
+      else {
+        Logger.getLogger(this.getClass.getName).warning(
+          "Variable $ELDS_HOME is not defined. If this application is not running in the ELDS context " +
+          "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
+        )
       }
       // Check if we are running as part of the Play Framework
       val playConfig1 = new File(System.getProperty("user.home") + "/conf/reference.conf")
