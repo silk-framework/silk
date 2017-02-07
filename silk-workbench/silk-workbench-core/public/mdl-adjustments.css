@@ -33,6 +33,7 @@
 #toolbar {
   margin-top: 2px;
   background: none;
+  min-height: 40px;
 }
 
 #toolbar li {
