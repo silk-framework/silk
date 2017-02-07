@@ -7,6 +7,9 @@
 }
 
 #welcome {
-  background: url('../logo.png') no-repeat right top;
   margin-right: 50px;
+}
+
+#welcome img.logo {
+  float: right;
 }

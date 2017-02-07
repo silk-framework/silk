@@ -113,10 +113,33 @@ th,td
 
 /* autocomplete categories */
 .ui-autocomplete-category {
+  font-size: 120%;
   font-weight: bold;
   padding: .2em .4em;
   margin: .8em 0 .2em;
   line-height: 1.5;
+}
+
+.ui-autocomplete-property-label {
+  font-weight: bold;
+}
+
+.ui-autocomplete-property-uri {
+  font-size: 85%;
+  font-style: italic;
+  margin-left: 10px;
+}
+
+.ui-autocomplete-warning {
+  color: red;
+  cursor: default;
+}
+
+.ui-autocomplete-warning:hover, ui-autocomplete-warning.ui-state-focus {
+  cursor: default;
+  background: transparent;
+  color: red;
+  border-color: transparent;
 }
 
 /* target type select */

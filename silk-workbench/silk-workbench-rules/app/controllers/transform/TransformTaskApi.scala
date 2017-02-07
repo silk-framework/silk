@@ -12,9 +12,9 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
-import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache}
+import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString}
+import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 
 class TransformTaskApi extends Controller {
@@ -199,36 +199,8 @@ class TransformTaskApi extends Controller {
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String) = Action {
     val (project, task) = projectAndTask(projectName, taskName)
-    val prefixes = project.config.prefixes
-    val maxCompletions = 20
-
-    // Collect all caches with MappingCandidates and suggest completions
-    val mappingCandidates = {
-      for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
-        val candidates = activity.value.asInstanceOf[MappingCandidates]
-        sourcePath match {
-          case Some(path) => candidates.suggestProperties(Path.parse(path))
-          case None => candidates.suggestTypes
-        }
-      }
-    }
-
-    val mappingCompletions = mappingCandidates.flatten.sortBy(-_.confidence).map(_.uri.toString)
-    val prefixCompletions = prefixes.prefixMap.keys.toSeq.sorted.map(_ + ":")
-    val completions = mappingCompletions ++ prefixCompletions
-
-    // Filter all completions that match the search term
-    var matches = completions.filter(_.contains(term)).take(maxCompletions)
-
-    // If no completions match, return some suggestions anyway
-    if(matches.isEmpty)
-      matches = completions.take(maxCompletions)
-
-    // Remove duplicates and shorten URIs
-    matches = matches.distinct.map(prefixes.shorten)
-
-    // Convert to JSON and return
-    Ok(JsArray(matches.map(JsString)))
+    val completions = TargetPathAutcompletion.retrieve(project, task, sourcePath, term)
+    Ok(JsArray(completions.map(_.toJson)))
   }
 
   /**

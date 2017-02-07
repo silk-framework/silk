@@ -17,10 +17,10 @@ The typical workflow of creating a new linking task consists of:
 
 ## Linkage Rule Editor
 
-The Linkage Rule Editor allows users to edit linkage rules in graphical way. Linkage rules are created as an operator tree by dragging and dropping the rule elements.
+The Linkage Rule Editor allows users to edit linkage rules in a graphical way. Linkage rules are created as an operator tree by dragging and dropping the rule elements.
 
 The editor is divided in two parts:
-1. The left pane contains the most frequent used _property paths_ for the given data sets and restrictions. It also contains a list of all available operators _transformations_, _comparators_ and _aggregators_ as draggable elements.
+1. The left pane contains the most frequently used _property paths_ for the given data sets and restrictions. It also contains a list of all available operators _transformations_, _comparators_ and _aggregators_ as draggable elements.
 2. The right part (editor pane) allows for drawing the flow chart by combining the elements chosen.
 
 ![LinkageRule Editor](img/linkageRuleEditor.png)
@@ -36,7 +36,7 @@ The editor will guide the user in building the flow chart by highlighting connec
 ### Property Paths
 
 Property paths for the two data sources to be interlinked are loaded on the left pane and added in the order of their frequency in the data source.
-Users can also add custom paths by dragging the `(custom path)` element to the editor pane and \[\[Inputs|editing the path\]\].
+Users can also add custom paths by dragging the `(custom path)` element to the editor pane and editing the path.
 
 ### Operators
 

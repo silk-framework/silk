@@ -32,6 +32,48 @@ $(function() {
 
   $("#ruleContainer").on("sortupdate", function( event, ui ) { modified() } );
 
+  var categoryDictionary = {
+    "MatchingCandidateCache": "Suggestions" ,
+    "VocabularyCache": "Vocabulary Matches"
+  }
+
+  // define custom target property autocomplete widget:
+  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+    _create: function() {
+      this._super();
+      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+    },
+    _renderMenu: function( ul, items ) {
+      var that = this,
+        currentCategory = "";
+      $.each( items, function( index, item ) {
+        var li;
+        if ( item.category != currentCategory ) {
+          ul.append( "<li class='ui-autocomplete-category'>" + translateTerm(item.category, categoryDictionary) + "</li>" );
+          currentCategory = item.category;
+        }
+        li = that._renderItemData( ul, item );
+        if ( item.category ) {
+          li.attr( "aria-label", item.category + " : " + item.label );
+        }
+      });
+    },
+    _renderItem: function( ul, item ) {
+      var label = item.label ? item.label : getLocalName(item.value);
+      if ( item.isCompletion ) {
+        return $( "<li>" )
+          .append( "<div><span class='ui-autocomplete-property-label'>" + label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
+          .appendTo( ul );
+      } else {
+        return $("<li class='ui-autocomplete-warning'>").
+          append( "<div>" + item.label + "</div>").
+          prop("disabled", true).
+          appendTo( ul );
+      }
+
+    }
+  });
+
   // Add autocompletion
   addSourceAutocomplete($(".source"));
   addTargetAutocomplete($(".target"));
@@ -40,6 +82,23 @@ $(function() {
   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 
 });
+
+function getLocalName(uri) {
+  if (uri) {
+    var localNameDelimiterPattern = /[\/#:]/;
+    return uri.split(localNameDelimiterPattern).pop();
+  } else {
+    return "(no URI defined)";
+  }
+}
+
+function translateTerm(term, dictionary) {
+  if (term in dictionary) {
+    return dictionary[term];
+  } else {
+    return term;
+  }
+}
 
 function modified() {
   confirmOnExit = true;
@@ -215,7 +274,7 @@ function serializeObjectMapping(xmlDoc, name, pattern, target) {
   mappingTarget.setAttribute("uri", target);
   var valueType = xmlDoc.createElement("ValueType");
   // The nodeType of object mappings is always Resource (UriValueType):
-  valueType.setAttribute("nodeType", "UriValueType$");
+  valueType.setAttribute("nodeType", "UriValueType");
   mappingTarget.appendChild(valueType);
   ruleXml.appendChild(mappingTarget);
 
@@ -456,16 +515,26 @@ function addSourceAutocomplete(sourceInputs) {
 function addTargetAutocomplete(targetInputs) {
   targetInputs.each(function() {
     var sourceInput = $(this).closest("tr").find(".source");
-    $(this).autocomplete({
+    var patternInput = $(this).closest("tr").find(".pattern");
+    $(this).catcomplete({
       source: function( request, response ) {
-        request.sourcePath = sourceInput.val();
+        if(sourceInput.length > 0) {
+          // We got a mapping that specifies a source property
+          request.sourcePath = sourceInput.val();
+        } else if(patternInput.length > 0) {
+          // We got a mapping that specifies a URI pattern of the form http://example.org/{ID}
+          // We try to take the first path inside the parentheses.
+          // If this fails, the endpoint will still suggest properties from the vocabulary
+          request.sourcePath = patternInput.val().split(/[\{\}]/)[1];
+        }
+
         $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
       },
       minLength: 0,
       position: { my: "left bottom", at: "left top", collision: "flip" } ,
       close: function(event, ui) { modified(); } ,
       focus: function(event, ui) { changePropertyDetails(ui.item.value, $(this));}
-    }).focus(function() { $(this).autocomplete("search"); });
+    }).focus(function() { $(this).catcomplete("search"); });
 
     // Update the property details on every change
     changePropertyDetails($(this).val(), $(this));
@@ -476,7 +545,7 @@ function addTargetAutocomplete(targetInputs) {
 }
 
 function addTypeSelections(typeSelects) {
-  console.log(typeSelects);
+
   var types = [
     { label: "Autodetect", value: "AutoDetectValueType", category: "" } ,
     { label: "Resource", value: "UriValueType", category: "" } ,
