@@ -446,7 +446,7 @@ function removeElement(elementId) {
 }
 
 function updateWindowSize() {
-  var header_height = $("#app_header").height();
+  var header_height = $("header").height() + $("#toolbar").height() + $("#tab-bar").height();
   var window_width =  $(window).width();
   var window_height =  $(window).height();
   var content_padding = 35;
