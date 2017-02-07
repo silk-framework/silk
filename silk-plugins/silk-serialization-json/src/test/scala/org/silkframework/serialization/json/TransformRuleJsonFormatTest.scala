@@ -6,6 +6,7 @@ import org.silkframework.entity.{Path, StringValueType, UriValueType}
 import org.silkframework.rule.expressions.ExpressionGenerator
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule._
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.util.Uri
 import play.api.libs.json.Json
@@ -103,7 +104,7 @@ class TransformRuleJsonFormatTest extends FlatSpec with Matchers {
         | {
         |   "name": "complexMapping",
         |   "mappingType": "ComplexMapping",
-        |   "sourceExpression": "rdfs:label",
+        |   "sourceExpression": "lowerCase(rdfs:label)",
         |   "mappingTarget": {
         |     "property": "rdfs:label",
         |     "valueType": "StringValueType"
@@ -114,7 +115,7 @@ class TransformRuleJsonFormatTest extends FlatSpec with Matchers {
     parse(mappingJson) shouldBe
       ComplexMapping(
         name = "complexMapping",
-        operator = generator.path("rdfs:label"),
+        operator = generator.func(LowerCaseTransformer(), generator.path("rdfs:label")),
         target = Some(
           MappingTarget(
             propertyUri = Uri.parse("rdfs:label", prefixes),
