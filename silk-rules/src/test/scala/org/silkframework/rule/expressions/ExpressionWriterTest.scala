@@ -34,4 +34,9 @@ class ExpressionWriterTest extends FlatSpec with Matchers {
       "replace[search:x;replace:y](f:path1;f:path2)"
   }
 
+  it should "escape characters in function parameter values" in {
+    ExpressionWriter(func(ReplaceTransformer(search = "xxx;yyy", replace = "yyy]xxx"), Seq(path("f:path1"), path("f:path2")))) shouldBe
+      "replace[search:xxx\\;yyy;replace:yyy\\]xxx](f:path1;f:path2)"
+  }
+
 }

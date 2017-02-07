@@ -69,7 +69,7 @@ private class ExpressionParser(implicit prefixes: Prefixes) extends ExpressionGe
 
   private val paramKey = "[^\\];:]+".r
 
-  private val paramValue = """(\\[\];:]|[^\];:])+""".r
+  private val paramValue = """(\\[\];]|[^\];])+""".r
 
   private val variable = """\w[^\s\(\)]*""".r
 
