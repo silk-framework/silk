@@ -122,6 +122,13 @@ class ExpressionParserTest extends FlatSpec with Matchers {
     )
   }
 
+  it should "parse function invocations with escaped parameter values" in {
+    check(
+      expr = "replace[search:yyy\\:xxx;replace:xxx\\]yyy](x)",
+      result = func(ReplaceTransformer(search = "yyy:xxx", replace = "xxx]yyy"), path("x"))
+    )
+  }
+
   it should "parse complex function invocations" in {
     check(
       expr = "aggregateNumbers[operator:max](5;3)",
