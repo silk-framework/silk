@@ -27,7 +27,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes().head.node
+    val xml = loadXmlNodes(t.uri).head.node
     for (path <- XmlParser.collectPaths(xml).toIndexedSeq) yield {
       Path(path.tail.toList)
     }
@@ -36,7 +36,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
-    new Entities(loadXmlNodes(), entitySchema)
+    val nodes = loadXmlNodes(entitySchema.typeUri.uri)
+    new Entities(nodes, entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
@@ -59,21 +60,23 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     *
     * @return
     */
-  private def loadXmlNodes(): Seq[XmlTraverser] = {
+  private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
+    // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
+    val pathStr = if(typeUri.isEmpty) basePath else typeUri
     // Load XML
     val xml = XML.load(file.load)
     val rootTraverser = XmlTraverser(None, xml)
     // Resolve the base path
-    if (basePath.isEmpty) {
+    if (pathStr.isEmpty) {
       // If the base path is empty, we read all direct children of the root element
       (xml \ "_").map(n => XmlTraverser(Some(rootTraverser), n))
     } else {
       // As it may not be clear whether the base path must include the root element, we accept both
       val path =
-        if (basePath.startsWith("/" + xml.label))
-          basePath.stripPrefix("/" + xml.label)
+        if (pathStr.startsWith("/" + xml.label))
+          pathStr.stripPrefix("/" + xml.label)
         else
-          basePath
+          pathStr
       // Move to base path
       evaluateXPath(rootTraverser, path)
     }
