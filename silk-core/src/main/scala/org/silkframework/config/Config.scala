@@ -25,7 +25,7 @@ class DefaultConfig extends Config {
     System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tb %1$td, %1$tY %1$tl:%1$tM:%1$tS %1$Tp %3$s%n%4$s: %5$s%6$s%n")
   }
 
-  lazy val log = Logger.getLogger(this.getClass.getName)
+  private lazy val log = Logger.getLogger(this.getClass.getName)
 
   private var config = this.synchronized {
     init()
@@ -39,8 +39,6 @@ class DefaultConfig extends Config {
       if (fullConfig.hasPath("elds.home") || System.getenv("ELDS_HOME")!=null) {
         val eldsHome = fullConfig.getString("elds.home")
         val eldsHomeEnv = System.getenv("ELDS_HOME")
-        log.info(s"Configuration value for elds.home set: $eldsHome")
-        log.info(s"Configuration value for elds.home set: $eldsHomeEnv")
         // Since elds.home is defined, the config should exist in the location given in elds.home or ELDS_HOME
         val configFile = if (new File(eldsHome + "/etc/dataintegration/dataintegration.conf").exists) {
           log.info(s"Configuration file found at $eldsHome:/etc/dataintegration/dataintegration.conf")
@@ -64,9 +62,9 @@ class DefaultConfig extends Config {
         val eldsConfig = ConfigFactory.parseFile(configFile)
         fullConfig = eldsConfig.withFallback(fullConfig)
       }
-      // if elds.home is not defined, we can't throw an exception, just a warning
+      // if elds.home is not defined, we can't throw an exception, just a message
       else {
-        Logger.getLogger(this.getClass.getName).warning(
+        Logger.getLogger(this.getClass.getName).info(
           "Variable $ELDS_HOME is not defined. If this application is not running in the ELDS context " +
           "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
         )
