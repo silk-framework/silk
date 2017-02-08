@@ -60,7 +60,7 @@ case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValu
     if(valueType == AutoDetectValueType)
       propertyUri.toString
     else
-      s"$propertyUri ($valueType)"
+      s"$propertyUri (${valueType.label})"
   }
 
 }
