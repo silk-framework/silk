@@ -8,7 +8,7 @@ import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
 
-import scala.xml.{Node, NodeSeq, XML}
+import scala.xml.{Node, NodeSeq, Text, XML}
 
 class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
 
@@ -96,7 +96,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             uriRegex.replaceAllIn(uriPattern, m => {
               val pattern = m.group(1)
               if (pattern == "#") {
-                index.toString
+                nodeId(traverser.node)
               } else {
                 val traversers = evaluateXPath(traverser, pattern)
                 val nodeSeq = NodeSeq.fromSeq(traversers.map(_.node))
@@ -105,18 +105,14 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             })
           }
 
-        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents, index)
+        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents)
         f(new Entity(uri, values, entityDesc))
       }
     }
 
-    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node], index: Int): Seq[String] = {
-      if(path.propertyUri.contains(Uri("#"))) {
-        Seq(index.toString)
-      } else {
-        val xml = evaluateOperators(node, path.operators, parentNodes)
-        xml.map(_.text)
-      }
+    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node]): Seq[String] = {
+      val xml = evaluateOperators(node, path.operators, parentNodes)
+      xml.map(_.text)
     }
 
     private def evaluateOperators(node: Node, ops: List[PathOperator], parentNodes: List[Node]): NodeSeq = {
@@ -125,6 +121,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
           node
         case op :: opsTail =>
           op match {
+            case ForwardOperator(Uri("#")) =>
+              Text(nodeId(node))
             case ForwardOperator(p) =>
               val forwardNodes =
                 if(p.uri.startsWith("@")) {
@@ -153,6 +151,14 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
           }
       }
+    }
+
+    /**
+      * Generates a ID for a given XML node that is unique inside the document.
+      */
+    private def nodeId(node: Node): String = {
+      // As we do not have access to the line number, we use a hashcode and hope that it doesn't clash
+      node.hashCode.toString.replace('-', '1')
     }
   }
 
