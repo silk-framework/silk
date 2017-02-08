@@ -4,11 +4,12 @@ import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
+import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.util._
-import scala.language.implicitConversions
 
+import scala.language.implicitConversions
 import scala.xml.{Node, Null}
 
 /**
@@ -126,7 +127,7 @@ case class UriMapping(name: Identifier = "uri", pattern: String = "http://exampl
         if (i % 2 == 0)
           TransformInput("constant" + i, ConstantTransformer(str))
         else
-          PathInput("path" + i, Path.parse(str))
+          TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
       }
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
@@ -152,7 +153,7 @@ case class ObjectMapping(name: Identifier = "object",
         if (i % 2 == 0)
           TransformInput("constant" + i, ConstantTransformer(str))
         else
-          PathInput("path" + i, Path.parse(str))
+          TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
       }
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
@@ -261,6 +262,7 @@ object TransformRule {
   private def isPattern(inputs: Seq[Input]) = {
     inputs.forall {
       case PathInput(id, path) => true
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, ConstantTransformer(constant), Nil) => true
       case _ => false
     }
@@ -269,6 +271,7 @@ object TransformRule {
   private def buildPattern(inputs: Seq[Input]) = {
     inputs.map {
       case PathInput(id, path) => "{" + path.serializeSimplified() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }
