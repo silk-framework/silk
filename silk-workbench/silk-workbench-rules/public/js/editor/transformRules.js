@@ -59,10 +59,9 @@ $(function() {
       });
     },
     _renderItem: function( ul, item ) {
-      var label = item.label ? item.label : getLocalName(item.value);
       if ( item.isCompletion ) {
         return $( "<li>" )
-          .append( "<div><span class='ui-autocomplete-property-label'>" + label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
+          .append( "<div><span class='ui-autocomplete-property-label'>" + item.label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
           .appendTo( ul );
       } else {
         return $("<li class='ui-autocomplete-warning'>").
@@ -82,15 +81,6 @@ $(function() {
   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 
 });
-
-function getLocalName(uri) {
-  if (uri) {
-    var localNameDelimiterPattern = /[\/#:]/;
-    return uri.split(localNameDelimiterPattern).pop();
-  } else {
-    return "(no URI defined)";
-  }
-}
 
 function translateTerm(term, dictionary) {
   if (term in dictionary) {
