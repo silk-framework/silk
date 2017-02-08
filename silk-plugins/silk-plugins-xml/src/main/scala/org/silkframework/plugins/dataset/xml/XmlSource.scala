@@ -105,14 +105,18 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             })
           }
 
-        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents)
+        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents, index)
         f(new Entity(uri, values, entityDesc))
       }
     }
 
-    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node]): Seq[String] = {
-      val xml = evaluateOperators(node, path.operators, parentNodes)
-      xml.map(_.text)
+    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node], index: Int): Seq[String] = {
+      if(path.propertyUri.contains(Uri("#"))) {
+        Seq(index.toString)
+      } else {
+        val xml = evaluateOperators(node, path.operators, parentNodes)
+        xml.map(_.text)
+      }
     }
 
     private def evaluateOperators(node: Node, ops: List[PathOperator], parentNodes: List[Node]): NodeSeq = {
