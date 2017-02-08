@@ -102,7 +102,7 @@ object TargetPathAutcompletion {
         }
       }
     }
-    mappingCandidates.flatten.sortBy(-_.confidence)
+    mappingCandidates.flatten.sortBy(_.value).sortBy(-_.confidence)
   }
 
   /**
