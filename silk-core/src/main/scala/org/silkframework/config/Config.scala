@@ -36,29 +36,29 @@ class DefaultConfig extends Config {
       ConfigFactory.invalidateCaches()
       var fullConfig = ConfigFactory.load()
       // Check if we are running as part of the eccenca Linked Data Suite
-      val eldsHomeProp = System.getProperty("elds.home")
-      val eldsHomeEnv = System.getenv("elds.home")
-      if (fullConfig.hasPath("elds.home") || eldsHomeEnv!=null || eldsHomeProp!=null) {
+      if (fullConfig.hasPath("elds.home") || System.getenv("ELDS_HOME")!=null) {
         val eldsHome = fullConfig.getString("elds.home")
-        log.info(s"Configuration value for elds.home found: $eldsHome")
+        val eldsHomeEnv = System.getenv("ELDS_HOME")
+        log.info(s"Configuration value for elds.home set: $eldsHome")
+        log.info(s"Configuration value for elds.home set: $eldsHomeEnv")
         // Since elds.home is defined, the config should exist in the location given in elds.home or ELDS_HOME
         val configFile = if (new File(eldsHome + "/etc/dataintegration/dataintegration.conf").exists) {
           log.info(s"Configuration file found at $eldsHome:/etc/dataintegration/dataintegration.conf")
           new File(eldsHome + "/etc/dataintegration/dataintegration.conf")
         }
-        else if (eldsHomeEnv!=null && new File(eldsHomeProp + "/etc/dataintegration/dataintegration.conf").exists){
-          log.info(s"Configuration file found at $eldsHomeProp:/etc/dataintegration/dataintegration.conf")
-          new File(eldsHomeProp + "/etc/dataintegration/dataintegration.conf")
+        else if (eldsHomeEnv!=null && new File(eldsHomeEnv + "/etc/dataintegration/dataintegration.conf").exists){
+          log.info(s"Configuration file found at $eldsHomeEnv/etc/dataintegration/dataintegration.conf")
+          new File(eldsHomeEnv + "/etc/dataintegration/dataintegration.conf")
         }
         else {
-          log.info(s"Configuration file found at $eldsHomeEnv:/etc/dataintegration/dataintegration.conf")
-          new File(eldsHomeEnv + "/etc/dataintegration/dataintegration.conf")
+          new File(eldsHome + "/etc/dataintegration/dataintegration.conf")
         }
 
         if (!configFile.exists) {
-          log.severe("Mandatory configuration file not found at " + configFile.getAbsolutePath)
+          log.severe(s"Mandatory configuration file not found at: " + configFile.getAbsolutePath)
+          log.severe(s"Mandatory configuration file not found at: $eldsHomeEnv/etc/dataintegration/dataintegration.conf")
           log.severe("Possible fix: Map a volume with the config file to this location.")
-          log.severe("Otherwise set elds.home or $ELDS_HOME to point at the correct location.")
+          log.severe("Otherwise set elds.home or $ELDS_HOME to point to the correct location.")
         }
 
         val eldsConfig = ConfigFactory.parseFile(configFile)
@@ -68,7 +68,7 @@ class DefaultConfig extends Config {
       else {
         Logger.getLogger(this.getClass.getName).warning(
           "Variable $ELDS_HOME is not defined. If this application is not running in the ELDS context " +
-          "you can ignore this warning. Otherwise please configure $ELDS_HOME."
+          "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
         )
       }
       // Check if we are running as part of the Play Framework
