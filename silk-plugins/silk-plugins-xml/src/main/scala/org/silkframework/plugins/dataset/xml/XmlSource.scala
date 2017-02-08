@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
@@ -15,6 +16,14 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   private val logger = Logger.getLogger(getClass.getName)
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    // At the moment we just generate paths from the first xml node that is found
+    val xml = XML.load(file.load)
+    for(pathOperators <- XmlParser.collectPaths(xml)) yield {
+      (Path(pathOperators.toList).serialize(Prefixes.empty), 1.0 / pathOperators.size)
+    }
+  }
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
