@@ -1,5 +1,6 @@
 @import org.silkframework.config.Prefixes
 @import org.silkframework.rule.evaluation.{DetailedEntity, Value, TransformedValue, InputValue}
+@import org.silkframework.entity.AutoDetectValueType
 @import controllers.rules.routes.Assets
 
 @(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
@@ -43,13 +44,20 @@
 @renderEntity(entity: DetailedEntity, counter: Int) = {
   <div class="entity">
     <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
-      @entity.uri
+      @prefixes.shorten(entity.uri)
     </div>
     <div class="entity-details" style="display: none">
       <ul class="entity-tree">
         @for((value, rule) <- entity.values zip entity.rules) {
           <li>
-            <span class="property">@rule.target</span>
+            <span class="property">
+              @for(target <- rule.target) {
+                @target.propertyUri.serialize(prefixes)
+                @if(target.valueType != AutoDetectValueType) {
+                  (@target.valueType.label)
+                }
+              }
+            </span>
             <ul>
               @renderValue(value)
             </ul>
