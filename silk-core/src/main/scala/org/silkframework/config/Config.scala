@@ -76,10 +76,10 @@ class DefaultConfig extends Config {
       val playConfig1 = new File(System.getProperty("user.home") + "/conf/reference.conf")
       val playConfig2 = new File(System.getProperty("user.home") + "/conf/application.conf")
       if (playConfig1.exists()) {
-        fullConfig = ConfigFactory.parseFile(playConfig1).withFallback(fullConfig)
+        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig1))
       }
       if (playConfig2.exists()) {
-        fullConfig = ConfigFactory.parseFile(playConfig2).withFallback(fullConfig)
+        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig2))
       }
       fullConfig.resolve()
     }
