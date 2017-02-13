@@ -25,8 +25,17 @@ import scala.language.existentials
 import scala.util.control.NonFatal
 
 /**
- * Describes a plugin.
- */
+  * Describes a plugin.
+  *
+  * @param id The id of this plugin.
+  * @param categories The categories to which this plugin belongs to.
+  * @param label A human-readable label.
+  * @param description A short (few sentence) description of this plugin.
+  * @param documentation Documentation for this plugin in Markdown.
+  * @param parameters The parameters of the plugin class.
+  * @param constructor The constructor for creating a new instance of this plugin.
+  * @tparam T The class that implements this plugin.
+  */
 class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String,
                             val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
