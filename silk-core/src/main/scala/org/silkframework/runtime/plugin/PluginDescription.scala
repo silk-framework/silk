@@ -27,7 +27,8 @@ import scala.util.control.NonFatal
 /**
  * Describes a plugin.
  */
-class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String,
+                            val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
     * The plugin class.
@@ -100,6 +101,7 @@ object PluginDescription {
       label = annotation.label,
       categories = annotation.categories.toSet,
       description = annotation.description.stripMargin,
+      documentation = annotation.documentation,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -111,6 +113,7 @@ object PluginDescription {
       label = pluginClass.getSimpleName,
       categories = Set("Uncategorized"),
       description = "",
+      documentation = "",
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
