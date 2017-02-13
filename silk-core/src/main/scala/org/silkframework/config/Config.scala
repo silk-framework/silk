@@ -53,10 +53,13 @@ class DefaultConfig extends Config {
         }
 
         if (!configFile.exists) {
-          log.severe(s"Mandatory configuration file not found at: " + configFile.getAbsolutePath)
-          log.severe(s"Mandatory configuration file not found at: $eldsHomeEnv/etc/dataintegration/dataintegration.conf")
-          log.severe("Possible fix: Map a volume with the config file to this location.")
-          log.severe("Otherwise set elds.home or $ELDS_HOME to point to the correct location.")
+          val msg = new StringBuilder
+          msg ++= s"Mandatory configuration file not found at: ${configFile.getAbsolutePath} "
+          if(eldsHomeEnv != null)
+            msg ++= s"and $eldsHomeEnv/etc/dataintegration/dataintegration.conf "
+          msg ++= "Possible fix: Map a volume with the config file to this location. "
+          msg ++= "Otherwise set elds.home or $ELDS_HOME to point to the correct location."
+          log.warning(msg.toString())
         }
 
         val eldsConfig = ConfigFactory.parseFile(configFile)
