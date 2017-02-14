@@ -9,7 +9,7 @@ import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
 
-import scala.xml.{Node, NodeSeq, Text, XML}
+import scala.xml.XML
 
 class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
 
@@ -20,15 +20,15 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = XML.load(file.load)
-    for(pathOperators <- XmlParser.collectPaths(xml)) yield {
+    for(pathOperators <- XmlTraverser(xml).collectPaths()) yield {
       (Path(pathOperators.toList).serialize(Prefixes.empty), 1.0 / pathOperators.size)
     }
   }
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes(t.uri).head.node
-    for (path <- XmlParser.collectPaths(xml).toIndexedSeq) yield {
+    val xml = loadXmlNodes(t.uri).head
+    for (path <- xml.collectPaths().toIndexedSeq) yield {
       Path(path.tail.toList)
     }
   }
@@ -44,17 +44,6 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     throw new UnsupportedOperationException("Retrieving single entities from XML is currently not supported")
   }
 
-  private case class XmlTraverser(parentOpt: Option[XmlTraverser], node: Node) {
-    def parents: List[Node] = {
-      parentOpt match {
-        case Some(traverser) =>
-          traverser.node :: traverser.parents
-        case None =>
-          Nil
-      }
-    }
-  }
-
   /**
     * Returns the XML nodes found at the base path and
     *
@@ -65,11 +54,11 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     val pathStr = if(typeUri.isEmpty) basePath else typeUri
     // Load XML
     val xml = XML.load(file.load)
-    val rootTraverser = XmlTraverser(None, xml)
+    val rootTraverser = XmlTraverser(xml)
     // Resolve the base path
     if (pathStr.isEmpty) {
       // If the base path is empty, we read all direct children of the root element
-      (xml \ "_").map(n => XmlTraverser(Some(rootTraverser), n))
+      rootTraverser.children
     } else {
       // As it may not be clear whether the base path must include the root element, we accept both
       val path =
@@ -78,22 +67,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
         else
           pathStr
       // Move to base path
-      evaluateXPath(rootTraverser, path)
-    }
-  }
-
-  private def evaluateXPath(traverser: XmlTraverser, path: String): Seq[XmlTraverser] = {
-    val pathElements = path.stripPrefix("/").split('/').filterNot(_.isEmpty).toList
-    evaluateXPathRec(traverser, pathElements)
-  }
-
-  private def evaluateXPathRec(traverser: XmlTraverser, pathElements: List[String]): Seq[XmlTraverser] = {
-    pathElements match {
-      case Nil =>
-        Seq(traverser)
-      case label :: pathTail =>
-        val nextNodes = traverser.node \ label
-        nextNodes.flatMap(n => evaluateXPathRec(XmlTraverser(Some(traverser), n), pathTail))
+     rootTraverser.evaluatePath(Path.parse(path))
     }
   }
 
@@ -108,69 +82,17 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
             uriRegex.replaceAllIn(uriPattern, m => {
               val pattern = m.group(1)
               if (pattern == "#") {
-                nodeId(traverser.node)
+                traverser.nodeId
               } else {
-                val traversers = evaluateXPath(traverser, pattern)
-                val nodeSeq = NodeSeq.fromSeq(traversers.map(_.node))
-                URLEncoder.encode(nodeSeq.text, "UTF8")
+                val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
+                URLEncoder.encode(value, "UTF8")
               }
             })
           }
 
-        val values = for (typedPath <- entityDesc.typedPaths) yield evaluateSilkPath(traverser.node, typedPath.path, traverser.parents)
+        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath.path)
         f(new Entity(uri, values, entityDesc))
       }
-    }
-
-    private def evaluateSilkPath(node: Node, path: Path, parentNodes: List[Node]): Seq[String] = {
-      val xml = evaluateOperators(node, path.operators, parentNodes)
-      xml.map(_.text)
-    }
-
-    private def evaluateOperators(node: Node, ops: List[PathOperator], parentNodes: List[Node]): NodeSeq = {
-      ops match {
-        case Nil =>
-          node
-        case op :: opsTail =>
-          op match {
-            case ForwardOperator(Uri("#")) =>
-              Text(nodeId(node))
-            case ForwardOperator(p) =>
-              val forwardNodes =
-                if(p.uri.startsWith("@")) {
-                  val attr = node.attributes.find(_.key == p.uri.tail).get
-                  attr.value
-                } else {
-                  node \ p.uri
-                }
-              forwardNodes flatMap { forwardNode =>
-                evaluateOperators(forwardNode, opsTail, node :: parentNodes)
-              }
-            case p @ PropertyFilter(prop, cmp, value) =>
-              node.filter(n => p.evaluate("\"" + (n \ prop.uri).text + "\"")).headOption match {
-                case Some(n) =>
-                  evaluateOperators(n, opsTail, parentNodes)
-                case None =>
-                  NodeSeq.Empty
-              }
-            case BackwardOperator(p) =>
-              parentNodes match {
-                case parent :: parentTail =>
-                  evaluateOperators(parent, opsTail, parentTail)
-                case Nil =>
-                  throw new RuntimeException("Cannot go backward from root XML element! Backward property: " + p.uri)
-              }
-            case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
-          }
-      }
-    }
-
-    /**
-      * Generates a ID for a given XML node that is unique inside the document.
-      */
-    private def nodeId(node: Node): String = {
-      // As we do not have access to the line number, we use a hashcode and hope that it doesn't clash
-      node.hashCode.toString.replace('-', '1')
     }
   }
 
