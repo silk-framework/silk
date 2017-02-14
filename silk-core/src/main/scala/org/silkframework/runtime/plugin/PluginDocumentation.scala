@@ -60,6 +60,7 @@ object PluginDocumentation {
       sb ++= table.toMarkdown + "\n"
     else
       sb ++= "This plugin does not require any parameters.\n"
+    sb ++= plugin.documentation + "\n"
     sb ++= "The identifier for this plugin is: `" + plugin.id + "`.\n\n"
   }
 
@@ -82,9 +83,6 @@ object PluginDocumentation {
   }
 }
 
-case class PluginParameterDisplay
-(
-  headers: Seq[String],
-  generateValues: Parameter => Seq[String],
-  maxCharsInColumns: Seq[Int]
-  )
+case class PluginParameterDisplay(headers: Seq[String],
+                                  generateValues: Parameter => Seq[String],
+                                  maxCharsInColumns: Seq[Int])
