@@ -64,6 +64,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
       val path =
         if (pathStr.startsWith("/" + xml.label))
           pathStr.stripPrefix("/" + xml.label)
+        else if(pathStr == "/") // Not correct, but some legacy task still use this
+          ""
         else
           pathStr
       // Move to base path
