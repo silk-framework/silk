@@ -55,22 +55,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     // Load XML
     val xml = XML.load(file.load)
     val rootTraverser = XmlTraverser(xml)
-    // Resolve the base path
-    if (pathStr.isEmpty) {
-      // If the base path is empty, we read all direct children of the root element
-      rootTraverser.children
-    } else {
-      // As it may not be clear whether the base path must include the root element, we accept both
-      val path =
-        if (pathStr.startsWith("/" + xml.label))
-          pathStr.stripPrefix("/" + xml.label)
-        else if(pathStr == "/") // Not correct, but some legacy task still use this
-          ""
-        else
-          pathStr
-      // Move to base path
-     rootTraverser.evaluatePath(Path.parse(path))
-    }
+    // Move to base path
+    rootTraverser.evaluatePath(Path.parse(pathStr))
   }
 
   private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
@@ -83,12 +69,8 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val pattern = m.group(1)
-              if (pattern == "#") {
-                traverser.nodeId
-              } else {
-                val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
-                URLEncoder.encode(value, "UTF8")
-              }
+              val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
+              URLEncoder.encode(value, "UTF8")
             })
           }
 
