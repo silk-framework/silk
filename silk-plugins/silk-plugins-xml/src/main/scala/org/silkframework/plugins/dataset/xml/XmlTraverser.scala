@@ -97,18 +97,22 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   }
 
   private def evaluateForwardOperator(op: ForwardOperator): Seq[XmlTraverser] = {
-    val uri = op.property.uri
-    if(uri == "#") {
-      Seq(XmlTraverser(Text(nodeId), Some(this)))
-    } else if(uri.startsWith("@")) {
-      val attr = node.attributes.find(_.key == uri.tail).get
-      for(child <- attr.value) yield {
-        XmlTraverser(child, Some(this))
-      }
-    } else {
-      for(child <- node \ uri) yield {
-        XmlTraverser(child, Some(this))
-      }
+    op.property.uri match {
+      case "#id" =>
+        Seq(XmlTraverser(Text(nodeId), Some(this)))
+      case "#tag" =>
+        Seq(XmlTraverser(Text(node.label), Some(this)))
+      case "*" =>
+        children
+      case uri if uri.startsWith("@") =>
+        val attr = node.attributes.find(_.key == uri.tail).get
+        for(child <- attr.value) yield {
+          XmlTraverser(child, Some(this))
+        }
+      case uri =>
+        for(child <- node \ uri) yield {
+          XmlTraverser(child, Some(this))
+        }
     }
   }
 
