@@ -1,4 +1,4 @@
-import java.util.logging.Level
+import java.util.logging.{Level, Logger}
 import javax.inject.{Inject, Provider, Singleton}
 
 import models.JsonError
@@ -18,6 +18,8 @@ class ErrorHandler @Inject() (env: Environment,
                               config: Configuration,
                               sourceMapper: OptionalSourceMapper,
                               router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
+
+  private val log = Logger.getLogger(classOf[ErrorHandler].getName)
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     if(prefersHtml(request)) {
