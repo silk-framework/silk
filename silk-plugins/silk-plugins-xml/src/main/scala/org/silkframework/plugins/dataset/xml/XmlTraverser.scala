@@ -43,17 +43,17 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param prefix Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  def collectPaths(onlyLeaveNodes: Boolean, prefix: Seq[PathOperator] = Seq.empty): Seq[Seq[PathOperator]] = {
+  def collectPaths(onlyLeafNodes: Boolean, prefix: Seq[PathOperator] = Seq.empty): Seq[Seq[PathOperator]] = {
     // Generate a path from the xml node itself
     val path = prefix :+ ForwardOperator(node.label)
     // Generate paths for all children nodes
     val childNodes = node \ "_"
-    val childPaths = children.flatMap(_.collectPaths(onlyLeaveNodes, path))
+    val childPaths = children.flatMap(_.collectPaths(onlyLeafNodes, path))
     // Generate paths for all attributes
     val attributes = node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
 
-    if(!onlyLeaveNodes)
+    if(!onlyLeafNodes)
       Seq(path) ++ attributesPaths ++ childPaths
     else if (childPaths.isEmpty)
       Seq(path) ++ attributesPaths

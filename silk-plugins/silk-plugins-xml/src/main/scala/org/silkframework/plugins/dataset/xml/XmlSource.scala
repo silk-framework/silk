@@ -20,7 +20,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = XML.load(file.load)
-    for(pathOperators <- XmlTraverser(xml).collectPaths(onlyLeaveNodes = false)) yield {
+    for(pathOperators <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (Path(pathOperators.toList).serialize(Prefixes.empty), 1.0 / pathOperators.size)
     }
   }
@@ -28,7 +28,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes(t.uri).head
-    for (path <- xml.collectPaths(onlyLeaveNodes = true).toIndexedSeq) yield {
+    for (path <- xml.collectPaths(onlyLeafNodes = true).toIndexedSeq) yield {
       Path(path.tail.toList)
     }
   }
