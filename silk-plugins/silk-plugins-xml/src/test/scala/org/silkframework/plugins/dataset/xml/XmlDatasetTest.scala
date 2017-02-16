@@ -1,65 +1,92 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.dataset.DataSource
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
+import scala.languageFeature.postfixOps
 
 class XmlDatasetTest extends FlatSpec with Matchers {
 
-  val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
+  val persons = XmlDoc("persons.xml")
 
-  val personId = Path.parse("?a/<ID>")
+  behavior of "XML Dataset"
 
-  val personName = Path.parse("?a/<Name>")
-
-  val personBirth = Path.parse("?a/<Events>/<Birth>")
-
-  val personDeath = Path.parse("?a/<Events>/<Death>")
-
-  val personValue = Path.parse("Properties/Property[Key = \"2\"]/Value")
-
-  val entityDesc =
-    EntitySchema(
-      typeUri = Uri(""),
-      typedPaths = IndexedSeq(personId, personName, personBirth, personDeath, personValue).map(_.asStringTypedPath)
-    )
-
-  "XmlDatasetTest" should "read direct children of the root element, if the base path is empty." in {
-    entities("").size should equal(2)
+  it should "read the root element, if the base path is empty." in {
+    (persons atPath "" tags) shouldBe Seq("Persons")
   }
 
-  "XmlDatasetTest" should "read elements referenced with a base path that includes the root element" in {
-    entities("/Persons/Person").size should equal(2)
+  it should "read the direct children, if they are referenced by a direct path" in {
+    (persons atPath "Person" tags) shouldBe Seq("Person", "Person")
+    (persons atPath "/Person" tags) shouldBe Seq("Person", "Person")
   }
 
-  "XmlDatasetTest" should "read elements referenced with a base path that does not include the root element" in {
-    entities("/Person").size should equal(2)
+  it should "extract values of direct children" in {
+    (persons atPath "Person" valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
   }
 
-  "XmlDatasetTest" should "extract person names" in {
-    entities()(0).evaluate(personName) should equal(Seq("Max Doe"))
-    entities()(1).evaluate(personName) should equal(Seq("Max Noe"))
+  it should "extract values of indirect children" in {
+    (persons atPath "Person" valuesAt "Events/Birth") shouldBe Seq(Seq("May 1900"), Seq())
+    (persons atPath "Person" valuesAt "Events/Death") shouldBe Seq(Seq("June 1990"), Seq())
   }
 
-  "XmlDatasetTest" should "extract birth and death dates" in {
-    entities()(0).evaluate(personBirth) should equal(Seq("May 1900"))
-    entities()(0).evaluate(personDeath) should equal(Seq("June 1990"))
+  it should "support property filters" in {
+    (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
   }
 
-  "XmlDatasetTest" should "generate URIs from IDs" in {
-    entities()(0).uri should equal("http://example.org/1")
-    entities()(1).uri should equal("http://example.org/2")
+  it should "allow wildcard path elements" in {
+    (persons atPath "Person" valuesAt "Events/*") shouldBe Seq(Seq("May 1900", "June 1990"), Seq())
   }
 
-  "XmlDatasetTest" should "support property filters" in {
-    val result = entities().head.evaluate(personValue)
-    result should equal(Seq("V2"))
+  it should "generate unique IDs" in {
+    val directIds = persons atPath "Person" valuesAt "#id"
+    val eventIds = persons atPath "Person" valuesAt "Events/#id"
+    val allIds = directIds ++ eventIds
+
+    allIds.distinct shouldBe allIds
   }
 
-  private def entities(basePath: String = "") = {
-    val source = new XmlDataset(resourceLoader.get("persons.xml"), basePath, "http://example.org/{ID}").source
-    source.retrieve(entityDesc).toSeq
+
+  /**
+    * References an XML document from the test resources.
+    */
+  case class XmlDoc(name: String) {
+
+    private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
+
+    private val xmlSource = XmlDataset(resourceLoader.get(name), uriPattern = "{#tag}").source
+
+    def atPath(basePath: String = ""): Entities = {
+      Entities(xmlSource, basePath)
+    }
+
   }
+
+  /**
+    * References entities in a specified XML document at a specified path.
+    */
+  case class Entities(xmlSource: DataSource, basePath: String) {
+
+    def tags: Seq[String] = {
+      retrieve(IndexedSeq.empty).map(_.uri)
+    }
+
+    def valuesAt(pathStr: String): Seq[Seq[String]] = {
+      val path = Path.parse(pathStr)
+      retrieve(IndexedSeq(path)).map(_.evaluate(path))
+    }
+
+    private def retrieve(paths: IndexedSeq[Path]): Seq[Entity] = {
+      val entityDesc =
+        EntitySchema(
+          typeUri = Uri(basePath),
+          typedPaths = paths.map(_.asStringTypedPath)
+        )
+      xmlSource.retrieve(entityDesc).toSeq
+    }
+
+  }
+
 }
