@@ -139,6 +139,8 @@ body{
   cursor: move;
   padding: 4px;
   border-radius: 5px 5px 0 0;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .dragDiv .content {
