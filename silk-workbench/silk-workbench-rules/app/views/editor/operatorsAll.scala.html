@@ -4,22 +4,6 @@ pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
 
 @import org.silkframework.runtime.plugin.PluginDescription
 
-<script type="text/javascript">
-// Initialization
-$(function() {
-  // Make operators draggable
-  $('.@name.toLowerCase').draggable({
-    helper: function() {
-      var box = $(this).children('.@{opType}Div').clone(false);
-      var id = box.find(".handler label").text();
-      box.attr("id", generateNewElementId(id));
-      box.show();
-      return box;
-    }
-  });
-});
-</script>
-
 @for(plugin <- pluginGroup.availablePlugins) {
   <div class="operator plugin">
     <div class="operator-index">
