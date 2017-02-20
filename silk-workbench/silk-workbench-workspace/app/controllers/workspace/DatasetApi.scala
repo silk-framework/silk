@@ -2,11 +2,11 @@ package controllers.workspace
 
 import controllers.util.SerializationUtils
 import controllers.util.SerializationUtils._
-import models.JsonError
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetTask}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.{JsArray, JsString}

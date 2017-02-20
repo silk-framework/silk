@@ -1,7 +1,8 @@
-import java.util.logging.{Level, Logger}
-import javax.inject.{Inject, Provider, Singleton}
+package org.silkframework.workbench.utils
 
-import models.JsonError
+import java.util.logging.{Level, Logger}
+import javax.inject.Provider
+
 import org.silkframework.workspace.{ProjectNotFoundException, TaskNotFoundException}
 import play.api.PlayException.ExceptionSource
 import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
@@ -9,17 +10,15 @@ import play.api.mvc.Results.{InternalServerError, NotFound, Status}
 import play.api.mvc.{AcceptExtractors, RequestHeader, Result}
 import play.api.routing.Router
 import play.api.{Configuration, Environment, OptionalSourceMapper}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 
-@Singleton
-class ErrorHandler @Inject() (env: Environment,
-                              config: Configuration,
-                              sourceMapper: OptionalSourceMapper,
-                              router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
+class SilkErrorHandler (env: Environment,
+                        config: Configuration,
+                        sourceMapper: OptionalSourceMapper,
+                        router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
 
-  private val log = Logger.getLogger(classOf[ErrorHandler].getName)
+  private val log = Logger.getLogger(classOf[SilkErrorHandler].getName)
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     if(prefersHtml(request)) {

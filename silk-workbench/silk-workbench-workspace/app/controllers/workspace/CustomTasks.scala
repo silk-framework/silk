@@ -1,8 +1,8 @@
 package controllers.workspace
 
-import models.JsonError
 import org.silkframework.config.{CustomTask, Task}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 

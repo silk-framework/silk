@@ -3,7 +3,6 @@ package controllers.linking
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
-import models.JsonError
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
@@ -16,6 +15,7 @@ import org.silkframework.runtime.validation.{ValidationError, ValidationExceptio
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
