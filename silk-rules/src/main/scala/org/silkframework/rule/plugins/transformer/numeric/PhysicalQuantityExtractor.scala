@@ -6,6 +6,8 @@ import java.util.Locale
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
+import scala.util.matching.Regex.Match
+
 @Plugin(
   id = "extractPhysicalQuantity",
   label = "Physical Quantity Extractor",
@@ -26,13 +28,15 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
                                      @Param("The IETF BCP 47 language tag, e.g. 'en'.")
                                      numberFormat: String = "en",
                                      @Param("Only extracts from values that contain the given regex (case-insensitive).")
-                                     filter: String = "") extends Transformer {
+                                     filter: String = "",
+                                     @Param("If there are multiple matches, retrieve the value with the given index (zero-based).")
+                                     index: Int = 0) extends Transformer {
 
   private val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
 
   private val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
 
-  private val dimensionRegex = s"([\\d\\.,]+)\\s*(\\w*)$symbol".r
+  private val dimensionRegex = s"(-?[\\d\\.,]+)\\s*(\\w*)$symbol".r
 
   val unitPrefixes = Map(
     "p" -> 0.000000000001,
@@ -59,10 +63,22 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
     for(regex <- filterRegex if regex.findFirstIn(value).isEmpty)
       return None
 
-    for(matches <- dimensionRegex.findFirstMatchIn(value)) yield {
+    for(matches <- findMatch(value)) yield {
       val number = numberParser.parse(matches.group(1)).doubleValue()
       val factor = unitPrefixes.getOrElse(matches.group(2), 1.0)
       (number * factor).toString
+    }
+  }
+
+  private def findMatch(value: String): Option[Match] = {
+    if(index == 0) {
+      dimensionRegex.findFirstMatchIn(value)
+    } else {
+      val iterator = dimensionRegex.findAllMatchIn(value).drop(index)
+      if(iterator.isEmpty)
+        None
+      else
+        Some(iterator.next())
     }
   }
 
