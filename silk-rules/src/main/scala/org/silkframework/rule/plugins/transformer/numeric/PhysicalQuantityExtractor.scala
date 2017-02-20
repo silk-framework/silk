@@ -4,7 +4,7 @@ import java.text.NumberFormat
 import java.util.Locale
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 
 @Plugin(
   id = "extractPhysicalQuantity",
@@ -19,21 +19,20 @@ Example:
 - Given a value '10km, 3mg'.
 - If the symbol parameter is set to 'm', the extracted value is 10000.
 - If the symbol parameter is set to 'g', the extracted value is 0.001.
-
-Parameters:
-
-- symbol: The symbol of the dimension, e.g., 'm' for meter
-- numberFormat: The IETF BCP 47 language tag, e.g. 'en'
-- filter: Only extracts from values that contain the given regex (case-insensitive).
 """
 )
-case class PhysicalQuantityExtractor(symbol: String = "", numberFormat: String = "en", filter: String = "") extends Transformer {
+case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 'm' for meter.")
+                                     symbol: String = "",
+                                     @Param("The IETF BCP 47 language tag, e.g. 'en'.")
+                                     numberFormat: String = "en",
+                                     @Param("Only extracts from values that contain the given regex (case-insensitive).")
+                                     filter: String = "") extends Transformer {
 
-  val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
+  private val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
 
-  val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
+  private val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
 
-  val dimensionRegex = s"([\\d\\.,]+)\\s*(\\w*)$symbol".r
+  private val dimensionRegex = s"([\\d\\.,]+)\\s*(\\w*)$symbol".r
 
   val unitPrefixes = Map(
     "p" -> 0.000000000001,
