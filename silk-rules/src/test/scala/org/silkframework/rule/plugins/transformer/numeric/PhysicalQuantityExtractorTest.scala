@@ -12,6 +12,11 @@ class PhysicalQuantityExtractorTest extends FlatSpec with Matchers {
     extract("-100C", "C", "en") shouldBe Some(-100)
   }
 
+  it should "extract isolated physical quantities with unit prefixes" in {
+    extract("50km", "m", "en") shouldBe Some(50000)
+    extract("500mV", "V", "en") shouldBe Some(0.5)
+  }
+
   it should "support different localities" in {
     extract("10.5m", "m", "en") shouldBe Some(10.5)
     extract("10,5m", "m", "de") shouldBe Some(10.5)
@@ -22,6 +27,7 @@ class PhysicalQuantityExtractorTest extends FlatSpec with Matchers {
   it should "extract physical quantities from texts" in {
     extract("Capacitor 10000pF 10V ### durable", "F", "en") shouldBe Some(0.00000001)
     extract("Capacitor 10000pF 10V ### durable", "V", "en") shouldBe Some(10)
+    extract("74LVC387xxx/f50_5.4V/3.45V_XXX", "V", "en") shouldBe Some(5.4)
   }
 
   it should "extract multiple physical quantities from texts" in {

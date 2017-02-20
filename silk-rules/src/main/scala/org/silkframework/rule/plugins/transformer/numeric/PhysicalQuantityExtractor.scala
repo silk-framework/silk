@@ -6,6 +6,7 @@ import java.util.Locale
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
+import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 @Plugin(
@@ -32,21 +33,15 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
                                      @Param("If there are multiple matches, retrieve the value with the given index (zero-based).")
                                      index: Int = 0) extends Transformer {
 
-  private val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
-
-  private val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
-
-  private val dimensionRegex = s"(-?[\\d\\.,]+)\\s*(\\w*)$symbol".r
-
-  val unitPrefixes = Map(
+  private val unitPrefixes = Map(
     "p" -> 0.000000000001,
     "n" -> 0.000000001,
     "μ" -> 0.000001,
     "U" -> 0.000001,
     "u" -> 0.000001,
-    "m" -> 0.0001,
-    "c" -> 0.001,
-    "d" -> 0.01,
+    "m" -> 0.001,
+    "c" -> 0.01,
+    "d" -> 0.1,
     "da" -> 10.0,
     "h" -> 100.0,
     "k" -> 1000.0,
@@ -54,6 +49,18 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
     "M" -> 1000000.0,
     "G" -> 1000000000.0
   )
+
+  private val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
+
+  private val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
+
+  private val dimensionRegex = {
+    val number = "(-?[\\d\\.,]+)"
+    val unit = "(" + unitPrefixes.keys.mkString("|") + ")?"
+    val endOrNonWordCharacter = "(?:$|[^\\w])"
+
+    new Regex(number + "\\s*" + unit + symbol + endOrNonWordCharacter)
+  }
 
   override def apply(values: Seq[Seq[String]]) = {
     values.head.flatMap(evaluate)
