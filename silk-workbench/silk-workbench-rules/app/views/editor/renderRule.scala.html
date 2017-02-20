@@ -101,7 +101,9 @@
       initEditor();
 
       var dropArea = $('#droppable');
-      jsPlumb.draggable(dropArea.find('.dragDiv')); //TODO move
+      jsPlumb.draggable(dropArea.find('.dragDiv'), {
+        containment: "parent"
+      }); //TODO move
 
       jsPlumb.setSuspendEvents(true);
       jsPlumb.setSuspendDrawing(true);

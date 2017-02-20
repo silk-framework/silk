@@ -13,10 +13,12 @@ $(function() {
       var box = $(this).children('.@{opType}Div').clone(false);
       var id = box.find(".handler label").text();
       box.attr("id", generateNewElementId(id));
+      $("#droppable").append(box); // append box to our canvas to make it the offsetParent
       box.show();
       return box;
-    }
+    } ,
   });
+
 
   // Hide all operators except the recommended ones
   @for(category <- pluginsByCategory.keys if category != "Recommended") {

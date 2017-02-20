@@ -140,24 +140,25 @@ function initEditor()
       // Check if we still need to add endpoints to the dropped element
       if(jsPlumb.getEndpoints(ui.helper) === undefined) {
         $.ui.ddmanager.current.cancelHelperRemoval = true;
-        ui.helper.appendTo(this);
 
         // Set operator name to current id
         $('#' + boxId + " .handler label").text(boxId);
 
         // Make operator draggable
-        jsPlumb.draggable($('#' + boxId));
+        jsPlumb.draggable($('#' + boxId), {
+          containment: "parent"
+        });
 
         addEndpoints(boxId, draggedClass);
 
         // fix the position of the new added box
-        var offset = $('#' + boxId).offset();
-        var scrollleft = $("#droppable").scrollLeft();
-        var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-118+scrolltop+scrolltop;
-        var left = offset.left-504+scrollleft+scrollleft;
-        $('#' + boxId).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
-        jsPlumb.repaint(boxId);
+//        var offset = $('#' + boxId).offset();
+//        var scrollleft = $("#droppable").scrollLeft();
+//        var scrolltop = $("#droppable").scrollTop();
+//        var top = offset.top-118+scrolltop+scrolltop;
+//        var left = offset.left-504+scrollleft+scrollleft;
+//        $('#' + boxId).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
+//        jsPlumb.repaint(boxId);
         modifyLinkSpec();
       }
     }
@@ -516,7 +517,9 @@ function loadInstance(index) {
 
     endpoints[boxId] = boxEndpoints.left;
     elements[i][2] = boxEndpoints.right;
-    jsPlumb.draggable(box);
+    jsPlumb.draggable(box, {
+      containment: "parent"
+    });
   }
 
   for(var j = 0; j < elements.length; j++) {
