@@ -39,9 +39,10 @@ All paths used in the consuming task are relative to this, e.g., the person name
 
 Path examples:
 
-- `/Persons/Person` selects all persons.
+- The empty path selects the root element.
+- `/Person` selects all persons.
 - `/Persons/Person[Year = "1970"]` selects all persons which are born in 1970.
-- `/#` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#}` or `http://example.org/{/pathToEntity/#}`.
+- `/#id` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`.
 - The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`.
 """
 )
