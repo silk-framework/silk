@@ -1,7 +1,7 @@
 package controllers.util
 
-import models.JsonError
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
 import play.api.libs.json.JsValue

@@ -1,4 +1,4 @@
-package models
+package org.silkframework.workbench.utils
 
 import java.util.concurrent.{Executors, TimeUnit}
 import java.util.logging.{Level, Logger}

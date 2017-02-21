@@ -1,5 +1,7 @@
 package controllers.rules
 
-import controllers.core.ErrorHandler
+import javax.inject.Inject
 
-class Assets extends controllers.AssetsBuilder(ErrorHandler)
+import play.api.http.HttpErrorHandler
+
+class Assets @Inject() (errorHandler: HttpErrorHandler) extends controllers.AssetsBuilder(errorHandler)

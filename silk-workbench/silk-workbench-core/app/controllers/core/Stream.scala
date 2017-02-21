@@ -3,6 +3,7 @@ package controllers.core
 import models._
 import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.runtime.activity.{ActivityControl, Observable, Status}
+import org.silkframework.workbench.utils.Listener
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 
 import scala.collection.mutable

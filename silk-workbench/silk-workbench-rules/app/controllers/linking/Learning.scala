@@ -3,7 +3,6 @@ package controllers.linking
 import java.util.logging.Logger
 
 import controllers.core.{Stream, Widgets}
-import models.JsonError
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
@@ -19,6 +18,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
