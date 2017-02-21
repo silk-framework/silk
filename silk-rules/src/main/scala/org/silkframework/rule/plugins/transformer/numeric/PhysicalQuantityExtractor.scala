@@ -57,7 +57,7 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
   private val dimensionRegex = {
     val number = "(-?[\\d\\.,]+)"
     val unit = "(" + unitPrefixes.keys.mkString("|") + ")?"
-    val endOrNonWordCharacter = "(?:$|[^\\w])"
+    val endOrNonWordCharacter = "(?:$|[^\\p{Alpha}])"
 
     new Regex(number + "\\s*" + unit + symbol + endOrNonWordCharacter)
   }
