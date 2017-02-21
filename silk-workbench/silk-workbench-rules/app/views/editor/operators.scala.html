@@ -10,13 +10,15 @@ $(function() {
   // Make operators draggable
   $('.@name.toLowerCase').draggable({
     helper: function() {
-      var box = $(this).children('.@{opType}Div').clone(false);
-      var id = box.find(".handler label").text();
-      box.attr("id", generateNewElementId(id));
-      $("#droppable").append(box); // append box to our canvas to make it the offsetParent
+      var box = $(this).children('.dragDiv');
       box.show();
       return box;
     } ,
+    stop: function(event, ui) {
+      ui.helper.hide();
+      $.ui.ddmanager.current.cancelHelperRemoval = true;
+    } ,
+    containment: "#content"
   });
 
 
