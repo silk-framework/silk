@@ -28,6 +28,7 @@ class PhysicalQuantityExtractorTest extends FlatSpec with Matchers {
     extract("Capacitor 10000pF 10V ### durable", "F", "en") shouldBe Some(0.00000001)
     extract("Capacitor 10000pF 10V ### durable", "V", "en") shouldBe Some(10)
     extract("74LVC387xxx/f50_5.4V/3.45V_XXX", "V", "en") shouldBe Some(5.4)
+    extract("74LVC387xxx/f50_5.4V_3.45V_XXX", "V", "en") shouldBe Some(5.4)
   }
 
   it should "extract multiple physical quantities from texts" in {
