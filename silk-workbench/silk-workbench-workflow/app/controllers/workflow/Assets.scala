@@ -1,5 +1,6 @@
 package controllers.workflow
 
-import controllers.core.ErrorHandler
+import javax.inject.Inject
+import play.api.http.HttpErrorHandler
 
-class Assets extends controllers.AssetsBuilder(ErrorHandler)
+class Assets @Inject() (errorHandler: HttpErrorHandler) extends controllers.AssetsBuilder(errorHandler)

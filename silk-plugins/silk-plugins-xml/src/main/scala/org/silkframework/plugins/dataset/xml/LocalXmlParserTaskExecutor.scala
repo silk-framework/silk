@@ -33,7 +33,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
 
       entities.headOption match {
         case Some(entity) =>
-          import entity.values
+          val values = entity.values
           if(values.size <= pathIndex) {
             throw TaskException("No input path with index " + pathIndex + " found!")
           } else {

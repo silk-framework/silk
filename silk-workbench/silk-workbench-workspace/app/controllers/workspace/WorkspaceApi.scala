@@ -5,7 +5,6 @@ import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
-import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -13,6 +12,7 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoun
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}

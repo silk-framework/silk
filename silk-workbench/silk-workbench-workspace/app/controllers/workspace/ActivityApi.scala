@@ -4,10 +4,10 @@ import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
 import controllers.util.SerializationUtils
-import models.JsonError
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
