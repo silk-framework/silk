@@ -110,43 +110,46 @@ class ExpressionParserTest extends FlatSpec with Matchers {
 
   it should "parse function invocations with a single parameter" in {
     check(
-      expr = "log[base:16](x)",
+      expr = "log[base=16](x)",
       result = func(LogarithmTransformer(base = 16), path("x"))
     )
   }
 
   it should "parse function invocations with multiple parameters" in {
     check(
-      expr = "replace[search:x;replace:y](x)",
+      expr = "replace[search=x;replace=y](x)",
       result = func(ReplaceTransformer(search = "x", replace = "y"), path("x"))
     )
+  }
+
+  it should "parse function invocations with empty parameters" in {
     check(
-      expr = "replace[search:toRemove;replace:](x)",
+      expr = "replace[search=toRemove;replace=](x)",
       result = func(ReplaceTransformer(search = "toRemove", replace = ""), path("x"))
     )
   }
 
   it should "parse function invocations with escaped parameter values" in {
     check(
-      expr = "replace[search:yyy\\:xxx;replace:xxx\\]yyy](x)",
+      expr = "replace[search=yyy\\:xxx;replace=xxx\\]yyy](x)",
       result = func(ReplaceTransformer(search = "yyy:xxx", replace = "xxx]yyy"), path("x"))
     )
   }
 
   it should "parse function invocations with multiple variables" in {
     check(
-      expr = "aggregateNumbers[operator:max](5;3)",
+      expr = "aggregateNumbers[operator=max](5;3)",
       result = func(AggregateNumbersTransformer(operator = "max"), Seq(constant("5"), constant("3")))
     )
     check(
-      expr = "aggregateNumbers[operator:max](Some+Path;Some+Other+Path)",
+      expr = "aggregateNumbers[operator=max](Some+Path;Some+Other+Path)",
       result = func(AggregateNumbersTransformer(operator = "max"), Seq(path("Some+Path"), path("Some+Other+Path")))
     )
   }
 
   it should "parse nested function invocations" in {
     check(
-      expr = "aggregateNumbers[operator:max](log[base:16](5);3)",
+      expr = "aggregateNumbers[operator=max](log[base=16](5);3)",
       result = func(AggregateNumbersTransformer(operator = "max"), Seq(func(LogarithmTransformer(base = 16), constant("5")), constant("3")))
     )
   }

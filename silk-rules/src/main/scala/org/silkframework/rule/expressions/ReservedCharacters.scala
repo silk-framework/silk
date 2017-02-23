@@ -5,7 +5,7 @@ import scala.util.matching.Regex
 object ReservedCharacters {
 
   // All reserved characters
-  val all = Set('[', ']', '(', ')', ':', ';')
+  val all = Set('[', ']', '(', ')', '=', ';')
 
   // Character used to escape reserved characters
   val escapeCharacter = '\\'
