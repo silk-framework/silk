@@ -1,4 +1,4 @@
-package models
+package org.silkframework.workbench.utils
 
 import org.silkframework.runtime.validation.ValidationIssue
 import play.api.libs.json.{JsString, Json}

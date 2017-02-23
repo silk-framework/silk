@@ -7,6 +7,9 @@ import org.silkframework.runtime.resource._
 import play.api.Play
 import play.api.Play.current
 import org.silkframework.buildInfo.BuildInfo
+import org.silkframework.config.DefaultConfig
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Workbench configuration.
@@ -30,6 +33,17 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 }
 
 object WorkbenchConfig {
+  // The version of the workbench
+  lazy val version = {
+    Try(
+      DefaultConfig.instance.apply().getString("workbench.version")
+    ) match {
+      case Success(versionString) =>
+        versionString
+      case Failure(ex) =>
+        BuildInfo.version
+    }
+  }
   /**
    * Retrieves the Workbench configuration.
    */
@@ -39,7 +53,7 @@ object WorkbenchConfig {
 
     WorkbenchConfig(
       title = config.getString("workbench.title").getOrElse("Silk Workbench"),
-      version = BuildInfo.version,
+      version = version,
       showHeader = config.getBoolean("workbench.showHeader").getOrElse(true),
       logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),

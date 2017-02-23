@@ -102,7 +102,7 @@ object TargetPathAutcompletion {
         }
       }
     }
-    mappingCandidates.flatten.sortBy(-_.confidence)
+    mappingCandidates.flatten.sortBy(_.value).sortBy(-_.confidence)
   }
 
   /**
@@ -155,7 +155,7 @@ object TargetPathAutcompletion {
     for(prefix <- prefixes.prefixMap.keys.toSeq.sorted) yield {
       Completion(
         value = prefix + ":",
-        label = None,
+        label = Some(prefix + ":"),
         description = None,
         category = "Prefixes",
         isCompletion = true
@@ -183,6 +183,16 @@ object TargetPathAutcompletion {
   case class Completion(value: String, confidence: Double = Double.MinValue, label: Option[String], description: Option[String], category: String, isCompletion: Boolean) {
 
     /**
+      * Returns the label if present or generates a label from the value if no label is set.
+      */
+    def labelOrGenerated: String = label match {
+      case Some(existingLabel) =>
+        existingLabel
+      case None =>
+        value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1)
+    }
+
+    /**
       * Checks if a term matches this completion.
       *
       * @param normalizedTerm the term normalized using normalizeTerm(term)
@@ -194,7 +204,7 @@ object TargetPathAutcompletion {
     def toJson: JsValue = {
       Json.obj(
         "value" -> value,
-        "label" -> label,
+        "label" -> labelOrGenerated,
         "description" -> description,
         "category" -> category,
         "isCompletion" -> isCompletion

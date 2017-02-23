@@ -14,6 +14,12 @@ import ValueType.XSD
   * The type of a value.
   */
 sealed trait ValueType {
+
+  /**
+    * A human-readable label for this type.
+    */
+  def label: String
+
   /** returns true if the lexical string is a representation of this type */
   def validate(lexicalString: String): Boolean
 
@@ -135,6 +141,9 @@ object ValueType {
   * lexical form, e.g. "1" can be an Int, but also a String.
   */
 case object AutoDetectValueType extends ValueType with Serializable {
+
+  override def label = "Autodetect"
+
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true
 
@@ -144,6 +153,9 @@ case object AutoDetectValueType extends ValueType with Serializable {
 
 /** A custom type that is used for all types not covered by any other types. */
 case class CustomValueType(typeUri: String) extends ValueType {
+
+  override def label = "Custom Type"
+
   override def validate(lexicalString: String): Boolean = {
     true // No validation for custom types
   }
@@ -153,12 +165,18 @@ case class CustomValueType(typeUri: String) extends ValueType {
 
 /** Represents language tagged strings. */
 case class LanguageValueType(language: String) extends ValueType {
+
+  override def label = "@" + language
+
   override def validate(lexicalString: String): Boolean = true // No validation needed
 
   override def uri: Option[String] = None // These are always strings
 }
 
 case object IntValueType extends ValueType with Serializable {
+
+  override def label = "Int"
+
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toInt).isSuccess
   }
@@ -168,6 +186,9 @@ case object IntValueType extends ValueType with Serializable {
 }
 
 case object LongValueType extends ValueType with Serializable {
+
+  override def label = "Long"
+
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toLong).isSuccess
   }
@@ -177,6 +198,9 @@ case object LongValueType extends ValueType with Serializable {
 }
 
 case object StringValueType extends ValueType with Serializable {
+
+  override def label = "String"
+
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true // Always true
 
@@ -185,6 +209,9 @@ case object StringValueType extends ValueType with Serializable {
 }
 
 case object FloatValueType extends ValueType with Serializable {
+
+  override def label = "Float"
+
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toFloat).isSuccess
   }
@@ -194,6 +221,9 @@ case object FloatValueType extends ValueType with Serializable {
 }
 
 case object DoubleValueType extends ValueType with Serializable {
+
+  override def label = "Double"
+
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toDouble).isSuccess
   }
@@ -203,6 +233,9 @@ case object DoubleValueType extends ValueType with Serializable {
 }
 
 case object BooleanValueType extends ValueType with Serializable {
+
+  override def label = "Boolean"
+
   override def validate(lexicalString: String): Boolean = {
     Try(lexicalString.toBoolean).isSuccess
   }
@@ -212,6 +245,9 @@ case object BooleanValueType extends ValueType with Serializable {
 }
 
 case object IntegerValueType extends ValueType with Serializable {
+
+  override def label = "Integer"
+
   val integerRegex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
 
   override def validate(lexicalString: String): Boolean = {
@@ -223,6 +259,9 @@ case object IntegerValueType extends ValueType with Serializable {
 }
 
 case object UriValueType extends ValueType with Serializable {
+
+  override def label = "Resource"
+
   override def validate(lexicalString: String): Boolean = {
     Try(new URI(lexicalString)).isSuccess
   }
@@ -232,6 +271,9 @@ case object UriValueType extends ValueType with Serializable {
 }
 
 case object BlankNodeValueType extends ValueType with Serializable {
+
+  override def label = "Blank Node"
+
   override def validate(lexicalString: String): Boolean = true // FIXME: No blank node lexical validation
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */

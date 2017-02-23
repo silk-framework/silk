@@ -50,14 +50,14 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     override def foreach[U](f: (Entity) => U): Unit = {
       // For each schema path, collect all rules that map to it
       val rulesPerPath =
-      for(path <- outputSchema.typedPaths.map(_.path)) yield {
-        path.propertyUri match {
-          case Some(property) =>
-            propertyRules.filter(_.target.get.propertyUri == property)
-          case None =>
-            IndexedSeq.empty
+        for(path <- outputSchema.typedPaths.map(_.path)) yield {
+          path.propertyUri match {
+            case Some(property) =>
+              propertyRules.filter(_.target.get.propertyUri == property)
+            case None =>
+              IndexedSeq.empty
+          }
         }
-      }
 
       var count = 0
       for(entity <- entities) {

@@ -17,7 +17,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
   val exec = LocalXmlParserTaskExecutor()
   val task = XmlParserTask(
     inputPath = "",
-    basePath = "/root",
+    basePath = "",
     uriSuffixPattern = "/someSuffix"
   )
   val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1").asStringTypedPath, Path("http://prop2").asStringTypedPath))

@@ -20,10 +20,7 @@ package org.silkframework.rule.input
 abstract class SimpleTransformer extends Transformer {
 
   override final def apply(values: Seq[Seq[String]]): Seq[String] = {
-    if(values.nonEmpty)
-      values.reduce(_ ++ _).map(evaluate)
-    else
-      Seq.empty
+    values.flatten.map(evaluate)
   }
 
   def evaluate(value: String): String
