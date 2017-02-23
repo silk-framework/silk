@@ -389,8 +389,6 @@ function addRule(template) {
     $(".mdl-layout__content").animate({
       scrollTop: $("#content").height()
     }, 300);
-
-    addTypeSelections(newRule.find('select'));
   }
 
   componentHandler.upgradeAllRegistered();
