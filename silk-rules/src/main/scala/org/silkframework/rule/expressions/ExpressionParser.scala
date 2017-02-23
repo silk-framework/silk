@@ -57,8 +57,8 @@ private class ExpressionParser(implicit prefixes: Prefixes) extends ExpressionGe
 
   private def functionParameters: Parser[Map[String, String]] = opt("[" ~> repsep(functionParameter, ";") <~ "]") ^^ (params => params.getOrElse(List.empty).toMap)
 
-  private def functionParameter = paramKey ~ ":" ~ paramValue ^^ {
-    case key ~ _ ~ value => (key, value.replace("\\", ""))
+  private def functionParameter = paramKey ~ ":" ~ opt(ReservedCharacters.escapedValueRegex) ^^ {
+    case key ~ _ ~ value => (key, ReservedCharacters.unescape(value.getOrElse("")))
   }
 
   private def constantTerm = constantPattern ^^ (c => constant(c))
@@ -69,9 +69,7 @@ private class ExpressionParser(implicit prefixes: Prefixes) extends ExpressionGe
 
   private val paramKey = "[^\\];:]+".r
 
-  private val paramValue = """(\\[\];]|[^\];])+""".r
-
-  private val variable = """\w[^\s\(\)]*""".r
+  private val variable = """\w[^\s\(\)\;]*""".r
 
   private val operator = """[^\s]+""".r
 

@@ -24,7 +24,7 @@ object ExpressionWriter {
       if(transformer.plugin.parameters.nonEmpty) {
         val parameters =
           for((key, value) <- transformer.parameters) yield {
-            key + ':' + escapeParameterValue(value)
+            key + ':' + ReservedCharacters.escape(value)
           }
         str ++= parameters.mkString("[", ";", "]")
       }
@@ -33,10 +33,6 @@ object ExpressionWriter {
       str ++= inputs.map(apply).mkString("(", ";", ")")
 
       str.toString()
-  }
-
-  private def escapeParameterValue(str: String): String = {
-    str.replace("]", "\\]").replace(";", "\\;")
   }
 
 }

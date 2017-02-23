@@ -120,6 +120,10 @@ class ExpressionParserTest extends FlatSpec with Matchers {
       expr = "replace[search:x;replace:y](x)",
       result = func(ReplaceTransformer(search = "x", replace = "y"), path("x"))
     )
+    check(
+      expr = "replace[search:toRemove;replace:](x)",
+      result = func(ReplaceTransformer(search = "toRemove", replace = ""), path("x"))
+    )
   }
 
   it should "parse function invocations with escaped parameter values" in {
@@ -129,10 +133,21 @@ class ExpressionParserTest extends FlatSpec with Matchers {
     )
   }
 
-  it should "parse complex function invocations" in {
+  it should "parse function invocations with multiple variables" in {
     check(
       expr = "aggregateNumbers[operator:max](5;3)",
       result = func(AggregateNumbersTransformer(operator = "max"), Seq(constant("5"), constant("3")))
+    )
+    check(
+      expr = "aggregateNumbers[operator:max](Some+Path;Some+Other+Path)",
+      result = func(AggregateNumbersTransformer(operator = "max"), Seq(path("Some+Path"), path("Some+Other+Path")))
+    )
+  }
+
+  it should "parse nested function invocations" in {
+    check(
+      expr = "aggregateNumbers[operator:max](log[base:16](5);3)",
+      result = func(AggregateNumbersTransformer(operator = "max"), Seq(func(LogarithmTransformer(base = 16), constant("5")), constant("3")))
     )
   }
 
