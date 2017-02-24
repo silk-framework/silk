@@ -195,6 +195,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     */
   def addAnyTask(name: Identifier, taskData: TaskSpec): Unit = {
+    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
