@@ -19,17 +19,15 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = XML.load(file.load)
-    for(pathOperators <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
-      (Path(pathOperators.tail.toList).serialize(Prefixes.empty), 1.0 / pathOperators.tail.size)
+    for(path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+      (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes(t.uri).head
-    for (path <- xml.collectPaths(onlyLeafNodes = true).toIndexedSeq) yield {
-      Path(path.tail.toList)
-    }
+    xml.collectPaths(onlyLeafNodes = true).toIndexedSeq
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {

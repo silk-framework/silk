@@ -18,6 +18,13 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   }
 
   /**
+    * All direct and indirect children of this node.
+    */
+  def childrenRecursive: Seq[XmlTraverser] = {
+    children ++ children.flatMap(_.childrenRecursive)
+  }
+
+  /**
     * Lists all parent nodes.
     */
   def parents: List[Node] = {
@@ -38,17 +45,30 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   }
 
   /**
-    * Collects all direct and indirect paths for node.
+    * Collects all direct and indirect paths for this node.
     *
+    * @param onlyLeafNodes Only return leaf nodes
+    * @return Sequence of all found paths
+    */
+  def collectPaths(onlyLeafNodes: Boolean): Seq[Path] = {
+    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty)) yield {
+      Path(pathOperators.tail.toList)
+    }
+  }.distinct
+
+  /**
+    * Recursively collects all direct and indirect paths for this node.
+    * Initially called by [[XmlTraverser.collectPaths]]
+    *
+    * @param onlyLeafNodes Only return leaf nodes
     * @param prefix Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  def collectPaths(onlyLeafNodes: Boolean, prefix: Seq[PathOperator] = Seq.empty): Seq[Seq[PathOperator]] = {
+  private def collectPathsRecursive(onlyLeafNodes: Boolean, prefix: Seq[PathOperator]): Seq[Seq[PathOperator]] = {
     // Generate a path from the xml node itself
     val path = prefix :+ ForwardOperator(node.label)
     // Generate paths for all children nodes
-    val childNodes = node \ "_"
-    val childPaths = children.flatMap(_.collectPaths(onlyLeafNodes, path))
+    val childPaths = children.flatMap(_.collectPathsRecursive(onlyLeafNodes, path))
     // Generate paths for all attributes
     val attributes = node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
@@ -108,6 +128,8 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
         Seq(XmlTraverser(Text(node.label), Some(this)))
       case "*" =>
         children
+      case "**" =>
+        childrenRecursive
       case uri if uri.startsWith("@") =>
         val attr = node.attributes.find(_.key == uri.tail).get
         for(child <- attr.value) yield {
