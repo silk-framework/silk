@@ -4,7 +4,7 @@
 
 @widgets.dialog(title = "About", width = 500) {
   <div id="about_dialog" style="background:url('@controllers.core.routes.Branding.logo') no-repeat right 30px">
-    <p>@WorkbenchConfig.get.title, @WorkbenchConfig.get.version</p>
+    <p>@WorkbenchConfig.get.title, @WorkbenchConfig.version</p>
     @content
   </div>
   <script>

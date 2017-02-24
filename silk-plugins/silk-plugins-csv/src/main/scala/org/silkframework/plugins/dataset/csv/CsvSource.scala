@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{BufferedReader, InputStreamReader}
 import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.runtime.resource.{FileResource, Resource}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -37,17 +37,22 @@ class CsvSource(file: Resource,
 
   lazy val propertyList: IndexedSeq[String] = {
     val parser = new CsvParser(Seq.empty, csvSettings)
-    if (!properties.trim.isEmpty)
+    if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
-    else {
+    } else {
       val source = getAndInitBufferedReaderForCsvFile()
       val firstLine = source.readLine()
       source.close()
-      if (firstLine != null && firstLine != "") {
+      if (Option(firstLine).isDefined && firstLine != "") {
         parser.parseLine(firstLine)
-            .takeWhile(_ != null) // Break if a header field is null
-            .map(s => URLEncoder.encode(s, "UTF-8"))
-            .toIndexedSeq
+            .takeWhile(Option(_).isDefined) // Break if a header field is null
+            .map { s =>
+            if(Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
+              s
+            } else {
+              URLEncoder.encode(s, "UTF-8")
+            }
+        }.toIndexedSeq
       } else {
         mutable.IndexedSeq()
       }
@@ -136,7 +141,7 @@ class CsvSource(file: Resource,
         val property = path.path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property)
         if (propertyIndex == -1)
-          throw new Exception("Property " + property + " not found in CSV "+ file.name +". Available properties: " + propertyList.mkString(", "))
+          throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
         propertyIndex
       }
 
@@ -171,18 +176,18 @@ class CsvSource(file: Resource,
                   // build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
                   // as defined in the *properties* field.
                   val entityURI =
-                    if (uri.isEmpty && prefix.isEmpty)
-                      file.name + "/" + (index + 1)
-                    else if(uri.isEmpty)
-                      prefix + (index + 1)
-                    else
-                      "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
-                        val propName = m.group(1)
+                  if (uri.isEmpty && prefix.isEmpty)
+                    file.name + "/" + (index + 1)
+                  else if (uri.isEmpty)
+                    prefix + (index + 1)
+                  else
+                    "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
+                      val propName = m.group(1)
 
-                        assert(propertyList.contains(propName))
-                        val value = allValues(propertyList.indexOf(propName))
-                        URLEncoder.encode(value, "UTF-8")
-                      })
+                      assert(propertyList.contains(propName))
+                      val value = allValues(propertyList.indexOf(propName))
+                      URLEncoder.encode(value, "UTF-8")
+                    })
 
                   //Build entity
                   if (entities.isEmpty || entities.contains(entityURI)) {
@@ -358,7 +363,7 @@ object SeparatorDetector {
                                                       separator: Char,
                                                       csvSettings: CsvSettings): Int = {
     val parser = new CsvParser(Seq.empty, csvSettings.copy(separator = separator))
-    inputLines.takeWhile{ line =>
+    inputLines.takeWhile { line =>
       val fields = parser.parseLine(line)
       fields == null || line.split(separator).size != numberOfFields
     }.size
