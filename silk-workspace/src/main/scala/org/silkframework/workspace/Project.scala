@@ -189,6 +189,19 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
+    * Adds a new task of any type to this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def addAnyTask(name: Identifier, taskData: TaskSpec): Unit = {
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData)
+      case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
     * Updates a task.
     * If no task with the given name exists, a new task is created in the project.
     *
@@ -250,7 +263,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
         val className = implicitly[ClassTag[T]].runtimeClass.getName
-        throw new NoSuchElementException(s"No module for task type $className has been registered. ${modules.size} Registered task types: ${modules.map(_.taskType).mkString(";")}")
+        throw new NoSuchElementException(s"No module for task type $className has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 

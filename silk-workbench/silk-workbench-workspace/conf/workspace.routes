@@ -74,6 +74,7 @@ POST          /projects/:project/importLinkSpec                                 
 GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
+POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
 
 # Resources
 GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String)
@@ -85,6 +86,7 @@ GET           /projects/:project/resources/:name/metadata                       
 # Tasks
 DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
+POST          /projects/:project/tasks/:task/clone                              controllers.workspace.WorkspaceApi.cloneTask(project, task, newTask)
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

@@ -14,7 +14,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
-import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, JsObject}
@@ -53,6 +53,19 @@ class WorkspaceApi extends Controller {
 
   def deleteProject(project: String): Action[AnyContent] = Action {
     User().workspace.removeProject(project)
+    Ok
+  }
+
+  def cloneProject(oldProject: String, newProject: String) = Action {
+    val workspace = User().workspace
+    val project = workspace.project(oldProject)
+
+    val clonedProject = workspace.createProject(newProject)
+    WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+    for(task <- project.allTasks) {
+      clonedProject.addAnyTask(task.id, task.data)
+    }
+
     Ok
   }
 
@@ -265,6 +278,12 @@ class WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
+    Ok
+  }
+
+  def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {
+    val project = User().workspace.project(projectName)
+    project.addAnyTask(newTask, project.anyTask(oldTask))
     Ok
   }
 
