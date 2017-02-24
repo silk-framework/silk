@@ -18,10 +18,9 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    // At the moment we just generate paths from the first xml node that is found
     val xml = XML.load(file.load)
     for(pathOperators <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
-      (Path(pathOperators.toList).serialize(Prefixes.empty), 1.0 / pathOperators.size)
+      (Path(pathOperators.tail.toList).serialize(Prefixes.empty), 1.0 / pathOperators.tail.size)
     }
   }
 
