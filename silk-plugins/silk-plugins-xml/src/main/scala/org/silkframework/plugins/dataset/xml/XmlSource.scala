@@ -7,6 +7,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.xml.XML
@@ -26,8 +27,11 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes(t.uri).head
-    xml.collectPaths(onlyLeafNodes = true).toIndexedSeq
+    val xml = loadXmlNodes(t.uri)
+    if(xml.isEmpty)
+      throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
+    else
+      xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
