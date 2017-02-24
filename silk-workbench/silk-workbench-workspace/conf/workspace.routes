@@ -14,6 +14,8 @@ GET           /dialogs/importlinkspec/:project                                  
 GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
 GET           /dialogs/resources/:project                                       controllers.workspace.WorkspaceController.resourcesDialog(project: String)
 GET           /dialogs/executeProject/:project                                  controllers.workspace.WorkspaceController.executeProjectDialog(project: String)
+GET           /dialogs/cloneProject                                             controllers.workspace.WorkspaceController.cloneProjectDialog(project)
+GET           /dialogs/cloneTask                                                controllers.workspace.WorkspaceController.cloneTaskDialog(project, task)
 GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.WorkspaceController.projectActivityConfigDialog(project: String, activity: String)
 GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.WorkspaceController.taskActivityConfigDialog(project: String, task: String, activity: String)
 POST          /:project/importExample                                           controllers.workspace.WorkspaceController.importExample(project: String)
