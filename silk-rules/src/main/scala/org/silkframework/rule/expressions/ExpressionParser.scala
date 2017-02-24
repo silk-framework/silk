@@ -61,11 +61,17 @@ private class ExpressionParser(implicit prefixes: Prefixes) extends ExpressionGe
     case key ~ _ ~ value => (key, ReservedCharacters.unescape(value.getOrElse("")))
   }
 
-  private def constantTerm = constantPattern ^^ (c => constant(c))
+  private def constantTerm = numericConstantTerm | literalConstantTerm
+
+  private def numericConstantTerm = numericConstantPattern ^^ (c => constant(c))
+
+  private def literalConstantTerm = literalConstantPattern ^^ (c => constant(ReservedCharacters.unescape(c.substring(1, c.length - 1))))
 
   private def variableTerm = variable ^^ (v => path(v))
 
-  private val constantPattern = """[\d,.]+""".r
+  private val numericConstantPattern = """[\d,.]+""".r
+
+  private val literalConstantPattern = ("\"" + ReservedCharacters.escapedValueRegex + "\"").r
 
   private val paramKey = "[^\\];=]+".r
 

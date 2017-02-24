@@ -16,10 +16,17 @@ abstract class ExpressionTestBase extends FlatSpec with Matchers {
 
   implicit val prefixes = Prefixes(Map("f" -> "http://example.org/prefix"))
 
-  it should "parse constants" in {
+  it should "parse numeric constants" in {
     check(
       expr = "3.14",
       tree = constant("3.14")
+    )
+  }
+
+  it should "parse literal constants" in {
+    check(
+      expr = "\"abc\"",
+      tree = constant("abc")
     )
   }
 
