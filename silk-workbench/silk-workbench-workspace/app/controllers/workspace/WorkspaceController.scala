@@ -78,4 +78,12 @@ class WorkspaceController extends Controller {
     val activity = task.activity(activityName)
     Ok(views.html.workspace.activity.taskActivityConfigDialog(activity))
   }
+
+  def cloneProjectDialog(project: String) = Action {
+    Ok(views.html.workspace.cloneProjectDialog(project))
+  }
+
+  def cloneTaskDialog(project: String, task: String) = Action {
+    Ok(views.html.workspace.cloneTaskDialog(project, task))
+  }
 }

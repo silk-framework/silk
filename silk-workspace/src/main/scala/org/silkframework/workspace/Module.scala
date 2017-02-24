@@ -43,8 +43,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }
 
-  def taskType: String = {
-    implicitly[ClassTag[TaskData]].runtimeClass.getName
+  def taskType: Class[_] = {
+    implicitly[ClassTag[TaskData]].runtimeClass
   }
 
   /**
@@ -62,7 +62,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def task(name: Identifier): ProjectTask[TaskData] = {
     load()
-    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType))
+    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType.getName))
   }
 
   def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {
@@ -96,8 +96,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
       } catch {
         case NonFatal(ex) =>
           cachedTasks = TreeMap()(TaskOrdering)
-          error = Some(new ValidationException(s"Error loading tasks of type $taskType. Details: ${ex.getMessage}", ex))
-          logger.log(Level.WARNING, s"Error loading tasks of type $taskType", ex)
+          error = Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+          logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
       }
     }
   }
