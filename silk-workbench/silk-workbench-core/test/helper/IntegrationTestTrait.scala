@@ -82,8 +82,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
       // TODO Currently the default mapping generator maps all properties to this namespace
       "target" -> Seq("https://ns.eccenca.com/"),
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
-      "loans" -> Seq("http://dataset/loans/"),
-      "unemployment" -> Seq("http://dataset/unemployment/")
+      "loans" -> Seq("http://eccenca.com/ds/loans/"),
+      "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
     ))
     checkResponse(response)
   }

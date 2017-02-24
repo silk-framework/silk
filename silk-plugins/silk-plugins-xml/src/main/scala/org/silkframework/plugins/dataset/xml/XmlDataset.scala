@@ -43,6 +43,8 @@ Path examples:
 - `/Person` selects all persons.
 - `/Persons/Person[Year = "1970"]` selects all persons which are born in 1970.
 - `/#id` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`.
+- The wildcard * enumerates all direct children, e.g., `/Persons/*/Name`.
+- The wildcard ** enumerates all direct and indirect children.
 - The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`.
 """
 )

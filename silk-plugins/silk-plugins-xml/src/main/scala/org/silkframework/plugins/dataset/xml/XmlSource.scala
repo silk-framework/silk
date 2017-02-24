@@ -7,6 +7,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.xml.XML
@@ -18,19 +19,19 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    // At the moment we just generate paths from the first xml node that is found
     val xml = XML.load(file.load)
-    for(pathOperators <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
-      (Path(pathOperators.toList).serialize(Prefixes.empty), 1.0 / pathOperators.size)
+    for(path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+      (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes(t.uri).head
-    for (path <- xml.collectPaths(onlyLeafNodes = true).toIndexedSeq) yield {
-      Path(path.tail.toList)
-    }
+    val xml = loadXmlNodes(t.uri)
+    if(xml.isEmpty)
+      throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
+    else
+      xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {

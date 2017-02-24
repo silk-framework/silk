@@ -36,8 +36,12 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
   }
 
-  it should "allow wildcard path elements" in {
+  it should "allow wildcard * path elements" in {
     (persons atPath "Person" valuesAt "Events/*") shouldBe Seq(Seq("May 1900", "June 1990"), Seq())
+  }
+
+  it should "allow wildcard ** path elements" in {
+    (persons atPath "" valuesAt "Person/**/Key") shouldBe Seq(Seq("1", "2", "3"))
   }
 
   it should "generate unique IDs" in {
@@ -46,6 +50,27 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     val allIds = directIds ++ eventIds
 
     allIds.distinct shouldBe allIds
+  }
+
+  it should "list all base paths as types" in {
+    (persons types) shouldBe
+      Seq(
+        "",
+        "/Person",
+        "/Person/ID",
+        "/Person/Name",
+        "/Person/Events",
+        "/Person/Events/Birth",
+        "/Person/Events/Death",
+        "/Person/Properties",
+        "/Person/Properties/Property",
+        "/Person/Properties/Property/Key",
+        "/Person/Properties/Property/Value")
+  }
+
+  it should "list all paths with leaf nodes, given a base path" in {
+    (persons atPath "Person" subPaths) shouldBe
+      Seq("/ID", "/Name", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
 
@@ -62,6 +87,10 @@ class XmlDatasetTest extends FlatSpec with Matchers {
       Entities(xmlSource, basePath)
     }
 
+    def types: Seq[String] = {
+      xmlSource.retrieveTypes().map(_._1).toSeq
+    }
+
   }
 
   /**
@@ -76,6 +105,10 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     def valuesAt(pathStr: String): Seq[Seq[String]] = {
       val path = Path.parse(pathStr)
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
+    }
+
+    def subPaths: Seq[String] = {
+      xmlSource.retrievePaths(basePath).map(_.serialize())
     }
 
     private def retrieve(paths: IndexedSeq[Path]): Seq[Entity] = {

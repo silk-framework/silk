@@ -14,6 +14,8 @@ GET           /dialogs/importlinkspec/:project                                  
 GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
 GET           /dialogs/resources/:project                                       controllers.workspace.WorkspaceController.resourcesDialog(project: String)
 GET           /dialogs/executeProject/:project                                  controllers.workspace.WorkspaceController.executeProjectDialog(project: String)
+GET           /dialogs/cloneProject                                             controllers.workspace.WorkspaceController.cloneProjectDialog(project)
+GET           /dialogs/cloneTask                                                controllers.workspace.WorkspaceController.cloneTaskDialog(project, task)
 GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.WorkspaceController.projectActivityConfigDialog(project: String, activity: String)
 GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.WorkspaceController.taskActivityConfigDialog(project: String, task: String, activity: String)
 POST          /:project/importExample                                           controllers.workspace.WorkspaceController.importExample(project: String)
@@ -74,6 +76,7 @@ POST          /projects/:project/importLinkSpec                                 
 GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
+POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
 
 # Resources
 GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String)
@@ -85,6 +88,7 @@ GET           /projects/:project/resources/:name/metadata                       
 # Tasks
 DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
+POST          /projects/:project/tasks/:task/clone                              controllers.workspace.WorkspaceApi.cloneTask(project, task, newTask)
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

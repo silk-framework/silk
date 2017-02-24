@@ -27,6 +27,14 @@ function importProject() {
   showDialog(baseUrl + '/workspace/dialogs/importproject');
 }
 
+function cloneProject(project) {
+  showDialog(baseUrl + '/workspace/dialogs/cloneProject?project=' + project);
+}
+
+function cloneTask(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/cloneTask?project=' + project + '&task=' + task);
+}
+
 function importLinkSpec(project) {
   showDialog(baseUrl + '/workspace/dialogs/importlinkspec/' + project);
 }

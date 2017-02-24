@@ -42,6 +42,7 @@
     @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
       @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.name}')")
     }
+    @button("Clone", "Clone project", "clone.png", s"cloneProject('${project.name}')")
     @button("Remove", "Remove project", "cross.png", s"deleteProject('${project.name}')")
     <ul>
       @for(plugin <- WorkbenchPlugins();
@@ -69,6 +70,7 @@
     @for(path <- taskActions.open(project.name, task.id)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
     }
+    @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @for(path <- taskActions.delete(project.name, task.id)) {
       @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.id}', '${config.baseUrl}/$path')")
     }
