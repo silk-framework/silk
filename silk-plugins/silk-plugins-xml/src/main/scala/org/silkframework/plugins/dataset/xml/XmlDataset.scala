@@ -26,7 +26,7 @@ Example:
       </Person>
     </Persons>
 
-A transformation for reading all persons of the above XML would set the input type to `/Persons/Person`.
+A transformation for reading all persons of the above XML would set the input type to `/Person`.
 The transformation iterates all entities matching the given input path.
 In the above example the first entity to be read is:
 
@@ -41,7 +41,7 @@ Path examples:
 
 - The empty path selects the root element.
 - `/Person` selects all persons.
-- `/Persons/Person[Year = "1970"]` selects all persons which are born in 1970.
+- `/Person[Year = "1970"]` selects all persons which are born in 1970.
 - `/#id` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`.
 - The wildcard * enumerates all direct children, e.g., `/Persons/*/Name`.
 - The wildcard ** enumerates all direct and indirect children.
