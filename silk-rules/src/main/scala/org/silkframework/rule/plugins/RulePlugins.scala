@@ -34,7 +34,7 @@ import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTrans
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange, ValidateRegex}
-import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, RandomNumberTransformer}
+import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer, RandomNumberTransformer}
 import org.silkframework.runtime.plugin.PluginModule
 
 import scala.language.existentials
@@ -88,6 +88,7 @@ class RulePlugins extends PluginModule {
     classOf[ConstantTransformer] ::
     classOf[ConstantUriTransformer] ::
     classOf[RandomNumberTransformer] ::
+    classOf[EmptyValueTransformer] ::
     // Conditional
     classOf[IfContains] ::
     classOf[IfExists] ::
