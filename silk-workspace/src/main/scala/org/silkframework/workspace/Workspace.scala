@@ -90,11 +90,21 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
+  /**
+    * Reloads this workspace.
+    */
   def reload() {
+    // Stop all activities
+    for{ project <- projects
+         activity <- project.activities } {
+      activity.control.cancel()
+    }
+    // Refresh workspace provider
     provider match {
       case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
       case _ => // Do nothing
     }
+    // Reload projects
     cachedProjects = loadProjects()
   }
 
