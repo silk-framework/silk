@@ -159,9 +159,10 @@ function initEditor()
       addEndpoints(boxId, draggedClass);
 
       // Make operator draggable
-      jsPlumb.draggable(boxId, {
-        containment: "parent"
-      });
+      jsPlumb.draggable(boxId);
+//      jsPlumb.draggable(boxId, {
+//        containment: "parent"
+//      });
 
       clone.show();
 
@@ -560,9 +561,10 @@ function loadInstance(index) {
 
     endpoints[boxId] = boxEndpoints.left;
     elements[i][2] = boxEndpoints.right;
-    jsPlumb.draggable(box, {
-      containment: "parent"
-    });
+    jsPlumb.draggable(box);
+//    jsPlumb.draggable(box, {
+//      containment: "parent"
+//    });
   }
 
   for(var j = 0; j < elements.length; j++) {
