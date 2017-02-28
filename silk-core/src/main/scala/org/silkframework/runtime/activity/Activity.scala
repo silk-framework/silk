@@ -1,7 +1,7 @@
 package org.silkframework.runtime.activity
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent.{Executors, ForkJoinPool, ThreadFactory}
 
 import org.silkframework.util.StringUtils._
 
@@ -62,9 +62,7 @@ object Activity {
    * The execution context used to run activities.
    */
   val executionContext: ExecutionContext = {
-    val minimumNumberOfThreads = 4
-    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
-    ExecutionContext.fromExecutor(Executors.newWorkStealingPool(threadCount))
+    ExecutionContext.fromExecutor(Executors.newCachedThreadPool)
   }
 
   /**
