@@ -70,7 +70,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData) = {
+  def add(name: Identifier, taskData: TaskData): Unit = {
     val task = new ProjectTask(name, taskData, this)
     provider.putTask(project.name, name, taskData)
     task.init()
@@ -81,6 +81,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    * Removes a task from this module.
    */
   def remove(taskId: Identifier) {
+    // Cancel all activities
+    for {
+      task <- cachedTasks.get(taskId)
+      activity <- task.activities
+    } {
+      activity.control.cancel()
+    }
+    // Delete task
     provider.deleteTask(project.name, taskId)
     cachedTasks -= taskId
     logger.info(s"Removed task '$taskId' from project ${project.name}")
