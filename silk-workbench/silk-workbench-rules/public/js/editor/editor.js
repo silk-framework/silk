@@ -132,34 +132,41 @@ function initEditor()
 {
   jsPlumb.reset();
 
-  $("#droppable").droppable({
+   var canvas = $("#droppable");
+
+
+  canvas.droppable({
     drop: function (ev, ui) {
+      var clone = ui.helper.clone(false);
+      var mousePosDraggable = getRelativeOffset(event, ui.helper);
+      var mousePosCanvas = getRelativeOffset(event, canvas);
+      mousePosCanvas = adjustOffset(mousePosCanvas, canvas);
+      var mousePosCombined = subtractOffsets(mousePosCanvas, mousePosDraggable);
+      clone.appendTo(canvas);
+      clone.css(mousePosCombined);
+      clone.css({
+        "z-index": "auto"
+      });
+
       var draggedClass = $(ui.draggable).attr("class");
-      var boxId = ui.helper.attr('id');
+      var idPrefix = clone.find(".handler label").text();
+      var boxId = generateNewElementId(idPrefix);
+      clone.attr("id", boxId);
 
-      // Check if we still need to add endpoints to the dropped element
-      if(jsPlumb.getEndpoints(ui.helper) === undefined) {
-        $.ui.ddmanager.current.cancelHelperRemoval = true;
-        ui.helper.appendTo(this);
+      // Set operator name to current id
+      $('#' + boxId + " .handler label").text(boxId);
 
-        // Set operator name to current id
-        $('#' + boxId + " .handler label").text(boxId);
+      addEndpoints(boxId, draggedClass);
 
-        // Make operator draggable
-        jsPlumb.draggable($('#' + boxId));
+      // Make operator draggable
+      jsPlumb.draggable(boxId);
+//      jsPlumb.draggable(boxId, {
+//        containment: "parent"
+//      });
 
-        addEndpoints(boxId, draggedClass);
+      clone.show();
 
-        // fix the position of the new added box
-        var offset = $('#' + boxId).offset();
-        var scrollleft = $("#droppable").scrollLeft();
-        var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-118+scrolltop+scrolltop;
-        var left = offset.left-504+scrollleft+scrollleft;
-        $('#' + boxId).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
-        jsPlumb.repaint(boxId);
-        modifyLinkSpec();
-      }
+      modifyLinkSpec();
     }
   });
 
@@ -231,6 +238,45 @@ function initEditor()
   }
 
 }
+
+/**
+ * Get the mouse position of an event relative to an element.
+ * Returns an offset.
+ */
+var getRelativeOffset = function(event, element) {
+  var relX = event.pageX - element.offset().left;
+  var relY = event.pageY - element.offset().top;
+  return {
+    left: relX,
+    top: relY
+  }
+}
+
+/**
+ * Subtracts offset2 from offset1 by subtracting their respective left and top attributes
+ */
+var subtractOffsets = function(offset1, offset2) {
+  return {
+    left: offset1.left - offset2.left ,
+    top: offset1.top - offset2.top
+  }
+}
+
+/**
+ * Adjusts an offset within an element by taking into account border width and
+ * scrolling position.
+ */
+var adjustOffset = function(offset, element) {
+  var borderLeft = parseInt(element.css("border-left-width"));
+  var borderTop = parseInt(element.css("border-top-width"));
+  var scrollTop = element.scrollTop();
+  var scrollLeft = element.scrollLeft();
+  return {
+    left: offset.left - borderLeft + scrollLeft,
+    top: offset.top - borderTop + scrollTop
+  }
+}
+
 
 function confirmExit() {
   if(confirmOnExit) {
@@ -439,8 +485,7 @@ Array.max = function(array) {
 function removeElement(elementId) {
   //We need to set a time-out here as a element should not remove its own parent in its event handler
   setTimeout(function() {
-    jsPlumb.removeAllEndpoints(elementId);
-    $('#' + elementId).remove();
+    jsPlumb.remove(elementId);
     modifyLinkSpec();
   }, 100);
 }
@@ -517,6 +562,9 @@ function loadInstance(index) {
     endpoints[boxId] = boxEndpoints.left;
     elements[i][2] = boxEndpoints.right;
     jsPlumb.draggable(box);
+//    jsPlumb.draggable(box, {
+//      containment: "parent"
+//    });
   }
 
   for(var j = 0; j < elements.length; j++) {

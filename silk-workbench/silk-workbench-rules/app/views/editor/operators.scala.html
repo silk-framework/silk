@@ -10,13 +10,17 @@ $(function() {
   // Make operators draggable
   $('.@name.toLowerCase').draggable({
     helper: function() {
-      var box = $(this).children('.@{opType}Div').clone(false);
-      var id = box.find(".handler label").text();
-      box.attr("id", generateNewElementId(id));
+      var box = $(this).children('.dragDiv');
       box.show();
       return box;
+    } ,
+    stop: function(event, ui) {
+      ui.helper.hide();
+      $.ui.ddmanager.current.cancelHelperRemoval = true;
     }
+    //containment: "#content"
   });
+
 
   // Hide all operators except the recommended ones
   @for(category <- pluginsByCategory.keys if category != "Recommended") {
