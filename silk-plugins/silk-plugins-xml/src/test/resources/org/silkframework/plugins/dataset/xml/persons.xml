@@ -2,7 +2,7 @@
   <Person>
     <ID>1</ID>
     <Name>Max Doe</Name>
-    <Events>
+    <Events count="2">
       <Birth>May 1900</Birth>
       <Death>June 1990</Death>
     </Events>

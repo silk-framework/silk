@@ -131,8 +131,10 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
       case "**" =>
         childrenRecursive
       case uri if uri.startsWith("@") =>
-        val attr = node.attributes.find(_.key == uri.tail).get
-        for(child <- attr.value) yield {
+        for {
+          attr <- node.attributes.find(_.key == uri.tail).toSeq
+          child <- attr.value
+        } yield {
           XmlTraverser(child, Some(this))
         }
       case uri =>

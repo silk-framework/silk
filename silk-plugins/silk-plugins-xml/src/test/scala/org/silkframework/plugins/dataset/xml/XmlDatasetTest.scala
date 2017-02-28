@@ -32,6 +32,18 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     (persons atPath "Person" valuesAt "Events/Death") shouldBe Seq(Seq("June 1990"), Seq())
   }
 
+  it should "extract values of attributes" in {
+    (persons atPath "Person" valuesAt "Events/@count") shouldBe Seq(Seq("2"), Seq())
+  }
+
+  it should "return no value if a tag is missing" in {
+    (persons atPath "Person" valuesAt "MissingTag") shouldBe Seq(Seq(), Seq())
+  }
+
+  it should "return no value if an attribute is missing" in {
+    (persons atPath "Person" valuesAt "@MissingAttribute") shouldBe Seq(Seq(), Seq())
+  }
+
   it should "support property filters" in {
     (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
   }
@@ -60,6 +72,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
         "/Person/ID",
         "/Person/Name",
         "/Person/Events",
+        "/Person/Events/@count",
         "/Person/Events/Birth",
         "/Person/Events/Death",
         "/Person/Properties",
@@ -70,7 +83,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
 
   it should "list all paths with leaf nodes, given a base path" in {
     (persons atPath "Person" subPaths) shouldBe
-      Seq("/ID", "/Name", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
+      Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
 
