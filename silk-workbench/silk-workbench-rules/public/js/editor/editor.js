@@ -136,7 +136,7 @@ function initEditor()
 
 
   canvas.droppable({
-    drop: function (ev, ui) {
+    drop: function (event, ui) {
       var clone = ui.helper.clone(false);
       var mousePosDraggable = getRelativeOffset(event, ui.helper);
       var mousePosCanvas = getRelativeOffset(event, canvas);
