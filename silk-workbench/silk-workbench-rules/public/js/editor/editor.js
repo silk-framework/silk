@@ -484,8 +484,7 @@ Array.max = function(array) {
 function removeElement(elementId) {
   //We need to set a time-out here as a element should not remove its own parent in its event handler
   setTimeout(function() {
-    jsPlumb.removeAllEndpoints(elementId);
-    $('#' + elementId).remove();
+    jsPlumb.remove(elementId);
     modifyLinkSpec();
   }, 100);
 }
