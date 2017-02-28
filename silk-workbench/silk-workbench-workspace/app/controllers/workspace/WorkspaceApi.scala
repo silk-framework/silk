@@ -15,11 +15,10 @@ import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
+import org.silkframework.workspace._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, JsObject}
 import play.api.mvc._
-import org.silkframework.workspace.ProjectMarshallerRegistry
 
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,7 +45,9 @@ class WorkspaceApi extends Controller {
     if (User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
-      val newProject = User().workspace.createProject(project)
+      val projectConfig = ProjectConfig(project)
+      projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
+      val newProject = User().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
     }
   }
@@ -60,7 +61,7 @@ class WorkspaceApi extends Controller {
     val workspace = User().workspace
     val project = workspace.project(oldProject)
 
-    val clonedProject = workspace.createProject(newProject)
+    val clonedProject = workspace.createProject(project.config.copy(id = newProject))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
     for(task <- project.allTasks) {
       clonedProject.addAnyTask(task.id, task.data)
