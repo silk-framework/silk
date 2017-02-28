@@ -136,7 +136,7 @@ function initEditor()
 
 
   canvas.droppable({
-    drop: function (ev, ui) {
+    drop: function (event, ui) {
       var clone = ui.helper.clone(false);
       var mousePosDraggable = getRelativeOffset(event, ui.helper);
       var mousePosCanvas = getRelativeOffset(event, canvas);
@@ -444,7 +444,7 @@ function highlightElement(elId, message) {
   $(".handler label").each(function() {
     if ($(this).text() == elId) {
       var elementToHighlight = $(this).parent().parent();
-      elementToHighlight.addClass('highlighted');
+      elementToHighlight.addClass('editor-highlighted');
       highlightId = elementToHighlight.attr('id');
       tooltipId = highlightId + "_tooltip";
       $('#' + tooltipId).text(encodeHtml(message));
@@ -457,7 +457,7 @@ function highlightElement(elId, message) {
 }
 
 function removeHighlighting() {
-  $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
+  $("div .dragDiv").removeClass('editor-highlighted').removeAttr('onmouseover');
   jsPlumb.repaintEverything();
   $(".operator-tooltip").hide();
 }
