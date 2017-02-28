@@ -60,13 +60,11 @@ object Activity {
 
   /**
    * The execution context used to run activities.
-   * Per default uses a fixed thread pool with as many threads as cores on the machine.
    */
-  @volatile
-  var executionContext: ExecutionContext = {
+  val executionContext: ExecutionContext = {
     val minimumNumberOfThreads = 4
     val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
-    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threadCount, ActivityThreadFactory))
+    ExecutionContext.fromExecutor(Executors.newWorkStealingPool(threadCount))
   }
 
   /**
@@ -98,32 +96,6 @@ object Activity {
       }
       override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
       override def reset() = currentActivity.foreach(_.reset())
-    }
-  }
-
-  /**
-    * Thread factory for creating activity threads.
-    * Based on the Java default thread factory, but with better thread naming.
-    */
-  private object ActivityThreadFactory extends ThreadFactory {
-
-    private val namePrefix = "silk-activity-thread-"
-
-    private val threadNumber: AtomicInteger = new AtomicInteger(1)
-
-    private val group: ThreadGroup = {
-      val s = System.getSecurityManager
-      if (s != null)
-        s.getThreadGroup
-      else
-        Thread.currentThread.getThreadGroup
-    }
-
-    def newThread(r: Runnable): Thread = {
-      val t: Thread = new Thread(group, r, namePrefix + threadNumber.getAndIncrement, 0)
-      if (t.isDaemon) t.setDaemon(false)
-      if (t.getPriority != Thread.NORM_PRIORITY) t.setPriority(Thread.NORM_PRIORITY)
-      t
     }
   }
 
