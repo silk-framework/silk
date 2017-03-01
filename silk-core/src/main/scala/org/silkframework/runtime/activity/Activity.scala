@@ -65,7 +65,7 @@ object Activity {
   val forkJoinPool: ForkJoinPool = {
     val minimumNumberOfThreads = 4
     val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
-    new ForkJoinPool(threadCount, ActivityThreadFactory, null, true)
+    new ForkJoinPool(threadCount, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
   }
 
   /**
@@ -97,23 +97,6 @@ object Activity {
       }
       override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
       override def reset() = currentActivity.foreach(_.reset())
-    }
-  }
-
-  /**
-    * Thread factory for creating activity threads.
-    * Based on the Java default thread factory, but with better thread naming.
-    */
-  private object ActivityThreadFactory extends ForkJoinWorkerThreadFactory {
-
-    private val namePrefix = "silk-activity-thread-"
-
-    private val threadNumber: AtomicInteger = new AtomicInteger(1)
-
-    final def newThread(pool: ForkJoinPool) = {
-       val thread = new ForkJoinWorkerThread(pool)
-      thread.setName(namePrefix + threadNumber.getAndIncrement)
-      thread
     }
   }
 
