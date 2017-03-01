@@ -21,7 +21,8 @@ import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
 import org.silkframework.dataset.{DataSource, DatasetTask, LinkSink}
 import org.silkframework.entity.Entity
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, Status}
+import org.silkframework.runtime.activity.Status.Canceling
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, Status}
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
 
@@ -34,17 +35,8 @@ class GenerateLinks(id: Identifier,
                     outputs: Seq[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
 
-  /** The task used for loading the entities into the cache */
-  @volatile private var loader: Loader = null
-
-  /** The task used for matching the entities */
-  @volatile private var matcher: Matcher = null
-
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
-
-  /** Indicates if this task has been canceled. */
-  @volatile private var canceled = false
 
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs = linkSpec.entityDescriptions
@@ -60,35 +52,27 @@ class GenerateLinks(id: Identifier,
     context.value.update(Linking())
 
     warningLog = CollectLogs() {
-      //Entity caches
+      // Entity caches
       val caches = createCaches()
 
-      //Create activities
-      loader = new Loader(inputs, caches, runtimeConfig.sampleSizeOpt)
-      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
-      matcher = new Matcher(linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget)
-
-      //Load entities
+      // Load entities
+      val loaders = for((input, cache) <- inputs zip caches) yield context.child(new Loader(input, cache, runtimeConfig.sampleSizeOpt))
       if (runtimeConfig.reloadCache) {
-        val loaderControl = context.child(loader, 0.0)
-        loaderControl.start()
-        // Wait until the caches are being written
-        while (!loaderControl.status().isInstanceOf[Status.Finished] && !(caches.source.isWriting && caches.target.isWriting)) {
-          Thread.sleep(100)
-          if(canceled) return
-        }
+        loaders.foreach(_.start())
       }
 
-      //Execute matching
+      // Execute matching
+      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
+      val matcher = new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget)
       val matcherContext = context.child(matcher, 0.95)
       matcherContext.value.onUpdate(links => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size)))))
       matcherContext.startBlocking()
-      if(canceled) return
+      if(context.status.isCanceling) return
 
-      //Filter links
+      // Filter links
       val filterTask = new Filter(matcherContext.value(), linkSpec.rule.filter)
       var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
-      if(canceled) return
+      if(context.status.isCanceling) return
 
       // Include reference links
       // TODO include into Filter and execute before filtering
@@ -104,14 +88,6 @@ class GenerateLinks(id: Identifier,
       val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
       context.child(outputTask, 0.02).startBlocking()
     }
-  }
-
-  override def cancelExecution(): Unit = {
-    canceled = true
-    if(loader != null)
-      loader.cancelExecution()
-    if(matcher != null)
-      matcher.cancelExecution()
   }
 
   private def createCaches() = {

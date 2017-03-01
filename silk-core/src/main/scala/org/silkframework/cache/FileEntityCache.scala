@@ -34,37 +34,17 @@ class FileEntityCache(val entitySchema: EntitySchema,
   private val blocks = (for (i <- 0 until blockCount) yield new Block(i)).toArray
 
   @volatile
-  private var writing = false
-
-  @volatile
   private var entityCount = 0
 
-  override def write(entities: Traversable[Entity]) {
-    logger.log(Level.FINER, "Writing data to file cache.")
-    val startTime = System.currentTimeMillis()
-    writing = true
+  override def write(entity: Entity) {
+    val indices = if (runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
-    try {
-      for (entity <- entities) {
-        if (Thread.currentThread().isInterrupted) throw new InterruptedException()
-
-        val indices = if (runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
-
-        for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
-          blocks(block).write(entity, BitsetIndex.build(index))
-        }
-
-        if (indices.nonEmpty) entityCount += 1
-      }
-
-      val time = (System.currentTimeMillis - startTime) / 1000.0
-      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCount + " entities with type '" + entitySchema.typeUri + "' in " + time + " seconds")
-    } finally {
-      writing = false
+    for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
+      blocks(block).write(entity, BitsetIndex.build(index))
     }
-  }
 
-  override def isWriting = writing
+    if (indices.nonEmpty) entityCount += 1
+  }
 
   override def read(block: Int, partition: Int) = {
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")

@@ -14,93 +14,52 @@
 
 package org.silkframework.rule.execution
 
-import java.util.logging.Level
-
 import org.silkframework.cache.EntityCache
 import org.silkframework.dataset.DataSource
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.util.DPair
+import org.silkframework.runtime.activity.{Activity, ActivityContext, Status}
+import util.control.Breaks._
 
 /**
  * Loads the entity cache
  *
  * @param sampleSizeOpt Load all entities if set to None, else only load a sample of max. the configured size.
  */
-class Loader(sources: DPair[DataSource],
-             caches: DPair[EntityCache],
+class Loader(source: DataSource,
+             entityCache: EntityCache,
              sampleSizeOpt: Option[Int] = None) extends Activity[Unit] {
 
   override def name = "Loading"
 
-  @volatile var exception: Exception = null
+  override def run(context: ActivityContext[Unit]): Unit = {
+    context.status.updateMessage("Loading entities of dataset " + source.toString)
+    entityCache.clear()
+    load(context)
+    entityCache.close()
+    context.status.updateMessage(s"Entities loaded [ dataset :: ${source.toString} ].")
+  }
 
-  @volatile var sourceLoader: LoadingThread = null
-  @volatile var targetLoader: LoadingThread = null
-
-  @volatile var canceled = false
-
-  override def run(context: ActivityContext[Unit]) {
-    canceled = false
-    sourceLoader = new LoadingThread(context, true)
-    targetLoader = new LoadingThread(context, false)
-
-    sourceLoader.start()
-    targetLoader.start()
-
-    while ((sourceLoader.isAlive || targetLoader.isAlive) && !canceled) {
-      Thread.sleep(100)
-    }
-
-    if (canceled) {
-      sourceLoader.interrupt()
-      targetLoader.interrupt()
-
-      if (exception != null) {
-        throw exception
+  private def load(context: ActivityContext[Unit]) = {
+    val startTime = System.currentTimeMillis()
+    var entityCounter = 0
+    breakable {
+      for (entity <- retrieveEntities) {
+        if (context.status().isInstanceOf[Status.Canceling])
+          break()
+        entityCache.write(entity)
+        entityCounter += 1
       }
+
+      val time = (System.currentTimeMillis - startTime) / 1000.0
+      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri + "' in " + time + " seconds")
     }
   }
 
-  override def cancelExecution() {
-    canceled = true
-    if (sourceLoader != null) sourceLoader.interrupt()
-    if (targetLoader != null) targetLoader.interrupt()
-  }
-
-  class LoadingThread(context: ActivityContext[Unit], selectSource: Boolean) extends Thread {
-    private val source = sources.select(selectSource)
-    private val entityCache = caches.select(selectSource)
-
-    private def retrieveEntities = {
-      sampleSizeOpt match {
-        case Some(sampleSize) =>
-          source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
-        case None =>
-          source.retrieve(entityCache.entitySchema)
-      }
-    }
-
-    override def run() {
-
-      try {
-        context.status.updateMessage("Loading entities of dataset " + source.toString)
-
-        entityCache.clear()
-        entityCache.write(retrieveEntities)
-        entityCache.close()
-
-        context.status.updateMessage(s"Entities loaded [ dataset :: ${source.toString} ].")
-
-      } catch {
-        case _: InterruptedException =>
-          canceled = true
-        case ex: Exception => {
-          context.log.log(Level.WARNING, "Error loading resources", ex)
-          exception = ex
-          canceled = true
-        }
-      }
+  private def retrieveEntities = {
+    sampleSizeOpt match {
+      case Some(sampleSize) =>
+        source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
+      case None =>
+        source.retrieve(entityCache.entitySchema)
     }
   }
-
 }

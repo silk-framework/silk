@@ -20,7 +20,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -34,7 +34,8 @@ import scala.math.{max, min}
  * @param runtimeConfig The runtime configuration
  * @param sourceEqualsTarget Can be set to true if the source and the target cache are equal to enable faster matching in that case.
  */
-class Matcher(linkageRule: LinkageRule,
+class Matcher(loaders: DPair[ActivityControl[Unit]],
+              linkageRule: LinkageRule,
               caches: DPair[EntityCache],
               runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
               sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
@@ -106,19 +107,17 @@ class Matcher(linkageRule: LinkageRule,
 
     override def run() {
       try {
-        while (true) {
-          val sourceLoaded = !caches.source.isWriting
-          val targetLoaded = !caches.target.isWriting
+        var sourceLoading = true
+        var targetLoading = true
 
-          updateSourcePartitions(sourceLoaded)
-          updateTargetPartitions(targetLoaded)
+        do {
+          sourceLoading = loaders.source.status().isRunning
+          targetLoading = loaders.target.status().isRunning
 
-          if (sourceLoaded && targetLoaded) {
-            return
-          }
+          updateSourcePartitions(!sourceLoading)
+          updateTargetPartitions(!targetLoading)
 
-          Thread.sleep(1000)
-        }
+        } while(sourceLoading || targetLoading)
       } catch {
         case ex: InterruptedException =>
       }
