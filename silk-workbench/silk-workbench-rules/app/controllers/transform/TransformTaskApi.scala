@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.{DataSource, Dataset, EntitySink, PeakDataSource}
-import org.silkframework.entity.Restriction
+import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
@@ -18,6 +18,9 @@ import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
 class TransformTaskApi extends Controller {
+
+  implicit private val peakResultWrites = Json.writes[PeakResult]
+  implicit private val peakResultsWrites = Json.writes[PeakResults]
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -49,11 +52,11 @@ class TransformTaskApi extends Controller {
 
   def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
-    if(removeDependentTasks) {
-      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
+    if (removeDependentTasks) {
+      for (dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
         project.removeTask[TransformSpec](dependentTransform.id)
       }
-      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
+      for (dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
         project.removeTask[LinkSpec](dependentLinking.id)
       }
     }
@@ -163,8 +166,8 @@ class TransformTaskApi extends Controller {
   }
 
   /**
-   * Given a search term, returns all possible completions for source property paths.
-   */
+    * Given a search term, returns all possible completions for source property paths.
+    */
   def sourcePathCompletions(projectName: String, taskName: String, term: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
@@ -192,9 +195,9 @@ class TransformTaskApi extends Controller {
     * Given a search term, returns possible completions for target paths.
     *
     * @param projectName The name of the project
-    * @param taskName The name of the transformation
-    * @param sourcePath The source path to be completed. If none, types will be suggested
-    * @param term The search term
+    * @param taskName    The name of the transformation
+    * @param sourcePath  The source path to be completed. If none, types will be suggested
+    * @param term        The search term
     * @return
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
@@ -204,13 +207,13 @@ class TransformTaskApi extends Controller {
   }
 
   /**
-   * Transform entities bundled with the request according to the transformation task.
+    * Transform entities bundled with the request according to the transformation task.
     *
     * @param projectName
-   * @param taskName
-   * @return If no sink is specified in the request then return results in N-Triples format with the response,
-   *         else write triples to defined data sink.
-   */
+    * @param taskName
+    * @return If no sink is specified in the request then return results in N-Triples format with the response,
+    *         else write triples to defined data sink.
+    */
   def postTransformInput(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
@@ -230,7 +233,7 @@ class TransformTaskApi extends Controller {
                                entitySink: EntitySink,
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink]): Unit = {
-    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
+    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink), errorEntitySinkOpt.toSeq)
     Activity(transform).startBlocking()
   }
 
@@ -244,24 +247,34 @@ class TransformTaskApi extends Controller {
                             ruleName: String): Action[AnyContent] = Action { request =>
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(3)
     val (project, task) = projectAndTask(projectName, taskName)
-    project.anyTask(task.data.selection.inputId).data match {
+    val transformTask = task.data
+    val inputTask = transformTask.selection.inputId
+    project.anyTask(inputTask).data match {
       case dataset: Dataset =>
         dataset.source match {
           case peakDatasource: PeakDataSource =>
-//            task.data.rules.filter(_.name.toString == ruleName) map { rule =>
-//              rule.
-//            }
-//            peakDatasource.peak(limit)
-            Seq.empty
+            val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
+              throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName!")
+            )
+            val entityDescription = EntitySchema(
+              typeUri = transformTask.selection.typeUri,
+              typedPaths = rule.paths.distinct.
+                  map(_.asStringTypedPath).toIndexedSeq,
+              filter = transformTask.selection.restriction
+            )
+            val exampleEntities = peakDatasource.peak(entityDescription, limit)
+            val sourceAndTargetResults = for(entity <- exampleEntities) yield {
+              PeakResult(entity.values, rule(entity))
+            }
+            Ok(Json.toJson(PeakResults(sourceAndTargetResults.toSeq)))
           case _ =>
-            Seq.empty
+            NotImplemented("The Dataset with ID " + inputTask.toString + " does not support the peaking feature!")
         }
       case _ =>
-        Seq.empty
+        NotImplemented("This is not supported for inputs other than Datasets.")
     }
-
-    Ok(Json.parse("""[["source value", "target value"],["src val", "tgt val"],["sv", "tv"]]"""))
   }
 }
 
-
+case class PeakResults(results: Seq[PeakResult])
+case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
