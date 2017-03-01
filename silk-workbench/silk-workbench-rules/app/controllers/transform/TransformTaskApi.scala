@@ -252,7 +252,7 @@ class TransformTaskApi extends Controller {
     project.anyTask(inputTask).data match {
       case dataset: Dataset =>
         dataset.source match {
-          case peakDatasource: PeakDataSource =>
+          case peakDataSource: PeakDataSource =>
             val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
               throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName!")
             )
@@ -262,7 +262,7 @@ class TransformTaskApi extends Controller {
                   map(_.asStringTypedPath).toIndexedSeq,
               filter = transformTask.selection.restriction
             )
-            val exampleEntities = peakDatasource.peak(entityDescription, limit)
+            val exampleEntities = peakDataSource.peak(entityDescription, limit)
             val sourceAndTargetResults = for(entity <- exampleEntities) yield {
               PeakResult(entity.values, rule(entity))
             }
