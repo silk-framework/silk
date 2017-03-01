@@ -2,7 +2,7 @@
 @import org.silkframework.rule.{TransformRule, TransformSpec}
 @import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
-
+@import org.silkframework.entity.ValueType
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
@@ -85,6 +85,15 @@
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_targetproperty">
         The target property.
+      </div>
+    </li>
+    <li>
+      <label>Target Type:</label>
+      <div id="input_type" class="mdl-textfield mdl-js-textfield">
+        <input id="targettype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(t => ValueType.valueTypeId(t.valueType)).getOrElse("AutoDetectValueType")" disabled/>
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_type">
+        The target type.
       </div>
     </li>
   </ul>
