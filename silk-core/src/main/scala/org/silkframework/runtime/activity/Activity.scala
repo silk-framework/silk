@@ -1,7 +1,8 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ForkJoinPool, ThreadFactory}
+import java.util.concurrent.{Executors, ForkJoinPool, ForkJoinWorkerThread, ThreadFactory}
 
 import org.silkframework.util.StringUtils._
 
@@ -59,10 +60,12 @@ trait Activity[T] extends HasValue {
 object Activity {
 
   /**
-   * The execution context used to run activities.
+   * The fork join pool used to run activities.
    */
-  val executionContext: ExecutionContext = {
-    ExecutionContext.fromExecutor(Executors.newCachedThreadPool)
+  val forkJoinPool: ForkJoinPool = {
+    val minimumNumberOfThreads = 4
+    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
+    new ForkJoinPool(threadCount, ActivityThreadFactory, null, true)
   }
 
   /**
@@ -94,6 +97,23 @@ object Activity {
       }
       override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
       override def reset() = currentActivity.foreach(_.reset())
+    }
+  }
+
+  /**
+    * Thread factory for creating activity threads.
+    * Based on the Java default thread factory, but with better thread naming.
+    */
+  private object ActivityThreadFactory extends ForkJoinWorkerThreadFactory {
+
+    private val namePrefix = "silk-activity-thread-"
+
+    private val threadNumber: AtomicInteger = new AtomicInteger(1)
+
+    final def newThread(pool: ForkJoinPool) = {
+       val thread = new ForkJoinWorkerThread(pool)
+      thread.setName(namePrefix + threadNumber.getAndIncrement)
+      thread
     }
   }
 

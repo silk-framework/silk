@@ -1,11 +1,13 @@
 package org.silkframework.runtime.activity
 
-import org.silkframework.runtime.activity.Status.Canceling
+import java.util.concurrent.ForkJoinTask
+
+import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 
 private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
                                    progressContribution: Double = 0.0) extends ActivityMonitor[T](activity.name, parent, progressContribution, activity.initialValue)
-                                                                       with Runnable with ActivityControl[T] {
+                                                                       with ActivityControl[T] {
 
   /**
    * The name of the activity.
@@ -15,19 +17,8 @@ private class ActivityExecution[T](activity: Activity[T],
   @volatile
   private var user: UserContext = UserContext.Empty
 
-  override def run(): Unit = synchronized {
-    if(!parent.exists(_.status().isInstanceOf[Canceling])) {
-      val startTime = System.currentTimeMillis
-      try {
-        activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
-      } catch {
-        case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
-          throw ex
-      }
-    }
-  }
+  @volatile
+  private var forkJoinRunner: Option[ForkJoinRunner] = None
 
   override def start()(implicit user: UserContext): Unit = {
     // Check if the current activity is still running
@@ -36,13 +27,19 @@ private class ActivityExecution[T](activity: Activity[T],
     // Execute activity
     this.user = user
     status.update(Status.Started())
-    Activity.executionContext.execute(this)
+    val forkJoin = new ForkJoinRunner()
+    forkJoinRunner = Some(forkJoin)
+    if(parent.isDefined) {
+      forkJoin.fork()
+    } else {
+      Activity.forkJoinPool.execute(forkJoin)
+    }
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
     this.user = user
     status.update(Status.Started())
-    run()
+    runActivity()
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
@@ -50,7 +47,7 @@ private class ActivityExecution[T](activity: Activity[T],
     status.update(Status.Started())
     for(v <- initialValue)
       value.update(v)
-    run()
+    runActivity()
     value()
   }
 
@@ -67,6 +64,42 @@ private class ActivityExecution[T](activity: Activity[T],
     activity.reset()
   }
 
+  def waitUntilFinished() = {
+    for(runner <- forkJoinRunner) {
+      runner.join()
+    }
+  }
+
   override def underlying: Activity[T] = activity
+
+  private def runActivity(): Unit = synchronized {
+    if(!parent.exists(_.status().isInstanceOf[Canceling])) {
+      val startTime = System.currentTimeMillis
+      try {
+        activity.run(this)
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+      } catch {
+        case ex: Throwable =>
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
+          throw ex
+      }
+    }
+  }
+
+
+  /**
+    * A fork join task that runs the activity.
+    */
+  private class ForkJoinRunner extends ForkJoinTask[T] {
+
+    override def getRawResult = value()
+
+    override def setRawResult(value: T): Unit = ActivityExecution.this.value() = value
+
+    override def exec() = {
+      runActivity()
+      true
+    }
+  }
 
 }
