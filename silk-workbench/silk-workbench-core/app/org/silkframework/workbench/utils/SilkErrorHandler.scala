@@ -9,7 +9,8 @@ import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
 import play.api.mvc.Results.{InternalServerError, NotFound, Status}
 import play.api.mvc.{AcceptExtractors, RequestHeader, Result}
 import play.api.routing.Router
-import play.api.{Configuration, Environment, OptionalSourceMapper}
+import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulException}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 
@@ -36,6 +37,14 @@ class SilkErrorHandler (env: Environment,
     } else {
       Future { handleError(request.path, exception) }
     }
+  }
+
+  override protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
+    Future.successful(InternalServerError(views.html.error(exception)))
+  }
+
+  override protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
+    Future.successful(InternalServerError(views.html.error(exception)))
   }
 
   private def handleError(requestPath: String, ex: Throwable): Result = {
