@@ -90,11 +90,11 @@ private class ActivityExecution[T](activity: Activity[T],
   /**
     * A fork join task that runs the activity.
     */
-  private class ForkJoinRunner extends ForkJoinTask[T] {
+  private class ForkJoinRunner extends ForkJoinTask[Unit] {
 
-    override def getRawResult = value()
+    override def getRawResult = { }
 
-    override def setRawResult(value: T): Unit = ActivityExecution.this.value() = value
+    override def setRawResult(value: Unit): Unit = { }
 
     override def exec() = {
       runActivity()
