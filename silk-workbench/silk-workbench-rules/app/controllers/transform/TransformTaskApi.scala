@@ -3,8 +3,9 @@ package controllers.transform
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, Dataset, EntitySink, PeakDataSource}
-import org.silkframework.entity.{EntitySchema, Restriction}
+import org.silkframework.entity.{EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
@@ -249,24 +250,21 @@ class TransformTaskApi extends Controller {
     val (project, task) = projectAndTask(projectName, taskName)
     val transformTask = task.data
     val inputTask = transformTask.selection.inputId
+    implicit val prefixes = project.config.prefixes
     project.anyTask(inputTask).data match {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
             val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
-              throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName!")
+              throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
+                  + task.data.rules.map(_.name).mkString(", "))
             )
-            val entityDescription = EntitySchema(
-              typeUri = transformTask.selection.typeUri,
-              typedPaths = rule.paths.distinct.
-                  map(_.asStringTypedPath).toIndexedSeq,
-              filter = transformTask.selection.restriction
-            )
+            val entityDescription = oneRuleEntitySchema(transformTask, rule)
             val exampleEntities = peakDataSource.peak(entityDescription, limit)
             val sourceAndTargetResults = for(entity <- exampleEntities) yield {
               PeakResult(entity.values, rule(entity))
             }
-            Ok(Json.toJson(PeakResults(sourceAndTargetResults.toSeq)))
+            Ok(Json.toJson(PeakResults(rule.paths.map(serializePath), sourceAndTargetResults.toSeq)))
           case _ =>
             NotImplemented("The Dataset with ID " + inputTask.toString + " does not support the peaking feature!")
         }
@@ -274,7 +272,24 @@ class TransformTaskApi extends Controller {
         NotImplemented("This is not supported for inputs other than Datasets.")
     }
   }
+
+  private def serializePath(path: Path)
+                           (implicit prefixes: Prefixes): Seq[String] = {
+    path.operators.map { op=>
+      op.serialize
+    }
+  }
+
+  private def oneRuleEntitySchema(transformTask: TransformSpec,
+                                  rule: TransformRule) = {
+    EntitySchema(
+      typeUri = transformTask.selection.typeUri,
+      typedPaths = rule.paths.distinct.
+          map(_.asStringTypedPath).toIndexedSeq,
+      filter = transformTask.selection.restriction
+    )
+  }
 }
 
-case class PeakResults(results: Seq[PeakResult])
+case class PeakResults(sourcePaths: Seq[Seq[String]], results: Seq[PeakResult])
 case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
