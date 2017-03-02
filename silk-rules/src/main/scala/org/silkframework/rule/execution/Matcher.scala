@@ -66,6 +66,9 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val scheduler = new SchedulerThread(executor)
     scheduler.start()
 
+    // Wait for completion of loaders
+    loaders.foreach(_.waitUntilFinished())
+
     //Process finished tasks
     var finishedTasks = 0
     while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
@@ -75,11 +78,15 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
         finishedTasks += 1
 
         //Update status
-        val statusPrefix = if (scheduler.isAlive) "Matching (loading):" else "Matching:"
+        val statusPrefix = "Matching:"
         val statusTasks = " " + finishedTasks + " tasks "
         val statusLinks = " " + context.value().size + " links."
         context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
       }
+    }
+
+    for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
+      context.value.update(context.value() ++ result.get)
     }
 
     //Shutdown

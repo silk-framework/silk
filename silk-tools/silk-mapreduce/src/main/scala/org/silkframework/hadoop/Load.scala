@@ -19,15 +19,15 @@ import java.util.logging.Logger
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.silkframework.rule.LinkSpec
-import org.silkframework.rule.execution.Loader
+import org.silkframework.rule.execution.CacheLoader
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.DPair
 
 import scala.xml.XML
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.rule.execution.Loader
+import org.silkframework.rule.execution.CacheLoader
 import org.silkframework.hadoop.impl.HadoopEntityCache
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, CombinedActivity}
 import org.silkframework.plugins.dataset.rdf.RdfPlugins
 import org.silkframework.config.Task
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
@@ -105,8 +105,8 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
       new HadoopEntityCache(entityDesc.source, linkSpec.rule.index(_, true), cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
       new HadoopEntityCache(entityDesc.target, linkSpec.rule.index(_, false), cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
-
-    val controller = Activity.apply(new Loader(sources, caches))
+    val combined = CombinedActivity("cacheLoader", new CacheLoader(sources.source, caches.source), new CacheLoader(sources.target, caches.target))
+    val controller = Activity.apply(combined)
     controller.start()
     controller.waitUntilFinished()
   }

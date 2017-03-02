@@ -24,9 +24,9 @@ import util.control.Breaks._
  *
  * @param sampleSizeOpt Load all entities if set to None, else only load a sample of max. the configured size.
  */
-class Loader(source: DataSource,
-             entityCache: EntityCache,
-             sampleSizeOpt: Option[Int] = None) extends Activity[Unit] {
+class CacheLoader(source: DataSource,
+                  entityCache: EntityCache,
+                  sampleSizeOpt: Option[Int] = None) extends Activity[Unit] {
 
   override def name = "Loading"
 

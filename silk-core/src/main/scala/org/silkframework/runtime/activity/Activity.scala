@@ -1,7 +1,8 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ForkJoinPool, ThreadFactory}
+import java.util.concurrent.{Executors, ForkJoinPool, ForkJoinWorkerThread, ThreadFactory}
 
 import org.silkframework.util.StringUtils._
 
@@ -59,10 +60,12 @@ trait Activity[T] extends HasValue {
 object Activity {
 
   /**
-   * The execution context used to run activities.
+   * The fork join pool used to run activities.
    */
-  val executionContext: ExecutionContext = {
-    ExecutionContext.fromExecutor(Executors.newCachedThreadPool)
+  val forkJoinPool: ForkJoinPool = {
+    val minimumNumberOfThreads = 4
+    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
+    new ForkJoinPool(threadCount, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
   }
 
   /**

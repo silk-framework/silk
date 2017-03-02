@@ -56,21 +56,21 @@ class GenerateLinks(id: Identifier,
       val caches = createCaches()
 
       // Load entities
-      val loaders = for((input, cache) <- inputs zip caches) yield context.child(new Loader(input, cache, runtimeConfig.sampleSizeOpt))
+      val loaders = for((input, cache) <- inputs zip caches) yield context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt))
       if (runtimeConfig.reloadCache) {
         loaders.foreach(_.start())
       }
 
       // Execute matching
       val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
-      val matcher = new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget)
-      val matcherContext = context.child(matcher, 0.95)
-      matcherContext.value.onUpdate(links => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size)))))
-      matcherContext.startBlocking()
+      val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
+      matcher.value.onUpdate(links => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size)))))
+      matcher.start()
+      matcher.waitUntilFinished()
       if(context.status.isCanceling) return
 
       // Filter links
-      val filterTask = new Filter(matcherContext.value(), linkSpec.rule.filter)
+      val filterTask = new Filter(matcher.value(), linkSpec.rule.filter)
       var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
       if(context.status.isCanceling) return
 
