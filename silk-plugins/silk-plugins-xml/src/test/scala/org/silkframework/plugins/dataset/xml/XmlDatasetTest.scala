@@ -15,12 +15,12 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   behavior of "XML Dataset"
 
   it should "read the root element, if the base path is empty." in {
-    (persons atPath "" tags) shouldBe Seq("Persons")
+    (persons atPath "").tags shouldBe Seq("Persons")
   }
 
   it should "read the direct children, if they are referenced by a direct path" in {
-    (persons atPath "Person" tags) shouldBe Seq("Person", "Person")
-    (persons atPath "/Person" tags) shouldBe Seq("Person", "Person")
+    (persons atPath "Person").tags shouldBe Seq("Person", "Person")
+    (persons atPath "/Person").tags shouldBe Seq("Person", "Person")
   }
 
   it should "extract values of direct children" in {
@@ -65,7 +65,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   }
 
   it should "list all base paths as types" in {
-    (persons types) shouldBe
+    persons.types shouldBe
       Seq(
         "",
         "/Person",
@@ -82,7 +82,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   }
 
   it should "list all paths with leaf nodes, given a base path" in {
-    (persons atPath "Person" subPaths) shouldBe
+    (persons atPath "Person").subPaths shouldBe
       Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
