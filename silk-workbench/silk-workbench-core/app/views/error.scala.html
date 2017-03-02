@@ -1,18 +1,44 @@
-@(ex: Throwable)(implicit session: play.api.mvc.Session)
+@import play.api.UsefulException
 
-@header = { }
+@(exception: UsefulException)(implicit session: play.api.mvc.Session)
 
-@toolbar = { }
+@frame {
 
-@content = {
+} {
 
-  <h2>Error</h2>
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+        <div class="mdl-card__title mdl-card--border">
+          <h3 class="mdl-card__title-text">
+            @exception.title
+          </h3>
+        </div>
+        <div class="mdl-card__content">
+          <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div class="mdl-alert__content">
+              <p>@exception.description</p>
+            </div>
+          </div>
 
-  @ex.getMessage
+          <h4>Details:</h4>
 
-  <h2>Stacktrace</h2>
+          <div>
+          @for(cause <- Option(exception.cause)) {
+            @stacktrace(exception.cause)
+          }
+          </div>
 
-  @stacktrace(ex)
+          <div>
+            This exception has been logged with id <strong>@exception.id</strong>.
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 }
 
 @stacktrace(ex: Throwable) = {
@@ -28,5 +54,3 @@
     @stacktrace(ex.getCause)
   }
 }
-
-@main(None)(header)(toolbar)(content)
