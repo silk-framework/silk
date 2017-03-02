@@ -2,7 +2,7 @@ package org.silkframework.rule.execution
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.DatasetTask
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
@@ -12,7 +12,7 @@ import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
  * In contrast to ExecuteTransform, this task generates a detailed output that for each entity
  * containing all intermediate values of the rule evaluation.
  */
-class EvaluateTransform(source: DatasetTask,
+class EvaluateTransform(source: DataSource,
                         dataSelection: DatasetSelection,
                         rules: Seq[TransformRule],
                         maxEntities: Int = 100) {
@@ -32,7 +32,7 @@ class EvaluateTransform(source: DatasetTask,
         typedPaths = rules.flatMap(_.paths).map(_.asStringTypedPath).toIndexedSeq,
         filter = dataSelection.restriction
       )
-    val entities = source.source.retrieve(entityDesc)
+    val entities = source.retrieve(entityDesc)
 
     // Read all entities
     for(entity <- entities) {
