@@ -66,7 +66,7 @@ trait ActivityControl[T] {
   def underlying: Activity[T]
 
   /**
-    * Waits until the activity finished execuction.
+    * Waits until the activity finished execution.
     */
   def waitUntilFinished(): Unit
 }
