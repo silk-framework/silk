@@ -1,20 +1,45 @@
 @import play.api.UsefulException
 
-@(exception: UsefulException)
+@(exception: UsefulException)(implicit session: play.api.mvc.Session)
 
-<div>
-  @exception.description
-</div>
+@frame {
 
-<div>
-  This exception has been logged with id <strong>@exception.id</strong>.
-</div>
+} {
 
-<div>
-  @for(cause <- Option(exception.cause)) {
-    @stacktrace(exception.cause)
-  }
-</div>
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+        <div class="mdl-card__title mdl-card--border">
+          <h3 class="mdl-card__title-text">
+            @exception.title
+          </h3>
+        </div>
+        <div class="mdl-card__content">
+          <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div class="mdl-alert__content">
+              <p>@exception.description</p>
+            </div>
+          </div>
+
+          <h4>Details:</h4>
+
+          <div>
+          @for(cause <- Option(exception.cause)) {
+            @stacktrace(exception.cause)
+          }
+          </div>
+
+          <div>
+            This exception has been logged with id <strong>@exception.id</strong>.
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+}
 
 @stacktrace(ex: Throwable) = {
   <p>

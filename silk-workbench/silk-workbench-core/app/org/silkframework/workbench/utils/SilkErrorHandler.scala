@@ -40,11 +40,11 @@ class SilkErrorHandler (env: Environment,
   }
 
   override protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    Future.successful(InternalServerError(views.html.error(exception)))
+    Future.successful(InternalServerError(views.html.error(exception)(request.session)))
   }
 
   override protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    Future.successful(InternalServerError(views.html.error(exception)))
+    Future.successful(InternalServerError(views.html.error(exception)(request.session)))
   }
 
   private def handleError(requestPath: String, ex: Throwable): Result = {
