@@ -17,7 +17,7 @@ package org.silkframework.server.model
 import org.silkframework.cache.MemoryEntityCache
 import org.silkframework.config.LinkSpec
 import org.silkframework.entity.Link
-import org.silkframework.rule.execution.{Loader, Matcher}
+import org.silkframework.rule.execution.{CacheLoader, Matcher}
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.util.DPair
 
@@ -34,7 +34,7 @@ class Dataset(val name: String, config: LinkingConfig, linkSpec: LinkSpec, write
   private val caches = DPair(new MemoryEntityCache(entityDescs.source, linkSpec.rule.index(_)),
                              new MemoryEntityCache(entityDescs.target, linkSpec.rule.index(_)))
 
-  new Loader(sources, caches)()
+  new CacheLoader(sources, caches)()
 
   /**
    * Matches a set of entities with all entities in this dataset.

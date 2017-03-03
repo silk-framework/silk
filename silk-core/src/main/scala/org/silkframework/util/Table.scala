@@ -16,11 +16,10 @@ package org.silkframework.util
 
 case class Table(name: String,
                  header: Seq[String],
-                 rows: Seq[String],
                  values: Seq[Seq[Any]])
                 (columnWidthInCharacters: Seq[Int] = Table.defaultColumnSizes(header.size)) {
 
-  def transpose = Table(name, rows, header, values.transpose)(columnWidthInCharacters)
+  def transpose = Table(name, header, values.transpose)(columnWidthInCharacters)
 
   /**
    * Formats this table as CSV.
@@ -29,8 +28,8 @@ case class Table(name: String,
     val csv = new StringBuilder()
 
     csv.append(name + "," + header.mkString(",") + "\n")
-    for((label, row) <- rows zip values)
-      csv.append(label + "," + row.mkString(",") + "\n")
+    for(row <- values)
+      csv.append(row.mkString(",") + "\n")
 
     csv.toString()
   }
@@ -42,8 +41,8 @@ case class Table(name: String,
     val sb = new StringBuilder()
 
     sb.append(header.mkString("|_. ", " |_. ", " |\n"))
-    for((label, row) <- rows zip values) {
-      sb.append("| " + label + " | " + row.mkString(" | ") + " |\n")
+    for(row <- values) {
+      sb.append("| " + row.mkString(" | ") + " |\n")
     }
 
     sb.toString()
@@ -57,7 +56,7 @@ case class Table(name: String,
 
     sb.append(header.mkString("| ", " | ", " |\n"))
     sb.append("| " + (" --- |" * header.size) + "\n")
-    for((label, row) <- rows zip values) {
+    for(row <- values) {
       // If there are line breaks in a value, we need to generate multiple rows
       val rowLines = row.zip(columnWidthInCharacters).map { case (v, maxChars) =>
         Table.softGrouped(v.toString.replace("\\", "\\\\"), maxChars).flatMap(_.split("[\n\r]+"))
@@ -65,9 +64,8 @@ case class Table(name: String,
       val maxLines = rowLines.map(_.length).max
 
       for(index <- 0 until maxLines) {
-        val lineLabel = if(index == 0) label else ""
         val lineValues = rowLines.map(lines => if(index >= lines.length) "" else lines(index))
-        sb.append("| " + lineLabel + " | " + lineValues.mkString(" | ") + " |\n")
+        sb.append("| " + lineValues.mkString(" | ") + " |\n")
       }
     }
 
@@ -85,8 +83,8 @@ case class Table(name: String,
     sb.append("\\hline\n")
     sb.append(" & " + header.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")
-    for((label, row) <- rows zip values)
-      sb.append(label + " & " + row.mkString(" & ") + "\\\\\n")
+    for(row <- values)
+      sb.append(row.mkString(" & ") + "\\\\\n")
     sb.append("\\hline\n")
     sb.append("\\end{tabular}\n")
     sb.append("\\caption{" + name + "}\n")

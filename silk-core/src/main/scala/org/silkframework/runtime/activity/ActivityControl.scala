@@ -51,6 +51,7 @@ trait ActivityControl[T] {
    * Requests to stop the execution of this activity.
    * There is no guarantee that the activity will stop immediately.
    * Activities need to override cancelExecution() to allow cancellation.
+   * Calls cancelExecution() on child activities recursively
    */
   def cancel()
 
@@ -64,9 +65,8 @@ trait ActivityControl[T] {
     */
   def underlying: Activity[T]
 
-  def waitUntilFinished() = {
-    while(!status().isInstanceOf[Finished]) {
-      Thread.sleep(100)
-    }
-  }
+  /**
+    * Waits until the activity finished execution.
+    */
+  def waitUntilFinished(): Unit
 }

@@ -61,7 +61,9 @@ class WorkspaceApi extends Controller {
     val workspace = User().workspace
     val project = workspace.project(oldProject)
 
-    val clonedProject = workspace.createProject(project.config.copy(id = newProject))
+    val clonedProjectConfig = project.config.copy(id = newProject)
+    val clonedProjectUri = clonedProjectConfig.generateDefaultUri
+    val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
     for(task <- project.allTasks) {
       clonedProject.addAnyTask(task.id, task.data)

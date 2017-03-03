@@ -5,9 +5,6 @@ import plugins.WorkbenchPlugins
 object Global extends WorkbenchGlobal {
 
   override def beforeStart(app: Application) {
-    // Use Play execution context for running activities
-    Activity.executionContext = play.api.libs.concurrent.Execution.defaultContext
-
     // Load Workbench plugins
     WorkbenchPlugins.register(WorkbenchDatasetPlugin())
     WorkbenchPlugins.register(TransformPlugin())

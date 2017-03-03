@@ -40,8 +40,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
-    while (pathsCache.status().isRunning && !canceled)
-      Thread.sleep(1000)
+    pathsCache.waitUntilFinished()
+
     if (pathsCache.status().failed)
       throw new Exception(s"Cannot load reference entities cache for ${task.id}, because the paths cache could not be loaded.")
     if (!Option(pathsCache.value()).exists(ed => ed.source.typedPaths.nonEmpty || ed.target.typedPaths.nonEmpty))
