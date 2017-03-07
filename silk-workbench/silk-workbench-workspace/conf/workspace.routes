@@ -116,6 +116,7 @@ GET           /projects/:project/tasks/:task/activities/:activity/value         
 POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
 POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
 POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
+POST          /activities/restart                                               controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String)
 GET           /activities/config                                                controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
 POST          /activities/config                                                controllers.workspace.ActivityApi.postActivityConfig(project: String, task: String, activity: String)
 GET           /activities/status                                                controllers.workspace.ActivityApi.getActivityStatus(project: String, task: String, activity: String)
