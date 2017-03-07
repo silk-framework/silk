@@ -96,19 +96,25 @@ case class Table(name: String,
 }
 
 object Table {
+
   // Similar to String.grouped, but tries to split Strings on whitespace characters
   def softGrouped(input: String, maxLength: Int): Seq[String] = {
     assert(maxLength > 0)
-    val minLength = math.max(1, (maxLength * (2.0 / 3)).toInt)
+    val minLength = math.max(1, (maxLength * (1.0 / 2)).toInt)
     var remainingString = input
     var splits = Vector.empty[String]
     while(remainingString.size > 0) {
       val whiteSpaceSplitIdx = remainingString.take(maxLength + 1).lastIndexOf(' ')
+      val camelCaseSplitIdx = remainingString.take(maxLength + 1).sliding(2).toSeq.lastIndexWhere(s => s.length == 2 && s(0).isLower && s(1).isUpper) + 1
+
       val splitIndex = if(whiteSpaceSplitIdx > minLength) {
         whiteSpaceSplitIdx
+      } else if(camelCaseSplitIdx > minLength) {
+        camelCaseSplitIdx
       } else {
         maxLength
       }
+
       val (next, remain) = remainingString.splitAt(splitIndex)
       splits :+= next
       remainingString = remain
