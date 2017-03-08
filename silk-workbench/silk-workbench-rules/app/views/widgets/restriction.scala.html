@@ -5,10 +5,18 @@
          name="@{modifier}_restriction_textfield" title="Restrict @{modifier} dataset using SPARQL clauses"
          value="@value">
   <label class="mdl-textfield__label" for="@{modifier}_restriction_textfield">@{modifier.capitalize} Restriction</label>
+  <div class="mdl-tooltip mdl-tooltip--right" for="@{modifier}_restriction_textfield">
+    Additional restrictions on the @modifier entities.
+  </div>
 </div>
 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{modifier}-restriction-container" style="display: none;">
   <textarea id="@{modifier}_restriction_textarea" name="@{modifier}_sparql_restriction" class="mdl-textfield__input" type="text" rows="5">@value</textarea>
   <label class="mdl-textfield__label" for="@{modifier}_restriction_textarea">@{modifier.capitalize} Restriction</label>
+  <div class="mdl-tooltip mdl-tooltip--right" for="@{modifier}_restriction_textarea">
+    Additional restrictions on the enumerated entities.
+    If this is an RDF source, use SPARQL patterns that include the variable ?a to identify the enumerated entities, e.g.,
+    ?a foaf:knows &lt;http://example.org/SomePerson&gt;
+  </div>
 </div>
 <script type="text/javascript">
   $("#@{modifier}_restriction_textfield").focus(function() {
