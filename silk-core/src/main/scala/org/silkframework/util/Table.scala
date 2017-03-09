@@ -50,14 +50,16 @@ case class Table(name: String,
 
   /**
     * Formats this table as markdown.
-    * This is how multiline table should look like:
+    * This is how multiline tables should look like:
 
-|  First column  | Second column                                                |
-|-------------------------|----------------------------------------------------|
+|  First column  | Second column                                                | Third column          |
+|-------------------------|----------------------------------------------------|---------------------|
 | Cell content  | This cell holds some more text content.\
                   The row exceeds the maximum count of chars.\
                   \
-                  Third line.                                                  |
+                  Third line.                                                  | The next cell starts\
+                                                                                 after the closing pipe\
+                                                                                 symbol.             |
 
     */
   def toMarkdown = {
@@ -71,21 +73,12 @@ case class Table(name: String,
       for(cell <- row.zip(columnWidthInCharacters)) {
         val v = cell._1
         val maxChars = cell._2
+        // If there are line breaks in a value, we need to generate multiple rows
         val lines = Table.softGrouped(v.toString.replace("\\", "\\\\"), maxChars)
         lineValues += lines.mkString("\\\n")
       }
       sb.append(lineValues.mkString(" | "))
       sb.append(" |\n")
-      // If there are line breaks in a value, we need to generate multiple rows
-//      val rowLines = row.zip(columnWidthInCharacters).map { case (v, maxChars) =>
-//        Table.softGrouped(v.toString.replace("\\", "\\\\"), maxChars).flatMap(_.split("[\n\r]+"))
-//      }
-//      val maxLines = rowLines.map(_.length).max
-//
-//      for(index <- 0 until maxLines) {
-//        val lineValues = rowLines.map(lines => if(index >= lines.length) "" else lines(index))
-//        sb.append("| " + lineValues.mkString(" | ") + " |\n")
-//      }
     }
 
     sb.toString()
