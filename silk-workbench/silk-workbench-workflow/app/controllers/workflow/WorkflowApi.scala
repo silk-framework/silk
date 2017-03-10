@@ -35,7 +35,7 @@ class WorkflowApi extends Controller {
 
   def putWorkflow(projectName: String, taskName: String) = Action { request =>
     val project = fetchProject(projectName)
-    val workflow = Workflow.fromXML(request.body.asXml.get.head).copy(id = taskName)
+    val workflow = Workflow.fromXML(request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok

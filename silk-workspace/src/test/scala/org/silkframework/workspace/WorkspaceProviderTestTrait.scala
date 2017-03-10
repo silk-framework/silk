@@ -79,7 +79,6 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   val miniWorkflow: Workflow = {
     Workflow(
-      Identifier(WORKFLOW_ID),
       operators = Seq(
         WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
       ),
