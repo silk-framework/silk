@@ -59,11 +59,18 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
     s => BackwardOperator(Uri.parse(s, prefixes))
   }
 
-  private def filterOperator = "[" ~> (langFilter | propFilter) <~ "]"
+  private def filterOperator = "[" ~> (langFilter | propFilter | conditional) <~ "]"
 
   private def langFilter = "@lang" ~> compOperator ~ "'" ~ languageTag ~ "'" ^^ {
     case op ~ _ ~ lang ~ _ => LanguageFilter(op, lang)
   }
+
+  private def conditional = ">" ~> methodIdentifier ~ "(" ~ identifier ~ ")" ^^ {
+    case methodId ~ _ ~ prop ~ _ =>
+      ConditionalFilter(methodId, Uri.parse(prop, prefixes))
+  }
+
+  private def methodIdentifier = """[a-z][a-zA-Z0-9]*""".r
 
   private def propFilter = identifier ~ compOperator ~ value ^^ {
     case prop ~ op ~ value =>

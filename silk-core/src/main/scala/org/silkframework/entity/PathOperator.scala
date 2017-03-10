@@ -76,3 +76,21 @@ case class PropertyFilter(property: Uri, operator: String, value: String) extend
     }
   }
 }
+
+/**
+  * A filter that evaluates boolean methods on the values of a property path,
+  * @param method The method to be executed on the values.
+  * @param property The forward property to execute the method on.
+  */
+case class ConditionalFilter(method: String, property: Uri) extends PathOperator {
+  override def serialize(implicit prefixes: Prefixes): String = s"[>$method(${property.serialize})"
+
+  def evaluate(pathValues: Seq[String]): Boolean = {
+    method match {
+      case "exists" => pathValues.nonEmpty
+      case "notExists" => pathValues.isEmpty
+      case notSupportedMethod: String =>
+        throw new RuntimeException(s"Unknown conditional method $notSupportedMethod! Supported methods: exists, notExists")
+    }
+  }
+}
