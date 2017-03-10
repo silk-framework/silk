@@ -81,7 +81,7 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   // An identifier that is either a URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
-  private def identifier = """<[^>]+>|[^\\/\[\]<>=!" ]+""".r
+  private def identifier = """<[^>]+>|[^\\/\[\]\(\)<>=!" ]+""".r
 
   // A language tag according to the Sparql spec
   private def languageTag = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r

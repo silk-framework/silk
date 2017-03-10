@@ -83,7 +83,7 @@ case class PropertyFilter(property: Uri, operator: String, value: String) extend
   * @param property The forward property to execute the method on.
   */
 case class ConditionalFilter(method: String, property: Uri) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes): String = s"[>$method(${property.serialize})"
+  override def serialize(implicit prefixes: Prefixes): String = s"[>$method(${property.serialize})]"
 
   def evaluate(pathValues: Seq[String]): Boolean = {
     method match {

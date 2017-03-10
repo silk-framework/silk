@@ -20,6 +20,16 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse("?a/<http://www.example.org/prop>") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
   }
 
+  it should "parse conditional property filters" in {
+    val pathStr = "/prop[>exists(prop2)]/prop3"
+    p.parse(pathStr).serialize shouldBe pathStr
+    p.parse(pathStr) should equal(Path(List(
+      ForwardOperator("prop"),
+      ConditionalFilter("exists", "prop2"),
+      ForwardOperator("prop3")
+    )))
+  }
+
   it should "parse simple backwards paths" in {
     p.parse("?a\\ex:prop") should equal(Path(BackwardOperator("http://www.example.org/prop") :: Nil))
   }
