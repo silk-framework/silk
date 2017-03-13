@@ -67,5 +67,10 @@ class PathParserTest extends FlatSpec with Matchers {
   it should "parse language filterss" in {
     p.parse( """?a/ex:prop[@lang = 'en']""") should equal(Path(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
   }
+
+  it should "parse filters in first position" in {
+    val path = Path(PropertyFilter("http://www.w3.org/2000/01/rdf-schema#label", "=", "\"test\"") :: Nil)
+    p.parse("""[rdfs:label="test"]""") shouldBe path
+  }
 }
 

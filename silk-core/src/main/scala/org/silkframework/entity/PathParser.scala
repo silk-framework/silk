@@ -35,6 +35,7 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
       val completePath = pathStr.head match {
         case '?' => pathStr // Path includes a variable
         case '/' | '\\' => "?a" + pathStr // Variable has been left out
+        case '[' => "?a" + pathStr
         case _ => "?a/" + pathStr // Variable and leading '/' have been left out
       }
       // Parse path
