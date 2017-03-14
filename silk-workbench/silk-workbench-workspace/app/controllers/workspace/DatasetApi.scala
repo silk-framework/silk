@@ -153,7 +153,7 @@ class DatasetApi extends Controller {
         case cd: CoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
-          InternalServerError("The type of data source " + datasetTask.id.toString + " does not support mapping coverage.")
+          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping coverage.")
       }
     } catch {
       case e: IllegalArgumentException =>
