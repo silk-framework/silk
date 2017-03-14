@@ -86,23 +86,12 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
     val typePath = Path.parse(typeUri)
     val operators = typePath.operators ++ inputPath.operators
-    // Should only include forward operators like the source path
-    var cleanOperators = List.empty[PathOperator]
-    for(op <- operators) {
-      op match {
-        case f: ForwardOperator =>
-          cleanOperators ::= f
-        case b: BackwardOperator =>
-          if(cleanOperators.isEmpty) {
-            return false // Invalid path, short cir
-          } else {
-            cleanOperators = cleanOperators.tail
-          }
-        case _ =>
-          // Throw away other operators
-      }
+    normalizeInputPath(operators) match {
+      case Some(cleanOperators) =>
+        cleanOperators == sourcePath.operators
+      case None =>
+        false // not possible to normalize path
     }
-    cleanOperators.reverse == sourcePath.operators
   }
 }
 

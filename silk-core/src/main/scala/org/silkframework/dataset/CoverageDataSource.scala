@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{ForwardOperator, Path}
+import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 
 /**
   * A data source that can give information about how given paths cover the sources input paths.
@@ -41,6 +41,28 @@ trait CoverageDataSource {
 
   /** Returns true if the given input path matches the source path else false. */
   def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean
+
+  /** Normalized the input path, gets rid of filters, resolves backward paths. The backward path resolution only works for
+    * nested data models. This won't work for example with graph data models like RDF where there is no unique parent.*/
+  def normalizeInputPath(pathOperators: Seq[PathOperator]): Option[Seq[PathOperator]] = {
+    // Should only include forward operators like the source path
+    var cleanOperators = List.empty[PathOperator]
+    for(op <- pathOperators) {
+      op match {
+        case f: ForwardOperator =>
+          cleanOperators ::= f
+        case b: BackwardOperator =>
+          if(cleanOperators.isEmpty) {
+            return None // Invalid path, short cir
+          } else {
+            cleanOperators = cleanOperators.tail
+          }
+        case _ =>
+        // Throw away other operators
+      }
+    }
+    Some(cleanOperators.reverse)
+  }
 }
 
 case class PathCoverageResult(paths: Seq[PathCoverage])
