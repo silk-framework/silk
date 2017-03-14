@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{CoverageDataSource, DataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 
 import scala.xml.XML
 
-class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource {
+class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource with CoverageDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -20,7 +20,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = XML.load(file.load)
-    for(path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+    for (path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }
@@ -28,7 +28,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes(t.uri)
-    if(xml.isEmpty)
+    if (xml.isEmpty)
       throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
     else
       xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
@@ -52,7 +52,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     */
   private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
     // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
-    val pathStr = if(typeUri.isEmpty) basePath else typeUri
+    val pathStr = if (typeUri.isEmpty) basePath else typeUri
     // Load XML
     val xml = XML.load(file.load)
     val rootTraverser = XmlTraverser(xml)
@@ -81,4 +81,18 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     }
   }
 
+  /** Returns true if the given input path matches the source path else false. */
+  override def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
+    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
+    val typePath = Path.parse(typeUri)
+    val operators = typePath.operators ++ inputPath.operators
+    normalizeInputPath(operators) match {
+      case Some(cleanOperators) =>
+        cleanOperators == sourcePath.operators
+      case None =>
+        false // not possible to normalize path
+    }
+  }
 }
+
+
