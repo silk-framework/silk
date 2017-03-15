@@ -27,6 +27,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val DATASET_ID = "dataset1"
   val LINKING_TASK_ID = "linking1"
   val CUSTOM_TASK_ID = "custom1"
+  val NEW_PREFIX = "newPrefix"
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
 
@@ -97,8 +98,12 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   it should "read and write projects" in {
     val project = createProject(PROJECT_NAME)
     val project2 = createProject(PROJECT_NAME_OTHER)
-    workspace.readProjects().find(_.id == project.id) should be (Some(project.copy(projectResourceUriOpt = Some(project.generateDefaultUri))))
-    workspace.readProjects().find(_.id == project2.id) should be (Some(project2.copy(projectResourceUriOpt = Some(project2.generateDefaultUri))))
+    getProject(project.id) should be (Some(project.copy(projectResourceUriOpt = Some(project.generateDefaultUri))))
+    getProject(project2.id) should be (Some(project2.copy(projectResourceUriOpt = Some(project2.generateDefaultUri))))
+  }
+
+  private def getProject(projectId: String): Option[ProjectConfig] = {
+    workspace.readProjects().find(_.id == projectId)
   }
 
   private def createProject(projectName: String): ProjectConfig = {
@@ -243,6 +248,25 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     child1 should not be theSameInstanceAs (child1Other)
     val res1Again = repository.get(PROJECT_NAME)
     res1Again should be theSameInstanceAs res1
+  }
+
+  it should "update prefixes" in {
+    val projectOpt = getProject(PROJECT_NAME)
+    projectOpt shouldBe defined
+    val project = projectOpt.get
+    project.prefixes.prefixMap.get(NEW_PREFIX) should not be defined
+    // Add new prefix
+    workspace.putProject(project.copy(prefixes = project.prefixes ++ Map(NEW_PREFIX -> "http://new_prefix")))
+    val updatedProjectOpt = getProject(PROJECT_NAME)
+    updatedProjectOpt shouldBe defined
+    val updatedProject = updatedProjectOpt.get
+    updatedProject.prefixes.prefixMap.get(NEW_PREFIX) shouldBe Some("http://new_prefix")
+    // Change existing prefix
+    workspace.putProject(project.copy(prefixes = project.prefixes ++ Map(NEW_PREFIX -> "http://new_prefix_updated")))
+    val updatedProjectOpt2 = getProject(PROJECT_NAME)
+    updatedProjectOpt2 shouldBe defined
+    val updatedProject2 = updatedProjectOpt2.get
+    updatedProject2.prefixes.prefixMap.get(NEW_PREFIX) shouldBe Some("http://new_prefix_updated")
   }
 
   /** Executes the block before and after project refresh */
