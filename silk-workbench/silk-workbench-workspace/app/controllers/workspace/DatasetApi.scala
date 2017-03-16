@@ -150,7 +150,7 @@ class DatasetApi extends Controller {
       implicit val prefixes = project.config.prefixes
       val datasetTask = project.task[Dataset](datasetId)
       datasetTask.source match {
-        case cd: CoverageDataSource =>
+        case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
           InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping coverage.")
@@ -163,7 +163,7 @@ class DatasetApi extends Controller {
 
   private def getCoverageFromCoverageSource(filterPaths: (PathCoverageResult) => Seq[PathCoverage],
                                             project: Project,
-                                            cd: CoverageDataSource)
+                                            cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes) = {
     val transformationTasks = project.tasks[TransformSpec]
     val inputPaths = for (transformation <- transformationTasks) yield {

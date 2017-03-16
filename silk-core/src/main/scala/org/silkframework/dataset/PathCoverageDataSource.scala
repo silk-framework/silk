@@ -4,9 +4,10 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 
 /**
-  * A data source that can give information about how given paths cover the sources input paths.
+  * A data source that can give information about how given input paths cover the sources input paths. This is used for example
+  * to find out which input paths are covered by transformations.
   */
-trait CoverageDataSource {
+trait PathCoverageDataSource {
   this: DataSource =>
   def pathCoverage(pathInputs: Seq[CoveragePathInput])(implicit prefixes: Prefixes): PathCoverageResult = {
     // This should get all paths defined for this source, depending on the implementation of the data source the depth might be limited to 1.

@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{CoverageDataSource, DataSource}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -12,7 +12,8 @@ import org.silkframework.util.Uri
 
 import scala.xml.XML
 
-class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource with CoverageDataSource {
+class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource
+    with PathCoverageDataSource with ValueCoverageDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -28,10 +29,11 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes(t.uri)
-    if (xml.isEmpty)
+    if (xml.isEmpty) {
       throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
-    else
+    } else {
       xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
+    }
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
@@ -92,6 +94,10 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
       case None =>
         false // not possible to normalize path
     }
+  }
+
+  override def convertToIdPath(path: Path): Option[Path] = {
+    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 }
 
