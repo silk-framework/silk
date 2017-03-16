@@ -22,6 +22,9 @@ import scala.util.matching.Regex
  * Represents a SPARQL restriction.
  */
 class SparqlRestriction private(val variable: String, restrictionsFull: String, restrictionsQualified: String) extends Serializable {
+  // Check if the restriction contains the variable
+  require(restrictionsQualified.trim.isEmpty || restrictionsQualified.contains("?" + variable),
+    s"SPARQL restriction '$restrictionsQualified' does not use variable ?$variable and thus has no effect. Use ?$variable for restrictions on entities.")
 
   def toSparql = restrictionsFull
 

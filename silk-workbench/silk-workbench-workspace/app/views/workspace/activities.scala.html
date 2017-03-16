@@ -9,6 +9,7 @@
 @import controllers.workspace.routes.WorkspaceController
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
+@import org.silkframework.workspace.activity.CachedActivity
 
 @**
  * Overview page of all activities and their status
@@ -175,6 +176,11 @@
       @if(activity.valueType != classOf[BoxedUnit]) {
         <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
       }
+    </div>
+    <div class="activity-button-reload">
+    @if(classOf[CachedActivity[_]].isAssignableFrom(activity.control.underlying.getClass)) {
+      <img title="Reload cache" width="16" height="16" src="@Assets.at("img/control-reload.png")" onclick="post('@ActivityApi.restartActivity(project.name, task.id, activity.name).url')" />
+    }
     </div>
   </li>
 }

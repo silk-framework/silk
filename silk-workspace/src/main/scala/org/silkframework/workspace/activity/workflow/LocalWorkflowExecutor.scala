@@ -109,7 +109,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case e@Some(entityTable) =>
         e
       case None =>
-        throw WorkflowException(s"In workflow ${workflow.id.toString} operator node ${input.nodeId} defined an input" +
+        throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
             s" schema for input $input, but did not receive any result.")
     }
   }
@@ -132,7 +132,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           val result = execute(operatorTask, inputResults.flatten, entitySchemaOpt)
           // Throw exception if result was promised, but not returned
           if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-            throw WorkflowException(s"In workflow ${workflow.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+            throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
                 s"schema, but did not return any result!")
           }
           log.info("Finished execution of " + operator.nodeId)
@@ -244,7 +244,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           case Some(entityTable) =>
             entityTable
           case None =>
-            throw WorkflowException(s"In workflow ${workflow.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
+            throw WorkflowException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
                 s"not return any result!")
         }
       case None =>

@@ -38,13 +38,13 @@ trait DataSource {
    * Implementations are only required to work on a best effort basis i.e. it does not necessarily return all paths in the source.
    * The default implementation returns an empty traversable.
    *
-   * @param t The entity type for which paths shall be retrieved
+   * @param typeUri The entity type for which paths shall be retrieved
    * @param depth Only retrieve paths up to a certain length. If not given, only paths of length 1 are returned.
    * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
    *
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
-  def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
     IndexedSeq.empty
   }
 
