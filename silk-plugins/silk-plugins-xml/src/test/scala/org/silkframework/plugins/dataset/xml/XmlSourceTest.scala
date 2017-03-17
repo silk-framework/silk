@@ -51,7 +51,7 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
     missedValue.nodeId mustBe defined
   }
 
-  it should "return correct value coverage second" in {
+  it should "return correct value coverage for more complicated path" in {
     val source = xmlSource
     implicit val prefixes = Prefixes(Map.empty)
     val result = source.valueCoverage(Path.parse("Person/Properties/Property/Value"), paths("""Person/Properties/Property[Key!="2"]/Value"""))
@@ -63,7 +63,62 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
     missedValue.nodeId mustBe defined
   }
 
+  it should "return correct value coverage for '*' and '**' paths" in {
+    val source = xmlSource
+    implicit val prefixes = Prefixes(Map.empty)
+    val result = source.valueCoverage(
+      Path.parse("Person/Properties/Property/Value"),
+      paths("""Person/*/Property[Key="2"]/Value""", """**/Property[Key="1"]/Value"""))
+    result.overallValues mustBe 3
+    result.coveredValues mustBe 2
+    result.missedValues.size mustBe 1
+    val missedValue = result.missedValues.head
+    missedValue.value mustBe "V3"
+    missedValue.nodeId mustBe defined
+  }
+
+  it should "match paths with '*' in it" in {
+    implicit val source = xmlSource
+    matchPath("/Person/Properties/Property/Value", "/Person/Properties/Property/*")
+    matchPath("/Person/Properties/Property/Value", "/Person/Properties/*/Value")
+    matchPath("/Person/Properties/Property/Value", "/Person/*/Property/Value")
+    matchPath("/Person/Properties/Property/Value", "/*/Properties/Property/Value")
+    matchPath("/Person/Properties/Property/Value", "/*/Properties/*/Value")
+    doNotMatchPath("/Person/Properties/Property/Value", "/*/*/*")
+    doNotMatchPath("/Person/Properties/Property/Value", "/*/*/Value")
+    doNotMatchPath("/Person/Properties/Property/Value", "/Person/*/Value")
+    doNotMatchPath("/Person/Properties/Property/Value", "/Person/Properties/*")
+  }
+
+  it should "match paths with '**' in it" in {
+    implicit val source = xmlSource
+    matchPath("Person/Properties/Property/Value", "/**/Value")
+    matchPath("/Person/Properties/Property/Value", "/Person/**/Value")
+    matchPath("/Person/Properties/Property/Value", "/**")
+    matchPath("/Person/Properties/Property/Value", "/**/Properties/**")
+    doNotMatchPath("/Person/Properties/Property/Value", "/Company/**/Value")
+    doNotMatchPath("/Person/Properties/Property/Value", "/**/NotThere/Value")
+    doNotMatchPath("/Person/Properties/Property/Value", "/Company/**")
+    doNotMatchPath("/Person/Properties/Property/Value", "/Person/NotThere/**")
+  }
+
+  private def matchPath(sourcePath: String,
+                        inputPath: String,
+                        typePath: String = "")
+                       (implicit xmlSource: XmlSource): Unit = {
+    assert(xmlSource.matchPath(typePath, path(inputPath), path(sourcePath)), s"$sourcePath did not match $inputPath with type '$typePath'")
+  }
+
+  private def doNotMatchPath(sourcePath: String,
+                             inputPath: String,
+                             typePath: String = "")
+                            (implicit xmlSource: XmlSource): Unit = {
+    assert(!xmlSource.matchPath(typePath, path(inputPath), path(sourcePath)), s"$sourcePath did match $inputPath with type '$typePath'")
+  }
+
+  private def path(pathStr: String): Path = Path.parse(pathStr)
+
   private def paths(paths: String*): Seq[Path] = {
-    paths.map(str => Path.parse(str))
+    paths map path
   }
 }

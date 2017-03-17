@@ -2,6 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
+import org.silkframework.util.Uri
 
 /**
   * A data source that can give information about how given input paths cover the sources input paths. This is used for example
@@ -73,9 +74,37 @@ trait PathCoverageDataSource {
     val operators = combinedPath(typeUri, inputPath).operators
     normalizeInputPath(operators) match {
       case Some(cleanOperators) =>
-        cleanOperators == sourcePath.operators
+        matchCleanPath(cleanOperators.toList, sourcePath.operators)
       case None =>
         false // not possible to normalize path
+    }
+  }
+
+  /** Matches the cleaned up input path. Recognizes '*' and '**' forward paths. */
+  def matchCleanPath(inputOperators: List[PathOperator],
+                     sourceOperators: List[PathOperator]): Boolean = {
+    (inputOperators, sourceOperators) match {
+      case (ForwardOperator(Uri("*")) :: tail, _ :: sTail) =>
+        matchCleanPath(tail, sTail)
+      case (ForwardOperator(Uri("**")) :: tail, _) =>
+        recursiveTails(sourceOperators) exists { sTail =>
+          matchCleanPath(tail, sTail)
+        }
+      case (iOp :: iTail, sOp :: sTail) =>
+        iOp == sOp && matchCleanPath(iTail, sTail)
+      case (Nil, Nil) =>
+        true
+      case _ =>
+        false
+    }
+  }
+
+  private def recursiveTails(operators: List[PathOperator]): List[List[PathOperator]] = {
+    operators match {
+      case Nil =>
+        Nil
+      case _ :: tail =>
+        tail :: recursiveTails(tail)
     }
   }
 }

@@ -21,13 +21,10 @@ trait ValueCoverageDataSource {
     val uniqueCompleteValues = completeValues.toSeq.distinct
     val uniqueCollectedValues = collectedValues.toSeq.distinct
     val overallNumber = uniqueCompleteValues.size
-    val coveredNumber = uniqueCollectedValues.size
-    assert(uniqueCollectedValues.intersect(uniqueCompleteValues).size == coveredNumber,
-      "There were values returned from the input paths that were not returned for the data source path!")
     val missingValues = uniqueCompleteValues.diff(uniqueCollectedValues) map { case (value, id) =>
       ValueCoverageMiss(id, value)
     }
-    ValueCoverageResult(overallNumber, coveredNumber, missedValues = missingValues)
+    ValueCoverageResult(overallNumber, overallNumber - missingValues.size, missedValues = missingValues)
   }
 
   /** Converts a path into the same path, but getting the ID of the value that would be fetched. If unique IDs are not
