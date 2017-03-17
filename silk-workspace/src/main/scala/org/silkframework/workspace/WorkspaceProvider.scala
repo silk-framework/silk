@@ -1,11 +1,8 @@
 package org.silkframework.workspace
 
-import java.io.{InputStream, OutputStream}
-
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
 
