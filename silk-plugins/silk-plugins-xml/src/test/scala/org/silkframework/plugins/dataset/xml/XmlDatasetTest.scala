@@ -64,6 +64,10 @@ class XmlDatasetTest extends FlatSpec with Matchers {
     allIds.distinct shouldBe allIds
   }
 
+  it should "allow retrieving the text of a selected element" in {
+    (persons atPath "Person/ID" valuesAt "#text") shouldBe Seq(Seq("1"), Seq("2"))
+  }
+
   it should "list all base paths as types" in {
     persons.types shouldBe
       Seq(

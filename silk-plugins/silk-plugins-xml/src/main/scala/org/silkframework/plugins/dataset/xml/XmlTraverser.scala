@@ -126,6 +126,8 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
         Seq(XmlTraverser(Text(nodeId), Some(this)))
       case "#tag" =>
         Seq(XmlTraverser(Text(node.label), Some(this)))
+      case "#text" =>
+        Seq(this)
       case "*" =>
         children
       case "**" =>

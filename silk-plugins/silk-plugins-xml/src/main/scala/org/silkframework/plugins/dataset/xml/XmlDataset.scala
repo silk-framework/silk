@@ -46,6 +46,7 @@ Path examples:
 - The wildcard * enumerates all direct children, e.g., `/Persons/*/Name`.
 - The wildcard ** enumerates all direct and indirect children.
 - The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`.
+- `#text` retrieves the text of the selected node.
 """
 )
 case class XmlDataset(

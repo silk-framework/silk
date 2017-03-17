@@ -7,11 +7,11 @@ import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
                                    progressContribution: Double = 0.0) extends ActivityMonitor[T](activity.name, parent, progressContribution, activity.initialValue)
-                                                                       with ActivityControl[T] {
+  with ActivityControl[T] {
 
   /**
-   * The name of the activity.
-   */
+    * The name of the activity.
+    */
   override val name: String = activity.name
 
   @volatile

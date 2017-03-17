@@ -81,3 +81,11 @@
   top: -76px;
   font-size: 9px;
 }
+
+.activity-button-reload {
+  position: relative;
+  left: 544px;
+  height: 18px;
+  top: -94px;
+  font-size: 9px;
+}

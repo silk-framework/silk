@@ -6,7 +6,7 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{CoverageDataSource, DataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -28,7 +28,7 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource {
+                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with CoverageDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -280,6 +280,18 @@ class CsvSource(file: Resource,
   }
 
   private def classUri = prefix + file.name
+
+  /** Returns true if the given input path matches the source path else false. */
+  override def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
+    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
+    val operators = inputPath.operators
+    normalizeInputPath(operators) match {
+      case Some(cleanOperators) =>
+        cleanOperators == sourcePath.operators
+      case None =>
+        false // not possible to normalize path
+    }
+  }
 }
 
 object SeparatorDetector {

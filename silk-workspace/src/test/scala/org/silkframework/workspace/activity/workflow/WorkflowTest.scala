@@ -123,12 +123,11 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val testWorkflow: Workflow = {
     Workflow(
-      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = TRANSFORM_1, inputs = Seq(DS_A1), outputs = Seq(DS_B1), TRANSFORM_1),
-        operator(task = TRANSFORM_2, inputs = Seq(DS_A2), outputs = Seq(DS_B1), TRANSFORM_2),
-        operator(task = LINKING, inputs = Seq(DS_B1, DS_B1), outputs = Seq(LINKS), LINKING),
-        operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT)
+        operator(task = TRANSFORM_1, inputs = Seq(DS_A1), outputs = Seq(DS_B1), TRANSFORM_1, None),
+        operator(task = TRANSFORM_2, inputs = Seq(DS_A2), outputs = Seq(DS_B1), TRANSFORM_2, None),
+        operator(task = LINKING, inputs = Seq(DS_B1, DS_B1), outputs = Seq(LINKS), LINKING, None),
+        operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT, None)
       ),
       datasets = Seq(
         dataset(DS_A1, DS_A1, outputs = Seq(TRANSFORM_1)),
@@ -142,9 +141,8 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val testWorkflowEndingInOperator: Workflow = {
     Workflow(
-      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM)
+        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM, None)
       ),
       datasets = Seq(
         dataset(DS_A, DS_A, outputs = Seq(TRANSFORM)),
@@ -154,11 +152,10 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val testWorkflowWithMultipleEndNodesAndDisjunctDataFlows: Workflow = {
     Workflow(
-      Identifier(WORKFLOW),
       operators = Seq(
         operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM, outputPriority = Some(1.5)),
-        operator(task = OP_1, inputs = Seq(DS_C), outputs = Seq(), OP_1),
-        operator(task = OP_2, inputs = Seq(DS_C), outputs = Seq(), OP_2)
+        operator(task = OP_1, inputs = Seq(DS_C), outputs = Seq(), OP_1, None),
+        operator(task = OP_2, inputs = Seq(DS_C), outputs = Seq(), OP_2, None)
       ),
       datasets = Seq(
         dataset(DS_A, DS_A, outputs = Seq(TRANSFORM)),
@@ -169,9 +166,8 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val singleNodeWorkflow: Workflow = {
     Workflow(
-      Identifier(WORKFLOW),
       operators = Seq(
-        operator(task = OP_1, inputs = Seq(), outputs = Seq(), OP_1)
+        operator(task = OP_1, inputs = Seq(), outputs = Seq(), OP_1, None)
       ),
       datasets = Seq(
       ))
@@ -179,10 +175,9 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val circularWorkflow: Workflow = {
     Workflow(
-      Identifier("circularWorkflow"),
       operators = Seq(
-        operator(task = TRANSFORM_1, inputs = Seq(TRANSFORM_2), outputs = Seq(TRANSFORM_2), TRANSFORM_1),
-        operator(task = TRANSFORM_2, inputs = Seq(TRANSFORM_1), outputs = Seq(TRANSFORM_1), TRANSFORM_2)
+        operator(task = TRANSFORM_1, inputs = Seq(TRANSFORM_2), outputs = Seq(TRANSFORM_2), TRANSFORM_1, None),
+        operator(task = TRANSFORM_2, inputs = Seq(TRANSFORM_1), outputs = Seq(TRANSFORM_1), TRANSFORM_2, None)
       ),
       datasets = Seq()
     )
