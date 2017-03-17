@@ -150,6 +150,16 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     createDataset(projectId, datasetId, datasetConfig)
   }
 
+  def createXmlDataset(projectId: String, datasetId: String, fileResourceId: String): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="xml">
+        <Param name="file" value={fileResourceId}/>
+        <Param name="basePath" value=""/>
+        <Param name="uriPattern" value="http://id/{#id}"/>
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
   def createVariableDataset(projectId: String, datasetId: String): WSResponse = {
     val datasetConfig = <Dataset id={datasetId} type="variableDataset"/>
     createDataset(projectId, datasetId, datasetConfig)
