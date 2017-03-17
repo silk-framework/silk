@@ -42,6 +42,7 @@ PUT           /projects/:project/datasets/:name                                 
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
+POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
 
 ############################################################################################################################################
 # CustomTasks

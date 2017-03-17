@@ -2,11 +2,13 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
+import org.silkframework.util.Uri
 
 /**
-  * A data source that can give information about how given paths cover the sources input paths.
+  * A data source that can give information about how given input paths cover the sources input paths. This is used for example
+  * to find out which input paths are covered by transformations.
   */
-trait CoverageDataSource {
+trait PathCoverageDataSource {
   this: DataSource =>
   def pathCoverage(pathInputs: Seq[CoveragePathInput])(implicit prefixes: Prefixes): PathCoverageResult = {
     // This should get all paths defined for this source, depending on the implementation of the data source the depth might be limited to 1.
@@ -39,9 +41,6 @@ trait CoverageDataSource {
     }
   }
 
-  /** Returns true if the given input path matches the source path else false. */
-  def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean
-
   /** Normalized the input path, gets rid of filters, resolves backward paths. The backward path resolution only works for
     * nested data models. This won't work for example with graph data models like RDF where there is no unique parent.*/
   def normalizeInputPath(pathOperators: Seq[PathOperator]): Option[Seq[PathOperator]] = {
@@ -62,6 +61,51 @@ trait CoverageDataSource {
       }
     }
     Some(cleanOperators.reverse)
+  }
+
+  /**
+    * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
+    */
+  def combinedPath(typeUri: String, inputPath: Path): Path
+
+  /** Returns true if the given input path matches the source path else false. */
+  def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
+    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
+    val operators = combinedPath(typeUri, inputPath).operators
+    normalizeInputPath(operators) match {
+      case Some(cleanOperators) =>
+        matchCleanPath(cleanOperators.toList, sourcePath.operators)
+      case None =>
+        false // not possible to normalize path
+    }
+  }
+
+  /** Matches the cleaned up input path. Recognizes '*' and '**' forward paths. */
+  def matchCleanPath(inputOperators: List[PathOperator],
+                     sourceOperators: List[PathOperator]): Boolean = {
+    (inputOperators, sourceOperators) match {
+      case (ForwardOperator(Uri("*")) :: tail, _ :: sTail) =>
+        matchCleanPath(tail, sTail)
+      case (ForwardOperator(Uri("**")) :: tail, _) =>
+        recursiveTails(sourceOperators) exists { sTail =>
+          matchCleanPath(tail, sTail)
+        }
+      case (iOp :: iTail, sOp :: sTail) =>
+        iOp == sOp && matchCleanPath(iTail, sTail)
+      case (Nil, Nil) =>
+        true
+      case _ =>
+        false
+    }
+  }
+
+  private def recursiveTails(operators: List[PathOperator]): List[List[PathOperator]] = {
+    operators match {
+      case Nil =>
+        Nil
+      case _ :: tail =>
+        tail :: recursiveTails(tail)
+    }
   }
 }
 

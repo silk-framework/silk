@@ -1,20 +1,23 @@
 package controllers.workspace
 
+import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
-import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.mvc.{Action, AnyContent, Controller, Request}
+import play.api.libs.json._
+import play.api.mvc._
 import plugins.Context
 
-class DatasetApi extends Controller {
-  implicit val partialPath = Json.format[PathCoverage]
+class DatasetApi extends Controller with ControllerUtilsTrait {
+  private implicit val partialPath = Json.format[PathCoverage]
+  private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
+  private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
 
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
@@ -136,6 +139,27 @@ class DatasetApi extends Controller {
     Ok(JsArray(types.map(JsString)))
   }
 
+  def getMappingValueCoverage(projectName: String, datasetId: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
+    validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
+      val project = User().workspace.project(projectName)
+      val datasetTask = project.task[Dataset](datasetId)
+      val inputPaths = transformationInputPaths(project)
+      val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
+      datasetTask.source match {
+        case vd: PathCoverageDataSource with ValueCoverageDataSource =>
+          val matchingInputPaths = for (coveragePathInput <- inputPaths;
+               inputPath <- coveragePathInput.paths
+               if vd.matchPath(coveragePathInput.typeUri, inputPath, dataSourcePath)) yield {
+            vd.combinedPath(coveragePathInput.typeUri, inputPath)
+          }
+          val result = vd.valueCoverage(dataSourcePath, matchingInputPaths)
+          Ok(Json.toJson(result))
+        case _ =>
+          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage.")
+      }
+    }
+  }
+
   private val FULLY_MAPPED = "fullyMapped"
   private val PARTIALLY_MAPPED = "partiallyMapped"
   private val UNMAPPED = "unmapped"
@@ -150,7 +174,7 @@ class DatasetApi extends Controller {
       implicit val prefixes = project.config.prefixes
       val datasetTask = project.task[Dataset](datasetId)
       datasetTask.source match {
-        case cd: CoverageDataSource =>
+        case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
           InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping coverage.")
@@ -163,18 +187,22 @@ class DatasetApi extends Controller {
 
   private def getCoverageFromCoverageSource(filterPaths: (PathCoverageResult) => Seq[PathCoverage],
                                             project: Project,
-                                            cd: CoverageDataSource)
+                                            cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes) = {
+    val inputPaths = transformationInputPaths(project)
+    val result = cd.pathCoverage(inputPaths.toSeq)
+    val filteredPaths = filterPaths(result)
+    Ok(Json.toJson(filteredPaths))
+  }
+
+  private def transformationInputPaths(project: Project): Traversable[CoveragePathInput] = {
     val transformationTasks = project.tasks[TransformSpec]
-    val inputPaths = for (transformation <- transformationTasks) yield {
+    for (transformation <- transformationTasks) yield {
       val typeUri = transformation.selection.typeUri
       // TODO: Filter by mapping type, e.g. no URI mapping?
       val paths = transformation.rules.flatMap(_.paths).distinct
       CoveragePathInput(typeUri.uri, paths)
     }
-    val result = cd.pathCoverage(inputPaths)
-    val filteredPaths = filterPaths(result)
-    Ok(Json.toJson(filteredPaths))
   }
 
   /** Filters out paths based on the requested filters. */
@@ -206,4 +234,10 @@ class DatasetApi extends Controller {
         (true, true, true)
     }
   }
+}
+
+case class MappingValueCoverageRequest(dataSourcePath: String)
+
+object MappingValueCoverageRequest {
+  implicit val mappingValueCoverageRequestReads: Format[MappingValueCoverageRequest] = Json.format[MappingValueCoverageRequest]
 }
