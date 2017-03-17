@@ -83,17 +83,9 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     }
   }
 
-  /** Returns true if the given input path matches the source path else false. */
-  override def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
-    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
+  override def combinedPath(typeUri: String, inputPath: Path): Path = {
     val typePath = Path.parse(typeUri)
-    val operators = typePath.operators ++ inputPath.operators
-    normalizeInputPath(operators) match {
-      case Some(cleanOperators) =>
-        cleanOperators == sourcePath.operators
-      case None =>
-        false // not possible to normalize path
-    }
+    Path(typePath.operators ++ inputPath.operators)
   }
 
   override def convertToIdPath(path: Path): Option[Path] = {

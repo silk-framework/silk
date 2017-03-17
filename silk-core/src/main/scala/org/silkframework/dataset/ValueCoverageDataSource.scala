@@ -15,7 +15,7 @@ trait ValueCoverageDataSource {
     * @param inputPaths The actual input paths that when normalized match the dataSourcePath
     * @return
     */
-  def valueCoverage(dataSourcePath: Path, inputPaths: Seq[Path]): ValueCoverageResult = {
+  def valueCoverage(dataSourcePath: Path, inputPaths: Traversable[Path]): ValueCoverageResult = {
     val completeValues: Set[(String, Option[String])] = valuesForDataSourcePath(dataSourcePath)
     val collectedValues: Set[(String, Option[String])] = valuesForInputPaths(inputPaths)
     val uniqueCompleteValues = completeValues.toSeq.distinct
@@ -53,7 +53,7 @@ trait ValueCoverageDataSource {
 
   private def noneStream = Stream.continually(None)
 
-  def valuesForInputPaths(inputPaths: Seq[Path]): Set[(String, Option[String])] = {
+  def valuesForInputPaths(inputPaths: Traversable[Path]): Set[(String, Option[String])] = {
     val idInputPaths = inputPaths flatMap convertToIdPath
     val entitySchemaForInputPaths = EntitySchema(Uri(""), typedPaths = (inputPaths ++ idInputPaths).toIndexedSeq.map(_.asStringTypedPath))
     val collectedValues = retrieve(entitySchemaForInputPaths).flatMap { e =>

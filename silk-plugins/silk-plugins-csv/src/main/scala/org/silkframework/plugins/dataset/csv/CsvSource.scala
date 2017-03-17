@@ -281,17 +281,10 @@ class CsvSource(file: Resource,
 
   private def classUri = prefix + file.name
 
-  /** Returns true if the given input path matches the source path else false. */
-  override def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
-    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
-    val operators = inputPath.operators
-    normalizeInputPath(operators) match {
-      case Some(cleanOperators) =>
-        cleanOperators == sourcePath.operators
-      case None =>
-        false // not possible to normalize path
-    }
-  }
+  /**
+    * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
+    */
+  override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
 }
 
 object SeparatorDetector {

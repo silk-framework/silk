@@ -40,9 +40,6 @@ trait PathCoverageDataSource {
     }
   }
 
-  /** Returns true if the given input path matches the source path else false. */
-  def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean
-
   /** Normalized the input path, gets rid of filters, resolves backward paths. The backward path resolution only works for
     * nested data models. This won't work for example with graph data models like RDF where there is no unique parent.*/
   def normalizeInputPath(pathOperators: Seq[PathOperator]): Option[Seq[PathOperator]] = {
@@ -63,6 +60,23 @@ trait PathCoverageDataSource {
       }
     }
     Some(cleanOperators.reverse)
+  }
+
+  /**
+    * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
+    */
+  def combinedPath(typeUri: String, inputPath: Path): Path
+
+  /** Returns true if the given input path matches the source path else false. */
+  def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
+    assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
+    val operators = combinedPath(typeUri, inputPath).operators
+    normalizeInputPath(operators) match {
+      case Some(cleanOperators) =>
+        cleanOperators == sourcePath.operators
+      case None =>
+        false // not possible to normalize path
+    }
   }
 }
 
