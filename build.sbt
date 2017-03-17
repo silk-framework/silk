@@ -8,7 +8,7 @@ lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := "2.7.2",
   // Building
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.10.5",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
@@ -27,8 +27,8 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
-  },
-  // Use dependency injected routes in Play modules
+},
+// Use dependency injected routes in Play modules
   routesGenerator := InjectedRoutesGenerator
 )
 
@@ -41,11 +41,11 @@ lazy val core = (project in file("silk-core"))
   .settings(
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.3.0", // Should always use the same version as the Play Framework dependency
-    libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
-    libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
-    // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+    libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.10" % "0.27.3",
+    libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7"
+    // Additional scala standard libraries, in 2.10 they are build in
+//    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+//    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -68,7 +68,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.4.8"
+    libraryDependencies += "com.typesafe.play" % "play-ws_2.10" % "2.4.8"
   )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.10" % "2.4.8"
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
@@ -133,7 +133,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.10" % "2.3.10"
   )
 
 lazy val plugins = (project in file("silk-plugins"))
@@ -158,7 +158,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "org.silkframework.buildInfo",
-    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
+    libraryDependencies += "org.scalatestplus" % "play_2.10" % "1.4.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
