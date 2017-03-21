@@ -3,6 +3,7 @@
 @import org.silkframework.runtime.plugin.ParameterType
 @import org.silkframework.runtime.plugin.AnyPlugin
 @import  org.silkframework.dataset.DatasetPluginAutoConfigurable
+@import org.silkframework.runtime.plugin.ParameterType.EnumerationType
 @import controllers.core.routes.Assets
 
 @(name: String,
@@ -139,6 +140,7 @@
 @createField(pluginId: String, param: Parameter) = @{
   param.dataType match {
     case ParameterType.ResourceType | ParameterType.WritableResourceType => createResourceField(pluginId, param)
+    case enumType @ ParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enumType)
     case _ => createTextField(pluginId, param)
   }
 }
@@ -153,6 +155,22 @@
       Expected type: @param.dataType.description
     </div>
  </div>
+}
+
+@createEnumerationField(pluginId: String, param: Parameter, enumType: EnumerationType) = {
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
+    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" >
+    @for(enumerationValue <- enumType.enumerationValues) {
+      <option @if(enumerationValue == value(pluginId, param)) { selected="selected" }>@enumerationValue</option>
+    }
+    </select>
+    <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.name</label>
+    <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
+      @param.description
+      <br/>
+      Expected type: @param.dataType.description
+    </div>
+  </div>
 }
 
 @createResourceField(pluginId: String, param: Parameter) = {
