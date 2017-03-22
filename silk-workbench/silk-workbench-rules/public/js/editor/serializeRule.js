@@ -203,6 +203,5 @@ function findRootOperator(connections) {
  */
 function makeXMLString(xml) {
   var xmlString = (new XMLSerializer()).serializeToString(xml);
-  xmlString = xmlString.replace(/&amp;/g, "&");
   return xmlString;
 }
