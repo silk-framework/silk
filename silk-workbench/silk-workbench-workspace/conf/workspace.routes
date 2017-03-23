@@ -8,7 +8,8 @@ GET           /allActivities                                                    
 
 GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
-GET           /dialogs/removetask/:name                                         controllers.workspace.WorkspaceController.removeTaskDialog(name: String, path: String)
+GET           /dialogs/removeproject/:project                                   controllers.workspace.WorkspaceController.removeProjectDialog(project: String)
+GET           /dialogs/removetask/:project/:task                                controllers.workspace.WorkspaceController.removeTaskDialog(project: String, task: String)
 GET           /dialogs/removeresource/:name                                     controllers.workspace.WorkspaceController.removeResourceDialog(name: String, path: String)
 GET           /dialogs/importlinkspec/:project                                  controllers.workspace.WorkspaceController.importLinkSpecDialog(project: String)
 GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
@@ -50,7 +51,7 @@ POST          /projects/:project/datasets/:name/mappingCoverage/values          
 
 # Dialogs
 GET           /customTasks/newTaskDialog/:project                                controllers.workspace.CustomTasks.taskDialog(project: String, task = "")
-GET           /customTasks/editTaskDialog/:project/:task                               controllers.workspace.CustomTasks.taskDialog(project: String, task: String)
+GET           /customTasks/editTaskDialog/:project/:task                         controllers.workspace.CustomTasks.taskDialog(project: String, task: String)
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
@@ -88,7 +89,7 @@ DELETE        /projects/:project/resources/:name                                
 GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
-DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean)
+DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.WorkspaceApi.cloneTask(project, task, newTask)
 

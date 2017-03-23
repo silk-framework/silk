@@ -44,10 +44,6 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     override def open(project: String, task: String) =
       Some(s"workflow/editor/$project/$task")
 
-    /** The path to delete the task by sending a DELETE HTTP request. */
-    override def delete(project: String, task: String) =
-      Some(s"workflow/workflows/$project/$task")
-
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: Any): Seq[(String, String)] = {
       Seq()

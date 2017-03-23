@@ -219,6 +219,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
 
   /**
    * Removes a task of a specific type.
+   * Note that the named task will be deleted, even if it is referenced by another task.
    *
    * @param taskName The name of the task
    * @tparam T The task type
@@ -232,11 +233,20 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
+    * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
     if(removeDependentTasks) {
+      // Remove all dependent tasks
       for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
         removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      }
+    } else {
+      // Make sure that no other task depends on this task
+      for(task <- allTasks) {
+        if(task.data.referencedTasks.contains(taskName)) {
+          throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+        }
       }
     }
 

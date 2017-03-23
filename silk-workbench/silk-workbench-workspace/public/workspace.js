@@ -43,10 +43,6 @@ function exportProject(project) {
   window.location = baseUrl + '/workspace/projects/' + project + '/export'
 }
 
-function deleteProject(project) {
-  deleteTaskConfirm(project, baseUrl + '/workspace/projects/' + project);
-}
-
 function executeProject(project) {
   showDialog(baseUrl + '/workspace/dialogs/executeProject/' + project);
 }
@@ -95,10 +91,10 @@ function putTask(path, xml) {
   });
 }
 
-function deleteTask(path) {
+function deleteProject(project, task) {
   $.ajax({
     type: 'DELETE',
-    url: path,
+    url: baseUrl + '/workspace/projects/' + project,
     success: function(data) {
       reloadWorkspace();
     },
@@ -108,8 +104,25 @@ function deleteTask(path) {
   });
 }
 
-function deleteTaskConfirm(name, path) {
-  showDialog(baseUrl + '/workspace/dialogs/removetask/' + name + "?path=" + encodeURIComponent(path));
+function deleteTask(project, task) {
+  $.ajax({
+    type: 'DELETE',
+    url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
+    success: function(data) {
+      reloadWorkspace();
+    },
+    error: function(request) {
+      alert("Error deleting:" + request.responseText);
+    }
+  });
+}
+
+function deleteProjectConfirm(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/removeproject/' + project);
+}
+
+function deleteTaskConfirm(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/removetask/' + project + '/' + task);
 }
 
 function deleteResourceConfirm(name, path) {

@@ -49,15 +49,8 @@ class TransformTaskApi extends Controller {
 
   def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean) = Action {
     val project = User().workspace.project(projectName)
-    if(removeDependentTasks) {
-      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
-        project.removeTask[TransformSpec](dependentTransform.id)
-      }
-      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
-        project.removeTask[LinkSpec](dependentLinking.id)
-      }
-    }
-    project.removeTask[TransformSpec](taskName)
+    project.removeAnyTask(taskName, removeDependentTasks)
+
     Ok
   }
 
