@@ -102,6 +102,7 @@ function save() {
 
   // Check if rule names are unique
   // TODO set id and implement highlightElement
+  // TODO this is broken, the CSS selector doesn't match anything anymore
   var names = $("#ruleContainer").find(".name").map(function() { return $(this).val() } ).toArray();
   var duplicateNames = $.grep(names, function(v, i) { return $.inArray(v, names) != i });
   if(duplicateNames.length > 0) {
@@ -134,8 +135,10 @@ function serializeRules() {
 
   // Collect all rules
   $("#ruleContainer .transformRule").each(function() {
+
     // Read name
     var name = $(this).find(".rule-name").text();
+    console.log(name);
     // Read source, target property and target type
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
@@ -385,7 +388,7 @@ function addRule(template) {
 
     resetMDLTextfields(newRule);
 
-    newRule.appendTo("#ruleTable table");
+    newRule.appendTo("#ruleTable > table");
     $(".mdl-layout__content").animate({
       scrollTop: $("#content").height()
     }, 300);
