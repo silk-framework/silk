@@ -3,8 +3,9 @@ package controllers.transform
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
-import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.config.Prefixes
+import org.silkframework.dataset.{DataSource, Dataset, EntitySink, PeakDataSource}
+import org.silkframework.entity.{EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
@@ -12,16 +13,19 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workbench.utils.JsonError
-import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.mvc.{Action, AnyContentAsXml, Controller}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
 class TransformTaskApi extends Controller {
 
+  implicit private val peakResultWrites = Json.writes[PeakResult]
+  implicit private val peakResultsWrites = Json.writes[PeakResults]
+
   private val log = Logger.getLogger(getClass.getName)
 
-  def putTransformTask(project: String, task: String) = Action { implicit request => {
+  def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
     val proj = User().workspace.project(project)
@@ -47,13 +51,13 @@ class TransformTaskApi extends Controller {
   }
   }
 
-  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean) = Action {
+  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
-    if(removeDependentTasks) {
-      for(dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
+    if (removeDependentTasks) {
+      for (dependentTransform <- project.tasks[TransformSpec].find(_.data.selection.inputId == taskName)) {
         project.removeTask[TransformSpec](dependentTransform.id)
       }
-      for(dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
+      for (dependentLinking <- project.tasks[LinkSpec].find(_.data.dataSelections.exists(_.inputId == taskName))) {
         project.removeTask[LinkSpec](dependentLinking.id)
       }
     }
@@ -61,7 +65,7 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def getRules(projectName: String, taskName: String) = Action {
+  def getRules(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -71,7 +75,7 @@ class TransformTaskApi extends Controller {
     </TransformRules>)
   }
 
-  def putRules(projectName: String, taskName: String) = Action { request => {
+  def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -101,7 +105,7 @@ class TransformTaskApi extends Controller {
   }
   }
 
-  def getRule(projectName: String, taskName: String, rule: String) = Action {
+  def getRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -112,7 +116,7 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  def putRule(projectName: String, taskName: String, ruleIndex: Int) = Action { request => {
+  def putRule(projectName: String, taskName: String, ruleIndex: Int): Action[AnyContent] = Action { request => {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -146,7 +150,7 @@ class TransformTaskApi extends Controller {
   }
   }
 
-  def reloadTransformCache(projectName: String, taskName: String) = Action {
+  def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     task.activity[TransformPathsCache].control.reset()
@@ -154,7 +158,7 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def executeTransformTask(projectName: String, taskName: String) = Action { request =>
+  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val activity = task.activity[ExecuteTransform].control
@@ -163,15 +167,15 @@ class TransformTaskApi extends Controller {
   }
 
   /**
-   * Given a search term, returns all possible completions for source property paths.
-   */
-  def sourcePathCompletions(projectName: String, taskName: String, term: String) = Action {
+    * Given a search term, returns all possible completions for source property paths.
+    */
+  def sourcePathCompletions(projectName: String, taskName: String, term: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = Seq[String]()
 
     // Add known paths
-    if (task.activity[TransformPathsCache].value != null) {
+    if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val knownPaths = task.activity[TransformPathsCache].value.typedPaths
       // TODO: The paths could be typed, discuss
       completions ++= knownPaths.map(_.path.serializeSimplified(project.config.prefixes)).sorted
@@ -192,26 +196,26 @@ class TransformTaskApi extends Controller {
     * Given a search term, returns possible completions for target paths.
     *
     * @param projectName The name of the project
-    * @param taskName The name of the transformation
-    * @param sourcePath The source path to be completed. If none, types will be suggested
-    * @param term The search term
+    * @param taskName    The name of the transformation
+    * @param sourcePath  The source path to be completed. If none, types will be suggested
+    * @param term        The search term
     * @return
     */
-  def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String) = Action {
+  def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
     val (project, task) = projectAndTask(projectName, taskName)
     val completions = TargetPathAutcompletion.retrieve(project, task, sourcePath, term)
     Ok(JsArray(completions.map(_.toJson)))
   }
 
   /**
-   * Transform entities bundled with the request according to the transformation task.
+    * Transform entities bundled with the request according to the transformation task.
     *
     * @param projectName
-   * @param taskName
-   * @return If no sink is specified in the request then return results in N-Triples format with the response,
-   *         else write triples to defined data sink.
-   */
-  def postTransformInput(projectName: String, taskName: String) = Action { request =>
+    * @param taskName
+    * @return If no sink is specified in the request then return results in N-Triples format with the response,
+    *         else write triples to defined data sink.
+    */
+  def postTransformInput(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -226,14 +230,66 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: ProjectTask[TransformSpec], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
-    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
+  private def executeTransform(task: ProjectTask[TransformSpec],
+                               entitySink: EntitySink,
+                               dataSource: DataSource,
+                               errorEntitySinkOpt: Option[EntitySink]): Unit = {
+    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink), errorEntitySinkOpt.toSeq)
     Activity(transform).startBlocking()
   }
 
   private def projectAndTask(projectName: String, taskName: String) = {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
+
+  /** Get sample source and transformed values */
+  def peakIntoTransformRule(projectName: String,
+                            taskName: String,
+                            ruleName: String): Action[AnyContent] = Action { request =>
+    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(3)
+    val (project, task) = projectAndTask(projectName, taskName)
+    val transformTask = task.data
+    val inputTask = transformTask.selection.inputId
+    implicit val prefixes = project.config.prefixes
+    project.anyTask(inputTask).data match {
+      case dataset: Dataset =>
+        dataset.source match {
+          case peakDataSource: PeakDataSource =>
+            val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
+              throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
+                  + task.data.rules.map(_.name).mkString(", "))
+            )
+            val entityDescription = oneRuleEntitySchema(transformTask, rule)
+            val exampleEntities = peakDataSource.peak(entityDescription, limit)
+            val sourceAndTargetResults = for(entity <- exampleEntities) yield {
+              PeakResult(entity.values, rule(entity))
+            }
+            Ok(Json.toJson(PeakResults(rule.paths.map(serializePath), sourceAndTargetResults.toSeq)))
+          case _ =>
+            NotImplemented("The Dataset with ID " + inputTask.toString + " does not support the peaking feature!")
+        }
+      case _ =>
+        NotImplemented("This is not supported for inputs other than Datasets.")
+    }
+  }
+
+  private def serializePath(path: Path)
+                           (implicit prefixes: Prefixes): Seq[String] = {
+    path.operators.map { op=>
+      op.serialize
+    }
+  }
+
+  private def oneRuleEntitySchema(transformTask: TransformSpec,
+                                  rule: TransformRule) = {
+    EntitySchema(
+      typeUri = transformTask.selection.typeUri,
+      typedPaths = rule.paths.distinct.
+          map(_.asStringTypedPath).toIndexedSeq,
+      filter = transformTask.selection.restriction
+    )
+  }
 }
 
-
+case class PeakResults(sourcePaths: Seq[Seq[String]], results: Seq[PeakResult])
+case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
