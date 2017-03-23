@@ -374,7 +374,7 @@ function addRule(template) {
     var newRuleName = generateRuleName(oldRuleName);
     nameInput.text(newRuleName);
 
-    var ruleRows = newRule.find("tr");
+    var ruleRows = newRule.find("tr.rule-table-row");
     $.each(ruleRows, function(index, row) {
       row = $(row);
       var ruleId = row.attr("id");
@@ -455,7 +455,13 @@ function toggleRuleConfig() {
 function toggleRule(ruleId) {
   var expandedRule = $("#" + ruleId + "__expanded");
   var buttons = $("#" + ruleId + " .rule-toggle button");
-  expandedRule.toggle(50, function() { buttons.toggle(); });
+  expandedRule.toggle(50, function() {
+    buttons.toggle();
+    if ($(this).is(':visible') && $(this).parent().data("was-changed")) {
+      loadExampleValues(ruleId);
+      $(this).parent().data("was-changed", false);
+    }
+  });
 }
 
 function uriMappingExists() {
@@ -573,4 +579,16 @@ function addTypeSelections(typeSelects) {
 function changePropertyDetails(propertyName, element) {
   var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");
   $.get(editorUrl + '/widgets/property', { property: propertyName }, function(data) { details.html(data); });
+}
+
+var loadExampleValues = function(ruleId) {
+  var peakApiUrl = apiUrl + "/peak/" + ruleId;
+  console.log("loading: " + peakApiUrl);
+  $.post(peakApiUrl, null, function(data, status) { console.log(data); }, "json");
+}
+
+var fillExamplesTable = function(ruleName) {
+
+  var ruleRow = $("#" + ruleName + "__expanded");
+  ruleRow.find(".di-rule__expanded-example-values tbody");
 }

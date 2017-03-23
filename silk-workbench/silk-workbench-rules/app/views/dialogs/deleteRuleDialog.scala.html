@@ -10,7 +10,7 @@
 <script>//<![CDATA[
 
     function submit() {
-      $('#@ruleName').remove();
+      $('#@ruleName').parent().remove();
       if ('@ruleName' == 'uri') {
         showURIMapping(false);
       }

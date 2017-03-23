@@ -107,6 +107,26 @@ th,td
 .di-rule-property-domain, .di-rule-property-range {
 }
 
+.di-rule__expanded .di-rule__expanded-example-values {
+  width: 100%;
+  border: none;
+  background-color: #dadada;
+}
+
+.di-rule__expanded .di-rule__expanded-example-values td, .di-rule__expanded .di-rule__expanded-example-values th {
+  border: none;
+  padding: 5px 10px !important;
+}
+
+.di-rule__expanded-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.di-rule__expanded-property-details-container, .di-rule__expanded-example-values-container {
+  height: 100%;
+}
+
 .di-rule-property-description {
   font-style: italic;
 }
@@ -245,7 +265,7 @@ th.rule-actions {
 
 /* overflow doesn't respect padding-right (of the table cell),
    so we need to use an inner div */
-.di-rule__expanded-content div {
+.di-rule__expanded-property-details-container div {
   overflow: hidden;
   white-space: normal;
   word-wrap: break-word;
@@ -268,11 +288,11 @@ th.rule-actions {
   background-color: #eee;
 }
 
-#ruleTable .transformRule td {
+#ruleTable .transformRule td.rule-table-cell {
   border-bottom: none;
 }
 
-#ruleTable .di-rule__expanded td {
+#ruleTable .di-rule__expanded td.rule-table-cell {
   border-top: none;
   border-right: none;
 }
