@@ -455,7 +455,8 @@ function toggleRuleConfig() {
   confContent.toggle(50, function() { buttons.toggle(); });
 }
 
-function toggleRule(ruleId) {
+function toggleRule(rule) {
+  var ruleId = rule.attr("id");
   var expandedRule = $("#" + ruleId + "__expanded");
   var buttons = $("#" + ruleId + " .rule-toggle button");
   expandedRule.toggle(50, function() {

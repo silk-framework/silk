@@ -175,10 +175,10 @@
     <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact rule-table-row">
       <td class="mdl-data-table__cell--non-numeric rule-name rule-table-cell">@rule.name</td>
       <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
+        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule($(this).parent().parent());">
           <i class="material-icons">expand_more</i>
         </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
+        <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule($(this).parent().parent());" style="display: none;">
           <i class="material-icons">expand_less</i>
         </button>
       </td>
