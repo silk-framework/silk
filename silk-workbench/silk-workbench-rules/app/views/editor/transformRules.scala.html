@@ -206,21 +206,7 @@
     </tr>
     <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded rule-table-row" style="display: none;">
       <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">&nbsp;</td>
-      <td colspan="2" class="mdl-data-table__cell--non-numeric rule-table-cell">
-        <div class="di-rule__expanded-example-values-container">
-          <div class="di-rule__expanded-header">Example Values</div>
-          <table class="mdl-data-table mdl-js-data-table di-rule__expanded-example-values">
-            <thead>
-            <tr>
-              <th class="mdl-data-table__cell--non-numeric">Before Mapping</th>
-              <th class="mdl-data-table__cell--non-numeric">After Mapping</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-        </div>
-      </td>
+      @exampleValueContainer()
       <td colspan="3" class="mdl-data-table__cell--non-numeric rule-table-cell">
         <div class="di-rule__expanded-property-details-container">
           <div class="di-rule__expanded-header">Target Property Details</div>
@@ -231,6 +217,25 @@
       <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
     </tr>
   </tbody>
+}
+
+@exampleValueContainer() = {
+      <td colspan="2" class="mdl-data-table__cell--non-numeric rule-table-cell">
+        <div class="di-rule__expanded-example-values-container">
+          <div class="di-rule__expanded-header">Example Values</div>
+          <table class="mdl-data-table mdl-js-data-table di-rule__expanded-example-values">
+            <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric di-example-values-source-path">Source Path</th>
+              <th class="mdl-data-table__cell--non-numeric di-example-values-source-value">Source Value</th>
+              <th class="mdl-data-table__cell--non-numeric di-example-values-transformed-value">Transformed Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </td>
 }
 
 @renderTypeRule(rule: TypeMapping) = {

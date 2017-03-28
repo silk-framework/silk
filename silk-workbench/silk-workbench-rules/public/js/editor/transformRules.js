@@ -612,12 +612,57 @@ var loadExampleValues = function(ruleId) {
   var ruleName = $("#" + ruleId).find(".rule-name").text();
   var peakApiUrl = apiUrl + "/peak/" + ruleName;
   console.log("loading: " + peakApiUrl);
-  $.post(peakApiUrl, null, function(data, status) { console.log(data); }, "json");
+  $.post(peakApiUrl, null, function(data, status) { fillExamplesTable(ruleId, data); }, "json");
   setRuleChanged(ruleId, false);
 }
 
-var fillExamplesTable = function(ruleName) {
+var fillExamplesTable = function(ruleId, data) {
 
-  var ruleRow = $("#" + ruleName + "__expanded");
-  ruleRow.find(".di-rule__expanded-example-values tbody");
+  var ruleRow = $("#" + ruleId + "__expanded");
+  var tbody = ruleRow.find(".di-rule__expanded-example-values tbody");
+  tbody.empty();
+  console.log(data);
+  data.results.forEach(function(result) {
+    result.sourceValues.forEach(function(sourceValues, pathIndex) {
+      var pathRow = document.createElement("tr");
+      var sourcePathCell = document.createElement("td");
+      $(sourcePathCell).addClass("mdl-data-table__cell--non-numeric");
+      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex]));
+      pathRow.append(sourcePathCell);
+      var sourceValueCell = document.createElement("td");
+      $(sourceValueCell).addClass("mdl-data-table__cell--non-numeric");
+      sourceValues.forEach(function(sourceValue) {
+        sourceValueCell.append(createValueElement(sourceValue));
+      });
+      pathRow.append(sourceValueCell);
+      if (pathIndex == 0) {
+        var rowSpan = result.sourceValues.length;
+        var transformedValueCell = document.createElement("td");
+        $(transformedValueCell).addClass("mdl-data-table__cell--non-numeric");
+        $(transformedValueCell).attr("rowspan", rowSpan);
+        result.transformedValues.forEach(function(transformedValue) {
+          transformedValueCell.append(createValueElement(transformedValue));
+        });
+        pathRow.append(transformedValueCell);
+      }
+      tbody.append(pathRow);
+    });
+  });
 }
+
+var createSourcePathElement = function(path, settings) {
+  var element = document.createElement("span");
+  element.append(path);
+  return element;
+}
+
+var createValueElement = function(value, settings) {
+  var chip = document.createElement("span");
+  $(chip).addClass("mdl-chip");
+  var text = document.createElement("span");
+  $(text).addClass("mdl-chip__text");
+  text.append(value);
+  chip.append(text);
+  return chip;
+}
+

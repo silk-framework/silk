@@ -118,6 +118,10 @@ th,td
   padding: 5px 10px !important;
 }
 
+.di-rule__expanded .di-rule__expanded-example-values tr, .di-rule__expanded .di-rule__expanded-example-values th, .di-rule__expanded .di-rule__expanded-example-values td {
+  height: inherit;
+}
+
 .di-rule__expanded-header {
   font-weight: bold;
   margin-bottom: 5px;
@@ -130,6 +134,9 @@ th,td
 .di-rule-property-description {
   font-style: italic;
 }
+
+
+
 
 /* autocomplete categories */
 .ui-autocomplete-category {
