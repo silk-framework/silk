@@ -28,6 +28,10 @@ $(function() {
   // Listen to modifications
   $(document).on('input', "input", function() {
     modified();
+    if ($(this).hasClass("source")) {
+      var ruleId = $(this).closest("tr").attr("id");
+      setRuleChanged(ruleId, true);
+    }
   });
 
   $("#ruleContainer").on("sortupdate", function( event, ui ) { modified() } );
@@ -121,11 +125,20 @@ function save() {
     success: function(response) {
       confirmOnExit = false;
       updateStatus([]);
-    },
+    } ,
     error: function(req) {
       console.log('Error committing rule: ' + req.responseText);
       var errors = [ { type: "Error", message: req.responseText } ];
       updateStatus(errors);
+    } ,
+    complete: function(e) {
+      console.log("done");
+      $.each($("#ruleTable .di-rule__compact"), function(index, rule) {
+        var ruleId = $(rule).attr("id");
+        if (shouldUpdateExamples(ruleId)) {
+          loadExampleValues(ruleId);
+        }
+      });
     }
   });
 }
@@ -138,7 +151,6 @@ function serializeRules() {
 
     // Read name
     var name = $(this).find(".rule-name").text();
-    console.log(name);
     // Read source, target property and target type
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
@@ -461,9 +473,8 @@ function toggleRule(rule) {
   var buttons = $("#" + ruleId + " .rule-toggle button");
   expandedRule.toggle(50, function() {
     buttons.toggle();
-    if ($(this).is(':visible') && $(this).parent().data("was-changed")) {
+    if (shouldUpdateExamples(ruleId)) {
       loadExampleValues(ruleId);
-      $(this).parent().data("was-changed", false);
     }
   });
 }
@@ -585,10 +596,24 @@ function changePropertyDetails(propertyName, element) {
   $.get(editorUrl + '/widgets/property', { property: propertyName }, function(data) { details.html(data); });
 }
 
+var setRuleChanged = function(ruleId, changed) {
+  $("#" + ruleId).closest("tbody").data("was-changed", changed);
+}
+
+var shouldUpdateExamples = function(ruleId) {
+  var changed = $("#" + ruleId).closest("tbody").data("was-changed");
+  var visible = $("#" + ruleId + "__expanded").is(':visible');
+  console.log("changed: " + changed);
+  console.log("visible: " + visible);
+  return (changed && visible);
+}
+
 var loadExampleValues = function(ruleId) {
-  var peakApiUrl = apiUrl + "/peak/" + ruleId;
+  var ruleName = $("#" + ruleId).find(".rule-name").text();
+  var peakApiUrl = apiUrl + "/peak/" + ruleName;
   console.log("loading: " + peakApiUrl);
   $.post(peakApiUrl, null, function(data, status) { console.log(data); }, "json");
+  setRuleChanged(ruleId, false);
 }
 
 var fillExamplesTable = function(ruleName) {

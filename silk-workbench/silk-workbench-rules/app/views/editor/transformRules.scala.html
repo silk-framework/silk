@@ -154,7 +154,7 @@
       });
       $("input").keyup(function(e) {
         if (e.keyCode == 13) {
-          $(this).catcomplete("close");
+          $(this).autocomplete("close");
           if ($(this).is($("#rule-type-textfield input"))) {
             $(this).trigger("enter");
           }
