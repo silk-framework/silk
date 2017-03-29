@@ -10,7 +10,11 @@
 <script>//<![CDATA[
 
     function submit() {
-      $('#@ruleName').parent().remove();
+      var ruleElement = $('#@ruleName');
+      if (!ruleElement.hasClass("typeMapping")) {
+        ruleElement = ruleElement.parent();
+      }
+      ruleElement.remove();
       if ('@ruleName' == 'uri') {
         showURIMapping(false);
       }
