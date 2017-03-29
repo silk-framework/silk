@@ -132,7 +132,6 @@ function save() {
       updateStatus(errors);
     } ,
     complete: function(e) {
-      console.log("done");
       $.each($("#ruleTable .di-rule__compact"), function(index, rule) {
         var ruleId = $(rule).attr("id");
         if (shouldUpdateExamples(ruleId)) {
@@ -688,11 +687,15 @@ var loadExampleValues = function(ruleId) {
     success: function(data, status) {
       console.log(data);
       fillExamplesTable(ruleId, data);
+      showExamplesTable(ruleId, true);
     } ,
     error: function(jqXHR, textStatus, error) {
+      var message = jqXHR.responseJSON.message;
       console.log(jqXHR);
-      console.log(textStatus);
-      console.log(error);
+      var alertPanel = $("#" + ruleId +"__expanded .di-rule__expanded-example-values-errors");
+      var alertContent = alertPanel.find(".mdl-alert__content");
+      alertContent.text(message);
+      showExamplesTable(ruleId, false);
     }
   });
   setRuleChanged(ruleId, false);
@@ -764,3 +767,15 @@ var createValueElement = function(value, settings={}) {
   return chip;
 }
 
+var showExamplesTable = function(ruleId, show) {
+  var examplesTable = $("#" + ruleId +"__expanded .di-rule__expanded-example-values");
+  var alertPanel = $("#" + ruleId +"__expanded .di-rule__expanded-example-values-errors");
+  if (show) {
+    examplesTable.show();
+    alertPanel.hide();
+  } else {
+    examplesTable.hide();
+    alertPanel.show();
+  }
+
+}

@@ -140,11 +140,11 @@ th,td
   flex-wrap: wrap;
 }
 
-.di-rule-first-path, #exampleValues thead tr {
+.di-rule-first-path, .di-rule__expanded-example-values thead tr {
   border-top: solid 1px rgba(0, 0, 0, 0.117647);
 }
 
-#exampleValues tbody {
+.di-rule__expanded-example-values tbody {
   background: white;
   border-bottom: solid 1px rgba(0, 0, 0, 0.117647);
 }
@@ -154,28 +154,28 @@ th,td
   padding: 8px 12px;
 }
 
-#exampleValues .di-rule-example-value {
+.di-rule__expanded-example-values .di-rule-example-value {
   background: #dadada;
   margin-right: 4px;
 }
 
-#exampleValues .di-rule-example-path-1 {
+.di-rule__expanded-example-values .di-rule-example-path-1 {
   background: #f2d7ff;
 }
 
-#exampleValues .di-rule-example-path-2 {
+.di-rule__expanded-example-values .di-rule-example-path-2 {
   background: #ffd7d7;
 }
 
-#exampleValues .di-rule-example-path-3 {
+.di-rule__expanded-example-values .di-rule-example-path-3 {
   background: #d6fff0;
 }
 
-#exampleValues .di-rule-example-path-4 {
+.di-rule__expanded-example-values .di-rule-example-path-4 {
   background: #ffeed6;
 }
 
-#exampleValues .di-rule-example-path-5 {
+.di-rule__expanded-example-values .di-rule-example-path-5 {
   background: #d6eeff;
 }
 
