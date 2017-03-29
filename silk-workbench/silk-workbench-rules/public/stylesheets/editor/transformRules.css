@@ -135,8 +135,49 @@ th,td
   font-style: italic;
 }
 
+.di-rule-value-container {
+  display: flex;
+  flex-wrap: wrap;
+}
 
+.di-rule-first-path, #exampleValues thead tr {
+  border-top: solid 1px rgba(0, 0, 0, 0.117647);
+}
 
+#exampleValues tbody {
+  background: white;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.117647);
+}
+
+.di-rule-example-source-path {
+  background: #dadada;
+  padding: 8px 12px;
+}
+
+#exampleValues .di-rule-example-value {
+  background: #dadada;
+  margin-right: 4px;
+}
+
+#exampleValues .di-rule-example-path-1 {
+  background: #f2d7ff;
+}
+
+#exampleValues .di-rule-example-path-2 {
+  background: #ffd7d7;
+}
+
+#exampleValues .di-rule-example-path-3 {
+  background: #d6fff0;
+}
+
+#exampleValues .di-rule-example-path-4 {
+  background: #ffeed6;
+}
+
+#exampleValues .di-rule-example-path-5 {
+  background: #d6eeff;
+}
 
 /* autocomplete categories */
 .ui-autocomplete-category {

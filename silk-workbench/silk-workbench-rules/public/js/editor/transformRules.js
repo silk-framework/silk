@@ -603,16 +603,98 @@ var setRuleChanged = function(ruleId, changed) {
 var shouldUpdateExamples = function(ruleId) {
   var changed = $("#" + ruleId).closest("tbody").data("was-changed");
   var visible = $("#" + ruleId + "__expanded").is(':visible');
-  console.log("changed: " + changed);
-  console.log("visible: " + visible);
   return (changed && visible);
 }
+
+var testData = {
+                              "results": [
+                                  {
+                                      "sourceValues": [
+                                          [
+                                              "Olaf",
+                                              "Ralf"
+                                          ],
+                                          [
+                                              "M\u00fcller",
+                                              "Schmidt" ,
+                                              "Meier" ,
+                                              "Schulz"
+                                          ]
+                                      ],
+                                      "transformedValues": [
+                                          " Olaf  M%C3%BCller",
+                                          " Olaf  Schmidt",
+                                          " Ralf  M%C3%BCller",
+                                          " Ralf  Schmidt"
+                                      ]
+                                  } ,
+                                  {
+                                      "sourceValues": [
+                                          [
+                                              "Olaf",
+                                              "Ralf"
+                                          ],
+                                          [
+                                              "M\u00fcller",
+                                              "Schmidt"
+                                          ]
+                                      ],
+                                      "transformedValues": [
+                                          " Olaf  M%C3%BCller",
+                                          " Olaf  Schmidt",
+                                          " Ralf  M%C3%BCller",
+                                          " Ralf  Schmidt"
+                                      ]
+                                  } ,
+                                  {
+                                      "sourceValues": [
+                                          [
+                                              "Olaf",
+                                              "Ralf"
+                                          ],
+                                          [
+                                              "M\u00fcller",
+                                              "Schmidt"
+                                          ]
+                                      ],
+                                      "transformedValues": [
+                                          " Olaf  M%C3%BCller",
+                                          " Olaf  Schmidt",
+                                          " Ralf  M%C3%BCller",
+                                          " Ralf  Schmidt"
+                                      ]
+                                  } ,
+                              ],
+                              "sourcePaths": [
+                                  [
+                                      "/<http://firstName>"
+                                  ],
+                                  [
+                                      "/<http://lastName>"
+                                  ]
+                              ]
+                          };
 
 var loadExampleValues = function(ruleId) {
   var ruleName = $("#" + ruleId).find(".rule-name").text();
   var peakApiUrl = apiUrl + "/peak/" + ruleName;
-  console.log("loading: " + peakApiUrl);
-  $.post(peakApiUrl, null, function(data, status) { fillExamplesTable(ruleId, data); }, "json");
+  $.post(peakApiUrl, null, function(data, status) {
+    fillExamplesTable(ruleId, data);
+  }, "json").fail(function() { console.log("fail")});
+
+  $.ajax({
+    type: "POST" ,
+    url: peakApiUrl ,
+    success: function(data, status) {
+      console.log(data);
+      fillExamplesTable(ruleId, data);
+    } ,
+    error: function(jqXHR, textStatus, error) {
+      console.log(jqXHR);
+      console.log(textStatus);
+      console.log(error);
+    }
+  });
   setRuleChanged(ruleId, false);
 }
 
@@ -621,27 +703,34 @@ var fillExamplesTable = function(ruleId, data) {
   var ruleRow = $("#" + ruleId + "__expanded");
   var tbody = ruleRow.find(".di-rule__expanded-example-values tbody");
   tbody.empty();
-  console.log(data);
+  var pathCount = data.sourcePaths.length;
   data.results.forEach(function(result) {
     result.sourceValues.forEach(function(sourceValues, pathIndex) {
       var pathRow = document.createElement("tr");
       var sourcePathCell = document.createElement("td");
       $(sourcePathCell).addClass("mdl-data-table__cell--non-numeric");
-      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex]));
+      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex], { pathIndex: pathIndex }));
       pathRow.append(sourcePathCell);
       var sourceValueCell = document.createElement("td");
       $(sourceValueCell).addClass("mdl-data-table__cell--non-numeric");
+      var valueContainer = document.createElement("div");
+      $(valueContainer).addClass("di-rule-value-container");
+      sourceValueCell.append(valueContainer);
       sourceValues.forEach(function(sourceValue) {
-        sourceValueCell.append(createValueElement(sourceValue));
+        valueContainer.append(createValueElement(sourceValue, { pathIndex: pathIndex }));
       });
       pathRow.append(sourceValueCell);
       if (pathIndex == 0) {
-        var rowSpan = result.sourceValues.length;
+        $(pathRow).addClass("di-rule-first-path");
+        var rowSpan = pathCount;
         var transformedValueCell = document.createElement("td");
         $(transformedValueCell).addClass("mdl-data-table__cell--non-numeric");
         $(transformedValueCell).attr("rowspan", rowSpan);
+        var valueContainer = document.createElement("div");
+        $(valueContainer).addClass("di-rule-value-container");
+        transformedValueCell.append(valueContainer);
         result.transformedValues.forEach(function(transformedValue) {
-          transformedValueCell.append(createValueElement(transformedValue));
+          valueContainer.append(createValueElement(transformedValue));
         });
         pathRow.append(transformedValueCell);
       }
@@ -652,13 +741,22 @@ var fillExamplesTable = function(ruleId, data) {
 
 var createSourcePathElement = function(path, settings) {
   var element = document.createElement("span");
+  $(element).addClass("di-rule-example-source-path");
+  var pathIndex = settings['pathIndex'];
+  if (pathIndex > 0) {
+    $(element).addClass("di-rule-example-path-" + pathIndex);
+  }
   element.append(path);
   return element;
 }
 
-var createValueElement = function(value, settings) {
+var createValueElement = function(value, settings={}) {
   var chip = document.createElement("span");
-  $(chip).addClass("mdl-chip");
+  $(chip).addClass("mdl-chip di-rule-example-value");
+  var pathIndex = settings['pathIndex'];
+  if (pathIndex > 0) {
+    $(chip).addClass("di-rule-example-path-" + pathIndex);
+  }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
   text.append(value);
