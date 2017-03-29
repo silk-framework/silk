@@ -8,17 +8,13 @@ import org.silkframework.dataset.{Dataset, TripleSinkDataset}
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.util.Uri
+import LocalDatasetExecutor._
 
 /**
   * Created on 7/20/16.
   */
 class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
-
-  final val LANGUAGE_ENC_PREFIX = "lg"
-  final val DATA_TYPE_ENC_PREFIX = "dt"
-  final val URI_ENC_PREFIX = "ur"
-  final val BLANK_NODE_ENC_PREFIX = "bn"
 
   /**
     * Reads data from a dataset.
@@ -100,28 +96,20 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def writeTriples(dataset: Dataset, entities: Traversable[Entity]): Unit = {
     dataset match {
       case rdfDataset: TripleSinkDataset =>
-        writeTriples(entities, rdfDataset)
+        LocalDatasetExecutor.writeTriples(entities, rdfDataset)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")
     }
   }
+}
 
-  def convertToValueType(encodedType: String): ValueType = {
-    encodedType.take(2) match {
-      case DATA_TYPE_ENC_PREFIX =>
-        CustomValueType(encodedType.drop(3))
-      case LANGUAGE_ENC_PREFIX =>
-        LanguageValueType(encodedType.drop(3))
-      case URI_ENC_PREFIX =>
-        UriValueType
-      case BLANK_NODE_ENC_PREFIX =>
-        BlankNodeValueType
-      case _ =>
-        StringValueType
-    }
-  }
+object LocalDatasetExecutor {
+  final val LANGUAGE_ENC_PREFIX = "lg"
+  final val DATA_TYPE_ENC_PREFIX = "dt"
+  final val URI_ENC_PREFIX = "ur"
+  final val BLANK_NODE_ENC_PREFIX = "bn"
 
-  private def writeTriples(entities: Traversable[Entity], tripleSinkDataset: TripleSinkDataset): Unit = {
+  def writeTriples(entities: Traversable[Entity], tripleSinkDataset: TripleSinkDataset): Unit = {
     val sink = tripleSinkDataset.tripleSink
     sink.init()
     for (entity <- entities) {
@@ -138,5 +126,20 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       }
     }
     sink.close()
+  }
+
+  def convertToValueType(encodedType: String): ValueType = {
+    encodedType.take(2) match {
+      case DATA_TYPE_ENC_PREFIX =>
+        CustomValueType(encodedType.drop(3))
+      case LANGUAGE_ENC_PREFIX =>
+        LanguageValueType(encodedType.drop(3))
+      case URI_ENC_PREFIX =>
+        UriValueType
+      case BLANK_NODE_ENC_PREFIX =>
+        BlankNodeValueType
+      case _ =>
+        StringValueType
+    }
   }
 }
