@@ -127,8 +127,12 @@ th,td
   margin-bottom: 5px;
 }
 
-.di-rule__expanded-property-details-container, .di-rule__expanded-example-values-container {
+.di-rule-details-container {
   height: 100%;
+}
+
+.di-rule-details-container-source {
+  display: none;
 }
 
 .di-rule-property-description {
@@ -313,7 +317,7 @@ th.rule-actions {
 
 /* overflow doesn't respect padding-right (of the table cell),
    so we need to use an inner div */
-.di-rule__expanded-property-details-container div {
+.di-rule-details-container-target-property div {
   overflow: hidden;
   white-space: normal;
   word-wrap: break-word;
@@ -341,8 +345,7 @@ th.rule-actions {
 }
 
 #ruleTable .di-rule__expanded td.rule-table-cell {
-  border-top: none;
-  border-right: none;
+  border: none;
 }
 
 #ruleTable .mdl-textfield__input {

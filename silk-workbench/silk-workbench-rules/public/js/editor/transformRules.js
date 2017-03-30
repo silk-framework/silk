@@ -468,7 +468,8 @@ function toggleRuleConfig() {
 
 function toggleRule(rule) {
   var ruleId = rule.attr("id");
-  var expandedRule = $("#" + ruleId + "__expanded");
+//  var expandedRule = $("#" + ruleId + "__expanded");
+  var expandedRule = $("#" + ruleId).siblings(".di-rule__expanded");
   var buttons = $("#" + ruleId + " .rule-toggle button");
   expandedRule.toggle(50, function() {
     buttons.toggle();
@@ -692,7 +693,7 @@ var loadExampleValues = function(ruleId) {
     error: function(jqXHR, textStatus, error) {
       var message = jqXHR.responseJSON.message;
       console.log(jqXHR);
-      var alertPanel = $("#" + ruleId +"__expanded .di-rule__expanded-example-values-errors");
+      var alertPanel = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-errors");
       var alertContent = alertPanel.find(".mdl-alert__content");
       alertContent.text(message);
       showExamplesTable(ruleId, false);
@@ -703,7 +704,7 @@ var loadExampleValues = function(ruleId) {
 
 var fillExamplesTable = function(ruleId, data) {
 
-  var ruleRow = $("#" + ruleId + "__expanded");
+  var ruleRow = $("#" + ruleId).closest("tbody");
   var tbody = ruleRow.find(".di-rule__expanded-example-values tbody");
   tbody.empty();
   var pathCount = data.sourcePaths.length;
@@ -768,8 +769,9 @@ var createValueElement = function(value, settings={}) {
 }
 
 var showExamplesTable = function(ruleId, show) {
-  var examplesTable = $("#" + ruleId +"__expanded .di-rule__expanded-example-values");
-  var alertPanel = $("#" + ruleId +"__expanded .di-rule__expanded-example-values-errors");
+  var ruleRow = $("#" + ruleId).closest("tbody");
+  var examplesTable = ruleRow.find(".di-rule__expanded-example-values");
+  var alertPanel = ruleRow.find(".di-rule__expanded-example-values-errors");
   if (show) {
     examplesTable.show();
     alertPanel.hide();

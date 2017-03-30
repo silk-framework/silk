@@ -204,23 +204,35 @@
         @XmlSerialization.toXml[TransformRule](rule)
       </script>
     </tr>
-    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded rule-table-row" style="display: none;">
-      <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">&nbsp;</td>
-      @exampleValueContainer()
-      <td colspan="3" class="mdl-data-table__cell--non-numeric rule-table-cell">
-        <div class="di-rule__expanded-property-details-container">
-          <div class="di-rule__expanded-header">Target Property Details</div>
-          <div id="@{rule.name}_details" class="di-rule__expanded-property-details">
-          </div>
-        </div>
-      </td>
-      <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
-    </tr>
+    @expandedRow(rule)
   </tbody>
 }
 
+@expandedRow(rule: TransformRule) = {
+<tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded rule-table-row" style="display: none;">
+  <td colspan="2" class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">&nbsp;</td>
+  <td class="mdl-data-table__cell--non-numeric rule-table-cell">
+    <div class="di-rule-details-container di-rule-details-container-source">
+      <div class="di-rule__expanded-header">Source Details</div>
+    </div>
+  </td>
+  <td colspan="3" class="mdl-data-table__cell--non-numeric rule-table-cell">
+    <div class="di-rule-details-container di-rule-details-container-target-property">
+      <div class="di-rule__expanded-header">Target Property Details</div>
+      <div id="@{rule.name}_details" class="di-rule__expanded-property-details">
+      </div>
+    </div>
+  </td>
+  <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
+</tr>
+<tr class="di-rule__expanded rule-table-row" style="display: none;">
+  <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">&nbsp;</td>
+  @exampleValueContainer()
+</tr>
+}
+
 @exampleValueContainer() = {
-      <td colspan="2" class="mdl-data-table__cell--non-numeric rule-table-cell">
+      <td colspan="5" class="mdl-data-table__cell--non-numeric rule-table-cell">
         <div class="di-rule__expanded-example-values-container">
           <div class="di-rule__expanded-header">Example Values</div>
           <table class="mdl-data-table mdl-js-data-table di-rule__expanded-example-values">
