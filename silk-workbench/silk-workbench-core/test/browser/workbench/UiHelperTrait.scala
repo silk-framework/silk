@@ -25,13 +25,13 @@ trait UiHelperTrait extends { this: OneBrowserPerSuite =>
   def eventuallyIsDisplayed(query: Query): Unit = {
     eventuallyIsTrue {
       query.element.isDisplayed
-    }
+    }(errorMessage = "Element corresponding to query " + query.toString + "is never displayed.")
   }
 
-  def eventuallyIsTrue(block: => Boolean): Unit = {
+  def eventuallyIsTrue(block: => Boolean)(errorMessage: String = ""): Unit = {
     eventually {
       if(!block) {
-        throw new RuntimeException("Condition is not yet true.")
+        throw new RuntimeException("Condition is not yet true. " + errorMessage)
       }
     }
   }

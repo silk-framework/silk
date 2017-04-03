@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.util.ProjectUtils._
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, Dataset, EntitySink, PeakDataSource}
-import org.silkframework.entity.{EntitySchema, Path, Restriction}
+import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
@@ -18,10 +18,20 @@ import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
-class TransformTaskApi extends Controller {
+import scala.util.control.NonFatal
 
+class TransformTaskApi extends Controller {
+  implicit private val peakStatusWrites = Json.writes[PeakStatus]
   implicit private val peakResultWrites = Json.writes[PeakResult]
   implicit private val peakResultsWrites = Json.writes[PeakResults]
+  // Max number of exceptions before aborting the mapping preview call
+  final val MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS: Int = 50
+  // The number of transformation preview results that should be returned by the REST API
+  final val TRANSFORMATION_PREVIEW_LIMIT: Int = 3
+  // Maximum number of empty transformation results to skip during the mapping preview calculation
+  final val MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS: Int = 500
+  // Max number of entities to examine for the mapping preview
+  final val MAX_TRY_ENTITIES_DEFAULT: Int = MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS + TRANSFORMATION_PREVIEW_LIMIT + MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -246,7 +256,8 @@ class TransformTaskApi extends Controller {
   def peakIntoTransformRule(projectName: String,
                             taskName: String,
                             ruleName: String): Action[AnyContent] = Action { request =>
-    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(3)
+    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
+    val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     val (project, task) = projectAndTask(projectName, taskName)
     val transformTask = task.data
     val inputTask = transformTask.selection.inputId
@@ -260,22 +271,80 @@ class TransformTaskApi extends Controller {
                   + task.data.rules.map(_.name).mkString(", "))
             )
             val entityDescription = oneRuleEntitySchema(transformTask, rule)
-            val exampleEntities = peakDataSource.peak(entityDescription, limit)
-            val sourceAndTargetResults = for(entity <- exampleEntities) yield {
-              PeakResult(entity.values, rule(entity))
-            }
-            Ok(Json.toJson(PeakResults(rule.paths.map(serializePath), sourceAndTargetResults.toSeq)))
+            val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
+            generateMappingPreviewResponse(rule, exampleEntities, limit)
           case _ =>
-            NotImplemented("The Dataset with ID " + inputTask.toString + " does not support the peaking feature!")
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus("not supported", "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
+                " does not support transformation preview!"))))
         }
-      case _ =>
-        NotImplemented("This is not supported for inputs other than Datasets.")
+      case _: ProjectTask[_] =>
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus("not supported", "Input task " + inputTask.toString +
+            " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
     }
+  }
+
+  // Generate the HTTP response for the mapping transformation preview
+  private def generateMappingPreviewResponse(rule: TransformRule,
+                                             exampleEntities: Traversable[Entity],
+                                             limit: Int)
+                                            (implicit prefixes: Prefixes) = {
+    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
+    if (sourceAndTargetResults.nonEmpty) {
+      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+        status = PeakStatus("success", ""))))
+    } else if (errorCounter > 0) {
+      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+        status = PeakStatus("empty with exceptions",
+          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. First exception: " + errorMessage))))
+    } else {
+      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+        status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))
+    }
+  }
+
+  /**
+    *
+    * @param rule The transformation rule to execute on the example entities.
+    * @param exampleEntities Entities to try executing the tranform rule on
+    * @param limit Limit of examples to return
+    * @return
+    */
+  def collectTransformationExamples(rule: TransformRule, exampleEntities: Traversable[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
+    // Number of examples collected
+    var exampleCounter = 0
+    // Number of exceptions occurred
+    var errorCounter = 0
+    // Number of example entities tried
+    var tryCounter = 0
+    // Record the first error message
+    var errorMessage: String = ""
+    val sourceAndTargetResults = (for (entity <- exampleEntities
+                                       if exampleCounter < limit) yield {
+      tryCounter += 1
+      try {
+        val transformResult = rule(entity)
+        if (transformResult.nonEmpty) {
+          val result = Some(PeakResult(entity.values, transformResult))
+          exampleCounter += 1
+          result
+        } else {
+          None
+        }
+      } catch {
+        case NonFatal(ex) =>
+          errorCounter += 1
+          if (errorMessage.isEmpty) {
+            errorMessage = ex.getClass.getSimpleName + ": " + Option(ex.getMessage).getOrElse("")
+          }
+          None
+      }
+    }).toSeq.flatten
+    (tryCounter, errorCounter, errorMessage, sourceAndTargetResults)
   }
 
   private def serializePath(path: Path)
                            (implicit prefixes: Prefixes): Seq[String] = {
-    path.operators.map { op=>
+    path.operators.map { op =>
       op.serialize
     }
   }
@@ -291,5 +360,8 @@ class TransformTaskApi extends Controller {
   }
 }
 
-case class PeakResults(sourcePaths: Seq[Seq[String]], results: Seq[PeakResult])
+case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
+
+case class PeakStatus(id: String, msg: String)
+
 case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
