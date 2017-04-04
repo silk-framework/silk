@@ -13,6 +13,7 @@ import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulExcepti
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
+import SilkErrorHandler.prefersHtml
 
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
@@ -121,11 +122,13 @@ class SilkErrorHandler (env: Environment,
         InternalServerError(JsonError(ex))
     }
   }
+}
 
-  protected def prefersHtml(request: RequestHeader): Boolean = {
+object SilkErrorHandler {
+  def prefersHtml(request: RequestHeader): Boolean = {
     val htmlIndex = request.acceptedTypes.indexWhere(_.accepts(MimeTypes.HTML))
     val jsonIndex = request.acceptedTypes.indexWhere(_.accepts(MimeTypes.JSON))
 
-    htmlIndex < jsonIndex
+    htmlIndex > -1 && (jsonIndex < 0 || htmlIndex < jsonIndex)
   }
 }
