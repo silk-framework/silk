@@ -471,8 +471,8 @@ function toggleRule(rule) {
 //  var expandedRule = $("#" + ruleId + "__expanded");
   var expandedRule = $("#" + ruleId).siblings(".di-rule__expanded");
   var buttons = $("#" + ruleId + " .rule-toggle button");
+  buttons.toggle();
   expandedRule.toggle(50, function() {
-    buttons.toggle();
     if (shouldUpdateExamples(ruleId)) {
       loadExampleValues(ruleId);
     }
@@ -686,7 +686,6 @@ var loadExampleValues = function(ruleId) {
     type: "POST" ,
     url: peakApiUrl ,
     success: function(data, status) {
-      console.log(data);
       fillExamplesTable(ruleId, data);
       showExamplesTable(ruleId, true);
     } ,

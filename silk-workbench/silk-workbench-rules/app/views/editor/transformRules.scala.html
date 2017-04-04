@@ -52,10 +52,10 @@
     <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title di-vertical-align">
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();" style="display: none;">
-          <i class="material-icons">expand_more</i>
+          <i class="material-icons">chevron_right</i>
         </button>
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();">
-          <i class="material-icons">expand_less</i>
+          <i class="material-icons">expand_more</i>
         </button>
         <h2 class="mdl-card__title-text">Configuration:&nbsp;<span class="di-highlight">@context.task.id</span></h2>
       </div>
@@ -176,10 +176,10 @@
       <td class="mdl-data-table__cell--non-numeric rule-name rule-table-cell">@rule.name</td>
       <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule($(this).parent().parent());">
-          <i class="material-icons">expand_more</i>
+          <i class="material-icons">chevron_right</i>
         </button>
         <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule($(this).parent().parent());" style="display: none;">
-          <i class="material-icons">expand_less</i>
+          <i class="material-icons">expand_more</i>
         </button>
       </td>
       <td class="mdl-data-table__cell--non-numeric rule-type rule-table-cell"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
