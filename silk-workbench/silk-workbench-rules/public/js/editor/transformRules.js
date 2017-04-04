@@ -392,9 +392,11 @@ function addRule(template) {
     $.each(ruleRows, function(index, row) {
       row = $(row);
       var ruleId = row.attr("id");
-      ruleId = ruleId.replace(oldRuleName, newRuleName);
-      row.attr("id", ruleId);
-      row.find("button.delete-button").attr("onclick", "deleteRule('" + ruleId + "');");
+      if (ruleId) {
+        ruleId = ruleId.replace(oldRuleName, newRuleName);
+        row.attr("id", ruleId);
+        row.find("button.delete-button").attr("onclick", "deleteRule('" + ruleId + "');");
+      }
     })
 
     resetMDLTextfields(newRule);
@@ -686,6 +688,7 @@ var loadExampleValues = function(ruleId) {
     type: "POST" ,
     url: peakApiUrl ,
     success: function(data, status) {
+      console.log(data);
       fillExamplesTable(ruleId, data);
       showExamplesTable(ruleId, true);
     } ,
