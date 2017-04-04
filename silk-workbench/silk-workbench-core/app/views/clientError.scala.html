@@ -1,0 +1,28 @@
+@(errorMessage: String)(implicit session: play.api.mvc.Session)
+
+@header = { }
+
+@toolbar = { }
+
+@content = {
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+        <div class="mdl-card__title mdl-card--border">
+          <h3 class="mdl-card__title-text">
+            Error
+          </h3>
+        </div>
+        <div class="mdl-card__content">
+          <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div class="mdl-alert__content">
+              <p>@errorMessage</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@main(None, "")(header)(toolbar)(content)(session)
