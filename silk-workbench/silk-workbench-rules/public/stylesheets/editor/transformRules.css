@@ -144,9 +144,18 @@ th,td
   font-style: italic;
 }
 
-.di-rule-value-container {
+.di-rule-chip-container {
   display: flex;
   flex-wrap: wrap;
+}
+
+.di-rule-chip-container-paths .mdl-chip {
+  border-radius: 0px;
+}
+
+.di-rule-chip-container .mdl-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .di-rule-first-path, .di-rule__expanded-example-values thead tr {
@@ -164,10 +173,6 @@ th,td
 .di-rule__expanded-example-values tbody {
   background: white;
   border-bottom: solid 1px rgba(0, 0, 0, 0.117647);
-}
-
-.di-rule-example-path-container {
-  display: flex;
 }
 
 .di-rule-example-source-path {

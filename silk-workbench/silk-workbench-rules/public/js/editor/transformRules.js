@@ -1,6 +1,7 @@
 var currentRule;
 var confirmOnExit = false;
 var modificationTimer;
+var exampleCounter = 0;
 
 $(function() {
   // Make rules sortable
@@ -83,6 +84,15 @@ $(function() {
 
   // toggle URI mapping UI
   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
+
+  // adjust long example values and paths on resize
+  $(window).resize(function() {
+    $.each($(".di-rule__expanded-example-values-container"), function(index, element) {
+      if (shouldResize(element)) {
+        resizeValues(element);
+      }
+    });
+  });
 
 });
 
@@ -472,6 +482,7 @@ function toggleRule(rule) {
   var ruleId = rule.attr("id");
 //  var expandedRule = $("#" + ruleId + "__expanded");
   var expandedRule = $("#" + ruleId).siblings(".di-rule__expanded");
+  var exampleValues = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-container");
   var buttons = $("#" + ruleId + " .rule-toggle button");
   buttons.toggle();
   expandedRule.toggle(50, function() {
@@ -479,6 +490,11 @@ function toggleRule(rule) {
       loadExampleValues(ruleId);
     }
   });
+    if (shouldResize(exampleValues)) {
+      $.each(exampleValues, function(index, element) {
+        resizeValues(element);
+      });
+    }
 }
 
 function uriMappingExists() {
@@ -608,6 +624,10 @@ var shouldUpdateExamples = function(ruleId) {
   return (changed && visible);
 }
 
+var shouldResize = function(element) {
+  return $(element).is(":visible");
+}
+
 var testData = {
                               "results": [
                                   {
@@ -706,6 +726,9 @@ var loadExampleValues = function(ruleId) {
 
 var fillExamplesTable = function(ruleId, data) {
 
+  exampleCounter = 0;
+  $("#valueTooltips").empty();
+
   var ruleRow = $("#" + ruleId).closest("tbody");
   var tbody = ruleRow.find(".di-rule__expanded-example-values tbody");
   tbody.empty();
@@ -715,15 +738,19 @@ var fillExamplesTable = function(ruleId, data) {
       var pathRow = document.createElement("tr");
       var sourcePathCell = document.createElement("td");
       $(sourcePathCell).addClass("mdl-data-table__cell--non-numeric");
-      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex], { pathIndex: pathIndex }));
+      var chipId = ruleId + "_ex_" + exampleCounter++;
+      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex], { pathIndex: pathIndex, chipId: chipId }));
+      $("#valueTooltips").append(createTooltip(data.sourcePaths[pathIndex], chipId, true));
       pathRow.append(sourcePathCell);
       var sourceValueCell = document.createElement("td");
       $(sourceValueCell).addClass("mdl-data-table__cell--non-numeric");
       var valueContainer = document.createElement("div");
-      $(valueContainer).addClass("di-rule-value-container");
+      $(valueContainer).addClass("di-rule-chip-container di-rule-chip-container-values");
       sourceValueCell.append(valueContainer);
       sourceValues.forEach(function(sourceValue) {
-        valueContainer.append(createValueElement(sourceValue, { pathIndex: pathIndex }));
+        var chipId = ruleId + "_ex_" + exampleCounter++;
+        valueContainer.append(createValueElement(sourceValue, { pathIndex: pathIndex, chipId: chipId }));
+        $("#valueTooltips").append(createTooltip(sourceValue, chipId, true));
       });
       pathRow.append(sourceValueCell);
       if (pathIndex == 0) {
@@ -733,10 +760,12 @@ var fillExamplesTable = function(ruleId, data) {
         $(transformedValueCell).addClass("mdl-data-table__cell--non-numeric");
         $(transformedValueCell).attr("rowspan", rowSpan);
         var valueContainer = document.createElement("div");
-        $(valueContainer).addClass("di-rule-value-container");
+        $(valueContainer).addClass("di-rule-chip-container di-rule-chip-container-values");
         transformedValueCell.append(valueContainer);
         result.transformedValues.forEach(function(transformedValue) {
-          valueContainer.append(createValueElement(transformedValue));
+          var chipId = ruleId + "_ex_" + exampleCounter++;
+          valueContainer.append(createValueElement(transformedValue, { chipId: chipId }));
+          $("#valueTooltips").append(createTooltip(transformedValue, chipId, true));
         });
         pathRow.append(transformedValueCell);
       } else if (pathIndex == pathCount -1) {
@@ -745,18 +774,25 @@ var fillExamplesTable = function(ruleId, data) {
       tbody.append(pathRow);
     });
   });
+  resizeValuesForRule(ruleId);
+  componentHandler.upgradeDom();
 }
 
-var createSourcePathElement = function(path, settings) {
+var createSourcePathElement = function(path, settings={}) {
   var container = document.createElement("div");
-  $(container).addClass("di-rule-example-path-container");
+  $(container).addClass("di-rule-chip-container di-rule-chip-container-paths");
   var element = document.createElement("span");
-  $(element).addClass("di-rule-example-source-path");
+  $(element).addClass("mdl-chip di-rule-example-source-path");
   var pathIndex = settings['pathIndex'];
+  var chipId = settings['chipId'];
+  $(element).attr("id", chipId);
   if (pathIndex > 0) {
     $(element).addClass("di-rule-example-path-" + pathIndex);
   }
-  element.append(path);
+  var text = document.createElement("span");
+  $(text).addClass("mdl-chip__text");
+  text.append(path);
+  element.append(text);
   container.append(element);
   return container;
 }
@@ -765,6 +801,8 @@ var createValueElement = function(value, settings={}) {
   var chip = document.createElement("span");
   $(chip).addClass("mdl-chip di-rule-example-value");
   var pathIndex = settings['pathIndex'];
+  var chipId = settings['chipId'];
+  $(chip).attr("id", chipId);
   if (pathIndex > 0) {
     $(chip).addClass("di-rule-example-path-" + pathIndex);
   }
@@ -774,6 +812,18 @@ var createValueElement = function(value, settings={}) {
   chip.append(text);
   return chip;
 }
+
+var createTooltip = function(text, forElement, hide) {
+  var tooltip = document.createElement("span");
+  $(tooltip).addClass("mdl-tooltip mdl-tooltip--top mdl-tooltip--large");
+  $(tooltip).attr("for", forElement);
+  tooltip.append(text);
+  if (hide) {
+    showTooltip(forElement, false)
+  }
+  return tooltip;
+}
+
 
 var showExamplesTable = function(ruleId, show) {
   var ruleRow = $("#" + ruleId).closest("tbody");
@@ -787,4 +837,37 @@ var showExamplesTable = function(ruleId, show) {
     alertPanel.show();
   }
 
+}
+
+var resizeValuesForRule = function(ruleId) {
+  var exampleValues = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-container");
+  resizeValues(exampleValues);
+}
+
+var resizeValues = function(element) {
+  var paddingLeft = 12;
+  var paddingRight = 12;
+  $.each($(element).find(".di-rule-chip-container"), function(index, container) {
+    var containerWidth = $(container).width();
+    $.each($(container).find(".mdl-chip"), function(index2, chip) {
+      var text = $(chip).find(">:first-child");
+      $(text).css({"width": ""})
+      var chipWidth = $(chip).width();
+      if (chipWidth + paddingLeft + paddingRight > containerWidth) {
+        $(text).width(containerWidth - paddingLeft - paddingRight);
+        showTooltip($(chip).attr("id"), true);
+      } else {
+        showTooltip($(chip).attr("id"), false);
+      }
+    });
+  });
+}
+
+var showTooltip = function(forElement, show) {
+  var tooltip = $(".mdl-tooltip[for='" + forElement + "']");
+  if (show) {
+    tooltip.show();
+  } else {
+    tooltip.hide();
+  }
 }
