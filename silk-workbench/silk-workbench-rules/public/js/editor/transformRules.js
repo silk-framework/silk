@@ -739,6 +739,8 @@ var fillExamplesTable = function(ruleId, data) {
           valueContainer.append(createValueElement(transformedValue));
         });
         pathRow.append(transformedValueCell);
+      } else if (pathIndex == pathCount -1) {
+        $(pathRow).addClass("di-rule-last-path");
       }
       tbody.append(pathRow);
     });
@@ -746,6 +748,8 @@ var fillExamplesTable = function(ruleId, data) {
 }
 
 var createSourcePathElement = function(path, settings) {
+  var container = document.createElement("div");
+  $(container).addClass("di-rule-example-path-container");
   var element = document.createElement("span");
   $(element).addClass("di-rule-example-source-path");
   var pathIndex = settings['pathIndex'];
@@ -753,7 +757,8 @@ var createSourcePathElement = function(path, settings) {
     $(element).addClass("di-rule-example-path-" + pathIndex);
   }
   element.append(path);
-  return element;
+  container.append(element);
+  return container;
 }
 
 var createValueElement = function(value, settings={}) {

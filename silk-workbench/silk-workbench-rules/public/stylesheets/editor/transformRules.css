@@ -113,9 +113,14 @@ th,td
   background-color: #dadada;
 }
 
-.di-rule__expanded .di-rule__expanded-example-values td, .di-rule__expanded .di-rule__expanded-example-values th {
+.di-rule__expanded .di-rule__expanded-example-values th {
   border: none;
-  padding: 5px 10px !important;
+  padding: 5px 10px;
+}
+
+.di-rule__expanded .di-rule__expanded-example-values td {
+  border: none;
+  padding: 2px 10px;
 }
 
 .di-rule__expanded .di-rule__expanded-example-values tr, .di-rule__expanded .di-rule__expanded-example-values th, .di-rule__expanded .di-rule__expanded-example-values td {
@@ -148,9 +153,21 @@ th,td
   border-top: solid 1px rgba(0, 0, 0, 0.117647);
 }
 
+.di-rule__expanded-example-values .di-rule-first-path td {
+  padding-top: 4px;
+}
+
+.di-rule__expanded-example-values .di-rule-last-path td {
+  padding-bottom: 4px;
+}
+
 .di-rule__expanded-example-values tbody {
   background: white;
   border-bottom: solid 1px rgba(0, 0, 0, 0.117647);
+}
+
+.di-rule-example-path-container {
+  display: flex;
 }
 
 .di-rule-example-source-path {
