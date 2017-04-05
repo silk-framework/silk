@@ -2,7 +2,7 @@ var currentRule;
 var confirmOnExit = false;
 var modificationTimer;
 var exampleCounter = 0;
-var maxPathNumber = 3;
+var maxPathNumber = 4;
 
 $(function() {
   // Make rules sortable
@@ -629,75 +629,6 @@ var shouldResize = function(element) {
   return $(element).is(":visible");
 }
 
-var testData = {
-                              "results": [
-                                  {
-                                      "sourceValues": [
-                                          [
-                                              "Olaf",
-                                              "Ralf"
-                                          ],
-                                          [
-                                              "M\u00fcller",
-                                              "Schmidt" ,
-                                              "Meier" ,
-                                              "Schulz"
-                                          ]
-                                      ],
-                                      "transformedValues": [
-                                          " Olaf  M%C3%BCller",
-                                          " Olaf  Schmidt",
-                                          " Ralf  M%C3%BCller",
-                                          " Ralf  Schmidt"
-                                      ]
-                                  } ,
-                                  {
-                                      "sourceValues": [
-                                          [
-                                              "Olaf",
-                                              "Ralf"
-                                          ],
-                                          [
-                                              "M\u00fcller",
-                                              "Schmidt"
-                                          ]
-                                      ],
-                                      "transformedValues": [
-                                          " Olaf  M%C3%BCller",
-                                          " Olaf  Schmidt",
-                                          " Ralf  M%C3%BCller",
-                                          " Ralf  Schmidt"
-                                      ]
-                                  } ,
-                                  {
-                                      "sourceValues": [
-                                          [
-                                              "Olaf",
-                                              "Ralf"
-                                          ],
-                                          [
-                                              "M\u00fcller",
-                                              "Schmidt"
-                                          ]
-                                      ],
-                                      "transformedValues": [
-                                          " Olaf  M%C3%BCller",
-                                          " Olaf  Schmidt",
-                                          " Ralf  M%C3%BCller",
-                                          " Ralf  Schmidt"
-                                      ]
-                                  } ,
-                              ],
-                              "sourcePaths": [
-                                  [
-                                      "/<http://firstName>"
-                                  ],
-                                  [
-                                      "/<http://lastName>"
-                                  ]
-                              ]
-                          };
-
 var loadExampleValues = function(ruleId) {
   var ruleName = $("#" + ruleId).find(".rule-name").text();
   var peakApiUrl = apiUrl + "/peak/" + ruleName;
@@ -709,20 +640,43 @@ var loadExampleValues = function(ruleId) {
     type: "POST" ,
     url: peakApiUrl ,
     success: function(data, status) {
-      console.log(data);
-      fillExamplesTable(ruleId, data);
-      showExamplesTable(ruleId, true);
+      if (data.status) {
+        if (data.status.id === "success") {
+          if (data.results && data.sourcePaths) {
+            if (data.results.length > 0) {
+              fillExamplesTable(ruleId, data);
+              showExamplesTable(ruleId, true);
+            } else {
+              showMessage(ruleId, "Response from " + peakApiUrl + " did not contain any results.", "info");
+            }
+          } else {
+            showMessage(ruleId, "Response from " + peakApiUrl +
+              " is not well-formed: missing .results or .sourcePaths attributes.", "danger");
+          }
+        } else {
+          showMessage(ruleId, data.status.id + ": " + data.status.msg, "info");
+        }
+      } else {
+        showMessage(ruleId, "Response from " + peakApiUrl + " is not well-formed: missing .status attribute.", "danger");
+      }
     } ,
     error: function(jqXHR, textStatus, error) {
       var message = jqXHR.responseJSON.message;
       console.log(jqXHR);
-      var alertPanel = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-errors");
-      var alertContent = alertPanel.find(".mdl-alert__content");
-      alertContent.text(message);
-      showExamplesTable(ruleId, false);
+      showMessage(ruleId, message, "warning");
     }
   });
   setRuleChanged(ruleId, false);
+}
+
+var showMessage = function(ruleId, message, type="info") {
+  var alertPanel = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-errors");
+  var alert = alertPanel.find(">:first-child");
+  $(alert).removeClass("mdl-alert--success mdl-alert--info mdl-alert--warning mdl-alert--danger");
+  $(alert).addClass("mdl-alert--" + type);
+  var alertContent = alert.find(">:first-child");;
+  alertContent.text(message);
+  showExamplesTable(ruleId, false);
 }
 
 var fillExamplesTable = function(ruleId, data) {
@@ -848,6 +802,7 @@ var showExamplesTable = function(ruleId, show) {
   if (show) {
     examplesTable.show();
     alertPanel.hide();
+    resizeValuesForRule(ruleId);
   } else {
     examplesTable.hide();
     alertPanel.show();
