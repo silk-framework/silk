@@ -220,7 +220,7 @@ class TransformTaskApi extends Controller {
   }
 
   private def executeTransform(task: ProjectTask[TransformSpec], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
-    val transform = new ExecuteTransform(dataSource, DatasetSelection.empty, task.data.rules, Seq(entitySink),errorEntitySinkOpt.toSeq)
+    val transform = new ExecuteTransform(dataSource, task.data, Seq(entitySink))
     Activity(transform).startBlocking()
   }
 

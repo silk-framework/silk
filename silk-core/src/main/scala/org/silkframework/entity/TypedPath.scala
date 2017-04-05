@@ -1,5 +1,6 @@
 package org.silkframework.entity
 
+import org.silkframework.dataset.TypedProperty
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -12,7 +13,10 @@ import scala.xml.Node
   * @param valueType the type that has to be considered during processing.
   */
 case class TypedPath(path: Path, valueType: ValueType) {
+
   def propertyUri: Option[Uri] = path.propertyUri
+
+  def property: Option[TypedProperty] = path.propertyUri.map(uri => TypedProperty(uri.toString, valueType))
 }
 
 object TypedPath {

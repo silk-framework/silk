@@ -25,7 +25,7 @@ case class TransformSpec(selection: DatasetSelection,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
-  def entitySchema: EntitySchema = {
+  lazy val inputSchema: EntitySchema = {
     EntitySchema(
       typeUri = selection.typeUri,
       // FIXME: Transform rule inputs are not typed, allow typed input paths? Until then use String value type.
@@ -34,16 +34,16 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
-  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(entitySchema))
-
-  override lazy val outputSchemaOpt: Some[EntitySchema] = {
-    Some(
-      EntitySchema(
-        typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-        typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
-      )
+  lazy val outputSchema: EntitySchema = {
+    EntitySchema(
+      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
+      typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
     )
   }
+
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
+
+  override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
   override lazy val referencedTasks = Set(selection.inputId)
 
