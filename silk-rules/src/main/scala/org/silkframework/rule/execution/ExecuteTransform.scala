@@ -39,10 +39,6 @@ class ExecuteTransform(entities: Traversable[Entity], transform: TransformSpec, 
   def run(context: ActivityContext[TransformReport]): Unit = {
     isCanceled = false
 
-//    if(!valueType.validate(value)) {
-//      throw new ValidationException(s"Value $value is invalid according to target type ${valueType.label}")
-//    }
-
     try {
       for (output <- outputs) {
         output.open(transform.outputSchema.typedPaths.map(_.property.get))

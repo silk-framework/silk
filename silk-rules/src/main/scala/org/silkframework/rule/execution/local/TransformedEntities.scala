@@ -2,11 +2,12 @@ package org.silkframework.rule.execution.local
 
 import java.util.logging.Logger
 
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{AutoDetectValueType, Entity, EntitySchema}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
 
