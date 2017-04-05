@@ -186,23 +186,24 @@ th,td
 }
 
 .di-rule__expanded-example-values .di-rule-example-path-1 {
-  background: #f2d7ff;
+  background: #DADADA;
 }
 
 .di-rule__expanded-example-values .di-rule-example-path-2 {
-  background: #ffd7d7;
+  background: #E1CBAE;
 }
 
 .di-rule__expanded-example-values .di-rule-example-path-3 {
-  background: #d6fff0;
+  background: #E8BC83;
 }
 
 .di-rule__expanded-example-values .di-rule-example-path-4 {
-  background: #ffeed6;
+  background: #EFAD57;
 }
 
-.di-rule__expanded-example-values .di-rule-example-path-5 {
-  background: #d6eeff;
+
+.di-rule__expanded-example-values .di-rule-example-path-target {
+  background: #FE8F01;
 }
 
 /* autocomplete categories */

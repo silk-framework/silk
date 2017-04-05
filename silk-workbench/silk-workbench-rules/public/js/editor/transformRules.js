@@ -2,6 +2,7 @@ var currentRule;
 var confirmOnExit = false;
 var modificationTimer;
 var exampleCounter = 0;
+var maxPathNumber = 3;
 
 $(function() {
   // Make rules sortable
@@ -739,7 +740,10 @@ var fillExamplesTable = function(ruleId, data) {
       var sourcePathCell = document.createElement("td");
       $(sourcePathCell).addClass("mdl-data-table__cell--non-numeric");
       var chipId = ruleId + "_ex_" + exampleCounter++;
-      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex], { pathIndex: pathIndex, chipId: chipId }));
+      sourcePathCell.append(createSourcePathElement(data.sourcePaths[pathIndex], {
+        pathIndex: pathIndex + 1 ,
+        chipId: chipId
+      }));
       $("#valueTooltips").append(createTooltip(data.sourcePaths[pathIndex], chipId, true));
       pathRow.append(sourcePathCell);
       var sourceValueCell = document.createElement("td");
@@ -749,7 +753,10 @@ var fillExamplesTable = function(ruleId, data) {
       sourceValueCell.append(valueContainer);
       sourceValues.forEach(function(sourceValue) {
         var chipId = ruleId + "_ex_" + exampleCounter++;
-        valueContainer.append(createValueElement(sourceValue, { pathIndex: pathIndex, chipId: chipId }));
+        valueContainer.append(createValueElement(sourceValue, {
+          pathIndex: pathIndex + 1 ,
+          chipId: chipId
+        }));
         $("#valueTooltips").append(createTooltip(sourceValue, chipId, true));
       });
       pathRow.append(sourceValueCell);
@@ -764,7 +771,10 @@ var fillExamplesTable = function(ruleId, data) {
         transformedValueCell.append(valueContainer);
         result.transformedValues.forEach(function(transformedValue) {
           var chipId = ruleId + "_ex_" + exampleCounter++;
-          valueContainer.append(createValueElement(transformedValue, { chipId: chipId }));
+          valueContainer.append(createValueElement(transformedValue, {
+            chipId: chipId ,
+            class: "di-rule-example-path-target"
+          }));
           $("#valueTooltips").append(createTooltip(transformedValue, chipId, true));
         });
         pathRow.append(transformedValueCell);
@@ -783,11 +793,14 @@ var createSourcePathElement = function(path, settings={}) {
   $(container).addClass("di-rule-chip-container di-rule-chip-container-paths");
   var element = document.createElement("span");
   $(element).addClass("mdl-chip di-rule-example-source-path");
-  var pathIndex = settings['pathIndex'];
-  var chipId = settings['chipId'];
+  var pathIndex = settings.pathIndex;
+  var chipId = settings.chipId;
   $(element).attr("id", chipId);
   if (pathIndex > 0) {
-    $(element).addClass("di-rule-example-path-" + pathIndex);
+    $(element).addClass("di-rule-example-path-" + mapToRange(pathIndex, maxPathNumber));
+  }
+  if (settings.class) {
+    $(element).addClass(settings.class);
   }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
@@ -800,11 +813,14 @@ var createSourcePathElement = function(path, settings={}) {
 var createValueElement = function(value, settings={}) {
   var chip = document.createElement("span");
   $(chip).addClass("mdl-chip di-rule-example-value");
-  var pathIndex = settings['pathIndex'];
-  var chipId = settings['chipId'];
+  var pathIndex = settings.pathIndex;
+  var chipId = settings.chipId;
   $(chip).attr("id", chipId);
   if (pathIndex > 0) {
-    $(chip).addClass("di-rule-example-path-" + pathIndex);
+    $(chip).addClass("di-rule-example-path-" + mapToRange(pathIndex, maxPathNumber));
+  }
+  if (settings.class) {
+    $(chip).addClass(settings.class);
   }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
@@ -870,4 +886,13 @@ var showTooltip = function(forElement, show) {
   } else {
     tooltip.hide();
   }
+}
+
+var mapToRange = function(number, rangeMax, rangeMin=1) {
+  var trueMax = rangeMax - (rangeMin - 1);
+  var mapped = number % trueMax;
+  if (mapped == 0) {
+    mapped = trueMax;
+  }
+  return mapped + (rangeMin - 1);
 }
