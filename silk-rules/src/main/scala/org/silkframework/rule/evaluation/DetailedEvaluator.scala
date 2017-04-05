@@ -14,10 +14,11 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity.Entity
+import org.silkframework.entity.{AutoDetectValueType, Entity}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkageRule, TransformRule}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.DPair
 
 import scala.util.control.NonFatal
@@ -52,15 +53,24 @@ object DetailedEvaluator {
     val propertyRules = rules.filter(_.target.isDefined)
 
     val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-    val values = for(rule <- propertyRules) yield evaluateInput(rule.operator, entity)
+    val values = for(rule <- propertyRules) yield apply(rule, entity)
     DetailedEntity(uri, values, propertyRules)
   }
 
   /**
    * Evaluates a single transform rule.
    */
-  def apply(rule: TransformRule, entity: Entity): Option[Value] = {
-    Some(evaluateInput(rule.operator, entity))
+  def apply(rule: TransformRule, entity: Entity): Value = {
+    val result = evaluateInput(rule.operator, entity)
+    // Validate values
+    for {
+      valueType <- rule.target.map(_.valueType) if valueType != AutoDetectValueType
+      value <- result.values
+    } {
+      val ex = new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
+      return result.withError(ex)
+    }
+    result
   }
 
   private def evaluateOperator(operator: SimilarityOperator, entities: DPair[Entity], threshold: Double) = operator match {
