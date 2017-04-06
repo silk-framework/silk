@@ -244,7 +244,7 @@
       </ul>
     </li>
   }
-  case InputValue(input, values) => {
+  case InputValue(input, values, error) => {
     <li>
       <span class="input">
         Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)

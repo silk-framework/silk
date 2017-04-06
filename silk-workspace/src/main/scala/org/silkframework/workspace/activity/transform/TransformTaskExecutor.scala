@@ -11,7 +11,7 @@ class TransformTaskExecutor extends TaskExecutor[TransformSpec] {
     require(inputs.size == 1, "Transform tasks expect exactly one input dataset.")
 
     val input = inputs.head
-    val activity = new ExecuteTransform(input, transformSpec.selection, transformSpec.rules, outputs map (_.entitySink), errorOutputs map (_.entitySink))
+    val activity = new ExecuteTransform(input, transformSpec, outputs map (_.entitySink))
     activity
   }
 }

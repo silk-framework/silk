@@ -34,7 +34,14 @@ case class ValidateNumericRange(
   max: Double) extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    val num = value.toDouble
+    val num =
+      try {
+        value.toDouble
+      } catch {
+        case _: NumberFormatException =>
+          throw new ValidationException(s"'$value' is not a valid number.")
+      }
+
     if(num < min) {
       throw new ValidationException(s"Number $num is smaller than allowed minimum $min")
     } else if(num > max) {

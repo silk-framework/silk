@@ -74,18 +74,31 @@
       <span class="input">
     Transform:@transform.transformer.plugin.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
+        @renderError(error)
       </span>
       <ul>
       @children.map(v => renderValue(v))
       </ul>
     </li>
   }
-  case InputValue(input, values) => {
+  case InputValue(input, values, error) => {
     <li>
       <span class="input">
     Input: @input.path.serializeSimplified(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
+        @renderError(error)
       </span>
     </li>
   }
 }}
+
+@renderError(error: Option[Throwable]) = {
+  @for(ex <- error) {
+    <span id="error-@error.hashCode()">
+      <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
+    </span>
+    <div class="mdl-tooltip mdl-tooltip--large mdl-tooltip--left" for="error-@error.hashCode()">
+      @ex.getMessage
+    </div>
+  }
+}

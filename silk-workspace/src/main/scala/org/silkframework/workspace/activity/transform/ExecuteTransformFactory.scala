@@ -19,11 +19,9 @@ case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpec, 
   def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
     Activity.regenerating {
       new ExecuteTransform(
-        input = task.dataSource,
-        selection = task.data.selection,
-        rules = task.data.rules,
-        outputs = task.entitySinks,
-        errorOutputs = task.errorEntitySinks
+        task.dataSource,
+        task.data,
+        task.entitySinks
       )
     }
   }

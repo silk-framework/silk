@@ -7,6 +7,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
 import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 
 import scala.language.implicitConversions
@@ -36,9 +37,20 @@ sealed trait TransformRule {
     *
     * @param entity The source entity.
     * @return The transformed values.
+    * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
     */
   def apply(entity: Entity): Seq[String] = {
-    operator(entity)
+    val values = operator(entity)
+    // Validate values
+    for {
+      valueType <- target.map(_.valueType) if valueType != AutoDetectValueType
+      value <- values
+    } {
+      if(!valueType.validate(value)) {
+        throw new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
+      }
+    }
+    values
   }
 
   /**
