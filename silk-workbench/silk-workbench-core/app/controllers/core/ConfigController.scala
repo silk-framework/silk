@@ -5,7 +5,7 @@ import play.api.mvc.{Action, Controller}
 
 class ConfigController extends Controller {
 
-  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt")
+  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.crypto.secret")
 
   def index = Action { implicit request =>
     var config = DefaultConfig.instance()
