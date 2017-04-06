@@ -5,10 +5,12 @@ import java.io.Reader
 import com.univocity.parsers.csv.{CsvParserSettings, CsvParser => UniCsvParser}
 
 class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
-
+  private final val MAX_CHARS_PER_COLUMNS_DEFAULT = 100000
+  private final val MAX_COLUMNS_DEFAULT = 100000
   private val parserSettings = new CsvParserSettings()
   import settings._
   parserSettings.getFormat.setDelimiter(separator)
+  parserSettings.setLineSeparatorDetectionEnabled(true)
 
   for(quoteChar <- quote) {
     parserSettings.getFormat.setQuote(quoteChar)
@@ -16,12 +18,8 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   if(selectedIndices.nonEmpty) {
     parserSettings.selectIndexes(selectedIndices.map(new Integer(_)): _*)
   }
-  maxCharsPerColumn foreach {
-    parserSettings.setMaxCharsPerColumn
-  }
-  maxColumns foreach {
-    parserSettings.setMaxColumns
-  }
+  parserSettings.setMaxCharsPerColumn(maxCharsPerColumn.getOrElse(MAX_CHARS_PER_COLUMNS_DEFAULT))
+  parserSettings.setMaxColumns(maxColumns.getOrElse(MAX_COLUMNS_DEFAULT))
   commentChar foreach {
     parserSettings.getFormat.setComment(_)
   }

@@ -40,11 +40,11 @@ class CsvSource(file: Resource,
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      val source = getAndInitBufferedReaderForCsvFile()
-      val firstLine = source.readLine()
-      source.close()
-      if (Option(firstLine).isDefined && firstLine != "") {
-        parser.parseLine(firstLine)
+      val parser = csvParser()
+      val firstLine = parser.parseNext()
+      parser.stopParsing()
+      if (firstLine.isDefined && firstLine.nonEmpty) {
+        firstLine.get
             .takeWhile(Option(_).isDefined) // Break if a header field is null
             .map { s =>
           if (Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
@@ -304,13 +304,15 @@ class CsvSource(file: Resource,
 
 object SeparatorDetector {
   private val separatorList = Seq(',', '\t', ';', '|', '^')
+  final val maxColumnsToParseForDetection = 32000
+  final val maxCharsPerColumnForDetection = 64000
 
   def detectSeparatorChar(reader: => java.io.Reader,
                           settings: CsvSettings,
                           maxEntriesToTest: Int): Option[DetectedSeparator] = {
     val separatorCharDist = for (separator <- separatorList) yield {
       // Test which separator has the lowest entropy
-      val csvParser = new CsvParser(Seq.empty, settings.copy(separator = separator))
+      val csvParser = separatorDetectionCsvParser(settings, separator)
       csvParser.beginParsing(reader)
       val fieldCountDist = new MMap[Int, Int]
       var count = 1
@@ -326,6 +328,18 @@ object SeparatorDetector {
     }
     // Filter out
     pickBestSeparator(separatorCharDist.toMap, reader, settings)
+  }
+
+  private def separatorDetectionCsvParser(settings: CsvSettings, separator: Char) = {
+    new CsvParser(Seq.empty, csvSettingsForDetection(csvSettingsForDetection(settings, separator), separator))
+  }
+
+  private def csvSettingsForDetection(settings: CsvSettings, separator: Char) = {
+    settings.copy(
+      separator = separator,
+      maxColumns = Some(math.max(settings.maxColumns.getOrElse(0), maxColumnsToParseForDetection)),
+      maxCharsPerColumn = Some(math.max(settings.maxCharsPerColumn.getOrElse(0), maxCharsPerColumnForDetection))
+    )
   }
 
   // For entropy equation, see https://en.wikipedia.org/wiki/Entropy_%28information_theory%29
@@ -384,7 +398,7 @@ object SeparatorDetector {
                                                       numberOfFields: Int,
                                                       separator: Char,
                                                       csvSettings: CsvSettings): Int = {
-    val parser = new CsvParser(Seq.empty, csvSettings.copy(separator = separator))
+    val parser = new CsvParser(Seq.empty, csvSettingsForDetection(csvSettings, separator))
     parser.beginParsing(reader)
     var counter = 0
     while(! validLineOrEnd(parser.parseNext(), numberOfFields)) {
