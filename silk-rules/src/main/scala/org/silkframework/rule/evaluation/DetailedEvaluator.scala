@@ -66,6 +66,7 @@ object DetailedEvaluator {
     for {
       valueType <- rule.target.map(_.valueType) if valueType != AutoDetectValueType
       value <- result.values
+      if !valueType.validate(value)
     } {
       val ex = new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
       return result.withError(ex)
