@@ -6,7 +6,7 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource}
+import org.silkframework.dataset.{PathCoverageDataSource, DataSource, PeakDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -28,7 +28,7 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource {
+                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 

@@ -207,6 +207,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     XML.loadString(checkResponse(response).body)
   }
 
+  def peakIntoDatasetTransformation(projectId: String, transformationId: String, ruleId: String): String = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformationId/peak/$ruleId")
+    val response = request.post("")
+    val result = checkResponse(response)
+    result.body
+  }
+
   /**
     * Executes dataset matching based on the profiling data.
     *
