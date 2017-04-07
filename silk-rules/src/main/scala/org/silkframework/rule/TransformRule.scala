@@ -32,6 +32,8 @@ sealed trait TransformRule {
   /** String representation of rule type */
   def typeString: String
 
+  def childRules: Seq[TransformRule] = Seq.empty
+
   /**
     * Generates the transformed values.
     *
@@ -202,6 +204,28 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
 case class ComplexMapping(name: Identifier = "mapping", operator: Input, target: Option[MappingTarget] = None) extends TransformRule {
 
   override val typeString = "Complex"
+
+}
+
+/**
+  * A hierarchical mapping.
+  *
+  * Generates child entities that are connected to the parent entity using the targetProperty.
+  * The properties of the child entities are mapped by the child mappings.
+  *
+  * @param name The name of this mapping.
+  * @param relativePath The relative input path to locate the child entities in the source.
+  * @param targetProperty The property that is used to attach the child entities.
+  * @param childRules The child rules.
+  */
+case class HierarchicalMapping(name: Identifier = "mapping", relativePath: Path = Path(Nil), targetProperty: Uri = "hasChild",
+                               override val childRules: Seq[TransformRule]) extends TransformRule {
+
+  override val typeString = "Hierarchical"
+
+  override val operator = PathInput(path = relativePath)
+
+  override val target = Some(MappingTarget(targetProperty, UriValueType))
 
 }
 

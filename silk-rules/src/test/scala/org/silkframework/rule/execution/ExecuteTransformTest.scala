@@ -23,8 +23,10 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val prop2 = "http:// prop2"
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
+    val dataSourceMock = mock[DataSource]
+    when(dataSourceMock.retrieve(any(), any())).thenReturn(entities)
     val execute = new ExecuteTransform(
-      entities = entities,
+      input = dataSourceMock,
       transform = TransformSpec(datasetSelection(), Seq(mapping("propTransform", prop), mapping("prop2Transform", prop2))),
       outputs = Seq(outputMock)
     )

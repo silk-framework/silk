@@ -75,6 +75,8 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
 object Path {
   private var pathCache = Map[String, WeakReference[Path]]()
 
+  def empty = new Path(List.empty)
+
   /**
     * Creates a new path.
     * Returns a cached copy if available.

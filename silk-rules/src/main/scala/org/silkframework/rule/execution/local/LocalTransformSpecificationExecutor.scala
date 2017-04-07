@@ -20,7 +20,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
-    val transformedEntities = new TransformedEntities(input.entities, task, schema, context)
+    val transformedEntities = new TransformedEntities(input.entities, task.rules, schema, context)
     Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
   }
 

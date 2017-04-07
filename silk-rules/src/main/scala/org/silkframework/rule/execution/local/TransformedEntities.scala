@@ -12,15 +12,15 @@ import org.silkframework.runtime.validation.ValidationException
 import scala.util.control.NonFatal
 
 class TransformedEntities(entities: Traversable[Entity],
-                          transform: TransformSpec,
+                          rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
                           context: ActivityContext[ExecutionReport]) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private val subjectRule = transform.rules.find(_.target.isEmpty)
+  private val subjectRule = rules.find(_.target.isEmpty)
 
-  private val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
+  private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
   private val report = new TransformReportBuilder(propertyRules)
 
