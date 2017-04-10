@@ -58,6 +58,8 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
   override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
     this // SPARQL parameters have no effect on this type of endpoint
   }
+
+  override def graphStoreHeaders(): Map[String, String] = Map.empty
 }
 
 /**
