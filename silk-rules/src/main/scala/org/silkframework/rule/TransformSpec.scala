@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
+import org.silkframework.entity._
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -25,7 +25,7 @@ case class TransformSpec(selection: DatasetSelection,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
-  lazy val inputSchema: EntitySchema = {
+  lazy val inputSchema: SchemaTrait = {
     EntitySchema(
       typeUri = selection.typeUri,
       // FIXME: Transform rule inputs are not typed, allow typed input paths? Until then use String value type.
@@ -34,7 +34,7 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
-  lazy val outputSchema: EntitySchema = {
+  lazy val outputSchema: SchemaTrait = {
     EntitySchema(
       typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
       typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq

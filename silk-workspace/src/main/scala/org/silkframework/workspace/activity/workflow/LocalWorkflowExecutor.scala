@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.ClearableDatasetGraphTrait
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{EntitySchema, SchemaTrait}
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.runtime.activity.ActivityContext
@@ -116,7 +116,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   /** Execute nodes of type [[WorkflowOperator]]. */
   private def executeWorkflowOperator(operatorNode: WorkflowDependencyNode,
-                                      entitySchemaOpt: Option[EntitySchema],
+                                      entitySchemaOpt: Option[SchemaTrait],
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
     try {
@@ -153,7 +153,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
-                                            schemataOpt: Option[Seq[EntitySchema]],
+                                            schemataOpt: Option[Seq[SchemaTrait]],
                                             inputs: Seq[WorkflowDependencyNode])
                                            (implicit workflowRunContext: WorkflowRunContext): Seq[Some[EntityTable]] = {
     schemataOpt match {
@@ -171,7 +171,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def checkInputsAgainstSchema(operatorNode: WorkflowDependencyNode,
                                        inputs: Seq[WorkflowDependencyNode],
-                                       schemata: Seq[EntitySchema]): Seq[WorkflowDependencyNode] = {
+                                       schemata: Seq[SchemaTrait]): Seq[WorkflowDependencyNode] = {
     if (schemata.size < inputs.size) {
       throw WorkflowException("Number of inputs is larger than the number of input schemata for workflow node "
           + operatorNode.nodeId + ". This cannot be handled!")

@@ -127,10 +127,10 @@ object JsonSerializer {
 
   def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
     val inputSchemata = task.data.inputSchemataOpt match {
-      case Some(schemata) => JsArray(schemata.map(entitySchema))
+      case Some(schemata) => JsArray(schemata.map(entitySchema(_))) // TODO: Support HierachicalSchema?
       case None => JsNull
     }
-    val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+    val outputSchema = task.data.outputSchemaOpt.map(entitySchema(_)).getOrElse(JsNull) // TODO: Support HierachicalSchema?
 
     val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
     val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))

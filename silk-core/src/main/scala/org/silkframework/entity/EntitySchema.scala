@@ -12,7 +12,7 @@ import scala.xml.Node
  * @param typedPaths The list of paths
  * @param filter A filter for restricting the entity set
  */
-case class EntitySchema(typeUri: Uri, typedPaths: IndexedSeq[TypedPath], filter: Restriction = Restriction.empty) {
+case class EntitySchema(typeUri: Uri, typedPaths: IndexedSeq[TypedPath], filter: Restriction = Restriction.empty) extends SchemaTrait {
   //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
@@ -76,5 +76,4 @@ object EntitySchema {
         </Paths>
       </EntityDescription>
   }
-
 }

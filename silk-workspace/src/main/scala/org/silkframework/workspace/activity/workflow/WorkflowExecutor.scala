@@ -2,9 +2,9 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.Dataset
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.SchemaTrait
 import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, Status}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
@@ -33,7 +33,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
 
   protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
-                                              outputSchema: Option[EntitySchema])
+                                              outputSchema: Option[SchemaTrait])
                                              (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
     ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContexts(task.id))
   }

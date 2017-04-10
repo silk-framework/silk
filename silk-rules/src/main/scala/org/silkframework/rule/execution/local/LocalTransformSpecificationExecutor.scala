@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.SchemaTrait
 import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.TransformSpec
@@ -14,7 +14,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[EntityTable],
-                       outputSchema: Option[EntitySchema],
+                       outputSchema: Option[SchemaTrait],
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val input = inputs.head

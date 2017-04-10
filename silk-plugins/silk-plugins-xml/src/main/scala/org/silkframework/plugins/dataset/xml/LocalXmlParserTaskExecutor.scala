@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.Task
-import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, TaskException}
+import org.silkframework.entity.SchemaTrait
 import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, LocalExecutor}
+import org.silkframework.execution.{ExecutionReport, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
@@ -14,7 +14,7 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
   override def execute(task: Task[XmlParserTask],
                        inputs: Seq[EntityTable],
-                       outputSchemaOpt: Option[EntitySchema],
+                       outputSchemaOpt: Option[SchemaTrait],
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[EntityTable] = {
     val spec = task.data

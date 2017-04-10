@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, SchemaTrait}
 import org.silkframework.execution.local.{EntityTable, LinksTable, LocalExecution}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.execution._
@@ -14,7 +14,7 @@ import org.silkframework.util.{DPair, Uri}
   * Created on 7/20/16.
   */
 class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] {
-  override def execute(task: Task[LinkSpec], inputs: Seq[EntityTable], outputSchema: Option[EntitySchema], execution: LocalExecution, context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
+  override def execute(task: Task[LinkSpec], inputs: Seq[EntityTable], outputSchema: Option[SchemaTrait], execution: LocalExecution, context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val linkSpec = updateSelection(task.data, inputs)
     val sources = DPair[DataSource](new EntitySource(inputs(0)), new EntitySource(inputs(1)))
     val output = execution.createInternalDataset(None) // TODO: Is this needed?

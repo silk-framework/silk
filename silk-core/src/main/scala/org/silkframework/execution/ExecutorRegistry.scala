@@ -4,7 +4,7 @@ import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.SchemaTrait
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.EmptyResourceManager
@@ -92,7 +92,7 @@ object ExecutorRegistry extends ExecutorRegistry {
   /** Fetch the most specific, matching Executor and execute it on the provided parameters. */
   def execute[TaskType <: TaskSpec, ExecType <: ExecutionType](task: Task[TaskType],
                                                                inputs: Seq[ExecType#DataType],
-                                                               outputSchema: Option[EntitySchema],
+                                                               outputSchema: Option[SchemaTrait],
                                                                execution: ExecType,
                                                                context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[ExecType#DataType] = {
 
