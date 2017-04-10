@@ -86,7 +86,7 @@
     </p>
 
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"/>
+      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"  @if(currentObj.isDefined) { disabled="true" } />
       <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
     </div>
 

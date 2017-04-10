@@ -21,13 +21,6 @@
         }
         xml += '</Dataset>';
 
-        // Delete the old dataset in case its name changed
-        if(@dataset.nonEmpty) {
-          if(name != '@datasetName') {
-            deleteTask('@config.baseUrl/workspace/projects/@project.name/datasets/@datasetName');
-          }
-        }
-
         // Submit data source
         putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml);
       }
