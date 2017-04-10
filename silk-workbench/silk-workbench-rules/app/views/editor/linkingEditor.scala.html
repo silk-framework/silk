@@ -122,9 +122,9 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory)
-        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
-        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
+        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory, context.project)
+        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory, context.project)
       </div>
     </div>
 
@@ -139,9 +139,9 @@
             getPropertyPaths("#paths_search", false);
           </script>
         </div>
-        @operatorsAll("Transformations", "transform", Transformer)
-        @operatorsAll("Comparators", "compare", DistanceMeasure)
-        @operatorsAll("Aggregators", "aggregate", Aggregator)
+        @operatorsAll("Transformations", "transform", Transformer, context.project)
+        @operatorsAll("Comparators", "compare", DistanceMeasure, context.project)
+        @operatorsAll("Aggregators", "aggregate", Aggregator, context.project)
       </div>
     </div>
   </div>
@@ -157,7 +157,7 @@
           case Some(op) => {
             @renderRule(
               rule = op,
-              prefixes = context.project.config.prefixes
+              project = context.project
             )
           }
           case None => {

@@ -41,12 +41,12 @@ class TransformEditor extends Controller {
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg, project = project))
     } else if(pathsCache.status().failed) {
-      Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message))
+      Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))
     } else {
       val paths = DPair(pathsCache.value().typedPaths.map(_.path.serialize(prefixes)), Seq.empty)
-      Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true))
+      Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
     }
   }
 

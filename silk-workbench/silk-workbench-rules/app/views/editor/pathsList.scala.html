@@ -1,6 +1,7 @@
 @import org.silkframework.util.DPair
+@import org.silkframework.workspace.Project
 
-@(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "")
+@(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "", project: Project)
 
 @import controllers.rules.routes.Assets
 
@@ -41,5 +42,5 @@
 }
 
 @pathExpanded(path: String, pathType: String) = {
-  @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false)
+  @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false, project)
 }
