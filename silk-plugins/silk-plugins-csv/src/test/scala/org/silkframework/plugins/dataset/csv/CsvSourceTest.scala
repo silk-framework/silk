@@ -41,6 +41,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
   val datasetHard = CsvDataset(writableResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
+  val emptyCsv = CsvDataset(writableResource(resources.get("empty.csv")), separator = "\t", quote = "")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -121,6 +122,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
                           |the other company,
                           |who does not like pizza""".stripMargin
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
+  }
+
+  it should "not fail when auto-configuring on empty CSV files" in {
+    val autoConfigured = emptyCsv.autoConfigured
+    autoConfigured.separator shouldBe "\\t"
   }
 
   "CsvSourceHelper" should "escape and unescape standard fields correctly" in {
