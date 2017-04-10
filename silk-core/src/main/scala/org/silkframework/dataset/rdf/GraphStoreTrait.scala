@@ -10,6 +10,8 @@ import java.util.logging.Logger
 trait GraphStoreTrait {
   def graphStoreEndpoint(graph: String): String
 
+  def graphStoreHeaders(): Map[String, String] = Map.empty
+
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
     *
@@ -24,6 +26,9 @@ trait GraphStoreTrait {
     val url = new URL(updateUrl)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
+    for((header, headerValue) <- graphStoreHeaders()) {
+      connection.setRequestProperty(header, headerValue)
+    }
     connection.setDoInput(true)
     connection.setDoOutput(true)
     chunkedStreamingMode foreach { connection.setChunkedStreamingMode(_) }
