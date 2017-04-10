@@ -364,18 +364,21 @@ object SeparatorDetector {
   private def pickBestSeparator(separatorDistribution: Map[Char, Map[Int, Int]],
                                 reader: => java.io.Reader,
                                 csvSettings: CsvSettings): Option[DetectedSeparator] = {
-    assert(separatorDistribution.isEmpty || separatorDistribution.forall(d => d._2.nonEmpty && d._2.values.sum > 0))
-    // Ignore characters that did not split anything
-    val candidates = separatorDistribution filter { case (c, dist) =>
-      val oneFieldCount = dist.getOrElse(1, 0)
-      val sum = dist.values.sum
-      // Separators with too many 1-field lines are filtered out
-      oneFieldCount.toDouble / sum < 0.5
+    if(separatorDistribution.isEmpty || separatorDistribution.forall(d => d._2.nonEmpty && d._2.values.sum > 0)) {
+      // Ignore characters that did not split anything
+      val candidates = separatorDistribution filter { case (c, dist) =>
+        val oneFieldCount = dist.getOrElse(1, 0)
+        val sum = dist.values.sum
+        // Separators with too many 1-field lines are filtered out
+        oneFieldCount.toDouble / sum < 0.5
+      }
+      val charEntropy = candidates map { case (c, dist) =>
+        (c, entropy(dist))
+      }
+      pickSeparatorBasedOnEntropy(separatorDistribution, charEntropy, reader, csvSettings)
+    } else {
+      None
     }
-    val charEntropy = candidates map { case (c, dist) =>
-      (c, entropy(dist))
-    }
-    pickSeparatorBasedOnEntropy(separatorDistribution, charEntropy, reader, csvSettings)
   }
 
   // Pick the separator with the lowest entropy of its field count distribution
