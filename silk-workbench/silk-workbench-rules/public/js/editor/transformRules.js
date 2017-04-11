@@ -7,7 +7,8 @@ var maxPathNumber = 4;
 $(function() {
   // Make rules sortable
   $("#ruleTable table").sortable({
-    items: "> tbody"
+    items: "> tbody" ,
+    cancel: ".di-rule__expanded-example-values-container,.di-rule-details-container,input,select"
   });
   //$("#typeContainer").sortable();
 
