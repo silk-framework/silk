@@ -4,7 +4,7 @@ import java.io.{InputStream, OutputStream, StringReader}
 import java.time.Instant
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity._
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, Resource, WritableResource}
 import org.silkframework.util.Uri
 
@@ -45,19 +45,24 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
-    properties should equal(Set("ID", "Name", "Age"))
+    properties should equal(Set("ID", "Name", "Age", "Street", "City", "PostCode"))
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {
-    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("ID").asStringTypedPath, Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
+    val entityDesc = entitySchema("ID", "Name", "Age", "City")
     val persons = source.retrieve(entityDesc).toIndexedSeq
-    persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
-    persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
-    persons(2).values should equal(IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
+    persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30"), Seq("Berlin")))
+    persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24"), Seq("London")))
+    persons(2).values should equal(IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55"), Seq("New York")))
+  }
+
+  private def entitySchema(paths: String*): EntitySchema = {
+    val typedPaths = paths map (pathStr => Path(pathStr).asStringTypedPath)
+    EntitySchema(typeUri = Uri(""), typedPaths = typedPaths.toIndexedSeq)
   }
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
-    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
+    val entityDesc = entitySchema("Name", "Age")
     val persons = source.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
@@ -66,10 +71,10 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "SeparatorDetector" should "detect comma separator" in {
     detect(Seq(
-        """f1,f2,f3""",
-        """1,"test",3""",
-        """1,"test, with, commas, in, literal",3"""
-      )) shouldBe Some(DetectedSeparator(',', 3, 0))
+      """f1,f2,f3""",
+      """1,"test",3""",
+      """1,"test, with, commas, in, literal",3"""
+    )) shouldBe Some(DetectedSeparator(',', 3, 0))
   }
 
   it should "detect tab separator" in {
@@ -118,9 +123,10 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val entities = source.retrieve(EntitySchema(Uri(""), paths)).toSeq
     entities.size shouldBe 3
     val multilineEntity = entities.drop(1).head
-    val expectedValue = """Markus from
-                          |the other company,
-                          |who does not like pizza""".stripMargin
+    val expectedValue =
+      """Markus from
+        |the other company,
+        |who does not like pizza""".stripMargin
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
   }
 
@@ -138,5 +144,57 @@ class CsvSourceTest extends FlatSpec with Matchers {
     }
     val normal = CsvSourceHelper.serialize(Seq("Just a normal string", "and, not normal"))
     normal shouldBe "Just a normal string,\"and, not normal\""
+  }
+
+  private val expectedNestedEntity = {
+    val prefix = "org/silkframework/plugins/dataset/csv/persons.csv/"
+    NestedEntity(
+      uri = prefix + "2",
+      values = IndexedSeq(Seq("1")),
+      nestedEntities = IndexedSeq(
+        NestedEntity(
+          uri = prefix + "2",
+          IndexedSeq(Seq("Max Mustermann"), Seq("30")),
+          nestedEntities = IndexedSeq()),
+        NestedEntity(
+          uri = prefix + "2",
+          IndexedSeq(Seq("Some alley 1"), Seq("12345"), Seq("Berlin")),
+          nestedEntities = IndexedSeq())))
+  }
+
+
+  "CsvSource" should "retrieve nested entities on persons.csv" in {
+    val schema = HierarchicalSchema(
+      HierarchicalSchemaNode(
+        entitySchema = entitySchema("ID"),
+        nestedEntities = IndexedSeq(
+          nestedEntitySchema(
+            entitySchema("Name", "Age"),
+            IndexedSeq()
+          ),
+          nestedEntitySchema(
+            entitySchema("Street", "PostCode", "City"),
+            IndexedSeq()
+          )
+        )
+      )
+    )
+    val entities = source.retrieveNested(schema).toIndexedSeq
+    entities(0) shouldBe expectedNestedEntity
+  }
+
+  private def nestedEntitySchema(entitySchema: EntitySchema,
+                                 nestedEntitySchemas: IndexedSeq[NestedEntitySchema]): NestedEntitySchema = {
+    NestedEntitySchema(
+      connection = entitySchemaConnection,
+      entitySchemaNode = HierarchicalSchemaNode(
+        entitySchema,
+        nestedEntitySchemas
+      )
+    )
+  }
+
+  private def entitySchemaConnection: EntitySchemaConnection = {
+    EntitySchemaConnection(Path(""))
   }
 }

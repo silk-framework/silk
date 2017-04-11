@@ -1,12 +1,12 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{BufferedReader, InputStreamReader, StringReader}
+import java.io.{BufferedReader, InputStreamReader}
 import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{PathCoverageDataSource, DataSource, PeakDataSource}
+import org.silkframework.dataset.{DataSource, HierarchicalDataSource, PathCoverageDataSource, PeakDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -28,7 +28,7 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
+                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with HierarchicalDataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -61,7 +61,7 @@ class CsvSource(file: Resource,
 
   // Number of lines in input file (including header and potential skipped lines)
   lazy val nrLines = {
-    val reader = getBufferedReaderForCsvFile()
+    val reader = bufferedReaderForCsvFile()
     var count = 0l
     while (reader.readLine() != null) {
       count += 1
@@ -89,7 +89,7 @@ class CsvSource(file: Resource,
   // automatically detect the separator, returns None if confidence is too low
   private def detectSeparatorChar(): Option[DetectedSeparator] = {
     try {
-      SeparatorDetector.detectSeparatorChar(getBufferedReaderForCsvFile(), settings, linesForDetection)
+      SeparatorDetector.detectSeparatorChar(bufferedReaderForCsvFile(), settings, linesForDetection)
     } finally {
       None
     }
@@ -113,12 +113,7 @@ class CsvSource(file: Resource,
       ??? // TODO: Implement Restriction handling!
     }
     val entities = retrieveEntities(entitySchema)
-    limitOpt match {
-      case Some(limit) =>
-        entities.take(limit)
-      case None =>
-        entities
-    }
+    limitEntities(limitOpt, entities)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
@@ -132,18 +127,22 @@ class CsvSource(file: Resource,
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
     // Retrieve the indices of the request paths
-    val indices =
-      for (path <- entityDesc.typedPaths) yield {
-        val property = path.path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
-        val propertyIndex = propertyList.indexOf(property)
-        if (propertyIndex == -1) {
-          throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
-        }
-        propertyIndex
-      }
+    val indices = computeIndices(entityDesc)
 
     // Return new Traversable that generates an entity for each line
     entityTraversable(entityDesc, entities, indices)
+  }
+
+  // Based on the entity schema compute the indices of the column a path from the entity schema corresponds to
+  private def computeIndices(entityDesc: EntitySchema) = {
+    for (path <- entityDesc.typedPaths) yield {
+      val property = path.path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
+      val propertyIndex = propertyList.indexOf(property)
+      if (propertyIndex == -1) {
+        throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+      }
+      propertyIndex
+    }
   }
 
   private def entityTraversable(entityDesc: EntitySchema,
@@ -171,12 +170,8 @@ class CsvSource(file: Resource,
 
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
-                  val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
-                  f(new Entity(
-                    uri = entityURI,
-                    values = entityValues,
-                    desc = entityDesc
-                  ))
+                  val entity = buildEntity(entityDesc, values, entityURI)
+                  f(entity)
                 }
               } else {
                 handleBadLine(index, entry)
@@ -190,6 +185,68 @@ class CsvSource(file: Resource,
         }
       }
     }
+  }
+
+  private def buildEntity[U](entityDesc: EntitySchema, values: IndexedSeq[String], entityURI: String) = {
+    val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
+    val entity = new Entity(
+      uri = entityURI,
+      values = entityValues,
+      desc = entityDesc
+    )
+    entity
+  }
+
+  private def nestedEntityTraversable(entityDesc: HierarchicalSchema,
+                                      nestedIndices: NestedIndices): Traversable[NestedEntity] = {
+    new Traversable[NestedEntity] {
+      def foreach[U](emitEntity: NestedEntity => U) {
+        val parser: CsvParser = csvParser()
+
+        // Compile the line regex.
+        val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
+
+        try {
+          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
+          // the rows.
+          var entryOpt = parser.parseNext()
+          var index = 0 // TODO: There is not one entity anymore for a nested entity. How to handle this?
+          while (entryOpt.isDefined) {
+            val entry = entryOpt.get
+            if (!(properties.trim.isEmpty && 0 == index) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
+              if (propertyList.size <= entry.length) {
+                emitEntity(buildNestedEntityRecursively(index, nestedIndices, entry))
+              } else {
+                handleBadLine(index, entry)
+              }
+            }
+            index += 1
+            entryOpt = parser.parseNext()
+          }
+        } finally {
+          parser.stopParsing()
+        }
+      }
+    }
+  }
+
+  private def buildNestedEntityRecursively(entityIndex: Int,
+                                           nestedIndices: NestedIndices,
+                                           entry: Array[String]): NestedEntity = {
+    // Extract requested values
+    val currentEntityValues = nestedIndices.indices.map(entry(_))
+    val entityURI = generateEntityUri(entityIndex, entry)
+
+    // Build entity
+    val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(currentEntityValues)
+    val nestedEntities = nestedIndices.nestedEntityIndices map { nested =>
+      buildNestedEntityRecursively(entityIndex, nested, entry)
+    }
+    NestedEntity(
+      uri = entityURI,
+      values = entityValues,
+      nestedEntities
+    )
   }
 
   private def handleBadLine[U](index: Int, entry: Array[String]) = {
@@ -216,10 +273,13 @@ class CsvSource(file: Resource,
     * as defined in the *properties* field. */
   private def generateEntityUri(index: Int, entry: Array[String]) = {
     if (uri.isEmpty && prefix.isEmpty) {
+      // default template
       file.name + "/" + (index + 1)
     } else if (uri.isEmpty) {
+      // Prefix based URI
       prefix + (index + 1)
     } else {
+      // URI template
       "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
         val propName = m.group(1)
 
@@ -231,7 +291,7 @@ class CsvSource(file: Resource,
   }
 
   private def csvParser(): CsvParser = {
-    lazy val reader = getAndInitBufferedReaderForCsvFile
+    lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
     parser.beginParsing(reader)
     parser
@@ -245,16 +305,16 @@ class CsvSource(file: Resource,
   }
 
   private def getAndInitBufferedReaderForCsvFile(): BufferedReader = {
-    val reader = getBufferedReaderForCsvFile()
+    val reader = bufferedReaderForCsvFile()
     initBufferedReader(reader)
     reader
   }
 
-  private def getBufferedReaderForCsvFile(): BufferedReader = {
-    getBufferedReaderForCsvFile(codecToUse)
+  private def bufferedReaderForCsvFile(): BufferedReader = {
+    bufferedReaderForCsvFile(codecToUse)
   }
 
-  private def getBufferedReaderForCsvFile(codec: Codec): BufferedReader = {
+  private def bufferedReaderForCsvFile(codec: Codec): BufferedReader = {
     val inputStream = file.load
     new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
   }
@@ -269,20 +329,20 @@ class CsvSource(file: Resource,
 
   private def pickWorkingCodec: Codec = {
     val tryCodecs = codec :: fallbackCodecs
-    for (c <- tryCodecs) {
-      val reader = getBufferedReaderForCsvFile(c)
+    for (codec <- tryCodecs) {
+      val reader = bufferedReaderForCsvFile(codec)
       // Test read
       try {
         var line = reader.readLine()
         var lineCount = 0
-        while (line != null && maxLinesToDetectCodec.forall(max => lineCount < max)) {
+        while (Option(line).isDefined && maxLinesToDetectCodec.forall(max => lineCount < max)) {
           line = reader.readLine()
           lineCount += 1
         }
-        return c
+        return codec
       } catch {
         case e: MalformedInputException =>
-          logger.fine(s"Codec $c failed for input file ${file.name}")
+          logger.fine(s"Codec $codec failed for input file ${file.name}")
       } finally {
         reader.close()
       }
@@ -300,6 +360,58 @@ class CsvSource(file: Resource,
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
     */
   override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
+
+  override def retrieveNested(hierarchicalSchema: HierarchicalSchema, limitOpt: Option[Int]): Traversable[NestedEntity] = {
+    checkSanity(hierarchicalSchema)
+    val entities = retrieveNestedEntities(hierarchicalSchema)
+    limitEntities(limitOpt, entities)
+  }
+
+  private def limitEntities[T <: EntityTrait](limitOpt: Option[Int], entities: Traversable[T]) = {
+    limitOpt match {
+      case Some(limit) =>
+        entities.take(limit)
+      case None =>
+        entities
+    }
+  }
+
+  def retrieveNestedEntities(hierarchicalSchema: HierarchicalSchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity] = {
+    logger.log(Level.FINE, "Retrieving data from CSV.")
+    checkSanity(hierarchicalSchema)
+    // Retrieve the indices of the request paths
+    val nestedIndices = calculateNestedIndicesRecursively(hierarchicalSchema.rootSchemaNode)
+
+    // Return new Traversable that generates an entity for each line
+    nestedEntityTraversable(hierarchicalSchema, nestedIndices) // TODO: what about entities? For nested entities what would that mean?
+  }
+
+  private def calculateNestedIndicesRecursively(schemaNode: HierarchicalSchemaNode): NestedIndices = {
+    val entityIndices = for (path <- schemaNode.entitySchema.typedPaths) yield {
+      val property = path.path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
+      val propertyIndex = propertyList.indexOf(property)
+      if (propertyIndex == -1) {
+        throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+      }
+      propertyIndex
+    }
+    val nestedEntityIndices = schemaNode.nestedEntities map (nestedEntity => calculateNestedIndicesRecursively(nestedEntity.entitySchemaNode))
+    NestedIndices(entityIndices, nestedEntityIndices)
+  }
+
+  private def checkSanity(hierarchicalSchema: HierarchicalSchema): Unit = {
+    checkSanityRecursively(hierarchicalSchema.rootSchemaNode)
+  }
+
+
+  private def checkSanityRecursively(schemaNode: HierarchicalSchemaNode): Unit = {
+    schemaNode.nestedEntities foreach { nestedNode =>
+      if (nestedNode.connection.sourcePath.operators != List(ForwardOperator(Uri("")))) {
+        throw new IllegalArgumentException("Nested entities cannot have a different source path than the parent for CSV inputs!")
+      }
+      checkSanityRecursively(nestedNode.entitySchemaNode)
+    }
+  }
 }
 
 object SeparatorDetector {
@@ -344,27 +456,27 @@ object SeparatorDetector {
 
   // For entropy equation, see https://en.wikipedia.org/wiki/Entropy_%28information_theory%29
   def entropy(distribution: Map[Int, Int]): Double = {
-    if (distribution.isEmpty) {
-      return 0.0
-    }
     val overallCount = distribution.values.sum
-    if (overallCount == 0) {
-      return 0.0
-    }
-    var sum = 0.0
+    if (distribution.isEmpty) {
+      0.0
+    } else if (overallCount == 0) {
+      0.0
+    } else {
+      var sum = 0.0
 
-    for ((_, count) <- distribution if count > 0) {
-      val probability = count.toDouble / overallCount
-      sum += probability * math.log(probability)
+      for ((_, count) <- distribution if count > 0) {
+        val probability = count.toDouble / overallCount
+        sum += probability * math.log(probability)
+      }
+      -sum
     }
-    -sum
   }
 
   // Filter out separators that don't split most of the input lines, then pick the one with the lowest entropy
   private def pickBestSeparator(separatorDistribution: Map[Char, Map[Int, Int]],
                                 reader: => java.io.Reader,
                                 csvSettings: CsvSettings): Option[DetectedSeparator] = {
-    if(separatorDistribution.isEmpty || separatorDistribution.forall(d => d._2.nonEmpty && d._2.values.sum > 0)) {
+    if (separatorDistribution.isEmpty || separatorDistribution.forall(d => d._2.nonEmpty && d._2.values.sum > 0)) {
       // Ignore characters that did not split anything
       val candidates = separatorDistribution filter { case (c, dist) =>
         val oneFieldCount = dist.getOrElse(1, 0)
@@ -404,7 +516,7 @@ object SeparatorDetector {
     val parser = new CsvParser(Seq.empty, csvSettingsForDetection(csvSettings, separator))
     parser.beginParsing(reader)
     var counter = 0
-    while(! validLineOrEnd(parser.parseNext(), numberOfFields)) {
+    while (!validLineOrEnd(parser.parseNext(), numberOfFields)) {
       counter += 1
     }
     parser.stopParsing()
@@ -457,3 +569,6 @@ object CsvSourceHelper {
     s"""\"$quoteReplaced\""""
   }
 }
+
+/** A recursive data structure to define which values should be fetched for each nested entity */
+case class NestedIndices(indices: IndexedSeq[Int], nestedEntityIndices: IndexedSeq[NestedIndices])

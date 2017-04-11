@@ -82,3 +82,17 @@ trait DataSource {
     SampleUtil.sample(entities, size, filterOpt)
   }
 }
+
+/**
+  * A Data Source that supports retrieving data via a hierarchical schema.
+  * The source data model does not necessarily have to be a hierachical data model, it just has
+  * to accept the hierarchical schema.
+  */
+trait HierarchicalDataSource {
+  /**
+    * Retrieves entities according to the hierarchical schema.
+    */
+  def retrieveNested(hierarchicalSchema: HierarchicalSchema, limit: Option[Int] = None): Traversable[NestedEntity]
+
+  def retrieveNestedEntities(hierarchicalSchema: HierarchicalSchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity]
+}

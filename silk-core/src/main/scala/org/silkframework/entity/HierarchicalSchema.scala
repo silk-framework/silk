@@ -12,14 +12,14 @@ case class HierarchicalSchema(rootSchemaNode: HierarchicalSchemaNode) extends Sc
   * @param entitySchema The schema of the entity at this point in the nested schema.
   * @param nestedEntities The child entity schemata of the current entity schema.
   */
-case class HierarchicalSchemaNode(entitySchema: EntitySchema, nestedEntities: Seq[NestedEntity])
+case class HierarchicalSchemaNode(entitySchema: EntitySchema, nestedEntities: IndexedSeq[NestedEntitySchema])
 
 /**
   * The connection and node of the child entity schema.
   * @param connection The connection details going from the parent entity to the child entity.
   * @param entitySchemaNode The entity schema node of the child entity.
   */
-case class NestedEntity(connection: EntitySchemaConnection, entitySchemaNode: HierarchicalSchemaNode)
+case class NestedEntitySchema(connection: EntitySchemaConnection, entitySchemaNode: HierarchicalSchemaNode)
 
 /**
   * A connection from the parent entity to its nested entity.
@@ -35,7 +35,7 @@ case class EntitySchemaConnection(sourcePath: Path
 
 object HierarchicalSchema {
   implicit def toHierarchicalSchema(entitySchema: EntitySchema): HierarchicalSchema = {
-    HierarchicalSchema(HierarchicalSchemaNode(entitySchema, Seq()))
+    HierarchicalSchema(HierarchicalSchemaNode(entitySchema, IndexedSeq()))
   }
 
   implicit def toEntitySchema(hierarchicalSchema: HierarchicalSchema): EntitySchema = {
