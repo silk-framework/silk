@@ -36,6 +36,7 @@ trait UiHelperTrait extends { this: OneBrowserPerSuite =>
     }
   }
 
+  @deprecated("use singleSel() or multiSel() from org.scalatest.selenium.WebBrowser instead")
   def select(selectElementId: String, value: String): Unit = {
     executeScript(s"$$('#$selectElementId').val('$value')")
   }
