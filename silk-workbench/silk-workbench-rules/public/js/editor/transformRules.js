@@ -8,7 +8,7 @@ $(function() {
   // Make rules sortable
   $("#ruleTable table").sortable({
     items: "> tbody" ,
-    cancel: ".di-rule__expanded-example-values-container,.di-rule-details-container"
+    cancel: ".di-rule__expanded-example-values-container,.di-rule-details-container,input,select"
   });
   //$("#typeContainer").sortable();
 

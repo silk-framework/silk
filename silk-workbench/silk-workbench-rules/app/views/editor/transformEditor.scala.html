@@ -117,7 +117,7 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
       </div>
     </div>
   </div>
@@ -129,7 +129,7 @@
       <div id="droppable" class="mdl-shadow--2dp">
         @renderRule(
           rule = rule.operator,
-          prefixes = context.project.config.prefixes
+          project = context.project
         )
       </div>
 
