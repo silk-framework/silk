@@ -54,6 +54,11 @@ object SparqlEntitySchema {
     if(entitySchema.typeUri.uri.nonEmpty) {
       sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(variable, s"?$variable a <${entitySchema.typeUri}>")
     }
+    if(entitySchema.subPath.operators.nonEmpty) {
+      val subProperty = entitySchema.subPath.propertyUri.get.uri
+      sparqlRestriction= SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent $subProperty ?$variable")
+    }
+
     SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
   }
 

@@ -14,8 +14,8 @@ import scala.xml.Node
  */
 case class EntitySchema(typeUri: Uri,
                         typedPaths: IndexedSeq[TypedPath],
-                        subPath: Path = Path.empty,
-                        filter: Restriction = Restriction.empty) {
+                        filter: Restriction = Restriction.empty,
+                        subPath: Path = Path.empty) {
   //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
