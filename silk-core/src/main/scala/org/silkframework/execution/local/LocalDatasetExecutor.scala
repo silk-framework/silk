@@ -62,6 +62,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         writeLinks(dataset, links, linkType)
       case TripleEntityTable(entities, _) =>
         writeTriples(dataset, entities)
+      case tables: MultiEntityTable =>
+        writeMultiTables(dataset, tables)
       case et: EntityTable =>
         writeEntities(dataset, et)
     }
@@ -139,4 +141,12 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
     sink.close()
   }
+
+  private def writeMultiTables(dataset: Dataset, tables: MultiEntityTable): Unit = {
+    writeEntities(dataset, tables)
+    for(table <- tables.subTables) {
+      writeEntities(dataset, table)
+    }
+  }
+
 }
