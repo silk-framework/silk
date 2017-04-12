@@ -5,7 +5,7 @@ import org.silkframework.entity._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
-import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
+import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -218,19 +218,24 @@ case class ComplexMapping(name: Identifier = "mapping", operator: Input, target:
   * @param targetProperty The property that is used to attach the child entities.
   * @param childRules The child rules.
   */
-case class HierarchicalMapping(name: Identifier = "mapping", relativePath: Path = Path(Nil), targetProperty: Uri = "hasChild",
+case class HierarchicalMapping(name: Identifier = "mapping", relativePath: Path = Path(Nil), targetProperty: Option[Uri] = Some("hasChild"),
                                override val childRules: Seq[TransformRule]) extends TransformRule {
 
   override val typeString = "Hierarchical"
 
   override val operator = {
-    childRules.find(_.isInstanceOf[UriMapping]) match {
-      case Some(rule) => rule.operator
-      case None => PathInput(path = relativePath)
+    targetProperty match {
+      case Some(prop) =>
+        childRules.find (_.isInstanceOf[UriMapping] ) match {
+          case Some (rule) => rule.operator
+          case None => PathInput (path = relativePath)
+        }
+      case None =>
+        TransformInput(transformer = EmptyValueTransformer())
     }
   }
 
-  override val target = Some(MappingTarget(targetProperty, UriValueType))
+  override val target = targetProperty.map(MappingTarget(_, UriValueType))
 
 }
 
