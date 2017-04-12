@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.{HierarchicalMapping, TransformSpec, TypeMapping}
 import org.silkframework.rule.execution.local.TransformedEntities
@@ -58,13 +58,21 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       }
     }
 
-    val output = outputs.head
-
-    for(rule: HierarchicalMapping <- transform.rules) {
+    for(rule @ HierarchicalMapping(_, _, _, _) <- transform.rules) {
       val childPaths = rule.childRules.flatMap(_.target).map(p => TypedProperty(p.propertyUri.toString, p.valueType))
-      output.open(childPaths)
 
-      val entities = input.retrieve(transform.inputSchema.child(rule.relativePath))
+      for(output <- outputs) {
+        output.open(childPaths)
+      }
+
+      val childSchema =
+        EntitySchema(
+          typeUri = transform.inputSchema.typeUri,
+          typedPaths = rule.childRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+          subPath = rule.relativePath
+        )
+
+      val entities = input.retrieve(childSchema)
 
       val childOutputSchema =
         EntitySchema(
@@ -72,7 +80,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
           typedPaths = rule.childRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
         )
 
-      val transformedEntities = new TransformedEntities(entities, transform.rules, childOutputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+      val transformedEntities = new TransformedEntities(entities, rule.childRules, childOutputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
 
       for (entity <- transformedEntities) {
         for (output <- outputs) {
@@ -83,6 +91,10 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
         }
       }
 
+    }
+
+    for (output <- outputs) {
+      output.close()
     }
 
   }

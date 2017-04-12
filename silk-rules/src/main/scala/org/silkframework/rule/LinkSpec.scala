@@ -60,8 +60,8 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
       case None => Set[TypedPath]()
     }
 
-    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, Path.empty, sourceRestriction)
-    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, Path.empty, targetRestriction)
+    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, sourceRestriction, Path.empty)
+    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, targetRestriction, Path.empty)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }

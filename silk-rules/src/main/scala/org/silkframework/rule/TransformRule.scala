@@ -223,7 +223,12 @@ case class HierarchicalMapping(name: Identifier = "mapping", relativePath: Path 
 
   override val typeString = "Hierarchical"
 
-  override val operator = PathInput(path = relativePath)
+  override val operator = {
+    childRules.find(_.isInstanceOf[UriMapping]) match {
+      case Some(rule) => rule.operator
+      case None => PathInput(path = relativePath)
+    }
+  }
 
   override val target = Some(MappingTarget(targetProperty, UriValueType))
 

@@ -1,0 +1,12 @@
+@prefix :     <https://silkframework.org/testOntology/> .
+
+:Person1
+  a :Person ;
+  :name "John Doe" ;
+  :address :Address ;
+.
+
+:Address
+  :city "Berlin" ;
+  :country "Germany" ;
+.

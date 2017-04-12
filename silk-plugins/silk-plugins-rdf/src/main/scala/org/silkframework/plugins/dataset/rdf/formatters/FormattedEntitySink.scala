@@ -27,7 +27,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     writer = javaFile match {
       case Some(file) =>
         file.getParentFile.mkdirs()
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))
+        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
       case None => new StringWriter()
     }
     //Write header
