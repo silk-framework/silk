@@ -237,3 +237,22 @@ div#newproject {
 .logout-button {
   float:right; !important
 }
+
+/* server error page */
+
+.error-details {
+  padding: 16px;
+  border-top: 1px solid rgba(0,0,0,.1);
+}
+
+.error-details-scrollbox {
+  overflow: scroll;
+}
+
+.error-details-buttons {
+  margin-top: 16px;
+}
+
+.error-details-stacktrace {
+  font-family: monospace;
+}

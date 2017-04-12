@@ -20,29 +20,49 @@
               <p>@exception.description</p>
             </div>
           </div>
-
-          <h4>Details:</h4>
-
-          <div>
-          @for(cause <- Option(exception.cause)) {
-            @stacktrace(exception.cause)
-          }
-          </div>
-
           <div>
             This exception has been logged with id <strong>@exception.id</strong>.
           </div>
+          <div class="error-details-buttons">
+            <button class="mdl-button mdl-js-button mdl-button--raised">
+              Show Details
+            </button>
+            <button class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">
+              Hide Details
+            </button>
+          </div>
 
         </div>
+        <div class="error-details" style="display: none;">
+          <h4>Details:</h4>
+
+          <div class="error-details-scrollbox">
+            @for(cause <- Option(exception.cause)) {
+            @stacktrace(exception.cause)
+            }
+          </div>
+        </div>
+
+
       </div>
     </div>
 
   </div>
+  <script type="text/javascript">
+    $(function () {
+      console.log("done!");
+      $(".error-details-buttons button").click(function() {
+        $(".error-details").slideToggle(300, function() {
+          $(".error-details-buttons button").toggle();
+        });
+      });
+    });
+  </script>
 
 }
 
 @stacktrace(ex: Throwable) = {
-  <p>
+  <p class="error-details-stacktrace">
   @for(el <- ex.getStackTrace) {
     @el.toString
     <br/>
