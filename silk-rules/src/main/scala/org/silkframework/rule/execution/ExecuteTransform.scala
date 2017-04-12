@@ -36,22 +36,6 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
     isCanceled = false
 
     transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
-
-    for(HierarchicalMapping(_, relativePath, _, childRules) <- transform.rules) {
-      val inputSchema =
-        EntitySchema(
-          typeUri = transform.inputSchema.typeUri,
-          typedPaths = childRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
-          subPath = relativePath
-        )
-      val outputSchema =
-        EntitySchema(
-          typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
-          typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
-        )
-
-      transformEntities(inputSchema, childRules, outputSchema, context)
-    }
   }
 
   private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema, context: ActivityContext[TransformReport]): Unit = {
@@ -76,6 +60,22 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       for (output <- outputs) {
         output.close()
       }
+    }
+
+    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+      val childInputSchema =
+        EntitySchema(
+          typeUri = inputSchema.typeUri,
+          typedPaths = childRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+          subPath = relativePath
+        )
+      val childOutputSchema =
+        EntitySchema(
+          typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+          typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+        )
+
+      transformEntities(childInputSchema, childRules, childOutputSchema, context)
     }
   }
 
