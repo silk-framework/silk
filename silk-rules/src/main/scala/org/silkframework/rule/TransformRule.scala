@@ -6,6 +6,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
+import org.silkframework.runtime.plugin.ParameterType.ResourceType
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -257,7 +258,7 @@ object TransformRule {
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None) if isPattern(inputs) =>
       UriMapping(id, buildPattern(inputs))
     // Object Mapping
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target)) if isPattern(inputs) =>
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target)) if isPattern(inputs) && target.valueType == UriValueType =>
       ObjectMapping(id, buildPattern(inputs), target)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
