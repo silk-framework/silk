@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, PeakDataSource}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource {
+class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
