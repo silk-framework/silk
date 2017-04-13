@@ -1,12 +1,10 @@
 package org.silkframework.execution
 
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.SchemaTrait
 
 /**
   * Holds entities that are exchanged between tasks.
   */
-trait EntityHolder {
-
-  def entitySchema: EntitySchema
-
+trait EntityHolder[+S <: SchemaTrait] {
+  def entitySchema: S
 }

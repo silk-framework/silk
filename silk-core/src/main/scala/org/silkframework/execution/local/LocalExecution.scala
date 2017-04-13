@@ -1,6 +1,7 @@
 package org.silkframework.execution.local
 
 import org.silkframework.dataset.Dataset
+import org.silkframework.entity.{EntityTrait, SchemaTrait}
 import org.silkframework.execution.ExecutionType
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 
@@ -14,7 +15,7 @@ import scala.collection.mutable
   */
 case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionType {
 
-  type DataType = EntityTable
+  type DataType = EntityTable[EntityTrait, SchemaTrait]
 
   private val internalDatasets: mutable.Map[Option[String], InternalDatasetTrait] = mutable.Map.empty
 

@@ -84,15 +84,15 @@ trait DataSource {
 }
 
 /**
-  * A Data Source that supports retrieving data via a hierarchical schema.
-  * The source data model does not necessarily have to be a hierachical data model, it just has
-  * to accept the hierarchical schema.
+  * A Data Source that supports retrieving data via a nested schema.
+  * The source data model does not necessarily have to be a nested data model, it just has
+  * to accept the nested schema.
   */
-trait HierarchicalDataSource {
+trait NestedDataSource {
   /**
-    * Retrieves entities according to the hierarchical schema.
+    * Retrieves entities according to the nested schema.
     */
-  def retrieveNested(hierarchicalSchema: HierarchicalSchema, limit: Option[Int] = None): Traversable[NestedEntity]
+  def retrieveNested(nestedSchema: NestedEntitySchema, limit: Option[Int] = None): Traversable[NestedEntity]
 
-  def retrieveNestedEntities(hierarchicalSchema: HierarchicalSchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity]
+  def retrieveNestedEntities(nestedSchema: NestedEntitySchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity]
 }

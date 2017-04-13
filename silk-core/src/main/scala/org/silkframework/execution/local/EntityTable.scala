@@ -1,18 +1,19 @@
 package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.entity.Entity
+import org.silkframework.entity._
 import org.silkframework.execution.EntityHolder
+import scala.language.implicitConversions
 
 /**
   * A local table of entities.
   */
-trait EntityTable extends EntityHolder {
+trait EntityTable[+E <: EntityTrait, +S <: SchemaTrait] extends EntityHolder[S] {
 
   /**
     * The entities in this table.
     */
-  def entities: Traversable[Entity]
+  def entities: Traversable[E]
 
   /**
     * The task that generated this table.
@@ -21,3 +22,18 @@ trait EntityTable extends EntityHolder {
   def task: Task[TaskSpec]
 
 }
+
+object EntityTable {
+  implicit def toFlatEntityTable(entityTable: EntityTable[EntityTrait, SchemaTrait]): FlatEntityTable = {
+    entityTable match {
+      case flatEntityTable: FlatEntityTable =>
+        flatEntityTable
+      case _: NestedEntityTableTrait =>
+        throw new RuntimeException("Cannot handle nested entity schema!")
+    }
+  }
+}
+
+trait FlatEntityTable extends EntityTable[Entity, EntitySchema]
+
+trait NestedEntityTableTrait extends EntityTable[NestedEntity, NestedEntitySchema]

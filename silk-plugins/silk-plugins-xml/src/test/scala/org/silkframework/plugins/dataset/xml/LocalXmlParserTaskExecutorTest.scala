@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.execution.local.{FlatEntityTable, GenericEntityTable, LocalExecution}
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -42,7 +42,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     result mustBe defined
     val entities = result.get.entities
     entities.size mustBe 1
-    val entity = entities.head
+    val entity = entities.head.asInstanceOf[Entity]
     entity.values mustBe IndexedSeq(Seq("some value"))
     entity.uri.toString mustBe "http://entity1/someSuffix"
   }
@@ -54,7 +54,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     result mustBe defined
     val entities = result.get.entities
     entities.size mustBe 1
-    entities.head.values mustBe IndexedSeq(Seq("some value2"))
+    entities.head.asInstanceOf[Entity].values mustBe IndexedSeq(Seq("some value2"))
   }
 
   it should "load from the registry" in {

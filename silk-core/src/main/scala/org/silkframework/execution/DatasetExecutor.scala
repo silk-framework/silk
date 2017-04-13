@@ -13,7 +13,7 @@ import org.silkframework.runtime.activity.ActivityContext
   */
 trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends Executor[DatasetType, ExecType] {
 
-  protected def read(dataset: Task[DatasetType], schema: EntitySchema): ExecType#DataType
+  protected def read(dataset: Task[DatasetType], schema: SchemaTrait): ExecType#DataType
 
   protected def write(data: ExecType#DataType, dataset: Task[DatasetType]): Unit
 

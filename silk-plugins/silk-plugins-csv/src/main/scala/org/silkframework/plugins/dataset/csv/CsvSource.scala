@@ -6,7 +6,7 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{DataSource, HierarchicalDataSource, PathCoverageDataSource, PeakDataSource}
+import org.silkframework.dataset.{DataSource, NestedDataSource, PathCoverageDataSource, PeakDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -28,7 +28,7 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with HierarchicalDataSource with PathCoverageDataSource with PeakDataSource {
+                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with NestedDataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -197,7 +197,7 @@ class CsvSource(file: Resource,
     entity
   }
 
-  private def nestedEntityTraversable(entityDesc: HierarchicalSchema,
+  private def nestedEntityTraversable(entityDesc: NestedEntitySchema,
                                       nestedIndices: NestedIndices): Traversable[NestedEntity] = {
     new Traversable[NestedEntity] {
       def foreach[U](emitEntity: NestedEntity => U) {
@@ -361,9 +361,9 @@ class CsvSource(file: Resource,
     */
   override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
 
-  override def retrieveNested(hierarchicalSchema: HierarchicalSchema, limitOpt: Option[Int]): Traversable[NestedEntity] = {
-    checkSanity(hierarchicalSchema)
-    val entities = retrieveNestedEntities(hierarchicalSchema)
+  override def retrieveNested(nestedSchema: NestedEntitySchema, limitOpt: Option[Int]): Traversable[NestedEntity] = {
+    checkSanity(nestedSchema)
+    val entities = retrieveNestedEntities(nestedSchema)
     limitEntities(limitOpt, entities)
   }
 
@@ -376,17 +376,17 @@ class CsvSource(file: Resource,
     }
   }
 
-  def retrieveNestedEntities(hierarchicalSchema: HierarchicalSchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity] = {
+  def retrieveNestedEntities(nestedSchema: NestedEntitySchema, entities: Seq[String] = Seq.empty): Traversable[NestedEntity] = {
     logger.log(Level.FINE, "Retrieving data from CSV.")
-    checkSanity(hierarchicalSchema)
+    checkSanity(nestedSchema)
     // Retrieve the indices of the request paths
-    val nestedIndices = calculateNestedIndicesRecursively(hierarchicalSchema.rootSchemaNode)
+    val nestedIndices = calculateNestedIndicesRecursively(nestedSchema.rootSchemaNode)
 
     // Return new Traversable that generates an entity for each line
-    nestedEntityTraversable(hierarchicalSchema, nestedIndices) // TODO: what about entities? For nested entities what would that mean?
+    nestedEntityTraversable(nestedSchema, nestedIndices) // TODO: what about entities? For nested entities what would that mean?
   }
 
-  private def calculateNestedIndicesRecursively(schemaNode: HierarchicalSchemaNode): NestedIndices = {
+  private def calculateNestedIndicesRecursively(schemaNode: NestedSchemaNode): NestedIndices = {
     val entityIndices = for (path <- schemaNode.entitySchema.typedPaths) yield {
       val property = path.path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
       val propertyIndex = propertyList.indexOf(property)
@@ -395,21 +395,21 @@ class CsvSource(file: Resource,
       }
       propertyIndex
     }
-    val nestedEntityIndices = schemaNode.nestedEntities map (nestedEntity => calculateNestedIndicesRecursively(nestedEntity.entitySchemaNode))
+    val nestedEntityIndices = schemaNode.nestedEntities map {case (_, nestedEntity) => calculateNestedIndicesRecursively(nestedEntity)}
     NestedIndices(entityIndices, nestedEntityIndices)
   }
 
-  private def checkSanity(hierarchicalSchema: HierarchicalSchema): Unit = {
-    checkSanityRecursively(hierarchicalSchema.rootSchemaNode)
+  private def checkSanity(nestedSchema: NestedEntitySchema): Unit = {
+    checkSanityRecursively(nestedSchema.rootSchemaNode)
   }
 
 
-  private def checkSanityRecursively(schemaNode: HierarchicalSchemaNode): Unit = {
-    schemaNode.nestedEntities foreach { nestedNode =>
-      if (nestedNode.connection.sourcePath.operators != List(ForwardOperator(Uri("")))) {
+  private def checkSanityRecursively(schemaNode: NestedSchemaNode): Unit = {
+    schemaNode.nestedEntities foreach { case (connection, nestedNode) =>
+      if (connection.sourcePath.operators != List(ForwardOperator(Uri("")))) {
         throw new IllegalArgumentException("Nested entities cannot have a different source path than the parent for CSV inputs!")
       }
-      checkSanityRecursively(nestedNode.entitySchemaNode)
+      checkSanityRecursively(nestedNode)
     }
   }
 }

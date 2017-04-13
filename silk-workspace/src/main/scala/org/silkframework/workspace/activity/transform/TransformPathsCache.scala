@@ -22,7 +22,7 @@ class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[Ent
     val transform = task.data
 
     //Create an entity description from the transformation task
-    val currentEntityDesc: EntitySchema = transform.inputSchema // TODO: Support hierarchical schemata?
+    val currentEntityDesc: EntitySchema = transform.inputSchema // TODO: Support nested schemata?
 
     //Check if paths have not been loaded yet or if the restriction has been changed
     if (context.value().typedPaths.isEmpty || currentEntityDesc.typeUri != context.value().typeUri) {

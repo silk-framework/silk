@@ -164,8 +164,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
 
   "CsvSource" should "retrieve nested entities on persons.csv" in {
-    val schema = HierarchicalSchema(
-      HierarchicalSchemaNode(
+    val schema = NestedEntitySchema(
+      NestedSchemaNode(
         entitySchema = entitySchema("ID"),
         nestedEntities = IndexedSeq(
           nestedEntitySchema(
@@ -184,13 +184,12 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   private def nestedEntitySchema(entitySchema: EntitySchema,
-                                 nestedEntitySchemas: IndexedSeq[NestedEntitySchema]): NestedEntitySchema = {
-    NestedEntitySchema(
-      connection = entitySchemaConnection,
-      entitySchemaNode = HierarchicalSchemaNode(
-        entitySchema,
-        nestedEntitySchemas
-      )
+                                 nestedEntitySchemas: IndexedSeq[(EntitySchemaConnection, NestedSchemaNode)]): (EntitySchemaConnection, NestedSchemaNode) = {
+    (entitySchemaConnection,
+        NestedSchemaNode(
+          entitySchema,
+          nestedEntitySchemas
+        )
     )
   }
 
