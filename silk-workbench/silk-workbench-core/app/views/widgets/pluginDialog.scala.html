@@ -64,10 +64,15 @@
     });
 
     function submit() {
+      console.log("submit");
       var selected_resource_type = $("#resource_type_select").val();
-      if (plugin_dialog_submit_delegates[selected_resource_type](false)) {
-        closeDialog();
-      }
+      plugin_dialog_submit_delegates[selected_resource_type](false, {
+        success: function() {
+          closeDialog();
+        } ,
+        error: function() {
+        }
+      });
     }
 
     function dialog_secondary() {
@@ -97,7 +102,7 @@
   </div>
 
   <script type="text/javascript">
-    function @(plugin.id)_submit(onlyAutoConfigure) {
+    function @(plugin.id)_submit(onlyAutoConfigure, callbacks) {
       // Retrieve the name of the plugin
       var name = $('[name=\'@(plugin.id)_name\']').val();
       if(name.length === 0) {
@@ -116,7 +121,7 @@
 
       // Submit dialog
       if(!onlyAutoConfigure) {
-        savePlugin('@plugin.id', name, parameters);
+        savePlugin('@plugin.id', name, parameters, callbacks);
       } else {
         autoConfigure('@plugin.id', name, parameters);
       }

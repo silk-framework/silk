@@ -75,7 +75,10 @@ function workspaceDialog(relativePath) {
   showDialog(baseUrl + '/' + relativePath);
 }
 
-function putTask(path, xml) {
+function putTask(path, xml, callbacks={
+    success: function() {} ,
+    error: function() {}
+  }) {
   $.ajax({
     type: 'PUT',
     url: path,
@@ -84,9 +87,11 @@ function putTask(path, xml) {
     data: xml,
     error: function(request) {
       alert(request.responseText);
+      callbacks.error();
     },
     success: function(request) {
       reloadWorkspace();
+      callbacks.success();
     }
   });
 }

@@ -13,7 +13,7 @@
     secondaryLabel = "Autoconfigure") {
 
     <script type="text/javascript">
-      function savePlugin(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
         var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
         for(var i in parameters) {
@@ -22,7 +22,7 @@
         xml += '</Dataset>';
 
         // Submit data source
-        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml);
+        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml, callbacks);
       }
 
       function autoConfigure(pluginId, name, parameters) {
