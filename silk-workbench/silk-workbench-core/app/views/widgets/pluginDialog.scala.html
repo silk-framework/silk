@@ -71,10 +71,14 @@
           closeDialog();
         } ,
         error: function(msg) {
-          $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
-          $("#primary_dialog .dialog__error-msg").fadeToggle();
+          showError(msg)
         }
       });
+    }
+
+    function showError(msg) {
+      $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+      $("#primary_dialog .dialog__error-msg").fadeIn();
     }
 
     function dialog_secondary() {
@@ -108,7 +112,7 @@
       // Retrieve the name of the plugin
       var name = $('[name=\'@(plugin.id)_name\']').val();
       if(name.length === 0) {
-        alert("Name is empty.");
+        showError("Name is empty.");
         return false;
       }
 
