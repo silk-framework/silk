@@ -70,7 +70,9 @@
         success: function() {
           closeDialog();
         } ,
-        error: function() {
+        error: function(msg) {
+          $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+          $("#primary_dialog .dialog__error-msg").fadeToggle();
         }
       });
     }

@@ -86,8 +86,7 @@ function putTask(path, xml, callbacks={
     processData: false,
     data: xml,
     error: function(request) {
-      alert(request.responseText);
-      callbacks.error();
+      callbacks.error(JSON.parse(request.responseText).message);
     },
     success: function(request) {
       reloadWorkspace();
