@@ -152,14 +152,14 @@ class CsvSourceTest extends FlatSpec with Matchers {
       uri = prefix + "2",
       values = IndexedSeq(Seq("1")),
       nestedEntities = IndexedSeq(
-        NestedEntity(
+        Seq(NestedEntity(
           uri = prefix + "2",
           IndexedSeq(Seq("Max Mustermann"), Seq("30")),
-          nestedEntities = IndexedSeq()),
-        NestedEntity(
+          nestedEntities = IndexedSeq())),
+        Seq(NestedEntity(
           uri = prefix + "2",
           IndexedSeq(Seq("Some alley 1"), Seq("12345"), Seq("Berlin")),
-          nestedEntities = IndexedSeq())))
+          nestedEntities = IndexedSeq()))))
   }
 
 

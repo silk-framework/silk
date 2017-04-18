@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf._
-import org.silkframework.dataset.{Dataset, NestedDataSource, TripleSinkDataset}
+import org.silkframework.dataset.{Dataset, NestedDataSource, NestedEntitySink, TripleSinkDataset}
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.util.Uri
@@ -77,9 +77,49 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case TripleEntityTable(entities, _) =>
         writeTriples(dataset, entities)
       case NestedEntityTable(entities, nestedEntitySchema, _) =>
-        // TODO
+        validateNestedSchemaForWriting(nestedEntitySchema.rootSchemaNode)
+        writeNestedEntities(dataset, nestedEntitySchema, entities)
       case et: FlatEntityTable =>
         writeEntities(dataset, et)
+    }
+  }
+
+  private def writeNestedEntities(dataset: Task[Dataset],
+                                  nestedEntitySchema: NestedEntitySchema,
+                                  nestedEntities: Traversable[NestedEntity]): Unit = {
+    dataset.data.entitySink match {
+      case nestedEntitySink: NestedEntitySink =>
+        var entityCount = 0
+        val startTime = System.currentTimeMillis()
+        var lastLog = startTime
+        // TODO: What about "opening" nested entity sinks? What would this mean for different data models?
+        for (nestedEntity <- nestedEntities) {
+          nestedEntitySink.writeNestedEntity(nestedEntity, nestedEntitySchema.rootSchemaNode)
+          entityCount += 1
+          if(entityCount % 10000 == 0) {
+            val currentTime = System.currentTimeMillis()
+            if(currentTime - 2000 > lastLog) {
+              logger.info("Writing nested entities: " + entityCount)
+              lastLog = currentTime
+            }
+          }
+        }
+        nestedEntitySink.close()
+        val time = (System.currentTimeMillis - startTime) / 1000.0
+        logger.log(Level.INFO, "Finished writing " + entityCount + " nested entities with type '" +
+            nestedEntitySchema.rootSchemaNode.entitySchema.typeUri + "' in " + time + " seconds")
+      case _ =>
+        throw TaskException(s"Dataset ${dataset.id.toString} cannot write nested entities!")
+    }
+  }
+
+  private def validateNestedSchemaForWriting(node: NestedSchemaNode): Unit = {
+    for((conn, nestedNode) <- node.nestedEntities) {
+      val ops = conn.path.operators
+      require(ops.size == 1 && (ops.head.isInstanceOf[ForwardOperator] || ops.head.isInstanceOf[BackwardOperator]),
+      "Nested entities in schema for writing must be connected either by backward or forward path of length 1. " +
+          "Instead found following path: " + conn.path.toString)
+      validateNestedSchemaForWriting(nestedNode)
     }
   }
 

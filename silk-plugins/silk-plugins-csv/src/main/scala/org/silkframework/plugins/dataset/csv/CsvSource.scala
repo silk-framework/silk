@@ -240,7 +240,8 @@ class CsvSource(file: Resource,
     // Build entity
     val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(currentEntityValues)
     val nestedEntities = nestedIndices.nestedEntityIndices map { nested =>
-      buildNestedEntityRecursively(entityIndex, nested, entry)
+      // It's always only one entity per nested schema in CSV
+      Seq(buildNestedEntityRecursively(entityIndex, nested, entry))
     }
     NestedEntity(
       uri = entityURI,
@@ -406,7 +407,7 @@ class CsvSource(file: Resource,
 
   private def checkSanityRecursively(schemaNode: NestedSchemaNode): Unit = {
     schemaNode.nestedEntities foreach { case (connection, nestedNode) =>
-      if (connection.sourcePath.operators != List(ForwardOperator(Uri("")))) {
+      if (connection.path.operators != List(ForwardOperator(Uri("")))) {
         throw new IllegalArgumentException("Nested entities cannot have a different source path than the parent for CSV inputs!")
       }
       checkSanityRecursively(nestedNode)

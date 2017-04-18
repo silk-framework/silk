@@ -4,19 +4,21 @@ import java.io.ByteArrayOutputStream
 import java.util.logging.Logger
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
+import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
-import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.entity._
+import org.silkframework.execution.TaskException
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 
 /**
- * A sink for writing to SPARQL/Update endpoints.
- */
+  * A sink for writing to SPARQL/Update endpoints.
+  */
 class SparqlSink(params: SparqlParams,
                  endpoint: SparqlEndpoint,
                  formatterOpt: Option[RdfFormatter] = None,
-                 /**Maximum number of statements per request. */
-                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink {
+
+                 /** Maximum number of statements per request. */
+                 statementsPerRequest: Int = 200) extends EntitySink with NestedEntitySink with LinkSink with TripleSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -34,7 +36,7 @@ class SparqlSink(params: SparqlParams,
 
   override def writeLink(link: Link, predicateUri: String) {
     val (newStatements, statementCount) = formatLink(link, predicateUri)
-    if(body.isEmpty) {
+    if (body.isEmpty) {
       beginSparul(true)
     } else if (statements + statementCount > statementsPerRequest) {
       endSparql()
@@ -46,12 +48,12 @@ class SparqlSink(params: SparqlParams,
   }
 
   /**
-   * Returns the RDF formatted link in N-Triples format and the number of triples.
+    * Returns the RDF formatted link in N-Triples format and the number of triples.
     *
     * @param link
-   * @param predicateUri
-   * @return (serialized statements as N-Triples, triple count)
-   */
+    * @param predicateUri
+    * @return (serialized statements as N-Triples, triple count)
+    */
   private def formatLink(link: Link,
                          predicateUri: String): (String, Int) = {
     formatterOpt match {
@@ -70,19 +72,23 @@ class SparqlSink(params: SparqlParams,
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
-    for((property, valueSet) <- properties zip values; value <- valueSet) {
+    writeEntity(subject, values, properties)
+  }
+
+  private def writeEntity(subject: String, values: Seq[Seq[String]], properties: Seq[TypedProperty]) {
+    for ((property, valueSet) <- properties zip values; value <- valueSet) {
       writeStatement(subject, property.propertyUri, value, property.valueType)
     }
   }
 
   override def close() {
-    if(body.nonEmpty) {
+    if (body.nonEmpty) {
       endSparql()
     }
   }
 
   def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
-    if(body.isEmpty) {
+    if (body.isEmpty) {
       beginSparul(true)
     } else if (statements + 1 > statementsPerRequest) {
       endSparql()
@@ -99,10 +105,10 @@ class SparqlSink(params: SparqlParams,
   }
 
   /**
-   * Begins a new SPARQL/Update request.
-   *
-   * @param newGraph Create a new (empty) graph?
-   */
+    * Begins a new SPARQL/Update request.
+    *
+    * @param newGraph Create a new (empty) graph?
+    */
   private def beginSparul(newGraph: Boolean) {
     body.clear()
     params.graph match {
@@ -118,8 +124,8 @@ class SparqlSink(params: SparqlParams,
   }
 
   /**
-   * Ends the current SPARQL/Update request.
-   */
+    * Ends the current SPARQL/Update request.
+    */
   private def endSparql() {
     params.graph match {
       case None => body.append("}")
@@ -127,12 +133,33 @@ class SparqlSink(params: SparqlParams,
     }
     val query = body.toString()
     body.clear()
-    if(statements > 0) { // Else this would throw an exception, because of invalid syntax
+    if (statements > 0) {
+      // Else this would throw an exception, because of invalid syntax
       endpoint.update(query)
     }
   }
 
   override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType): Unit = {
     writeStatement(subject, predicate, obj, valueType)
+  }
+
+  /** Writes a nested entity at the "current" place in the entity sink */
+  override def writeNestedEntity(nestedEntity: NestedEntity, nestedEntitySchema: NestedSchemaNode): Unit = {
+    val entityURI = nestedEntity.uri
+    val values = nestedEntity.values
+    val paths = typedPathToTypedProperties(nestedEntitySchema.entitySchema.typedPaths)
+    writeEntity(entityURI, values, paths)
+    for ((nestedEntities, (entitySchemaConnection, nestedSchemaNode)) <- nestedEntity.nestedEntities.zip(nestedEntitySchema.nestedEntities);
+         nestedEntity <- nestedEntities) {
+      entitySchemaConnection.path.operators match {
+        case ForwardOperator(prop) :: Nil =>
+          writeTriple(entityURI, prop.uri, nestedEntity.uri, UriValueType)
+        case BackwardOperator(prop) :: Nil =>
+          writeTriple(nestedEntity.uri, prop.uri, entityURI, UriValueType)
+        case _ =>
+          throw TaskException("Only single forward or backward path allowed for nested entity connections for writing!")
+      }
+      writeNestedEntity(nestedEntity, nestedSchemaNode)
+    }
   }
 }

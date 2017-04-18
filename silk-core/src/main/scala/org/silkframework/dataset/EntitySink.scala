@@ -14,8 +14,12 @@ trait EntitySink extends DataSink {
   def open(properties: Seq[TypedProperty]): Unit
 
   def openWithTypedPath(typedPaths: Seq[TypedPath]): Unit = {
-    val properties = typedPaths.map(tp => TypedProperty(tp.path.propertyUri.get.toString, tp.valueType))
+    val properties = typedPathToTypedProperties(typedPaths)
     open(properties)
+  }
+
+  protected def typedPathToTypedProperties(typedPaths: Seq[TypedPath]): Seq[TypedProperty] = {
+    typedPaths.map(tp => TypedProperty(tp.path.propertyUri.get.toString, tp.valueType))
   }
 
   /**
