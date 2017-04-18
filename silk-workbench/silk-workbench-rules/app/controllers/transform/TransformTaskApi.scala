@@ -275,7 +275,7 @@ class TransformTaskApi extends Controller {
             Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
                 " does not support transformation preview!"))))
         }
-      case _: ProjectTask[_] =>
+      case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTask.toString +
             " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
     }
