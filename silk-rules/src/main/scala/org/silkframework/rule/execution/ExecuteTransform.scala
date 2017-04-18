@@ -38,7 +38,8 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
     transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
   }
 
-  private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema, context: ActivityContext[TransformReport]): Unit = {
+  private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema,
+                                context: ActivityContext[TransformReport]): Unit = {
     try {
       for (output <- outputs) {
         output.open(outputSchema.typedPaths.map(_.property.get))

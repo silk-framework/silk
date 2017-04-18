@@ -1,20 +1,20 @@
 package org.silkframework.execution.local
 
-import java.io.{File, StringWriter}
+import java.io.StringWriter
 
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, Path}
-import org.silkframework.plugins.dataset.rdf.{FileDataset, SparqlSink}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
+import org.silkframework.plugins.dataset.rdf.{FileDataset, SparqlSink}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, FileResourceManager, ReadOnlyResourceManager}
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
 
 /**
   * Tests hierarchical mappings.
@@ -101,14 +101,6 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       targetModel.write(stringWriter, "TURTLE")
       fail("Generate data is different from expected data. Got:\n" + stringWriter.toString)
     }
-  }
-
-  private def loadModel(resourceName: String): Model = {
-    val source = FileDataset(resources.get(resourceName), "Turtle")
-
-    val model = ModelFactory.createDefaultModel()
-    model.setNsPrefix("", "https://silkframework.org/ex/")
-    model
   }
 
   private def uri(name: String) = "https://silkframework.org/ex/" + name
