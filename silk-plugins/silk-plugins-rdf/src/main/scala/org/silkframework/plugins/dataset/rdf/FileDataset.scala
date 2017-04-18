@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.{DataSource, TripleSink, TripleSinkDataset}
+import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
@@ -73,7 +73,7 @@ case class FileDataset(
 
   override def clear(): Unit = { }
 
-  object FileSource extends DataSource {
+  object FileSource extends DataSource with PeakDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
