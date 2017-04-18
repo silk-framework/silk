@@ -1,0 +1,13 @@
+@prefix :     <https://silkframework.org/ex/> .
+
+:Person1
+  a :Person ;
+  :name "John Doe" ;
+  :address "Berlin-Germany", "Stuttgart-Germany"  ;
+.
+
+:Person2
+  a :Person ;
+  :name "Max Power" ;
+  :address "Leipzig-Germany" ;
+.
