@@ -1,7 +1,8 @@
 package org.silkframework.rule
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
+import org.silkframework.entity._
+import org.silkframework.execution.local.MultiEntityTable
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -25,27 +26,53 @@ case class TransformSpec(selection: DatasetSelection,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
-  lazy val inputSchema: EntitySchema = {
-    EntitySchema(
-      typeUri = selection.typeUri,
-      // FIXME: Transform rule inputs are not typed, allow typed input paths? Until then use String value type.
-      typedPaths = rules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
-      filter = selection.restriction
-    )
-  }
-
-  lazy val outputSchema: EntitySchema = {
-    EntitySchema(
-      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-      typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
-    )
-  }
-
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
 
   override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
   override lazy val referencedTasks = Set(selection.inputId)
+
+  lazy val inputSchema: EntitySchema = {
+    val schemata = collectInputSchemata(rules, Path.empty)
+    new MultiEntitySchema(schemata.head, schemata.tail)
+  }
+
+  lazy val outputSchema: EntitySchema = {
+    val schemata = collectOutputSchemata(rules, Path.empty)
+    new MultiEntitySchema(schemata.head, schemata.tail)
+  }
+
+  private def collectInputSchemata(rules: Seq[TransformRule], subPath: Path): Seq[EntitySchema] = {
+    var schemata = Seq[EntitySchema]()
+
+    schemata :+= EntitySchema(
+      typeUri = selection.typeUri,
+      typedPaths = rules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+      filter = selection.restriction,
+      subPath = subPath
+    )
+
+    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+      schemata ++= collectInputSchemata(childRules, relativePath)
+    }
+
+    schemata
+  }
+
+  private def collectOutputSchemata(rules: Seq[TransformRule], subPath: Path): Seq[EntitySchema] = {
+    var schemata = Seq[EntitySchema]()
+
+    schemata :+= EntitySchema(
+      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+      typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+    )
+
+    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+      schemata ++= collectOutputSchemata(childRules, relativePath)
+    }
+
+    schemata
+  }
 
 }
 

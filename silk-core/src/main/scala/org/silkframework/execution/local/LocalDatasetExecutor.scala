@@ -50,6 +50,15 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           case _ =>
             throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
         }
+      case multi: MultiEntitySchema =>
+        MultiEntityTable(
+          entities = dataset.source.retrieve(entitySchema = schema),
+          entitySchema = schema,
+          subTables =
+            for(subSchema <- multi.subSchemata) yield
+              GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
+          task = dataset
+        )
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
