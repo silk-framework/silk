@@ -132,10 +132,6 @@ th,td
   margin-bottom: 5px;
 }
 
-.di-rule-details-container {
-  height: 100%;
-}
-
 .di-rule-details-container-source {
   display: none;
 }
