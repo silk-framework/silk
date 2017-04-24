@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
   * Created on 3/17/16.
@@ -155,11 +155,20 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
     *                  the header line.
     */
-  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String, uriPrefix: String): WSResponse = {
+  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String, uriPrefix: String, uriTemplate: Option[String]): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
         <Param name="prefix" value={uriPrefix}/>
+        {uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  def createSparkViewDataset(projectId: String, datasetId: String, viewName: String): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="sparkView">
+        <Param name="viewName" value={viewName}/>
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
