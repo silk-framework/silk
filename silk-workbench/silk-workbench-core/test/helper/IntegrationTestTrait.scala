@@ -155,7 +155,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
     *                  the header line.
     */
-  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String, uriPrefix: String, uriTemplate: Option[String]): WSResponse = {
+  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
+                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
