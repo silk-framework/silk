@@ -1,6 +1,6 @@
 package helper
 
-import java.io.File
+import java.io.{File, FileNotFoundException}
 import java.net.{BindException, InetSocketAddress, URLDecoder}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
@@ -11,7 +11,7 @@ import org.silkframework.dataset.rdf.RdfNode
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
 import org.silkframework.workspace.{User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
 
@@ -29,13 +29,26 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
   final val START_PORT = 10600
+  private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
+  tmpDir.delete()
+  tmpDir.mkdirs()
+
+  def deleteRecursively(f: File): Unit = {
+    if (f.isDirectory) {
+      for (c <- f.listFiles())
+      deleteRecursively(c)
+    }
+    if (!f.delete()) {
+      throw new FileNotFoundException("Failed to delete file: " + f)
+    }
+  }
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override def beforeAll(): Unit = {
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider]("inMemoryRdfWorkspace", Map.empty)
-    val replacementWorkspace = new Workspace(provider, InMemoryResourceRepository())
+    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceUser = new User {
       /**
         * The current workspace of this user.
@@ -48,6 +61,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
 
   override def afterAll(): Unit = {
     User.userManager = oldUserManager
+    deleteRecursively(tmpDir)
   }
 
   def init(): Unit = {
