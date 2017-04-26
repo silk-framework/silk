@@ -5,7 +5,7 @@ import org.silkframework.entity._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
-import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
+import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -31,6 +31,8 @@ sealed trait TransformRule {
 
   /** String representation of rule type */
   def typeString: String
+
+  def childRules: Seq[TransformRule] = Seq.empty
 
   /**
     * Generates the transformed values.
@@ -202,6 +204,38 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
 case class ComplexMapping(name: Identifier = "mapping", operator: Input, target: Option[MappingTarget] = None) extends TransformRule {
 
   override val typeString = "Complex"
+
+}
+
+/**
+  * A hierarchical mapping.
+  *
+  * Generates child entities that are connected to the parent entity using the targetProperty.
+  * The properties of the child entities are mapped by the child mappings.
+  *
+  * @param name The name of this mapping.
+  * @param relativePath The relative input path to locate the child entities in the source.
+  * @param targetProperty The property that is used to attach the child entities.
+  * @param childRules The child rules.
+  */
+case class HierarchicalMapping(name: Identifier = "mapping", relativePath: Path = Path(Nil), targetProperty: Option[Uri] = Some("hasChild"),
+                               override val childRules: Seq[TransformRule]) extends TransformRule {
+
+  override val typeString = "Hierarchical"
+
+  override val operator = {
+    targetProperty match {
+      case Some(prop) =>
+        childRules.find (_.isInstanceOf[UriMapping] ) match {
+          case Some (rule) => rule.operator
+          case None => PathInput (path = relativePath)
+        }
+      case None =>
+        TransformInput(transformer = EmptyValueTransformer())
+    }
+  }
+
+  override val target = targetProperty.map(MappingTarget(_, UriValueType))
 
 }
 

@@ -759,7 +759,7 @@ var createSourcePathElement = function(path, settings={}) {
   }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
-  text.text(path);
+  text.append(path);
   element.append(text);
   container.append(element);
   return container;

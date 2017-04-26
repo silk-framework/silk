@@ -1,10 +1,10 @@
 package org.silkframework.rule
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.entity._
+import org.silkframework.entity.{Path, _}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.{Node, Null}
 
@@ -26,28 +26,141 @@ case class TransformSpec(selection: DatasetSelection,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
   lazy val inputSchema: SchemaTrait = {
+    val hms = hierarchicalMappings(rules)
+    if (hms.isEmpty) {
+      flatEntityInputSchema(rules)
+    } else {
+      NestedEntitySchema(rulesToNestedInputSchemaNode(rules))
+    }
+  }
+
+  lazy val outputSchema: SchemaTrait = {
+    val hms = hierarchicalMappings(rules)
+    if (hms.isEmpty) {
+      flatEntityOutputSchema(rules)
+    } else {
+      NestedEntitySchema(rulesToNestedOutputSchemaNode(rules))
+    }
+  }
+
+  private def flatEntityOutputSchema(transformRules: Seq[TransformRule]) = {
+    EntitySchema(
+      typeUri = transformRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
+      typedPaths = transformRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+    )
+  }
+
+  override def inputSchemataOpt: Option[Seq[SchemaTrait]] = Some(Seq(inputSchema))
+
+  override def outputSchemaOpt: Some[SchemaTrait] = Some(outputSchema)
+
+  override lazy val referencedTasks = Set(selection.inputId)
+
+  private def flatEntityInputSchema(transformRules: Seq[TransformRule]) = {
     EntitySchema(
       typeUri = selection.typeUri,
       // FIXME: Transform rule inputs are not typed, allow typed input paths? Until then use String value type.
-      typedPaths = rules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+      typedPaths = transformRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
       filter = selection.restriction
     )
   }
 
-  lazy val outputSchema: SchemaTrait = {
-    EntitySchema(
-      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-      typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
-    )
+  private def hierarchicalMappings(transformRules: Seq[TransformRule]): Seq[HierarchicalMapping] = {
+    transformRules.collect { case hm: HierarchicalMapping => hm }
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
+  private def flatMappings(transformRules: Seq[TransformRule]): Seq[TransformRule] = {
+    transformRules.filter(!_.isInstanceOf[HierarchicalMapping])
+  }
 
-  override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
+  private def rulesToNestedOutputSchemaNode(rules: Seq[TransformRule]): NestedSchemaNode = {
+    val flattenedRules = mergeRulesForOutputSchema(rules)
+    flattenedRulesToNestedOutputSchema(flattenedRules)
+  }
 
-  override lazy val referencedTasks = Set(selection.inputId)
+  private def flattenedRulesToNestedInputSchema(flattenedRules: FlattenedRulesInput): NestedSchemaNode = {
+    val rules = flattenedRules.rules
+    val flatSchema = flatEntityInputSchema(rules)
+    val nestedSchema = for ((sourcePath, nested) <- flattenedRules.nestedRules) yield {
+      val entitySchemaConnection = EntitySchemaConnection(sourcePath)
+      (entitySchemaConnection, flattenedRulesToNestedInputSchema(nested))
+    }
+    NestedSchemaNode(flatSchema, nestedSchema.toIndexedSeq)
+  }
 
+  private def rulesToNestedInputSchemaNode(rules: Seq[TransformRule]): NestedSchemaNode = {
+    val flattenedRules = mergeRulesForInputSchema(rules)
+    flattenedRulesToNestedInputSchema(flattenedRules)
+  }
+
+  private def flattenedRulesToNestedOutputSchema(flattenedRules: FlattenedRulesOutput): NestedSchemaNode = {
+    val rules = flattenedRules.rules
+    val flatSchema = flatEntityOutputSchema(rules)
+    val nestedSchema = for ((propertyUri, nested) <- flattenedRules.nestedRules) yield {
+      val entitySchemaConnection = EntitySchemaConnection(Path(propertyUri))
+      (entitySchemaConnection, flattenedRulesToNestedOutputSchema(nested))
+    }
+    NestedSchemaNode(flatSchema, nestedSchema.toIndexedSeq)
+  }
+
+  /** Merges rules for the output schema.
+    * FIXME: Not working for all edge cases, e.g. two hierarchical mappings with empty target property that have the same nested entities.
+    * Or two or more transitive hierarchical mappings with empty target property.
+    */
+  private def mergeRulesForOutputSchema(rules: Seq[TransformRule]): FlattenedRulesOutput = {
+    val hms = hierarchicalMappings(rules)
+    val (sameLevelMappings, deeperLevelNestedMappings) = hms.partition(sameTargetLevel)
+    val fms = flatMappings(rules)
+    val nestedFlatMappings = for (sameLevelMapping <- sameLevelMappings) yield {
+      flatMappings(sameLevelMapping.childRules)
+    }
+    val flatRules = fms ++ nestedFlatMappings.flatten
+    val deepFlattenedRules = deeperLevelNestedMappings map (d => (d.targetProperty.get, mergeRulesForOutputSchema(d.childRules)))
+    FlattenedRulesOutput(flatRules, deepFlattenedRules)
+  }
+
+  /** Merges rules for the output schema.
+    */
+  private def mergeRulesForInputSchema(rules: Seq[TransformRule]): FlattenedRulesInput = {
+    val hms = hierarchicalMappings(rules)
+    val fms = flatMappings(rules)
+    val (sameLevelMappings, deeperLevelNestedMappings) = hms.partition(sameSourceLevel)
+    val sameLevelMappingsFlattened = for (sameLevelMapping <- sameLevelMappings) yield {
+      // Flatten recursively, so transitive child mappings with empty path get flattened to the current level
+      val childFlattenedRules = mergeRulesForInputSchema(sameLevelMapping.childRules)
+      (childFlattenedRules.rules, childFlattenedRules.nestedRules)
+    }
+    val flatRules = fms ++ sameLevelMappingsFlattened.flatMap(_._1)
+    val deepRules = for (deepLevelMapping <- deeperLevelNestedMappings) yield {
+      (deepLevelMapping.relativePath, mergeRulesForInputSchema(deepLevelMapping.childRules))
+    }
+    val allDeepRules = (deepRules ++ sameLevelMappingsFlattened.flatMap(_._2)).distinct
+    FlattenedRulesInput(flatRules, allDeepRules)
+  }
+
+  // Mapping is on the same source level
+  private def sameSourceLevel(hierarchicalMapping: HierarchicalMapping) = {
+    hierarchicalMapping.relativePath.operators.isEmpty // TODO: Is it really empty? Or an empty forward path?
+  }
+
+  private def sameTargetLevel(hierarchicalMapping: HierarchicalMapping) = {
+    hierarchicalMapping.targetProperty.isEmpty
+  }
 }
+
+/**
+  * A flattened and merged version of the transform rules of a transformation based on the hierarchical mapping target properties.
+  */
+case class FlattenedRulesOutput(rules: Seq[TransformRule],
+                                // The target property to the nested resource and the nested rules
+                                nestedRules: Seq[(Uri, FlattenedRulesOutput)])
+
+/**
+  * A flattened and merged version of the transform rules of a transformation based on the hierarchical mapping source path.
+  */
+case class FlattenedRulesInput(rules: Seq[TransformRule],
+                               // The source path to the nested resource and the nested rules
+                               nestedRules: Seq[(Path, FlattenedRulesInput)])
 
 /**
   * Static functions for the TransformSpecification class.
