@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{EntitySchema, SchemaTrait}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.workspace.ProjectTask
@@ -22,7 +22,7 @@ class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[Ent
     val transform = task.data
 
     //Create an entity description from the transformation task
-    val currentEntityDesc: EntitySchema = transform.inputSchema // TODO: Support nested schemata?
+    val currentEntityDesc: EntitySchema = SchemaTrait.toEntitySchema(transform.inputSchema) // TODO: Support nested schemata?
 
     //Check if paths have not been loaded yet or if the restriction has been changed
     if (context.value().typedPaths.isEmpty || currentEntityDesc.typeUri != context.value().typeUri) {

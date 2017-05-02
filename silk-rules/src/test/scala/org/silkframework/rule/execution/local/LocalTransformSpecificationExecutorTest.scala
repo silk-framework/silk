@@ -141,7 +141,7 @@ class LocalTransformSpecificationExecutorTest extends FlatSpec with MustMatchers
       nestedSourceEntity(1),
       nestedSourceEntity(2)
     ),
-    entitySchema = nestedTransformSpec.inputSchemataOpt.get.head,
+    entitySchema = SchemaTrait.toNestedSchema(nestedTransformSpec.inputSchema),
     task = transformTask
   )
 

@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.ClearableDatasetGraphTrait
-import org.silkframework.entity.{EntitySchema, EntityTrait, SchemaTrait}
+import org.silkframework.entity.{EntityTrait, SchemaTrait}
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.runtime.activity.ActivityContext
@@ -86,7 +86,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   def executeWorkflowNode(node: WorkflowDependencyNode,
-                          entitySchemaOpt: Option[EntitySchema])
+                          entitySchemaOpt: Option[SchemaTrait])
                          (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable[EntityTrait, SchemaTrait]] = {
     // Execute this node
     if (!canceled) {
@@ -103,7 +103,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
-                                           schemaOpt: Option[EntitySchema])
+                                           schemaOpt: Option[SchemaTrait])
                                           (implicit workflowRunContext: WorkflowRunContext): Some[EntityTable[EntityTrait, SchemaTrait]] = {
     executeWorkflowNode(input, schemaOpt) match {
       case e@Some(entityTable) =>
@@ -195,7 +195,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * need to be re-evaluated each time.
     */
   private def executeWorkflowDataset(datasetNode: WorkflowDependencyNode,
-                                     entitySchemaOpt: Option[EntitySchema],
+                                     entitySchemaOpt: Option[SchemaTrait],
                                      dataset: WorkflowDataset)
                                     (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable[EntityTrait, SchemaTrait]] = {
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
@@ -235,7 +235,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   def readFromDataset(workflowDataset: WorkflowDataset,
-                      entitySchema: EntitySchema)
+                      entitySchema: SchemaTrait)
                      (implicit workflowRunContext: WorkflowRunContext): EntityTable[EntityTrait, SchemaTrait] = {
     project.taskOption[Dataset](workflowDataset.task) match {
       case Some(datasetTask) =>

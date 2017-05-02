@@ -10,7 +10,7 @@ trait SchemaTrait {
 }
 
 object SchemaTrait {
-  implicit def toEntitySchema(schemaTrait: SchemaTrait): EntitySchema = {
+  def toEntitySchema(schemaTrait: SchemaTrait): EntitySchema = {
     schemaTrait match {
       case entitySchema: EntitySchema =>
         entitySchema
@@ -19,7 +19,7 @@ object SchemaTrait {
     }
   }
 
-  implicit def toNestedSchema(schemaTrait: SchemaTrait): NestedEntitySchema = {
+  def toNestedSchema(schemaTrait: SchemaTrait): NestedEntitySchema = {
     schemaTrait match {
       case entitySchema: EntitySchema =>
         entitySchema

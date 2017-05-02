@@ -175,6 +175,10 @@ object TransformSpecHelper {
     UriMapping(mappingId(), uriTemplate)
   }
 
+  def typeMapping(typeUri: String): TransformRule = {
+    TypeMapping(mappingId(), typeUri)
+  }
+
   def path(pathStr: String): Path = Path.parse(pathStr)
 
   def typedPath(valueType: ValueType)(pathStr: String): TypedPath = TypedPath(path(pathStr), valueType)

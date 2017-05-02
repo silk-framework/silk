@@ -1,6 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import java.io.StringWriter
+
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{ClearableDatasetGraphTrait, RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
@@ -14,6 +17,11 @@ case class InMemoryDataset(@Param(label = "Clear graph before workflow execution
   private val model = ModelFactory.createDefaultModel()
 
   override val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
+
+  def isEqual(other: Model): Boolean = {
+    model.difference(other).size() == 0 &&
+      other.difference(model).size() == 0
+  }
 
   /**
     * Returns a data source for reading entities from the data set.

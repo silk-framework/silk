@@ -7,28 +7,11 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, Resource, WritableResource}
 import org.silkframework.util.Uri
+import CsvSourceTestHelper._
 
 class CsvSourceTest extends FlatSpec with Matchers {
 
   val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/csv")
-
-  def writableResource(resource: Resource): WritableResource = {
-    new WritableResource {
-      override def write(write: (OutputStream) => Unit): Unit = ???
-
-      override def name: String = resource.name
-
-      override def path: String = resource.path
-
-      override def exists: Boolean = resource.exists
-
-      override def size: Option[Long] = resource.size
-
-      override def modificationTime: Option[Instant] = resource.modificationTime
-
-      override def load: InputStream = resource.load
-    }
-  }
 
   val settings =
     CsvSettings(
@@ -40,8 +23,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val noSeparatorSettings = settings.copy(separator = ' ')
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
-  val datasetHard = CsvDataset(writableResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
-  val emptyCsv = CsvDataset(writableResource(resources.get("empty.csv")), separator = "\t", quote = "")
+  val datasetHard = CsvDataset(writableResourceWrapper(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
+  val emptyCsv = CsvDataset(writableResourceWrapper(resources.get("empty.csv")), separator = "\t", quote = "")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -195,5 +178,26 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   private def entitySchemaConnection: EntitySchemaConnection = {
     EntitySchemaConnection(Path(""))
+  }
+}
+
+object CsvSourceTestHelper {
+  /** Helper method that wraps a [[Resource]] as a writable resource, so it can be used in Datasets */
+  def writableResourceWrapper(resource: Resource): WritableResource = {
+    new WritableResource {
+      override def write(write: (OutputStream) => Unit): Unit = ???
+
+      override def name: String = resource.name
+
+      override def path: String = resource.path
+
+      override def exists: Boolean = resource.exists
+
+      override def size: Option[Long] = resource.size
+
+      override def modificationTime: Option[Instant] = resource.modificationTime
+
+      override def load: InputStream = resource.load
+    }
   }
 }

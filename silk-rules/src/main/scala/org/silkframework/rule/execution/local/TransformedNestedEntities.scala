@@ -17,8 +17,6 @@ import scala.util.control.NonFatal
 class TransformedNestedEntities(entities: Traversable[NestedEntity],
                                 transform: TransformSpec,
                                 context: ActivityContext[ExecutionReport]) extends Traversable[NestedEntity] {
-  // TODO: Rewrite for nested entities
-
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   private def subjectRule(rules: Seq[TargetViewTransformRule]): Option[TargetViewTransformRule] = rules.find(isSubjectRule)
@@ -34,8 +32,8 @@ class TransformedNestedEntities(entities: Traversable[NestedEntity],
 
   private var errorFlag = false
 
-  private val nestedRootOutputSchema: NestedEntitySchema = transform.outputSchema
-  private val nestedRootInputSchema: NestedEntitySchema = transform.inputSchema
+  private val nestedRootOutputSchema: NestedEntitySchema = SchemaTrait.toNestedSchema(transform.outputSchema)
+  private val nestedRootInputSchema: NestedEntitySchema = SchemaTrait.toNestedSchema(transform.inputSchema)
 
   override def foreach[U](f: (NestedEntity) => U): Unit = {
     val targetViewSchema = mergeRulesForTargetViewTransformation(transform.rules)

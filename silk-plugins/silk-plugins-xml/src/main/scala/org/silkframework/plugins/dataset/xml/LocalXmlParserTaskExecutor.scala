@@ -51,8 +51,9 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
               val resource = InMemoryResourceManager().get("temp")
               resource.write(xmlValue.getBytes)
               val dataset = XmlDataset(resource, spec.basePath, entity.uri + spec.uriSuffixPattern)
-              val entities = dataset.source.retrieve(os)
-              GenericEntityTable(entities, os, task)
+              val schema = SchemaTrait.toEntitySchema(os)
+              val entities = dataset.source.retrieve(schema)
+              GenericEntityTable(entities, schema, task)
             case None =>
               throw TaskException("No value found for input path!")
           }

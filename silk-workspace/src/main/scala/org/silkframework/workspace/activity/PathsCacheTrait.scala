@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
-import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.entity.{EntitySchema, Path, SchemaTrait, TypedPath}
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.util.Identifier
@@ -23,14 +23,14 @@ trait PathsCacheTrait {
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
           case Some(selection) =>
-            source.retrievePaths(selection.typeUri, 1).map(_.asStringTypedPath)
+            source.retrievePaths(selection.typeUri).map(_.asStringTypedPath)
           case None =>
             IndexedSeq()
         }
       case task: TaskSpec =>
         task.outputSchemaOpt match {
           case Some(schema) =>
-            schema.typedPaths
+            SchemaTrait.toEntitySchema(schema).typedPaths
           case None =>
             IndexedSeq()
         }

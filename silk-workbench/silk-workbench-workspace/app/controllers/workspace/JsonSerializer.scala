@@ -3,15 +3,15 @@ package controllers.workspace
 import java.io.File
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetTask}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.Dataset
+import org.silkframework.entity.{EntitySchema, SchemaTrait}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
 import play.api.libs.json._
 
@@ -125,12 +125,12 @@ object JsonSerializer {
     )
   }
 
-  def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
+  def taskMetadata(task: ProjectTask[_ <: TaskSpec]): JsObject = {
     val inputSchemata = task.data.inputSchemataOpt match {
-      case Some(schemata) => JsArray(schemata.map(entitySchema(_))) // TODO: Support HierachicalSchema?
+      case Some(schemata) => JsArray(schemata.map(st => entitySchema(SchemaTrait.toEntitySchema(st)))) // TODO: Support HierachicalSchema?
       case None => JsNull
     }
-    val outputSchema = task.data.outputSchemaOpt.map(entitySchema(_)).getOrElse(JsNull) // TODO: Support HierachicalSchema?
+    val outputSchema = task.data.outputSchemaOpt.map(st => entitySchema(SchemaTrait.toEntitySchema(st))).getOrElse(JsNull) // TODO: Support HierachicalSchema?
 
     val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
     val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))

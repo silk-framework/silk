@@ -42,7 +42,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         }
 
       case entitySchema: EntitySchema =>
-        val entities = dataset.source.retrieve(entitySchema = schema)
+        val entities = dataset.source.retrieve(entitySchema = entitySchema)
         GenericEntityTable(entities, entitySchema = entitySchema, dataset)
     }
   }
