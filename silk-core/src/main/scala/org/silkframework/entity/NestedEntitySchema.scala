@@ -16,15 +16,9 @@ case class NestedSchemaNode(entitySchema: EntitySchema, nestedEntities: IndexedS
 
 /**
   * A connection from the parent entity to its nested entity.
-  * @param forwardProperty Optional property to link parent with child entities.
-  * @param backwardProperty Optional property to link child with parent entities.
-  * @param path the Silk path from the parent to the child entity in the source data model.
+  * @param path the Silk path from the parent to the child entity in the source or target data model.
   */
-case class EntitySchemaConnection(path: Path
-                                  // The following two would have to be part of the mapping not the source schema
-                                  //                                  forwardProperty: Option[Uri],
-                                  //                                  backwardProperty: Option[Uri]
-                                  )
+case class EntitySchemaConnection(path: Path)
 
 object NestedEntitySchema {
   implicit def toNestedSchema(entitySchema: EntitySchema): NestedEntitySchema = {

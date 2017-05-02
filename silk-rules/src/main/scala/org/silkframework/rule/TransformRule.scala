@@ -42,7 +42,7 @@ sealed trait TransformRule {
     * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
     */
   def apply(entity: Entity): Seq[String] = {
-    val values = operator(entity)
+    val values: Seq[String] = operator(entity)
     // Validate values
     for {
       valueType <- target.map(_.valueType) if valueType != AutoDetectValueType

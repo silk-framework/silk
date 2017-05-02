@@ -3,6 +3,9 @@ package org.silkframework.rule
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity._
 import org.silkframework.util.{Identifier, Uri}
+import TransformSpecHelper._
+import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 
 /**
   * Specification of transform specification task
@@ -39,38 +42,7 @@ class TransformSpecTest extends FlatSpec with MustMatchers {
     )
   )
 
-  private var mappingCounter = 0
 
-  private def mappingId(): Identifier = {
-    mappingCounter += 1
-    "mapping" + mappingCounter
-  }
-
-  private def nestedMapping(sourcePath: Path, targetProperty: Option[String], childMappings: Seq[TransformRule]): TransformRule = {
-    HierarchicalMapping(mappingId(), sourcePath, targetProperty.map(Uri(_)), childMappings)
-  }
-
-  private def directMapping(targetProperty: String, sourcePaths: String*): TransformRule = {
-    typedDirectMapping(targetProperty, AutoDetectValueType, sourcePaths :_*)
-  }
-
-  private def typedDirectMapping(targetProperty: String, targetType: ValueType, sourcePaths: String*): TransformRule = {
-    val ops = sourcePaths.map(ForwardOperator(_)).toList
-    val mappingTarget = MappingTarget(targetProperty, targetType)
-    DirectMapping(mappingId(), sourcePath = Path(ops), mappingTarget = mappingTarget)
-  }
-
-  private def uriMapping(uriTemplate: String): TransformRule = {
-    UriMapping(mappingId(), uriTemplate)
-  }
-
-  private def path(pathStr: String): Path = Path.parse(pathStr)
-
-  private def typedPath(valueType: ValueType)(pathStr: String): TypedPath = TypedPath(path(pathStr), valueType)
-  private def stringTypedPath = typedPath(StringValueType) _
-  private def autoDetectTypedPath = typedPath(AutoDetectValueType) _
-  private def intTypedPath = typedPath(IntValueType) _
-  private def doubleTypedPath = typedPath(DoubleValueType) _
 
 
   it should "generate correct nested input schema" in {
@@ -161,4 +133,53 @@ class TransformSpecTest extends FlatSpec with MustMatchers {
       nestedEntities = IndexedSeq()
     )
   }
+}
+
+object TransformSpecHelper {
+  private var counter = 0
+
+  private def mappingId(): Identifier = {
+    counter += 1
+    "mapping" + counter
+  }
+
+  private def opId(): Identifier = {
+    counter += 1
+    "operator" + counter
+  }
+
+  def nestedMapping(sourcePath: Path, targetProperty: Option[String], childMappings: Seq[TransformRule]): TransformRule = {
+    HierarchicalMapping(mappingId(), sourcePath, targetProperty.map(Uri(_)), childMappings)
+  }
+
+  def directMapping(targetProperty: String, sourcePaths: String*): TransformRule = {
+    typedDirectMapping(targetProperty, AutoDetectValueType, sourcePaths :_*)
+  }
+
+  def complexMapping(targetProperty: String, sourcePaths: Seq[String]): TransformRule = {
+    val paths = sourcePaths map pathInput
+    ComplexMapping(mappingId(), operator = TransformInput(opId(), ConcatTransformer(), paths))
+  }
+
+  private def pathInput(path: String): PathInput = {
+    PathInput(opId(), Path.parse(path))
+  }
+
+  def typedDirectMapping(targetProperty: String, targetType: ValueType, sourcePaths: String*): TransformRule = {
+    val ops = sourcePaths.map(ForwardOperator(_)).toList
+    val mappingTarget = MappingTarget(targetProperty, targetType)
+    DirectMapping(mappingId(), sourcePath = Path(ops), mappingTarget = mappingTarget)
+  }
+
+  def uriMapping(uriTemplate: String): TransformRule = {
+    UriMapping(mappingId(), uriTemplate)
+  }
+
+  def path(pathStr: String): Path = Path.parse(pathStr)
+
+  def typedPath(valueType: ValueType)(pathStr: String): TypedPath = TypedPath(path(pathStr), valueType)
+  def stringTypedPath: String => TypedPath = typedPath(StringValueType)
+  def autoDetectTypedPath: String => TypedPath = typedPath(AutoDetectValueType)
+  def intTypedPath: String => TypedPath = typedPath(IntValueType)
+  def doubleTypedPath: String => TypedPath = typedPath(DoubleValueType)
 }

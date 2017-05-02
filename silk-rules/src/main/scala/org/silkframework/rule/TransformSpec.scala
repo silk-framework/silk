@@ -7,6 +7,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.{Node, Null}
+import TransformSpec._
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -65,14 +66,6 @@ case class TransformSpec(selection: DatasetSelection,
     )
   }
 
-  private def hierarchicalMappings(transformRules: Seq[TransformRule]): Seq[HierarchicalMapping] = {
-    transformRules.collect { case hm: HierarchicalMapping => hm }
-  }
-
-  private def flatMappings(transformRules: Seq[TransformRule]): Seq[TransformRule] = {
-    transformRules.filter(!_.isInstanceOf[HierarchicalMapping])
-  }
-
   private def rulesToNestedOutputSchemaNode(rules: Seq[TransformRule]): NestedSchemaNode = {
     val flattenedRules = mergeRulesForOutputSchema(rules)
     flattenedRulesToNestedOutputSchema(flattenedRules)
@@ -119,9 +112,9 @@ case class TransformSpec(selection: DatasetSelection,
     FlattenedRulesOutput(flatRules, deepFlattenedRules)
   }
 
-  /** Merges rules for the output schema.
+  /** Merges rules for the input schema.
     */
-  private def mergeRulesForInputSchema(rules: Seq[TransformRule]): FlattenedRulesInput = {
+  def mergeRulesForInputSchema(rules: Seq[TransformRule]): FlattenedRulesInput = {
     val hms = hierarchicalMappings(rules)
     val fms = flatMappings(rules)
     val (sameLevelMappings, deeperLevelNestedMappings) = hms.partition(sameSourceLevel)
@@ -136,15 +129,6 @@ case class TransformSpec(selection: DatasetSelection,
     }
     val allDeepRules = (deepRules ++ sameLevelMappingsFlattened.flatMap(_._2)).distinct
     FlattenedRulesInput(flatRules, allDeepRules)
-  }
-
-  // Mapping is on the same source level
-  private def sameSourceLevel(hierarchicalMapping: HierarchicalMapping) = {
-    hierarchicalMapping.relativePath.operators.isEmpty // TODO: Is it really empty? Or an empty forward path?
-  }
-
-  private def sameTargetLevel(hierarchicalMapping: HierarchicalMapping) = {
-    hierarchicalMapping.targetProperty.isEmpty
   }
 }
 
@@ -205,4 +189,20 @@ object TransformSpec {
     }
   }
 
+  def hierarchicalMappings(transformRules: Seq[TransformRule]): Seq[HierarchicalMapping] = {
+    transformRules.collect { case hm: HierarchicalMapping => hm }
+  }
+
+  def flatMappings(transformRules: Seq[TransformRule]): Seq[TransformRule] = {
+    transformRules.filter(!_.isInstanceOf[HierarchicalMapping])
+  }
+
+  // Mapping is on the same source level
+  def sameSourceLevel(hierarchicalMapping: HierarchicalMapping): Boolean = {
+    hierarchicalMapping.relativePath.operators.isEmpty // TODO: Is it really empty? Or an empty forward path?
+  }
+
+  def sameTargetLevel(hierarchicalMapping: HierarchicalMapping): Boolean = {
+    hierarchicalMapping.targetProperty.isEmpty
+  }
 }

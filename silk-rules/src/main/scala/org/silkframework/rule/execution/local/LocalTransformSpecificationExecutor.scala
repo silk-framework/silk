@@ -25,9 +25,11 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         val transformedEntities = new TransformedEntities(flatTable.entities, task, schema, context)
         Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
       case nestedTable: NestedEntityTableTrait =>
-        // TODO: Support transforming
-        ???
+        /* TODO: At the moment this always returns a NestedEntityTable. In theory this could return a flat entity table.
+                 This could be changed with small effort.
+         */
+        val transformedNestedEntities = new TransformedNestedEntities(nestedTable.entities, task, context)
+        Some(NestedEntityTable(transformedNestedEntities, transformSpec.outputSchema, task))
     }
   }
-
 }
