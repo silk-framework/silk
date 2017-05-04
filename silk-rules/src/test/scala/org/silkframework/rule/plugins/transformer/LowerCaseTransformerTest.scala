@@ -14,21 +14,20 @@
 
 package org.silkframework.rule.plugins.transformer
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
+import org.silkframework.test.PluginTest
 
+class LowerCaseTransformerTest extends PluginTest {
 
-class LowerCaseTransformerTest extends FlatSpec with Matchers {
-
-  val transformer = new LowerCaseTransformer()
+  private val transformer = pluginObject
 
   "LowerCaseTransformer" should "return '123'" in {
     transformer.evaluate("123") should equal("123")
   }
 
-  val transformer1 = new LowerCaseTransformer()
-
   "LowerCaseTransformer" should "return 'abc'" in {
-    transformer1.evaluate("ABc") should equal("abc")
+    transformer.evaluate("ABc") should equal("abc")
   }
+
+  override protected def pluginObject = LowerCaseTransformer()
 }
