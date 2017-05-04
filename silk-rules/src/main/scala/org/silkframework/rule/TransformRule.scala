@@ -6,7 +6,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
-import org.silkframework.runtime.plugin.ParameterType.ResourceType
+import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -215,8 +215,6 @@ object TransformRule {
     * XML serialization format.
     */
   implicit object TransformRuleFormat extends XmlFormat[TransformRule] {
-
-    import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): TransformRule = {
       ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")

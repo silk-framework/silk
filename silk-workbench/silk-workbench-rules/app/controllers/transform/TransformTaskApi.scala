@@ -3,11 +3,12 @@ package controllers.transform
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
+import controllers.util.SerializationUtils._
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
@@ -109,14 +110,16 @@ class TransformTaskApi extends Controller {
   }
   }
 
-  def getRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def getRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
     task.data.rules.find(_.name == rule) match {
-      case Some(r) => Ok(XmlSerialization.toXml(r))
-      case None => NotFound(s"No rule named '$rule' found!")
+      case Some(r) =>
+        serialize(r)
+      case None =>
+        NotFound(s"No rule named '$rule' found!")
     }
   }
 
