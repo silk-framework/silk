@@ -253,17 +253,34 @@ object TransformRule {
 
     def read(node: Node)(implicit readContext: ReadContext): TransformRule = {
       ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")
+
+      node.label match {
+        case "HierarchicalMapping" => readHierarchicalMapping(node)
+        case "TransformRule" => readTransformRule(node)
+      }
+    }
+
+    private def readHierarchicalMapping(node: Node)(implicit readContext: ReadContext): HierarchicalMapping = {
+      HierarchicalMapping(
+        name = (node \ "@name").text,
+        relativePath = Path.parse((node \ "@relativePath").text),
+        targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
+        childRules = (node \ "Children" \ "_").map(read)
+      )
+    }
+
+    private def readTransformRule(node: Node)(implicit readContext: ReadContext): TransformRule = {
       // First test new target serialization, else old one
       val target = (node \ "MappingTarget").headOption.
-          map(tp => Some(fromXml[MappingTarget](tp))).
-          getOrElse {
-            val targetProperty = (node \ "@targetProperty").text
-            if (targetProperty.isEmpty) {
-              None
-            } else {
-              Some(MappingTarget(Uri.parse(targetProperty, readContext.prefixes)))
-            }
+        map(tp => Some(fromXml[MappingTarget](tp))).
+        getOrElse {
+          val targetProperty = (node \ "@targetProperty").text
+          if (targetProperty.isEmpty) {
+            None
+          } else {
+            Some(MappingTarget(Uri.parse(targetProperty, readContext.prefixes)))
           }
+        }
       val complex =
         ComplexMapping(
           name = (node \ "@name").text,
@@ -274,9 +291,17 @@ object TransformRule {
     }
 
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
-      <TransformRule name={value.name}>
-        {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
-      </TransformRule>
+      value match {
+        case HierarchicalMapping(name, relativePath, targetProperty, childRules) =>
+          <HierarchicalMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
+            <Children>{childRules.map(write)}</Children>
+          </HierarchicalMapping>
+        case _ =>
+          // At the moment, all other types are serialized generically
+          <TransformRule name={value.name}>
+            {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
+          </TransformRule>
+      }
     }
   }
 

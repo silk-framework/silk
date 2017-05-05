@@ -112,7 +112,7 @@
 
     <xs:element name="TransformRule">
         <xs:complexType>
-          <xs:sequence>
+            <xs:sequence>
                 <xs:choice minOccurs="1" maxOccurs="1">
                     <xs:element ref="Input"/>
                     <xs:element ref="TransformInput"/>
@@ -120,6 +120,26 @@
                 <xs:element ref="MappingTarget" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="targetProperty" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="HierarchicalMapping">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Children"  minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                <xs:element ref="TransformRule"/>
+                                <xs:element ref="HierarchicalMapping"/>
+                            </xs:choice>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="relativePath" type="xs:string"/>
             <xs:attribute name="targetProperty" type="xs:string"/>
         </xs:complexType>
     </xs:element>
@@ -180,7 +200,8 @@
             <xs:sequence>
                 <xs:element ref="SourceDataset" minOccurs="1" maxOccurs="1"/>
 
-                <xs:element ref="TransformRule" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="HierarchicalMapping" minOccurs="0" maxOccurs="unbounded"/>
 
                 <xs:element ref="Outputs" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
