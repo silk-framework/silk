@@ -4,7 +4,13 @@
   <strong class="mdl-dialog__title-text">@title</strong>
   <div id="dialog-progress-spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
 </div>
-
+<div class="dialog__error-msg">
+  <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+    <div class="mdl-alert__content">
+      Error message.
+    </div>
+  </div>
+</div>
 <form id="dialog-form" action="javascript:submit();" enctype="multipart/form-data">
   <div class="mdl-dialog__content">
   @content
@@ -22,5 +28,6 @@
   primary_dialog.querySelector('#dialog-secondary-button').addEventListener('click', function() {
     dialog_secondary();
   });
+  $(".dialog__error-msg").click(function() { $(this).fadeToggle(); });
 </script>
 

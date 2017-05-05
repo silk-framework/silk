@@ -1,6 +1,6 @@
 package helper
 
-import java.io.File
+import java.io.{File, FileNotFoundException}
 import java.net.{BindException, InetSocketAddress, URLDecoder}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
@@ -11,7 +11,7 @@ import org.silkframework.dataset.rdf.RdfNode
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
 import org.silkframework.workspace.{User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
 
@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
   * Created on 3/17/16.
@@ -29,13 +29,26 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
   final val START_PORT = 10600
+  private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
+  tmpDir.delete()
+  tmpDir.mkdirs()
+
+  def deleteRecursively(f: File): Unit = {
+    if (f.isDirectory) {
+      for (c <- f.listFiles())
+      deleteRecursively(c)
+    }
+    if (!f.delete()) {
+      throw new FileNotFoundException("Failed to delete file: " + f)
+    }
+  }
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override def beforeAll(): Unit = {
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider]("inMemoryRdfWorkspace", Map.empty)
-    val replacementWorkspace = new Workspace(provider, InMemoryResourceRepository())
+    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceUser = new User {
       /**
         * The current workspace of this user.
@@ -48,6 +61,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
 
   override def afterAll(): Unit = {
     User.userManager = oldUserManager
+    deleteRecursively(tmpDir)
   }
 
   def init(): Unit = {
@@ -141,11 +155,21 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
     *                  the header line.
     */
-  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String, uriPrefix: String): WSResponse = {
+  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
+                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
         <Param name="prefix" value={uriPrefix}/>
+        {uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  def createSparkViewDataset(projectId: String, datasetId: String, viewName: String): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="sparkView">
+        <Param name="viewName" value={viewName}/>
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }

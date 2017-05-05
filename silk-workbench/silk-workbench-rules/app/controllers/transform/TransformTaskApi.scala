@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSource, Dataset, EntitySink, PeakDataSource}
+import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformRule, TransformSpec}
@@ -32,6 +32,7 @@ class TransformTaskApi extends Controller {
   final val MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS: Int = 500
   // Max number of entities to examine for the mapping preview
   final val MAX_TRY_ENTITIES_DEFAULT: Int = MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS + TRANSFORMATION_PREVIEW_LIMIT + MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS
+  final val NOT_SUPPORTED_STATUS_MSG = "not supported"
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -261,14 +262,21 @@ class TransformTaskApi extends Controller {
                   + task.data.rules.map(_.name).mkString(", "))
             )
             val entityDescription = oneRuleEntitySchema(transformTask, rule)
-            val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
-            generateMappingPreviewResponse(rule, exampleEntities, limit)
+            try {
+              val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
+              generateMappingPreviewResponse(rule, exampleEntities, limit)
+            } catch {
+              case pe: PeakException =>
+                Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +
+                    " of type " + dataset.plugin.label +
+                    " raised following issue:" + pe.msg))))
+            }
           case _ =>
-            Ok(Json.toJson(PeakResults(None, None, PeakStatus("not supported", "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
                 " does not support transformation preview!"))))
         }
-      case _: ProjectTask[_] =>
-        Ok(Json.toJson(PeakResults(None, None, PeakStatus("not supported", "Input task " + inputTask.toString +
+      case _: TransformSpec =>
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTask.toString +
             " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
     }
   }

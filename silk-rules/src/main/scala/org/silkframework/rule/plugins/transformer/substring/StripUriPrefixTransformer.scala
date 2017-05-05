@@ -29,6 +29,8 @@ import scala.math.max
   description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'"
 )
 case class StripUriPrefixTransformer() extends SimpleTransformer {
+
+  @transient
   private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
 
   override def evaluate(value: String): String = {
