@@ -377,7 +377,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
     val response = Await.result(futureResponse, 100.seconds)
-    assert(response.status.toString.head + "00" == responseCodePrefix + "00", s"Status text: ${response.statusText}. Response Body: ${response.body}")
+    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
     response
   }
 

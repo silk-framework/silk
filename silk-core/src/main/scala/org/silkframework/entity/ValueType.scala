@@ -39,7 +39,7 @@ object ValueType {
         case Some(nodeTypeNode) =>
           val nodeType = nodeTypeNode.text.trim
           valueTypeById(nodeType) match {
-            case Left(clazz) =>
+            case Left(_) =>
               readClassValueTypes(value, nodeType, readContext.prefixes)
             case Right(valueType) =>
               valueType
