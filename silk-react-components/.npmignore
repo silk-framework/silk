@@ -1,0 +1,45 @@
+#START
+# PLEASE PLACE CUSTOM NPM IGNORES BELOW #END
+#
+# ANYTHING YOU PLACE BEFORE THE END TAG
+# WILL BE OVERWRITTEN BY ecc-dotfiles
+# INSTALL-SCRIPT
+
+# ignore node_modules and debug log
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# ignore git
+.git/
+.gitignore
+.gitlab
+
+# ignore submodule files
+common-files/
+.gitmodules
+
+# ignore tests
+ui-test/
+test/
+
+# ignore coverage report
+coverage/
+
+# ignore dotfiles
+.babelrc
+.editorconfig
+.eslintrc.yml
+Makefile
+
+# ignore gulpfile
+gulpfile.js
+
+# ignore data folders by jetbrains products
+.idea/
+
+# ignore compiled
+.tmp/
+
+#END

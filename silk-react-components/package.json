@@ -1,0 +1,34 @@
+{
+  "name": "silk-react-components",
+  "version": "0.0.1",
+  "description": "silk react components",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint 'src/**/*'",
+    "lintfix": "eslint 'src/**/*' --fix",
+    "start": "gulp",
+    "build": "gulp build",
+    "deploy": "gulp deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/silk-framework/silk.git"
+  },
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "babel-runtime": "^6.23.0",
+    "ecc-gui-elements": "^2.11.7",
+    "ecc-messagebus": "^3.6.0",
+    "ecc-superagent": "^1.2.0",
+    "lodash": "^4.17.4",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4"
+  },
+  "devDependencies": {
+    "ecc-gulp-tasks": "^3.6.0",
+    "gulp": "^3.9.1"
+  }
+}
