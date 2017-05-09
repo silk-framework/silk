@@ -225,7 +225,7 @@ object JsonSerializers {
           toOption.
           map(fromJson[MappingTarget])
       val complex = ComplexMapping(
-        name = (jsValue \ "name").as[String],
+        name = stringValue(jsValue, "name"),
         operator = fromJson[Input]((jsValue \ "operator").get),
         target = mappingTarget
       )
