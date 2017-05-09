@@ -4,6 +4,7 @@
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.entity.Path
 @import org.silkframework.workspace.activity.transform.TransformPathsCache
+@import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import org.silkframework.rule.vocab.Vocabularies
@@ -17,6 +18,8 @@
 
   <script type="text/javascript" src="@Assets.at("js/editor/transformRules.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/silk-react-components/main.js")"/>
+  </script>
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var editorUrl = '@config.baseUrl/transform/@context.project.name/@context.task.id/editor';
@@ -139,7 +142,11 @@
       @renderRule(ObjectMapping(targetProperty = MappingTarget("")))
   </table>
 
+  <div id="react-hierarchicalMapping"></div>
+
   <script type="text/javascript">
+
+    HierarchicalMapping('react-hierarchicalMapping', '@config.baseUrl/workspace/projects/@context.project.name/tasks/@context.task.id/metadata');
 
     var prefixes = {};
     @for((key, value) <- context.project.config.prefixes) {
@@ -168,7 +175,8 @@
     });
   </script>
 
-  <div id="valueTooltips"/>
+  <div id="valueTooltips"></div>
+
 }
 
 @renderRule(rule: TransformRule) = {
