@@ -3,7 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{CustomValueType, LanguageValueType, Path, ValueType}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
-import org.silkframework.rule.{ComplexMapping, MappingTarget, TransformRule}
+import org.silkframework.rule.{ComplexMapping, HierarchicalMapping, MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
@@ -19,6 +19,7 @@ object JsonSerializers {
   final val TYPE = "type"
   final val PARAMETERS = "parameters"
   final val URI = "URI"
+  final val NAME = "name"
 
   implicit object JsonDatasetTaskFormat extends JsonFormat[DatasetTask] {
 
@@ -214,6 +215,45 @@ object JsonSerializers {
   }
 
   /**
+    * Hierarchical Mapping
+    */
+  implicit object HierarchicalMappingJsonFormat extends JsonFormat[HierarchicalMapping] {
+    final val RELATIVE_SOURCE_PATH: String = "relativeSourcePath"
+    final val TARGET_PROPERTY: String = "targetProperty"
+    final val CHILDREN: String = "children"
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): HierarchicalMapping = {
+      val name = stringValue(value, NAME)
+      val sourcePath = silkPath(name, stringValue(value, RELATIVE_SOURCE_PATH))
+      val targetProperty: Option[Uri] = stringValue(value, TARGET_PROPERTY) match {
+        case "" => None
+        case prop: String => Some(prop)
+      }
+      val children = mustBeJsArray(mustBeDefined(value, CHILDREN)) { array =>
+        array.value.map(TransformRuleJsonFormat.read)
+      }
+      HierarchicalMapping(name, sourcePath, targetProperty, children)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: HierarchicalMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("hierarchical"),
+          NAME -> JsString(value.name),
+          RELATIVE_SOURCE_PATH -> JsString(value.relativePath.serialize),
+          TARGET_PROPERTY -> JsString(value.targetProperty.map(_.uri).getOrElse("")),
+          CHILDREN -> JsArray(value.childRules.map(toJson[TransformRule]))
+        )
+      )
+    }
+  }
+
+  /**
     * Transform Rule JSON Format
     */
   implicit object TransformRuleJsonFormat extends JsonFormat[TransformRule] {
@@ -221,11 +261,21 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(jsValue: JsValue)(implicit readContext: ReadContext): TransformRule = {
+      stringValue(jsValue, TYPE) match {
+        case "single" =>
+          readTransformRule(jsValue)
+        case "hierarchical" =>
+          fromJson[HierarchicalMapping](jsValue)
+      }
+    }
+
+    private def readTransformRule(jsValue: JsValue)
+                                 (implicit readContext: ReadContext)= {
       val mappingTarget = (jsValue \ "mappingTarget").
           toOption.
           map(fromJson[MappingTarget])
       val complex = ComplexMapping(
-        name = stringValue(jsValue, "name"),
+        name = stringValue(jsValue, NAME),
         operator = fromJson[Input]((jsValue \ "operator").get),
         target = mappingTarget
       )
@@ -236,9 +286,19 @@ object JsonSerializers {
       * Serializes a value. curl -i -H 'accept: application/json' -XGET http://localhost:9000/transform/tasks/BoschJSON/product-feed-transform/rule/name
       */
     override def write(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      rule match {
+        case h: HierarchicalMapping =>
+          toJson(h)
+        case _ =>
+          writeTransformRule(rule)
+      }
+    }
+
+    private def writeTransformRule(rule: TransformRule) = {
       JsObject(
         Seq(
-          "name" -> JsString(rule.name),
+          TYPE -> JsString("single"),
+          NAME -> JsString(rule.name),
           "operator" -> toJson(rule.operator)
         ) ++
             rule.target.map("mappingTarget" -> toJson(_))
