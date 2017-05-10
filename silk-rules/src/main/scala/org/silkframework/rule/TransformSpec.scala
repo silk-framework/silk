@@ -63,7 +63,7 @@ case class TransformSpec(selection: DatasetSelection,
     var schemata = Seq[EntitySchema]()
 
     schemata :+= EntitySchema(
-      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
       typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
     )
 
