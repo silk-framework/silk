@@ -15,7 +15,8 @@ object SerializationUtils extends Results {
   private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle")
 
   /**
-    * Tries to serialize a given value based on the accept header.
+    * Tries to serialize a given value based on the accept header. The compile time type is used instead of the runtime
+    * type of the submitted value. Setting the class tag explicitly will search a serialization format for this exact type.
     *
     * @param value            The value to be serialized
     * @param defaultMimeTypes The MIME types to be used if the accept header specifies none or accepts any
@@ -23,11 +24,11 @@ object SerializationUtils extends Results {
     * @param project          The project
     * @return A HTTP result
     */
-  def serialize[T: ClassTag](value: T,
-                             defaultMimeTypes: Seq[String] = defaultMimeTypes)
-                            (implicit request: Request[AnyContent],
-                             project: Project): Result = {
-    implicit val writeContext = WriteContext[Any](prefixes = project.config.prefixes)
+  def serializeCompileTime[T: ClassTag](value: T,
+                                        defaultMimeTypes: Seq[String] = defaultMimeTypes)
+                                       (implicit request: Request[AnyContent],
+                                        project: Project): Result = {
+    implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
@@ -36,12 +37,72 @@ object SerializationUtils extends Results {
     }
   }
 
-  def serializeIterable[T: ClassTag](value: Iterable[T],
-                                     defaultMimeTypes: Seq[String] = defaultMimeTypes,
-                                     containerName: Option[String] = None)
-                                    (implicit request: Request[AnyContent],
-                                     project: Project): Result = {
-    implicit val writeContext = WriteContext[Any](prefixes = project.config.prefixes)
+  private def createWriteContext(project: Project) = {
+    WriteContext[Any](prefixes = project.config.prefixes)
+  }
+
+  /**
+    * Tries to serialize a given value based on the accept header. This method uses the runtime class of the submitted value.
+    *
+    * @param value            The value to be serialized
+    * @param defaultMimeTypes The MIME types to be used if the accept header specifies none or accepts any
+    * @param request          The HTTP request to be used for content negotiation
+    * @param project          The project
+    * @return A HTTP result
+    */
+  def serializeRuntime(value: Any,
+                       defaultMimeTypes: Seq[String] = defaultMimeTypes)
+                      (implicit request: Request[AnyContent],
+                       project: Project): Result = {
+    implicit val writeContext = createWriteContext(project)
+    val valueType = value.getClass
+
+    val noneType = notAcceptable(request, valueType)
+    applySerializationFormat(request.acceptedTypes, defaultMimeTypes, valueType, noneType) { (serializationFormat, mimeType) =>
+      val serializedValue = serializationFormat.toString(value, mimeType)
+      Ok(serializedValue).as(mimeType)
+    }
+  }
+
+  private def notAcceptable(request: Request[AnyContent], valueType: Class[_]) = {
+    NotAcceptable(JsonError(s"No serialization for accepted MIME types (${request.acceptedTypes.mkString(", ")})" +
+        s" available for values of type ${valueType.getSimpleName}"))
+  }
+
+  def serializeToStringCompileType[T: ClassTag](value: T,
+                                                defaultMimeTypes: Seq[String] = defaultMimeTypes)
+                                               (implicit request: Request[AnyContent],
+                                                project: Project): Option[String] = {
+    implicit val writeContext = createWriteContext(project)
+    val valueType = implicitly[ClassTag[T]].runtimeClass
+
+    val noneType = None
+    applySerializationFormat[Option[String]](request.acceptedTypes, defaultMimeTypes, valueType, noneType) { (serializationFormat, mimeType) =>
+      val serializedValue = serializationFormat.toString(value, mimeType)
+      Some(serializedValue)
+    }
+  }
+
+  def serializeToStringRuntimeType(value: Any,
+                                   defaultMimeTypes: Seq[String] = defaultMimeTypes)
+                                  (implicit request: Request[AnyContent],
+                                   project: Project): Option[String] = {
+    implicit val writeContext = createWriteContext(project)
+    val valueType = value.getClass
+
+    val noneType = None
+    applySerializationFormat[Option[String]](request.acceptedTypes, defaultMimeTypes, valueType, noneType) { (serializationFormat, mimeType) =>
+      val serializedValue = serializationFormat.toString(value, mimeType)
+      Some(serializedValue)
+    }
+  }
+
+  def serializeIterableCompileTime[T: ClassTag](value: Iterable[T],
+                                                defaultMimeTypes: Seq[String] = defaultMimeTypes,
+                                                containerName: Option[String] = None)
+                                               (implicit request: Request[AnyContent],
+                                                project: Project): Result = {
+    implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
@@ -107,7 +168,7 @@ object SerializationUtils extends Results {
   }
 
   /**
-    * Tries to deserialize the value found in the request.
+    * Tries to deserialize the value found in the request. Uses the compile type instead of the runtime type.
     *
     * @param defaultMimeType The MIME type to be used if the content-type header specifies none or accepts any
     * @param func            The user provided function to be executed with the parsed value.
@@ -116,9 +177,9 @@ object SerializationUtils extends Results {
     * @tparam T The expected parsed type.
     * @return A HTTP result. If the serialization succeeds, this will be the result returned by the user-provided function.
     */
-  def deserialize[T: ClassTag](defaultMimeType: String = "application/xml")
-                              (func: T => Result)
-                              (implicit request: Request[AnyContent], project: Project): Result = {
+  def deserializeCompileTime[T: ClassTag](defaultMimeType: String = "application/xml")
+                                         (func: T => Result)
+                                         (implicit request: Request[AnyContent], project: Project): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
@@ -160,6 +221,38 @@ object SerializationUtils extends Results {
       case None =>
         NotAcceptable(JsonError(s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
             s" available for values of type ${classToSerialize.getSimpleName}"))
+    }
+  }
+
+  // Returns the serializer and the matched MIME type, if nothing matches it returns None
+  private def serializerByMimeType(classToSerialize: Class[_],
+                                   mediaTypes: Seq[MediaType],
+                                   defaultMimeTypes: Seq[String]): Option[(String, SerializationFormat[Any, Any])] = {
+    val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)
+    if (mimeTypes.isEmpty || mimeTypes.contains("*/*")) {
+      findSerializationFormatByMimeType(classToSerialize, defaultMimeTypes)
+    } else {
+      findSerializationFormatByMimeType(classToSerialize, mimeTypes)
+    }
+  }
+
+  private def findSerializationFormatByMimeType(classToSerialize: Class[_], mimeTypes: Seq[String]) = {
+    mimeTypes.
+        map(mt => (mt, Serialization.serializationFormat(classToSerialize, mt))).
+        find { case (mimeType, serializeFormat) => serializeFormat.isDefined }.
+        map(tuple => (tuple._1, tuple._2.get))
+  }
+
+  private def applySerializationFormat[T](acceptedTypes: Seq[MediaType],
+                                          defaultMimeTypes: Seq[String],
+                                          classToSerialize: Class[_],
+                                          noneValue: T)
+                                         (fn: (SerializationFormat[Any, Any], String) => T): T = {
+    serializerByMimeType(classToSerialize, acceptedTypes, defaultMimeTypes) match {
+      case Some((mimeType, serializationFormat)) =>
+        fn(serializationFormat, mimeType)
+      case None =>
+        noneValue
     }
   }
 }
