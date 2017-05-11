@@ -22,7 +22,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    serialize(new DatasetTask(task.id, task.data))
+    serializeCompileTime(new DatasetTask(task.id, task.data))
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
@@ -32,7 +32,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serialize(new DatasetTask(task.id, autoConfDataset))
+        serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
       case _ =>
         NotImplemented(JsonError("The dataset type does not support auto-configuration."))
     }
@@ -41,7 +41,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
     implicit val project = User().workspace.project(projectName)
     try {
-      deserialize() { dataset: DatasetTask =>
+      deserializeCompileTime() { dataset: DatasetTask =>
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>

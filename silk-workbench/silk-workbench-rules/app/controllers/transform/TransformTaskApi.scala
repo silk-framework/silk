@@ -76,7 +76,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serializeIterable(task.data.rules, containerName = Some("TransformRules"))
+    serializeIterableCompileTime(task.data.rules, containerName = Some("TransformRules"))
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
@@ -110,7 +110,7 @@ class TransformTaskApi extends Controller {
 
     task.data.rules.find(_.name == rule) match {
       case Some(r) =>
-        serialize(r)
+        serializeCompileTime(r)
       case None =>
         NotFound(s"No rule named '$rule' found!")
     }
@@ -123,7 +123,7 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserialize[TransformRule]() { updatedRule =>
+    deserializeCompileTime[TransformRule]() { updatedRule =>
       try {
         //Collect warnings while parsing transformation rule
         val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {

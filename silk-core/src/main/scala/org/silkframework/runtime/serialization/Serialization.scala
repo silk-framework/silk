@@ -16,6 +16,16 @@ object Serialization {
     formatTypes.map(_.apply())
   }
 
+  def hasSerialization(classToSerialize: Class[_],
+                       mimeType: String): Boolean = {
+    serializationFormat(classToSerialize, mimeType).isDefined
+  }
+
+  def serializationFormat(classToSerialize: Class[_],
+                          mimeType: String): Option[SerializationFormat[Any, Any]] = {
+    serializationFormats.find(f => f.valueType == classToSerialize && f.mimeTypes.contains(mimeType))
+  }
+
   def hasSerialization[T: ClassTag](mimeType: String): Boolean = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     serializationFormats.exists(f => f.valueType == valueType && f.mimeTypes.contains(mimeType))
