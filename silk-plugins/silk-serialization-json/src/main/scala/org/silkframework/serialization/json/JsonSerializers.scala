@@ -2,11 +2,12 @@ package org.silkframework.serialization.json
 
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{CustomValueType, LanguageValueType, Path, ValueType}
+import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
-import org.silkframework.rule.{ComplexMapping, HierarchicalMapping, MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
+import org.silkframework.serialization.json.JsonSerializers.DirectMappingJsonFormat.MAPPING_TARGET_PROPERTY
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.Uri
 import play.api.libs.json._
@@ -215,6 +216,128 @@ object JsonSerializers {
   }
 
   /**
+    * Type Mapping
+    */
+  implicit object TypeMappingJsonFormat extends JsonFormat[TypeMapping] {
+    final val TYPE_PROPERTY: String = "typeUri"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): TypeMapping = {
+      val name = stringValue(value, NAME)
+      val typeUri = stringValue(value, TYPE_PROPERTY)
+      TypeMapping(name, typeUri)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: TypeMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("type"),
+          NAME -> JsString(value.name),
+          TYPE_PROPERTY -> JsString(value.typeUri.uri)
+        )
+      )
+    }
+  }
+
+  /**
+    * URI Mapping
+    */
+  implicit object UriMappingJsonFormat extends JsonFormat[UriMapping] {
+    final val PATTERN_PROPERTY: String = "pattern"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): UriMapping = {
+      val name = stringValue(value, NAME)
+      val pattern = stringValue(value, PATTERN_PROPERTY)
+      UriMapping(name, pattern)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: UriMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("uri"),
+          NAME -> JsString(value.name),
+          PATTERN_PROPERTY -> JsString(value.pattern)
+        )
+      )
+    }
+  }
+
+  /**
+    * Direct Mapping
+    */
+  implicit object DirectMappingJsonFormat extends JsonFormat[DirectMapping] {
+    final val SOURCE_PATH_PROPERTY: String = "sourcePath"
+    final val MAPPING_TARGET_PROPERTY: String = "mappingTarget"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): DirectMapping = {
+      val name = stringValue(value, NAME)
+      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
+      val mappingTarget = fromJson[MappingTarget]((value \ MAPPING_TARGET_PROPERTY).get)
+      DirectMapping(name, sourcePath, mappingTarget)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: DirectMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("direct"),
+          NAME -> JsString(value.name),
+          SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize),
+          MAPPING_TARGET_PROPERTY -> toJson(value.mappingTarget)
+        )
+      )
+    }
+  }
+
+  /**
+    * Object Mapping
+    */
+  implicit object ObjectMappingJsonFormat extends JsonFormat[ObjectMapping] {
+    final val PATTERN_PROPERTY: String = "pattern"
+    final val TARGET_PROPERTY: String = "targetProperty"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
+      val name = stringValue(value, NAME)
+      val pattern = stringValue(value, PATTERN_PROPERTY)
+      val mappingTarget = fromJson[MappingTarget]((value \ TARGET_PROPERTY).get)
+      ObjectMapping(name, pattern, mappingTarget)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: ObjectMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("uri"),
+          NAME -> JsString(value.name),
+          PATTERN_PROPERTY -> JsString(value.pattern),
+          TARGET_PROPERTY -> toJson(value.targetProperty)
+        )
+      )
+    }
+  }
+
+  /**
     * Hierarchical Mapping
     */
   implicit object HierarchicalMappingJsonFormat extends JsonFormat[HierarchicalMapping] {
@@ -262,10 +385,18 @@ object JsonSerializers {
       */
     override def read(jsValue: JsValue)(implicit readContext: ReadContext): TransformRule = {
       stringValue(jsValue, TYPE) match {
-        case "single" =>
-          readTransformRule(jsValue)
+        case "type" =>
+          fromJson[TypeMapping](jsValue)
+        case "uri" =>
+          fromJson[UriMapping](jsValue)
+        case "direct" =>
+          fromJson[DirectMapping](jsValue)
+        case "object" =>
+          fromJson[ObjectMapping](jsValue)
         case "hierarchical" =>
           fromJson[HierarchicalMapping](jsValue)
+        case "complex" =>
+          readTransformRule(jsValue)
       }
     }
 
@@ -287,6 +418,14 @@ object JsonSerializers {
       */
     override def write(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       rule match {
+        case t: TypeMapping =>
+          toJson(t)
+        case u: UriMapping =>
+          toJson(u)
+        case d: DirectMapping =>
+          toJson(d)
+        case o: ObjectMapping =>
+          toJson(o)
         case h: HierarchicalMapping =>
           toJson(h)
         case _ =>
@@ -297,7 +436,7 @@ object JsonSerializers {
     private def writeTransformRule(rule: TransformRule) = {
       JsObject(
         Seq(
-          TYPE -> JsString("single"),
+          TYPE -> JsString("complex"),
           NAME -> JsString(rule.name),
           "operator" -> toJson(rule.operator)
         ) ++
