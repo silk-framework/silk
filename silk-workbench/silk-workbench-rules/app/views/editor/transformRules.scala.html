@@ -136,7 +136,7 @@
   </table>
 
   <table id="objectMappingTemplate" class="rule-template">
-      @renderRule(ObjectMapping(targetProperty = MappingTarget("")))
+      @renderRule(ObjectMapping(mappingTarget = MappingTarget("")))
   </table>
 
   <script type="text/javascript">
@@ -305,12 +305,12 @@
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.propertyUri.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">
     <div class="mdl-selectfield mdl-js-selectfield">
-      <select class="mdl-selectfield__select" data-original-target-type="@rule.targetProperty.valueType" disabled>
+      <select class="mdl-selectfield__select" data-original-target-type="@rule.mappingTarget.valueType" disabled>
       </select>
     </div>
   </td>
