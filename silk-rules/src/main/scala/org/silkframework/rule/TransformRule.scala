@@ -160,7 +160,7 @@ case class UriMapping(name: Identifier = "uri", pattern: String = "http://exampl
   */
 case class ObjectMapping(name: Identifier = "object",
                          pattern: String = "http://example.org/{ID}",
-                         targetProperty: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
+                         mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
 
   override val operator = {
     val inputs =
@@ -173,7 +173,7 @@ case class ObjectMapping(name: Identifier = "object",
     TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
   }
 
-  override val target = Some(targetProperty)
+  override val target = Some(mappingTarget)
 
   override val typeString = "Object"
 

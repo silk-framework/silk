@@ -310,7 +310,7 @@ object JsonSerializers {
     */
   implicit object ObjectMappingJsonFormat extends JsonFormat[ObjectMapping] {
     final val PATTERN_PROPERTY: String = "pattern"
-    final val TARGET_PROPERTY: String = "targetProperty"
+    final val TARGET_PROPERTY: String = "mappingTarget"
 
     /**
       * Deserializes a value.
@@ -328,10 +328,10 @@ object JsonSerializers {
     override def write(value: ObjectMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
-          TYPE -> JsString("uri"),
+          TYPE -> JsString("object"),
           NAME -> JsString(value.name),
           PATTERN_PROPERTY -> JsString(value.pattern),
-          TARGET_PROPERTY -> toJson(value.targetProperty)
+          TARGET_PROPERTY -> toJson(value.mappingTarget)
         )
       )
     }
