@@ -89,7 +89,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val startNodes = outputs.toSet -- inputs
-    val isolatedNodes = singleWorkflowNodes()
+    val isolatedNodes = singleWorkflowN7odes()
     val endNodes = (inputs.toSet -- outputs) ++ isolatedNodes
     val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
     val startDependencyNodes = startNodes.map(workflowNodeMap)

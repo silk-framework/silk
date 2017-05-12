@@ -31,10 +31,10 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
    * Retrieves a project by name.
    *
-   * @throws java.util.NoSuchElementException If no project with the given name has been found
+   * @throws org.silkframework.workspace.ProjectNotFoundException If no project with the given name has been found
    */
   def project(name: Identifier): Project = {
-    findProject(name).getOrElse(throw new ProjectNotFoundException(name))
+    findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
   private def findProject(name: Identifier): Option[Project] = {
