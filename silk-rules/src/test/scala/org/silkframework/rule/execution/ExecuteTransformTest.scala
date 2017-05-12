@@ -61,7 +61,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
 
   private def mapping(id: String, prop: String) = {
     val transformation = TransformInput(inputs = Seq(PathInput(path = Path(prop))), transformer = transformerWithExceptions())
-    ComplexMapping(name = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
+    ComplexMapping(id = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 
   private def datasetSelection(): DatasetSelection = {

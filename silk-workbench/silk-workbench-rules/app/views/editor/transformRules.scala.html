@@ -173,8 +173,8 @@
 
 @renderRule(rule: TransformRule) = {
   <tbody class="complete-rule" data-was-changed="true">
-    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact rule-table-row">
-      <td class="mdl-data-table__cell--non-numeric rule-name rule-table-cell">@rule.name</td>
+    <tr id="@{rule.typeString.toLowerCase}-@{rule.id}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact rule-table-row">
+      <td class="mdl-data-table__cell--non-numeric rule-name rule-table-cell">@rule.id</td>
       <td class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">
         <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule($(this).parent().parent());">
           <i class="material-icons">chevron_right</i>
@@ -196,7 +196,7 @@
           <button class="mdl-button mdl-js-button mdl-button--icon edit-button" onclick="openRule($(this).parent().parent().parent().find('.rule-name').text())">
             <i class="material-icons">edit</i>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')">
+          <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.id}')">
             <i class="material-icons">delete</i>
           </button>
         </div>
@@ -210,7 +210,7 @@
 }
 
 @expandedRow(rule: TransformRule) = {
-<tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded rule-table-row" style="display: none;">
+<tr id="@{rule.typeString.toLowerCase}-@{rule.id}__expanded" class="di-rule__expanded rule-table-row" style="display: none;">
   <td colspan="2" class="mdl-data-table__cell--non-numeric rule-toggle rule-table-cell">&nbsp;</td>
   <td class="mdl-data-table__cell--non-numeric rule-table-cell">
     <div class="di-rule-details-container di-rule-details-container-source">
@@ -220,7 +220,7 @@
   <td colspan="3" class="mdl-data-table__cell--non-numeric rule-table-cell">
     <div class="di-rule-details-container di-rule-details-container-target-property">
       <div class="di-rule__expanded-header">Target Property Details</div>
-      <div id="@{rule.name}_details" class="di-rule__expanded-property-details">
+      <div id="@{rule.id}_details" class="di-rule__expanded-property-details">
       </div>
     </div>
   </td>
@@ -257,22 +257,22 @@
 }
 
 @renderTypeRule(rule: TypeMapping) = {
-  <span id="@{rule.typeString.toLowerCase}-@{rule.name}" class="mdl-chip mdl-chip--deletable transformRule typeMapping">
-    <span class="rule-name">@rule.name</span>
+  <span id="@{rule.typeString.toLowerCase}-@{rule.id}" class="mdl-chip mdl-chip--deletable transformRule typeMapping">
+    <span class="rule-name">@rule.id</span>
     <span class="mdl-chip__text type">@rule.typeUri.serialize(context.project.config.prefixes)</span>
-    <button class="mdl-chip__action" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')"><i class="material-icons">cancel</i></button>
+    <button class="mdl-chip__action" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.id}')"><i class="material-icons">cancel</i></button>
   </span>
 }
 
 @renderDirectRule(rule: DirectMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
+      <input class="mdl-textfield__input source" type="text" id="@{rule.id}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">
@@ -286,9 +286,9 @@
 @renderUriRule(rule: UriMapping) = {
   <div id="uri">
     <div class="transformRule uriMapping">
-      <span class="rule-name">@rule.name</span>
+      <span class="rule-name">@rule.id</span>
       <div class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern" onblur="checkForEmptyURIMapping();">
+        <input class="mdl-textfield__input pattern" type="text" id="@{rule.id}-pattern" value="@rule.pattern" onblur="checkForEmptyURIMapping();">
       </div>
     </div>
     <button class="mdl-button mdl-js-button mdl-button--icon" onclick="deleteRule('uri')">
@@ -300,12 +300,12 @@
 @renderObjectRule(rule: ObjectMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
+      <input class="mdl-textfield__input pattern" type="text" id="@{rule.id}-pattern" value="@rule.pattern">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">
@@ -319,12 +319,12 @@
 @renderComplexRule(rule: ComplexMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" disabled>
+      <input class="mdl-textfield__input source" type="text" id="@{rule.id}-source" value="@renderRulePath(rule)" disabled>
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">

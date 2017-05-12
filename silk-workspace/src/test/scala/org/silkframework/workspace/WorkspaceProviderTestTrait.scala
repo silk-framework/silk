@@ -66,14 +66,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val transformTask = TransformSpec(
     selection = DatasetSelection("InputDS", "http://type1"),
     rules = Seq(DirectMapping(
-      name = TRANSFORM_ID,
+      id = TRANSFORM_ID,
       sourcePath = Path("prop1")
     ))
   )
 
   val transformTaskUpdated = transformTask.copy(
     rules = Seq(DirectMapping(
-      name = TRANSFORM_ID + 2,
+      id = TRANSFORM_ID + 2,
       sourcePath = Path("prop5")
     ))
   )

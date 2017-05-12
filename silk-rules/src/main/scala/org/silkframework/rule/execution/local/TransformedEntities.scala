@@ -68,7 +68,7 @@ class TransformedEntities(entities: Traversable[Entity],
       rule(entity)
     } catch {
       case NonFatal(ex) =>
-        log.fine("Error during execution of transform rule " + rule.name.toString + ": " + ex.getMessage)
+        log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
         report.addError(rule, entity, ex)
         errorFlag = true
         Seq.empty

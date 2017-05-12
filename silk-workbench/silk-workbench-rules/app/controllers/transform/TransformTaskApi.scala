@@ -108,7 +108,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    task.data.rules.find(_.name == rule) match {
+    task.data.rules.find(_.id == rule) match {
       case Some(r) =>
         serialize(r)
       case None =>
@@ -248,9 +248,9 @@ class TransformTaskApi extends Controller {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
+            val rule = task.data.rules.find(_.id.toString == ruleName).getOrElse(
               throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
-                  + task.data.rules.map(_.name).mkString(", "))
+                  + task.data.rules.map(_.id).mkString(", "))
             )
             val entityDescription = oneRuleEntitySchema(transformTask, rule)
             try {
