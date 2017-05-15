@@ -11,11 +11,37 @@
 
 Maybe we can release the tree structure with a simple filter?
 
--   `GET /transform/tasks/{project}/{transformationTask}/rules?ruleType=hierarchical`:
+-   `GET /transform/tasks/{project}/{transformationTask}/rules?type=hierarchical`:
 
     Based on the example from above:
 
     [Example response: ./retrieval_hierarch.json](./retrieval_hierarch.json)
+
+## Delete
+
+- `DELETE /transform/tasks/{project}/{transformationTask}/rule/{ruleID}`
+
+## Create
+
+- `POST /transform/tasks/{project}/{transformationTask}/rule/{rule}/rules`
+
+    Payload:
+    ```json
+    {
+      "type": "direct",
+      "name": "sourcePath2",
+      "comment": "foobar",
+      "sourcePath": "/<http://www.w3.org/2000/01/rdf-schema#foobar>",
+      "mappingTarget": {
+        "URI": "http://www.w3.org/2000/01/rdf-schema#oxofrmbl",
+        "valueType": {
+          "nodeType": "AutoDetectValueType"
+        }
+      }
+    }
+    ```
+
+    Return:
 
 ## Update
 
@@ -27,7 +53,7 @@ I would realize the update of rules like already mentioned:
     ```json
     {
       "id": "XYZ_2",
-      "ruleType": "direct",
+      "type": "direct",
       "name": "sourcePath2",
       "comment": "foobar",
       "sourcePath": "/<http://www.w3.org/2000/01/rdf-schema#label>",
@@ -56,7 +82,7 @@ I would realize the update of rules like already mentioned:
     ```json
     {
       "id": "XYZ_2",
-      "ruleType": "direct",
+      "type": "direct",
       "name": "sourcePath2",
       "sourcePath": "/<http://xmlns.com/foaf/0.1/knows>",
       "mappingTarget": {
@@ -121,3 +147,8 @@ This would result in:
     - XYZ_2
     - XYZ_3
 ```
+
+
+## Search
+
+TODO:
