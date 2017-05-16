@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import superagent from 'superagent';
+//import superagent from 'superagent';
 
-const Table = ({data, title}) => {
+import HierarchicalMappingComponent from './HierarchicalMapping/HierarchicalMapping.jsx';
+
+/*const Table = ({data, title}) => {
     return (
         <div>
             <strong>{title}</strong>
@@ -48,11 +50,11 @@ class TransformMetadata extends React.Component {
             </div>
         );
     }
-}
+}*/
 
 const hierarchicalMapping = (containerId, apiUrl) => {
     ReactDOM.render(
-        <TransformMetadata api={apiUrl}/>,
+        <HierarchicalMappingComponent api={apiUrl}/>,
         document.getElementById(containerId)
     );
 };
