@@ -1,9 +1,10 @@
 package controllers.transform
 
-import controllers.transform.TargetPathAutcompletion.Completion
+import controllers.transform.TargetAutoCompletion.Completion
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
+import org.silkframework.workspace.activity.TaskActivity
 import org.silkframework.workspace.activity.transform.{MappingCandidates, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{JsValue, Json}
@@ -11,7 +12,7 @@ import play.api.libs.json.{JsValue, Json}
 /**
   * Generates autocompletions for mapping target paths.
   */
-object TargetPathAutcompletion {
+object TargetAutoCompletion {
 
   /**
     * Given a search term, returns possible completions for target paths.
@@ -74,7 +75,7 @@ object TargetPathAutcompletion {
     val prefixes = task.project.config.prefixes
     val vocabularyCache = task.activity[VocabularyCache].value
     val mappingCandidates = {
-      for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
+      for (activity <- mappingCandidateActivities(task)) yield {
         if(activity.status.failed) {
           Seq(
             Completion(
@@ -105,17 +106,22 @@ object TargetPathAutcompletion {
     mappingCandidates.flatten.sortBy(_.value).sortBy(-_.confidence)
   }
 
+  // Returns transform task activities that calculate MappingCandidate values
+  private def mappingCandidateActivities(task: ProjectTask[TransformSpec]): Seq[TaskActivity[TransformSpec, _]] = {
+    task.activities filter (activity => classOf[MappingCandidates].isAssignableFrom(activity.valueType))
+  }
+
   /**
     * Retrieves all available suggestions for type completions.
     * Reads from all caches that provide MappingCandidates.
     *
     * @return The suggested type completions, sorted by confidence.
     */
-  private def retrieveTypeCompletions(task: ProjectTask[TransformSpec]): Seq[Completion] = {
+  def retrieveTypeCompletions(task: ProjectTask[TransformSpec]): Seq[Completion] = {
     val prefixes = task.project.config.prefixes
     val vocabularyCache = task.activity[VocabularyCache].value
     val mappingCandidates = {
-      for (activity <- task.activities if classOf[MappingCandidates].isAssignableFrom(activity.valueType)) yield {
+      for (activity <- mappingCandidateActivities(task)) yield {
         if(activity.status.failed) {
           Seq(
             Completion(

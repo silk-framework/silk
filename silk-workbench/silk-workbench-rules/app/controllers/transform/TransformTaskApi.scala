@@ -198,8 +198,14 @@ class TransformTaskApi extends Controller {
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
     val (project, task) = projectAndTask(projectName, taskName)
-    val completions = TargetPathAutcompletion.retrieve(project, task, sourcePath, term)
+    val completions = TargetAutoCompletion.retrieve(project, task, sourcePath, term)
     Ok(JsArray(completions.map(_.toJson)))
+  }
+
+  def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val (project, task) = projectAndTask(projectName, taskName)
+    val typeCompletion = TargetAutoCompletion.retrieveTypeCompletions(task)
+    Ok(JsArray(typeCompletion.map(_.toJson)))
   }
 
   /**
