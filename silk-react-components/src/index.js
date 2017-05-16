@@ -1,20 +1,19 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import superagent from 'superagent';
 
 const Table = ({data, title}) => {
     return (
-    <div>
-        <strong>{title}</strong>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-    )
+        <div>
+            <strong>{title}</strong>
+            <pre>{JSON.stringify(data, null, 2)}</pre>
+        </div>
+    );
 }
 
 class TransformMetadata extends React.Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             inputSchemata: {},
@@ -42,9 +41,9 @@ class TransformMetadata extends React.Component {
         return (
             <div>
                 <h3>Task Metadata</h3>
-                <Table title="Input Schemata" data={inputSchemata} />
-                <Table title="Output Schema" data={outputSchema} />
-                <Table title="Dependent Tasks" data={dependentTasks} />
+                <Table title="Input Schemata" data={inputSchemata}/>
+                <Table title="Output Schema" data={outputSchema}/>
+                <Table title="Dependent Tasks" data={dependentTasks}/>
                 <button onClick={this.getData}>Retrieve Metadata</button>
             </div>
         );
@@ -53,9 +52,13 @@ class TransformMetadata extends React.Component {
 
 const hierarchicalMapping = (containerId, apiUrl) => {
     ReactDOM.render(
-      <TransformMetadata api={apiUrl}/>,
-      document.getElementById(containerId)
+        <TransformMetadata api={apiUrl}/>,
+        document.getElementById(containerId)
     );
+};
+
+if (__DEBUG__) {
+    hierarchicalMapping('react');
 }
 
 window.HierarchicalMapping = hierarchicalMapping;
