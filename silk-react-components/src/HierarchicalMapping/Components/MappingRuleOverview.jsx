@@ -8,6 +8,7 @@ import {UseMessageBus} from 'ecc-mixins';
 import MappingRule from './MappingRule';
 import {Spinner} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
+import _ from 'lodash';
 
 const MappingRuleOverview = React.createClass({
 
@@ -25,7 +26,7 @@ const MappingRuleOverview = React.createClass({
     getInitialState() {
         return {
             loading: true,
-            ruleData: undefined,
+            ruleData: {},
         };
     },
 
@@ -40,7 +41,6 @@ const MappingRuleOverview = React.createClass({
         )
         .subscribe(
             ({rule}) => {
-                console.warn('MappingRuleOverview: rule.get', rule);
                 this.setState({
                     loading: false,
                     ruleData: rule,
@@ -55,28 +55,68 @@ const MappingRuleOverview = React.createClass({
 
     // template rendering
     render () {
+        const {
+            name,
+            id,
+            typeRules,
+            uriRule,
+        } = this.state.ruleData;
+
         const loading = this.state.loading ? <Spinner /> : false;
+
+        const mappingRulesHead = (
+            !_.isEmpty(this.state.ruleData.typeRules) ? (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
+                >
+                    Configuration: {name}
+                    <br/>
+                    Entity types: {_.map(typeRules, (rule = {}) => (rule.name))}
+                    <br/>
+                    URI template: {uriRule.pattern}
+                </div>
+
+            ) : (
+                false
+            )
+        );
+
+        const mappingRulesTable = (
+            !_.isEmpty(this.state.ruleData) ? (
+                <table
+                    className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__body"
+                >
+                    <thead>
+                        <tr>
+                            <th>Rule type</th>
+                            <th>Source</th>
+                            <th>Target property</th>
+                            <th>Target type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                        {
+                            _.map(this.state.ruleData.rules, (rule, idx) =>
+                                (
+                                    <MappingRule key={'MappingRule_' + idx} {...rule}/>
+                                )
+                            )
+                        }
+
+                </table>
+            ) : false
+        );
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping__mappingRuleOverview"
+                className="ecc-component-hierarchicalMapping__content-mappingRuleOverview"
             >
                 {loading}
-                Hello DI. I am MappingRuleOverview.
                 <br/>
-                <div
-                    className="ecc-component-hierarchicalMapping__mappingRuleOverview__header"
-                >
-                    Selected Rule: {this.props.currentRuleId}
-                </div>
+                {mappingRulesHead}
                 <br/>
-                <div
-                    className="ecc-component-hierarchicalMapping__mappingRuleOverview__header"
-                >
-                    ruleData: {JSON.stringify(this.state.ruleData, null, 2)}
-                </div>
-                <br />
-                MappingRule Example: <MappingRule />
+                {mappingRulesTable}
             </div>
         );
     },

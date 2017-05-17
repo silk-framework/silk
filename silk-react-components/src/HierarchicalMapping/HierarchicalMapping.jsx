@@ -26,7 +26,7 @@ const HierarchicalMapping = React.createClass({
     // initilize state
     getInitialState() {
         // listen to rule id changes
-        this.subscribe(hierarchicalMappingChannel.subject(), this.onRuleNavigation);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
 
         return {
             // currently selected rule id
@@ -35,7 +35,10 @@ const HierarchicalMapping = React.createClass({
     },
     // react to rule id changes
     onRuleNavigation({newRuleId}) {
-        console.warn('debug onRuleNavigation');
+        this.setState({
+            currentRuleId: newRuleId,
+        })
+
     },
     // template rendering
     render () {
@@ -43,21 +46,23 @@ const HierarchicalMapping = React.createClass({
             <div
                 className="ecc-component-hierarchicalMapping"
             >
-                <TreeView
-                    apiBase={this.props.apiBase}
-                    project={this.props.project}
-                    transformationTask={this.props.transformationTask}
-                    currentRuleId={this.state.currentRuleId}
-                />
-                <br/>
-                <br/>
-                <br/>
-                <MappingRuleOverview
-                    apiBase={this.props.apiBase}
-                    project={this.props.project}
-                    transformationTask={this.props.transformationTask}
-                    currentRuleId={this.state.currentRuleId}
-                />
+                <div className="ecc-component-hierarchicalMapping__content">
+                    <TreeView
+                        apiBase={this.props.apiBase}
+                        project={this.props.project}
+                        transformationTask={this.props.transformationTask}
+                        currentRuleId={this.state.currentRuleId}
+                    />
+                    <br/>
+                    <br/>
+                    <br/>
+                    <MappingRuleOverview
+                        apiBase={this.props.apiBase}
+                        project={this.props.project}
+                        transformationTask={this.props.transformationTask}
+                        currentRuleId={this.state.currentRuleId}
+                    />
+                </div>
             </div>
         );
     },

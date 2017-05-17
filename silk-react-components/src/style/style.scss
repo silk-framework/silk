@@ -1,0 +1,25 @@
+.ecc-component-hierarchicalMapping__content {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 1rem 0.5rem;
+}
+
+.ecc-component-hierarchicalMapping__content-treeView {
+  flex-basis: 50%;
+  min-width: 40rem;
+  max-width: 100%;
+  flex-shrink: 1;
+  flex-grow: 1;
+  box-sizing: border-box;;
+  padding: 0 0.5rem;
+}
+
+.ecc-component-hierarchicalMapping__content-mappingRuleOverview {
+  flex-basis: 50%;
+  min-width: 40rem;
+  max-width: 100%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+}

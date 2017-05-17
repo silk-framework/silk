@@ -60,6 +60,8 @@ const hierarchicalMapping = (containerId, apiUrl) => {
 };
 
 if (__DEBUG__) {
+    require('ecc-gui-elements/src/main.scss');
+    require('./style/style.scss');
     hierarchicalMapping('react');
 }
 
