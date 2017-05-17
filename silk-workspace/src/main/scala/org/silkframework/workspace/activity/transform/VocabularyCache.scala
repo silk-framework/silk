@@ -59,7 +59,7 @@ object VocabularyCache {
     */
   implicit object ValueFormat extends XmlFormat[Value] {
 
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): Value = {
       new Value(Vocabularies.VocabulariesFormat.read(node).vocabularies)
     }
 

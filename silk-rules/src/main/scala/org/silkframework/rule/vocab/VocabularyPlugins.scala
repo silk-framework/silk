@@ -1,6 +1,6 @@
 package org.silkframework.rule.vocab
 
-import org.silkframework.rule.vocab.Info.InfoFormat
+import org.silkframework.rule.vocab.GenericInfo.InfoFormat
 import org.silkframework.rule.vocab.Vocabularies.VocabulariesFormat
 import org.silkframework.rule.vocab.Vocabulary.VocabularyFormat
 import org.silkframework.runtime.plugin.PluginModule

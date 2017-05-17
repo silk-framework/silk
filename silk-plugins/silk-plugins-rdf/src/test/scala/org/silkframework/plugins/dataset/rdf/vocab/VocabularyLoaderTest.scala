@@ -4,9 +4,11 @@ import com.hp.hpl.jena.query.DatasetFactory
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
-import org.silkframework.rule.vocab.{Info, VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 
 class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
+  private val MOVIE = "Movie"
+  private val PERSON = "Person"
 
   behavior of "VocabularyLoader"
 
@@ -14,29 +16,30 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
 
   private val loader = load()
 
-  val classes = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
-  val classMap = classes.map(c => (c.info.uri, c)).toMap
+  val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
+  val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
 
   it should "load classes" in {
-    classes.size shouldBe 2
-    classes(0) shouldBe VocabularyClass(Info(uri("Movie"), Some("Movie"), None))
-    classes(1) shouldBe VocabularyClass(Info(uri("Person"), Some("Person"), Some("A Person")))
+    classes.size shouldBe 3
+    classes(1) shouldBe VocabularyClass(GenericInfo(uri(MOVIE), Some(MOVIE), None), Seq())
+    classes(2) shouldBe VocabularyClass(GenericInfo(uri(PERSON), Some(PERSON), Some("A Person")), Seq())
+    classes.head shouldBe VocabularyClass(GenericInfo(uri("Employee"), Some("Angestellter"),Some("Angestellter einer Firma")), Seq(uri(PERSON)))
   }
 
   it should "load properties" in {
     val properties = loader.retrieveProperties(graphUri, classes).toSeq.sortBy(_.info.uri)
     properties.size shouldBe 2
-    properties(0) shouldBe
+    properties.head shouldBe
       VocabularyProperty(
-        info = Info(uri("hasDate"), Some("release date"), None),
-        domain = Some(classMap(uri("Movie"))),
+        info = GenericInfo(uri("hasDate"), Some("release date"), None),
+        domain = Some(classMap(uri(MOVIE))),
         range = None
       )
     properties(1) shouldBe
       VocabularyProperty(
-        info = Info(uri("hasDirector"), Some("director"), Some("Director of a movie")),
-        domain = Some(classMap(uri("Movie"))),
-        range = Some(classMap(uri("Person")))
+        info = GenericInfo(uri("hasDirector"), Some("director"), Some("Director of a movie")),
+        domain = Some(classMap(uri(MOVIE))),
+        range = Some(classMap(uri(PERSON)))
       )
   }
 
