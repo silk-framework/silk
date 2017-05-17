@@ -14,7 +14,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workbench.utils.JsonError
-import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
@@ -202,10 +202,35 @@ class TransformTaskApi extends Controller {
     Ok(JsArray(completions.map(_.toJson)))
   }
 
+  /**
+    * Returns a JSON array of candidate types, either from the vocabulary cache or the matching cache of the transform task.
+    *
+    * @param projectName The name of the project
+    * @param taskName    The name of the transform task
+    */
   def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val (project, task) = projectAndTask(projectName, taskName)
+    val (_, task) = projectAndTask(projectName, taskName)
     val typeCompletion = TargetAutoCompletion.retrieveTypeCompletions(task)
     Ok(JsArray(typeCompletion.map(_.toJson)))
+  }
+
+  /**
+    * Returns all properties that are in the domain of the given class or one of its super classes.
+    * @param projectName Name of project
+    * @param taskName    Name of task
+    * @param classUri    Class URI
+    */
+  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularyClasses = vocabularies.flatMap(v => v.getClass(classUri).map(c => (v, c)))
+    val properties = for((vocabulary, vocabularyClass) <- vocabularyClasses) yield {
+      val classes = (vocabularyClass.info.uri :: vocabularyClass.parentClasses.toList).distinct
+      val propsByAnyClass = vocabulary.properties.filter(_.domain.exists(vc => classes.contains(vc.info.uri)))
+      propsByAnyClass
+    }
+    serializeIterableCompileTime(properties.flatten, containerName = Some("Properties"))
   }
 
   /**

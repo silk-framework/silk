@@ -1,7 +1,10 @@
 package org.silkframework.rule.vocab
 
-import org.silkframework.rule.vocab.GenericInfo.InfoFormat
+import java.util.logging.Logger
+
+import org.silkframework.rule.vocab.GenericInfo.GenericInfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+
 import scala.xml.Node
 
 case class Vocabulary(info: GenericInfo, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty]) {
@@ -13,40 +16,37 @@ case class Vocabulary(info: GenericInfo, classes: Traversable[VocabularyClass], 
   def getProperty(uri: String): Option[VocabularyProperty] = {
     properties.find(_.info.uri == uri)
   }
-
 }
 
 object Vocabulary {
-
+  final val INFO: String = "Info"
   /**
     * XML serialization format for vocabularies.
     */
   implicit object VocabularyFormat extends XmlFormat[Vocabulary] {
-    final val INFO: String = "Info"
 
     def read(node: Node)(implicit readContext: ReadContext): Vocabulary = {
       val classes = readClasses(node)
       val properties = readProperties(node, classes)
 
       Vocabulary(
-        info = InfoFormat.read((node \ INFO).head),
+        info = GenericInfoFormat.read((node \ INFO).head),
         classes = classes,
         properties = properties
       )
     }
 
     def readClasses(node: Node)(implicit readContext: ReadContext): Seq[VocabularyClass] = {
-      for(classNode <- node \ "Classes" \ "Class") yield {
-        val parentClasses = (classNode \ "ParentClasses" \ "Uri").map(_.text)
-        VocabularyClass(InfoFormat.read((classNode \ INFO).head), parentClasses)
+      for (classNode <- node \ "Classes" \ "VocabularyClass") yield {
+        VocabularyClass.VocabularyClassXmlFormat.read(classNode)
       }
     }
 
     def readProperties(node: Node, classes: Seq[VocabularyClass])(implicit readContext: ReadContext): Seq[VocabularyProperty] = {
       val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(GenericInfo(uri), Seq.empty))
-      for(propertyNode <- node \ "Properties" \ "Property") yield {
+      for (propertyNode <- node \ "Properties" \ "VocabularyProperty") yield {
         VocabularyProperty(
-          info = InfoFormat.read((propertyNode \ INFO).head),
+          info = GenericInfoFormat.read((propertyNode \ INFO).head),
           domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
           range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
         )
@@ -55,27 +55,18 @@ object Vocabulary {
 
     def write(desc: Vocabulary)(implicit writeContext: WriteContext[Node]): Node = {
       <Vocabulary>
-        { InfoFormat.write(desc.info) }
-        <Classes>{
-          for(cl <- desc.classes) yield {
-            <Class>
-              { InfoFormat.write(cl.info) }
-              <ParentClasses>
-                { for(parentClassURI <- cl.parentClasses) yield {
-                    <Uri>{parentClassURI}</Uri>
-                  }
-                }
-              </ParentClasses>
-            </Class>
+        {GenericInfoFormat.write(desc.info)}<Classes>
+        {for (cl <- desc.classes) yield {
+          {
+            VocabularyClass.VocabularyClassXmlFormat.write(cl)
           }
-        }</Classes>
-        <Properties>{
-          for(prop <- desc.properties) yield {
-            <Property domain={prop.domain.map(_.info.uri).getOrElse("")} range={prop.range.map(_.info.uri).getOrElse("")} >
-              { InfoFormat.write(prop.info) }
-            </Property>
-          }
-          }</Properties>
+        }}
+      </Classes>
+        <Properties>
+          {for (prop <- desc.properties) yield {
+          VocabularyProperty.VocabularyPropertyXmlFormat.write(prop)
+        }}
+        </Properties>
       </Vocabulary>
     }
   }
@@ -89,13 +80,13 @@ case class GenericInfo(uri: String, label: Option[String] = None, description: O
 
 object GenericInfo {
 
-  implicit object InfoFormat extends XmlFormat[GenericInfo] {
+  implicit object GenericInfoFormat extends XmlFormat[GenericInfo] {
 
     def read(node: Node)(implicit readContext: ReadContext): GenericInfo = {
       GenericInfo(
         uri = (node \ "@uri").text,
         label = (node \ "@label").headOption.filter(_.nonEmpty).map(_.text),
-        description = if(node.text.trim.nonEmpty) Some(node.text.trim) else None
+        description = if (node.text.trim.nonEmpty) Some(node.text.trim) else None
       )
     }
 
@@ -106,4 +97,51 @@ object GenericInfo {
     }
   }
 
+}
+
+object VocabularyClass {
+
+  implicit object VocabularyClassXmlFormat extends XmlFormat[VocabularyClass] {
+    override def read(classNode: Node)(implicit readContext: ReadContext): VocabularyClass = {
+      val parentClasses = (classNode \ "ParentClasses" \ "Uri").map(_.text)
+      VocabularyClass(GenericInfoFormat.read((classNode \ Vocabulary.INFO).head), parentClasses)
+    }
+
+    override def write(value: VocabularyClass)(implicit writeContext: WriteContext[Node]): Node = {
+      <VocabularyClass>
+        {GenericInfoFormat.write(value.info)}
+        <ParentClasses>
+        {for (parentClassURI <- value.parentClasses) yield {
+          <Uri>{parentClassURI}</Uri>
+        }}
+        </ParentClasses>
+      </VocabularyClass>
+    }
+  }
+}
+
+object VocabularyProperty {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+  private var loggedWarning = false
+
+  implicit object VocabularyPropertyXmlFormat extends XmlFormat[VocabularyProperty] {
+    override def read(propertyNode: Node)(implicit readContext: ReadContext): VocabularyProperty = {
+      if(!loggedWarning) {
+        log.warning("De-serializing VocabularyProperty object with default XML format. This is not safe to do, because domain and range are discarded! " +
+        "This warning will not be repeated again.")
+        loggedWarning = true
+      }
+      VocabularyProperty(
+        info = GenericInfoFormat.read((propertyNode \ Vocabulary.INFO).head),
+        domain = None,
+        range = None
+      )
+    }
+
+    override def write(prop: VocabularyProperty)(implicit writeContext: WriteContext[Node]): Node = {
+      <VocabularyProperty domain={prop.domain.map(_.info.uri).getOrElse("")} range={prop.range.map(_.info.uri).getOrElse("")}>
+        {GenericInfoFormat.write(prop.info)}
+      </VocabularyProperty>
+    }
+  }
 }

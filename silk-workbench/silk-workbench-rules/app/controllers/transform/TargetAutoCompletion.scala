@@ -1,6 +1,5 @@
 package controllers.transform
 
-import controllers.transform.TargetAutoCompletion.Completion
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
