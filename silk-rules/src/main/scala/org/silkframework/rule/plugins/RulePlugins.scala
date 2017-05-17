@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins
 
+import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
@@ -157,5 +158,6 @@ class RulePlugins extends PluginModule {
 
   private def serializers =
     TransformRuleFormat.getClass ::
-        Nil
+    MappingRulesFormat.getClass ::
+    Nil
 }

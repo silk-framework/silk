@@ -4,11 +4,11 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, MappingRules, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
@@ -38,6 +38,14 @@ class TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    serialize[Task[TransformSpec]](task)
+  }
+
   def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
@@ -56,7 +64,7 @@ class TransformTaskApi extends Controller {
       }
       //Create new task with no rule
       case None => {
-        val transformSpec = TransformSpec(input, Seq.empty, outputs, Seq.empty, targetVocabularies)
+        val transformSpec = TransformSpec(input, MappingRules.empty, outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
       }
     }
@@ -76,7 +84,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serializeIterable(task.data.rules, containerName = Some("TransformRules"))
+    serialize(task.data.rules)
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
@@ -86,10 +94,10 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserializeIterable[TransformRule](expectedXmlRootElementLabel = Some("TransformRules")) { updatedRules =>
+    deserialize[MappingRules]() { updatedRules =>
       try {
         //Update transformation task
-        val updatedTask = task.data.copy(rules = updatedRules.toSeq)
+        val updatedTask = task.data.copy(rules = updatedRules)
         project.updateTask(taskName, updatedTask)
         Ok
       } catch {
@@ -128,7 +136,7 @@ class TransformTaskApi extends Controller {
         //Collect warnings while parsing transformation rule
         val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
           val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)
-          val updatedTask = task.data.copy(rules = updatedRules)
+          val updatedTask = task.data.copy(rules = MappingRules.fromSeq(updatedRules))
           project.updateTask(taskName, updatedTask)
         }
         // Return warnings

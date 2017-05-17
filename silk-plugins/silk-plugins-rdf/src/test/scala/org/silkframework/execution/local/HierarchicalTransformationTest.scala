@@ -35,17 +35,24 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          rules = Seq(
-            TypeMapping(typeUri = uri("Person")),
-            DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
-            HierarchicalMapping(
-              relativePath = Path.empty,
-              targetProperty = Some(uri("address")),
-              childRules = Seq(
-                UriMapping(pattern = s"https://silkframework.org/ex/Address_{<${uri("city")}>}_{<${uri("country")}>"),
-                DirectMapping(sourcePath = Path(uri("city")), mappingTarget = MappingTarget(uri("city"))),
-                DirectMapping(sourcePath = Path(uri("country")), mappingTarget = MappingTarget(uri("country")))
-              )
+          rules =
+            MappingRules(
+              uriRule = None,
+              typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
+              propertyRules = Seq(
+                DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
+                HierarchicalMapping(
+                  relativePath = Path.empty,
+                  targetProperty = Some(uri("address")),
+                  children = MappingRules(
+                    uriRule = Some(UriMapping(pattern = s"https://silkframework.org/ex/Address_{<${uri("city")}>}_{<${uri("country")}>")),
+                    typeRules = Seq.empty,
+                    propertyRules = Seq(
+                      DirectMapping(sourcePath = Path(uri("city")), mappingTarget = MappingTarget(uri("city"))),
+                      DirectMapping(sourcePath = Path(uri("country")), mappingTarget = MappingTarget(uri("country")))
+                    )
+                  )
+                )
             )
           )
         )
@@ -58,26 +65,30 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          rules = Seq(
-            TypeMapping(typeUri = uri("Person")),
-            DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
-            HierarchicalMapping(
-              relativePath = Path(uri("address")),
-              targetProperty = None,
-              childRules = Seq(
-                ComplexMapping(operator = PathInput(path = Path(BackwardOperator(uri("address")) :: Nil)), target = None),
-                ComplexMapping(
-                  operator =
-                    TransformInput(
-                      transformer = ConcatTransformer("-"),
-                      inputs = Seq(
-                        PathInput(path = Path(uri("city"))),
-                        PathInput(path = Path(uri("country")))
-                      )
-                    ),
-                  target = Some(MappingTarget(uri("address"))))
+          rules =
+            MappingRules(
+              uriRule = None,
+              typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
+              propertyRules = Seq(
+                DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
+                HierarchicalMapping(
+                  relativePath = Path(uri("address")),
+                  targetProperty = None,
+                  children = MappingRules(
+                    ComplexMapping(operator = PathInput(path = Path(BackwardOperator(uri("address")) :: Nil)), target = None),
+                    ComplexMapping(
+                      operator =
+                        TransformInput(
+                          transformer = ConcatTransformer("-"),
+                          inputs = Seq(
+                            PathInput(path = Path(uri("city"))),
+                            PathInput(path = Path(uri("country")))
+                          )
+                        ),
+                      target = Some(MappingTarget(uri("address"))))
+                  )
+                )
               )
-            )
           )
         )
     )

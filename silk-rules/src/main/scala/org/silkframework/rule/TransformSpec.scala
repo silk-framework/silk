@@ -21,7 +21,7 @@ import scala.xml.{Node, Null}
   * @see org.silkframework.execution.ExecuteTransform
   */
 case class TransformSpec(selection: DatasetSelection,
-                         rules: Seq[TransformRule],
+                         rules: MappingRules,
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
@@ -42,32 +42,32 @@ case class TransformSpec(selection: DatasetSelection,
     new MultiEntitySchema(schemata.head, schemata.tail)
   }
 
-  private def collectInputSchemata(rules: Seq[TransformRule], subPath: Path): Seq[EntitySchema] = {
+  private def collectInputSchemata(rules: MappingRules, subPath: Path): Seq[EntitySchema] = {
     var schemata = Seq[EntitySchema]()
 
     schemata :+= EntitySchema(
       typeUri = selection.typeUri,
-      typedPaths = rules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+      typedPaths = rules.allRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
       filter = selection.restriction,
       subPath = subPath
     )
 
-    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules.allRules) {
       schemata ++= collectInputSchemata(childRules, relativePath)
     }
 
     schemata
   }
 
-  private def collectOutputSchemata(rules: Seq[TransformRule], subPath: Path): Seq[EntitySchema] = {
+  private def collectOutputSchemata(rules: MappingRules, subPath: Path): Seq[EntitySchema] = {
     var schemata = Seq[EntitySchema]()
 
     schemata :+= EntitySchema(
-      typeUri = rules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(selection.typeUri),
-      typedPaths = rules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+      typeUri = rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
+      typedPaths = rules.allRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
     )
 
-    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules.allRules) {
       schemata ++= collectOutputSchemata(childRules, relativePath)
     }
 
@@ -88,13 +88,13 @@ object TransformSpec {
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-      val rules = (node \ "TransformRule").map(fromXml[TransformRule])
+      val rules = (node \ "TransformRule" ++ node \ "HierarchicalRule").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
       val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rules, sinks, errorSinks, targetVocabularies)
+      TransformSpec(datasetSelection, MappingRules.fromSeq(rules), sinks, errorSinks, targetVocabularies)
     }
 
     /**
@@ -102,7 +102,7 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
-        {value.selection.toXML(true)}{value.rules.map(toXml[TransformRule])}<Outputs>
+        {value.selection.toXML(true)}{value.rules.allRules.map(toXml[TransformRule])}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutputs.isEmpty) {
         Null

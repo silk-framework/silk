@@ -69,46 +69,6 @@ sealed trait TransformRule {
   }
 }
 
-case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType) {
-
-  override def toString: String = {
-    if(valueType == AutoDetectValueType)
-      propertyUri.toString
-    else
-      s"$propertyUri (${valueType.label})"
-  }
-
-}
-
-object MappingTarget {
-
-  implicit object MappingTargetFormat extends XmlFormat[MappingTarget] {
-
-    import XmlSerialization._
-
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: Node)(implicit readContext: ReadContext): MappingTarget = {
-      val uri = (value \ "@uri").text.trim
-      val valueTypeNode = (value \ "ValueType").head
-      MappingTarget(Uri.parse(uri, readContext.prefixes), fromXml[ValueType](valueTypeNode))
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: MappingTarget)(implicit writeContext: WriteContext[Node]): Node = {
-      <MappingTarget uri={value.propertyUri.uri}>
-        {toXml[ValueType](value.valueType)}
-      </MappingTarget>
-    }
-  }
-
-  implicit def toTypedProperty(mt: MappingTarget): TypedProperty = TypedProperty(mt.propertyUri.uri, mt.valueType)
-
-}
-
 /**
   * A direct mapping between two properties.
   *
@@ -216,17 +176,19 @@ case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: O
   * @param id The name of this mapping.
   * @param relativePath The relative input path to locate the child entities in the source.
   * @param targetProperty The property that is used to attach the child entities.
-  * @param childRules The child rules.
+  * @param children The child rules.
   */
-case class HierarchicalMapping(id: Identifier = "mapping", relativePath: Path = Path(Nil), targetProperty: Option[Uri] = Some("hasChild"),
-                               override val childRules: Seq[TransformRule]) extends TransformRule {
+case class HierarchicalMapping(id: Identifier = "mapping",
+                               relativePath: Path = Path(Nil),
+                               targetProperty: Option[Uri] = Some("hasChild"),
+                               children: MappingRules) extends TransformRule {
 
   override val typeString = "Hierarchical"
 
   override val operator = {
     targetProperty match {
       case Some(prop) =>
-        childRules.find (_.isInstanceOf[UriMapping] ) match {
+        children.uriRule match {
           case Some (rule) => rule.operator
           case None => PathInput (path = relativePath)
         }
@@ -265,7 +227,7 @@ object TransformRule {
         id = (node \ "@name").text,
         relativePath = Path.parse((node \ "@relativePath").text),
         targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
-        childRules = (node \ "Children" \ "_").map(read)
+        children = MappingRules.fromSeq((node \ "Children" \ "_").map(read))
       )
     }
 
@@ -294,7 +256,7 @@ object TransformRule {
       value match {
         case HierarchicalMapping(name, relativePath, targetProperty, childRules) =>
           <HierarchicalMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
-            <Children>{childRules.map(write)}</Children>
+            <Children>{childRules.allRules.map(write)}</Children>
           </HierarchicalMapping>
         case _ =>
           // At the moment, all other types are serialized generically

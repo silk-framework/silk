@@ -1,15 +1,15 @@
 package org.silkframework.serialization.json
 
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
-import org.silkframework.entity.{CustomValueType, LanguageValueType, Path, ValueType}
+import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
-import org.silkframework.serialization.json.JsonSerializers.DirectMappingJsonFormat.MAPPING_TARGET_PROPERTY
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
 /**
@@ -70,6 +70,10 @@ object JsonSerializers {
       case None =>
         throw JsonParseException("Attribute " + attributeName + " not found!")
     }
+  }
+
+  def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
+    (json \ attributeName).toOption.filterNot(_ == JsNull)
   }
 
   def silkPath(id: String, pathStr: String)(implicit readContext: ReadContext): Path = {
@@ -216,6 +220,41 @@ object JsonSerializers {
   }
 
   /**
+    * Mapping Rules
+    */
+  implicit object MappingRulesJsonFormat extends JsonFormat[MappingRules] {
+    final val URI_RULE: String = "uriRule"
+    final val TYPE_RULES: String = "typeRules"
+    final val PROPERTY_RULES: String = "propertyRules"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): MappingRules = {
+      val uriRule = optionalValue(value, URI_RULE).map(UriMappingJsonFormat.read)
+      val typeRules = mustBeJsArray(mustBeDefined(value, TYPE_RULES)) { array =>
+        array.value.map(TypeMappingJsonFormat.read)
+      }
+      val propertyRules = mustBeJsArray(mustBeDefined(value, PROPERTY_RULES)) { array =>
+        array.value.map(TransformRuleJsonFormat.read)
+      }
+
+      MappingRules(uriRule, typeRules, propertyRules)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: MappingRules)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        URI_RULE -> value.uriRule.map(toJson[UriMapping]),
+        TYPE_RULES -> JsArray(value.typeRules.map(toJson[TransformRule])),
+        PROPERTY_RULES -> JsArray(value.propertyRules.map(toJson[TransformRule]))
+      )
+    }
+  }
+
+  /**
     * Type Mapping
     */
   implicit object TypeMappingJsonFormat extends JsonFormat[TypeMapping] {
@@ -354,9 +393,7 @@ object JsonSerializers {
         case "" => None
         case prop: String => Some(prop)
       }
-      val children = mustBeJsArray(mustBeDefined(value, CHILDREN)) { array =>
-        array.value.map(TransformRuleJsonFormat.read)
-      }
+      val children = fromJson[MappingRules](mustBeDefined(value, CHILDREN))
       HierarchicalMapping(name, sourcePath, targetProperty, children)
     }
 
@@ -364,14 +401,12 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: HierarchicalMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsObject(
-        Seq(
-          TYPE -> JsString("hierarchical"),
-          ID -> JsString(value.id),
-          RELATIVE_SOURCE_PATH -> JsString(value.relativePath.serialize),
-          TARGET_PROPERTY -> JsString(value.targetProperty.map(_.uri).getOrElse("")),
-          CHILDREN -> JsArray(value.childRules.map(toJson[TransformRule]))
-        )
+      Json.obj(
+        TYPE -> JsString("hierarchical"),
+        ID -> JsString(value.id),
+        RELATIVE_SOURCE_PATH -> JsString(value.relativePath.serialize),
+        TARGET_PROPERTY -> JsString(value.targetProperty.map(_.uri).getOrElse("")),
+        CHILDREN -> toJson(value.children)
       )
     }
   }
@@ -442,6 +477,101 @@ object JsonSerializers {
         ) ++
             rule.target.map("mappingTarget" -> toJson(_))
       )
+    }
+  }
+
+  /**
+    * Dataset selection.
+    */
+  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
+    final val INPUT_ID: String = "inputID"
+    final val TYPE_URI: String = "typeURI"
+    final val RESTRICTION: String = "restriction"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
+      DatasetSelection(
+        inputId = stringValue(value, INPUT_ID),
+        typeUri = stringValue(value, TYPE_URI),
+        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        INPUT_ID -> value.inputId.toString,
+        TYPE_URI -> value.typeUri.uri,
+        RESTRICTION -> value.restriction.serialize
+      )
+    }
+  }
+
+  /**
+    * Transform Specification
+    */
+  implicit object TransformSpecJsonFormat extends JsonFormat[TransformSpec] {
+    final val SELECTION = "selection"
+    final val RULES_PROPERTY: String = "rules"
+    final val OUTPUTS: String = "outputs"
+    final val TARGET_VOCABULARIES: String = "targetVocabularies"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
+      TransformSpec(
+        selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
+        rules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY)),
+        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
+        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.toString))
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SELECTION -> toJson(value.selection),
+        RULES_PROPERTY -> toJson(value.rules),
+        OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
+        TARGET_VOCABULARIES -> JsArray(value.targetVocabularies.toSeq.map(JsString))
+
+      )
+    }
+  }
+
+  /**
+    * Transform Task
+    */
+  object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
+
+  /**
+    * Task
+    */
+  class TaskJsonFormat[T <: TaskSpec](implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
+      PlainTask(
+        id = stringValue(value, ID),
+        data = fromJson[T](value)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> JsString(value.id.toString)
+      ) ++ toJson(value.data).as[JsObject]
     }
   }
 

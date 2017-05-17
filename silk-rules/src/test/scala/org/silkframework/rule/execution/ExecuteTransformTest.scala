@@ -8,7 +8,7 @@ import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
-import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingTarget, TransformSpec}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -27,7 +27,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     when(dataSourceMock.retrieve(any(), any())).thenReturn(entities)
     val execute = new ExecuteTransform(
       input = dataSourceMock,
-      transform = TransformSpec(datasetSelection(), Seq(mapping("propTransform", prop), mapping("prop2Transform", prop2))),
+      transform = TransformSpec(datasetSelection(), MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))),
       outputs = Seq(outputMock)
     )
     val contextMock = mock[ActivityContext[TransformReport]]
