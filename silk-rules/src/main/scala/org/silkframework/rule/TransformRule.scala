@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
@@ -176,19 +177,19 @@ case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: O
   * @param id The name of this mapping.
   * @param relativePath The relative input path to locate the child entities in the source.
   * @param targetProperty The property that is used to attach the child entities.
-  * @param children The child rules.
+  * @param rules The child rules.
   */
 case class HierarchicalMapping(id: Identifier = "mapping",
                                relativePath: Path = Path(Nil),
                                targetProperty: Option[Uri] = Some("hasChild"),
-                               children: MappingRules) extends TransformRule {
+                               rules: MappingRules) extends TransformRule {
 
   override val typeString = "Hierarchical"
 
   override val operator = {
     targetProperty match {
       case Some(prop) =>
-        children.uriRule match {
+        rules.uriRule match {
           case Some (rule) => rule.operator
           case None => PathInput (path = relativePath)
         }
@@ -227,7 +228,7 @@ object TransformRule {
         id = (node \ "@name").text,
         relativePath = Path.parse((node \ "@relativePath").text),
         targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
-        children = MappingRules.fromSeq((node \ "Children" \ "_").map(read))
+        rules = MappingRules.fromSeq((node \ "Rules" \ "_").map(read))
       )
     }
 
@@ -256,7 +257,7 @@ object TransformRule {
       value match {
         case HierarchicalMapping(name, relativePath, targetProperty, childRules) =>
           <HierarchicalMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
-            <Children>{childRules.allRules.map(write)}</Children>
+            <Rules>{childRules.allRules.map(write)}</Rules>
           </HierarchicalMapping>
         case _ =>
           // At the moment, all other types are serialized generically

@@ -6,7 +6,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Uri
 import org.silkframework.runtime.serialization.XmlSerialization._
 import scala.xml.Node
-
+import scala.language.implicitConversions
 
 case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType) {
 

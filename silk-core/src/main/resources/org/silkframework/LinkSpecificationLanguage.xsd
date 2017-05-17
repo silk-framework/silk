@@ -127,7 +127,7 @@
     <xs:element name="HierarchicalMapping">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="Children"  minOccurs="1" maxOccurs="1">
+                <xs:element name="Rules"  minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:choice minOccurs="0" maxOccurs="unbounded">

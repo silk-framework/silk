@@ -20,7 +20,7 @@ object JsonSerializers {
   final val ID = "id"
   final val TYPE = "type"
   final val PARAMETERS = "parameters"
-  final val URI = "URI"
+  final val URI = "Uri"
 
   implicit object JsonDatasetTaskFormat extends JsonFormat[DatasetTask] {
 
@@ -101,7 +101,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString(PATH_INPUT),
           ID -> JsString(value.id.toString),
-          PATH -> JsString(value.path.serialize)
+          PATH -> JsString(value.path.serialize(writeContext.prefixes))
         )
       )
     }
@@ -212,7 +212,7 @@ object JsonSerializers {
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
-          URI -> JsString(value.propertyUri.uri),
+          URI -> JsString(value.propertyUri.serialize(writeContext.prefixes)),
           VALUE_TYPE -> toJson(value.valueType)
         )
       )
@@ -266,7 +266,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): TypeMapping = {
       val name = stringValue(value, ID)
       val typeUri = stringValue(value, TYPE_PROPERTY)
-      TypeMapping(name, typeUri)
+      TypeMapping(name, Uri.parse(typeUri, readContext.prefixes))
     }
 
     /**
@@ -277,7 +277,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString("type"),
           ID -> JsString(value.id),
-          TYPE_PROPERTY -> JsString(value.typeUri.uri)
+          TYPE_PROPERTY -> JsString(value.typeUri.serialize(writeContext.prefixes))
         )
       )
     }
@@ -337,7 +337,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString("direct"),
           ID -> JsString(value.id),
-          SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize),
+          SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
           MAPPING_TARGET_PROPERTY -> toJson(value.mappingTarget)
         )
       )
@@ -381,20 +381,18 @@ object JsonSerializers {
     */
   implicit object HierarchicalMappingJsonFormat extends JsonFormat[HierarchicalMapping] {
     final val RELATIVE_SOURCE_PATH: String = "relativeSourcePath"
-    final val TARGET_PROPERTY: String = "targetProperty"
-    final val CHILDREN: String = "children"
+    final val TARGET_PROPERTY: String = "mappingTarget"
+    final val RULES: String = "rules"
+
     /**
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): HierarchicalMapping = {
       val name = stringValue(value, ID)
       val sourcePath = silkPath(name, stringValue(value, RELATIVE_SOURCE_PATH))
-      val targetProperty: Option[Uri] = stringValue(value, TARGET_PROPERTY) match {
-        case "" => None
-        case prop: String => Some(prop)
-      }
-      val children = fromJson[MappingRules](mustBeDefined(value, CHILDREN))
-      HierarchicalMapping(name, sourcePath, targetProperty, children)
+      val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
+      val children = fromJson[MappingRules](mustBeDefined(value, RULES))
+      HierarchicalMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children)
     }
 
     /**
@@ -405,8 +403,8 @@ object JsonSerializers {
         TYPE -> JsString("hierarchical"),
         ID -> JsString(value.id),
         RELATIVE_SOURCE_PATH -> JsString(value.relativePath.serialize),
-        TARGET_PROPERTY -> JsString(value.targetProperty.map(_.uri).getOrElse("")),
-        CHILDREN -> toJson(value.children)
+        TARGET_PROPERTY -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
+        RULES -> toJson(value.rules)
       )
     }
   }
@@ -468,7 +466,7 @@ object JsonSerializers {
       }
     }
 
-    private def writeTransformRule(rule: TransformRule) = {
+    private def writeTransformRule(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]) = {
       JsObject(
         Seq(
           TYPE -> JsString("complex"),
@@ -484,8 +482,8 @@ object JsonSerializers {
     * Dataset selection.
     */
   implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
-    final val INPUT_ID: String = "inputID"
-    final val TYPE_URI: String = "typeURI"
+    final val INPUT_ID: String = "inputId"
+    final val TYPE_URI: String = "typeUri"
     final val RESTRICTION: String = "restriction"
 
     /**
