@@ -32,12 +32,17 @@ const MappingRule = React.createClass({
             expanded: false,
         };
     },
-
-    handleNavigate(ruleId) {
-        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: ruleId});
+    // jumps to selected rule as new center of view
+    handleNavigate() {
+        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id});
     },
+    // show / hide additional row details
     handleToggleExpand() {
         this.setState({expanded: !this.state.expanded});
+    },
+    // open edit view
+    handleEdit() {
+        hierarchicalMappingChannel.subject('ruleId.edit').onNext({rule: this.props});
     },
 
     // template rendering
@@ -62,7 +67,7 @@ const MappingRule = React.createClass({
                 tooltip={type === 'hierarchical' ? 'Navigate to' : undefined}
                 onClick={(event) => {
                     if (type === 'hierarchical') {
-                        this.handleNavigate(id)
+                        this.handleNavigate();
                     } else {
                         console.log('debug onClick action:', this.props);
                     }
@@ -85,6 +90,7 @@ const MappingRule = React.createClass({
             )
         ;
 
+        // FIXME: only show edit / remove buttons for non-hierarchical mappings?
         const expandedView = (
             this.state.expanded ? (
                 <tr
@@ -95,6 +101,23 @@ const MappingRule = React.createClass({
                             ID: {id}
                             <br/>
                             Comment: {comment}
+                        </div>
+                        <div
+                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow"
+                        >
+                            <Button
+                                className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-edit"
+                                onClick={this.handleEdit}
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-remove"
+                                onClick={() => {}}
+                                disabled
+                            >
+                                Remove
+                            </Button>
                         </div>
                     </td>
                 </tr>
@@ -108,7 +131,7 @@ const MappingRule = React.createClass({
                 {shortView}
                 {expandedView}
             </tbody>
-        )
+        );
     },
 });
 

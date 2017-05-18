@@ -5,6 +5,7 @@ import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {Button} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
+import RuleEdit from './Components/RuleEditView';
 
 // Do not care about it yet
 /*const props = {
@@ -28,12 +29,19 @@ const HierarchicalMapping = React.createClass({
     getInitialState() {
         // listen to rule id changes
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
+        // listen to rule edit event
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.edit'), this.onRuleEdit);
 
         return {
             // currently selected rule id
             currentRuleId: undefined,
             // show / hide navigation
             showNavigation: true,
+            // show / hide edit view of rule
+            // TODO: set to false as default after developing
+            ruleEditView: {
+                id: 'XYZ_3',
+            },
         };
     },
     // react to rule id changes
@@ -49,6 +57,17 @@ const HierarchicalMapping = React.createClass({
            showNavigation: !this.state.showNavigation,
         });
     },
+    // show edit view of specific rule id
+    onRuleEdit({rule}) {
+        this.setState({
+            ruleEditView: rule,
+        });
+    },
+    handleRuleEditClose() {
+        this.setState({
+            ruleEditView: false,
+        });
+    },
     // template rendering
     render () {
 
@@ -62,6 +81,16 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
+
+        const editView = (
+            this.state.ruleEditView ? (
+                <RuleEdit
+                    {...this.state.ruleEditView}
+                    onClose={this.handleRuleEditClose}
+                />
+            ) : false
+        );
+
         return (
             <div
                 className="ecc-component-hierarchicalMapping"
@@ -70,6 +99,7 @@ const HierarchicalMapping = React.createClass({
                     <Button
                         className="ecc-component-hierarchicalMapping__content-toggle-navigation"
                         iconName={this.state.showNavigation ? 'arrow_prevpage' : 'more_vert'}
+                        tooltip={this.state.showNavigation ? 'Close tree' : 'Open tree'}
                         onClick={this.handleToggleNavigation}
                     />
                     {treeView}
@@ -79,6 +109,8 @@ const HierarchicalMapping = React.createClass({
                         transformationTask={this.props.transformationTask}
                         currentRuleId={this.state.currentRuleId}
                     />
+                    {/*TODO: move editView to correct position*/}
+                    {editView}
                 </div>
             </div>
         );
