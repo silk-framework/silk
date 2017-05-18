@@ -4,9 +4,17 @@
   margin: 1rem 0.5rem;
 }
 
+.ecc-component-hierarchicalMapping__content-toggle-navigation {
+  flex-basis: 3%;
+  max-width: 2rem;
+  flex-shrink: 1;
+  flex-grow: 1;
+  box-sizing: border-box;;
+}
+
 .ecc-component-hierarchicalMapping__content-treeView {
-  flex-basis: 25%;
-  min-width: 15rem;
+  flex-basis: 20%;
+  min-width: 10rem;
   max-width: 100%;
   flex-shrink: 1;
   flex-grow: 1;
@@ -16,10 +24,14 @@
   ul, li {
     list-style-type: none;
   }
+
+  & > .stretch-vertical{
+    height: 100%;
+  }
 }
 
 .ecc-component-hierarchicalMapping__content-mappingRuleOverview {
-  flex-basis: 75%;
+  flex-basis: 77%;
   min-width: 70rem;
   max-width: 100%;
   flex-grow: 1;
@@ -46,13 +58,16 @@
   tbody.ecc-component-hierarchicalMapping__mappingRuleOverview__card {
     tr {
       &.is-extended {
-        & > td {
-          border-bottom: none;
+        & > td:not(.action) {
           opacity: 0.39;
         }
+        & > td {
+          border-bottom: none;
+        }
+
 
         & + tr.ecc-component-hierarchicalMapping__mappingRuleOverview__card__details {
-          & > td:not(.action) {
+          & > td {
             border: none;
           }
         }

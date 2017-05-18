@@ -69,7 +69,7 @@ const MappingRuleOverview = React.createClass({
                 <div
                     className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
                 >
-                    Configuration: {name}
+                    <b>Configuration: {name}</b>
                     <br/>
                     Entity types: {_.map(typeRules, (rule = {}) => (rule.name))}
                     <br/>
@@ -112,9 +112,14 @@ const MappingRuleOverview = React.createClass({
             <div
                 className="ecc-component-hierarchicalMapping__content-mappingRuleOverview"
             >
+                {loading}
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                    {loading}
-                    {mappingRulesHead}
+                    <div className="mdl-card__content">
+                        {mappingRulesHead}
+                    </div>
+                </div>
+                <br/>
+                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <div className="mdl-card__content">
                         {mappingRulesTable}
                     </div>

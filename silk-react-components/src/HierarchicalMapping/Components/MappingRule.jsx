@@ -58,8 +58,8 @@ const MappingRule = React.createClass({
 
         const action = (
             <Button
-                iconName={type === 'hierarchical' ? 'arrow_nextpage' : 'expand_more'}
-                tooltip={type === 'hierarchical' ? 'Navigate to' : 'Edit'}
+                iconName={type === 'hierarchical' ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                tooltip={type === 'hierarchical' ? 'Navigate to' : undefined}
                 onClick={(event) => {
                     if (type === 'hierarchical') {
                         this.handleNavigate(id)

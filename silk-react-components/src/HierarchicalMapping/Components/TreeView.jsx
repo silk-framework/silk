@@ -92,7 +92,8 @@ const TreeView = React.createClass({
                     {
                         !_.isEmpty(childs) ? (
                             <Button
-                                iconName={expanded ? 'expand_less' : 'expand_more'}
+                                iconName={expanded ? 'expand_more' : 'arrow_nextpage'}
+                                tooltip={expanded ? 'Close tree' : 'Open tree'}
                                 onClick={() => {this.handleToggleExpanded(id)}}
                             />
                         ) : false
@@ -124,7 +125,7 @@ const TreeView = React.createClass({
             <div
                 className="ecc-component-hierarchicalMapping__content-treeView"
             >
-                <div className="mdl-card mdl-shadow--2dp">
+                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
                     {loading}
                     {content}
                 </div>
