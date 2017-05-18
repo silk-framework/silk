@@ -30,7 +30,7 @@ class FileUser extends User {
 }
 
 object FileUser {
-  private val log: Logger = Logger.getLogger(this.getClass.getName)
+  private val log: Logger = Logger.getLogger(this.getClass.getName.stripSuffix("$"))
   @Inject
   private var configMgr: Config = DefaultConfig.instance
 
