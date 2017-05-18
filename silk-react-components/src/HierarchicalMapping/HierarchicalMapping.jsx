@@ -53,9 +53,6 @@ const HierarchicalMapping = React.createClass({
                         transformationTask={this.props.transformationTask}
                         currentRuleId={this.state.currentRuleId}
                     />
-                    <br/>
-                    <br/>
-                    <br/>
                     <MappingRuleOverview
                         apiBase={this.props.apiBase}
                         project={this.props.project}

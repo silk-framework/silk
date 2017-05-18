@@ -5,21 +5,62 @@
 }
 
 .ecc-component-hierarchicalMapping__content-treeView {
-  flex-basis: 50%;
-  min-width: 40rem;
+  flex-basis: 25%;
+  min-width: 15rem;
   max-width: 100%;
   flex-shrink: 1;
   flex-grow: 1;
   box-sizing: border-box;;
   padding: 0 0.5rem;
+
+  ul, li {
+    list-style-type: none;
+  }
 }
 
 .ecc-component-hierarchicalMapping__content-mappingRuleOverview {
-  flex-basis: 50%;
-  min-width: 40rem;
+  flex-basis: 75%;
+  min-width: 70rem;
   max-width: 100%;
   flex-grow: 1;
   flex-shrink: 1;
   box-sizing: border-box;
   padding: 0 0.5rem;
+
+  .mdl-data-table {
+    min-width: 100%;
+    border-left: none;
+    border-right: none;
+
+    th, td {
+      text-align: left;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    flex-grow: 1;
+  }
+
+  tbody.ecc-component-hierarchicalMapping__mappingRuleOverview__card {
+    tr {
+      &.is-extended {
+        & > td {
+          border-bottom: none;
+          opacity: 0.39;
+        }
+
+        & + tr.ecc-component-hierarchicalMapping__mappingRuleOverview__card__details {
+          & > td:not(.action) {
+            border: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+.ecc-component-hierarchicalMapping__content-mappingRuleOverview__header {
+  margin: 2rem;
 }

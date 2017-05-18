@@ -56,7 +56,6 @@ const TreeView = React.createClass({
 
     // collapse / expand navigation childs
     handleToggleExpanded(id) {
-        console.warn('debug id', id);
         // copy
         const expanded = _.cloneDeep(this.state.expanded);
         // get id state
@@ -125,8 +124,10 @@ const TreeView = React.createClass({
             <div
                 className="ecc-component-hierarchicalMapping__content-treeView"
             >
-                {loading}
-                {content}
+                <div className="mdl-card mdl-shadow--2dp">
+                    {loading}
+                    {content}
+                </div>
             </div>
         );
     },

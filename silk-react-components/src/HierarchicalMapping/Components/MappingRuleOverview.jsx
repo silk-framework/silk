@@ -84,7 +84,7 @@ const MappingRuleOverview = React.createClass({
         const mappingRulesTable = (
             !_.isEmpty(this.state.ruleData) ? (
                 <table
-                    className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__body"
+                    className="mdl-data-table ecc-component-hierarchicalMapping__content-mappingRuleOverview__body"
                 >
                     <thead>
                         <tr>
@@ -112,11 +112,13 @@ const MappingRuleOverview = React.createClass({
             <div
                 className="ecc-component-hierarchicalMapping__content-mappingRuleOverview"
             >
-                {loading}
-                <br/>
-                {mappingRulesHead}
-                <br/>
-                {mappingRulesTable}
+                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                    {loading}
+                    {mappingRulesHead}
+                    <div className="mdl-card__content">
+                        {mappingRulesTable}
+                    </div>
+                </div>
             </div>
         );
     },

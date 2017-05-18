@@ -58,35 +58,39 @@ const MappingRule = React.createClass({
 
         const action = (
             <Button
-                iconName="arrow_nextpage"
-                tooltip="Jump to"
-                /*iconName="expand_more"
-                 iconName="arrow_nextpage"
-                 iconName="arrow_prevpage"
-                 iconName="arrow_lastpage"
-                 iconName="arrow_firstpage"
-                 iconName="arrow_dropdown"
-                 */
+                iconName={type === 'hierarchical' ? 'arrow_nextpage' : 'expand_more'}
+                tooltip={type === 'hierarchical' ? 'Navigate to' : 'Edit'}
                 onClick={(event) => {
-                    console.log('debug onClick action:', this.props);
-                    /*this.handleNavigate(id)*/
+                    if (type === 'hierarchical') {
+                        this.handleNavigate(id)
+                    } else {
+                        console.log('debug onClick action:', this.props);
+                    }
                     event.stopPropagation();
                 }}
             />
         );
 
-        const shortView = [
-            <td key="ruleType">{_.upperFirst(type)} mapping</td>,
-            <td key="source">{sourcePath}</td>,
-            <td key="targetProperty">{mappingTarget.URI}</td>,
-            <td key="targetType">{_.get(mappingTarget, 'valueType.nodeType')}</td>,
-            <td key="action">{action}</td>,
-        ];
+        const shortView = (
+             <tr
+                 className={this.state.expanded ? 'is-extended' : ''}
+                 onClick={this.handleToggleExpand}
+             >
+                 <td key="ruleType">{_.upperFirst(type)} mapping</td>
+                 <td key="source">{sourcePath}</td>
+                 <td key="targetProperty">{mappingTarget.URI}</td>
+                 <td key="targetType">{_.get(mappingTarget, 'valueType.nodeType')}</td>
+                 <td className="action" key="action">{action}</td>
+             </tr>
+            )
+        ;
 
         const expandedView = (
             this.state.expanded ? (
-                <tr colSpan="5">
-                    <td>
+                <tr
+                    className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details"
+                >
+                    <td colSpan="5">
                         <div>
                             ID: {id}
                             <br/>
@@ -101,12 +105,7 @@ const MappingRule = React.createClass({
             <tbody
                 className="ecc-component-hierarchicalMapping__mappingRuleOverview__card"
             >
-                <tr
-                    className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__short"
-                    onClick={this.handleToggleExpand}
-                >
-                    {shortView}
-                </tr>
+                {shortView}
                 {expandedView}
             </tbody>
         )
