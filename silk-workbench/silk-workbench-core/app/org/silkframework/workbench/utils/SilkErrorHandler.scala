@@ -34,8 +34,9 @@ class SilkErrorHandler (env: Environment,
     if(prefersHtml(request)) {
       super.onClientError(request, statusCode, message)
     } else {
+      val m = if(statusCode == 404 && message.isEmpty) "Not Found." else message
       Future {
-        Status(statusCode)(JsonError(message))
+        Status(statusCode)(JsonError(m))
       }
     }
   }

@@ -3,7 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{CustomValueType, LanguageValueType, Path, ValueType}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
-import org.silkframework.rule.vocab.{GenericInfo, VocabularyProperty}
+import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{ComplexMapping, MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -285,7 +285,7 @@ object JsonSerializers {
   /** VocabularyProperty */
   implicit object VocabularyPropertyJsonFormat extends JsonFormat[VocabularyProperty] {
     override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyProperty = {
-      throw new RuntimeException("De-serializing VocabularyProperty JSON strings are not supported!")
+      throw new RuntimeException("De-serializing VocabularyProperty JSON strings is not supported!")
     }
 
     override def write(value: VocabularyProperty)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -297,6 +297,22 @@ object JsonSerializers {
         } ++ value.range.map { r =>
           "range" -> JsString(r.info.uri)
         }
+      )
+    }
+  }
+
+  /** VocabularyClass */
+  implicit object VocabularyClassJsonFormat extends JsonFormat[VocabularyClass] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyClass = {
+      throw new RuntimeException("De-serializing VocabularyClass JSON strings is not supported!")
+    }
+
+    override def write(value: VocabularyClass)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          "genericInfo" -> GenericInfoJsonFormat.write(value.info),
+          "parentClasses" -> JsArray(value.parentClasses.map(JsString).toSeq)
+        )
       )
     }
   }

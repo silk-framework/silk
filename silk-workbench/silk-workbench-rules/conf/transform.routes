@@ -35,5 +35,6 @@ GET           /tasks/:project/:task/sourcePathCompletions                    con
 GET           /tasks/:project/:task/targetPathCompletions                    controllers.transform.TransformTaskApi.targetPathCompletions(project: String, task: String, sourcePath: Option[String], term: String)
 GET           /tasks/:project/:task/targetVocabulary/typeSuggestions         controllers.transform.TransformTaskApi.typeCandidates(project: String, task: String)
 GET           /tasks/:project/:task/targetVocabulary/propertiesByClass       controllers.transform.TransformTaskApi.propertiesByType(project: String, task: String, classUri: String)
+GET           /tasks/:project/:task/targetVocabulary/relationsOfClass        controllers.transform.TransformTaskApi.relationsOfType(project: String, task: String, classUri: String)
 
 POST          /tasks/:project/:task/transformInput                           controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)

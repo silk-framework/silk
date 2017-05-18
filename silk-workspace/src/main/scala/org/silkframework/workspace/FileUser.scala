@@ -30,6 +30,7 @@ class FileUser extends User {
 }
 
 object FileUser {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
   @Inject
   private var configMgr: Config = DefaultConfig.instance
 
@@ -44,17 +45,23 @@ object FileUser {
   lazy val workspace: Workspace = {
     try {
       // Load the workspace provider from configuration or use the default file-based one
-      val provider =
-        if(configMgr().hasPath("workspace.provider"))
-          PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
-        else
-          new FileWorkspaceProvider(workspaceDir.getAbsolutePath)
+      val provider: WorkspaceProvider =
+        if(configMgr().hasPath("workspace.provider")) {
+          val provider = PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
+          log.info("Using configured workspace provider " + configMgr().getString("workspace.provider.plugin"))
+          provider
+        } else {
+          FileWorkspaceProvider(workspaceDir.getAbsolutePath)
+        }
 
-      val repository =
-        if(configMgr().hasPath("workspace.repository"))
-          PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
-        else
-          new PerProjectFileRepository(workspaceDir.getAbsolutePath)
+      val repository: ResourceRepository =
+        if(configMgr().hasPath("workspace.repository")) {
+          val repository = PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
+          log.info("Using configured workspace repository type " + configMgr().getString("workspace.repository.plugin"))
+          repository
+        } else {
+          PerProjectFileRepository(workspaceDir.getAbsolutePath)
+        }
 
       // Create workspace
       new Workspace(provider, repository)
