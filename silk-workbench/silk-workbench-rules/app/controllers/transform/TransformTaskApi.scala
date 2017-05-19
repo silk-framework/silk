@@ -17,7 +17,7 @@ import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
+import play.api.mvc._
 
 import scala.util.control.NonFatal
 
@@ -126,7 +126,7 @@ class TransformTaskApi extends Controller {
 
   def putRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+    implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
@@ -135,9 +135,7 @@ class TransformTaskApi extends Controller {
       try {
         RuleTraverser(task.data.mappingRule).find(rule) match {
           case Some(currentRule) =>
-            val updatedRoot = currentRule.update(updatedRule).root.operator.asInstanceOf[RootMappingRule]
-            val updatedTask = task.data.copy(mappingRule = updatedRoot)
-            project.updateTask(taskName, updatedTask)
+            updateRule(currentRule.update(updatedRule))
             serialize[TransformRule](updatedRule)
           case None =>
             NotFound(JsonError(s"No rule with id '$rule' found!"))
@@ -169,21 +167,54 @@ class TransformTaskApi extends Controller {
 
   def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+    implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
     RuleTraverser(task.data.mappingRule).find(ruleName) match {
       case Some(parentRule) =>
         deserialize[TransformRule]() { newChildRule =>
           val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
-          val updatedRoot = parentRule.update(updatedRule).root.operator.asInstanceOf[RootMappingRule]
-          val updatedTask = task.data.copy(mappingRule = updatedRoot)
-          project.updateTask(taskName, updatedTask)
+          updateRule(parentRule.update(updatedRule))
           Ok
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$ruleName' found!"))
     }
+  }
+
+  def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    RuleTraverser(task.data.mappingRule).find(ruleName) match {
+      case Some(parentRule) =>
+        request.body.asJson match {
+          case Some(json) =>
+            val currentOrder = parentRule.operator.children.map(_.id.toString).toList
+            val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
+            if(newOrder.toSet == currentOrder.toSet) {
+              val newChildren =
+                for(id <- newOrder) yield {
+                  parentRule.operator.children.find(_.id == id).get
+                }
+              updateRule(parentRule.update(parentRule.operator.withChildren(newChildren)))
+              Ok
+            } else {
+              BadRequest(s"Provided list $newOrder does not contain the same elements as current list $currentOrder.")
+            }
+          case None =>
+            NotAcceptable("Expected application/json.")
+        }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$ruleName' found!"))
+    }
+  }
+
+  private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
+    val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
+    val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    task.project.updateTask(task.id, updatedTask)
   }
 
   def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action {

@@ -1,11 +1,11 @@
 package controllers.transform
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 import play.api.libs.ws.WS
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
-  def printResponses = false
+  def printResponses = true
 
   "Setup project" in {
     createProject(project)
@@ -24,7 +24,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val response = request.post(Json.parse(
       """
         | {
-        |   "id": "newRuleId",
+        |   "id": "directRule",
         |   "type": "direct",
         |   "sourcePath": "/source:name",
         |   "mappingTarget": {
@@ -44,7 +44,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val response = request.post(Json.parse(
       """
         | {
-        |   "id": "newRuleId2",
+        |   "id": "objectRule",
         |   "type": "hierarchical",
         |   "sourcePath": "source:address",
         |   "mappingTarget": {
@@ -70,6 +70,22 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
   }
 
+  "Reorder the child rules" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/reorder")
+    val response = request.post(Json.parse(
+      """
+        | [
+        |   "objectRule",
+        |   "directRule"
+        | ]
+      """.stripMargin
+    ))
+    checkResponse(response)
 
+    // Check if the rules have been reordered correctly
+    val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
+    val order = (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value).toSeq
+    order mustBe Seq("objectRule", "directRule")
+  }
 
 }
