@@ -234,12 +234,12 @@ case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: O
   * The properties of the child entities are mapped by the child mappings.
   *
   * @param id The name of this mapping.
-  * @param relativePath The relative input path to locate the child entities in the source.
+  * @param sourcePath The relative input path to locate the child entities in the source.
   * @param targetProperty The property that is used to attach the child entities.
   * @param rules The child rules.
   */
 case class HierarchicalMapping(id: Identifier = "mapping",
-                               relativePath: Path = Path(Nil),
+                               sourcePath: Path = Path(Nil),
                                targetProperty: Option[Uri] = Some("hasChild"),
                                override val rules: MappingRules) extends TransformRule {
 
@@ -250,7 +250,7 @@ case class HierarchicalMapping(id: Identifier = "mapping",
       case Some(prop) =>
         rules.uriRule match {
           case Some (rule) => rule.operator
-          case None => PathInput (path = relativePath)
+          case None => PathInput (path = sourcePath)
         }
       case None =>
         TransformInput(transformer = EmptyValueTransformer())
@@ -293,7 +293,7 @@ object TransformRule {
     private def readHierarchicalMapping(node: Node)(implicit readContext: ReadContext): HierarchicalMapping = {
       HierarchicalMapping(
         id = (node \ "@name").text,
-        relativePath = Path.parse((node \ "@relativePath").text),
+        sourcePath = Path.parse((node \ "@relativePath").text),
         targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
         rules = MappingRules.fromSeq((node \ "Rules" \ "_").map(read))
       )

@@ -17,7 +17,7 @@ class TransformRuleXmlSerializationTest extends FlatSpec with ShouldMatchers {
     testSerialzation(
       HierarchicalMapping(
         id = "hierarchicalMapping",
-        relativePath = Path("relativePath"),
+        sourcePath = Path("relativePath"),
         targetProperty = Some("targetProperty"),
         rules = MappingRules(
           DirectMapping("directMapping", Path("inputPath"), MappingTarget("outputProperty", StringValueType))

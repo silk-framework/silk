@@ -83,6 +83,8 @@ case class TransformSpec(selection: DatasetSelection,
   */
 object TransformSpec {
 
+  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule(MappingRules.empty))
+
   implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
     /**
       * Deserialize a value from XML.

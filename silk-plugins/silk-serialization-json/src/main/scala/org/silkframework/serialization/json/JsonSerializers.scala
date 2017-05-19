@@ -20,7 +20,7 @@ object JsonSerializers {
   final val ID = "id"
   final val TYPE = "type"
   final val PARAMETERS = "parameters"
-  final val URI = "Uri"
+  final val URI = "uri"
 
   implicit object JsonDatasetTaskFormat extends JsonFormat[DatasetTask] {
 
@@ -407,7 +407,7 @@ object JsonSerializers {
     * Hierarchical Mapping
     */
   implicit object HierarchicalMappingJsonFormat extends JsonFormat[HierarchicalMapping] {
-    final val RELATIVE_SOURCE_PATH: String = "relativeSourcePath"
+    final val SOURCE_PATH: String = "sourcePath"
     final val TARGET_PROPERTY: String = "mappingTarget"
     final val RULES: String = "rules"
 
@@ -416,7 +416,7 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): HierarchicalMapping = {
       val name = stringValue(value, ID)
-      val sourcePath = silkPath(name, stringValue(value, RELATIVE_SOURCE_PATH))
+      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
       val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
       HierarchicalMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children)
@@ -429,7 +429,7 @@ object JsonSerializers {
       Json.obj(
         TYPE -> JsString("hierarchical"),
         ID -> JsString(value.id),
-        RELATIVE_SOURCE_PATH -> JsString(value.relativePath.serialize),
+        SOURCE_PATH -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
         TARGET_PROPERTY -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
         RULES -> toJson(value.rules)
       )

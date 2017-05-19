@@ -52,7 +52,7 @@ class TransformTaskApi extends Controller {
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
     val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
@@ -120,7 +120,7 @@ class TransformTaskApi extends Controller {
       case Some(r) =>
         serialize(r.operator.asInstanceOf[TransformRule])
       case None =>
-        NotFound(s"No rule with id '$rule' found!")
+        NotFound(JsonError(s"No rule with id '$rule' found!"))
     }
   }
 
@@ -164,6 +164,25 @@ class TransformTaskApi extends Controller {
     } catch {
       case ex: NoSuchElementException =>
         NotFound(JsonError(ex.getMessage))
+    }
+  }
+
+  def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    RuleTraverser(task.data.mappingRule).find(ruleName) match {
+      case Some(parentRule) =>
+        deserialize[TransformRule]() { newChildRule =>
+          val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
+          val updatedRoot = parentRule.update(updatedRule).root.operator.asInstanceOf[RootMappingRule]
+          val updatedTask = task.data.copy(mappingRule = updatedRoot)
+          project.updateTask(taskName, updatedTask)
+          Ok
+        }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$ruleName' found!"))
     }
   }
 

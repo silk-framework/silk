@@ -26,12 +26,16 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
   * Created on 3/17/16.
   */
 trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { this: Suite =>
+
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
   final val START_PORT = 10600
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
+
+  /** The workspace provider that is used for holding the test workspace. */
+  def workspaceProvider: String = "inMemoryRdfWorkspace"
 
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {
@@ -44,10 +48,10 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   }
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
-  override def beforeAll(): Unit = {
+  override protected def beforeAll(): Unit = {
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
-    val provider = PluginRegistry.create[WorkspaceProvider]("inMemoryRdfWorkspace", Map.empty)
+    val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
     val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceUser = new User {
       /**
@@ -91,6 +95,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
       "rdf" -> Seq("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
       "rdfs" -> Seq("http://www.w3.org/2000/01/rdf-schema#"),
       "owl" -> Seq("http://www.w3.org/2002/07/owl#"),
+      "source" -> Seq("https://ns.eccenca.com/source"),
       "loan" -> Seq("http://eccenca.com/ds/loans/"),
       "stat" -> Seq("http://eccenca.com/ds/unemployment/"),
       // TODO Currently the default mapping generator maps all properties to this namespace
