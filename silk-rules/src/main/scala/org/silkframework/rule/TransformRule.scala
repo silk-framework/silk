@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
@@ -14,12 +15,54 @@ import org.silkframework.util._
 import scala.language.implicitConversions
 import scala.xml.{Node, Null}
 
+case class RootMappingRule(rules: MappingRules) extends Operator {
+
+  def id = "root"
+
+  /**
+    * The children operators.
+    */
+  def children: Seq[Operator] = rules.allRules
+
+  /**
+    * Generates the same operator with new children.
+    */
+  override def withChildren(newChildren: Seq[Operator]): Operator = {
+    val newRules = newChildren.map(_.asInstanceOf[TransformRule])
+    this.copy(rules = MappingRules.fromSeq(newRules))
+  }
+
+}
+
+object RootMappingRule {
+
+  /**
+    * XML serialization format.
+    */
+  implicit object RootMappingRuleFormat extends XmlFormat[RootMappingRule] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: Node)(implicit readContext: ReadContext): RootMappingRule = {
+      RootMappingRule(MappingRulesFormat.read(value))
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
+      MappingRulesFormat.write(value.rules)
+    }
+  }
+
+}
+
 /**
   * A transformation rule.
   * A transformations rule generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
   * Sub classes are defined for special cases, such as direct mappings.
   */
-sealed trait TransformRule {
+sealed trait TransformRule extends Operator {
 
   /** The name of this rule. */
   def id: Identifier
@@ -33,7 +76,7 @@ sealed trait TransformRule {
   /** String representation of rule type */
   def typeString: String
 
-  def childRules: Seq[TransformRule] = Seq.empty
+  def rules: MappingRules = MappingRules.empty
 
   /**
     * Generates the transformed values.
@@ -67,6 +110,22 @@ sealed trait TransformRule {
     }
 
     collectPaths(operator).distinct
+  }
+
+  /**
+    * The children operators.
+    */
+  def children: Seq[Operator] = rules.allRules
+
+  /**
+    * Generates the same operator with new children.
+    */
+  override def withChildren(newChildren: Seq[Operator]): Operator = {
+    if(newChildren.isEmpty) {
+      this
+    } else {
+      throw new IllegalArgumentException(s"$this cannot have any children")
+    }
   }
 }
 
@@ -182,7 +241,7 @@ case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: O
 case class HierarchicalMapping(id: Identifier = "mapping",
                                relativePath: Path = Path(Nil),
                                targetProperty: Option[Uri] = Some("hasChild"),
-                               rules: MappingRules) extends TransformRule {
+                               override val rules: MappingRules) extends TransformRule {
 
   override val typeString = "Hierarchical"
 
@@ -199,6 +258,14 @@ case class HierarchicalMapping(id: Identifier = "mapping",
   }
 
   override val target = targetProperty.map(MappingTarget(_, UriValueType))
+
+  /**
+    * Generates the same operator with new children.
+    */
+  override def withChildren(newChildren: Seq[Operator]): Operator = {
+    val newRules = newChildren.map(_.asInstanceOf[TransformRule])
+    this.copy(rules = MappingRules.fromSeq(newRules))
+  }
 
 }
 

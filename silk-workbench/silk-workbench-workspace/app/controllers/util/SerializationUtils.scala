@@ -1,5 +1,6 @@
 package controllers.util
 
+import org.silkframework.runtime.serialization.Serialization.serializationFormats
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.Project
@@ -142,7 +143,7 @@ object SerializationUtils extends Results {
   private def mimeType[T: ClassTag](mediaTypes: Seq[MediaType],
                                     defaultMimeTypes: Seq[String]): Option[String] = {
     val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)
-    if (mimeTypes.isEmpty || mimeTypes.contains("*/*")) {
+    if (mimeTypes.isEmpty) {
       defaultMimeTypes.find(Serialization.hasSerialization[T])
     } else {
       mimeTypes.find(Serialization.hasSerialization[T])

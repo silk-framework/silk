@@ -35,7 +35,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          rules =
+          mappingRule = RootMappingRule(
             MappingRules(
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
@@ -56,6 +56,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
             )
           )
         )
+      )
     )
 
   private val nestedToFlat = {
@@ -65,7 +66,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          rules =
+          mappingRule = RootMappingRule(
             MappingRules(
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
@@ -89,6 +90,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
                   )
                 )
               )
+            )
           )
         )
     )

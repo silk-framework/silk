@@ -255,6 +255,33 @@ object JsonSerializers {
   }
 
   /**
+    * Root Mapping
+    */
+  implicit object RootMappingRuleJsonFormat extends JsonFormat[RootMappingRule] {
+    final val RULES_PROPERTY: String = "rules"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
+      RootMappingRule(fromJson[MappingRules]((value \ RULES_PROPERTY).get))
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: RootMappingRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("root"),
+          ID -> JsString(value.id),
+          RULES_PROPERTY -> toJson(value.rules)
+        )
+      )
+    }
+  }
+
+  /**
     * Type Mapping
     */
   implicit object TypeMappingJsonFormat extends JsonFormat[TypeMapping] {
@@ -514,7 +541,7 @@ object JsonSerializers {
     */
   implicit object TransformSpecJsonFormat extends JsonFormat[TransformSpec] {
     final val SELECTION = "selection"
-    final val RULES_PROPERTY: String = "rules"
+    final val RULES_PROPERTY: String = "root"
     final val OUTPUTS: String = "outputs"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
@@ -524,7 +551,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
-        rules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY)),
+        mappingRule = fromJson[RootMappingRule](mustBeDefined(value, RULES_PROPERTY)),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.toString))
       )

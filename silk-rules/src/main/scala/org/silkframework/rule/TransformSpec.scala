@@ -13,7 +13,7 @@ import scala.xml.{Node, Null}
   * This class contains all the required parameters to execute a transform task.
   *
   * @param selection          Selects the entities that are covered by this transformation.
-  * @param rules              The mapping rules
+  * @param mappingRule        The root mapping rule
   * @param outputs            The identifier of the output to which all transformed entities are to be written
   * @param errorOutputs       The identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
@@ -21,10 +21,12 @@ import scala.xml.{Node, Null}
   * @see org.silkframework.execution.ExecuteTransform
   */
 case class TransformSpec(selection: DatasetSelection,
-                         rules: MappingRules,
+                         mappingRule: RootMappingRule,
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
+
+  def rules: MappingRules = mappingRule.rules
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
 
@@ -33,12 +35,12 @@ case class TransformSpec(selection: DatasetSelection,
   override lazy val referencedTasks = Set(selection.inputId)
 
   lazy val inputSchema: EntitySchema = {
-    val schemata = collectInputSchemata(rules, Path.empty)
+    val schemata = collectInputSchemata(mappingRule.rules, Path.empty)
     new MultiEntitySchema(schemata.head, schemata.tail)
   }
 
   lazy val outputSchema: EntitySchema = {
-    val schemata = collectOutputSchemata(rules, Path.empty)
+    val schemata = collectOutputSchemata(mappingRule.rules, Path.empty)
     new MultiEntitySchema(schemata.head, schemata.tail)
   }
 
@@ -94,7 +96,7 @@ object TransformSpec {
       val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, MappingRules.fromSeq(rules), sinks, errorSinks, targetVocabularies)
+      TransformSpec(datasetSelection, RootMappingRule(MappingRules.fromSeq(rules)), sinks, errorSinks, targetVocabularies)
     }
 
     /**
@@ -102,7 +104,7 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
-        {value.selection.toXML(true)}{value.rules.allRules.map(toXml[TransformRule])}<Outputs>
+        {value.selection.toXML(true)}{value.mappingRule.rules.allRules.map(toXml[TransformRule])}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutputs.isEmpty) {
         Null

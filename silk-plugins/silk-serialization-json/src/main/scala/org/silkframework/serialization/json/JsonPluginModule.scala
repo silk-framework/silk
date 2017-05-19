@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetTaskFormat, MappingRulesJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskFormat}
+import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetTaskFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskFormat}
 
 class JsonPluginModule extends PluginModule {
 
@@ -11,5 +11,6 @@ class JsonPluginModule extends PluginModule {
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
       TransformTaskFormat.getClass ::
+      RootMappingRuleJsonFormat.getClass ::
       Nil
 }
