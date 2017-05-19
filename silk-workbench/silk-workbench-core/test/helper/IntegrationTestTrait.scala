@@ -63,7 +63,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     User.userManager = () => rdfWorkspaceUser
   }
 
-  override def afterAll(): Unit = {
+  override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
     deleteRecursively(tmpDir)
   }

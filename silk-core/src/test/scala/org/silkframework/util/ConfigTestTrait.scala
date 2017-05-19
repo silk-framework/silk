@@ -14,7 +14,7 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
   def propertyMap: Map[String, Option[String]]
   private var backupParameters: Iterable[(String, Option[String])] = Iterable()
 
-  override def beforeAll(): Unit = {
+  override protected def beforeAll(): Unit = {
     super.beforeAll()
     backupParameters = for((key, newValue) <- propertyMap) yield {
       val oldValue = Option(System.getProperty(key))
@@ -34,7 +34,7 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
     }
   }
 
-  override def afterAll(): Unit = {
+  override protected def afterAll(): Unit = {
     // Restore old System properties
     for((key, oldValue) <- backupParameters) {
       updateProperty(key, oldValue)
