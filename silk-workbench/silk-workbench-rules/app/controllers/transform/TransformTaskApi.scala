@@ -13,7 +13,7 @@ import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.util.{CollectLogs, Identifier, Uri}
+import org.silkframework.util.{CollectLogs, Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
@@ -130,7 +130,7 @@ class TransformTaskApi extends Controller {
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    //implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
 
     RuleTraverser(task.data.mappingRule).find(rule) match {
       case Some(currentRule) =>
@@ -150,16 +150,6 @@ class TransformTaskApi extends Controller {
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$rule' found!"))
-    }
-  }
-
-  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
-    request.body.asJson match {
-      case Some(requestJson) =>
-        val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
-        val updatedJson = ruleJson.deepMerge(requestJson.as[JsObject])
-        request.map(_ => AnyContentAsJson(updatedJson))
-      case None => request
     }
   }
 
@@ -222,6 +212,24 @@ class TransformTaskApi extends Controller {
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$ruleName' found!"))
+    }
+  }
+
+  private def identifierGenerator(transformTask: Task[TransformSpec]): IdentifierGenerator = {
+    val identifierGenerator = new IdentifierGenerator()
+    for(id <- RuleTraverser(transformTask.data.mappingRule).iterateAllChildren.map(_.operator.id)) {
+      identifierGenerator.add(id)
+    }
+    identifierGenerator
+  }
+
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+    request.body.asJson match {
+      case Some(requestJson) =>
+        val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
+        val updatedJson = ruleJson.deepMerge(requestJson.as[JsObject])
+        request.map(_ => AnyContentAsJson(updatedJson))
+      case None => request
     }
   }
 

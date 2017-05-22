@@ -19,22 +19,19 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     checkResponse(response)
   }
 
-  "Set root mapping parameters" in {
+  "Set root mapping parameters: URI pattern and type" in {
     val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
       """
         {
-          "id": "root",
-          "type": "root",
           "rules": {
             "uriRule": {
               "type": "uri",
-              "id": "rootUri",
               "pattern": "http://example.org/{PersonID}"
             },
             "typeRules": [
               {
                 "type": "type",
-                "id": "rootType",
+                "id": "explicitlyDefinedId",
                 "typeUri": "target:Person"
               }
             ]

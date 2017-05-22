@@ -84,6 +84,17 @@ object JsonSerializers {
     }
   }
 
+  def identifier(json: JsValue, defaultId: String)(implicit readContext: ReadContext): Identifier = {
+    optionalValue(json, ID) match {
+      case Some(JsString(id)) =>
+        id
+      case Some(_) =>
+        throw JsonParseException("Value for attribute " + ID + " is not a String!")
+      case None =>
+        readContext.identifierGenerator.generate(defaultId)
+    }
+  }
+
   /**
     * PathInput
     */
@@ -291,7 +302,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): TypeMapping = {
-      val name = stringValue(value, ID)
+      val name = identifier(value, "type")
       val typeUri = stringValue(value, TYPE_PROPERTY)
       TypeMapping(name, Uri.parse(typeUri, readContext.prefixes))
     }
@@ -320,7 +331,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): UriMapping = {
-      val name = stringValue(value, ID)
+      val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
       UriMapping(name, pattern)
     }
@@ -350,7 +361,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): DirectMapping = {
-      val name = stringValue(value, ID)
+      val name = identifier(value, "direct")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
       val mappingTarget = fromJson[MappingTarget]((value \ MAPPING_TARGET_PROPERTY).get)
       DirectMapping(name, sourcePath, mappingTarget)
@@ -382,7 +393,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
-      val name = stringValue(value, ID)
+      val name = identifier(value, "object")
       val pattern = stringValue(value, PATTERN_PROPERTY)
       val mappingTarget = fromJson[MappingTarget]((value \ TARGET_PROPERTY).get)
       ObjectMapping(name, pattern, mappingTarget)
@@ -415,7 +426,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): HierarchicalMapping = {
-      val name = stringValue(value, ID)
+      val name = identifier(value, "object")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
       val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
@@ -468,7 +479,7 @@ object JsonSerializers {
           toOption.
           map(fromJson[MappingTarget])
       val complex = ComplexMapping(
-        id = stringValue(jsValue, ID),
+        id = identifier(jsValue, "complex"),
         operator = fromJson[Input]((jsValue \ "operator").get),
         target = mappingTarget
       )
