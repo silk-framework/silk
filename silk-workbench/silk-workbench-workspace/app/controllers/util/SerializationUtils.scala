@@ -174,15 +174,13 @@ object SerializationUtils extends Results {
     * @param defaultMimeType The MIME type to be used if the content-type header specifies none or accepts any
     * @param func            The user provided function to be executed with the parsed value.
     * @param request         The HTTP request to get the value from.
-    * @param project         The project
     * @tparam T The expected parsed type.
     * @return A HTTP result. If the serialization succeeds, this will be the result returned by the user-provided function.
     */
   def deserializeCompileTime[T: ClassTag](defaultMimeType: String = "application/xml")
                                          (func: T => Result)
-                                         (implicit request: Request[AnyContent], project: Project): Result = {
+                                         (implicit request: Request[AnyContent], readContext: ReadContext): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
     mimeType(request.mediaType.toList, Seq(defaultMimeType)) match {
       case Some(mimeType) =>

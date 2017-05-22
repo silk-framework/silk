@@ -7,6 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
@@ -39,7 +40,9 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
-    implicit val project = User().workspace.project(projectName)
+    val project = User().workspace.project(projectName)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
         if (autoConfigure) {

@@ -130,7 +130,7 @@ class TransformTaskApi extends Controller {
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
-    //implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
+    implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
 
     RuleTraverser(task.data.mappingRule).find(rule) match {
       case Some(currentRule) =>
@@ -171,6 +171,7 @@ class TransformTaskApi extends Controller {
     implicit val project = User().workspace.project(projectName)
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
 
     RuleTraverser(task.data.mappingRule).find(ruleName) match {
       case Some(parentRule) =>
