@@ -119,7 +119,7 @@ class TransformTaskApi extends Controller {
 
     RuleTraverser(task.data.mappingRule).find(rule) match {
       case Some(r) =>
-        serialize(r.operator.asInstanceOf[TransformRule])
+        serializeCompileTime(r.operator.asInstanceOf[TransformRule])
       case None =>
         NotFound(JsonError(s"No rule with id '$rule' found!"))
     }
