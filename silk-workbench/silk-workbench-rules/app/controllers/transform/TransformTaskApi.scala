@@ -44,7 +44,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serialize[Task[TransformSpec]](task)
+    serializeCompileTime[Task[TransformSpec]](task)
   }
 
   def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
@@ -85,7 +85,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serialize(task.data.mappingRule)
+    serializeCompileTime(task.data.mappingRule)
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
@@ -95,7 +95,7 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserialize[RootMappingRule]() { updatedRules =>
+    deserializeCompileTime[RootMappingRule]() { updatedRules =>
       try {
         //Update transformation task
         val updatedTask = task.data.copy(mappingRule = updatedRules)
@@ -135,10 +135,10 @@ class TransformTaskApi extends Controller {
     RuleTraverser(task.data.mappingRule).find(rule) match {
       case Some(currentRule) =>
         implicit val updatedRequest = updateJsonRequest(request, currentRule)
-        deserialize[TransformRule]() { updatedRule =>
+        deserializeCompileTime[TransformRule]() { updatedRule =>
           try {
             updateRule(currentRule.update(updatedRule))
-            serialize[TransformRule](updatedRule)
+            serializeCompileTime[TransformRule](updatedRule)
           } catch {
             case ex: ValidationException =>
               log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
@@ -174,10 +174,10 @@ class TransformTaskApi extends Controller {
 
     RuleTraverser(task.data.mappingRule).find(ruleName) match {
       case Some(parentRule) =>
-        deserialize[TransformRule]() { newChildRule =>
+        deserializeCompileTime[TransformRule]() { newChildRule =>
           val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
           updateRule(parentRule.update(updatedRule))
-          serialize(newChildRule)
+          serializeCompileTime(newChildRule)
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$ruleName' found!"))
