@@ -15,48 +15,6 @@ import org.silkframework.util._
 import scala.language.implicitConversions
 import scala.xml.{Node, Null}
 
-case class RootMappingRule(rules: MappingRules) extends Operator {
-
-  def id = "root"
-
-  /**
-    * The children operators.
-    */
-  def children: Seq[Operator] = rules.allRules
-
-  /**
-    * Generates the same operator with new children.
-    */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
-    val newRules = newChildren.map(_.asInstanceOf[TransformRule])
-    this.copy(rules = MappingRules.fromSeq(newRules))
-  }
-
-}
-
-object RootMappingRule {
-
-  /**
-    * XML serialization format.
-    */
-  implicit object RootMappingRuleFormat extends XmlFormat[RootMappingRule] {
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: Node)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(MappingRulesFormat.read(value))
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
-      MappingRulesFormat.write(value.rules)
-    }
-  }
-
-}
-
 /**
   * A transformation rule.
   * A transformations rule generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
@@ -127,6 +85,56 @@ sealed trait TransformRule extends Operator {
       throw new IllegalArgumentException(s"$this cannot have any children")
     }
   }
+}
+
+case class RootMappingRule(override val rules: MappingRules) extends TransformRule {
+
+  def id: Identifier = "root"
+
+  /**
+    * The children operators.
+    */
+  override def children: Seq[Operator] = rules.allRules
+
+  /**
+    * Generates the same operator with new children.
+    */
+  override def withChildren(newChildren: Seq[Operator]): Operator = {
+    val newRules = newChildren.map(_.asInstanceOf[TransformRule])
+    this.copy(rules = MappingRules.fromSeq(newRules))
+  }
+
+  /** The input operator tree. */
+  override def operator: Input = TransformInput("root", EmptyValueTransformer())
+
+  /** The target property URI. */
+  override def target: Option[MappingTarget] = None
+
+  /** String representation of rule type */
+  override def typeString: String = "Root"
+}
+
+object RootMappingRule {
+
+  /**
+    * XML serialization format.
+    */
+  implicit object RootMappingRuleFormat extends XmlFormat[RootMappingRule] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: Node)(implicit readContext: ReadContext): RootMappingRule = {
+      RootMappingRule(MappingRulesFormat.read(value))
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
+      MappingRulesFormat.write(value.rules)
+    }
+  }
+
 }
 
 /**

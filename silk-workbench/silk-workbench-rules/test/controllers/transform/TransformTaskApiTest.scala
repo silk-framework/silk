@@ -1,6 +1,6 @@
 package controllers.transform
 
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.libs.ws.WS
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
@@ -19,51 +19,77 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     checkResponse(response)
   }
 
-  "Append new direct mapping rule to root" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
-    val response = request.post(Json.parse(
+  "Set root mapping parameters" in {
+    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
       """
-         {
-           "id": "directRule",
-           "type": "direct",
-           "sourcePath": "/source:name",
-           "mappingTarget": {
-             "uri": "target:name",
-             "valueType": {
-               "nodeType": "StringValueType"
-             }
-           }
-         }
-      """.stripMargin
-    ))
-    checkResponse(response)
+        {
+          "id": "root",
+          "type": "root",
+          "rules": {
+            "uriRule": {
+              "type": "uri",
+              "id": "rootUri",
+              "pattern": "http://example.org/{PersonID}"
+            },
+            "typeRules": [
+              {
+                "type": "type",
+                "id": "rootType",
+                "typeUri": "target:Person"
+              }
+            ]
+          }
+        }
+      """
+    }
+
+    // Do some spot checks
+    (json \ "rules" \ "uriRule" \ "pattern").as[JsString].value mustBe "http://example.org/{PersonID}"
+    (json \ "rules" \ "propertyRules").as[JsArray].value mustBe Array.empty
+
+  }
+
+  "Append new direct mapping rule to root" in {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
+      """
+        {
+          "id": "directRule",
+          "type": "direct",
+          "sourcePath": "/source:name",
+          "mappingTarget": {
+            "uri": "target:name",
+            "valueType": {
+              "nodeType": "StringValueType"
+            }
+          }
+        }
+      """
+    }
   }
 
   "Append new object mapping rule to root" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
-    val response = request.post(Json.parse(
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
       """
-         {
-           "id": "objectRule",
-           "type": "hierarchical",
-           "sourcePath": "source:address",
-           "mappingTarget": {
-             "uri": "target:address",
-             "valueType": {
-               "nodeType": "UriValueType"
-             }
-           },
-           "rules": {
-             "uriRule": null,
-             "typeRules": [
-             ],
-             "propertyRules": [
-             ]
-           }
-         }
+        {
+          "id": "objectRule",
+          "type": "hierarchical",
+          "sourcePath": "source:address",
+          "mappingTarget": {
+            "uri": "target:address",
+            "valueType": {
+              "nodeType": "UriValueType"
+            }
+          },
+          "rules": {
+            "uriRule": null,
+            "typeRules": [
+            ],
+            "propertyRules": [
+            ]
+          }
+        }
       """
-    ))
-    checkResponse(response)
+    }
   }
 
   "Retrieve full mapping rule tree" in {
@@ -73,10 +99,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   "Reorder the child rules" in {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/reorder") {
       """
-       [
-         "objectRule",
-         "directRule"
-       ]
+        [
+          "objectRule",
+          "directRule"
+        ]
       """
     }
 

@@ -12,11 +12,12 @@ import org.silkframework.rule._
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.util.control.NonFatal
@@ -124,30 +125,41 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  def putRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
+  def putRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { request =>
     implicit val project = User().workspace.project(projectName)
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserialize[TransformRule]() { updatedRule =>
-      try {
-        RuleTraverser(task.data.mappingRule).find(rule) match {
-          case Some(currentRule) =>
+    RuleTraverser(task.data.mappingRule).find(rule) match {
+      case Some(currentRule) =>
+        implicit val updatedRequest = updateJsonRequest(request, currentRule)
+        deserialize[TransformRule]() { updatedRule =>
+          try {
             updateRule(currentRule.update(updatedRule))
             serialize[TransformRule](updatedRule)
-          case None =>
-            NotFound(JsonError(s"No rule with id '$rule' found!"))
+          } catch {
+            case ex: ValidationException =>
+              log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
+              BadRequest(JsonError(INVALID_TRANSFORMATION_RULE, ex.errors))
+            case ex: Exception =>
+              log.log(Level.WARNING, "Failed to commit transformation rule", ex)
+              InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+          }
         }
-      } catch {
-        case ex: ValidationException =>
-          log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
-          BadRequest(JsonError(INVALID_TRANSFORMATION_RULE, ex.errors))
-        case ex: Exception =>
-          log.log(Level.WARNING, "Failed to commit transformation rule", ex)
-          InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
-      }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$rule' found!"))
+    }
+  }
+
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+    request.body.asJson match {
+      case Some(requestJson) =>
+        val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
+        val updatedJson = ruleJson.deepMerge(requestJson.as[JsObject])
+        request.map(_ => AnyContentAsJson(updatedJson))
+      case None => request
     }
   }
 
@@ -175,7 +187,7 @@ class TransformTaskApi extends Controller {
         deserialize[TransformRule]() { newChildRule =>
           val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
           updateRule(parentRule.update(updatedRule))
-          Ok
+          serialize(newChildRule)
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$ruleName' found!"))
@@ -191,15 +203,17 @@ class TransformTaskApi extends Controller {
       case Some(parentRule) =>
         request.body.asJson match {
           case Some(json) =>
-            val currentOrder = parentRule.operator.children.map(_.id.toString).toList
+            val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
+            val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
             val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
             if(newOrder.toSet == currentOrder.toSet) {
-              val newChildren =
+              val newPropertyRules =
                 for(id <- newOrder) yield {
                   parentRule.operator.children.find(_.id == id).get
                 }
-              updateRule(parentRule.update(parentRule.operator.withChildren(newChildren)))
-              Ok(JsArray(newChildren.map(r => JsString(r.id))))
+              val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
+              updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
+              Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
             } else {
               BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }

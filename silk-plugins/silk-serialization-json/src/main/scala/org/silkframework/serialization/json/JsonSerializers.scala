@@ -445,6 +445,8 @@ object JsonSerializers {
       */
     override def read(jsValue: JsValue)(implicit readContext: ReadContext): TransformRule = {
       stringValue(jsValue, TYPE) match {
+        case "root" =>
+          fromJson[RootMappingRule](jsValue)
         case "type" =>
           fromJson[TypeMapping](jsValue)
         case "uri" =>
@@ -478,6 +480,8 @@ object JsonSerializers {
       */
     override def write(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       rule match {
+        case t: RootMappingRule =>
+          toJson(t)
         case t: TypeMapping =>
           toJson(t)
         case u: UriMapping =>
