@@ -34,4 +34,17 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait {
     json
   }
 
+  def jsonPostRequest(url: String)(json: String): JsValue = {
+    var request = WS.url(url)
+    request = request.withHeaders("Accept" -> "application/json")
+    val response = request.post(Json.parse(json))
+    val responseJson = checkResponse(response).json
+
+    if(printResponses) {
+      println(s"Post request on $url resulting in:\n" + Json.prettyPrint(responseJson))
+    }
+
+    responseJson
+  }
+
 }

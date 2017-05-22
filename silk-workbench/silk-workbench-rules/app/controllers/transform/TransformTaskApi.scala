@@ -199,12 +199,12 @@ class TransformTaskApi extends Controller {
                   parentRule.operator.children.find(_.id == id).get
                 }
               updateRule(parentRule.update(parentRule.operator.withChildren(newChildren)))
-              Ok
+              Ok(JsArray(newChildren.map(r => JsString(r.id))))
             } else {
-              BadRequest(s"Provided list $newOrder does not contain the same elements as current list $currentOrder.")
+              BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }
           case None =>
-            NotAcceptable("Expected application/json.")
+            NotAcceptable(JsonError("Expected application/json."))
         }
       case None =>
         NotFound(JsonError(s"No rule with id '$ruleName' found!"))

@@ -23,17 +23,17 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
     val response = request.post(Json.parse(
       """
-        | {
-        |   "id": "directRule",
-        |   "type": "direct",
-        |   "sourcePath": "/source:name",
-        |   "mappingTarget": {
-        |     "uri": "target:name",
-        |     "valueType": {
-        |       "nodeType": "StringValueType"
-        |     }
-        |   }
-        | }
+         {
+           "id": "directRule",
+           "type": "direct",
+           "sourcePath": "/source:name",
+           "mappingTarget": {
+             "uri": "target:name",
+             "valueType": {
+               "nodeType": "StringValueType"
+             }
+           }
+         }
       """.stripMargin
     ))
     checkResponse(response)
@@ -43,25 +43,25 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
     val response = request.post(Json.parse(
       """
-        | {
-        |   "id": "objectRule",
-        |   "type": "hierarchical",
-        |   "sourcePath": "source:address",
-        |   "mappingTarget": {
-        |     "uri": "target:address",
-        |     "valueType": {
-        |       "nodeType": "UriValueType"
-        |     }
-        |   },
-        |   "rules": {
-        |     "uriRule": null,
-        |     "typeRules": [
-        |     ],
-        |     "propertyRules": [
-        |     ]
-        |   }
-        | }
-      """.stripMargin
+         {
+           "id": "objectRule",
+           "type": "hierarchical",
+           "sourcePath": "source:address",
+           "mappingTarget": {
+             "uri": "target:address",
+             "valueType": {
+               "nodeType": "UriValueType"
+             }
+           },
+           "rules": {
+             "uriRule": null,
+             "typeRules": [
+             ],
+             "propertyRules": [
+             ]
+           }
+         }
+      """
     ))
     checkResponse(response)
   }
@@ -71,16 +71,14 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Reorder the child rules" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/reorder")
-    val response = request.post(Json.parse(
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/reorder") {
       """
-        | [
-        |   "objectRule",
-        |   "directRule"
-        | ]
-      """.stripMargin
-    ))
-    checkResponse(response)
+       [
+         "objectRule",
+         "directRule"
+       ]
+      """
+    }
 
     // Check if the rules have been reordered correctly
     val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
