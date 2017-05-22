@@ -8,15 +8,17 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.{CollectLogs, Identifier, Uri}
 import org.silkframework.workbench.utils.JsonError
-import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString, Json}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.{Project, ProjectTask, User}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
 import scala.util.control.NonFatal
@@ -50,15 +52,13 @@ class TransformTaskApi extends Controller {
 
     proj.tasks[TransformSpec].find(_.id == task) match {
       //Update existing task
-      case Some(oldTask) => {
+      case Some(oldTask) =>
         val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
         proj.updateTask(task, updatedTransformSpec)
-      }
       //Create new task with no rule
-      case None => {
+      case None =>
         val transformSpec = TransformSpec(input, Seq.empty, outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
-      }
     }
     Ok
   }
@@ -153,7 +153,7 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val activity = task.activity[ExecuteTransform].control
@@ -198,15 +198,102 @@ class TransformTaskApi extends Controller {
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
     val (project, task) = projectAndTask(projectName, taskName)
-    val completions = TargetPathAutcompletion.retrieve(project, task, sourcePath, term)
+    val completions = TargetAutoCompletion.retrieve(project, task, sourcePath, term)
     Ok(JsArray(completions.map(_.toJson)))
+  }
+
+  /**
+    * Returns a JSON array of candidate types, either from the vocabulary cache or the matching cache of the transform task.
+    *
+    * @param projectName The name of the project
+    * @param taskName    The name of the transform task
+    */
+  def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val (_, task) = projectAndTask(projectName, taskName)
+    val typeCompletion = TargetAutoCompletion.retrieveTypeCompletions(task)
+    Ok(JsArray(typeCompletion.map(_.toJson)))
+  }
+
+  /**
+    * Returns all properties that are in the domain of the given class or one of its super classes.
+    * @param projectName Name of project
+    * @param taskName    Name of task
+    * @param classUri    Class URI
+    */
+  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = false)
+    serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
+  }
+
+  /**
+    * Returns all properties that are directly defined on a class or one of its parent classes.
+    * @param classUri The class we want to have the relations for.
+    * @param addBackwardRelations Specifies if backward relations should be added
+    * @return Tuple of (forward properties, backward properties)
+    */
+  private def vocabularyPropertiesByType(taskName: String,
+                                         project: Project,
+                                         classUri: String,
+                                         addBackwardRelations: Boolean): (Seq[VocabularyProperty], Seq[VocabularyProperty]) = {
+    val task = project.task[TransformSpec](taskName)
+    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularyClasses = vocabularies.flatMap(v => v.getClass(classUri).map(c => (v, c)))
+
+    def filterProperties(propFilter: (VocabularyProperty, List[String]) => Boolean): Seq[VocabularyProperty] = {
+      val props = for ((vocabulary, vocabularyClass) <- vocabularyClasses) yield {
+        val classes = (vocabularyClass.info.uri :: vocabularyClass.parentClasses.toList).distinct
+        val propsByAnyClass = vocabulary.properties.filter(propFilter(_, classes))
+        propsByAnyClass
+      }
+      props.flatten
+    }
+
+    val forwardProperties = filterProperties((prop, classes) => prop.domain.exists(vc => classes.contains(vc.info.uri)))
+    val backwardProperties = filterProperties((prop, classes) => addBackwardRelations && prop.range.exists(vc => classes.contains(vc.info.uri)))
+    (forwardProperties, backwardProperties)
+  }
+
+  case class ClassRelations(forwardRelations: Seq[Relation], backwardRelations: Seq[Relation])
+
+  case class Relation(property: VocabularyProperty, targetClass: VocabularyClass)
+
+  /** Json serializers */
+  implicit private val writeContext = WriteContext[JsValue]()
+  implicit private object vocabularyClassFormat extends Writes[VocabularyClass] {
+    override def writes(vocabularyClass: VocabularyClass): JsValue = {
+      JsonSerializers.VocabularyClassJsonFormat.write(vocabularyClass)
+    }
+  }
+  implicit private object vocabularyPropertyFormat extends Writes[VocabularyProperty] {
+    override def writes(vocabularyProperty: VocabularyProperty): JsValue = {
+      JsonSerializers.VocabularyPropertyJsonFormat.write(vocabularyProperty)
+    }
+  }
+  implicit private val relationFormat = Json.writes[Relation]
+  implicit private val classRelationsFormat = Json.writes[ClassRelations]
+
+  // Depending on the forward switch either the range or the domain is taken for the classUri.
+  private def vocabularyPropertyToRelation(vocabularyProperty: VocabularyProperty, forward: Boolean): Relation = {
+    val targetClass = if(forward) { vocabularyProperty.range } else { vocabularyProperty.domain }
+    assert(targetClass.isDefined, "No target class defined for relation property " + vocabularyProperty.info.uri)
+    Relation(vocabularyProperty, targetClass.get)
+  }
+
+  def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    // Filter only object properties
+    val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)
+    val forwardObjectProperties = forwardProperties.filter(vp => vp.range.isDefined && vp.domain.isDefined)
+    val f = forwardObjectProperties map (fp => vocabularyPropertyToRelation(fp, forward = true))
+    val b = backwardProperties map (bp => vocabularyPropertyToRelation(bp, forward = false))
+    val classRelations = ClassRelations(f, b)
+    Ok(Json.toJson(classRelations))
   }
 
   /**
     * Transform entities bundled with the request according to the transformation task.
     *
-    * @param projectName
-    * @param taskName
     * @return If no sink is specified in the request then return results in N-Triples format with the response,
     *         else write triples to defined data sink.
     */
@@ -225,7 +312,10 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: ProjectTask[TransformSpec], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
+  private def executeTransform(task: ProjectTask[TransformSpec],
+                               entitySink: EntitySink,
+                               dataSource: DataSource,
+                               errorEntitySinkOpt: Option[EntitySink]): Unit = {
     val transform = new ExecuteTransform(dataSource, task.data, Seq(entitySink))
     Activity(transform).startBlocking()
   }
@@ -263,7 +353,8 @@ class TransformTaskApi extends Controller {
                     " raised following issue:" + pe.msg))))
             }
           case _ =>
-            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +
+                " of type " + dataset.plugin.label +
                 " does not support transformation preview!"))))
         }
       case _: TransformSpec =>
@@ -284,7 +375,8 @@ class TransformTaskApi extends Controller {
     } else if (errorCounter > 0) {
       Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
-          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. First exception: " + errorMessage))))
+          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
+              "First exception: " + errorMessage))))
     } else {
       Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))

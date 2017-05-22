@@ -26,6 +26,15 @@ case class Vocabularies(vocabularies: Seq[Vocabulary]) {
     vocabularies.flatMap(_.getProperty(uri)).headOption
   }
 
+  def forwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {
+    val searchFor = Some(classUri)
+    vocabularies.flatMap(_.properties.filter(_.domain == searchFor))
+  }
+
+  def backwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {
+    val searchFor = Some(classUri)
+    vocabularies.flatMap(_.properties.filter(_.range == searchFor))
+  }
 }
 
 object Vocabularies {
