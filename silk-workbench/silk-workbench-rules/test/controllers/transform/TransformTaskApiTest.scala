@@ -69,7 +69,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
       """
         {
           "id": "objectRule",
-          "type": "hierarchical",
+          "type": "object",
           "sourcePath": "source:address",
           "mappingTarget": {
             "uri": "target:address",
