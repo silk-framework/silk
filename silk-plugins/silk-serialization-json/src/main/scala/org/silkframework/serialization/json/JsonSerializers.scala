@@ -386,38 +386,6 @@ object JsonSerializers {
     * Object Mapping
     */
   implicit object ObjectMappingJsonFormat extends JsonFormat[ObjectMapping] {
-    final val PATTERN_PROPERTY: String = "pattern"
-    final val TARGET_PROPERTY: String = "mappingTarget"
-
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
-      val name = identifier(value, "object")
-      val pattern = stringValue(value, PATTERN_PROPERTY)
-      val mappingTarget = fromJson[MappingTarget]((value \ TARGET_PROPERTY).get)
-      ObjectMapping(name, pattern, mappingTarget)
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: ObjectMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsObject(
-        Seq(
-          TYPE -> JsString("object"),
-          ID -> JsString(value.id),
-          PATTERN_PROPERTY -> JsString(value.pattern),
-          TARGET_PROPERTY -> toJson(value.mappingTarget)
-        )
-      )
-    }
-  }
-
-  /**
-    * Hierarchical Mapping
-    */
-  implicit object HierarchicalMappingJsonFormat extends JsonFormat[HierarchicalMapping] {
     final val SOURCE_PATH: String = "sourcePath"
     final val TARGET_PROPERTY: String = "mappingTarget"
     final val RULES: String = "rules"
@@ -425,20 +393,20 @@ object JsonSerializers {
     /**
       * Deserializes a value.
       */
-    override def read(value: JsValue)(implicit readContext: ReadContext): HierarchicalMapping = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
       val name = identifier(value, "object")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
       val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      HierarchicalMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children)
+      ObjectMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children)
     }
 
     /**
       * Serializes a value.
       */
-    override def write(value: HierarchicalMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: ObjectMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        TYPE -> JsString("hierarchical"),
+        TYPE -> JsString("object"),
         ID -> JsString(value.id),
         SOURCE_PATH -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
         TARGET_PROPERTY -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
@@ -466,8 +434,6 @@ object JsonSerializers {
           fromJson[DirectMapping](jsValue)
         case "object" =>
           fromJson[ObjectMapping](jsValue)
-        case "hierarchical" =>
-          fromJson[HierarchicalMapping](jsValue)
         case "complex" =>
           readTransformRule(jsValue)
       }
@@ -501,8 +467,6 @@ object JsonSerializers {
           toJson(d)
         case o: ObjectMapping =>
           toJson(o)
-        case h: HierarchicalMapping =>
-          toJson(h)
         case _ =>
           writeTransformRule(rule)
       }

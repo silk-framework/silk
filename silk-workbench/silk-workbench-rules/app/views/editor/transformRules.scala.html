@@ -8,6 +8,9 @@
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import org.silkframework.rule.vocab.Vocabularies
 @import org.silkframework.rule.MappingTarget
+@import org.silkframework.entity.UriValueType
+@import org.silkframework.rule.MappingRules
+@import org.silkframework.rule.UriMapping
 
 @(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
 
@@ -136,7 +139,7 @@
   </table>
 
   <table id="objectMappingTemplate" class="rule-template">
-      @renderRule(ObjectMapping(mappingTarget = MappingTarget("")))
+      @renderRule(ObjectMapping(targetProperty = None, rules = MappingRules(uriRule = Some(UriMapping()))))
   </table>
 
   <script type="text/javascript">
@@ -300,17 +303,17 @@
 @renderObjectRule(rule: ObjectMapping) = {
   <td class="mdl-data-table__cell--non-numeric rule-source rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input pattern" type="text" id="@{rule.id}-pattern" value="@rule.pattern">
+      <input class="mdl-textfield__input pattern" type="text" id="@{rule.id}-pattern" value="@rule.rules.uriRule.map(_.pattern).getOrElse("")">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.mappingTarget.propertyUri.serialize(prefixes())">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.targetProperty.map(_.serialize(prefixes())).getOrElse("")">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">
     <div class="mdl-selectfield mdl-js-selectfield">
-      <select class="mdl-selectfield__select" data-original-target-type="@rule.mappingTarget.valueType" disabled>
+      <select class="mdl-selectfield__select" data-original-target-type="@UriValueType" disabled>
       </select>
     </div>
   </td>

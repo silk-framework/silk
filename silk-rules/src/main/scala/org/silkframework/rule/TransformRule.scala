@@ -180,33 +180,6 @@ case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.
 }
 
 /**
-  * Generates a link to another entity.
-  *
-  * @param id      The name of this mapping
-  * @param pattern A template pattern for generating the URIs based on the entity properties
-  */
-case class ObjectMapping(id: Identifier = "object",
-                         pattern: String = "http://example.org/{ID}",
-                         mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
-
-  override val operator = {
-    val inputs =
-      for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
-        if (i % 2 == 0)
-          TransformInput("constant" + i, ConstantTransformer(str))
-        else
-          TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
-      }
-    TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
-  }
-
-  override val target = Some(mappingTarget)
-
-  override val typeString = "Object"
-
-}
-
-/**
   * A type mapping, which assigns a type to each entitity.
   *
   * @param id      The name of this mapping
@@ -246,12 +219,12 @@ case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: O
   * @param targetProperty The property that is used to attach the child entities.
   * @param rules The child rules.
   */
-case class HierarchicalMapping(id: Identifier = "mapping",
-                               sourcePath: Path = Path(Nil),
-                               targetProperty: Option[Uri] = Some("hasChild"),
-                               override val rules: MappingRules) extends TransformRule {
+case class ObjectMapping(id: Identifier = "mapping",
+                         sourcePath: Path = Path(Nil),
+                         targetProperty: Option[Uri] = Some("http://www.w3.org/2002/07/owl#sameAs"),
+                         override val rules: MappingRules) extends TransformRule {
 
-  override val typeString = "Hierarchical"
+  override val typeString = "Object"
 
   override val operator = {
     targetProperty match {
@@ -293,13 +266,13 @@ object TransformRule {
       ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")
 
       node.label match {
-        case "HierarchicalMapping" => readHierarchicalMapping(node)
+        case "ObjectMapping" => readObjectMapping(node)
         case "TransformRule" => readTransformRule(node)
       }
     }
 
-    private def readHierarchicalMapping(node: Node)(implicit readContext: ReadContext): HierarchicalMapping = {
-      HierarchicalMapping(
+    private def readObjectMapping(node: Node)(implicit readContext: ReadContext): ObjectMapping = {
+      ObjectMapping(
         id = (node \ "@name").text,
         sourcePath = Path.parse((node \ "@relativePath").text),
         targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
@@ -330,10 +303,10 @@ object TransformRule {
 
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
-        case HierarchicalMapping(name, relativePath, targetProperty, childRules) =>
-          <HierarchicalMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
+        case ObjectMapping(name, relativePath, targetProperty, childRules) =>
+          <ObjectMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
             <Rules>{childRules.allRules.map(write)}</Rules>
-          </HierarchicalMapping>
+          </ObjectMapping>
         case _ =>
           // At the moment, all other types are serialized generically
           <TransformRule name={value.id}>
@@ -353,9 +326,9 @@ object TransformRule {
     // URI Mapping
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None) if isPattern(inputs) =>
       UriMapping(id, buildPattern(inputs))
-    // Object Mapping
+    // Object Mapping (old style, to be removed)
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target)) if isPattern(inputs) && target.valueType == UriValueType =>
-      ObjectMapping(id, buildPattern(inputs), target)
+      ObjectMapping(id, Path.empty, Some(target.propertyUri), MappingRules(uriRule = Some(UriMapping(id + "uri", buildPattern(inputs)))))
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
     Some(MappingTarget(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _))) =>

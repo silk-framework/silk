@@ -10,7 +10,9 @@ import scala.xml.{Node, Null}
 /**
   * A set of mapping Rules consisting of a URI rule, a sequence of type rules and a sequence of property rules.
   */
-case class MappingRules(uriRule: Option[UriMapping], typeRules: Seq[TypeMapping], propertyRules: Seq[TransformRule]) {
+case class MappingRules(uriRule: Option[UriMapping] = None,
+                        typeRules: Seq[TypeMapping] = Seq.empty,
+                        propertyRules: Seq[TransformRule] = Seq.empty) {
 
   def allRules: Seq[TransformRule] = uriRule.toSeq ++ typeRules ++ propertyRules
 

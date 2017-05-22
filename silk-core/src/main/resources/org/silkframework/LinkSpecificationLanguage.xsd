@@ -124,7 +124,7 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="HierarchicalMapping">
+    <xs:element name="ObjectMapping">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="Rules"  minOccurs="1" maxOccurs="1">
@@ -132,7 +132,7 @@
                         <xs:sequence>
                             <xs:choice minOccurs="0" maxOccurs="unbounded">
                                 <xs:element ref="TransformRule"/>
-                                <xs:element ref="HierarchicalMapping"/>
+                                <xs:element ref="ObjectMapping"/>
                             </xs:choice>
                         </xs:sequence>
                     </xs:complexType>
@@ -201,7 +201,7 @@
                 <xs:element ref="SourceDataset" minOccurs="1" maxOccurs="1"/>
 
                 <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="HierarchicalMapping" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ObjectMapping" minOccurs="0" maxOccurs="unbounded"/>
 
                 <xs:element ref="Outputs" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>

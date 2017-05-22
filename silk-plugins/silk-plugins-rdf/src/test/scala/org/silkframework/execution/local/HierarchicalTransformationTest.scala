@@ -41,7 +41,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
               propertyRules = Seq(
                 DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
-                HierarchicalMapping(
+                ObjectMapping(
                   sourcePath = Path.empty,
                   targetProperty = Some(uri("address")),
                   rules = MappingRules(
@@ -72,7 +72,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
               propertyRules = Seq(
                 DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
-                HierarchicalMapping(
+                ObjectMapping(
                   sourcePath = Path(uri("address")),
                   targetProperty = None,
                   rules = MappingRules(

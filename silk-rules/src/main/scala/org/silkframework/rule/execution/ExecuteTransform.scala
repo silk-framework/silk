@@ -3,7 +3,7 @@ package org.silkframework.rule.execution
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.rule.{HierarchicalMapping, TransformRule, TransformSpec, TypeMapping}
+import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -63,7 +63,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       }
     }
 
-    for(HierarchicalMapping(_, relativePath, _, childRules) <- rules) {
+    for(ObjectMapping(_, relativePath, _, childRules) <- rules) {
       val childInputSchema =
         EntitySchema(
           typeUri = inputSchema.typeUri,

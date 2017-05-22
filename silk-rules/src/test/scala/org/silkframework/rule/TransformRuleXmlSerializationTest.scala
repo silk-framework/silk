@@ -13,10 +13,10 @@ class TransformRuleXmlSerializationTest extends FlatSpec with ShouldMatchers {
     testSerialzation(DirectMapping("directMapping", Path("inputPath"), MappingTarget("outputProperty", StringValueType)))
   }
 
-  it should "serialize hierarchical mappings" in {
+  it should "serialize object mappings" in {
     testSerialzation(
-      HierarchicalMapping(
-        id = "hierarchicalMapping",
+      ObjectMapping(
+        id = "objectMapping",
         sourcePath = Path("relativePath"),
         targetProperty = Some("targetProperty"),
         rules = MappingRules(
