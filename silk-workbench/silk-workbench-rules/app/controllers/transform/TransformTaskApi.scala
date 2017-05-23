@@ -7,16 +7,15 @@ import controllers.util.SerializationUtils._
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
-import org.silkframework.rule._
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
-import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.util.{CollectLogs, Identifier, IdentifierGenerator, Uri}
+import org.silkframework.runtime.validation.{ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.util.{CollectLogs, Identifier, Uri}
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask, User}
