@@ -47,7 +47,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Append new direct mapping rule to root" in {
-    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
       """
         {
           "id": "directRule",
@@ -65,7 +65,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Append new object mapping rule to root" in {
-    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
       """
         {
           "id": "objectRule",
@@ -94,7 +94,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Reorder the child rules" in {
-    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/reorder") {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/reorder") {
       """
         [
           "objectRule",
