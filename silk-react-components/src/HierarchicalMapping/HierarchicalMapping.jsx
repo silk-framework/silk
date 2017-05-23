@@ -44,6 +44,7 @@ const HierarchicalMapping = React.createClass({
             // TODO: set to false as default after developing
             ruleEditView: {
                 id: 'XYZ_3',
+                type: 'value',
             },
         };
     },
@@ -62,10 +63,16 @@ const HierarchicalMapping = React.createClass({
     },
     // show edit view of specific rule id
     onRuleEdit({rule}) {
-        // TODO: get correct type for correct edit view
-        // value or object (vs. old direct, object, hierarchical, complex)
+        // FIXME: only temp behaviour until data is correct
+        const mapping = _.cloneDeep(rule);
+        if (mapping.type === 'direct' || mapping.type === 'complex' ) {
+            mapping.type = 'value';
+        }
+        if (mapping.type === 'object' || mapping.type === 'hierarchical' ) {
+            mapping.type = 'object';
+        }
         this.setState({
-            ruleEditView: rule,
+            ruleEditView: mapping,
         });
     },
     onRuleCreate({type}) {
