@@ -90,7 +90,75 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Retrieve full mapping rule tree" in {
-    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustMatchJson {
+      """
+        {
+          "type" : "root",
+          "id" : "root",
+          "rules" : {
+            "uriRule" : {
+              "type" : "uri",
+              "id" : "uri",
+              "pattern" : "http://example.org/{PersonID}"
+            },
+            "typeRules" : [ {
+              "type" : "type",
+              "id" : "explicitlyDefinedId",
+              "typeUri" : "target:Person"
+            } ],
+            "propertyRules" : [ {
+              "type" : "direct",
+              "id" : "directRule",
+              "sourcePath" : "/source:name",
+              "mappingTarget" : {
+                "uri" : "target:name",
+                "valueType" : {
+                  "nodeType" : "StringValueType"
+                }
+              }
+            }, {
+              "type" : "object",
+              "id" : "objectRule",
+              "sourcePath" : "/source:address",
+              "mappingTarget" : {
+                "uri" : "target:address",
+                "valueType" : {
+                  "nodeType" : "UriValueType"
+                }
+              },
+              "rules" : {
+                "uriRule" : null,
+                "typeRules" : [ ],
+                "propertyRules" : [ ]
+              }
+            } ]
+          }
+        }
+      """
+    }
+  }
+
+  "Retrieve a single mapping rule" in {
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") mustMatchJson {
+      """
+        {
+          "type" : "object",
+          "id" : "objectRule",
+          "sourcePath" : "/source:address",
+          "mappingTarget" : {
+            "uri" : "target:address",
+            "valueType" : {
+            "nodeType" : "UriValueType"
+          }
+          },
+          "rules" : {
+            "uriRule" : null,
+            "typeRules" : [ ],
+            "propertyRules" : [ ]
+          }
+        }
+      """
+    }
   }
 
   "Reorder the child rules" in {

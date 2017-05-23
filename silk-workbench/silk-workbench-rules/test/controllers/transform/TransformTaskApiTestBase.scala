@@ -60,4 +60,12 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait {
     responseJson
   }
 
+  implicit class JsonOperations(json: JsValue) {
+
+    def mustMatchJson(expectedJson: String): Unit = {
+      val expectedJsonValue = Json.parse(expectedJson)
+      json mustBe expectedJsonValue
+    }
+  }
+
 }
