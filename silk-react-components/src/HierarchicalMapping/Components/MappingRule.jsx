@@ -28,6 +28,11 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
+        // listen for event to expand / collapse mapping rule
+        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
+            this.setState({expanded});
+        });
+
         return {
             expanded: false,
         };
@@ -61,6 +66,8 @@ const MappingRule = React.createClass({
             uriRule,
         } = this.props;
 
+        console.log('debug this.state.ruleData', this.props);
+
         const action = (
             <Button
                 iconName={type === 'hierarchical' ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
@@ -69,7 +76,7 @@ const MappingRule = React.createClass({
                     if (type === 'hierarchical') {
                         this.handleNavigate();
                     } else {
-                        console.log('debug onClick action:', this.props);
+                        this.handleToggleExpand();
                     }
                     event.stopPropagation();
                 }}
@@ -77,60 +84,71 @@ const MappingRule = React.createClass({
         );
 
         const shortView = (
-             <tr
-                 className={this.state.expanded ? 'is-extended' : ''}
+             <div
+                 className="mdl-card__content"
+                 //className={this.state.expanded ? 'is-extended' : ''}
                  onClick={this.handleToggleExpand}
              >
-                 <td key="ruleType">{_.upperFirst(type)} mapping</td>
-                 <td key="source">{sourcePath}</td>
-                 <td key="targetProperty">{mappingTarget.URI}</td>
-                 <td key="targetType">{_.get(mappingTarget, 'valueType.nodeType')}</td>
-                 <td className="action" key="action">{action}</td>
-             </tr>
+                 {name}
+                 <div>
+                    from (todo: get content)
+                 </div>
+                 <div>
+                    by (todo: get content)
+                 </div>
+                 <div className="action" key="action">{action}</div>
+             </div>
             )
         ;
 
         // FIXME: only show edit / remove buttons for non-hierarchical mappings?
         const expandedView = (
-            this.state.expanded ? (
-                <tr
-                    className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details"
+                <div
+                    //className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details"
+                    className="mdl-card__content"
+                    onClick={this.handleToggleExpand}
                 >
-                    <td colSpan="5">
-                        <div>
-                            ID: {id}
-                            <br/>
-                            Comment: {comment}
-                        </div>
-                        <div
-                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow"
+                    <div>
+                        <h5>Target property</h5> {targetProperty}
+                    </div>
+                    <div>
+                        <h5>Source property</h5>
+                        {type} mapping from (todo: get content)
+                    </div>
+                        {comment ? ( <div> <h5>Comment</h5>{comment}</div>) : false}
+                    <div>
+                        by (todo: get content)
+                    </div>
+                    <div>
+                        on (todo: get content)
+                    </div>
+                    <div className="action" key="action">{action}</div>
+                    <div
+                        className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow"
+                    >
+                        <Button
+                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-edit"
+                            onClick={this.handleEdit}
                         >
-                            <Button
-                                className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-edit"
-                                onClick={this.handleEdit}
-                            >
-                                Edit
-                            </Button>
-                            <Button
-                                className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-remove"
-                                onClick={() => {}}
-                                disabled
-                            >
-                                Remove
-                            </Button>
-                        </div>
-                    </td>
-                </tr>
-            ) : false
+                            Edit
+                        </Button>
+                        <Button
+                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-remove"
+                            onClick={() => {}}
+                            disabled
+                        >
+                            Remove
+                        </Button>
+                    </div>
+                </div>
         );
 
         return (
-            <tbody
-                className="ecc-component-hierarchicalMapping__mappingRuleOverview__card"
+            <div
+                className="mdl-card mdl-card--stretch mdl-shadow--2dp ecc-component-hierarchicalMapping__mappingRuleOverview__card"
             >
-                {shortView}
-                {expandedView}
-            </tbody>
+                {this.state.expanded ? expandedView : shortView}
+            </div>
         );
     },
 });

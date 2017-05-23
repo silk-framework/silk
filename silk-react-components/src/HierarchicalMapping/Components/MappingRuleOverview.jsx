@@ -6,7 +6,7 @@
 import React from 'react';
 import {UseMessageBus} from 'ecc-mixins';
 import MappingRule from './MappingRule';
-import {Spinner} from 'ecc-gui-elements';
+import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
 
@@ -52,6 +52,10 @@ const MappingRuleOverview = React.createClass({
             }
         );
     },
+    // sends event to expand / collapse all mapping rules
+    handleToggleRuleDetails({expanded}) {
+        hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+    },
 
     // template rendering
     render () {
@@ -60,11 +64,12 @@ const MappingRuleOverview = React.createClass({
             id,
             typeRules,
             uriRule,
+            rules = [],
         } = this.state.ruleData;
 
         const loading = this.state.loading ? <Spinner /> : false;
 
-        const mappingRulesHead = (
+        const mappingRulesOverview = (
             !_.isEmpty(this.state.ruleData.typeRules) ? (
                 <div
                     className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
@@ -81,31 +86,55 @@ const MappingRuleOverview = React.createClass({
             )
         );
 
-        const mappingRulesTable = (
-            !_.isEmpty(this.state.ruleData) ? (
-                <table
-                    className="mdl-data-table ecc-component-hierarchicalMapping__content-mappingRuleOverview__body"
+        const mappingRulesListHead = (
+            <div>
+                Mapping rules {`(${rules.length})`}
+                <ContextMenu
                 >
-                    <thead>
-                        <tr>
-                            <th>Rule type</th>
-                            <th>Source</th>
-                            <th>Target property</th>
-                            <th>Target type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <MenuItem
+                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-value-mapping"
+                    >
+                        Add value mapping (TODO)
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-object-mapping"
+                    >
+                        Add object mapping (TODO)
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-suggest-mappings"
+                    >
+                        Suggest rules (0) (TODO)
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-expand-mappings"
+                        onClick={() => {this.handleToggleRuleDetails({expanded: true})}}
+                    >
+                        Expand all
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-reduce-mappings"
+                        onClick={() => {this.handleToggleRuleDetails({expanded: false})}}
+                    >
+                        Reduce all
+                    </MenuItem>
+                </ContextMenu>
+            </div>
 
-                        {
-                            _.map(this.state.ruleData.rules, (rule, idx) =>
-                                (
-                                    <MappingRule key={'MappingRule_' + idx} {...rule}/>
-                                )
-                            )
-                        }
+        );
 
-                </table>
-            ) : false
+        const mappingRulesList = (
+            _.isEmpty(rules) ? (
+                <Info vertSpacing border>
+                    No existing mapping rules.
+                </Info>
+            ) : (
+                _.map(rules, (rule, idx) =>
+                    (
+                        <MappingRule key={'MappingRule_' + idx} {...rule}/>
+                    )
+                )
+            )
         );
 
         return (
@@ -115,13 +144,18 @@ const MappingRuleOverview = React.createClass({
                 {loading}
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <div className="mdl-card__content">
-                        {mappingRulesHead}
+                        {mappingRulesOverview}
                     </div>
                 </div>
                 <br/>
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <div className="mdl-card__content">
-                        {mappingRulesTable}
+                        <div className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head">
+                            {mappingRulesListHead}
+                        </div>
+                        <div className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__body">
+                            {mappingRulesList}
+                        </div>
                     </div>
                 </div>
             </div>

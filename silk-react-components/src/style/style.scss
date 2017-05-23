@@ -39,7 +39,7 @@
   box-sizing: border-box;
   padding: 0 0.5rem;
 
-  .mdl-data-table {
+  /*.mdl-data-table {
     min-width: 100%;
     border-left: none;
     border-right: none;
@@ -53,9 +53,9 @@
 
   @media (min-width: 60rem) {
     flex-grow: 1;
-  }
+  }*/
 
-  tbody.ecc-component-hierarchicalMapping__mappingRuleOverview__card {
+  /*tbody.ecc-component-hierarchicalMapping__mappingRuleOverview__card {
     tr {
       &.is-extended {
         & > td:not(.action) {
@@ -73,7 +73,7 @@
         }
       }
     }
-  }
+  }*/
 }
 
 .ecc-component-hierarchicalMapping__content-mappingRuleOverview__header {
