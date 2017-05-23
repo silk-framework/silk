@@ -148,8 +148,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
           "mappingTarget" : {
             "uri" : "target:address",
             "valueType" : {
-            "nodeType" : "UriValueType"
-          }
+              "nodeType" : "UriValueType"
+            }
           },
           "rules" : {
             "uriRule" : null,
