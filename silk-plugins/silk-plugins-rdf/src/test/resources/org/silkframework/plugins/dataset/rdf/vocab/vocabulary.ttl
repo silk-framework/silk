@@ -41,3 +41,13 @@
    rdfs:range :Person ;
    rdfs:isDefinedBy : ;
 .
+
+:Employee
+  a owl:Class ;
+  rdfs:label "employee"@en ;
+  rdfs:label "Angestellter"@de ;
+  rdfs:comment "Employee of a company"@en ;
+  rdfs:comment "Angestellter einer Firma"@de ;
+  rdfs:subClassOf :Person ;
+  rdfs:isDefinedBy : ;
+.

@@ -5,6 +5,8 @@ import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.{ComplexMapping, MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
@@ -62,13 +64,22 @@ object JsonSerializers {
   }
 
   def stringValue(json: JsValue, attributeName: String): String = {
+    stringValueOption(json, attributeName) match {
+      case Some(value) =>
+        value
+      case None =>
+        throw JsonParseException("Attribute " + attributeName + " not found!")
+    }
+  }
+
+  def stringValueOption(json: JsValue, attributeName: String): Option[String] = {
     (json \ attributeName).toOption match {
       case Some(jsString: JsString) =>
-        jsString.value
+        Some(jsString.value)
       case Some(_) =>
         throw JsonParseException("Value for attribute " + attributeName + " is not a String!")
       case None =>
-        throw JsonParseException("Attribute " + attributeName + " not found!")
+        None
     }
   }
 
@@ -576,6 +587,67 @@ object JsonSerializers {
       Json.obj(
         ID -> JsString(value.id.toString)
       ) ++ toJson(value.data).as[JsObject]
+    }
+  }
+
+  /** Vocabulary */
+  implicit object GenericInfoJsonFormat extends JsonFormat[GenericInfo] {
+    final val DESCRIPTION: String = "description"
+    final val LABEL: String = "label"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): GenericInfo = {
+      GenericInfo(
+        uri = stringValue(value, URI),
+        label = stringValueOption(value, LABEL),
+        description = stringValueOption(value, DESCRIPTION)
+      )
+    }
+
+    override def write(value: GenericInfo)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          URI -> JsString(value.uri)
+        ) ++ value.label.map { l =>
+          LABEL -> JsString(l)
+        } ++ value.description.map { d =>
+          DESCRIPTION -> JsString(d)
+        }
+      )
+    }
+  }
+
+  /** VocabularyProperty */
+  implicit object VocabularyPropertyJsonFormat extends JsonFormat[VocabularyProperty] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyProperty = {
+      throw new RuntimeException("De-serializing VocabularyProperty JSON strings is not supported!")
+    }
+
+    override def write(value: VocabularyProperty)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          "genericInfo" -> GenericInfoJsonFormat.write(value.info)
+        ) ++ value.domain.map { d =>
+          "domain" -> JsString(d.info.uri)
+        } ++ value.range.map { r =>
+          "range" -> JsString(r.info.uri)
+        }
+      )
+    }
+  }
+
+  /** VocabularyClass */
+  implicit object VocabularyClassJsonFormat extends JsonFormat[VocabularyClass] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyClass = {
+      throw new RuntimeException("De-serializing VocabularyClass JSON strings is not supported!")
+    }
+
+    override def write(value: VocabularyClass)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          "genericInfo" -> GenericInfoJsonFormat.write(value.info),
+          "parentClasses" -> JsArray(value.parentClasses.map(JsString).toSeq)
+        )
+      )
     }
   }
 

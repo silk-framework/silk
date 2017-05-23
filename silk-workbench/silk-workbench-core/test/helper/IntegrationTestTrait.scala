@@ -1,18 +1,18 @@
 package helper
 
-import java.io.{File, FileNotFoundException}
+import java.io._
 import java.net.{BindException, InetSocketAddress, URLDecoder}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.RdfNode
+import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
-import org.silkframework.workspace.{User, Workspace, WorkspaceProvider}
+import org.silkframework.workspace.resources.FileRepository
+import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
 
 import scala.collection.immutable.SortedMap
@@ -151,6 +151,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     checkResponse(response).body
   }
 
+  def executeTaskActivity(projectId: String, taskId: String, activityId: String, parameters: Map[String, String]): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/startBlocking")
+    val response = request.post(parameters map { case (k, v) => (k, Seq(v)) })
+    checkResponse(response)
+  }
+
   /**
     * Creates a CSV dataset from a file resources.
     *
@@ -177,6 +183,26 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
         <Param name="viewName" value={viewName}/>
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
+    * is RDF-enabled and implements the [[GraphStoreTrait]]. */
+  def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
+    User.userManager.apply().workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
+        val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
+        graphStore.postDataToGraph(graph, contentType)
+      case e: Any =>
+        fail(s"Not a RDF-enabled GraphStore supporting workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
+  def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
+    val out = loadRdfIntoGraph(graph, contentType)
+    val outWriter = new BufferedOutputStream(out)
+    outWriter.write(rdfString.getBytes())
+    outWriter.flush()
+    outWriter.close()
   }
 
   def createXmlDataset(projectId: String, datasetId: String, fileResourceId: String): WSResponse = {

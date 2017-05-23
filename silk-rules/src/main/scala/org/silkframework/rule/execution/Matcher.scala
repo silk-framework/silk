@@ -51,7 +51,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext[IndexedSeq[Link]]) = {
+  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
@@ -71,17 +71,19 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
     //Process finished tasks
     var finishedTasks = 0
+    var lastLog: Long = 0
+    val minLogDelayInMs = 1000
     while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
         finishedTasks += 1
 
-        //Update status
-        val statusPrefix = "Matching:"
-        val statusTasks = " " + finishedTasks + " tasks "
-        val statusLinks = " " + context.value().size + " links."
-        context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / scheduler.taskCount)
+        if(System.currentTimeMillis() - lastLog > minLogDelayInMs || finishedTasks == scheduler.taskCount) {
+          //Update status
+          updateStatus(context, finishedTasks, scheduler.taskCount)
+          lastLog = System.currentTimeMillis()
+        }
       }
     }
 
@@ -97,6 +99,13 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       executorService.shutdownNow()
     else
       executorService.shutdown()
+  }
+
+  private def updateStatus(context: ActivityContext[IndexedSeq[Link]], finishedTasks: Int, nrOfTasks: Int): Unit = {
+    val statusPrefix = "Matching:"
+    val statusTasks = " " + finishedTasks + " tasks "
+    val statusLinks = " " + context.value().size + " links."
+    context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
   }
 
   override def cancelExecution() {

@@ -9,7 +9,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
     Seq(TransformTaskActions)
   }
 
-  override def tabs(context: Context[_]) = {
+  override def tabs(context: Context[_]): List[WorkbenchPlugin.Tab] = {
     var tabs = List[Tab]()
     if(context.task.data.isInstanceOf[TransformSpec]) {
       val p = context.project.name
@@ -30,15 +30,15 @@ case class TransformPlugin() extends WorkbenchPlugin {
     override def icon: String = Assets.at("img/arrow-skip.png").url
 
     /** The path to the dialog for creating a new task. */
-    override def createDialog(project: String) =
+    override def createDialog(project: String): Option[String] =
       Some(s"transform/dialogs/newTransformTask/$project")
 
     /** The path to the dialog for editing an existing task. */
-    override def propertiesDialog(project: String, task: String) =
+    override def propertiesDialog(project: String, task: String): Option[String] =
       Some(s"transform/dialogs/editTransformTask/$project/$task")
 
     /** The path to redirect to when the task is opened. */
-    override def open(project: String, task: String) =
+    override def open(project: String, task: String): Option[String] =
       Some(s"transform/$project/$task/editor")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
