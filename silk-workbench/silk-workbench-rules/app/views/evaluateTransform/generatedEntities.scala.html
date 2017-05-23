@@ -76,9 +76,11 @@
         @values.map(v => <span class="transformed-value">{v}</span>)
         @renderError(error)
       </span>
-      <ul>
-      @children.map(v => renderValue(v))
-      </ul>
+      @if(children.size > 0) {
+        <ul>
+        @children.map(v => renderValue(v))
+        </ul>
+      }
     </li>
   }
   case InputValue(input, values, error) => {
