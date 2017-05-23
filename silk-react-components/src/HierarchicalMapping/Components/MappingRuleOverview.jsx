@@ -75,18 +75,19 @@ const MappingRuleOverview = React.createClass({
             rules = [],
         } = this.state.ruleData;
 
+        console.warn('debug', this.state.ruleData);
+
         const loading = this.state.loading ? <Spinner /> : false;
 
         const mappingRulesOverview = (
-            !_.isEmpty(this.state.ruleData.typeRules) ? (
+            !_.isEmpty(this.state.ruleData) ? (
                 <div
                     className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
                 >
-                    <b>Configuration: {name}</b>
-                    <br/>
-                    Entity types: {_.map(typeRules, (rule = {}) => (rule.name))}
-                    <br/>
-                    URI template: {uriRule.pattern}
+                    <MappingRule
+                        {...this.state.ruleData}
+                        parent={true}
+                    />
                 </div>
 
             ) : (

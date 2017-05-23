@@ -24,6 +24,7 @@ const MappingRule = React.createClass({
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
+        parent: React.PropTypes.boolean,
     },
 
     // initilize state
@@ -67,14 +68,15 @@ const MappingRule = React.createClass({
             targetProperty,
             pattern,
             uriRule,
+            parent,
         } = this.props;
 
         const action = (
             <Button
-                iconName={type === 'hierarchical' ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
-                tooltip={type === 'hierarchical' ? 'Navigate to' : undefined}
+                iconName={type === 'hierarchical' && !parent  ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                tooltip={type === 'hierarchical' && !parent ? 'Navigate to' : undefined}
                 onClick={(event) => {
-                    if (type === 'hierarchical') {
+                    if (type === 'hierarchical' && !parent) {
                         this.handleNavigate();
                     } else {
                         this.handleToggleExpand();
@@ -103,6 +105,7 @@ const MappingRule = React.createClass({
         ;
 
         // FIXME: only show edit / remove buttons for non-hierarchical mappings?
+        // FIXME: insert read-only version of (both) edit views instead? (reduce code)
         const expandedView = (
                 <div
                     //className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details"
