@@ -2,10 +2,11 @@ import React from 'react';
 import {UseMessageBus} from 'ecc-mixins';
 import {Button} from 'ecc-gui-elements';
 
-const RuleEditView = React.createClass({
+const RuleValueEditView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
+    // FIXME: check propTypes
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
@@ -23,29 +24,29 @@ const RuleEditView = React.createClass({
 
     // template rendering
     render () {
-
+        console.warn('debug VALUE edit view', this.props);
         return (
             <div
-                className="ecc-component-hierarchicalMapping__content-editView"
+                className="ecc-component-hierarchicalMapping__content-editView-value"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
                     <div
                         className="mdl-card__title"
                     >
-                        EditView
+                        (Add) value mapping
                     </div>
                     <div className="mdl-card__content">
                         View here of id {this.props.id}
-                        <div className="ecc-component-hierarchicalMapping__content-editView__actionrow">
+                        <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
                             <Button
-                                className="ecc-component-hierarchicalMapping__content-editView__actionrow-save"
+                                className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-save"
                                 onClick={() => {}}
                                 disabled
                             >
                                 Save
                             </Button>
                             <Button
-                                className="ecc-component-hierarchicalMapping__content-editView__actionrow-cancel"
+                                className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
                                 onClick={this.props.onClose}
                             >
                                 Cancel
@@ -59,4 +60,4 @@ const RuleEditView = React.createClass({
 
 });
 
-export default RuleEditView;
+export default RuleValueEditView;

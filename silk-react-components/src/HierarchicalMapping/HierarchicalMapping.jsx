@@ -5,7 +5,8 @@ import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {Button} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
-import RuleEdit from './Components/RuleEditView';
+import RuleValueEdit from './Components/RuleValueEditView';
+import RuleObjectEdit from './Components/RuleObjectEditView';
 
 // Do not care about it yet
 /*const props = {
@@ -31,6 +32,8 @@ const HierarchicalMapping = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
         // listen to rule edit event
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.edit'), this.onRuleEdit);
+        // listen to rule create event
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
 
         return {
             // currently selected rule id
@@ -59,8 +62,17 @@ const HierarchicalMapping = React.createClass({
     },
     // show edit view of specific rule id
     onRuleEdit({rule}) {
+        // TODO: get correct type for correct edit view
+        // value or object (vs. old direct, object, hierarchical, complex)
         this.setState({
             ruleEditView: rule,
+        });
+    },
+    onRuleCreate({type}) {
+        this.setState({
+            ruleEditView: {
+                type,
+            },
         });
     },
     handleRuleEditClose() {
@@ -81,15 +93,23 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
-
-        const editView = (
-            this.state.ruleEditView ? (
-                <RuleEdit
-                    {...this.state.ruleEditView}
-                    onClose={this.handleRuleEditClose}
-                />
-            ) : false
-        );
+        // render mapping edit / create view of value and object
+        const editView = () => {
+            if (this.state.ruleEditView) {
+                return (
+                    this.state.ruleEditView.type === 'value' ? (
+                        <RuleValueEdit
+                            {...this.state.ruleEditView}
+                            onClose={this.handleRuleEditClose}
+                        />
+                    ) : <RuleObjectEdit
+                            {...this.state.ruleEditView}
+                            onClose={this.handleRuleEditClose}
+                        />
+                )
+            }
+            return false;
+        };
 
         return (
             <div
@@ -110,7 +130,7 @@ const HierarchicalMapping = React.createClass({
                         currentRuleId={this.state.currentRuleId}
                     />
                     {/*TODO: move editView to correct position*/}
-                    {editView}
+                    {editView()}
                 </div>
             </div>
         );

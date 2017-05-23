@@ -30,7 +30,10 @@ const MappingRule = React.createClass({
     getInitialState() {
         // listen for event to expand / collapse mapping rule
         this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
-            this.setState({expanded});
+            // only trigger state / render change if necessary
+            if (expanded !== this.state.expanded) {
+                this.setState({expanded});
+            }
         });
 
         return {
@@ -65,8 +68,6 @@ const MappingRule = React.createClass({
             pattern,
             uriRule,
         } = this.props;
-
-        console.log('debug this.state.ruleData', this.props);
 
         const action = (
             <Button

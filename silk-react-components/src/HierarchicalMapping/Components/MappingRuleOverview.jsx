@@ -56,9 +56,17 @@ const MappingRuleOverview = React.createClass({
     handleToggleRuleDetails({expanded}) {
         hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
     },
+    // jumps to selected rule as new center of view
+    handleCreate({type}) {
+        hierarchicalMappingChannel.subject('ruleId.create').onNext({
+            type,
+            //FIXME: do we need more data like id of parent as source?
+        });
+    },
 
     // template rendering
     render () {
+
         const {
             name,
             id,
@@ -93,13 +101,15 @@ const MappingRuleOverview = React.createClass({
                 >
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-value-mapping"
+                        onClick={() => {this.handleCreate({type: 'value'}); }}
                     >
-                        Add value mapping (TODO)
+                        Add value mapping
                     </MenuItem>
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-object-mapping"
+                        onClick={() => {this.handleCreate({type: 'object'}); }}
                     >
-                        Add object mapping (TODO)
+                        Add object mapping
                     </MenuItem>
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-suggest-mappings"
