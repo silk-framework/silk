@@ -22,14 +22,6 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
   @volatile
   private var isCanceled: Boolean = false
 
-  lazy val entitySchema: EntitySchema = {
-    EntitySchema(
-      typeUri = transform.selection.typeUri,
-      typedPaths = transform.rules.flatMap(_.paths).distinct.map(_.asStringTypedPath).toIndexedSeq,
-      filter = transform.selection.restriction
-    )
-  }
-
   override val initialValue = Some(TransformReport())
 
   def run(context: ActivityContext[TransformReport]): Unit = {
