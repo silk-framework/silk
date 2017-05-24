@@ -1,7 +1,8 @@
 import React from 'react';
 import {UseMessageBus} from 'ecc-mixins';
-import {Button, SelectBox, Radio, RadioGroup} from 'ecc-gui-elements';
+import {Button, SelectBox, Radio, RadioGroup, TextField} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
+import _ from 'lodash';
 
 const RuleObjectEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -12,21 +13,22 @@ const RuleObjectEditView = React.createClass({
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
         type: React.PropTypes.string,
-        typeRules: React.PropTypes.array,
-        mappingTarget: React.PropTypes.object,
-        targetProperty: React.PropTypes.string,
-        pattern: React.PropTypes.string,
-        uriRule: React.PropTypes.object,
+        rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
     },
 
     getInitialState() {
+        const {typeRules = [], uriRule = {}} = _.get(this.props, 'rules', {});
+
         return {
-            targetProperty: this.props.targetProperty,
-            // FIXME: get it from props in edit mode
+            // TODO: get it from props
+            targetProperty: undefined,
+            // TODO: get it from props
             targetEntityType: undefined,
+            // TODO: get it from props
             entityConnection: 'from',
+            pattern: uriRule.pattern,
         };
     },
 
@@ -37,6 +39,8 @@ const RuleObjectEditView = React.createClass({
             type: this.props.type,
             targetProperty: this.state.targetProperty,
             targetEntityType: this.state.targetEntityType,
+            pattern: this.state.pattern,
+            entityConnection: this.state.entityConnection,
         });
         this.props.onClose();
     },
@@ -46,7 +50,11 @@ const RuleObjectEditView = React.createClass({
             [state]: value,
         });
     },
-
+    handleChangeTextfield(state, {value}) {
+        this.setState({
+            [state]: value,
+        });
+    },
     handleChangeRadio(state, {value}) {
         this.setState({
             [state]: value,
@@ -61,6 +69,7 @@ const RuleObjectEditView = React.createClass({
     // remove rule
     handleRemove(event) {
         console.log('click remove');
+        // TODO: add remove event
         event.stopPropagation();
     },
 
@@ -71,16 +80,16 @@ const RuleObjectEditView = React.createClass({
             edit,
         } = this.props;
 
-        const allowConfirm = (
-            this.state.targetProperty && this.state.targetEntityType
-        );
+        // FIXME: also check if data really has changed before allow saving
+        const allowConfirm = !(this.state.targetProperty && this.state.targetEntityType);
 
         console.warn('debug OBJECT edit view', this.props);
 
         const title = (
-            edit ? (
+            // TODO: add source path if: parent, not edit, not root element
+            edit && !id ? (
                 <div className="mdl-card__title">
-                    {id ? 'Edit' : 'Add'} object mapping
+                    Add object mapping
                 </div>
             ) : false
         );
@@ -143,15 +152,30 @@ const RuleObjectEditView = React.createClass({
             )
         );
 
+        const pattern = (
+            id ? (
+                <div>
+                    Id pattern<br/>
+                    <TextField
+                        label="Id pattern"
+                        className="ecc-component-hierarchicalMapping__content-editView-object__content__pattern"
+                        value={this.state.pattern}
+                        onChange={this.handleChangeTextfield.bind(null, 'pattern')}
+                        disabled={!edit}
+                    />
+                </div>
+            ) : false
+        );
+
         const actionRow = (
             edit ? (
                 <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-save"
                         onClick={this.handleConfirm}
-                        disabled
+                        disabled={allowConfirm}
                     >
-                        Save (TODO)
+                        Save
                     </Button>
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-cancel"
@@ -189,7 +213,12 @@ const RuleObjectEditView = React.createClass({
                         {targetPropertyInput}
                         {entityRelationInput}
                         {targetEntityTypeInput}
+                        {pattern}
                         {actionRow}
+                        {
+                            // TODO: if not in edit mode user should see modified and creator
+                            // store data not exist at the moment - mockup for now?
+                        }
                     </div>
                 </div>
             </div>

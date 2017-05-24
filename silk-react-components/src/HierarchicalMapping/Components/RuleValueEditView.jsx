@@ -1,6 +1,7 @@
 import React from 'react';
 import {UseMessageBus} from 'ecc-mixins';
 import {Button, TextField, SelectBox} from 'ecc-gui-elements';
+import _ from 'lodash';
 
 import hierarchicalMappingChannel from '../store';
 
@@ -16,8 +17,6 @@ const RuleValueEditView = React.createClass({
         type: React.PropTypes.string,
         // FIXME: sourcePath === source property?
         sourcePath: React.PropTypes.string,
-        // FIXME: targetProperty === mappingTarget?
-        targetProperty: React.PropTypes.string,
         mappingTarget: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
@@ -26,9 +25,8 @@ const RuleValueEditView = React.createClass({
     getInitialState() {
         return {
             comment: this.props.comment || '',
-            targetProperty: this.props.targetProperty,
-            // FIXME: get it from props in edit mode
-            propertyType: undefined,
+            targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
+            propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
             // FIXME: is this editable?
             sourceProperty: this.props.sourcePath,
         };
@@ -66,6 +64,7 @@ const RuleValueEditView = React.createClass({
     // remove rule
     handleRemove(event) {
         console.log('click remove');
+        // TODO: add remove event
         event.stopPropagation();
     },
 
@@ -78,10 +77,13 @@ const RuleValueEditView = React.createClass({
 
         console.warn('debug VALUE edit view', this.props);
 
+        // FIXME: also check if data really has changed before allow saving
+        const allowConfirm = !(this.state.targetProperty && this.state.propertyType);
+
         const title = (
-            edit ? (
+            edit && !id ? (
                 <div className="mdl-card__title">
-                    {id ? 'Edit' : 'Add'} value mapping
+                    Add value mapping
                 </div>
             ) : false
         );
@@ -151,9 +153,9 @@ const RuleValueEditView = React.createClass({
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-save"
                         onClick={this.handleConfirm}
-                        disabled
+                        disabled={allowConfirm}
                     >
-                        Save (TODO)
+                        Save
                     </Button>
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
@@ -197,18 +199,7 @@ const RuleValueEditView = React.createClass({
                         {actionRow}
                         {
                             // TODO: if not in edit mode user should see modified and creator
-                            /*
-                             <div>
-                             <h5>Source property</h5>
-                             {type} mapping from (todo: get content)
-                             </div>
-                             <div>
-                             by (todo: get content)
-                             </div>
-                             <div>
-                             on (todo: get content)
-                             </div>
-                             */
+                            // store data not exist at the moment - mockup for now?
                         }
                     </div>
                 </div>

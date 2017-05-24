@@ -69,8 +69,7 @@ const TreeView = React.createClass({
     render () {
         // construct parent-child tree
         const navigationList = ({parent, root}) => {
-            // FIXME: does 'name' still exist?
-            const {id, name, rules = {}, type} = parent;
+            const {id, rules = {}, type} = parent;
             const childs = (
                 _.chain(rules.propertyRules)
                 .cloneDeep()

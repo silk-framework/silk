@@ -49,8 +49,10 @@ const MappingRule = React.createClass({
         hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id});
     },
     // show / hide additional row details
-    handleToggleExpand() {
-        this.setState({expanded: !this.state.expanded});
+    handleToggleExpand({force = false}) {
+        if (!this.state.edit || force) {
+            this.setState({expanded: !this.state.expanded});
+        }
     },
     // show edit view of specific rule id
     onRuleEdit({ruleId}) {
@@ -68,19 +70,10 @@ const MappingRule = React.createClass({
     // template rendering
     render () {
         const {
-            comment,
             id,
             type,
-            typeRules,
-            mappingTarget = {},
-            sourcePath,
-            targetProperty,
-            pattern,
-            uriRule,
             parent,
         } = this.props;
-
-        console.warn('debug overview render', this.state.ruleData);
 
         const action = (
             <Button
@@ -90,7 +83,7 @@ const MappingRule = React.createClass({
                     if (type === 'object' && !parent) {
                         this.handleNavigate();
                     } else {
-                        this.handleToggleExpand();
+                        this.handleToggleExpand({force: true});
                     }
                     event.stopPropagation();
                 }}
@@ -104,15 +97,15 @@ const MappingRule = React.createClass({
                      if (type === 'object' && !parent) {
                          return;
                      }
-                     this.handleToggleExpand();
+                     this.handleToggleExpand({});
                  }}
              >
                  {id}
                  <div>
-                    from (todo: get content)
+                    from (todo: get content after store implementation)
                  </div>
                  <div>
-                    by (todo: get content)
+                    by (todo: get content after store implementation)
                  </div>
                  <div className="action" key="action">{action}</div>
              </div>
@@ -127,7 +120,7 @@ const MappingRule = React.createClass({
                         if ((type === 'object' || type === 'root') && !parent) {
                             return;
                         }
-                        this.handleToggleExpand();
+                        this.handleToggleExpand({});
                     }}
                 >
                     <div className="action" key="action">{action}</div>

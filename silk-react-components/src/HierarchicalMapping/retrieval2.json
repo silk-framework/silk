@@ -18,7 +18,7 @@
       "name": "sourcePath1",
       "comment": "",
       "mappingTarget": {
-        "URI": "http://www.w3.org/2000/01/rdf-schema#label",
+        "uri": "http://www.w3.org/2000/01/rdf-schema#label",
         "valueType": {
           "nodeType": "AutoDetectValueType"
         }
