@@ -6,6 +6,8 @@ import React from 'react';
 import {UseMessageBus} from 'ecc-mixins';
 import {Button} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
+import RuleValueEdit from './RuleValueEditView';
+import RuleObjectEdit from './RuleObjectEditView';
 
 const MappingRule = React.createClass({
 
@@ -24,7 +26,7 @@ const MappingRule = React.createClass({
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
-        parent: React.PropTypes.boolean,
+        parent: React.PropTypes.bool,
     },
 
     // initilize state
@@ -32,13 +34,16 @@ const MappingRule = React.createClass({
         // listen for event to expand / collapse mapping rule
         this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
             // only trigger state / render change if necessary
-            if (expanded !== this.state.expanded) {
+            if (expanded !== this.state.expanded && !this.props.parent) {
                 this.setState({expanded});
             }
         });
+        // listen to rule edit event
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.edit'), this.onRuleEdit);
 
         return {
             expanded: false,
+            edit: false,
         };
     },
     // jumps to selected rule as new center of view
@@ -49,9 +54,17 @@ const MappingRule = React.createClass({
     handleToggleExpand() {
         this.setState({expanded: !this.state.expanded});
     },
-    // open edit view
-    handleEdit() {
-        hierarchicalMappingChannel.subject('ruleId.edit').onNext({rule: this.props});
+    // show edit view of specific rule id
+    onRuleEdit({ruleId}) {
+        if (ruleId === this.props.id) {
+            this.setState({edit: true});
+        }
+    },
+    handleRuleEditClose(event) {
+        this.setState({
+            edit: false,
+        });
+        event.stopPropagation();
     },
 
     // template rendering
@@ -89,7 +102,6 @@ const MappingRule = React.createClass({
         const shortView = (
              <div
                  className="mdl-card__content"
-                 //className={this.state.expanded ? 'is-extended' : ''}
                  onClick={this.handleToggleExpand}
              >
                  {name}
@@ -105,45 +117,30 @@ const MappingRule = React.createClass({
         ;
 
         // FIXME: only show edit / remove buttons for non-hierarchical mappings?
-        // FIXME: insert read-only version of (both) edit views instead? (reduce code)
         const expandedView = (
                 <div
-                    //className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details"
                     className="mdl-card__content"
                     onClick={this.handleToggleExpand}
                 >
-                    <div>
-                        <h5>Target property</h5> {targetProperty}
-                    </div>
-                    <div>
-                        <h5>Source property</h5>
-                        {type} mapping from (todo: get content)
-                    </div>
-                        {comment ? ( <div> <h5>Comment</h5>{comment}</div>) : false}
-                    <div>
-                        by (todo: get content)
-                    </div>
-                    <div>
-                        on (todo: get content)
-                    </div>
                     <div className="action" key="action">{action}</div>
-                    <div
-                        className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow"
-                    >
-                        <Button
-                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-edit"
-                            onClick={this.handleEdit}
-                        >
-                            Edit
-                        </Button>
-                        <Button
-                            className="ecc-component-hierarchicalMapping__mappingRuleOverview__card__details__actionrow-remove"
-                            onClick={() => {}}
-                            disabled
-                        >
-                            Remove
-                        </Button>
-                    </div>
+                    {
+                        // FIXME: only temp behaviour until data is correct
+                        (type === 'direct' || type === 'complex' ) ? (
+                            <RuleValueEdit
+                                {...this.props}
+                                type="value"
+                                edit={this.state.edit}
+                                onClose={this.handleRuleEditClose}
+                            />
+                        ) : (
+                            <RuleObjectEdit
+                                {...this.props}
+                                type="object"
+                                edit={this.state.edit}
+                                onClose={this.handleRuleEditClose}
+                            />
+                        )
+                    }
                 </div>
         );
 

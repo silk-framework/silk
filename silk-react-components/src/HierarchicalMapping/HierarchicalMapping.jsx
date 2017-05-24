@@ -30,8 +30,6 @@ const HierarchicalMapping = React.createClass({
     getInitialState() {
         // listen to rule id changes
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
-        // listen to rule edit event
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.edit'), this.onRuleEdit);
         // listen to rule create event
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
 
@@ -58,20 +56,6 @@ const HierarchicalMapping = React.createClass({
     handleToggleNavigation() {
         this.setState({
            showNavigation: !this.state.showNavigation,
-        });
-    },
-    // show edit view of specific rule id
-    onRuleEdit({rule}) {
-        // FIXME: only temp behaviour until data is correct
-        const mapping = _.cloneDeep(rule);
-        if (mapping.type === 'direct' || mapping.type === 'complex' ) {
-            mapping.type = 'value';
-        }
-        if (mapping.type === 'object' || mapping.type === 'hierarchical' ) {
-            mapping.type = 'object';
-        }
-        this.setState({
-            ruleEditView: mapping,
         });
     },
     onRuleCreate({type}) {
@@ -107,10 +91,12 @@ const HierarchicalMapping = React.createClass({
                         <RuleValueEdit
                             {...this.state.ruleEditView}
                             onClose={this.handleRuleEditClose}
+                            edit={true}
                         />
                     ) : <RuleObjectEdit
                             {...this.state.ruleEditView}
                             onClose={this.handleRuleEditClose}
+                            edit={true}
                         />
                 )
             }

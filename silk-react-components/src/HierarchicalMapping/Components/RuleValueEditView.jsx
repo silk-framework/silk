@@ -20,7 +20,8 @@ const RuleValueEditView = React.createClass({
         // FIXME: targetProperty === mappingTarget?
         targetProperty: React.PropTypes.string,
         mappingTarget: React.PropTypes.object,
-        onClose: React.PropTypes.func.isRequired,
+        onClose: React.PropTypes.func,
+        edit: React.PropTypes.bool.isRequired,
     },
 
     getInitialState() {
@@ -58,66 +59,158 @@ const RuleValueEditView = React.createClass({
         });
     },
 
+    // open view in edit mode
+    handleEdit(event) {
+        hierarchicalMappingChannel.subject('ruleId.edit').onNext({ruleId: this.props.id});
+        event.stopPropagation();
+    },
+    // remove rule
+    handleRemove(event) {
+        console.log('click remove');
+        event.stopPropagation();
+    },
+
     // template rendering
     render () {
         const {
             id ,
+            edit,
         } = this.props;
 
         console.warn('debug VALUE edit view', this.props);
+
+        const title = (
+            edit ? (
+                <div className="mdl-card__title">
+                    {id ? 'Edit' : 'Add'} value mapping
+                </div>
+            ) : false
+        );
+
+        const targetPropertyInput = (
+            edit ? (
+                <SelectBox
+                    placeholder={'Choose target property'}
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
+                    // TODO: get list of target properties
+                    options={[]}
+                    value={this.state.targetProperty}
+                    onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
+                />
+            ) : (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
+                >
+                    Target property
+                    {this.state.targetProperty}
+                </div>
+            )
+        );
+
+        const propertyTypeInput = (
+            edit ? (
+                <SelectBox
+                    placeholder={'Choose property type'}
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
+                    // TODO: get list of property types
+                    options={[]}
+                    value={this.state.propertyType}
+                    onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
+                />
+            ) : (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
+                >
+                    Property type
+                    {this.state.propertyType}
+                </div>
+            )
+        );
+
+        const commentInput = (
+            edit ? (
+                <TextField
+                    multiline={true}
+                    label="Comment"
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__comment"
+                    value={this.state.comment}
+                    onChange={this.handleChangeTextfield.bind(null, 'comment')}
+                />
+            ) : (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-editView-value__content__comment"
+                >
+                    Comment
+                    {this.state.comment}
+                </div>
+            )
+        );
+
+        const actionRow = (
+            edit ? (
+                <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-save"
+                        onClick={this.handleConfirm}
+                        disabled
+                    >
+                        Save (TODO)
+                    </Button>
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
+                        onClick={this.props.onClose}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            ) : (
+                <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-edit"
+                        onClick={this.handleEdit}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-remove"
+                        onClick={this.handleRemove}
+                        disabled
+                    >
+                        Remove (TODO)
+                    </Button>
+                </div>
+            )
+        );
 
         return (
             <div
                 className="ecc-component-hierarchicalMapping__content-editView-value"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
-                    <div
-                        className="mdl-card__title"
-                    >
-                        {id ? 'Edit' : 'Add'} value mapping
-                    </div>
+                    {title}
                     <div className="mdl-card__content">
-                        <SelectBox
-                            placeholder={'Choose target property'}
-                            className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
-                            // TODO: get list of target properties
-                            options={[]}
-                            value={this.state.targetProperty}
-                            onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
-                        />
-                        <SelectBox
-                            placeholder={'Choose property type'}
-                            className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
-                            // TODO: get list of property types
-                            options={[]}
-                            value={this.state.propertyType}
-                            onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
-                        />
+                        {targetPropertyInput}
+                        {propertyTypeInput}
                         {/*TODO: Which gui element to use?*/}
                         Source property<br/>
                         {this.state.sourceProperty}
-                        <TextField
-                            multiline={true}
-                            label="Comment"
-                            className="ecc-component-hierarchicalMapping__content-editView-value__content__comment"
-                            value={this.state.comment}
-                            onChange={this.handleChangeTextfield.bind(null, 'comment')}
-                        />
-                        <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
-                            <Button
-                                className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-save"
-                                onClick={this.handleConfirm}
-                                disabled
-                            >
-                                Save
-                            </Button>
-                            <Button
-                                className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
-                                onClick={this.props.onClose}
-                            >
-                                Cancel
-                            </Button>
-                        </div>
+                        {commentInput}
+                        {actionRow}
+                        {
+                            // TODO: if not in edit mode user should see modified and creator
+                            /*
+                             <div>
+                             <h5>Source property</h5>
+                             {type} mapping from (todo: get content)
+                             </div>
+                             <div>
+                             by (todo: get content)
+                             </div>
+                             <div>
+                             on (todo: get content)
+                             </div>
+                             */
+                        }
                     </div>
                 </div>
             </div>

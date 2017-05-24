@@ -75,8 +75,6 @@ const MappingRuleOverview = React.createClass({
             rules = [],
         } = this.state.ruleData;
 
-        console.warn('debug', this.state.ruleData);
-
         const loading = this.state.loading ? <Spinner /> : false;
 
         const mappingRulesOverview = (

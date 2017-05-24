@@ -18,7 +18,8 @@ const RuleObjectEditView = React.createClass({
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
-        onClose: React.PropTypes.func.isRequired,
+        onClose: React.PropTypes.func,
+        edit: React.PropTypes.bool.isRequired,
     },
 
     getInitialState() {
@@ -53,10 +54,22 @@ const RuleObjectEditView = React.createClass({
         });
     },
 
+    // open view in edit mode
+    handleEdit(event) {
+        hierarchicalMappingChannel.subject('ruleId.edit').onNext({ruleId: this.props.id});
+        event.stopPropagation();
+    },
+    // remove rule
+    handleRemove(event) {
+        console.log('click remove');
+        event.stopPropagation();
+    },
+
     // template rendering
     render () {
         const {
             id,
+            edit,
         } = this.props;
 
         const allowConfirm = (
@@ -64,63 +77,120 @@ const RuleObjectEditView = React.createClass({
         );
 
         console.warn('debug OBJECT edit view', this.props);
+
+        const title = (
+            edit ? (
+                <div className="mdl-card__title">
+                    {id ? 'Edit' : 'Add'} object mapping
+                </div>
+            ) : false
+        );
+
+        const targetPropertyInput = (
+            edit ? (
+                <SelectBox
+                    placeholder={'Choose target property'}
+                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                    // TODO: get list of target properties
+                    options={[]}
+                    value={this.state.targetProperty}
+                    onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
+                />
+            ) : (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                >
+                    Target property
+                    {this.state.targetProperty}
+                </div>
+            )
+        );
+
+        const entityRelationInput = (
+            <RadioGroup
+                onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
+                value={this.state.entityConnection}
+                name=""
+                disabled={!edit}
+            >
+                <Radio
+                    value="from"
+                    label="Connects from entity"
+                />
+                <Radio
+                    value="to"
+                    label="Connects to entity"
+                />
+            </RadioGroup>
+        );
+
+        const targetEntityTypeInput = (
+            edit ? (
+                <SelectBox
+                    placeholder={'Choose target entity type'}
+                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
+                    // TODO: get list of target entity types
+                    options={[]}
+                    value={this.state.targetEntityType}
+                    onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
+                />
+            ) : (
+                <div
+                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
+                >
+                    Target entity type
+                    {this.state.targetEntityType}
+                </div>
+            )
+        );
+
+        const actionRow = (
+            edit ? (
+                <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-save"
+                        onClick={this.handleConfirm}
+                        disabled
+                    >
+                        Save (TODO)
+                    </Button>
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-cancel"
+                        onClick={this.props.onClose}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            ) : (
+                <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-edit"
+                        onClick={this.handleEdit}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-remove"
+                        onClick={this.handleRemove}
+                        disabled
+                    >
+                        Remove (TODO)
+                    </Button>
+                </div>
+            )
+        );
+
         return (
             <div
                 className="ecc-component-hierarchicalMapping__content-editView-object"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
-                    <div
-                        className="mdl-card__title"
-                    >
-                        {id ? 'Edit' : 'Add'} object mapping
-                    </div>
+                    {title}
                     <div className="mdl-card__content">
-                        <SelectBox
-                            placeholder={'Choose target property'}
-                            className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
-                            // TODO: get list of target properties
-                            options={[]}
-                            value={this.state.targetProperty}
-                            onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
-                        />
-                        <RadioGroup
-                            onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
-                            value={this.state.entityConnection}
-                            name=""
-                        >
-                            <Radio
-                                value="from"
-                                label="Connects from entity"
-                            />
-                            <Radio
-                                value="to"
-                                label="Connects to entity"
-                            />
-                        </RadioGroup>
-                        entity chooser
-                        <SelectBox
-                            placeholder={'Choose target entity type'}
-                            className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
-                            // TODO: get list of target entity types
-                            options={[]}
-                            value={this.state.targetEntityType}
-                            onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
-                        />
-                        <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
-                            <Button
-                                className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-save"
-                                onClick={() => {}}
-                                disabled
-                            >
-                                Save
-                            </Button>
-                            <Button
-                                className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-cancel"
-                                onClick={this.props.onClose}
-                            >
-                                Cancel
-                            </Button>
-                        </div>
+                        {targetPropertyInput}
+                        {entityRelationInput}
+                        {targetEntityTypeInput}
+                        {actionRow}
                     </div>
                 </div>
             </div>
