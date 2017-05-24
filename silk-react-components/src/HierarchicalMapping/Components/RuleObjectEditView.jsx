@@ -11,7 +11,6 @@ const RuleObjectEditView = React.createClass({
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
-        name: React.PropTypes.string,
         type: React.PropTypes.string,
         typeRules: React.PropTypes.array,
         mappingTarget: React.PropTypes.object,

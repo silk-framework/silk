@@ -12,7 +12,6 @@ const RuleValueEditView = React.createClass({
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
-        name: React.PropTypes.string,
         //operator: React.PropTypes.object,
         type: React.PropTypes.string,
         // FIXME: sourcePath === source property?
