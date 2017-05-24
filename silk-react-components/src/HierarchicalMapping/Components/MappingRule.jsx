@@ -18,7 +18,6 @@ const MappingRule = React.createClass({
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
         name: React.PropTypes.string,
-        operator: React.PropTypes.object,
         type: React.PropTypes.string, // mapping type
         typeRules: React.PropTypes.array,
         mappingTarget: React.PropTypes.object,
@@ -73,7 +72,6 @@ const MappingRule = React.createClass({
             comment,
             id,
             name,
-            operator,
             type,
             typeRules,
             mappingTarget = {},
@@ -84,12 +82,14 @@ const MappingRule = React.createClass({
             parent,
         } = this.props;
 
+        console.warn('debug overview render', this.state.ruleData);
+
         const action = (
             <Button
-                iconName={type === 'hierarchical' && !parent  ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
-                tooltip={type === 'hierarchical' && !parent ? 'Navigate to' : undefined}
+                iconName={type === 'object' && !parent  ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                tooltip={type === 'object' && !parent ? 'Navigate to' : undefined}
                 onClick={(event) => {
-                    if (type === 'hierarchical' && !parent) {
+                    if (type === 'object' && !parent) {
                         this.handleNavigate();
                     } else {
                         this.handleToggleExpand();
@@ -103,13 +103,13 @@ const MappingRule = React.createClass({
              <div
                  className="mdl-card__content"
                  onClick={() => {
-                     if ((type === 'hierarchical' || type === 'object') && !parent) {
+                     if (type === 'object' && !parent) {
                          return;
                      }
                      this.handleToggleExpand();
                  }}
              >
-                 {name}
+                 {id}
                  <div>
                     from (todo: get content)
                  </div>
@@ -121,12 +121,12 @@ const MappingRule = React.createClass({
             )
         ;
 
-        // FIXME: only show edit / remove buttons for non-hierarchical mappings?
+        // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = (
                 <div
                     className="mdl-card__content"
                     onClick={() => {
-                        if ((type === 'hierarchical' || type === 'object') && !parent) {
+                        if ((type === 'object' || type === 'root') && !parent) {
                             return;
                         }
                         this.handleToggleExpand();
@@ -134,21 +134,21 @@ const MappingRule = React.createClass({
                 >
                     <div className="action" key="action">{action}</div>
                     {
-                        // FIXME: only temp behaviour until data is correct
-                        (type === 'direct' || type === 'complex' ) ? (
-                            <RuleValueEdit
-                                {...this.props}
-                                type="value"
-                                edit={this.state.edit}
-                                onClose={this.handleRuleEditClose}
-                            />
-                        ) : (
+                        (type === 'object' || type === 'root') ? (
                             <RuleObjectEdit
                                 {...this.props}
                                 type="object"
                                 edit={this.state.edit}
                                 onClose={this.handleRuleEditClose}
                             />
+                        ) : (
+                            <RuleValueEdit
+                                {...this.props}
+                                type="value"
+                                edit={this.state.edit}
+                                onClose={this.handleRuleEditClose}
+                            />
+
                         )
                     }
                 </div>

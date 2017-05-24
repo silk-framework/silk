@@ -1,0 +1,74 @@
+{
+  "type" : "root",
+  "id" : "root",
+  "rules" : {
+    "uriRule" : {
+      "type" : "uri",
+      "id" : "uri",
+      "pattern" : "http://example.org/{PersonID}"
+    },
+    "typeRules" : [ {
+      "type" : "type",
+      "id" : "explicitlyDefinedId",
+      "typeUri" : "target:Person"
+    } ],
+    "propertyRules" : [ {
+      "id": "complexRule",
+      "type": "complex",
+      "name": "sourcePath1",
+      "comment": "",
+      "mappingTarget": {
+        "URI": "http://www.w3.org/2000/01/rdf-schema#label",
+        "valueType": {
+          "nodeType": "AutoDetectValueType"
+        }
+      },
+      "operator": {
+        "type": "transformInput",
+        "id": "concat1",
+        "function": "concat",
+        "inputs": [
+          {
+            "type": "pathInput",
+            "id": "sourcePath1",
+            "path": "/<http://www.w3.org/2000/01/rdf-schema#label>"
+          },
+          {
+            "type": "pathInput",
+            "id": "sourcePath2",
+            "path": "/<http://dbpedia.org/ontology/budget>"
+          }
+        ],
+        "parameters": {
+          "glue": ""
+        }
+      }
+    }, {
+      "type" : "direct",
+      "id" : "directRule",
+      "sourcePath" : "/source:name",
+      "mappingTarget" : {
+        "uri" : "target:name",
+        "valueType" : {
+          "nodeType" : "StringValueType"
+        }
+      }
+    }, {
+      "type" : "object",
+      "id" : "objectRule",
+      "sourcePath" : "/source:address",
+      "mappingTarget" : {
+        "uri" : "target:address",
+        "valueType" : {
+          "nodeType" : "UriValueType"
+        }
+      },
+      "rules" : {
+        "uriRule" : null,
+        "typeRules" : [ ],
+        "propertyRules" : [ ]
+      }
+
+    } ]
+  }
+}

@@ -69,22 +69,23 @@ const TreeView = React.createClass({
     render () {
         // construct parent-child tree
         const navigationList = ({parent, root}) => {
-            const {id, name, rules, type} = parent;
+            // FIXME: does 'name' still exist?
+            const {id, name, rules = {}, type} = parent;
             const childs = (
-                _.chain(rules)
+                _.chain(rules.propertyRules)
                 .cloneDeep()
-                .filter({type: 'hierarchical'})
+                .filter(({type}) => type === 'object')
                 .value()
             );
             // get expanded state
             const expanded = _.get(this.state, ['expanded', id], false);
             // check if this element is selected (select root if no selected exist)
-            const isHighlighted = id === this.props.currentRuleId || (root && _.isUndefined(this.props.currentRuleId));
+            const isHighlighted = id === this.props.currentRuleId || (type === 'root' && _.isUndefined(this.props.currentRuleId));
             const element = (isHighlighted) => (
                 <Button
                     onClick={() => {this.handleNavigate(id)}}
                 >
-                    {isHighlighted ? (<b>{name}</b>) : name}
+                    {isHighlighted ? (<b>{id}</b>) : id}
                 </Button>
             );
             return (
@@ -102,7 +103,7 @@ const TreeView = React.createClass({
                     {
                         expanded ? (
                             _.map(childs, (child, idx) => (
-                                <li key={name + '.' + idx}>
+                                <li key={id + '.' + idx}>
                                     {navigationList({parent: child})}
                                 </li>
                             ))

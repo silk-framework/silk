@@ -68,12 +68,10 @@ const MappingRuleOverview = React.createClass({
     render () {
 
         const {
-            name,
-            id,
-            typeRules,
-            uriRule,
-            rules = [],
+            rules = {},
         } = this.state.ruleData;
+
+        const childRules = rules.propertyRules || [];
 
         const loading = this.state.loading ? <Spinner /> : false;
 
@@ -95,7 +93,7 @@ const MappingRuleOverview = React.createClass({
 
         const mappingRulesListHead = (
             <div>
-                Mapping rules {`(${rules.length})`}
+                Mapping rules {`(${childRules.length})`}
                 <ContextMenu
                 >
                     <MenuItem
@@ -133,12 +131,12 @@ const MappingRuleOverview = React.createClass({
         );
 
         const mappingRulesList = (
-            _.isEmpty(rules) ? (
+            _.isEmpty(childRules) ? (
                 <Info vertSpacing border>
                     No existing mapping rules.
                 </Info>
             ) : (
-                _.map(rules, (rule, idx) =>
+                _.map(childRules, (rule, idx) =>
                     (
                         <MappingRule key={'MappingRule_' + idx} {...rule}/>
                     )

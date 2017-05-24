@@ -2,7 +2,7 @@
 
 import rxmq from 'ecc-messagebus';
 import _ from 'lodash';
-const mockStore = require('./retrieval.json');
+const mockStore = require('./retrieval2.json');
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 
