@@ -102,7 +102,12 @@ const MappingRule = React.createClass({
         const shortView = (
              <div
                  className="mdl-card__content"
-                 onClick={this.handleToggleExpand}
+                 onClick={() => {
+                     if ((type === 'hierarchical' || type === 'object') && !parent) {
+                         return;
+                     }
+                     this.handleToggleExpand();
+                 }}
              >
                  {name}
                  <div>
@@ -120,7 +125,12 @@ const MappingRule = React.createClass({
         const expandedView = (
                 <div
                     className="mdl-card__content"
-                    onClick={this.handleToggleExpand}
+                    onClick={() => {
+                        if ((type === 'hierarchical' || type === 'object') && !parent) {
+                            return;
+                        }
+                        this.handleToggleExpand();
+                    }}
                 >
                     <div className="action" key="action">{action}</div>
                     {
