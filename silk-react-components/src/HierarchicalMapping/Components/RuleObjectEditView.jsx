@@ -19,13 +19,12 @@ const RuleObjectEditView = React.createClass({
     },
 
     getInitialState() {
-        const {typeRules = [], uriRule = {}} = _.get(this.props, 'rules', {});
-
         return {
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
             targetEntityType: _.get(this.props, 'rules.typeRules[0].uri', undefined),
             entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
             pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
+            edit: !!this.props.edit,
         };
     },
 
@@ -40,7 +39,7 @@ const RuleObjectEditView = React.createClass({
             pattern: this.state.pattern,
             entityConnection: this.state.entityConnection === 'to',
         });
-        this.props.onClose();
+        this.handleClose();
     },
 
     handleChangeSelectBox(state, value) {
@@ -60,9 +59,19 @@ const RuleObjectEditView = React.createClass({
     },
 
     // open view in edit mode
-    handleEdit(event) {
-        hierarchicalMappingChannel.subject('ruleId.edit').onNext({ruleId: this.props.id});
-        event.stopPropagation();
+    handleEdit() {
+        this.setState({
+            edit: !this.state.edit,
+        })
+    },
+    handleClose() {
+      if(_.isFunction(this.props.onClose)){
+          this.props.onClose();
+      } else {
+          this.setState({
+              edit: false,
+          })
+      }
     },
     // remove rule
     handleRemove(event) {
@@ -75,8 +84,9 @@ const RuleObjectEditView = React.createClass({
     render () {
         const {
             id,
-            edit,
+            type,
         } = this.props;
+        const {edit} = this.state;
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = !(this.state.targetProperty && this.state.targetEntityType);
@@ -92,49 +102,55 @@ const RuleObjectEditView = React.createClass({
             ) : false
         );
 
-        // TODO: where to get get list of target properties
-        const targetPropertyInput = (
-            edit ? (
-                <SelectBox
-                    placeholder={'Choose target property'}
-                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
-                    options={[
-                        'target:address',
-                        'target:country',
-                        'target:friend',
-                    ]}
-                    value={this.state.targetProperty}
-                    onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
-                />
-            ) : (
-                <div
-                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+        let targetPropertyInput = false;
+        let entityRelationInput = false;
+
+        if(type !== 'root'){
+            // TODO: where to get get list of target properties
+            targetPropertyInput = (
+                edit ? (
+                    <SelectBox
+                        placeholder={'Choose target property'}
+                        className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                        options={[
+                            'target:address',
+                            'target:country',
+                            'target:friend',
+                        ]}
+                        value={this.state.targetProperty}
+                        onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
+                    />
+                ) : (
+                    <div
+                        className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                    >
+                        Target property
+                        {this.state.targetProperty}
+                    </div>
+                )
+            );
+
+            entityRelationInput = (
+                <RadioGroup
+                    onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
+                    value={this.state.entityConnection}
+                    name=""
+                    disabled={!edit}
                 >
-                    Target property
-                    {this.state.targetProperty}
-                </div>
-            )
-        );
+                    <Radio
+                        value="from"
+                        label="Connects from entity"
+                    />
+                    <Radio
+                        value="to"
+                        label="Connects to entity"
+                    />
+                </RadioGroup>
+            );
 
-        const entityRelationInput = (
-            <RadioGroup
-                onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
-                value={this.state.entityConnection}
-                name=""
-                disabled={!edit}
-            >
-                <Radio
-                    value="from"
-                    label="Connects from entity"
-                />
-                <Radio
-                    value="to"
-                    label="Connects to entity"
-                />
-            </RadioGroup>
-        );
+        }
 
-        // TODO: where to get get list of target properties
+        // TODO: where to get get list of target entities
         const targetEntityTypeInput = (
             edit ? (
                 <SelectBox
@@ -188,7 +204,7 @@ const RuleObjectEditView = React.createClass({
                     </Button>
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-cancel"
-                        onClick={this.props.onClose}
+                        onClick={this.handleClose}
                     >
                         Cancel
                     </Button>

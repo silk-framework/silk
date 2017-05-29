@@ -37,11 +37,9 @@ const MappingRule = React.createClass({
             }
         });
         // listen to rule edit event
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.edit'), this.onRuleEdit);
 
         return {
             expanded: false,
-            edit: false,
         };
     },
     // jumps to selected rule as new center of view
@@ -49,24 +47,9 @@ const MappingRule = React.createClass({
         hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id});
     },
     // show / hide additional row details
-    handleToggleExpand({force = false}) {
-        if (!this.state.edit || force) {
-            this.setState({expanded: !this.state.expanded});
-        }
+    handleToggleExpand() {
+        this.setState({expanded: !this.state.expanded});
     },
-    // show edit view of specific rule id
-    onRuleEdit({ruleId}) {
-        if (ruleId === this.props.id) {
-            this.setState({edit: true});
-        }
-    },
-    handleRuleEditClose(event) {
-        this.setState({
-            edit: false,
-        });
-        //event.stopPropagation();
-    },
-
     // template rendering
     render () {
         const {
@@ -128,15 +111,13 @@ const MappingRule = React.createClass({
                         <RuleObjectEdit
                             {...this.props}
                             type={type}
-                            edit={this.state.edit}
-                            onClose={this.handleRuleEditClose}
+                            edit={false}
                         />
                     ) : (
                         <RuleValueEdit
                             {...this.props}
                             type={type}
-                            edit={this.state.edit}
-                            onClose={this.handleRuleEditClose}
+                            edit={false}
                         />
 
                     )

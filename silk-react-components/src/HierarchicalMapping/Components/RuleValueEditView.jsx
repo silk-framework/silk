@@ -29,10 +29,12 @@ const RuleValueEditView = React.createClass({
             propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
             // FIXME: is this editable?
             sourceProperty: this.props.sourcePath,
+            edit: this.props.edit,
         };
     },
 
-    handleConfirm() {
+    handleConfirm(event) {
+        event.stopPropagation();
         hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             // if id is undefined -> we are creating a new rule
             id: this.props.id,
@@ -43,7 +45,7 @@ const RuleValueEditView = React.createClass({
             propertyType: this.state.propertyType,
             sourceProperty: this.state.sourceProperty,
         });
-        this.props.onClose();
+        this.handleClose(event);
     },
 
     handleChangeTextfield(state, {value}) {
@@ -52,30 +54,43 @@ const RuleValueEditView = React.createClass({
         });
     },
     handleChangeSelectBox(state, value) {
-
         this.setState({
             [state]: value,
         });
     },
-    handleComplexEdit() {
+    handleComplexEdit(event) {
+        event.stopPropagation();
         alert('Normally this would open the complex editor (aka jsplumb view)')
     },
     // open view in edit mode
     handleEdit(event) {
-        hierarchicalMappingChannel.subject('ruleId.edit').onNext({ruleId: this.props.id});
         event.stopPropagation();
+        this.setState({
+            edit: !this.state.edit,
+        })
+    },
+    handleClose(event) {
+        event.stopPropagation();
+        if(_.isFunction(this.props.onClose)){
+            this.props.onClose();
+        } else {
+            this.setState({
+                edit: false,
+            })
+        }
     },
     // remove rule
     handleRemove(event) {
+        event.stopPropagation();
         console.log('click remove');
     },
     // template rendering
     render () {
         const {
             id,
-            edit,
             type = 'direct',
         } = this.props;
+        const {edit} = this.state;
 
 
         // FIXME: also check if data really has changed before allow saving
@@ -197,7 +212,7 @@ const RuleValueEditView = React.createClass({
                     </Button>
                     <Button
                         className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
-                        onClick={this.props.onClose}
+                        onClick={this.handleClose}
                     >
                         Cancel
                     </Button>
