@@ -21,7 +21,7 @@ const RuleObjectEditView = React.createClass({
     getInitialState() {
         return {
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-            targetEntityType: _.get(this.props, 'rules.typeRules[0].uri', undefined),
+            targetEntityType: _.get(this.props, 'rules.typeRules[0].typeUri', undefined),
             entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
             pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
             edit: !!this.props.edit,
@@ -65,13 +65,13 @@ const RuleObjectEditView = React.createClass({
         })
     },
     handleClose() {
-      if(_.isFunction(this.props.onClose)){
-          this.props.onClose();
-      } else {
-          this.setState({
-              edit: false,
-          })
-      }
+        if (_.isFunction(this.props.onClose)) {
+            this.props.onClose();
+        } else {
+            this.setState({
+                edit: false,
+            })
+        }
     },
     // remove rule
     handleRemove(event) {
@@ -105,7 +105,7 @@ const RuleObjectEditView = React.createClass({
         let targetPropertyInput = false;
         let entityRelationInput = false;
 
-        if(type !== 'root'){
+        if (type !== 'root') {
             // TODO: where to get get list of target properties
             targetPropertyInput = (
                 edit ? (

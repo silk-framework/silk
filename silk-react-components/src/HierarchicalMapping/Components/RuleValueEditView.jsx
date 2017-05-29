@@ -27,7 +27,6 @@ const RuleValueEditView = React.createClass({
             comment: this.props.comment || '',
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
             propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
-            // FIXME: is this editable?
             sourceProperty: this.props.sourcePath,
             edit: this.props.edit,
         };

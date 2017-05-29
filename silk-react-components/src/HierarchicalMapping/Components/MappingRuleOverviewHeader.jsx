@@ -12,7 +12,7 @@ const MappingRuleOverviewHeader = React.createClass({
         }
     },
     // jumps to selected rule as new center of view
-    handleNavigate(id, event ) {
+    handleNavigate(id, event) {
         hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: id});
 
         event.stopPropagation();

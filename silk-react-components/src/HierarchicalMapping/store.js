@@ -123,8 +123,6 @@ const saveMockStore = () => {
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
     (data) => {
 
-        console.warn(data);
-
         const payload = {
             comment: data.comment,
             "mappingTarget": {
