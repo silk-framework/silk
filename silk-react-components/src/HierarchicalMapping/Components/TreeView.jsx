@@ -7,6 +7,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import {Spinner, Button} from 'ecc-gui-elements';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
+import {RuleTitle, RuleTypes} from './RuleComponents';
 
 const TreeView = React.createClass({
 
@@ -85,17 +86,16 @@ const TreeView = React.createClass({
             const isHighlighted = id === this.props.currentRuleId || (type === 'root' && _.isUndefined(this.props.currentRuleId));
             const element = () => {
 
-                const types = _.get(parent, 'rules.typeRules', []).map(({typeUri}) => typeUri);
-
-
                 return (
                     <span
                         onClick={() => {
                             this.handleNavigate(id)
                         }}
                     >
-                        {type === 'object' ? _.get(parent, 'mappingTarget.uri', '(no target property)') : 'Root'}<br/>
-                        <small>{_.isEmpty(types) ? '(no target types)' : types.join(', ')}</small>
+                        <RuleTitle rule={parent}/><br/>
+                        {(
+                            type === 'object' ? (<small>{<RuleTypes rule={parent}/>}</small>) : false
+                        )}
                     </span>
                 );
             }
