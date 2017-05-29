@@ -149,10 +149,11 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
     (data) => {
 
-        // TODO: What the heck is sourcePath here and where to save from/to
+        // TODO: What the heck is sourcePath here? We do not set it in the UI
         const payload = {
             "mappingTarget": {
                 "uri": data.targetProperty,
+                "inverse": data.entityConnection,
                 "valueType": {
                     "nodeType": "UriValueType",
                 }
@@ -160,13 +161,11 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
             "rules": {
                 "uriRule": data.pattern ? {
                     "type": "uri",
-                    "id": _.uniqueId('uriRulePattern'),
                     "pattern": data.pattern
                 } : null,
                 "typeRules": [
                     {
                         "type": "type",
-                        "id": _.uniqueId('typeRuleID'),
                         "typeUri": data.targetEntityType,
                     }
                 ],

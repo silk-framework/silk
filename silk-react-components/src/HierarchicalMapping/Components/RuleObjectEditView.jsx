@@ -24,8 +24,7 @@ const RuleObjectEditView = React.createClass({
         return {
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
             targetEntityType: _.get(this.props, 'rules.typeRules[0].uri', undefined),
-            // TODO: get it from props
-            entityConnection: 'from',
+            entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
             pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
         };
     },
@@ -39,7 +38,7 @@ const RuleObjectEditView = React.createClass({
             targetProperty: this.state.targetProperty,
             targetEntityType: this.state.targetEntityType,
             pattern: this.state.pattern,
-            entityConnection: this.state.entityConnection,
+            entityConnection: this.state.entityConnection === 'to',
         });
         this.props.onClose();
     },
