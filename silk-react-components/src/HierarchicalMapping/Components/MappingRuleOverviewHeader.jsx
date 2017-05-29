@@ -2,6 +2,7 @@ import React from 'react';
 import {RuleTitle, RuleTypes} from './RuleComponents';
 import RuleObjectEdit from './RuleObjectEditView';
 import _ from 'lodash';
+import hierarchicalMappingChannel from '../store';
 import {Button} from 'ecc-gui-elements';
 
 const MappingRuleOverviewHeader = React.createClass({
