@@ -1,9 +1,9 @@
 /*
  An individual Mapping Rule Line
-*/
+ */
 
 import React from 'react';
-import {UseMessageBus} from 'ecc-mixins';
+import UseMessageBus from '../UseMessageBusMixin';
 import {Button} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import RuleValueEdit from './RuleValueEditView';
@@ -64,7 +64,7 @@ const MappingRule = React.createClass({
         this.setState({
             edit: false,
         });
-        event.stopPropagation();
+        //event.stopPropagation();
     },
 
     // template rendering
@@ -77,7 +77,7 @@ const MappingRule = React.createClass({
 
         const action = (
             <Button
-                iconName={type === 'object' && !parent  ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                iconName={type === 'object' && !parent ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
                 tooltip={type === 'object' && !parent ? 'Navigate to' : undefined}
                 onClick={(event) => {
                     if (type === 'object' && !parent) {
@@ -91,58 +91,57 @@ const MappingRule = React.createClass({
         );
 
         const shortView = (
-             <div
-                 className="mdl-card__content"
-                 onClick={() => {
-                     if (type === 'object' && !parent) {
-                         return;
-                     }
-                     this.handleToggleExpand({});
-                 }}
-             >
-                 {id}
-                 <div>
+            <div
+                className="mdl-card__content"
+                onClick={() => {
+                    if (type === 'object' && !parent) {
+                        return;
+                    }
+                    this.handleToggleExpand({});
+                }}
+            >
+                {id}
+                <div>
                     from (todo: get content after store implementation)
-                 </div>
-                 <div>
+                </div>
+                <div>
                     by (todo: get content after store implementation)
-                 </div>
-                 <div className="action" key="action">{action}</div>
-             </div>
-            )
-        ;
+                </div>
+                <div className="action" key="action">{action}</div>
+            </div>
+        );
 
         // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = (
-                <div
-                    className="mdl-card__content"
-                    onClick={() => {
-                        if ((type === 'object' || type === 'root') && !parent) {
-                            return;
-                        }
-                        this.handleToggleExpand({});
-                    }}
-                >
-                    <div className="action" key="action">{action}</div>
-                    {
-                        (type === 'object' || type === 'root') ? (
-                            <RuleObjectEdit
-                                {...this.props}
-                                type="object"
-                                edit={this.state.edit}
-                                onClose={this.handleRuleEditClose}
-                            />
-                        ) : (
-                            <RuleValueEdit
-                                {...this.props}
-                                type="value"
-                                edit={this.state.edit}
-                                onClose={this.handleRuleEditClose}
-                            />
-
-                        )
+            <div
+                className="mdl-card__content"
+                onClick={() => {
+                    if ((type === 'object' || type === 'root') && !parent) {
+                        return;
                     }
-                </div>
+                    this.handleToggleExpand({});
+                }}
+            >
+                <div className="action" key="action">{action}</div>
+                {
+                    (type === 'object' || type === 'root') ? (
+                        <RuleObjectEdit
+                            {...this.props}
+                            type={type}
+                            edit={this.state.edit}
+                            onClose={this.handleRuleEditClose}
+                        />
+                    ) : (
+                        <RuleValueEdit
+                            {...this.props}
+                            type={type}
+                            edit={this.state.edit}
+                            onClose={this.handleRuleEditClose}
+                        />
+
+                    )
+                }
+            </div>
         );
 
         return (

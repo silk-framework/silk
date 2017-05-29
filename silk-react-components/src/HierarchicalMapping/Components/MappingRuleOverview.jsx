@@ -1,10 +1,9 @@
-
 /*
  Whole overview over a hierarchical Mapping on the right, header may be defined here, loops over MappingRule
  */
 
 import React from 'react';
-import {UseMessageBus} from 'ecc-mixins';
+import UseMessageBus from '../UseMessageBusMixin';
 import MappingRule from './MappingRule';
 import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
@@ -24,13 +23,21 @@ const MappingRuleOverview = React.createClass({
 
     // initilize state
     getInitialState() {
+        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData)
         return {
             loading: true,
             ruleData: {},
         };
     },
-
     componentDidMount() {
+        this.loadData();
+    },
+    componentDidUpdate(prevProps) {
+        if (prevProps.currentRuleId !== this.props.currentRuleId) {
+            this.loadData();
+        }
+    },
+    loadData() {
         hierarchicalMappingChannel.request(
             {
                 topic: 'rule.get',
@@ -39,18 +46,18 @@ const MappingRuleOverview = React.createClass({
                 }
             }
         )
-        .subscribe(
-            ({rule}) => {
-                this.setState({
-                    loading: false,
-                    ruleData: rule,
-                });
-            },
-            (err) => {
-                console.warn('err MappingRuleOverview: rule.get');
-                this.setState({loading: false});
-            }
-        );
+            .subscribe(
+                ({rule}) => {
+                    this.setState({
+                        loading: false,
+                        ruleData: rule,
+                    });
+                },
+                (err) => {
+                    console.warn('err MappingRuleOverview: rule.get');
+                    this.setState({loading: false});
+                }
+            );
     },
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({expanded}) {
@@ -63,7 +70,6 @@ const MappingRuleOverview = React.createClass({
             //FIXME: do we need more data like id of parent as source?
         });
     },
-
     // template rendering
     render () {
 
@@ -98,13 +104,17 @@ const MappingRuleOverview = React.createClass({
                 >
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-value-mapping"
-                        onClick={() => {this.handleCreate({type: 'value'}); }}
+                        onClick={() => {
+                            this.handleCreate({type: 'direct'});
+                        }}
                     >
                         Add value mapping
                     </MenuItem>
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-object-mapping"
-                        onClick={() => {this.handleCreate({type: 'object'}); }}
+                        onClick={() => {
+                            this.handleCreate({type: 'object'});
+                        }}
                     >
                         Add object mapping
                     </MenuItem>
@@ -115,13 +125,17 @@ const MappingRuleOverview = React.createClass({
                     </MenuItem>
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-expand-mappings"
-                        onClick={() => {this.handleToggleRuleDetails({expanded: true})}}
+                        onClick={() => {
+                            this.handleToggleRuleDetails({expanded: true})
+                        }}
                     >
                         Expand all
                     </MenuItem>
                     <MenuItem
                         className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-reduce-mappings"
-                        onClick={() => {this.handleToggleRuleDetails({expanded: false})}}
+                        onClick={() => {
+                            this.handleToggleRuleDetails({expanded: false})
+                        }}
                     >
                         Reduce all
                     </MenuItem>

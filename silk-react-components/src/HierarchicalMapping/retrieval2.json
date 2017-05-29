@@ -15,7 +15,6 @@
     "propertyRules" : [ {
       "id": "complexRule",
       "type": "complex",
-      "name": "sourcePath1",
       "comment": "",
       "mappingTarget": {
         "uri": "http://www.w3.org/2000/01/rdf-schema#label",
@@ -66,7 +65,23 @@
       "rules" : {
         "uriRule" : null,
         "typeRules" : [ ],
-        "propertyRules" : [ ]
+        "propertyRules" : [ {
+            "type" : "object",
+            "id" : "objectRule 2",
+            "sourcePath" : "/source:country",
+            "mappingTarget" : {
+                "uri" : "target:country",
+                "valueType" : {
+                    "nodeType" : "UriValueType"
+                }
+            },
+            "rules" : {
+                "uriRule" : null,
+                "typeRules" : [ ],
+                "propertyRules" : [ ]
+            }
+
+        }]
       }
 
     } ]

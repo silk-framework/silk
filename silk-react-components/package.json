@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "ecc-gulp-tasks": "^3.6.0",
-    "ecc-mixins": "^1.9.0",
     "gulp": "^3.9.1"
   }
 }

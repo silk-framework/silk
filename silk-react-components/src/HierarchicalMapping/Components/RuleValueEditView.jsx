@@ -1,5 +1,5 @@
 import React from 'react';
-import {UseMessageBus} from 'ecc-mixins';
+import UseMessageBus from '../UseMessageBusMixin';
 import {Button, TextField, SelectBox} from 'ecc-gui-elements';
 import _ from 'lodash';
 
@@ -33,9 +33,10 @@ const RuleValueEditView = React.createClass({
     },
 
     handleConfirm() {
-        hierarchicalMappingChannel.subject('ruleId.createMapping').onNext({
+        hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             // if id is undefined -> we are creating a new rule
             id: this.props.id,
+            parentId: this.props.parentId,
             type: this.props.type,
             comment: this.state.comment,
             targetProperty: this.state.targetProperty,
@@ -51,11 +52,14 @@ const RuleValueEditView = React.createClass({
         });
     },
     handleChangeSelectBox(state, value) {
+
         this.setState({
             [state]: value,
         });
     },
-
+    handleComplexEdit() {
+        alert('Normally this would open the complex editor (aka jsplumb view)')
+    },
     // open view in edit mode
     handleEdit(event) {
         hierarchicalMappingChannel.subject('ruleId.edit').onNext({ruleId: this.props.id});
@@ -64,18 +68,15 @@ const RuleValueEditView = React.createClass({
     // remove rule
     handleRemove(event) {
         console.log('click remove');
-        // TODO: add remove event
-        event.stopPropagation();
     },
-
     // template rendering
     render () {
         const {
-            id ,
+            id,
             edit,
+            type = 'direct',
         } = this.props;
 
-        console.warn('debug VALUE edit view', this.props);
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = !(this.state.targetProperty && this.state.propertyType);
@@ -88,13 +89,17 @@ const RuleValueEditView = React.createClass({
             ) : false
         );
 
+        //TODO: Where to get the list of target Properties?
         const targetPropertyInput = (
             edit ? (
                 <SelectBox
                     placeholder={'Choose target property'}
                     className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
-                    // TODO: get list of target properties
-                    options={[]}
+                    options={[
+                        'http://xmlns.com/foaf/0.1/name',
+                        'http://xmlns.com/foaf/0.1/knows',
+                        'http://xmlns.com/foaf/0.1/familyName',
+                    ]}
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                 />
@@ -108,13 +113,17 @@ const RuleValueEditView = React.createClass({
             )
         );
 
+        //TODO: Where to get the list of target property types?
         const propertyTypeInput = (
             edit ? (
                 <SelectBox
                     placeholder={'Choose property type'}
                     className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
-                    // TODO: get list of property types
-                    options={[]}
+                    options={[
+                        'AutoDetectValueType',
+                        'StringValueType',
+                        'UriValueType',
+                    ]}
                     value={this.state.propertyType}
                     onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
                 />
@@ -127,6 +136,35 @@ const RuleValueEditView = React.createClass({
                 </div>
             )
         );
+
+        //TODO: Unfold complex mapping
+        let sourceProperty = edit ? false : (
+            <div>
+                Source property
+                {this.state.sourceProperty || 'Complex Mapping'} <Button onClick={this.handleComplexEdit}>Edit</Button>
+            </div>
+        );
+
+
+        console.warn(type);
+
+        if (edit && type === 'direct') {
+            sourceProperty = (
+                <TextField
+                    label={'Source property'}
+                    onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
+                    value={this.state.sourceProperty}
+                />
+            );
+        } else if (edit && type === 'complex') {
+            sourceProperty = (
+                <TextField
+                    disabled={true}
+                    label="Source property"
+                    value="Complex Mapping"
+                />
+            )
+        }
 
         const commentInput = (
             edit ? (
@@ -192,9 +230,7 @@ const RuleValueEditView = React.createClass({
                     <div className="mdl-card__content">
                         {targetPropertyInput}
                         {propertyTypeInput}
-                        {/*TODO: Which gui element to use?*/}
-                        Source property<br/>
-                        {this.state.sourceProperty}
+                        {sourceProperty}
                         {commentInput}
                         {actionRow}
                         {

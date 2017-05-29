@@ -1,5 +1,5 @@
 import React from 'react';
-import {UseMessageBus} from 'ecc-mixins';
+import UseMessageBus from '../UseMessageBusMixin';
 import {Button, SelectBox, Radio, RadioGroup, TextField} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
@@ -22,20 +22,19 @@ const RuleObjectEditView = React.createClass({
         const {typeRules = [], uriRule = {}} = _.get(this.props, 'rules', {});
 
         return {
-            // TODO: get it from props
-            targetProperty: undefined,
-            // TODO: get it from props
-            targetEntityType: undefined,
+            targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
+            targetEntityType: _.get(this.props, 'rules.typeRules[0].uri', undefined),
             // TODO: get it from props
             entityConnection: 'from',
-            pattern: uriRule.pattern,
+            pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
         };
     },
 
     handleConfirm() {
-        hierarchicalMappingChannel.subject('ruleId.createMapping').onNext({
+        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             // if id is undefined -> we are creating a new rule
             id: this.props.id,
+            parentId: this.props.parentId,
             type: this.props.type,
             targetProperty: this.state.targetProperty,
             targetEntityType: this.state.targetEntityType,
@@ -94,13 +93,17 @@ const RuleObjectEditView = React.createClass({
             ) : false
         );
 
+        // TODO: where to get get list of target properties
         const targetPropertyInput = (
             edit ? (
                 <SelectBox
                     placeholder={'Choose target property'}
                     className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
-                    // TODO: get list of target properties
-                    options={[]}
+                    options={[
+                        'target:address',
+                        'target:country',
+                        'target:friend',
+                    ]}
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                 />
@@ -132,13 +135,13 @@ const RuleObjectEditView = React.createClass({
             </RadioGroup>
         );
 
+        // TODO: where to get get list of target properties
         const targetEntityTypeInput = (
             edit ? (
                 <SelectBox
                     placeholder={'Choose target entity type'}
                     className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
-                    // TODO: get list of target entity types
-                    options={[]}
+                    options={['foaf:Person', 'schema:Country', 'schema:Address']}
                     value={this.state.targetEntityType}
                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                 />
@@ -152,20 +155,27 @@ const RuleObjectEditView = React.createClass({
             )
         );
 
-        const pattern = (
-            id ? (
-                <div>
-                    Id pattern<br/>
+        let pattern = false;
+
+        if (id) {
+            pattern = (
+                edit ? (
                     <TextField
                         label="Id pattern"
                         className="ecc-component-hierarchicalMapping__content-editView-object__content__pattern"
                         value={this.state.pattern}
                         onChange={this.handleChangeTextfield.bind(null, 'pattern')}
-                        disabled={!edit}
                     />
-                </div>
-            ) : false
-        );
+                ) : (
+                    <div
+                        className="ecc-component-hierarchicalMapping__content-editView-object__content__pattern"
+                    >
+                        Id pattern
+                        {this.state.pattern}
+                    </div>
+                )
+            );
+        }
 
         const actionRow = (
             edit ? (

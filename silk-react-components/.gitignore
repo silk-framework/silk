@@ -26,3 +26,4 @@ es5/
 #END
 
 dist/
+!Makefile

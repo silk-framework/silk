@@ -1,6 +1,5 @@
-
 import React from 'react';
-import {UseMessageBus} from 'ecc-mixins';
+import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {Button} from 'ecc-gui-elements';
@@ -21,10 +20,10 @@ const HierarchicalMapping = React.createClass({
 
     // define property types
     /*propTypes: {
-        apiBase: React.PropTypes.string.isRequired, // used restApi url
-        project: React.PropTypes.string.isRequired, // used project name
-        transformationTask: React.PropTypes.string, // used transformation
-    },*/
+     apiBase: React.PropTypes.string.isRequired, // used restApi url
+     project: React.PropTypes.string.isRequired, // used project name
+     transformationTask: React.PropTypes.string, // used transformation
+     },*/
 
     // initilize state
     getInitialState() {
@@ -41,7 +40,7 @@ const HierarchicalMapping = React.createClass({
             // show / hide edit view of rule
             // TODO: set to false as default after developing
             ruleEditView: {
-                type: 'object', // or type: 'value'
+                type: 'object', // or type: 'direct'
             },
         };
     },
@@ -50,12 +49,11 @@ const HierarchicalMapping = React.createClass({
         this.setState({
             currentRuleId: newRuleId,
         })
-
     },
     // show / hide navigation
     handleToggleNavigation() {
         this.setState({
-           showNavigation: !this.state.showNavigation,
+            showNavigation: !this.state.showNavigation,
         });
     },
     onRuleCreate({type}) {
@@ -74,7 +72,7 @@ const HierarchicalMapping = React.createClass({
     render () {
 
         const treeView = (
-            this.state.showNavigation ?  (
+            this.state.showNavigation ? (
                 <TreeView
                     apiBase={this.props.apiBase}
                     project={this.props.project}
@@ -87,17 +85,21 @@ const HierarchicalMapping = React.createClass({
         const editView = () => {
             if (this.state.ruleEditView) {
                 return (
-                    this.state.ruleEditView.type === 'value' ? (
+                    this.state.ruleEditView.type === 'object' ? (
+                        <RuleObjectEdit
+                            {...this.state.ruleEditView}
+                            onClose={this.handleRuleEditClose}
+                            parentId={this.state.currentRuleId}
+                            edit={true}
+                        />
+                    ) : (
                         <RuleValueEdit
                             {...this.state.ruleEditView}
                             onClose={this.handleRuleEditClose}
+                            parentId={this.state.currentRuleId}
                             edit={true}
                         />
-                    ) : <RuleObjectEdit
-                            {...this.state.ruleEditView}
-                            onClose={this.handleRuleEditClose}
-                            edit={true}
-                        />
+                    )
                 )
             }
             return false;
