@@ -94,7 +94,7 @@ const appendToMockStore = (mockStore, id, payload) => {
 
 const editRule = (mockStore, id, payload) => {
     if (mockStore.id === id) {
-        _.assign(mockStore, payload)
+        _.merge(mockStore, payload)
     } else if (_.has(mockStore, 'rules.propertyRules')) {
         _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
             editRule(childRule, id, payload);
