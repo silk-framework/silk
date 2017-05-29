@@ -41,13 +41,22 @@ hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
     }
 );
 
-const findRule = (parentRule, id) => {
+const findRule = (parentRule, id, breadcrumbs) => {
 
     let foundRule = null;
 
     if (parentRule.id === id) {
+        parentRule.breadcrumbs = breadcrumbs;
         return parentRule;
     } else if (_.has(parentRule, 'rules.propertyRules')) {
+
+        const bc = [...breadcrumbs, {
+            id: parentRule.id,
+            name: parentRule.type === 'root' ?
+                _.get(parentRule, 'rules.typeRules[0].typeUri', '(no target type)') :
+                _.get(parentRule, 'mappingTarget.uri', '(no target property)')
+        }];
+
         _.forEach(_.get(parentRule, 'rules.propertyRules'), (childRule) => {
             if (childRule.id === id) {
                 if (childRule.type === 'object') {
@@ -55,10 +64,11 @@ const findRule = (parentRule, id) => {
                 } else {
                     foundRule = parentRule;
                 }
+                foundRule.breadcrumbs = bc;
                 return false;
             }
             if (_.has(childRule, 'rules.propertyRules')) {
-                foundRule = findRule(childRule, id);
+                foundRule = findRule(childRule, id, bc);
                 if (foundRule) {
                     return false;
                 }
@@ -74,7 +84,9 @@ hierarchicalMappingChannel.subject('rule.get').subscribe(
 
         const {id} = data;
 
-        const rule = id ? findRule(mockStore, id) : mockStore;
+        const searchId = id ? id : mockStore.id;
+
+        const rule = findRule(_.cloneDeep(mockStore), searchId, []);
 
         replySubject.onNext({rule: rule ? rule : mockStore});
         replySubject.onCompleted();
