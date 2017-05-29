@@ -8,6 +8,7 @@ import MappingRule from './MappingRule';
 import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
+import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 
 const MappingRuleOverview = React.createClass({
 
@@ -23,7 +24,7 @@ const MappingRuleOverview = React.createClass({
 
     // initilize state
     getInitialState() {
-        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData)
+        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         return {
             loading: true,
             ruleData: {},
@@ -75,27 +76,12 @@ const MappingRuleOverview = React.createClass({
 
         const {
             rules = {},
+            id,
         } = this.state.ruleData;
 
         const childRules = rules.propertyRules || [];
 
         const loading = this.state.loading ? <Spinner /> : false;
-
-        const mappingRulesOverview = (
-            !_.isEmpty(this.state.ruleData) ? (
-                <div
-                    className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
-                >
-                    <MappingRule
-                        {...this.state.ruleData}
-                        parent={true}
-                    />
-                </div>
-
-            ) : (
-                false
-            )
-        );
 
         const mappingRulesListHead = (
             <div>
@@ -152,7 +138,7 @@ const MappingRuleOverview = React.createClass({
             ) : (
                 _.map(childRules, (rule, idx) =>
                     (
-                        <MappingRule key={'MappingRule_' + idx} {...rule}/>
+                        <MappingRule key={`MappingRule_${id}_${idx}`} {...rule}/>
                     )
                 )
             )
@@ -163,11 +149,7 @@ const MappingRuleOverview = React.createClass({
                 className="ecc-component-hierarchicalMapping__content-mappingRuleOverview"
             >
                 {loading}
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                    <div className="mdl-card__content">
-                        {mappingRulesOverview}
-                    </div>
-                </div>
+                <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 <br/>
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <div className="mdl-card__content">
