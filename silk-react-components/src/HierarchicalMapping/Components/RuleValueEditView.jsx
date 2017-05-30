@@ -1,9 +1,9 @@
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import {Button, TextField, SelectBox} from 'ecc-gui-elements';
-import _ from 'lodash';
-
+import {Button, TextField, SelectBox, ConfirmationDialog, AffirmativeButton, DismissiveButton} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
+import {Rx} from 'ecc-messagebus';
+import _ from 'lodash';
 
 const RuleValueEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -46,6 +46,13 @@ const RuleValueEditView = React.createClass({
         });
         this.handleClose(event);
     },
+    // remove rule
+    handleClickRemove(event) {
+        event.stopPropagation();
+        this.setState({
+            elementToDelete: this.props.id,
+        });
+    },
 
     handleChangeTextfield(state, {value}) {
         this.setState({
@@ -78,10 +85,29 @@ const RuleValueEditView = React.createClass({
             })
         }
     },
-    // remove rule
-    handleRemove(event) {
+    handleConfirmRemove(event) {
         event.stopPropagation();
-        console.log('click remove');
+        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete}})
+            .subscribe(
+                () => {
+                    // FIXME: let know the user which element is gone!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                },
+                (err) => {
+                    // FIXME: let know the user what have happened!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                }
+            );
+    },
+    handleCancelRemove() {
+        event.stopPropagation();
+        this.setState({
+            elementToDelete: false,
+        });
     },
     // template rendering
     render () {
@@ -90,7 +116,6 @@ const RuleValueEditView = React.createClass({
             type = 'direct',
         } = this.props;
         const {edit} = this.state;
-
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = !(this.state.targetProperty && this.state.propertyType);
@@ -226,14 +251,33 @@ const RuleValueEditView = React.createClass({
                     </Button>
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                        onClick={this.handleRemove}
-                        disabled
+                        onClick={this.handleClickRemove}
+                        disabled={false} // FIXME: all elements are removable?
                     >
-                        Remove (TODO)
+                        Remove
                     </Button>
                 </div>
             )
         );
+
+        const deleteView = this.state.elementToDelete
+            ? <ConfirmationDialog
+                active={true}
+                title="Delete Rule"
+                confirmButton={
+                    <AffirmativeButton disabled={false} onClick={this.handleConfirmRemove}>
+                        Delete
+                    </AffirmativeButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelRemove}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                Are you sure you want to delete the rule with id '{this.state.elementToDelete}'?
+            </ConfirmationDialog>
+            : false;
+
 
         return (
             <div
@@ -253,6 +297,7 @@ const RuleValueEditView = React.createClass({
                             // FIXME: EditView should not mix View and Edit functionality
                         }
                     </div>
+                    {deleteView}
                 </div>
             </div>
         );

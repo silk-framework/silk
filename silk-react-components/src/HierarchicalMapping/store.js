@@ -117,7 +117,7 @@ const editRule = (mockStore, id, payload) => {
 
 const saveMockStore = () => {
     hierarchicalMappingChannel.subject('reload').onNext(true);
-    localStorage.setItem('mockStore', JSON.stringify(mockStore))
+    localStorage.setItem('mockStore', JSON.stringify(mockStore));
 };
 
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
@@ -199,6 +199,27 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
         saveMockStore();
 
 
+    }
+);
+
+const removeRule = (store, id) => {
+
+    if (store.id===id) {
+        return null;
+    } else if (_.has(store, 'rules.propertyRules')) {
+        store.rules.propertyRules = _.filter(store.rules.propertyRules, (v) => {
+            return removeRule(v, id) !== null;
+        });
+    }
+    return store;
+};
+
+hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
+    ({data, replySubject}) => {
+        mockStore = removeRule(_.chain(mockStore).value(), data.id);
+        saveMockStore();
+        replySubject.onNext();
+        replySubject.onCompleted();
     }
 );
 

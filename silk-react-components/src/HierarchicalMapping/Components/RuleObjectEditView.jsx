@@ -1,7 +1,8 @@
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import {Button, SelectBox, Radio, RadioGroup, TextField} from 'ecc-gui-elements';
+import {Button, SelectBox, Radio, RadioGroup, TextField, ConfirmationDialog, AffirmativeButton, DismissiveButton} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
+import {Rx} from 'ecc-messagebus';
 import _ from 'lodash';
 
 const RuleObjectEditView = React.createClass({
@@ -28,6 +29,12 @@ const RuleObjectEditView = React.createClass({
         };
     },
 
+    handleClickRemove(event) {
+        event.stopPropagation();
+        this.setState({
+            elementToDelete: this.props.id,
+        });
+    },
     handleConfirm() {
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             // if id is undefined -> we are creating a new rule
@@ -73,11 +80,28 @@ const RuleObjectEditView = React.createClass({
             })
         }
     },
-    // remove rule
-    handleRemove(event) {
-        console.log('click remove');
-        // TODO: add remove event
+    handleConfirmRemove(event) {
         event.stopPropagation();
+        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete}})
+            .subscribe(
+                () => {
+                    // FIXME: let know the user which element is gone!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                },
+                (err) => {
+                    // FIXME: let know the user what have happened!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                }
+            );
+    },
+    handleCancelRemove() {
+        this.setState({
+            elementToDelete: false,
+        });
     },
 
     // template rendering
@@ -219,14 +243,32 @@ const RuleObjectEditView = React.createClass({
                     </Button>
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                        onClick={this.handleRemove}
-                        disabled
+                        onClick={this.handleClickRemove}
+                        disabled={false} // FIXME: all elements are removable?
                     >
-                        Remove (TODO)
+                        Remove
                     </Button>
                 </div>
             )
         );
+
+        const deleteView = this.state.elementToDelete
+            ? <ConfirmationDialog
+                active={true}
+                title="Delete Rule"
+                confirmButton={
+                    <AffirmativeButton disabled={false} onClick={this.handleConfirmRemove}>
+                        Delete
+                    </AffirmativeButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelRemove}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                Are you sure you want to delete the rule with id '{this.state.elementToDelete}'?
+            </ConfirmationDialog>
+            : false;
 
         // FIXME: EditView should not mix View and Edit functionality
         return (
@@ -240,6 +282,7 @@ const RuleObjectEditView = React.createClass({
                             {targetPropertyInput}
                             {entityRelationInput}
                             {targetEntityTypeInput}
+                            {deleteView}
                             {pattern}
                             {
                                 // TODO: if not in edit mode user should see modified and creator
@@ -253,6 +296,7 @@ const RuleObjectEditView = React.createClass({
                 <div>
                     <div className="mdl-card__content">
                         {targetPropertyInput}
+                        {deleteView}
                         {entityRelationInput}
                         {targetEntityTypeInput}
                         {pattern}
