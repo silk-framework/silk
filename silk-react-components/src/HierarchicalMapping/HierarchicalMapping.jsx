@@ -2,7 +2,7 @@ import React from 'react';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
-import {Button} from 'ecc-gui-elements';
+import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 import RuleValueEdit from './Components/RuleValueEditView';
 import RuleObjectEdit from './Components/RuleObjectEditView';
@@ -40,7 +40,7 @@ const HierarchicalMapping = React.createClass({
             // show / hide edit view of rule
             // TODO: set to false as default after developing
             ruleEditView: {
-                type: 'object', // or type: 'direct'
+                type: false, // or type: 'direct' | 'object'
             },
         };
     },
@@ -109,24 +109,29 @@ const HierarchicalMapping = React.createClass({
             <div
                 className="ecc-silk-mapping"
             >
-                <div className="ecc-silk-mapping__header">
-                    {/* FIXME: use settings menu with item Hide/Show tree item */}
-                    <Button
-                        iconName={this.state.showNavigation ? 'arrow_prevpage' : 'more_vert'}
-                        tooltip={this.state.showNavigation ? 'Close tree' : 'Open tree'}
-                        onClick={this.handleToggleNavigation}
-                    />
-                </div>
-                <div className="ecc-silk-mapping__content">
-                    {treeView}
-                    {/*TODO: CreateView should be placed here but editView need to be part of mapping rule list*/}
-                    {editView()}
-                    <MappingRuleOverview
-                        apiBase={this.props.apiBase}
-                        project={this.props.project}
-                        transformationTask={this.props.transformationTask}
-                        currentRuleId={this.state.currentRuleId}
-                    />
+                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+                    <div className="ecc-silk-mapping__header mdl-card__title">
+                        <ContextMenu
+                            iconName="tune"
+                        >
+                            <MenuItem
+                                onClick={this.handleToggleNavigation}
+                            >
+                                {this.state.showNavigation ? 'Hide tree navigation' : 'Show tree navigation'}
+                            </MenuItem>
+                        </ContextMenu>
+                    </div>
+                    <div className="ecc-silk-mapping__content">
+                        {treeView}
+                        <MappingRuleOverview
+                            apiBase={this.props.apiBase}
+                            project={this.props.project}
+                            transformationTask={this.props.transformationTask}
+                            currentRuleId={this.state.currentRuleId}
+                        />
+                        {/*TODO: CreateView should be placed here but editView need to be part of mapping rule list*/}
+                        {editView()}
+                    </div>
                 </div>
             </div>
         );

@@ -146,8 +146,7 @@ const MappingRuleOverview = React.createClass({
         );
 
         return (
-            <div
-            >
+            <div className="ecc-silk-mapping__rules">
                 {loading}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 <br/>

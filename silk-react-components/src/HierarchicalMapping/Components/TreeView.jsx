@@ -139,10 +139,8 @@ const TreeView = React.createClass({
             <div
                 className="ecc-silk-mapping__treenav"
             >
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
-                    {loading}
-                    {content}
-                </div>
+                {loading}
+                {content}
             </div>
         );
     },
