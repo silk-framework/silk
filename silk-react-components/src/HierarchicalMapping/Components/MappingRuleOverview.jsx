@@ -84,8 +84,10 @@ const MappingRuleOverview = React.createClass({
         const loading = this.state.loading ? <Spinner /> : false;
 
         const mappingRulesListHead = (
-            <div>
-                Mapping rules {`(${childRules.length})`}
+            <div className="mdl-card__title mdl-card--border">
+                <div className="mdl-card__title-text">
+                    Mapping rules {`(${childRules.length})`}
+                </div>
                 <ContextMenu
                     className="ecc-silk-mapping__ruleslistmenu"
                 >
@@ -149,13 +151,10 @@ const MappingRuleOverview = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
-                <br/>
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                    <div className="mdl-card__content">
+                <div className="ecc-silk-mapping__ruleslist">
+                    <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                         {mappingRulesListHead}
-                        <div className="ecc-silk-mapping__ruleslist">
-                            {mappingRulesList}
-                        </div>
+                        {mappingRulesList}
                     </div>
                 </div>
             </div>

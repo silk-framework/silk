@@ -41,6 +41,8 @@
 }
 
 .ecc-silk-mapping__ruleshead {
+    margin-bottom: 1rem;
+
     .mdl-card__title {
         align-items: flex-start;
     }
@@ -73,5 +75,11 @@
         .mdl-card__title-text-sub {
             font-size: 0.75em;
         }
+    }
+}
+
+.ecc-silk-mapping__ruleslist {
+    .mdl-card__title-text {
+        flex-grow: 1;
     }
 }
