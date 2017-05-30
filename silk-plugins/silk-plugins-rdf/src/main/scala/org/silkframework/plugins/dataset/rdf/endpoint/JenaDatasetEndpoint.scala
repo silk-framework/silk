@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io._
-import java.util.concurrent.{ExecutorService, Executors}
+import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 import java.util.logging.Logger
 
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
@@ -120,5 +120,17 @@ case class ModelOutputThread(model: Model, pipedOutputStream: PipedOutputStream,
 
 object JenaDatasetEndpoint {
   private val NR_THREADS = 4
-  lazy val executor: ExecutorService = Executors.newFixedThreadPool(NR_THREADS)
+  private val SHUTDOWN_TIME = 10
+  lazy val executor: ExecutorService = {
+    val exec = Executors.newFixedThreadPool(NR_THREADS)
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        exec.shutdown()
+        if (!exec.awaitTermination(SHUTDOWN_TIME, TimeUnit.SECONDS)) {
+          exec.shutdownNow()
+        }
+      }
+    })
+    exec
+  }
 }
