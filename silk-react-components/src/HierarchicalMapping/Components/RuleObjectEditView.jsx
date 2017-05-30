@@ -111,7 +111,7 @@ const RuleObjectEditView = React.createClass({
                 edit ? (
                     <SelectBox
                         placeholder={'Choose target property'}
-                        className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                        className="ecc-silk-mapping__ruleseditor__targetProperty"
                         options={[
                             'target:address',
                             'target:country',
@@ -122,7 +122,7 @@ const RuleObjectEditView = React.createClass({
                     />
                 ) : (
                     <div
-                        className="ecc-component-hierarchicalMapping__content-editView-object__content__targetProperty"
+                        className="ecc-silk-mapping__ruleseditor__targetProperty"
                     >
                         Target property
                         {this.state.targetProperty}
@@ -155,14 +155,14 @@ const RuleObjectEditView = React.createClass({
             edit ? (
                 <SelectBox
                     placeholder={'Choose target entity type'}
-                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
+                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
                     options={['foaf:Person', 'schema:Country', 'schema:Address']}
                     value={this.state.targetEntityType}
                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                 />
             ) : (
                 <div
-                    className="ecc-component-hierarchicalMapping__content-editView-object__content__targetEntityType"
+                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
                 >
                     Target entity type
                     {this.state.targetEntityType}
@@ -177,13 +177,13 @@ const RuleObjectEditView = React.createClass({
                 edit ? (
                     <TextField
                         label="Id pattern"
-                        className="ecc-component-hierarchicalMapping__content-editView-object__content__pattern"
+                        className="ecc-silk-mapping__ruleseditor__pattern"
                         value={this.state.pattern}
                         onChange={this.handleChangeTextfield.bind(null, 'pattern')}
                     />
                 ) : (
                     <div
-                        className="ecc-component-hierarchicalMapping__content-editView-object__content__pattern"
+                        className="ecc-silk-mapping__ruleseditor__pattern"
                     >
                         Id pattern
                         {this.state.pattern}
@@ -194,31 +194,31 @@ const RuleObjectEditView = React.createClass({
 
         const actionRow = (
             edit ? (
-                <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow">
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-save"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
                         disabled={allowConfirm}
                     >
                         Save
                     </Button>
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-cancel"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
                         onClick={this.handleClose}
                     >
                         Cancel
                     </Button>
                 </div>
             ) : (
-                <div className="ecc-component-hierarchicalMapping__content-editView-object__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow">
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-edit"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
                     >
                         Edit
                     </Button>
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-object__actionrow-remove"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                         onClick={this.handleRemove}
                         disabled
                     >
@@ -230,7 +230,7 @@ const RuleObjectEditView = React.createClass({
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping__content-editView-object"
+                className="ecc-silk-mapping__ruleseditor"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
                     {title}
@@ -243,6 +243,7 @@ const RuleObjectEditView = React.createClass({
                         {
                             // TODO: if not in edit mode user should see modified and creator
                             // store data not exist at the moment - mockup for now?
+                            // FIXME: EditView should not mix View and Edit functionality
                         }
                     </div>
                 </div>

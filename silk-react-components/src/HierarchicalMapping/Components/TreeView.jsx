@@ -100,7 +100,7 @@ const TreeView = React.createClass({
                 );
             }
             return (
-                <ul className={`ecc-component-hierarchicalMapping__content-treeView-${isHighlighted ? 'highlight' : ''}` }>
+                <ul className={`ecc-silk-mapping__treenav-${isHighlighted ? 'highlight' : ''}` }>
                     {
                         !_.isEmpty(childs) ? (
                             <Button
@@ -137,7 +137,7 @@ const TreeView = React.createClass({
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping__content-treeView"
+                className="ecc-silk-mapping__treenav"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
                     {loading}

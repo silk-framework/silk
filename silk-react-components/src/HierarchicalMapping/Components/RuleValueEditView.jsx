@@ -108,7 +108,7 @@ const RuleValueEditView = React.createClass({
             edit ? (
                 <SelectBox
                     placeholder={'Choose target property'}
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
+                    className="ecc-silk-mapping__ruleseditor__targetProperty"
                     options={[
                         'http://xmlns.com/foaf/0.1/name',
                         'http://xmlns.com/foaf/0.1/knows',
@@ -119,7 +119,7 @@ const RuleValueEditView = React.createClass({
                 />
             ) : (
                 <div
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__targetProperty"
+                    className="ecc-silk-mapping__ruleseditor__targetProperty"
                 >
                     Target property
                     {this.state.targetProperty}
@@ -132,7 +132,7 @@ const RuleValueEditView = React.createClass({
             edit ? (
                 <SelectBox
                     placeholder={'Choose property type'}
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
+                    className="ecc-silk-mapping__ruleseditor__propertyType"
                     options={[
                         'AutoDetectValueType',
                         'StringValueType',
@@ -143,7 +143,7 @@ const RuleValueEditView = React.createClass({
                 />
             ) : (
                 <div
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__propertyType"
+                    className="ecc-silk-mapping__ruleseditor__propertyType"
                 >
                     Property type
                     {this.state.propertyType}
@@ -185,13 +185,13 @@ const RuleValueEditView = React.createClass({
                 <TextField
                     multiline={true}
                     label="Comment"
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__comment"
+                    className="ecc-silk-mapping__ruleseditor__comment"
                     value={this.state.comment}
                     onChange={this.handleChangeTextfield.bind(null, 'comment')}
                 />
             ) : (
                 <div
-                    className="ecc-component-hierarchicalMapping__content-editView-value__content__comment"
+                    className="ecc-silk-mapping__ruleseditor__comment"
                 >
                     Comment
                     {this.state.comment}
@@ -201,31 +201,31 @@ const RuleValueEditView = React.createClass({
 
         const actionRow = (
             edit ? (
-                <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow">
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-save"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
                         disabled={allowConfirm}
                     >
                         Save
                     </Button>
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-cancel"
+                        className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
                         onClick={this.handleClose}
                     >
                         Cancel
                     </Button>
                 </div>
             ) : (
-                <div className="ecc-component-hierarchicalMapping__content-editView-value__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow">
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-edit"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
                     >
                         Edit
                     </Button>
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-editView-value__actionrow-remove"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                         onClick={this.handleRemove}
                         disabled
                     >
@@ -237,7 +237,7 @@ const RuleValueEditView = React.createClass({
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping__content-editView-value"
+                className="ecc-silk-mapping__ruleseditor"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
                     {title}
@@ -250,6 +250,7 @@ const RuleValueEditView = React.createClass({
                         {
                             // TODO: if not in edit mode user should see modified and creator
                             // store data not exist at the moment - mockup for now?
+                            // FIXME: EditView should not mix View and Edit functionality
                         }
                     </div>
                 </div>

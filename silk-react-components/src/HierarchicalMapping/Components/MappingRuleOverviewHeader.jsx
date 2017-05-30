@@ -63,11 +63,11 @@ const MappingRuleOverviewHeader = React.createClass({
         }
 
         return (
-            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                <div className="mdl-card__title">
-                    <div
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__header"
-                    >
+            <div
+                className="ecc-silk-mapping__ruleshead"
+            >
+                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                    <div className="mdl-card__title">
                         <div>
                             {backButton}
                         </div>
@@ -85,8 +85,8 @@ const MappingRuleOverviewHeader = React.createClass({
                             />
                         </div>
                     </div>
+                    {content}
                 </div>
-                {content}
             </div>
         )
     }

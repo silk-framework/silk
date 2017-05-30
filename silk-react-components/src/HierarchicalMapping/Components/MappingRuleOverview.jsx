@@ -4,11 +4,11 @@
 
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import MappingRule from './MappingRule';
-import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
+import MappingRule from './MappingRule';
+import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 
 const MappingRuleOverview = React.createClass({
 
@@ -87,9 +87,10 @@ const MappingRuleOverview = React.createClass({
             <div>
                 Mapping rules {`(${childRules.length})`}
                 <ContextMenu
+                    className="ecc-silk-mapping__ruleslistmenu"
                 >
                     <MenuItem
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-value-mapping"
+                        className="ecc-silk-mapping__ruleslistmenu__item-add-value"
                         onClick={() => {
                             this.handleCreate({type: 'direct'});
                         }}
@@ -97,7 +98,7 @@ const MappingRuleOverview = React.createClass({
                         Add value mapping
                     </MenuItem>
                     <MenuItem
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-add-object-mapping"
+                        className="ecc-silk-mapping__ruleslistmenu__item-add-object"
                         onClick={() => {
                             this.handleCreate({type: 'object'});
                         }}
@@ -105,12 +106,12 @@ const MappingRuleOverview = React.createClass({
                         Add object mapping
                     </MenuItem>
                     <MenuItem
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-suggest-mappings"
+                        className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
                     >
                         Suggest rules (0) (TODO)
                     </MenuItem>
                     <MenuItem
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-expand-mappings"
+                        className="ecc-silk-mapping__ruleslistmenu__item-expand"
                         onClick={() => {
                             this.handleToggleRuleDetails({expanded: true})
                         }}
@@ -118,7 +119,7 @@ const MappingRuleOverview = React.createClass({
                         Expand all
                     </MenuItem>
                     <MenuItem
-                        className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head__context-reduce-mappings"
+                        className="ecc-silk-mapping__ruleslistmenu__item-reduce"
                         onClick={() => {
                             this.handleToggleRuleDetails({expanded: false})
                         }}
@@ -146,17 +147,14 @@ const MappingRuleOverview = React.createClass({
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping__content-mappingRuleOverview"
             >
                 {loading}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 <br/>
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <div className="mdl-card__content">
-                        <div className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__head">
-                            {mappingRulesListHead}
-                        </div>
-                        <div className="ecc-component-hierarchicalMapping__content-mappingRuleOverview__body">
+                        {mappingRulesListHead}
+                        <div className="ecc-silk-mapping__ruleslist">
                             {mappingRulesList}
                         </div>
                     </div>

@@ -114,10 +114,11 @@ const MappingRule = React.createClass({
         );
 
         return (
-            <div
-                className="mdl-card mdl-card--stretch mdl-shadow--2dp ecc-component-hierarchicalMapping__mappingRuleOverview__card"
+            <div className="ecc-silk-mapping__ruleitem"
             >
-                {this.state.expanded ? expandedView : shortView}
+                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                    {this.state.expanded ? expandedView : shortView}
+                </div>
             </div>
         );
     },

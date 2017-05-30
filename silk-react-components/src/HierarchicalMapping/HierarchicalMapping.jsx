@@ -107,24 +107,26 @@ const HierarchicalMapping = React.createClass({
 
         return (
             <div
-                className="ecc-component-hierarchicalMapping"
+                className="ecc-silk-mapping"
             >
-                <div className="ecc-component-hierarchicalMapping__content">
+                <div className="ecc-silk-mapping__header">
+                    {/* FIXME: use settings menu with item Hide/Show tree item */}
                     <Button
-                        className="ecc-component-hierarchicalMapping__content-toggle-navigation"
                         iconName={this.state.showNavigation ? 'arrow_prevpage' : 'more_vert'}
                         tooltip={this.state.showNavigation ? 'Close tree' : 'Open tree'}
                         onClick={this.handleToggleNavigation}
                     />
+                </div>
+                <div className="ecc-silk-mapping__content">
                     {treeView}
+                    {/*TODO: CreateView should be placed here but editView need to be part of mapping rule list*/}
+                    {editView()}
                     <MappingRuleOverview
                         apiBase={this.props.apiBase}
                         project={this.props.project}
                         transformationTask={this.props.transformationTask}
                         currentRuleId={this.state.currentRuleId}
                     />
-                    {/*TODO: move editView to correct position*/}
-                    {editView()}
                 </div>
             </div>
         );
