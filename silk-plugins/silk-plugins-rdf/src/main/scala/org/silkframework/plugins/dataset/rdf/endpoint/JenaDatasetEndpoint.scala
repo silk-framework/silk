@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream, StringWriter}
+import java.io._
+import java.util.concurrent.{ExecutorService, Executors}
 import java.util.logging.Logger
 
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
@@ -38,11 +39,18 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
   }
 
   override def postDataToGraph(graph: String,
-                      contentType: String = "application/n-triples",
-                      chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
+                               contentType: String = "application/n-triples",
+                               chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))
     JenaDatasetWritingOutputStream(dataset, lang, graph)
+  }
+
+  override def getDataFromGraph(graph: String, acceptType: String): InputStream = {
+    val strippedAccessType = acceptType.split(";").head
+    val lang = Option(RDFLanguages.contentTypeToLang(strippedAccessType)).
+        getOrElse(throw new IllegalArgumentException("Unknown accept type: " + acceptType))
+    JenaDatasetWritingInputStream(dataset, lang, graph)
   }
 
   /**
@@ -80,4 +88,37 @@ case class JenaDatasetWritingOutputStream(dataset: Dataset, contentLang: Lang, g
     val model = dataset.getNamedModel(graph)
     model.read(new ByteArrayInputStream(outputStream.toByteArray), null, contentLang.getName)
   }
+}
+
+case class JenaDatasetWritingInputStream(dataset: Dataset, contentLang: Lang, graph: String) extends InputStream {
+  private lazy val inputStream = {
+    val model = dataset.getNamedModel(graph)
+    val out = new PipedOutputStream()
+    // PipedInputStream and PipedOutputStream must be in separate Threads!
+    JenaDatasetEndpoint.executor.execute(ModelOutputThread(model, out, contentLang.getName))
+    new PipedInputStream(out)
+  }
+
+  override def read(): Int = {
+    inputStream.read()
+  }
+
+  override def read(b: Array[Byte]): Int = inputStream.read(b)
+
+  override def close(): Unit = {
+    inputStream.close()
+  }
+}
+
+case class ModelOutputThread(model: Model, pipedOutputStream: PipedOutputStream, lang: String) extends Runnable {
+  override def run(): Unit = {
+    model.write(pipedOutputStream, lang)
+    pipedOutputStream.flush()
+    pipedOutputStream.close()
+  }
+}
+
+object JenaDatasetEndpoint {
+  private val NR_THREADS = 4
+  lazy val executor: ExecutorService = Executors.newFixedThreadPool(NR_THREADS)
 }
