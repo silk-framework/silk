@@ -93,10 +93,11 @@ case class JenaDatasetWritingOutputStream(dataset: Dataset, contentLang: Lang, g
 case class JenaDatasetWritingInputStream(dataset: Dataset, contentLang: Lang, graph: String) extends InputStream {
   private lazy val inputStream = {
     val model = dataset.getNamedModel(graph)
-    val out = new PipedOutputStream()
-    // PipedInputStream and PipedOutputStream must be in separate Threads!
-    JenaDatasetEndpoint.executor.execute(ModelOutputThread(model, out, contentLang.getName))
-    new PipedInputStream(out)
+    val out = new ByteArrayOutputStream()
+    model.write(out, contentLang.getName)
+    out.flush()
+    val array = out.toByteArray
+    new ByteArrayInputStream(array)
   }
 
   override def read(): Int = {
@@ -107,30 +108,5 @@ case class JenaDatasetWritingInputStream(dataset: Dataset, contentLang: Lang, gr
 
   override def close(): Unit = {
     inputStream.close()
-  }
-}
-
-case class ModelOutputThread(model: Model, pipedOutputStream: PipedOutputStream, lang: String) extends Runnable {
-  override def run(): Unit = {
-    model.write(pipedOutputStream, lang)
-    pipedOutputStream.flush()
-    pipedOutputStream.close()
-  }
-}
-
-object JenaDatasetEndpoint {
-  private val NR_THREADS = 4
-  private val SHUTDOWN_TIME = 10
-  lazy val executor: ExecutorService = {
-    val exec = Executors.newFixedThreadPool(NR_THREADS)
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      override def run(): Unit = {
-        exec.shutdown()
-        if (!exec.awaitTermination(SHUTDOWN_TIME, TimeUnit.SECONDS)) {
-          exec.shutdownNow()
-        }
-      }
-    })
-    exec
   }
 }
