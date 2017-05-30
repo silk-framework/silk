@@ -96,7 +96,7 @@ const RuleObjectEditView = React.createClass({
         const title = (
             // TODO: add source path if: parent, not edit, not root element
             edit && !id ? (
-                <div className="mdl-card__title">
+                <div className="mdl-card__title mdl-card--border">
                     Add object mapping
                 </div>
             ) : false
@@ -194,7 +194,7 @@ const RuleObjectEditView = React.createClass({
 
         const actionRow = (
             edit ? (
-                <div className="ecc-silk-mapping__ruleseditor__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
@@ -210,7 +210,7 @@ const RuleObjectEditView = React.createClass({
                     </Button>
                 </div>
             ) : (
-                <div className="ecc-silk-mapping__ruleseditor__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
@@ -228,26 +228,42 @@ const RuleObjectEditView = React.createClass({
             )
         );
 
+        // FIXME: EditView should not mix View and Edit functionality
         return (
-            <div
-                className="ecc-silk-mapping__ruleseditor"
-            >
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
-                    {title}
+            edit ? (
+                <div
+                    className="ecc-silk-mapping__ruleseditor"
+                >
+                    <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+                        {title}
+                        <div className="mdl-card__content">
+                            {targetPropertyInput}
+                            {entityRelationInput}
+                            {targetEntityTypeInput}
+                            {pattern}
+                            {
+                                // TODO: if not in edit mode user should see modified and creator
+                                // store data not exist at the moment - mockup for now?
+                            }
+                        </div>
+                        {actionRow}
+                    </div>
+                </div>
+            ) : (
+                <div>
                     <div className="mdl-card__content">
                         {targetPropertyInput}
                         {entityRelationInput}
                         {targetEntityTypeInput}
                         {pattern}
-                        {actionRow}
                         {
                             // TODO: if not in edit mode user should see modified and creator
                             // store data not exist at the moment - mockup for now?
-                            // FIXME: EditView should not mix View and Edit functionality
                         }
                     </div>
+                    {actionRow}
                 </div>
-            </div>
+            )
         );
     },
 

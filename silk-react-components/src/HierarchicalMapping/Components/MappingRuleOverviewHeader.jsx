@@ -35,10 +35,9 @@ const MappingRuleOverviewHeader = React.createClass({
         let backButton = false;
 
         if (_.has(parent, 'id') && _.has(parent, 'name')) {
+            // FIXME: try to use chip here
             parentTitle = (
-                <small>
-                    <a onClick={this.handleNavigate.bind(null, parent.id)}>{parent.name}</a><br/>
-                </small>
+                <span onClick={this.handleNavigate.bind(null, parent.id)}>{parent.name}</span>
             );
             backButton = (
                 <Button
@@ -52,13 +51,11 @@ const MappingRuleOverviewHeader = React.createClass({
 
         if (this.state.expanded) {
             content = (
-                <div className="mdl-card__content">
-                    <RuleObjectEdit
-                        {...this.props.rule}
-                        edit={false}
-                        onClose={this.handleRuleEditClose}
-                    />
-                </div>
+                <RuleObjectEdit
+                    {...this.props.rule}
+                    edit={false}
+                    onClose={this.handleRuleEditClose}
+                />
             );
         }
 
@@ -67,16 +64,22 @@ const MappingRuleOverviewHeader = React.createClass({
                 className="ecc-silk-mapping__ruleshead"
             >
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                    <div className="mdl-card__title">
-                        <div>
+                    <div className="mdl-card__title mdl-card--border">
+                        <div className="mdl-card__title-back">
                             {backButton}
                         </div>
-                        <div>
-                            {parentTitle}
-                            <b><RuleTitle rule={this.props.rule}/></b><br/>
-                            <small><RuleTypes rule={this.props.rule}/></small>
+                        <div className="mdl-card__title-text">
+                            <div className="mdl-card__title-text-sup">
+                                {parentTitle}
+                            </div>
+                            <div className="mdl-card__title-text-main">
+                                <RuleTitle rule={this.props.rule}/>
+                            </div>
+                            <div className="mdl-card__title-text-sub">
+                                <RuleTypes rule={this.props.rule}/>
+                            </div>
                         </div>
-                        <div>
+                        <div className="mdl-card__title-action">
                             <Button
                                 iconName={this.state.expanded ? 'expand_less' : 'expand_more'}
                                 onClick={(ev) => {
