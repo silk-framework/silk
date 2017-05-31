@@ -159,11 +159,16 @@ const RuleValueEditView = React.createClass({
                     placeholder={'Choose property type'}
                     className="ecc-silk-mapping__ruleseditor__propertyType"
                     options={[
-                        'AutoDetectValueType',
-                        'StringValueType',
-                        'UriValueType',
+                        "AutoDetectValueType",
+                        "UriValueType",
+                        "BooleanValueType",
+                        "StringValueType",
+                        "IntegerValueType",
+                        "LongValueType",
+                        "FloatValueType",
+                        "DoubleValueType",
                     ]}
-                    value={this.state.propertyType}
+                    value={this.state.propertyType || "AutoDetectValueType"}
                     onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
                 />
             ) : (
