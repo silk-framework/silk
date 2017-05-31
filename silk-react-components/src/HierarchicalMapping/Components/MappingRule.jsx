@@ -56,6 +56,8 @@ const MappingRule = React.createClass({
             id,
             type,
             parent,
+            sourcePath = false,
+            mappingTarget,
         } = this.props;
 
         const action = (
@@ -73,19 +75,20 @@ const MappingRule = React.createClass({
             />
         );
 
-        const shortView = (
-            <div>
-                {id}
-                <div className="mdl-list__item-text-body">
-                    <div>
-                        from (todo: get content after store implementation)
-                    </div>
-                    <div>
-                        by (todo: get content after store implementation)
-                    </div>
-                </div>
-            </div>
-        );
+        const shortView = [
+            <div className="ecc-silk-mapping__ruleitem-headline">
+                {mappingTarget.uri} {/* TODO: should be normalized and easy readable */}
+            </div>,
+            <div className="ecc-silk-mapping__ruleitem-subline">
+                {type} mapping
+            </div>,
+            <div className="ecc-silk-mapping__ruleitem-subline">
+                from {sourcePath ? sourcePath : '(todo: complex overview)'}
+            </div>,
+            <div className="ecc-silk-mapping__ruleitem-subline">
+                by (todo: author, date)
+            </div>,
+        ];
 
         // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = this.state.expanded ? (
@@ -137,7 +140,7 @@ const MappingRule = React.createClass({
                     (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : '')
             }>
                 {reorderHandleButton}
-                <div className="mdl-list__item-primary-content">
+                <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content">
                     {this.state.expanded ? expandedView : shortView}
                 </div>
                 <div className="mdl-list__item-secondary-content" key="action">

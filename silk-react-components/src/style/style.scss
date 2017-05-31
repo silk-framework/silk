@@ -116,9 +116,33 @@
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
 
-        .mdl-list__item-primary-content {
-            display: block;
-        }
+    }
+
+    .mdl-list__item-primary-content {
+        display: block;
+    }
+    .mdl-list__item-primary-content {
+        width: 50vw;
+    }
+
+    .ecc-silk-mapping__ruleitem-content {
+        font-size: 1rem;
+        line-height: 1.25rem;
+        max-width: 100%;
+    }
+
+    .ecc-silk-mapping__ruleitem-headline {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: bold;
+    }
+
+    .ecc-silk-mapping__ruleitem-subline {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.75em;
     }
 
     .ecc-silk-mapping__ruleitem-reorderhandler {
