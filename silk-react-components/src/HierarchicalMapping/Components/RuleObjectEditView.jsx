@@ -113,7 +113,9 @@ const RuleObjectEditView = React.createClass({
         const {edit} = this.state;
 
         // FIXME: also check if data really has changed before allow saving
-        const allowConfirm = !(this.state.targetProperty && this.state.targetEntityType);
+        const allowConfirm =  type === 'root'
+            ? true
+            : this.state.targetProperty && this.state.targetEntityType;
 
         console.warn('debug OBJECT edit view', this.props);
 
@@ -222,7 +224,7 @@ const RuleObjectEditView = React.createClass({
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
-                        disabled={allowConfirm}
+                        disabled={!allowConfirm}
                     >
                         Save
                     </Button>
