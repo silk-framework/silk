@@ -40,6 +40,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val noSeparatorSettings = settings.copy(separator = ' ')
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
+  val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
   val datasetHard = CsvDataset(writableResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
   val emptyCsv = CsvDataset(writableResource(resources.get("empty.csv")), separator = "\t", quote = "")
 
@@ -138,5 +139,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
     }
     val normal = CsvSourceHelper.serialize(Seq("Just a normal string", "and, not normal"))
     normal shouldBe "Just a normal string,\"and, not normal\""
+  }
+
+  "CsvDataset" should "generate sane column names when they are empty" in {
+    emptyHeaderFieldsDataset.propertyList shouldBe Seq(
+      "unnamed_col1","field2","unnamed_col3_2","unnamed_col3","unnamed_col6_3","unnamed_col6_4","unnamed_col7"
+    )
   }
 }
