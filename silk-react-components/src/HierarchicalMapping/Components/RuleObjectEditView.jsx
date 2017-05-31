@@ -22,6 +22,7 @@ const RuleObjectEditView = React.createClass({
     getInitialState() {
         return {
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
+            comment: this.props.comment,
             targetEntityType: _.get(this.props, 'rules.typeRules[0].typeUri', undefined),
             entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
             pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
@@ -41,6 +42,7 @@ const RuleObjectEditView = React.createClass({
             id: this.props.id,
             parentId: this.props.parentId,
             type: this.props.type,
+            comment: this.state.comment,
             targetProperty: this.state.targetProperty,
             targetEntityType: this.state.targetEntityType,
             pattern: this.state.pattern,
@@ -121,11 +123,13 @@ const RuleObjectEditView = React.createClass({
 
         const title = (
             // TODO: add source path if: parent, not edit, not root element
-            edit && !id ? (
+            edit && !id
+                ? (
                 <div className="mdl-card__title mdl-card--border">
                     Add object mapping
                 </div>
-            ) : false
+                )
+                : false
         );
 
         let targetPropertyInput = false;
@@ -196,6 +200,25 @@ const RuleObjectEditView = React.createClass({
             )
         );
 
+        const commentInput = (
+            edit ? (
+                <TextField
+                    multiline={true}
+                    label="Comment"
+                    className="ecc-silk-mapping__ruleseditor__comment"
+                    value={this.state.comment}
+                    onChange={this.handleChangeTextfield.bind(null, 'comment')}
+                />
+            ) : (
+                <div
+                    className="ecc-silk-mapping__ruleseditor__comment"
+                >
+                    Comment
+                    {this.state.comment}
+                </div>
+            )
+        );
+
         let pattern = false;
 
         if (id) {
@@ -246,7 +269,7 @@ const RuleObjectEditView = React.createClass({
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                         onClick={this.handleClickRemove}
-                        disabled={false} // FIXME: all elements are removable?
+                        disabled={type === 'root'}
                     >
                         Remove
                     </Button>
@@ -284,13 +307,14 @@ const RuleObjectEditView = React.createClass({
                             {targetPropertyInput}
                             {entityRelationInput}
                             {targetEntityTypeInput}
-                            {deleteView}
+                            {commentInput}
                             {pattern}
                             {
                                 // TODO: if not in edit mode user should see modified and creator
                                 // store data not exist at the moment - mockup for now?
                             }
                         </div>
+                        {deleteView}
                         {actionRow}
                     </div>
                 </div>
@@ -298,15 +322,16 @@ const RuleObjectEditView = React.createClass({
                 <div>
                     <div className="mdl-card__content">
                         {targetPropertyInput}
-                        {deleteView}
                         {entityRelationInput}
                         {targetEntityTypeInput}
+                        {commentInput}
                         {pattern}
                         {
                             // TODO: if not in edit mode user should see modified and creator
                             // store data not exist at the moment - mockup for now?
                         }
                     </div>
+                    {deleteView}
                     {actionRow}
                 </div>
             )

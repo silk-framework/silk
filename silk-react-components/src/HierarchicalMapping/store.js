@@ -161,6 +161,7 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
 
         // TODO: What the heck is sourcePath here? We do not set it in the UI
         const payload = {
+            comment: data.comment,
             "mappingTarget": {
                 "uri": data.targetProperty,
                 "inverse": data.entityConnection,
