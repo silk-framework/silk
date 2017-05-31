@@ -114,6 +114,10 @@
 
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
+
+        .mdl-list__item-primary-content {
+            display: block;
+        }
     }
 
     .ecc-silk-mapping__ruleitem-reorderhandler {

@@ -311,7 +311,10 @@ const RuleObjectEditView = React.createClass({
                 <div
                     className="ecc-silk-mapping__ruleseditor"
                 >
-                    <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+                    <div className={
+                            "mdl-card mdl-card--stretch" +
+                            (!id ? ' mdl-shadow--2dp' : '')
+                    }>
                         {title}
                         <div className="mdl-card__content">
                             {targetPropertyInput}

@@ -89,24 +89,20 @@ const MappingRule = React.createClass({
 
         // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = this.state.expanded ? (
-            <div>
-                {
-                    (type === 'object' || type === 'root') ? (
-                        <RuleObjectEdit
-                            {...this.props}
-                            type={type}
-                            edit={false}
-                        />
-                    ) : (
-                        <RuleValueEdit
-                            {...this.props}
-                            type={type}
-                            edit={false}
-                        />
+            (type === 'object' || type === 'root') ? (
+                <RuleObjectEdit
+                    {...this.props}
+                    type={type}
+                    edit={false}
+                />
+            ) : (
+                <RuleValueEdit
+                    {...this.props}
+                    type={type}
+                    edit={false}
+                />
 
-                    )
-                }
-            </div>
+            )
         ) : false;
 
         const reorderHandleButton = !this.state.expanded ? (
