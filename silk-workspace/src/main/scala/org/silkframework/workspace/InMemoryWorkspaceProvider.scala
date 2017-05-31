@@ -6,7 +6,6 @@ import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceMana
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
-import scala.xml.MetaData
 
 @Plugin(
   id = "inMemory",
@@ -52,7 +51,8 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
     * Reads all tasks of a specific type from a project.
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[Task[T]] = {
-    for((id, task: T) <- projects(project).tasks.toSeq) yield task.asInstanceOf[Task[T]]
+    val taskClass = implicitly[ClassTag[T]].runtimeClass
+    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(_.asInstanceOf[Task[T]]).toSeq
   }
 
   /**
