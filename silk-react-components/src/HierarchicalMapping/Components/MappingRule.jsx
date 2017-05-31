@@ -4,7 +4,7 @@
 
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import {Button} from 'ecc-gui-elements';
+import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import RuleValueEdit from './RuleValueEditView';
 import RuleObjectEdit from './RuleObjectEditView';
@@ -88,7 +88,7 @@ const MappingRule = React.createClass({
         );
 
         // FIXME: only show edit / remove buttons for non-object mappings?
-        const expandedView = (
+        const expandedView = this.state.expanded ? (
             <div>
                 {
                     (type === 'object' || type === 'root') ? (
@@ -107,7 +107,32 @@ const MappingRule = React.createClass({
                     )
                 }
             </div>
-        );
+        ) : false;
+
+        const reorderHandleButton = !this.state.expanded ? (
+            <div
+                className="ecc-silk-mapping__ruleitem-reorderhandler"
+            >
+                <ContextMenu
+                    iconName="reorder"
+                    align='left'
+                    valign='top'
+                >
+                    <MenuItem>
+                        Move to top
+                    </MenuItem>
+                    <MenuItem>
+                        Move up
+                    </MenuItem>
+                    <MenuItem>
+                        Move down
+                    </MenuItem>
+                    <MenuItem>
+                        Move to bottom
+                    </MenuItem>
+                </ContextMenu>
+            </div>
+        ) : false;
 
         return (
             <li className={
@@ -115,6 +140,7 @@ const MappingRule = React.createClass({
                     (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
                     (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : '')
             }>
+                {reorderHandleButton}
                 <div className="mdl-list__item-primary-content">
                     {this.state.expanded ? expandedView : shortView}
                 </div>

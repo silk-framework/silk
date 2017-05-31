@@ -108,7 +108,49 @@
         }
     }
 
+    .ecc-silk-mapping__ruleitem {
+        overflow: visible;
+    }
+
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
+    }
+
+    .ecc-silk-mapping__ruleitem-reorderhandler {
+        width: 1rem;
+        position: relative;
+        left: -0.5rem;
+        border: 1px solid #ddd;
+        align-self: stretch;
+
+        .contextmenu-container {
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            right: 1px;
+            bottom: 1px;
+        }
+
+        .mdl-button--icon,
+        .material-icons {
+            overflow: hidden;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            border-radius: 0;
+            min-width: 0;
+            line-height: 100%;
+            opacity: 0.61;
+
+            &:hover, &:focus, &:active {
+                opacity: 1;
+            }
+        }
+
+        .material-icons {
+            transform: translate(-1px, 25%);
+        }
     }
 }
