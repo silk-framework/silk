@@ -79,7 +79,7 @@ const HierarchicalMapping = React.createClass({
             ) : false
         );
         // render mapping edit / create view of value and object
-        const editView = () => {
+        const createRuleForm = () => {
             if (this.state.ruleEditView) {
                 return (
                     this.state.ruleEditView.type === 'object' ? (
@@ -126,8 +126,7 @@ const HierarchicalMapping = React.createClass({
                             transformationTask={this.props.transformationTask}
                             currentRuleId={this.state.currentRuleId}
                         />
-                        {/*TODO: CreateView should be placed here but editView need to be part of mapping rule list*/}
-                        {editView()}
+                        {createRuleForm()}
                     </div>
                 </div>
             </div>
