@@ -208,16 +208,57 @@ const removeRule = (store, id) => {
     if (store.id===id) {
         return null;
     } else if (_.has(store, 'rules.propertyRules')) {
-        store.rules.propertyRules = _.filter(store.rules.propertyRules, (v) => {
-            return removeRule(v, id) !== null;
-        });
+        store.rules.propertyRules = _.filter(store.rules.propertyRules, (v) => removeRule(v, id) !== null);
     }
     return store;
 };
 
+Array.prototype.move = function (old_index, new_index) {
+    if (new_index >= this.length) {
+        var k = new_index - this.length;
+        while ((k--) + 1) {
+            this.push(undefined);
+        }
+    }
+    this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    return this; // for testing purposes
+};
+
 hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
     ({data, replySubject}) => {
-        mockStore = removeRule(_.chain(mockStore).value(), data.id);
+        const {id} = data;
+        mockStore = removeRule(_.chain(mockStore).value(), id);
+        saveMockStore();
+        replySubject.onNext();
+        replySubject.onCompleted();
+    }
+);
+
+const orderRule = (store, id, pos) => {
+    console.log(store.parent, store.id)
+    if (_.has(store, 'rules.propertyRules')) {
+        const idPos = _.reduce(store.rules.propertyRules, function(i, children, k) {
+            if (i > -1 && children.id !== id)
+                return i;
+            else
+                return k;
+            }, -1);
+        if (idPos > -1){
+            pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
+            store.rules.propertyRules.move(idPos, pos)
+
+        } else {
+            store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));
+        }
+    }
+
+    return store;
+};
+
+hierarchicalMappingChannel.subject('rule.orderRule').subscribe(
+    ({data, replySubject}) => {
+        const {pos, id} = data;
+        mockStore = orderRule(_.chain(mockStore).value(), id, pos);
         saveMockStore();
         replySubject.onNext();
         replySubject.onCompleted();

@@ -150,7 +150,11 @@ const MappingRuleOverview = React.createClass({
                     {
                         _.map(childRules, (rule, idx) =>
                             (
-                                <MappingRule key={`MappingRule_${id}_${idx}`} {...rule}/>
+                                <MappingRule
+                                    pos={idx}
+                                    key={`MappingRule_${id}_${idx}`}
+                                    {...rule}
+                                />
                             )
                         )
                     }

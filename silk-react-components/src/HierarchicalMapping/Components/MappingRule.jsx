@@ -25,6 +25,7 @@ const MappingRule = React.createClass({
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
         parent: React.PropTypes.bool,
+        pos: React.PropTypes.number.isRequired
     },
 
     // initilize state
@@ -50,6 +51,22 @@ const MappingRule = React.createClass({
     handleToggleExpand() {
         this.setState({expanded: !this.state.expanded});
     },
+    handleMoveElement(id, pos, parent){
+        return (event) => {
+            console.log({id, pos, parent})
+            hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
+                .subscribe(
+                    () => {
+                        // FIXME: let know the user which element is gone!
+
+                    },
+                    (err) => {
+                        // FIXME: let know the user what have happened!
+
+                    }
+                );
+        }
+    },
     // template rendering
     render () {
         const {
@@ -58,6 +75,7 @@ const MappingRule = React.createClass({
             parent,
             sourcePath = false,
             mappingTarget,
+            pos,
         } = this.props;
 
         const action = (
@@ -117,16 +135,24 @@ const MappingRule = React.createClass({
                     align='left'
                     valign='top'
                 >
-                    <MenuItem>
+                    <MenuItem
+                        onClick={this.handleMoveElement(id, 0, parent)}
+                    >
                         Move to top
                     </MenuItem>
-                    <MenuItem>
+                    <MenuItem
+                        onClick={this.handleMoveElement(id, pos -1, parent)}
+                    >
                         Move up
                     </MenuItem>
-                    <MenuItem>
+                    <MenuItem
+                        onClick={this.handleMoveElement(id, pos + 1, parent)}
+                    >
                         Move down
                     </MenuItem>
-                    <MenuItem>
+                    <MenuItem
+                        onClick={this.handleMoveElement(id, -1, parent)}
+                    >
                         Move to bottom
                     </MenuItem>
                 </ContextMenu>
