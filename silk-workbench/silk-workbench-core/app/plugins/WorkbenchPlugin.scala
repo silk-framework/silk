@@ -46,9 +46,6 @@ object WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     def open(project: String, task: String): Option[String]
 
-    /**  The path to delete the task by sending a DELETE HTTP request. */
-    def delete(project: String, task: String): Option[String]
-
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     def properties(taskData: Any): Seq[(String, String)]
 

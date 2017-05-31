@@ -43,8 +43,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }
 
-  def taskType: String = {
-    implicitly[ClassTag[TaskData]].runtimeClass.getName
+  def taskType: Class[_] = {
+    implicitly[ClassTag[TaskData]].runtimeClass
   }
 
   /**
@@ -62,7 +62,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def task(name: Identifier): ProjectTask[TaskData] = {
     load()
-    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType))
+    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType.getName))
   }
 
   def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {
@@ -70,7 +70,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: TaskMetaData) = {
+  def add(name: Identifier, taskData: TaskData, metaData: TaskMetaData): Unit = {
     val task = new ProjectTask(name, taskData, metaData, this)
     provider.putTask(project.name, task)
     task.init()
@@ -81,6 +81,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    * Removes a task from this module.
    */
   def remove(taskId: Identifier) {
+    // Cancel all activities
+    for {
+      task <- cachedTasks.get(taskId)
+      activity <- task.activities
+    } {
+      activity.control.cancel()
+    }
+    // Delete task
     provider.deleteTask(project.name, taskId)
     cachedTasks -= taskId
     logger.info(s"Removed task '$taskId' from project ${project.name}")
@@ -96,8 +104,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
       } catch {
         case NonFatal(ex) =>
           cachedTasks = TreeMap()(TaskOrdering)
-          error = Some(new ValidationException(s"Error loading tasks of type $taskType. Details: ${ex.getMessage}", ex))
-          logger.log(Level.WARNING, s"Error loading tasks of type $taskType", ex)
+          error = Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+          logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
       }
     }
   }

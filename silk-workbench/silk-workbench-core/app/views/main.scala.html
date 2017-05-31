@@ -5,44 +5,7 @@
 
 @(context: Option[Context[_]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 
-<!DOCTYPE html>
-
-<html>
-  <head>
-    <title>@config.workbench.title</title>
-    <link rel="shortcut icon" type="image/png" href="@Assets.at("img/favicon.png")" />
-
-    <link rel="stylesheet" media="screen" href="@Assets.at("main.css")" />
-    <link rel="stylesheet" href="@Assets.at("libs/jquery/base/jquery-ui.min.css")" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="@Assets.at("libs/jquery/base/jquery-ui.structure.min.css")" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="@Assets.at("libs/jquery/base/jquery-ui.theme.min.css")" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="@Assets.at("libs/mdl-vertical-tabs/mdl-vertical-tabs.css")" type="text/css" media="screen, projection"/>
-
-    <script src="@Assets.at("libs/jquery/jquery-1.11.3.min.js")" type="text/javascript"></script>
-    <script src="@Assets.at("libs/jquery/jquery-ui.min.js")" type="text/javascript"></script>
-    <script type="text/javascript">
-      var baseUrl = '@config.baseUrl'; // Base URL of this deployment
-    </script>
-    <script src="@Assets.at("main.js")" type="text/javascript"></script>
-
-    @header
-
-    <!-- MDL inclusions: -->
-    <link type="text/css" href="@Assets.at("libs/mdl/material.css")" rel="stylesheet" />
-    @if(config.workbench.mdlStyle.isDefined) {
-      <link type="text/css" href="@config.baseUrl/core/mdlStyle" rel="stylesheet" />
-    }
-    <link type="text/css" href="@Assets.at("mdl-adjustments.css")" rel="stylesheet" />
-    <link type="text/css" href="@Assets.at("libs/mdl-selectfield-master/mdl-selectfield.min.css")" rel="stylesheet" />
-    <link type="text/css" href="@Assets.at("libs/dialog-polyfill-master/dialog-polyfill.css")" rel="stylesheet" />
-
-    <script type="text/javascript" src="@Assets.at("libs/mdl/material.js")"></script>
-    <script type="text/javascript" src="@Assets.at("libs/mdl-selectfield-master/mdl-selectfield.min.js")"></script>
-    <script type="text/javascript" src="@Assets.at("libs/dialog-polyfill-master/dialog-polyfill.js")"></script>
-
-  </head>
-  <body>
-
+@frame(header) {
     <dialog id="primary_dialog" class="mdl-dialog mdl-dialog--modal">
       <div class="mdl-dialog__title">
         <strong class="mdl-dialog__title-text">Primary Modal Dialog</strong>
@@ -83,42 +46,40 @@
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
 
-      <div id="app_header" class="clearfix">
-        @if(config.workbench.showHeader) {
-        <header class="mdl-layout__header">
-          <div class="mdl-layout__header-row">
-            <span class="mdl-layout-title">@config.workbench.title</span>
-            <div class="mdl-layout-spacer"></div>
-              <button id="app-actions"
-                      class="mdl-button mdl-js-button mdl-button--icon">
-                <i class="material-icons">more_vert</i>
-              </button>
-              <script  type="text/javascript">
-                 function app_logout() {
-                    f=document.getElementById('logout_form');
-                    if(f) {
-                      f.submit();
-                    }
-                 }
-              </script>
-              <form id="logout_form" action="@{Start.deployPath + "logout"}" method="post">
-                <input type="hidden" value="Logout" />
-              </form>
-              <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-                  for="app-actions">
-                <li class="mdl-menu__item" onclick="showDialog('@config.baseUrl/core/aboutDialog');">About</li>
-                <li class="mdl-menu__item" onclick="window.location='@config.baseUrl/core/config'">Configuration</li>
-                @if(WorkbenchConfig.get.showLogoutButton && session.get("loggedIn")==Some("true")) {
-                  <li class="mdl-menu__item" onclick="app_logout();">Logout</li>
-                }
-              </ul>
-          </div>
-        </header>
-        }
-        @tabbar(context, selectedTab)
-        <div id="toolbar" class="clearfix">
-          @toolbar
+      @if(config.workbench.showHeader) {
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">@config.workbench.title</span>
+          <div class="mdl-layout-spacer"></div>
+            <button id="app-actions"
+                    class="mdl-button mdl-js-button mdl-button--icon">
+              <i class="material-icons">more_vert</i>
+            </button>
+            <script  type="text/javascript">
+               function app_logout() {
+                  f=document.getElementById('logout_form');
+                  if(f) {
+                    f.submit();
+                  }
+               }
+            </script>
+            <form id="logout_form" action="@{Start.deployPath + "logout"}" method="post">
+              <input type="hidden" value="Logout" />
+            </form>
+            <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+                for="app-actions">
+              <li class="mdl-menu__item" onclick="showDialog('@config.baseUrl/core/aboutDialog');">About</li>
+              <li class="mdl-menu__item" onclick="window.location='@config.baseUrl/core/config'">Configuration</li>
+              @if(WorkbenchConfig.get.showLogoutButton && session.get("loggedIn")==Some("true")) {
+                <li class="mdl-menu__item" onclick="app_logout();">Logout</li>
+              }
+            </ul>
         </div>
+      </header>
+      }
+      @tabbar(context, selectedTab)
+      <div id="toolbar" class="clearfix">
+        @toolbar
       </div>
       <main class="mdl-layout__content">
         <div id="content" class="mdl-tabs__panel is-active">
@@ -130,5 +91,4 @@
         </div>
       </main>
     </div>
- </body>
-</html>
+}

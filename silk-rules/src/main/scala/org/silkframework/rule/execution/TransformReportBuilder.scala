@@ -15,13 +15,13 @@ private class TransformReportBuilder(rules: Seq[TransformRule]) {
 
   private var entityErrorCounter = 0L
 
-  private var ruleResults: Map[Identifier, RuleResult] = rules.map(rule => (rule.name, RuleResult())).toMap
+  private var ruleResults: Map[Identifier, RuleResult] = rules.map(rule => (rule.id, RuleResult())).toMap
 
   // The maximum number of erroneous values to be held for each rule.
   private val maxSampleErrors = 10
 
   def addError(rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
-    val currentRuleResult = ruleResults(rule.name)
+    val currentRuleResult = ruleResults(rule.id)
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
@@ -31,7 +31,7 @@ private class TransformReportBuilder(rules: Seq[TransformRule]) {
         currentRuleResult.withError()
       }
 
-    ruleResults += ((rule.name, updatedRuleResult))
+    ruleResults += ((rule.id, updatedRuleResult))
   }
 
   def incrementEntityCounter(): Unit = {

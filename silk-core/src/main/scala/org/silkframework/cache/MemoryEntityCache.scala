@@ -40,38 +40,11 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
   @volatile
   private var entityCounter = 0
 
-  @volatile
-  private var writing = false
-
-  /**
-   * Writes to this cache.
-   */
-  override def write(entities: Traversable[Entity]) {
-    val startTime = System.currentTimeMillis()
-    writing = true
-
-    try {
-      for (entity <- entities) {
-        if(Thread.currentThread().isInterrupted) throw new InterruptedException()
-        add(entity)
-      }
-
-      val time = (System.currentTimeMillis - startTime) / 1000.0
-      logger.log(runtimeConfig.logLevel, "Finished writing " + entityCounter + " entities with type '" + entitySchema.typeUri + "' in " + time + " seconds")
-    }
-    finally {
-      writing = false
-    }
-  }
-
-  override def isWriting = writing
-
   /**
    * Adds a single entity to the cache.
    */
-  private def add(entity: Entity) {
+  override def write(entity: Entity) {
     if (!allEntities.contains(entity.uri)) {
-
       val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
       for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {

@@ -29,4 +29,19 @@ abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
     read(XML.loadString(value))
   }
 
+  override def toString(values: Iterable[T], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[Node]): String = {
+    containerName match {
+      case Some(name) =>
+        val sb = new StringBuilder()
+        sb.append(s"<$name>")
+        for(v <- values) {
+          sb.append(toString(v, mimeType))
+        }
+        sb.append(s"</$name>")
+        sb.toString()
+      case None =>
+        throw new IllegalArgumentException("Must define a container name for serializing traversables to an XML String.")
+    }
+  }
+
 }

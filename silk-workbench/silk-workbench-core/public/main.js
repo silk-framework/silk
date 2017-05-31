@@ -38,21 +38,25 @@ $(function() {
 
   // Initialize dialog
   primary_dialog = document.querySelector('#primary_dialog');
-  dialogs['primary'] = primary_dialog;
-  if (! primary_dialog.showModal) {
-    dialogPolyfill.registerDialog(primary_dialog);
+  if (primary_dialog) {
+    dialogs['primary'] = primary_dialog;
+    if (! primary_dialog.showModal) {
+      dialogPolyfill.registerDialog(primary_dialog);
+    }
+    primary_dialog.querySelector('.close').addEventListener('click', function() {
+      primary_dialog.close();
+    });
   }
-  primary_dialog.querySelector('.close').addEventListener('click', function() {
-    primary_dialog.close();
-  });
   secondary_dialog = document.querySelector('#secondary_dialog');
-  dialogs['secondary'] = secondary_dialog;
-  if (! secondary_dialog.showModal) {
-    dialogPolyfill.registerDialog(secondary_dialog);
+  if (secondary_dialog) {
+    dialogs['secondary'] = secondary_dialog;
+    if (! secondary_dialog.showModal) {
+      dialogPolyfill.registerDialog(secondary_dialog);
+    }
+    secondary_dialog.querySelector('.close').addEventListener('click', function() {
+      secondary_dialog.close();
+    });
   }
-  secondary_dialog.querySelector('.close').addEventListener('click', function() {
-    secondary_dialog.close();
-  });
 });
 
 var errorHandler = function(request) {

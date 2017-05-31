@@ -11,11 +11,10 @@ import scala.xml.{Elem, Node, Text}
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
   *
-  * @param id        of the workflow
   * @param operators Operators, e.g. transformations and link specs.
   * @param datasets
   */
-case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
+case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -25,7 +24,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
   }
 
   def toXML: Elem = {
-    <Workflow id={id.toString}>
+    <Workflow>
       {for (op <- operators) yield {
         <Operator
         posX={op.position._1.toString}
@@ -67,7 +66,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       layer += 1
       val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
       if (satisfied.isEmpty) {
-        throw new RuntimeException("Cannot topologically sort operators in workflow " + id.toString + "!")
+        throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }
       sortedOperators ++= satisfied.map((_, layer))
       done ++= satisfied.map(_.nodeId)
@@ -76,7 +75,7 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
     sortedOperators
   }
 
-  lazy val topologicalSortedNodes = topologicalSortedNodesWithLayerIndex.map(_._1)
+  lazy val topologicalSortedNodes: Seq[WorkflowNode] = topologicalSortedNodesWithLayerIndex.map(_._1)
 
   /**
     * Returns a dependency graph that can be traversed from the start or end nodes and consists of
@@ -119,13 +118,13 @@ case class Workflow(id: Identifier, operators: Seq[WorkflowOperator], datasets: 
       val depNode = workflowNodeMap(node.nodeId)
       for (inputNode <- node.inputs) {
         val precedingNode = workflowNodeMap.getOrElse(inputNode,
-          throw new scala.RuntimeException("Unsatisfiable input dependency in workflow " + id.toString + "! Dependency: " + inputNode))
+          throw new scala.RuntimeException("Unsatisfiable input dependency in workflow! Dependency: " + inputNode))
         depNode.addPrecedingNode(precedingNode)
         precedingNode.addFollowingNode(depNode)
       }
       for (outputNode <- node.outputs) {
         val followingNode = workflowNodeMap.getOrElse(outputNode,
-          throw new scala.RuntimeException("Unsatisfiable output dependency in workflow " + id.toString + "! Dependency: " + outputNode))
+          throw new scala.RuntimeException("Unsatisfiable output dependency in workflow! Dependency: " + outputNode))
         depNode.addFollowingNode(followingNode)
         followingNode.addPrecedingNode(depNode)
       }
@@ -269,7 +268,6 @@ object Workflow {
   }
 
   def fromXML(xml: Node): Workflow = {
-    val id = (xml \ "@id").text
     val operators =
       for (op <- xml \ "Operator") yield {
         val inputStr = (op \ "@inputs").text
@@ -302,7 +300,7 @@ object Workflow {
         )
       }
 
-    new Workflow(if (id.nonEmpty) Identifier(id) else Identifier.random, operators, datasets)
+    new Workflow(operators, datasets)
   }
 }
 

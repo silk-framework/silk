@@ -189,6 +189,20 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
+    * Adds a new task of any type to this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def addAnyTask(name: Identifier, taskData: TaskSpec): Unit = {
+    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData)
+      case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
     * Updates a task.
     * If no task with the given name exists, a new task is created in the project.
     *
@@ -205,6 +219,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
 
   /**
    * Removes a task of a specific type.
+   * Note that the named task will be deleted, even if it is referenced by another task.
    *
    * @param taskName The name of the task
    * @tparam T The task type
@@ -218,11 +233,20 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
+    * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
     if(removeDependentTasks) {
+      // Remove all dependent tasks
       for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
         removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      }
+    } else {
+      // Make sure that no other task depends on this task
+      for(task <- allTasks) {
+        if(task.data.referencedTasks.contains(taskName)) {
+          throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+        }
       }
     }
 
@@ -250,7 +274,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
         val className = implicitly[ClassTag[T]].runtimeClass.getName
-        throw new NoSuchElementException(s"No module for task type $className has been registered. ${modules.size} Registered task types: ${modules.map(_.taskType).mkString(";")}")
+        throw new NoSuchElementException(s"No module for task type $className has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 

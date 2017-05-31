@@ -43,7 +43,7 @@ object VocabularyCache {
     override def suggestTypes: Seq[MappingCandidate] = {
       for(vocab <- vocabularies; clazz <- vocab.classes) yield
         MappingCandidate(clazz.info.uri, 0.0)
-    }
+    }.distinct
 
     /**
       * Suggests mapping properties.
@@ -51,7 +51,7 @@ object VocabularyCache {
     override def suggestProperties(sourcePath: Path): Seq[MappingCandidate] = {
       for(vocab <- vocabularies; prop <- vocab.properties) yield
         MappingCandidate(prop.info.uri, 0.0)
-    }
+    }.distinct
   }
 
   /**
@@ -59,7 +59,7 @@ object VocabularyCache {
     */
   implicit object ValueFormat extends XmlFormat[Value] {
 
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): Value = {
       new Value(Vocabularies.VocabulariesFormat.read(node).vocabularies)
     }
 

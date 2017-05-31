@@ -1,12 +1,14 @@
 @import views.editor.GenerateId
+@import org.silkframework.workspace.Project
 
 @(id: String,
   required: Boolean, weight: Int,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
-  x: Int, y: Int, display: Boolean)
+  x: Int, y: Int, display: Boolean,
+  project: Project)
 
-@operatorBox("Aggregate", id, plugin, parameterValues, x, y, display) {
+@operatorBox("Aggregate", id, plugin, parameterValues, x, y, display, project) {
 <div class="param_element">
   <label id="@{GenerateId(id, display)}_param_required" class="param_label" tabindex="-1">Required</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_required">

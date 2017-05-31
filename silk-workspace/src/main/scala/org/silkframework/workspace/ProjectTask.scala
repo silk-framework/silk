@@ -71,20 +71,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * The project this task belongs to.
     */
-  def project = module.project
+  def project: Project = module.project
 
   /**
     * Retrieves the current data of this task.
     */
-  override def data = currentData
+  override def data: TaskType = currentData
 
   /**
     * Retrieves the current meta data of this task.
     */
   override def metaData = currentMetaData
 
-  def init() = {
-    // Start autorun activities
+  def init(): Unit = {
+    // Start auto-run activities
     for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
   }
@@ -92,7 +92,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType) = synchronized {
+  def update(newData: TaskType): Unit = synchronized {
     // Update data
     currentData = newData
     // (Re)Schedule write
@@ -116,7 +116,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def activity[T <: HasValue : ClassTag]: TaskActivity[TaskType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+    val act = taskActivityMap.getOrElse(requestedClass,
+      throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
         s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
     act.asInstanceOf[TaskActivity[TaskType, T]]
   }

@@ -23,7 +23,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
   private var oldUserManager: () => User = _
   private var expectedUser: User = _
 
-  override def beforeAll(): Unit = {
+  override protected def beforeAll(): Unit = {
     super.beforeAll()
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
@@ -48,7 +48,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
       "User was different! Try changing the mixin order of SingleProjectWorkspaceProviderTestTrait.")
   }
 
-  override def afterAll(): Unit = {
+  override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
     super.afterAll()
   }

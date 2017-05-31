@@ -1,0 +1,76 @@
+@import play.api.UsefulException
+
+@(exception: UsefulException)(implicit session: play.api.mvc.Session)
+
+@frame {
+
+} {
+
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+        <div class="mdl-card__title mdl-card--border">
+          <h3 class="mdl-card__title-text">
+            @exception.title
+          </h3>
+        </div>
+        <div class="mdl-card__content">
+          <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div class="mdl-alert__content">
+              <p>@exception.description</p>
+            </div>
+          </div>
+          <div>
+            This exception has been logged with id <strong>@exception.id</strong>.
+          </div>
+          <div class="error-details-buttons">
+            <button class="mdl-button mdl-js-button mdl-button--raised">
+              Show Details
+            </button>
+            <button class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">
+              Hide Details
+            </button>
+          </div>
+
+        </div>
+        <div class="error-details" style="display: none;">
+          <h4>Details:</h4>
+
+          <div class="error-details-scrollbox">
+            @for(cause <- Option(exception.cause)) {
+            @stacktrace(exception.cause)
+            }
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+  </div>
+  <script type="text/javascript">
+    $(function () {
+      console.log("done!");
+      $(".error-details-buttons button").click(function() {
+        $(".error-details").slideToggle(300, function() {
+          $(".error-details-buttons button").toggle();
+        });
+      });
+    });
+  </script>
+
+}
+
+@stacktrace(ex: Throwable) = {
+  <p class="error-details-stacktrace">
+  @for(el <- ex.getStackTrace) {
+    @el.toString
+    <br/>
+  }
+  </p>
+  @if(ex.getCause != null) {
+    <strong>Cause:</strong>
+    @ex.getCause.getMessage
+    @stacktrace(ex.getCause)
+  }
+}

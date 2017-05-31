@@ -5,7 +5,6 @@ import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
-import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -13,13 +12,13 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoun
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
-import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
+import org.silkframework.workspace._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, JsObject}
 import play.api.mvc._
-import org.silkframework.workspace.ProjectMarshallerRegistry
 
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,13 +45,30 @@ class WorkspaceApi extends Controller {
     if (User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
-      val newProject = User().workspace.createProject(project)
+      val projectConfig = ProjectConfig(project)
+      projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
+      val newProject = User().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
     }
   }
 
   def deleteProject(project: String): Action[AnyContent] = Action {
     User().workspace.removeProject(project)
+    Ok
+  }
+
+  def cloneProject(oldProject: String, newProject: String) = Action {
+    val workspace = User().workspace
+    val project = workspace.project(oldProject)
+
+    val clonedProjectConfig = project.config.copy(id = newProject)
+    val clonedProjectUri = clonedProjectConfig.generateDefaultUri
+    val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
+    WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+    for(task <- project.allTasks) {
+      clonedProject.addAnyTask(task.id, task.data)
+    }
+
     Ok
   }
 
@@ -265,6 +281,12 @@ class WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
+    Ok
+  }
+
+  def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {
+    val project = User().workspace.project(projectName)
+    project.addAnyTask(newTask, project.anyTask(oldTask))
     Ok
   }
 

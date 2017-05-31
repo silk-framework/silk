@@ -87,7 +87,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with LongValueType" in {
-    format("54325543254325432235", LongValueType) mustBe
-        s"""$S_P "54325543254325432235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
+    format("5432554325432542235", LongValueType) mustBe
+        s"""$S_P "5432554325432542235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
   }
 }

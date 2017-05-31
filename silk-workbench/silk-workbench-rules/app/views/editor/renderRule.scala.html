@@ -6,9 +6,10 @@
 @import org.silkframework.rule.RuleTraverser
 @import org.silkframework.runtime.plugin.PluginDescription
 @import views.editor.GenerateId
+@import org.silkframework.workspace.Project
 
 @(rule: org.silkframework.rule.Operator,
-  prefixes: org.silkframework.config.Prefixes)
+  project: Project)
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 200)
 
@@ -57,16 +58,16 @@
 @drawOperator(op: Operator, x: Int, y: Int) = {
   @op match {
     case Aggregation(id, required, weight, aggregator, operators) => {
-      @aggregationBox(id, required, weight, aggregator.plugin, parameterValues(aggregator, aggregator.plugin), x, y, true)
+      @aggregationBox(id, required, weight, aggregator.plugin, parameterValues(aggregator, aggregator.plugin), x, y, true, project)
     }
     case Comparison(id, required, weight, threshold, indexing, metric, inputs) => {
-      @comparisonBox(id, required, weight, threshold, metric.plugin, parameterValues(metric, metric.plugin), x, y, true)
+      @comparisonBox(id, required, weight, threshold, metric.plugin, parameterValues(metric, metric.plugin), x, y, true, project)
     }
     case TransformInput(id, transformer, inputs) => {
-      @transformationBox(id, transformer.plugin, parameterValues(transformer, transformer.plugin), x, y, true)
+      @transformationBox(id, transformer.plugin, parameterValues(transformer, transformer.plugin), x, y, true, project)
     }
     case PathInput(id, path) => {
-      @pathBox(id, isSourceInput(op), path.serialize(prefixes), x, y, true)
+      @pathBox(id, isSourceInput(op), path.serialize(project.config.prefixes), x, y, true, project)
     }
   }
 }
@@ -101,7 +102,10 @@
       initEditor();
 
       var dropArea = $('#droppable');
-      jsPlumb.draggable(dropArea.find('.dragDiv')); //TODO move
+      jsPlumb.draggable(dropArea.find('.dragDiv'));
+      //jsPlumb.draggable(dropArea.find('.dragDiv'), {
+      //  containment: "parent"
+      //}); //TODO move
 
       jsPlumb.setSuspendEvents(true);
       jsPlumb.setSuspendDrawing(true);

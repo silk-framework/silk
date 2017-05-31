@@ -42,7 +42,8 @@
     @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
       @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.name}')")
     }
-    @button("Remove", "Remove project", "cross.png", s"deleteProject('${project.name}')")
+    @button("Clone", "Clone project", "clone.png", s"cloneProject('${project.name}')")
+    @button("Remove", "Remove project", "cross.png", s"deleteProjectConfirm('${project.name}')")
     <ul>
       @for(plugin <- WorkbenchPlugins();
            taskActions <- plugin.tasks;
@@ -69,9 +70,8 @@
     @for(path <- taskActions.open(project.name, task.id)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
     }
-    @for(path <- taskActions.delete(project.name, task.id)) {
-      @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${task.id}', '${config.baseUrl}/$path')")
-    }
+    @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
+    @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
     <ul>
       @for((key, value) <- taskActions.properties(task.data) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>

@@ -44,8 +44,7 @@ object PluginDocumentation {
         Table(
           name = title,
           header = pluginParameterDisplay.headers,
-          rows = plugin.parameters.map(_.name),
-          values = plugin.parameters.map(pluginParameterDisplay.generateValues)
+          values = plugin.parameters.map(p => p.name +: pluginParameterDisplay.generateValues(p))
         )(columnWidthInCharacters = pluginParameterDisplay.maxCharsInColumns)
       serializeToMarkdown(plugin, paramTable)
     }
@@ -56,10 +55,11 @@ object PluginDocumentation {
                             (implicit sb: StringBuilder): Unit = {
     sb ++= "#### " + plugin.label + "\n\n"
     sb ++= plugin.description + "\n\n"
-    if (table.rows.nonEmpty)
+    if (table.values.nonEmpty)
       sb ++= table.toMarkdown + "\n"
     else
       sb ++= "This plugin does not require any parameters.\n"
+    sb ++= plugin.documentation + "\n"
     sb ++= "The identifier for this plugin is: `" + plugin.id + "`.\n\n"
   }
 
@@ -82,9 +82,6 @@ object PluginDocumentation {
   }
 }
 
-case class PluginParameterDisplay
-(
-  headers: Seq[String],
-  generateValues: Parameter => Seq[String],
-  maxCharsInColumns: Seq[Int]
-  )
+case class PluginParameterDisplay(headers: Seq[String],
+                                  generateValues: Parameter => Seq[String],
+                                  maxCharsInColumns: Seq[Int])

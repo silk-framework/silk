@@ -41,19 +41,25 @@ case class SparqlEntitySchema(variable: String = "a", restrictions: SparqlRestri
 }
 
 object SparqlEntitySchema {
-  final val A = "a"
+
+  private final val variable = "a"
 
   /**
    * Creates an empty entity description.
    */
-  def empty: SparqlEntitySchema = SparqlEntitySchema(A, SparqlRestriction.empty, IndexedSeq.empty)
+  def empty: SparqlEntitySchema = SparqlEntitySchema(variable, SparqlRestriction.empty, IndexedSeq.empty)
 
   def fromSchema(entitySchema: EntitySchema): SparqlEntitySchema = {
-    var sparqlRestriction = new SparqlRestrictionBuilder(A)(Prefixes.empty).apply(entitySchema.filter)
+    var sparqlRestriction = new SparqlRestrictionBuilder(variable)(Prefixes.empty).apply(entitySchema.filter)
     if(entitySchema.typeUri.uri.nonEmpty) {
-      sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(A, s"?a a <${entitySchema.typeUri}>")
+      sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(variable, s"?$variable a <${entitySchema.typeUri}>")
     }
-    SparqlEntitySchema(A, sparqlRestriction, entitySchema.typedPaths.map(_.path))
+    if(entitySchema.subPath.operators.nonEmpty) {
+      val subProperty = entitySchema.subPath.propertyUri.get.uri
+      sparqlRestriction= SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent <$subProperty> ?$variable")
+    }
+
+    SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
   }
 
   /**

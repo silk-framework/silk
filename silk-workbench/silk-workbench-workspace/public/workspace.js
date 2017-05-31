@@ -27,16 +27,20 @@ function importProject() {
   showDialog(baseUrl + '/workspace/dialogs/importproject');
 }
 
+function cloneProject(project) {
+  showDialog(baseUrl + '/workspace/dialogs/cloneProject?project=' + project);
+}
+
+function cloneTask(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/cloneTask?project=' + project + '&task=' + task);
+}
+
 function importLinkSpec(project) {
   showDialog(baseUrl + '/workspace/dialogs/importlinkspec/' + project);
 }
 
 function exportProject(project) {
   window.location = baseUrl + '/workspace/projects/' + project + '/export'
-}
-
-function deleteProject(project) {
-  deleteTaskConfirm(project, baseUrl + '/workspace/projects/' + project);
 }
 
 function executeProject(project) {
@@ -71,7 +75,10 @@ function workspaceDialog(relativePath) {
   showDialog(baseUrl + '/' + relativePath);
 }
 
-function putTask(path, xml) {
+function putTask(path, xml, callbacks={
+    success: function() {} ,
+    error: function() {}
+  }) {
   $.ajax({
     type: 'PUT',
     url: path,
@@ -79,18 +86,19 @@ function putTask(path, xml) {
     processData: false,
     data: xml,
     error: function(request) {
-      alert(request.responseText);
+      callbacks.error(JSON.parse(request.responseText).message);
     },
     success: function(request) {
       reloadWorkspace();
+      callbacks.success();
     }
   });
 }
 
-function deleteTask(path) {
+function deleteProject(project, task) {
   $.ajax({
     type: 'DELETE',
-    url: path,
+    url: baseUrl + '/workspace/projects/' + project,
     success: function(data) {
       reloadWorkspace();
     },
@@ -100,8 +108,25 @@ function deleteTask(path) {
   });
 }
 
-function deleteTaskConfirm(name, path) {
-  showDialog(baseUrl + '/workspace/dialogs/removetask/' + name + "?path=" + encodeURIComponent(path));
+function deleteTask(project, task) {
+  $.ajax({
+    type: 'DELETE',
+    url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
+    success: function(data) {
+      reloadWorkspace();
+    },
+    error: function(request) {
+      alert("Error deleting:" + request.responseText);
+    }
+  });
+}
+
+function deleteProjectConfirm(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/removeproject/' + project);
+}
+
+function deleteTaskConfirm(project, task) {
+  showDialog(baseUrl + '/workspace/dialogs/removetask/' + project + '/' + task);
 }
 
 function deleteResourceConfirm(name, path) {

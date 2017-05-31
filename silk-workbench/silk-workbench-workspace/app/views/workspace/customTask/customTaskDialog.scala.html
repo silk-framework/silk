@@ -26,13 +26,6 @@
         var oSerializer = new XMLSerializer();
         var xml = oSerializer.serializeToString(ctDoc);
 
-        // Delete the old task in case its name changed
-        if(@taskPlugin.nonEmpty) {
-          if(name != '@taskName') {
-            deleteTask('@config.baseUrl/workspace/projects/@project.name/customTasks/@taskName');
-          }
-        }
-
         // Submit task
         putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml);
       }

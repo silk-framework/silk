@@ -19,7 +19,6 @@ import scala.reflect.ClassTag
 class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType],
                                                                                          initialFactory: TaskActivityFactory[DataType, ActivityType])
     extends WorkspaceActivity {
-  final val activityClassName = classOf[Activity[_]].getName
 
   @volatile
   private var currentControl = Activity(initialFactory(task))
@@ -75,6 +74,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Retrieves the value type of the activity.
     */
   def valueType: Class[_] = {
+    val activityClassName = classOf[Activity[_]].getName
     val activityInterface = {
       val at = activityType
       val gi = getAllInterfacesRecursively(at, activityClassName)

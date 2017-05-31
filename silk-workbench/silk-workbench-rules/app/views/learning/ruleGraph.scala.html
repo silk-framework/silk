@@ -19,7 +19,7 @@
     @for(op <- rule.operator) {
       @renderRule(
       rule = op,
-      prefixes = context.project.config.prefixes
+      project = context.project
       )
     }
   </div>

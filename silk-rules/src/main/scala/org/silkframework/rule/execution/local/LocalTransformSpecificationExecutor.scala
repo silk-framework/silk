@@ -1,24 +1,18 @@
 package org.silkframework.rule.execution.local
 
-import java.util.logging.Logger
-
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution}
+import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
-import org.silkframework.rule.execution._
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.ActivityContext
-import org.silkframework.runtime.activity.Status.Finished
 
-import scala.util.control.NonFatal
+import scala.collection.mutable
 
 /**
   * Created on 7/20/16.
   */
 class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalExecution] {
-
-  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[EntityTable],
@@ -28,77 +22,43 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
     val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
-    val transformedEntities = new TransformedEntities(input.entities, task, schema, context)
-    Some(GenericEntityTable(transformedEntities, schema, PlainTask(task.id, transformSpec)))
+
+    input match {
+      case mt: MultiEntityTable =>
+        val output = mutable.Buffer[EntityTable]()
+        val transformer = new EntityTransformer(task, (mt.asInstanceOf[EntityTable] +: mt.subTables).to[mutable.Buffer], output)
+        transformer.transformEntities(task.rules, task.outputSchema, context)
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+      case _ =>
+        val output = mutable.Buffer[EntityTable]()
+        val transformer = new EntityTransformer(task, mutable.Buffer(input), output)
+        transformer.transformEntities(task.rules, task.outputSchema, context)
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+    }
   }
 
-  private class TransformedEntities(entities: Traversable[Entity],
-                                    task: Task[TransformSpec],
-                                    outputSchema: EntitySchema,
-                                    context: ActivityContext[ExecutionReport]) extends Traversable[Entity] {
 
-    private val transform = task.data
+  private class EntityTransformer(task: Task[TransformSpec], inputTables: mutable.Buffer[EntityTable], outputTables: mutable.Buffer[EntityTable]) {
 
-    private val subjectRule = transform.rules.find(_.target.isEmpty)
+    def transformEntities(rules: Seq[TransformRule], outputSchema: EntitySchema,
+                                  context: ActivityContext[ExecutionReport]): Unit = {
 
-    private val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
+      val entities = inputTables.remove(0).entities
 
-    private val report = new TransformReportBuilder(propertyRules)
+      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
+      outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-    private var errorFlag = false
+      for(ObjectMapping(_, relativePath, _, childRules) <- rules) {
+        val childOutputSchema =
+          EntitySchema(
+            typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+          )
 
-    override def foreach[U](f: (Entity) => U): Unit = {
-      // For each schema path, collect all rules that map to it
-      val rulesPerPath =
-      for(path <- outputSchema.typedPaths.map(_.path)) yield {
-        path.propertyUri match {
-          case Some(property) =>
-            propertyRules.filter(_.target.get.propertyUri == property)
-          case None =>
-            IndexedSeq.empty
-        }
-      }
-
-      var count = 0
-      for(entity <- entities) {
-        errorFlag = false
-        val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-        val values =
-          for(rules <- rulesPerPath) yield {
-            rules.flatMap(evaluateRule(entity))
-          }
-
-        f(new Entity(uri, values, outputSchema))
-
-        if(errorFlag)
-          report.incrementEntityErrorCounter()
-        else
-          report.incrementEntityCounter()
-
-        count += 1
-        if (count % 1000 == 0) {
-          context.value.update(report.build())
-          context.status.updateMessage(s"Executing ($count Entities)")
-        }
-      }
-
-      context.value() = report.build()
-    }
-
-    private def evaluateRule(entity: Entity)(rule: TransformRule): Seq[String] = {
-      try {
-        rule(entity)
-      } catch {
-        case NonFatal(ex) =>
-          // TODO decrease log level as the log is now in the report
-          log.warning("Error during execution of transform rule " + rule.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
-          report.addError(rule, entity, ex)
-          errorFlag = true
-          Seq.empty
+        transformEntities(childRules, childOutputSchema, context)
       }
     }
+
   }
 
 }
-
-

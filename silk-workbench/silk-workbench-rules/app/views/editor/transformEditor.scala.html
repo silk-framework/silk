@@ -2,7 +2,7 @@
 @import org.silkframework.rule.{TransformRule, TransformSpec}
 @import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
-
+@import org.silkframework.entity.ValueType
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
@@ -25,7 +25,7 @@
     var inEditorEnv = true;
     var projectName = '@context.project.name';
     var taskName = '@context.task.id';
-    var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
+    var ruleIndex = '/@rule.id.toString';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
@@ -69,7 +69,7 @@
     <li>
       <label>Name:</label>
       <div id="input_rulename" class="mdl-textfield mdl-js-textfield">
-        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.name" />
+        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.id" />
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_rulename">
         The name of this transformation rule.
@@ -85,6 +85,15 @@
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_targetproperty">
         The target property.
+      </div>
+    </li>
+    <li>
+      <label>Target Type:</label>
+      <div id="input_type" class="mdl-textfield mdl-js-textfield">
+        <input id="targettype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(t => ValueType.valueTypeId(t.valueType)).getOrElse("AutoDetectValueType")" disabled/>
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_type">
+        The target type.
       </div>
     </li>
   </ul>
@@ -108,7 +117,7 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
       </div>
     </div>
   </div>
@@ -120,7 +129,7 @@
       <div id="droppable" class="mdl-shadow--2dp">
         @renderRule(
           rule = rule.operator,
-          prefixes = context.project.config.prefixes
+          project = context.project
         )
       </div>
 

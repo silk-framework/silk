@@ -2,7 +2,7 @@ package org.silkframework.execution
 
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 import java.util.logging.{Level, Logger}
-
+import java.lang.reflect.Modifier
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
@@ -28,7 +28,7 @@ trait ExecutorRegistry {
         implicit val resource = EmptyResourceManager
         plugin()
       case _ =>
-        throw new ValidationException(s"Multiple executors found for task type ${task.getClass} and execution type ${context.getClass}")
+        throw new ValidationException(s"Multiple executors found for task type ${task.getClass} and execution type ${context.getClass}: ${suitablePlugins.mkString(", ")}")
     }
   }
 
@@ -43,10 +43,11 @@ trait ExecutorRegistry {
       val taskType = getTypeArgument(executorInterface, 0, inheritanceTrail)
       val executionType = getTypeArgument(executorInterface, 1, inheritanceTrail)
       // Check if suitable
+      val isAbstract = Modifier.isAbstract(plugin.pluginClass.getModifiers)
       val suitableTaskType = taskType.isAssignableFrom(task.getClass)
       val suitableExecutionType = executionType.isAssignableFrom(execution.getClass)
-      // Return true if both fits
-      suitableTaskType && suitableExecutionType
+      // Return true if all fits
+      !isAbstract && suitableTaskType && suitableExecutionType
     } catch {
       case e: MatchError =>
         log.log(Level.WARNING, "Problem checking executor interface for plugin " + plugin.id.toString + ": ", e)
@@ -65,7 +66,8 @@ trait ExecutorRegistry {
             case c: Class[_] => c
             case pt: ParameterizedType => pt.getRawType.asInstanceOf[Class[_]]
           }
-        superInterfaces.flatMap(c => findExecutorInterface(c, clazz :: inheritanceTrail)).headOption
+        val superTypes = superInterfaces ++ Option(clazz.getSuperclass)
+        superTypes.flatMap(c => findExecutorInterface(c, clazz :: inheritanceTrail)).headOption
     }
   }
 
@@ -74,7 +76,7 @@ trait ExecutorRegistry {
       case c: Class[_] => c
       case tv: TypeVariable[_] =>
         val actualType = for (descendent <- inheritanceTrail;
-                              interface <- descendent.getGenericInterfaces if interface.isInstanceOf[ParameterizedType];
+                              interface <- descendent.getGenericInterfaces ++ Option(descendent.getGenericSuperclass) if interface.isInstanceOf[ParameterizedType];
                               paramType = interface.asInstanceOf[ParameterizedType];
                               rawType = paramType.getRawType.asInstanceOf[Class[_]];
                               (typeParam, idx) <- rawType.getTypeParameters.zipWithIndex

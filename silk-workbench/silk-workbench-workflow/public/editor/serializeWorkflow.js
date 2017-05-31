@@ -27,7 +27,6 @@ function serializeWorkflow() {
 
   // Return xml string
   var xmlString = (new XMLSerializer()).serializeToString(xml);
-  xmlString = xmlString.replace(/&amp;/g, "&");
   return xmlString;
 }
 

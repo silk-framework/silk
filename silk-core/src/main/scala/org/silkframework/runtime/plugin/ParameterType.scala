@@ -200,7 +200,7 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = true)
+        resourceLoader.get(str, mustExist = false)
       }
     }
 
@@ -253,5 +253,7 @@ object ParameterType {
       enumConstants.find(_.name == str.trim)
           .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
+
+    def enumerationValues: Seq[String] = enumConstants.map(_.name())
   }
 }
