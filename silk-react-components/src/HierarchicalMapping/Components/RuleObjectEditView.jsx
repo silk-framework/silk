@@ -1,6 +1,16 @@
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import {Button, SelectBox, Radio, RadioGroup, TextField, ConfirmationDialog, AffirmativeButton, DismissiveButton} from 'ecc-gui-elements';
+import {
+    Button,
+    SelectBox,
+    Radio,
+    RadioGroup,
+    TextField,
+    ConfirmationDialog,
+    AffirmativeButton,
+    DismissiveButton,
+    DisruptiveButton,
+} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
 import {Rx} from 'ecc-messagebus';
 import _ from 'lodash';
@@ -244,19 +254,19 @@ const RuleObjectEditView = React.createClass({
         const actionRow = (
             edit ? (
                 <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
-                    <Button
+                    <AffirmativeButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
                         disabled={!allowConfirm}
                     >
                         Save
-                    </Button>
-                    <Button
+                    </AffirmativeButton>
+                    <DismissiveButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
                         onClick={this.handleClose}
                     >
                         Cancel
-                    </Button>
+                    </DismissiveButton>
                 </div>
             ) : (
                 <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
@@ -266,13 +276,13 @@ const RuleObjectEditView = React.createClass({
                     >
                         Edit
                     </Button>
-                    <Button
+                    <DisruptiveButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                         onClick={this.handleClickRemove}
                         disabled={type === 'root'}
                     >
                         Remove
-                    </Button>
+                    </DisruptiveButton>
                 </div>
             )
         );
@@ -282,9 +292,9 @@ const RuleObjectEditView = React.createClass({
                 active={true}
                 title="Delete Rule"
                 confirmButton={
-                    <AffirmativeButton disabled={false} onClick={this.handleConfirmRemove}>
+                    <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
                         Delete
-                    </AffirmativeButton>
+                    </DisruptiveButton>
                 }
                 cancelButton={
                     <DismissiveButton onClick={this.handleCancelRemove}>
@@ -314,12 +324,12 @@ const RuleObjectEditView = React.createClass({
                                 // store data not exist at the moment - mockup for now?
                             }
                         </div>
-                        {deleteView}
                         {actionRow}
                     </div>
                 </div>
             ) : (
                 <div>
+                    {deleteView}
                     <div className="mdl-card__content">
                         {targetPropertyInput}
                         {entityRelationInput}
@@ -331,7 +341,6 @@ const RuleObjectEditView = React.createClass({
                             // store data not exist at the moment - mockup for now?
                         }
                     </div>
-                    {deleteView}
                     {actionRow}
                 </div>
             )
