@@ -79,9 +79,9 @@ const HierarchicalMapping = React.createClass({
             ) : false
         );
         // render mapping edit / create view of value and object
-        const createRuleForm = () => {
-            if (this.state.ruleEditView) {
-                return (
+        const createRuleForm = this.state.ruleEditView ? (
+            <div className="ecc-silk-mapping__createrule">
+                {
                     this.state.ruleEditView.type === 'object' ? (
                         <RuleObjectEdit
                             {...this.state.ruleEditView}
@@ -97,10 +97,9 @@ const HierarchicalMapping = React.createClass({
                             edit={true}
                         />
                     )
-                )
-            }
-            return false;
-        };
+                }
+            </div>
+        ) : false;
 
         return (
             <div
@@ -120,13 +119,19 @@ const HierarchicalMapping = React.createClass({
                     </div>
                     <div className="ecc-silk-mapping__content">
                         {treeView}
-                        <MappingRuleOverview
-                            apiBase={this.props.apiBase}
-                            project={this.props.project}
-                            transformationTask={this.props.transformationTask}
-                            currentRuleId={this.state.currentRuleId}
-                        />
-                        {createRuleForm()}
+                        {
+                            /* FIXME: createRuleForm need to be managed in MappingRuleOverview
+                               that we can replace only the mapping rules list but not the header.
+                            */
+                            createRuleForm ?
+                                createRuleForm :
+                                <MappingRuleOverview
+                                    apiBase={this.props.apiBase}
+                                    project={this.props.project}
+                                    transformationTask={this.props.transformationTask}
+                                    currentRuleId={this.state.currentRuleId}
+                                />
+                        }
                     </div>
                 </div>
             </div>
