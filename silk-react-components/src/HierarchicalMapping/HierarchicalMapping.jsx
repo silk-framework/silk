@@ -37,11 +37,8 @@ const HierarchicalMapping = React.createClass({
             currentRuleId: undefined,
             // show / hide navigation
             showNavigation: true,
-            // show / hide edit view of rule
-            // TODO: set to false as default after developing
-            ruleEditView: {
-                type: false, // or type: 'direct' | 'object'
-            },
+            // which edit view are we viewing
+            ruleEditView: false,
         };
     },
     // react to rule id changes
