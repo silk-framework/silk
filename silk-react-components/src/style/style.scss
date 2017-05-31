@@ -82,4 +82,33 @@
     .mdl-card__title-text {
         flex-grow: 1;
     }
+
+    .mdl-list {
+        margin: 0;
+        padding: 0;
+    }
+
+    .mdl-list__item {
+        border-bottom: 1px solid #eee;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .ecc-silk-mapping__ruleitem--literal {
+        .mdl-list__item-secondary-content {
+            align-self: flex-start;
+        }
+    }
+
+    .ecc-silk-mapping__ruleitem--object {
+        .mdl-list__item-secondary-content {
+            align-self: center;
+        }
+    }
+
+    .ecc-silk-mapping__ruleitem--expanded {
+        padding-left: 0;
+    }
 }

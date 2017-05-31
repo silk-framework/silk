@@ -135,15 +135,26 @@ const MappingRuleOverview = React.createClass({
 
         const mappingRulesList = (
             _.isEmpty(childRules) ? (
-                <Info vertSpacing border>
-                    No existing mapping rules.
-                </Info>
+                <div className="mdl-card__content">
+                    <Info vertSpacing border>
+                        No existing mapping rules.
+                    </Info>
+                    {
+                        /* TODO: we should provide options like adding rules or suggestions here,
+                           even a help text would be a good support for the user.
+                        */
+                     }
+                </div>
             ) : (
-                _.map(childRules, (rule, idx) =>
-                    (
-                        <MappingRule key={`MappingRule_${id}_${idx}`} {...rule}/>
-                    )
-                )
+                <ol className="mdl-list">
+                    {
+                        _.map(childRules, (rule, idx) =>
+                            (
+                                <MappingRule key={`MappingRule_${id}_${idx}`} {...rule}/>
+                            )
+                        )
+                    }
+                </ol>
             )
         );
 

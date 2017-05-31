@@ -122,7 +122,7 @@ const RuleValueEditView = React.createClass({
 
         const title = (
             edit && !id ? (
-                <div className="mdl-card__title">
+                <div className="mdl-card__title mdl-card--border">
                     Add value mapping
                 </div>
             ) : false
@@ -231,7 +231,7 @@ const RuleValueEditView = React.createClass({
 
         const actionRow = (
             edit ? (
-                <div className="ecc-silk-mapping__ruleseditor__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         onClick={this.handleConfirm}
@@ -247,7 +247,7 @@ const RuleValueEditView = React.createClass({
                     </Button>
                 </div>
             ) : (
-                <div className="ecc-silk-mapping__ruleseditor__actionrow">
+                <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
@@ -285,26 +285,47 @@ const RuleValueEditView = React.createClass({
 
 
         return (
-            <div
-                className="ecc-silk-mapping__ruleseditor"
-            >
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
-                    {title}
-                    <div className="mdl-card__content">
-                        {targetPropertyInput}
-                        {propertyTypeInput}
-                        {sourceProperty}
-                        {commentInput}
+            edit ? (
+                <div
+                    className="ecc-silk-mapping__ruleseditor"
+                >
+                    <div className="mdl-card mdl-shadow--2dp mdl-card--stretch stretch-vertical">
+                        {title}
+                        <div className="mdl-card__content">
+                            {targetPropertyInput}
+                            {propertyTypeInput}
+                            {sourceProperty}
+                            {commentInput}
+                            {
+                                // TODO: if not in edit mode user should see modified and creator
+                                // store data not exist at the moment - mockup for now?
+                                // FIXME: EditView should not mix View and Edit functionality
+                            }
+                        </div>
                         {actionRow}
-                        {
-                            // TODO: if not in edit mode user should see modified and creator
-                            // store data not exist at the moment - mockup for now?
-                            // FIXME: EditView should not mix View and Edit functionality
-                        }
                     </div>
-                    {deleteView}
                 </div>
-            </div>
+            ) : (
+                <div
+                    className="ecc-silk-mapping__ruleseditor"
+                >
+                    {deleteView}
+                    <div className="mdl-card mdl-card--stretch">
+                        <div className="mdl-card__content">
+                            {targetPropertyInput}
+                            {propertyTypeInput}
+                            {sourceProperty}
+                            {commentInput}
+                            {
+                                // TODO: if not in edit mode user should see modified and creator
+                                // store data not exist at the moment - mockup for now?
+                                // FIXME: EditView should not mix View and Edit functionality
+                            }
+                        </div>
+                        {actionRow}
+                    </div>
+                </div>
+            )
         );
     },
 

@@ -74,26 +74,22 @@ const MappingRule = React.createClass({
         );
 
         const shortView = (
-            <div
-                className="mdl-card__content"
-            >
+            <div>
                 {id}
-                <div>
-                    from (todo: get content after store implementation)
+                <div className="mdl-list__item-text-body">
+                    <div>
+                        from (todo: get content after store implementation)
+                    </div>
+                    <div>
+                        by (todo: get content after store implementation)
+                    </div>
                 </div>
-                <div>
-                    by (todo: get content after store implementation)
-                </div>
-                <div className="action" key="action">{action}</div>
             </div>
         );
 
         // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = (
-            <div
-                className="mdl-card__content"
-            >
-                <div className="action" key="action">{action}</div>
+            <div>
                 {
                     (type === 'object' || type === 'root') ? (
                         <RuleObjectEdit
@@ -114,12 +110,18 @@ const MappingRule = React.createClass({
         );
 
         return (
-            <div className="ecc-silk-mapping__ruleitem"
-            >
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+            <li className={
+                    "ecc-silk-mapping__ruleitem mdl-list__item " +
+                    (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
+                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : '')
+            }>
+                <div className="mdl-list__item-primary-content">
                     {this.state.expanded ? expandedView : shortView}
                 </div>
-            </div>
+                <div className="mdl-list__item-secondary-content" key="action">
+                    {action}
+                </div>
+            </li>
         );
     },
 });
