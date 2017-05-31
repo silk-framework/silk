@@ -26,6 +26,15 @@ trait Task[+TaskType <: TaskSpec] {
     * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
     */
   def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
+
+  override def equals(obj: scala.Any) = obj match {
+    case task: Task[_] =>
+      id == task.id &&
+      data == task.data &&
+      metaData == task.metaData
+    case _ =>
+      false
+  }
 }
 
 case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType]
