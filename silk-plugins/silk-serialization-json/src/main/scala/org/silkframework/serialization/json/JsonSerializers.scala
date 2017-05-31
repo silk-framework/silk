@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.{PlainTask, Task, TaskMetaData, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -36,7 +36,7 @@ object JsonSerializers {
             id = (value \ TYPE).as[JsString].value,
             params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
           ),
-        metaData = TaskMetaData.empty)
+        metaData = MetaData.empty)
     }
 
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {

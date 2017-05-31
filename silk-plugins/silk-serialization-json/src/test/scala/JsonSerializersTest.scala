@@ -1,5 +1,5 @@
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.TaskMetaData
+import org.silkframework.config.MetaData
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
@@ -11,7 +11,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   "JsonDatasetTaskFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
-    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0), TaskMetaData.empty))
+    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0), MetaData.empty))
   }
 
   private def verify[T: ClassTag](value: T) = {

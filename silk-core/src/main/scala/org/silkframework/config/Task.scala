@@ -19,7 +19,7 @@ trait Task[+TaskType <: TaskSpec] {
   def data: TaskType
 
   /** Meta data about this task. */
-  def metaData: TaskMetaData
+  def metaData: MetaData
 
   /**
     * Returns this task as a [[Task]]. For some reason the type inference mechanism of Scala is not able
@@ -28,7 +28,7 @@ trait Task[+TaskType <: TaskSpec] {
   def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
 }
 
-case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: TaskMetaData = TaskMetaData.empty) extends Task[TaskType]
+case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType]
 
 object Task {
 
@@ -65,7 +65,7 @@ object Task {
       PlainTask(
         id = (node \ "@id").text,
         data = fromXml[T](node),
-        metaData = fromXml[TaskMetaData]((node \ "TaskMetaData").head)
+        metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty)
       )
     }
 
@@ -75,7 +75,7 @@ object Task {
     def write(task: Task[T])(implicit writeContext: WriteContext[Node]): Node = {
       var node = toXml(task.data).head.asInstanceOf[Elem]
       node = node % Attribute("id", Text(task.id), Null)
-      node = node.copy(child = toXml[TaskMetaData](task.metaData) +: node.child)
+      node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
       node
     }
   }

@@ -183,7 +183,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: TaskMetaData): Unit = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     module[T].add(name, taskData, metaData)
   }
@@ -194,10 +194,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec): Unit = {
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -210,7 +210,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: TaskMetaData): Unit = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
     module[T].taskOption(name) match {
       case Some(task) => task.update(taskData)
       case None => addTask[T](name, taskData, metaData)

@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.input.PathInput
@@ -55,30 +55,30 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       linkType = "http://www.w3.org/2002/07/owl#sameAs"
     )
 
-  val dataset = InternalDataset("default")
+  val dataset = new DatasetTask(DATASET_ID, InternalDataset("default"))
 
-  val datasetUpdated = dataset.copy(graphUri = "updated")
+  val datasetUpdated = new DatasetTask(DATASET_ID, InternalDataset("updated"))
 
-  val linkTask = LinkSpec(rule = rule)
+  val linkTask = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule))
 
-  val linkTaskUpdated = LinkSpec(rule = rule.copy(operator = None))
+  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)))
 
-  val transformTask = TransformSpec(
+  val transformTask = PlainTask(TRANSFORM_ID, TransformSpec(
     selection = DatasetSelection("InputDS", "http://type1"),
     mappingRule = RootMappingRule(MappingRules(DirectMapping(
       id = TRANSFORM_ID,
       sourcePath = Path("prop1")
     )))
-  )
+  ))
 
-  val transformTaskUpdated = transformTask.copy(
+  val transformTaskUpdated = PlainTask(TRANSFORM_ID, transformTask.data.copy(
     mappingRule = RootMappingRule(MappingRules(DirectMapping(
       id = TRANSFORM_ID + 2,
       sourcePath = Path("prop5")
     )))
-  )
+  ))
 
-  val miniWorkflow: Workflow = {
+  val miniWorkflow = PlainTask(WORKFLOW_ID,
     Workflow(
       operators = Seq(
         WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
@@ -86,14 +86,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       datasets = Seq(
         WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0))
       ))
-  }
+    )
 
-  val miniWorkflowUpdated = miniWorkflow.copy(
+  val miniWorkflowUpdated = PlainTask(WORKFLOW_ID, miniWorkflow.data.copy(
     operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
     datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
-  )
+  ))
 
-  val customTask: CustomTask = TestCustomTask(stringParam = "xxx", numberParam = 12)
+  val customTask = PlainTask(CUSTOM_TASK_ID, TestCustomTask(stringParam = "xxx", numberParam = 12))
 
   it should "read and write projects" in {
     val project = createProject(PROJECT_NAME)
@@ -113,67 +113,67 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   }
 
   it should "read and write linking tasks" in {
-    workspace.putTask(PROJECT_NAME, LINKING_TASK_ID, linkTask)
+    workspace.putTask(PROJECT_NAME, linkTask)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTask)
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTask)
     }
   }
 
   it should "update linking tasks" in {
-    workspace.putTask(PROJECT_NAME, LINKING_TASK_ID, linkTaskUpdated)
+    workspace.putTask(PROJECT_NAME, linkTaskUpdated)
     refreshTest {
-      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTaskUpdated)
+      workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
     }
   }
 
   it should "read and write dataset tasks" in {
-    workspace.putTask(PROJECT_NAME, DATASET_ID, dataset)
+    workspace.putTask(PROJECT_NAME, dataset)
     refreshTest {
-      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.map(_._2).get
+      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.get
       ds shouldBe dataset
     }
   }
 
   it should "update dataset tasks" in {
-    workspace.putTask(PROJECT_NAME, DATASET_ID, datasetUpdated)
+    workspace.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.map(_._2).get
+      val ds = workspace.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.get
       ds shouldBe datasetUpdated
     }
   }
 
   it should "read and write transformation tasks" in {
-    workspace.putTask(PROJECT_NAME, TRANSFORM_ID, transformTask)
+    workspace.putTask(PROJECT_NAME, transformTask)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(transformTask)
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTask)
     }
   }
 
   it should "update transformation tasks" in {
-    workspace.putTask(PROJECT_NAME, TRANSFORM_ID, transformTaskUpdated)
+    workspace.putTask(PROJECT_NAME, transformTaskUpdated)
     refreshTest {
-      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(transformTaskUpdated)
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
     }
   }
 
   it should "read and write workflows" in {
-    workspace.putTask(PROJECT_NAME, WORKFLOW_ID, miniWorkflow)
+    workspace.putTask(PROJECT_NAME, miniWorkflow)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(miniWorkflow)
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflow)
     }
   }
 
   it should "update workflow task correctly" in {
-    workspace.putTask(PROJECT_NAME, WORKFLOW_ID, miniWorkflowUpdated)
+    workspace.putTask(PROJECT_NAME, miniWorkflowUpdated)
     refreshTest {
-      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(miniWorkflowUpdated)
+      workspace.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflowUpdated)
     }
   }
 
   it should "read and write Custom tasks" in {
-    workspace.putTask(PROJECT_NAME, CUSTOM_TASK_ID, customTask)
+    workspace.putTask(PROJECT_NAME, customTask)
     refreshTest {
-      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(customTask)
+      workspace.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe Some(customTask)
     }
   }
 
@@ -196,7 +196,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   }
 
   it should "delete linking tasks" in {
-    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption.map(_._2) shouldBe Some(linkTaskUpdated)
+    workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
     refreshProject(PROJECT_NAME)
     workspace.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspace.deleteTask[LinkSpec](PROJECT_NAME, LINKING_TASK_ID)

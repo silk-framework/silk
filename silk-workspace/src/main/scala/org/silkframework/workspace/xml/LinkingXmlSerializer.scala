@@ -39,11 +39,11 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, LinkSpec] = {
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[LinkSpec]] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(resources.child(name), projectResources)
-    tasks.toMap
+    tasks
   }
 
   /**
@@ -54,7 +54,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     implicit val readContext = ReadContext(resources)
     val linkSpec = fromXml[Task[LinkSpec]](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
-    (linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks))
+    PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks))
   }
 
   /**

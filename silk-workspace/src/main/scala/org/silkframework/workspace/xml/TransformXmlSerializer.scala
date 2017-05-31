@@ -38,11 +38,11 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, TransformSpec] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[TransformSpec]] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(name, resources.child(name), projectResources)
-    tasks.toMap
+    tasks
   }
 
   private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager) = {
@@ -53,7 +53,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       val datasetXml = XML.load(taskResources.get("dataset.xml").load)
       val rulesXml = XML.load(taskResources.get("rules.xml").load)
       val xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
-      (name, fromXml[TransformSpec](xml))
+      PlainTask(name, fromXml[TransformSpec](xml))
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)

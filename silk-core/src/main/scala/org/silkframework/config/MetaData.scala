@@ -7,23 +7,23 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class TaskMetaData(label: String, description: String) {
+case class MetaData(label: String, description: String) {
 
 }
 
-object TaskMetaData {
+object MetaData {
 
-  def empty = TaskMetaData("", "")
+  def empty = MetaData("", "")
 
   /**
     * XML serialization format.
     */
-  implicit object TaskMetaDataFormat extends XmlFormat[TaskMetaData] {
+  implicit object MetaDataFormat extends XmlFormat[MetaData] {
     /**
       * Deserialize a value from XML.
       */
     def read(node: Node)(implicit readContext: ReadContext) = {
-      TaskMetaData(
+      MetaData(
         label = (node \ "Label").text,
         description = (node \ "Description").text
       )
@@ -32,7 +32,7 @@ object TaskMetaData {
     /**
       * Serialize a value to XML.
       */
-    def write(data: TaskMetaData)(implicit writeContext: WriteContext[Node]): Node = {
+    def write(data: MetaData)(implicit writeContext: WriteContext[Node]): Node = {
       <MetaData>
         <Label>{data.label}</Label>
         <Description>{data.description}</Description>

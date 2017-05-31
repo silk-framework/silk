@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Task, TaskMetaData}
+import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
@@ -44,21 +44,21 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T: ClassTag](project: Identifier, task: Task[T]): Unit = {
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T]): Unit = {
     projects(project).tasks += ((task.id, task))
   }
 
   /**
     * Reads all tasks of a specific type from a project.
     */
-  override def readTasks[T: ClassTag](project: Identifier, projectResources: ResourceManager): Seq[(Identifier, T)] = {
-    for((id, task: T) <- projects(project).tasks.toSeq) yield (id, task)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[Task[T]] = {
+    for((id, task: T) <- projects(project).tasks.toSeq) yield task.asInstanceOf[Task[T]]
   }
 
   /**
     * Deletes a task from a project.
     */
-  override def deleteTask[T: ClassTag](project: Identifier, task: Identifier): Unit = {
+  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit = {
     projects(project).tasks -= task
   }
 

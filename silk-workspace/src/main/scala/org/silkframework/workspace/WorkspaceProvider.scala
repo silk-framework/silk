@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Task, TaskMetaData, TaskSpec}
+import org.silkframework.config.{Task, MetaData, TaskSpec}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 

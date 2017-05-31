@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskMetaData, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -35,7 +35,7 @@ import scala.util.control.NonFatal
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
-                                                   initialMetaData: TaskMetaData,
+                                                   initialMetaData: MetaData,
                                                    module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -44,7 +44,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private var currentData: TaskType = initialData
 
   @volatile
-  private var currentMetaData: TaskMetaData = initialMetaData
+  private var currentMetaData: MetaData = initialMetaData
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None

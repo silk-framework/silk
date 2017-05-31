@@ -36,20 +36,19 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, CustomTask] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[CustomTask]] = {
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     val tasks = for (name <- names) yield {
       loadTask(name, resources, projectResources)
     }
 
-    tasks.toMap
+    tasks
   }
 
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val taskSpec = XmlSerialization.fromXml[Task[CustomTask]](XML.load(resources.get(name).load))
-    (taskSpec.id, taskSpec.data)
+    XmlSerialization.fromXml[Task[CustomTask]](XML.load(resources.get(name).load))
   }
 
   /**
