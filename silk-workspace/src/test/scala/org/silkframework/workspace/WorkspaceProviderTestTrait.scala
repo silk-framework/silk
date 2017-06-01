@@ -19,6 +19,7 @@ import org.silkframework.workspace.resources.{InMemoryResourceRepository, Resour
   * Created on 9/13/16.
   */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
+
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
   val CHILD = "child"
@@ -61,7 +62,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       description = "Some Description"
     )
 
-  val updatedMetadata =
+  val metaDataUpdated =
     MetaData(
       label = "Updated Label",
       description = "Updated Description"
@@ -73,39 +74,66 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   val linkTask = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule), metaData)
 
-  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)), updatedMetadata)
+  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)), metaDataUpdated)
 
-  val transformTask = PlainTask(TRANSFORM_ID, TransformSpec(
-    selection = DatasetSelection("InputDS", "http://type1"),
-    mappingRule = RootMappingRule(MappingRules(DirectMapping(
+  val transformTask =
+    PlainTask(
       id = TRANSFORM_ID,
-      sourcePath = Path("prop1")
-    )))
-  ))
+      data =
+        TransformSpec(
+          selection = DatasetSelection("InputDS", "http://type1"),
+          mappingRule = RootMappingRule(MappingRules(
+            DirectMapping(
+              id = TRANSFORM_ID,
+              sourcePath = Path("prop1")
+            )
+          ))
+        ),
+      metaData = metaData
+  )
 
-  val transformTaskUpdated = PlainTask(TRANSFORM_ID, transformTask.data.copy(
-    mappingRule = RootMappingRule(MappingRules(DirectMapping(
-      id = TRANSFORM_ID + 2,
-      sourcePath = Path("prop5")
-    )))
-  ))
-
-  val miniWorkflow = PlainTask(WORKFLOW_ID,
-    Workflow(
-      operators = Seq(
-        WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
-      ),
-      datasets = Seq(
-        WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0))
-      ))
+  val transformTaskUpdated =
+    PlainTask(
+      id = TRANSFORM_ID,
+      data = transformTask.data.copy(mappingRule = RootMappingRule(MappingRules(
+        DirectMapping(
+          id = TRANSFORM_ID + 2,
+          sourcePath = Path("prop5")
+        )
+      ))),
+      metaData = metaDataUpdated
     )
 
-  val miniWorkflowUpdated = PlainTask(WORKFLOW_ID, miniWorkflow.data.copy(
-    operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
-    datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
-  ))
+  val miniWorkflow =
+    PlainTask(
+      id = WORKFLOW_ID,
+      data =
+        Workflow(
+          operators = Seq(
+            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
+          ),
+          datasets = Seq(
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0))
+          )),
+      metaData = metaData
+    )
 
-  val customTask = PlainTask(CUSTOM_TASK_ID, TestCustomTask(stringParam = "xxx", numberParam = 12))
+  val miniWorkflowUpdated =
+    PlainTask(
+      id = WORKFLOW_ID,
+      data = miniWorkflow.data.copy(
+        operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
+        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
+      ),
+      metaData = metaDataUpdated
+    )
+
+  val customTask =
+    PlainTask(
+      id = CUSTOM_TASK_ID,
+      data = TestCustomTask(stringParam = "xxx", numberParam = 12),
+      metaData = metaData
+    )
 
   it should "read and write projects" in {
     val project = createProject(PROJECT_NAME)

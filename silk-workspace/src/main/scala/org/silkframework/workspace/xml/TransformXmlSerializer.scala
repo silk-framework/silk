@@ -53,7 +53,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       val datasetXml = XML.load(taskResources.get("dataset.xml").load)
       val rulesXml = XML.load(taskResources.get("rules.xml").load)
       val xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
-      PlainTask(name, fromXml[TransformSpec](xml))
+      fromXml[Task[TransformSpec]](xml)
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
