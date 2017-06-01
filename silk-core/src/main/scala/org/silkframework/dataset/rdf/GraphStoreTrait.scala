@@ -1,16 +1,18 @@
 package org.silkframework.dataset.rdf
 
-import java.io.OutputStream
+import java.io.{InputStream, OutputStream}
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Logger
 
 /**
- * Created by andreas on 1/28/16.
+ * Graph Store API trait.
  */
 trait GraphStoreTrait {
   def graphStoreEndpoint(graph: String): String
 
   def graphStoreHeaders(): Map[String, String] = Map.empty
+
+  def defaultTimeouts: GraphStoreTimeouts = GraphStoreTimeouts(connectionTimeoutIsMs = 15000, readTimeoutMs = 10000)
 
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
@@ -22,19 +24,34 @@ trait GraphStoreTrait {
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
-    val updateUrl = graphStoreEndpoint(graph)
-    val url = new URL(updateUrl)
-    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("POST")
-    for((header, headerValue) <- graphStoreHeaders()) {
-      connection.setRequestProperty(header, headerValue)
-    }
+    val connection: HttpURLConnection = initConnection(graph)
     connection.setDoInput(true)
     connection.setDoOutput(true)
     chunkedStreamingMode foreach { connection.setChunkedStreamingMode(_) }
     connection.setUseCaches(false)
     connection.setRequestProperty("Content-Type", contentType)
     ConnectionClosingOutputStream(connection)
+  }
+
+  private def initConnection(graph: String): HttpURLConnection = {
+    val graphStoreUrl = graphStoreEndpoint(graph)
+    val url = new URL(graphStoreUrl)
+    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    for ((header, headerValue) <- graphStoreHeaders()) {
+      connection.setRequestProperty(header, headerValue)
+    }
+    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection.setReadTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection
+  }
+
+  def getDataFromGraph(graph: String,
+                       acceptType: String = "text/turtle; charset=utf-8"): InputStream = {
+    val connection: HttpURLConnection = initConnection(graph)
+    connection.setDoOutput(true)
+    connection.setRequestProperty("Accept", acceptType)
+    ConnectionClosingInputStream(connection)
   }
 }
 
@@ -68,3 +85,30 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
     }
   }
 }
+
+case class ConnectionClosingInputStream(connection: HttpURLConnection) extends InputStream {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  private lazy val inputStream: InputStream = {
+    connection.connect()
+    connection.getInputStream
+  }
+
+  override def read(): Int = inputStream.read()
+
+  override def close(): Unit = {
+    try {
+      inputStream.close()
+      val responseCode = connection.getResponseCode
+      if(responseCode / 100 == 2) {
+        log.fine("Successfully received data from input stream.")
+      } else {
+        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+      }
+    } finally {
+      connection.disconnect()
+    }
+  }
+}
+
+case class GraphStoreTimeouts(connectionTimeoutIsMs: Int, readTimeoutMs: Int)

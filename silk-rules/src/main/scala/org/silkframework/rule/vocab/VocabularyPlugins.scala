@@ -8,6 +8,8 @@ import org.silkframework.runtime.plugin.PluginModule
 
 class VocabularyPlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_]] = Seq(VocabulariesFormat.getClass, VocabularyFormat.getClass, GenericInfoFormat.getClass, VocabularyPropertyXmlFormat.getClass)
+  override def pluginClasses: Seq[Class[_]] = Seq(VocabulariesFormat.getClass, VocabularyFormat.getClass, GenericInfoFormat.getClass) ++ serializers
+
+  private def serializers: List[Class[_]] = VocabularyPropertyXmlFormat.getClass :: Nil
 
 }
