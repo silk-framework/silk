@@ -1,3 +1,5 @@
+// FIXME: use sizes and colors from mdl config/presetting
+
 .ecc-silk-mapping {
     margin: 1rem;
 }
@@ -51,7 +53,7 @@
     .mdl-card__title-back {
         position: relative;
         left: -0.5rem;
-        top: -0.5rem;
+        top: -0.25rem;
     }
 
     .mdl-card__title-text {
@@ -59,22 +61,29 @@
         align-self: center;
         display: flex;
         flex-direction: column;
-
-        // FIXME: use font sizes from mdl config/presetting
-        font-size: 1rem;
         line-height: 1.25;
 
         .mdl-card__title-text-sup {
-            font-size: 0.75em;
+            font-size: 0.75rem;
+
+            .mdl-chip {
+                height: auto;
+                line-height: 2;
+                font-size: 1em;
+            }
+
+            .mdl-chip__text {
+                font-size: 1em;
+            }
         }
 
         .mdl-card__title-text-main {
             font-weight: bold;
-            font-size: 1.25em;
+            font-size: 1.25rem;
         }
 
         .mdl-card__title-text-sub {
-            font-size: 0.75em;
+            font-size: 1.25rem;
         }
     }
 }

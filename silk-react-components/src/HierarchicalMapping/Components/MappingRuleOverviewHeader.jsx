@@ -3,7 +3,7 @@ import {RuleTitle, RuleTypes} from './RuleComponents';
 import RuleObjectEdit from './RuleObjectEditView';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
-import {Button} from 'ecc-gui-elements';
+import {Button, Chip} from 'ecc-gui-elements';
 
 const MappingRuleOverviewHeader = React.createClass({
     getInitialState(){
@@ -30,14 +30,17 @@ const MappingRuleOverviewHeader = React.createClass({
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
+        console.log(breadcrumbs);
 
         let parentTitle = false;
         let backButton = false;
 
         if (_.has(parent, 'id') && _.has(parent, 'name')) {
-            // FIXME: try to use chip here
+            // parentTitle should be the main entity type, or the parent relation if type is not set
             parentTitle = (
-                <span onClick={this.handleNavigate.bind(null, parent.id)}>{parent.name}</span>
+                <div className="mdl-card__title-text-sup">
+                    <Chip onClick={this.handleNavigate.bind(null, parent.id)}>{parent.name} (fixme)</Chip>
+                </div>
             );
             backButton = (
                 <Button
@@ -69,9 +72,7 @@ const MappingRuleOverviewHeader = React.createClass({
                             {backButton}
                         </div>
                         <div className="mdl-card__title-text">
-                            <div className="mdl-card__title-text-sup">
-                                {parentTitle}
-                            </div>
+                            {parentTitle}
                             <div className="mdl-card__title-text-main">
                                 <RuleTitle rule={this.props.rule}/>
                             </div>
