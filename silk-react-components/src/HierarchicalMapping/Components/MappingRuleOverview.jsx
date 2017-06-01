@@ -152,6 +152,7 @@ const MappingRuleOverview = React.createClass({
                             (
                                 <MappingRule
                                     pos={idx}
+                                    count={childRules.length}
                                     key={`MappingRule_${id}_${idx}`}
                                     {...rule}
                                 />

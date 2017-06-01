@@ -25,7 +25,8 @@ const MappingRule = React.createClass({
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
         parent: React.PropTypes.bool,
-        pos: React.PropTypes.number.isRequired
+        pos: React.PropTypes.number.isRequired,
+        count: React.PropTypes.number.isRequired,
     },
 
     // initilize state
@@ -76,6 +77,7 @@ const MappingRule = React.createClass({
             sourcePath = false,
             mappingTarget,
             pos,
+            count,
         } = this.props;
 
         const action = (
@@ -141,17 +143,17 @@ const MappingRule = React.createClass({
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, pos -1, parent)}
+                        onClick={this.handleMoveElement(id, Math.max(0, pos -1), parent)}
                     >
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, pos + 1, parent)}
+                        onClick={this.handleMoveElement(id, Math.min(pos + 1, count-1), parent)}
                     >
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, -1, parent)}
+                        onClick={this.handleMoveElement(id, count - 1, parent)}
                     >
                         Move to bottom
                     </MenuItem>
