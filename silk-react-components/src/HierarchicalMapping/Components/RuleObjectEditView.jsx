@@ -251,6 +251,15 @@ const RuleObjectEditView = React.createClass({
             );
         }
 
+        const deleteButton = !edit && type !== 'root'
+            ? <DisruptiveButton
+                className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                onClick={this.handleClickRemove}
+            >
+                Remove
+            </DisruptiveButton>
+            : false;
+
         const actionRow = (
             edit ? (
                 <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
@@ -276,13 +285,7 @@ const RuleObjectEditView = React.createClass({
                     >
                         Edit
                     </Button>
-                    <DisruptiveButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                        onClick={this.handleClickRemove}
-                        disabled={type === 'root'}
-                    >
-                        Remove
-                    </DisruptiveButton>
+                    {deleteButton}
                 </div>
             )
         );
