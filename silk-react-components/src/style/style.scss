@@ -10,30 +10,107 @@
 
 
 .ecc-silk-mapping__content {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 0 1rem 1rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 0 1rem 1rem 1rem;
 }
 
 .ecc-silk-mapping__treenav {
-  flex-basis: 20%;
-  min-width: 10rem;
-  max-width: 100%;
-  flex-shrink: 1;
-  flex-grow: 1;
+    flex-basis: 20%;
+    min-width: 10rem;
+    max-width: 100%;
+    flex-shrink: 1;
+    flex-grow: 1;
+    position: relative;
 
-  ul, li {
-    list-style-type: none;
-  }
-
-  & > .stretch-vertical{
-    height: 100%;
-  }
-
-    &-highlight {
-        font-weight: 500;
+    ul, li {
+        list-style-type: none;
     }
 
+    ul {
+        margin: 0;
+        padding: 0;
+
+        &.ecc-silk-mapping__treenav--subtree {
+            padding-left: 2rem;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--maintree {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        overflow: scroll;
+
+        & > li {
+            min-width: 20em;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .ecc-silk-mapping__treenav--item-active {
+        font-weight: bold;
+        background-color: #f6f6f6;
+    }
+
+    .ecc-silk-mapping__treenav--item-toggler {
+        flex-grow: 0;
+        flex-shrink: 0;
+        font-size: 1.5rem;
+        line-height: 2rem;
+        width: 2rem;
+        min-width: 2rem;
+        height: 2rem;
+
+        .material-icons {
+            transform: translate(-1rem, -1rem);
+            line-height: 2rem;
+            width: 2rem;
+        }
+
+        &.material-icons {
+            font-size: 1rem;
+            text-align: center;
+            opacity: 0.61;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--item-handler {
+        flex-grow: 1;
+        flex-shrink: 1;
+        padding: 0.25rem 0.5rem;
+        font-size: 1rem;
+        line-height: 1.25;
+        cursor: pointer;
+        border: none;
+        text-align: left;
+        background-color: transparent;
+        outline: none;
+
+        &:hover, &:focus {
+            background-color: #eee;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--item-maintitle,
+    .ecc-silk-mapping__treenav--item-subtitle {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ecc-silk-mapping__treenav--item-subtitle {
+        font-size: 0.75em;
+    }
 }
 
 .ecc-silk-mapping__rules,

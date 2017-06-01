@@ -4,7 +4,7 @@
 
 import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
-import {Spinner, Button} from 'ecc-gui-elements';
+import {Spinner, Button, Icon} from 'ecc-gui-elements';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
 import {RuleTitle, RuleTypes} from './RuleComponents';
@@ -87,49 +87,81 @@ const TreeView = React.createClass({
             const element = () => {
 
                 return (
-                    <span
+                    <button
+                        className="ecc-silk-mapping__treenav--item-handler"
                         onClick={() => {
                             this.handleNavigate(id)
                         }}
                     >
-                        <RuleTitle rule={parent}/><br/>
+                        <span className="ecc-silk-mapping__treenav--item-maintitle">
+                            <RuleTitle rule={parent}/>
+                        </span>
                         {(
-                            type === 'object' ? (<small>{<RuleTypes rule={parent}/>}</small>) : false
+                            type === 'object' ? (
+                                <small className="ecc-silk-mapping__treenav--item-subtitle">
+                                    {<RuleTypes rule={parent}/>}
+                                </small>
+                            ) : false
                         )}
-                    </span>
+                    </button>
                 );
             }
             return (
-                <ul className={`ecc-silk-mapping__treenav-${isHighlighted ? 'highlight' : ''}` }>
-                    {
-                        !_.isEmpty(childs) ? (
-                            <Button
-                                iconName={expanded ? 'expand_more' : 'arrow_nextpage'}
-                                tooltip={expanded ? 'Close tree' : 'Open tree'}
-                                onClick={() => {
-                                    this.handleToggleExpanded(id)
-                                }}
-                            />
-                        ) : false
+                <div>
+                    <div className={
+                            'ecc-silk-mapping__treenav--item' +
+                            (isHighlighted ? ' ecc-silk-mapping__treenav--item-active' : '')
                     }
-                    {element()}
+                    >
+                        {
+                            !_.isEmpty(childs) ? (
+                                <Button
+                                    className="ecc-silk-mapping__treenav--item-toggler"
+                                    iconName={expanded ? 'expand_more' : 'arrow_nextpage'}
+                                    tooltip={expanded ? 'Hide sub tree' : 'Open sub tree'}
+                                    onClick={() => {
+                                        this.handleToggleExpanded(id)
+                                    }}
+                                />
+                            ) : (
+                                <Icon
+                                    className="ecc-silk-mapping__treenav--item-toggler"
+                                    name="radio_button_unchecked"
+                                    tooltip=""
+                                />
+                            )
+                        }
+                        {element()}
+                    </div>
                     {
                         expanded ? (
-                            _.map(childs, (child, idx) => (
-                                <li key={id + '.' + idx}>
-                                    {navigationList({parent: child})}
-                                </li>
-                            ))
+                            <ul
+                                className="ecc-silk-mapping__treenav--subtree"
+                            >
+                                {
+                                    _.map(childs, (child, idx) => (
+                                        <li
+                                            key={id + '.' + idx}
+                                        >
+                                            {navigationList({parent: child})}
+                                        </li>
+                                    ))
+                                }
+                            </ul>
                         ) : false
                     }
-                </ul>
-            )
+                </div>
+            );
 
         };
 
         const content = (
             !_.isEmpty(this.state.tree) ? (
-                navigationList({parent: this.state.tree, root: true})
+                <ul className="ecc-silk-mapping__treenav--maintree">
+                    <li>
+                        {navigationList({parent: this.state.tree, root: true})}
+                    </li>
+                </ul>
             ) : false
         );
 
