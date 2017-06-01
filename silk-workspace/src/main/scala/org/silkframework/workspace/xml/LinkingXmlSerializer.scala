@@ -54,7 +54,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     implicit val readContext = ReadContext(resources)
     val linkSpec = fromXml[Task[LinkSpec]](XML.load(taskResources.get("linkSpec.xml").load))
     val referenceLinks = ReferenceLinksReader.readReferenceLinks(taskResources.get("alignment.xml").load)
-    PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks))
+    PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks), linkSpec.metaData)
   }
 
   /**

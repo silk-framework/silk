@@ -55,13 +55,25 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       linkType = "http://www.w3.org/2002/07/owl#sameAs"
     )
 
+  val metaData =
+    MetaData(
+      label = "Some Label",
+      description = "Some Description"
+    )
+
+  val updatedMetadata =
+    MetaData(
+      label = "Updated Label",
+      description = "Updated Description"
+    )
+
   val dataset = new DatasetTask(DATASET_ID, InternalDataset("default"))
 
   val datasetUpdated = new DatasetTask(DATASET_ID, InternalDataset("updated"))
 
-  val linkTask = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule))
+  val linkTask = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule), metaData)
 
-  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)))
+  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)), updatedMetadata)
 
   val transformTask = PlainTask(TRANSFORM_ID, TransformSpec(
     selection = DatasetSelection("InputDS", "http://type1"),

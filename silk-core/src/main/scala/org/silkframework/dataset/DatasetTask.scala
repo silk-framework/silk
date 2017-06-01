@@ -55,7 +55,7 @@ class DatasetTask(val id: Identifier,
   }
 
   override def toString = {
-    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+    s"DatasetTask(id=$id, plugin=${plugin.toString}, metaData=${metaData.toString})"
   }
 
   private class EntitySinkWrapper extends EntitySink {
