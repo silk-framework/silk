@@ -93,6 +93,8 @@ hierarchicalMappingChannel.subject('rule.get').subscribe(
 );
 
 const appendToMockStore = (mockStore, id, payload) => {
+    payload.created = Date.now();
+    payload.updated = Date.now();
     if (mockStore.id === id && _.has(mockStore, 'rules.propertyRules')) {
         mockStore.rules.propertyRules.push(payload);
     }
@@ -108,6 +110,7 @@ const appendToMockStore = (mockStore, id, payload) => {
 
 const editRule = (mockStore, id, payload) => {
     if (mockStore.id === id) {
+        payload.updated = Date.now();
         _.merge(mockStore, payload)
     } else if (_.has(mockStore, 'rules.propertyRules')) {
         _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {

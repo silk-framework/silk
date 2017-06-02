@@ -321,7 +321,8 @@ const RuleObjectEditView = React.createClass({
             </ConfirmationDialog>
             : false;
 
-        // FIXME: EditView should not mix View and Edit functionality
+        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
+
         return (
             edit ? (
                 <div
@@ -338,10 +339,7 @@ const RuleObjectEditView = React.createClass({
                             {targetEntityTypeInput}
                             {commentInput}
                             {pattern}
-                            {
-                                // TODO: if not in edit mode user should see modified and creator
-                                // store data not exist at the moment - mockup for now?
-                            }
+
                         </div>
                         {actionRow}
                     </div>
@@ -355,10 +353,8 @@ const RuleObjectEditView = React.createClass({
                         {targetEntityTypeInput}
                         {commentInput}
                         {pattern}
-                        {
-                            // TODO: if not in edit mode user should see modified and creator
-                            // store data not exist at the moment - mockup for now?
-                        }
+                        <div className="ecc-silk-mapping__ruleseditor__created">Created {this.props.created ? this.props.created : 0}</div>
+                        <div className="ecc-silk-mapping__ruleseditor__updated">Updated {this.props.updated ? this.props.updated : 0}</div>
                     </div>
                     {actionRow}
                 </div>
