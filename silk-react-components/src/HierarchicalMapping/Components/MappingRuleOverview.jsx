@@ -20,6 +20,7 @@ const MappingRuleOverview = React.createClass({
         //project: React.PropTypes.string.isRequired, // used project name
         //transformationTask: React.PropTypes.string, // used transformation
         currentRuleId: React.PropTypes.string, // selected rule id
+        //createRuleForm,
     },
 
     // initilize state
@@ -78,7 +79,7 @@ const MappingRuleOverview = React.createClass({
             rules = {},
             id,
         } = this.state.ruleData;
-
+        const createRuleForm = this.props.createRuleForm;
         const childRules = rules.propertyRules || [];
 
         const loading = this.state.loading ? <Spinner /> : false;
@@ -132,6 +133,9 @@ const MappingRuleOverview = React.createClass({
             </div>
 
         );
+        const form = createRuleForm
+            ?   <li>{createRuleForm}</li>
+            :   false;
 
         const mappingRulesList = (
             _.isEmpty(childRules) ? (
@@ -147,6 +151,7 @@ const MappingRuleOverview = React.createClass({
                 </div>
             ) : (
                 <ol className="mdl-list">
+                    {form}
                     {
                         _.map(childRules, (rule, idx) =>
                             (

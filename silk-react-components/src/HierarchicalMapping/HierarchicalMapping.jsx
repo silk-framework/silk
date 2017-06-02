@@ -120,17 +120,13 @@ const HierarchicalMapping = React.createClass({
                     <div className="ecc-silk-mapping__content">
                         {treeView}
                         {
-                            /* FIXME: createRuleForm need to be managed in MappingRuleOverview
-                               that we can replace only the mapping rules list but not the header.
-                            */
-                            createRuleForm ?
-                                createRuleForm :
-                                <MappingRuleOverview
-                                    apiBase={this.props.apiBase}
-                                    project={this.props.project}
-                                    transformationTask={this.props.transformationTask}
-                                    currentRuleId={this.state.currentRuleId}
-                                />
+                            <MappingRuleOverview
+                                apiBase={this.props.apiBase}
+                                project={this.props.project}
+                                transformationTask={this.props.transformationTask}
+                                currentRuleId={this.state.currentRuleId}
+                                createRuleForm={createRuleForm}
+                            />
                         }
                     </div>
                 </div>
