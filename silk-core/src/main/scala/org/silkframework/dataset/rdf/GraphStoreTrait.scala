@@ -49,7 +49,8 @@ trait GraphStoreTrait {
   def getDataFromGraph(graph: String,
                        acceptType: String = "text/turtle; charset=utf-8"): InputStream = {
     val connection: HttpURLConnection = initConnection(graph)
-    connection.setDoOutput(true)
+    connection.setRequestMethod("GET")
+    connection.setDoInput(true)
     connection.setRequestProperty("Accept", acceptType)
     ConnectionClosingInputStream(connection)
   }
