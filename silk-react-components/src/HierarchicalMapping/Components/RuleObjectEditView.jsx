@@ -139,7 +139,7 @@ const RuleObjectEditView = React.createClass({
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm =  type === 'root'
             ? true
-            : this.state.targetProperty && this.state.targetEntityType;
+            : this.state.targetProperty;
 
         console.warn('debug OBJECT edit view', this.props);
 
@@ -210,6 +210,7 @@ const RuleObjectEditView = React.createClass({
                     className="ecc-silk-mapping__ruleseditor__targetEntityType"
                     options={['foaf:Person', 'schema:Country', 'schema:Address']}
                     value={this.state.targetEntityType}
+                    multi={true} // allow multi selection
                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                 />
             ) : (
