@@ -56,9 +56,8 @@ export const RuleTreeTypes = ({rule}) => {
             types = _.isEmpty(types) ? '(no target type)' : types.join(', ');
             return <span>{types}</span>;
         case 'root':
-        case 'direct':
-        case 'complex':
-            return <span/>;
+        default:
+            return false;
     }
 
 };

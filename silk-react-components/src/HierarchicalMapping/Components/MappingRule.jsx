@@ -96,16 +96,16 @@ const MappingRule = React.createClass({
         );
 
         const shortView = [
-            <div className="ecc-silk-mapping__ruleitem-headline">
+            <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline">
                 {mappingTarget.uri} {/* TODO: should be normalized and easy readable */}
             </div>,
-            <div className="ecc-silk-mapping__ruleitem-subline">
+            <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline">
                 {type} mapping
             </div>,
-            <div className="ecc-silk-mapping__ruleitem-subline">
+            <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline">
                 from {sourcePath ? sourcePath : '(todo: complex overview)'}
             </div>,
-            <div className="ecc-silk-mapping__ruleitem-subline">
+            <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline">
                 by (todo: author, date)
             </div>,
         ];
