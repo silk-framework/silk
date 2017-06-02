@@ -127,7 +127,10 @@ const RuleObjectEditView = React.createClass({
             elementToDelete: false,
         });
     },
-
+    handleComplexEdit(event) {
+        event.stopPropagation();
+        alert('Normally this would open the complex editor (aka jsplumb view)')
+    },
     // template rendering
     render () {
         const {
@@ -269,7 +272,7 @@ const RuleObjectEditView = React.createClass({
                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                 onClick={this.handleClickRemove}
             >
-                Remove
+                Remove rule
             </DisruptiveButton>
             : false;
 
@@ -296,9 +299,15 @@ const RuleObjectEditView = React.createClass({
                         className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
                     >
-                        Edit
+                        Edit rule
                     </Button>
                     {deleteButton}
+                    <Button
+                        className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                        onClick={this.handleComplexEdit}
+                    >
+                        Edit complex
+                    </Button>
                 </div>
             )
         );

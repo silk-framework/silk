@@ -273,13 +273,13 @@ const RuleValueEditView = React.createClass({
                         className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
                     >
-                        Edit source
+                        Edit rule
                     </Button>
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                         onClick={this.handleComplexEdit}
                     >
-                        Edit rule
+                        Edit complex
                     </Button>
                     <DisruptiveButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
