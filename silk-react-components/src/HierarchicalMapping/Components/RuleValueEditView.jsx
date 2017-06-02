@@ -52,11 +52,13 @@ const RuleValueEditView = React.createClass({
             sourceProperty: this.state.sourceProperty,
         }}) .subscribe(
             () => {
+                // FIXME: let know the user which element is gone!
                 this.setState({
                     elementToDelete: false,
                 });
             },
             (err) => {
+                // FIXME: let know the user what have happened!
                 this.setState({
                     elementToDelete: false,
                 });
@@ -204,7 +206,7 @@ const RuleValueEditView = React.createClass({
         let sourceProperty = edit ? false : (
             <div>
                 Source property
-                {this.state.sourceProperty || 'Complex Mapping'} <Button onClick={this.handleComplexEdit}>Edit</Button>
+                {this.state.sourceProperty || 'Complex Mapping'}
             </div>
         );
 
@@ -271,14 +273,20 @@ const RuleValueEditView = React.createClass({
                         className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                         onClick={this.handleEdit}
                     >
-                        Edit
+                        Edit source
+                    </Button>
+                    <Button
+                        className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                        onClick={this.handleComplexEdit}
+                    >
+                        Edit rule
                     </Button>
                     <DisruptiveButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                         onClick={this.handleClickRemove}
                         disabled={false} // FIXME: all elements are removable?
                     >
-                        Remove
+                        Remove rule
                     </DisruptiveButton>
                 </div>
             )
