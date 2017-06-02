@@ -5,7 +5,8 @@ export const RuleTitle = ({rule}) => {
 
     switch (rule.type) {
     case 'root':
-        return (<span>{_.get(rule, 'rules.typeRules[0].typeUri', '(no target type)')}</span>);
+        const title = _.get(rule, 'rules.typeRules[0].typeUri', '(no target type)');
+        return (<span>{_.isEmpty(title) ? '[no type]' : title}</span>);
     case 'direct':
     case 'object':
         return (<span>{_.get(rule, 'mappingTarget.uri', '(no target property)')}</span>);
