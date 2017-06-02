@@ -47,8 +47,8 @@ const RuleObjectEditView = React.createClass({
         });
     },
     handleConfirm() {
-        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
-            // if id is undefined -> we are creating a new rule
+
+        hierarchicalMappingChannel.request({topic: 'rule.createObjectMapping', data: {
             id: this.props.id,
             parentId: this.props.parentId,
             type: this.props.type,
@@ -57,7 +57,19 @@ const RuleObjectEditView = React.createClass({
             targetEntityType: this.state.targetEntityType,
             pattern: this.state.pattern,
             entityConnection: this.state.entityConnection === 'to',
-        });
+        }}) .subscribe(
+            () => {
+                this.setState({
+                    loading: false,
+                });
+            },
+            (err) => {
+                this.setState({
+                    loading: false,
+                });
+            }
+        );
+
         this.handleClose();
     },
 
