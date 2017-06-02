@@ -30,15 +30,13 @@ hierarchicalMappingChannel.subject('setSilkDetails').subscribe();
 
 hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
     ({data, replySubject}) => {
-        setTimeout( () => {
-            const hierarchy = _.chain(mockStore)
-            //TODO: Filter only hierarchical mappings
-                .value();
+        const hierarchy = _.chain(mockStore)
+        //TODO: Filter only hierarchical mappings
+            .value();
 
-            // `replySubject` is just a Rx.AsyncSubject
-            replySubject.onNext({hierarchy});
-            replySubject.onCompleted();
-        }, 500)
+        // `replySubject` is just a Rx.AsyncSubject
+        replySubject.onNext({hierarchy});
+        replySubject.onCompleted();
     }
 );
 
