@@ -30,14 +30,15 @@ hierarchicalMappingChannel.subject('setSilkDetails').subscribe();
 
 hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
     ({data, replySubject}) => {
+        setTimeout( () => {
+            const hierarchy = _.chain(mockStore)
+            //TODO: Filter only hierarchical mappings
+                .value();
 
-        const hierarchy = _.chain(mockStore)
-        //TODO: Filter only hierarchical mappings
-            .value();
-
-        // `replySubject` is just a Rx.AsyncSubject
-        replySubject.onNext({hierarchy});
-        replySubject.onCompleted();
+            // `replySubject` is just a Rx.AsyncSubject
+            replySubject.onNext({hierarchy});
+            replySubject.onCompleted();
+        }, 500)
     }
 );
 
@@ -96,6 +97,9 @@ hierarchicalMappingChannel.subject('rule.get').subscribe(
 const appendToMockStore = (mockStore, id, payload) => {
     if (mockStore.id === id && _.has(mockStore, 'rules.propertyRules')) {
         mockStore.rules.propertyRules.push(payload);
+    }
+    else if (mockStore.id === id) {
+            mockStore.rules.propertyRules = [payload];
     } else if (_.has(mockStore, 'rules.propertyRules')) {
         _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
             appendToMockStore(childRule, id, payload);
@@ -121,8 +125,7 @@ const saveMockStore = () => {
 };
 
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
-    (data) => {
-
+    ({data, replySubject}) => {
         const payload = {
             comment: data.comment,
             "mappingTarget": {
@@ -147,18 +150,17 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
             payload.type = data.type;
 
             const parent = data.parentId ? data.parentId : mockStore.id;
-
             appendToMockStore(mockStore, parent, payload);
         }
 
         saveMockStore();
-
+        replySubject.onNext();
+        replySubject.onCompleted();
     }
 );
 
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
-    (data) => {
-
+    ({data, replySubject}) => {
         // TODO: What the heck is sourcePath here? We do not set it in the UI
         const payload = {
             comment: data.comment,
@@ -198,7 +200,8 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
         }
 
         saveMockStore();
-
+        replySubject.onNext();
+        replySubject.onCompleted();
 
     }
 );
@@ -235,7 +238,6 @@ hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
 );
 
 const orderRule = (store, id, pos) => {
-    console.log(store.parent, store.id)
     if (_.has(store, 'rules.propertyRules')) {
         const idPos = _.reduce(store.rules.propertyRules, function(i, children, k) {
             if (i > -1 && children.id !== id)
