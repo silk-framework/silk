@@ -126,7 +126,7 @@ const RuleValueEditView = React.createClass({
         const {edit} = this.state;
 
         // FIXME: also check if data really has changed before allow saving
-        const allowConfirm = this.state.targetProperty && this.state.propertyType;
+        const allowConfirm = this.state.targetProperty;
 
         const title = (
             edit && !id ? (
