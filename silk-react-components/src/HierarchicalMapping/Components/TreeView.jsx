@@ -7,7 +7,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import {Spinner, Button, Icon} from 'ecc-gui-elements';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
-import {RuleTitle, RuleTypes} from './RuleComponents';
+import {RuleTreeTitle, RuleTreeTypes} from './RuleComponents';
 
 const TreeView = React.createClass({
 
@@ -94,12 +94,12 @@ const TreeView = React.createClass({
                         }}
                     >
                         <span className="ecc-silk-mapping__treenav--item-maintitle">
-                            <RuleTitle rule={parent}/>
+                            <RuleTreeTitle rule={parent}/>
                         </span>
                         {(
                             type === 'object' ? (
                                 <small className="ecc-silk-mapping__treenav--item-subtitle">
-                                    {<RuleTypes rule={parent}/>}
+                                    {<RuleTreeTypes rule={parent}/>}
                                 </small>
                             ) : false
                         )}
