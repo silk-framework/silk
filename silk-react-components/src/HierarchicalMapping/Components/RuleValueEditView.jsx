@@ -28,6 +28,7 @@ const RuleValueEditView = React.createClass({
         mappingTarget: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
+        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
@@ -337,7 +338,10 @@ const RuleValueEditView = React.createClass({
                 >
                     {deleteView}
                     <div className="mdl-card mdl-card--stretch">
-                        <div className="mdl-card__content">
+                        <div
+                            onClick={this.props.handleToggleExpand}
+                            className="mdl-card__content"
+                        >
                             {targetPropertyInput}
                             {propertyTypeInput}
                             {sourceProperty}

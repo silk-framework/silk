@@ -80,18 +80,19 @@ const MappingRule = React.createClass({
             count,
         } = this.props;
 
+        const mainAction = (event) => {
+            if (type === 'object' && !parent) {
+                this.handleNavigate();
+            } else {
+                this.handleToggleExpand({force: true});
+            }
+            event.stopPropagation();
+        };
         const action = (
             <Button
                 iconName={type === 'object' && !parent ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
                 tooltip={type === 'object' && !parent ? 'Navigate to' : undefined}
-                onClick={(event) => {
-                    if (type === 'object' && !parent) {
-                        this.handleNavigate();
-                    } else {
-                        this.handleToggleExpand({force: true});
-                    }
-                    event.stopPropagation();
-                }}
+                onClick={mainAction}
             />
         );
 
@@ -168,7 +169,9 @@ const MappingRule = React.createClass({
                     (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : '')
             }>
                 {reorderHandleButton}
-                <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content">
+                <div
+                    onClick={this.state.expanded ? null : mainAction}
+                    className={`${this.state.expanded?'':'hoverable'} mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content`}>
                     {this.state.expanded ? expandedView : shortView}
                 </div>
                 <div className="mdl-list__item-secondary-content" key="action">
