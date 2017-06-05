@@ -67,7 +67,7 @@
         "typeRules" : [ ],
         "propertyRules" : [ {
             "type" : "object",
-            "id" : "objectRule 2",
+            "id" : "objectRule2",
             "sourcePath" : "/source:country",
             "mappingTarget" : {
                 "uri" : "target:country",

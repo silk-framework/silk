@@ -2,7 +2,7 @@ import React from 'react';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
-import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {DisruptiveButton, Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 import RuleValueEdit from './Components/RuleValueEditView';
 import RuleObjectEdit from './Components/RuleObjectEditView';
@@ -34,7 +34,7 @@ const HierarchicalMapping = React.createClass({
 
         return {
             // currently selected rule id
-            currentRuleId: undefined,
+            currentRuleId: 'root',
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
@@ -101,12 +101,28 @@ const HierarchicalMapping = React.createClass({
             </div>
         ) : false;
 
+        const debugOptions = __DEBUG__
+            ? (<div>
+                <DisruptiveButton
+                    onClick={() => {
+                        localStorage.setItem('mockStore', null);
+                        location.reload();
+                    }}
+                >RESET</DisruptiveButton>
+                <Button
+                    onClick = {() => {
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                    }}
+                >RELOAD</Button></div>) : false;
+
+
         return (
             <div
                 className="ecc-silk-mapping"
             >
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
                     <div className="ecc-silk-mapping__header mdl-card__title">
+                        {debugOptions}
                         <ContextMenu
                             iconName="tune"
                         >
