@@ -26,6 +26,7 @@ const RuleObjectEditView = React.createClass({
         rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
+        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
@@ -90,6 +91,7 @@ const RuleObjectEditView = React.createClass({
 
     // open view in edit mode
     handleEdit() {
+        hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: this.props.id});
         this.setState({
             edit: !this.state.edit,
         })
@@ -209,10 +211,10 @@ const RuleObjectEditView = React.createClass({
             edit ? (
                 <SelectBox
                     placeholder={'Choose target entity type'}
-                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
+                    className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
                     options={['foaf:Person', 'schema:Country', 'schema:Address']}
                     value={this.state.targetEntityType}
-                    multi={true} // allow multi selection
+                    //multi={true} // allow multi selection
                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                 />
             ) : (
@@ -361,8 +363,8 @@ const RuleObjectEditView = React.createClass({
                         {targetEntityTypeInput}
                         {commentInput}
                         {pattern}
-                        <div className="ecc-silk-mapping__ruleseditor__created">Created {this.props.created ? this.props.created : 0}</div>
-                        <div className="ecc-silk-mapping__ruleseditor__updated">Updated {this.props.updated ? this.props.updated : 0}</div>
+                        {<div className="ecc-silk-mapping__ruleseditor__created">Created {this.props.created ? this.props.created : 0}</div>}
+                        {<div className="ecc-silk-mapping__ruleseditor__updated">Updated {this.props.updated ? this.props.updated : 0}</div>}
                     </div>
                     {actionRow}
                 </div>

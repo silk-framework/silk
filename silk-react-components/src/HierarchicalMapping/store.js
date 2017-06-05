@@ -144,6 +144,7 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
         if (data.id) {
 
             editRule(mockStore, data.id, payload);
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: payload.id});
 
         } else {
 
@@ -152,6 +153,8 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 
             const parent = data.parentId ? data.parentId : mockStore.id;
             appendToMockStore(mockStore, parent, payload);
+
+            hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
         }
 
         saveMockStore();

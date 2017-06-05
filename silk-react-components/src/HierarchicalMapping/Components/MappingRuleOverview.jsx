@@ -26,9 +26,45 @@ const MappingRuleOverview = React.createClass({
     // initilize state
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
+
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.toggle'), ({expanded, id})=>{
+            this.setState({
+                expandedElements: expanded
+                    ? _.concat(this.state.expandedElements, [id])
+                    : _.filter(this.state.expandedElements, (rule) => rule.id!==id),
+            })
+        });
+
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id})=>{
+            this.setState({
+                editingElements: [id],
+            });
+        });
+
+        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded})=>{
+            this.setState({
+                expandedElements: expanded
+                    ? _.map(this.state.ruleData.rules.propertyRules, (rule) => rule.id)
+                    : []
+            })
+        });
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.created'), ({id})=>{
+            this.setState({
+                editingElements: [],
+                expandedElements: _.merge(this.state.expandedElements, [id])
+            })
+        });
+
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), ({id})=>{
+            this.setState({
+                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
+            })
+        });
         return {
             loading: true,
             ruleData: {},
+            expandedElements: [],
+            editingElements: [],
         };
     },
     componentDidMount() {
@@ -40,6 +76,15 @@ const MappingRuleOverview = React.createClass({
         }
     },
     loadData() {
+        if (this.state.editingElements.length > 0 &&
+            !confirm("Continue will delete all changes. Are you sure?"+
+                JSON.stringify(this.state.editingElements,null,2))) {
+            return false;
+        }
+        this.setState({
+            editingElements: [],
+            loading: true,
+        });
         hierarchicalMappingChannel.request(
             {
                 topic: 'rule.get',
@@ -138,7 +183,7 @@ const MappingRuleOverview = React.createClass({
             :   false;
 
         const mappingRulesList = (
-            _.isEmpty(childRules) ? (
+            !form && _.isEmpty(childRules) ? (
                 <div className="mdl-card__content">
                     <Info vertSpacing border>
                         No existing mapping rules.
@@ -151,12 +196,12 @@ const MappingRuleOverview = React.createClass({
                 </div>
             ) : (
                 <ol className="mdl-list">
-                    {form}
                     {
                         _.map(childRules, (rule, idx) =>
                             (
                                 <MappingRule
                                     pos={idx}
+                                    expanded={_.includes(this.state.expandedElements, rule.id)}
                                     count={childRules.length}
                                     key={`MappingRule_${id}_${idx}`}
                                     {...rule}
@@ -164,6 +209,7 @@ const MappingRuleOverview = React.createClass({
                             )
                         )
                     }
+                    {form}
                 </ol>
             )
         );

@@ -27,6 +27,7 @@ const MappingRule = React.createClass({
         parent: React.PropTypes.bool,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
+        expanded: React.PropTypes.bool.isRequired,
     },
 
     // initilize state
@@ -41,7 +42,7 @@ const MappingRule = React.createClass({
         // listen to rule edit event
 
         return {
-            expanded: false,
+            expanded: this.props.expanded,
         };
     },
     // jumps to selected rule as new center of view
@@ -50,10 +51,12 @@ const MappingRule = React.createClass({
     },
     // show / hide additional row details
     handleToggleExpand() {
+        hierarchicalMappingChannel.subject('ruleView.toggle').onNext({id: this.props.id, expanded: !this.state.expanded});
         this.setState({expanded: !this.state.expanded});
     },
     handleMoveElement(id, pos, parent){
         return (event) => {
+            event.stopPropagation();
             hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
                 .subscribe(
                     () => {
@@ -114,16 +117,17 @@ const MappingRule = React.createClass({
             (type === 'object' || type === 'root') ? (
                 <RuleObjectEdit
                     {...this.props}
+                    handleToggleExpand={this.handleToggleExpand}
                     type={type}
                     edit={false}
                 />
             ) : (
                 <RuleValueEdit
                     {...this.props}
+                    handleToggleExpand={this.handleToggleExpand}
                     type={type}
                     edit={false}
                 />
-
             )
         ) : false;
 
