@@ -12,7 +12,6 @@ import {
     DisruptiveButton,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
-import {Rx} from 'ecc-messagebus';
 import _ from 'lodash';
 
 const RuleObjectEditView = React.createClass({

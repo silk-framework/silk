@@ -54,7 +54,6 @@ const MappingRule = React.createClass({
     },
     handleMoveElement(id, pos, parent){
         return (event) => {
-            console.log({id, pos, parent})
             hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
                 .subscribe(
                     () => {
@@ -111,7 +110,6 @@ const MappingRule = React.createClass({
             </div>,
         ];
 
-        // FIXME: only show edit / remove buttons for non-object mappings?
         const expandedView = this.state.expanded ? (
             (type === 'object' || type === 'root') ? (
                 <RuleObjectEdit
@@ -171,7 +169,8 @@ const MappingRule = React.createClass({
                 {reorderHandleButton}
                 <div
                     onClick={this.state.expanded ? null : mainAction}
-                    className={`${this.state.expanded?'':'hoverable'} mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content`}>
+                    className={`${this.state.expanded?'':'clickable'} mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content`}
+                    title={`${this.state.expanded?'':'Click to expand'}`} >
                     {this.state.expanded ? expandedView : shortView}
                 </div>
                 <div className="mdl-list__item-secondary-content" key="action">

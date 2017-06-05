@@ -10,7 +10,6 @@ import {
     DisruptiveButton,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../store';
-import {Rx} from 'ecc-messagebus';
 import _ from 'lodash';
 
 const RuleValueEditView = React.createClass({
@@ -340,7 +339,8 @@ const RuleValueEditView = React.createClass({
                     <div className="mdl-card mdl-card--stretch">
                         <div
                             onClick={this.props.handleToggleExpand}
-                            className="mdl-card__content"
+                            className="mdl-card__content clickable"
+                            title="Click to collapse"
                         >
                             {targetPropertyInput}
                             {propertyTypeInput}

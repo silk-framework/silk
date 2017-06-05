@@ -34,7 +34,6 @@ export const RuleTypes = ({rule}) => {
 };
 
 export const RuleTreeTitle = ({rule}) => {
-    console.log(rule)
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
     switch (rule.type) {
         case 'root':
