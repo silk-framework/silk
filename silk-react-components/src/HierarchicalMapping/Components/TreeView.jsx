@@ -24,6 +24,7 @@ const TreeView = React.createClass({
     // initilize state
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.autoExpandParents);
         return {
             loading: true,
             tree: undefined,
@@ -33,6 +34,24 @@ const TreeView = React.createClass({
     },
     componentDidMount() {
         this.loadData();
+    },
+    autoExpandParents(){
+        this.setState({
+            expanded: _.merge(this.state.expanded, this.getParents(this.state.tree, {})),
+        })
+    },
+    getParents(tree, path) {
+        if (tree.type !== 'object' && tree.type !== 'root') {
+
+        } else if ((tree.type === 'object' || tree.type === 'root') && tree.id === this.props.currentRuleId ) {
+            return path;
+        } else if (_.has(tree, 'rules.propertyRules')) {
+            path[tree.id] = true;
+            for (let i = 0; i < tree.rules.propertyRules.length; ++i) {
+                path = this.getParents(tree.rules.propertyRules[i], path);
+            }
+        }
+        return path;
     },
     loadData(){
         // get navigation tree data
@@ -44,7 +63,9 @@ const TreeView = React.createClass({
                     this.setState({
                         loading: false,
                         tree: hierarchy,
-                        expanded: topLevelId ? {[topLevelId]: true} : {},
+                        expanded: _.isEmpty(this.state.expanded) && topLevelId
+                            ? {[topLevelId]: true}
+                            : this.state.expanded,
                     });
                 },
                 (err) => {
