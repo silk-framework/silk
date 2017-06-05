@@ -72,7 +72,7 @@ const MappingRuleOverviewHeader = React.createClass({
                             {backButton}
                         </div>
                         <div
-                            className="mdl-card__title-text"
+                            className="mdl-card__title-text clickable"
                             onClick={this.handleToggleExpand}
                         >
                             {parentTitle}
