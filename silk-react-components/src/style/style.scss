@@ -122,6 +122,9 @@
 }
 
 .ecc-silk-mapping__ruleshead {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     margin-bottom: 1rem;
 
     .mdl-card__title {
