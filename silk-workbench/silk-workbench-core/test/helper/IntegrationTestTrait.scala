@@ -6,15 +6,16 @@ import java.net.{BindException, InetSocketAddress, URLDecoder}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
-
+import org.silkframework.config.Task
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -425,7 +426,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   }
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {
-    val workflowConfig = workflow.toXML
+    val workflowConfig = XmlSerialization.toXml[Task[Workflow]](PlainTask(workflowId, workflow))
     val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId")
     val response = request.put(workflowConfig)
     checkResponse(response)

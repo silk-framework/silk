@@ -9,7 +9,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.runtime.serialization.XmlSerialization._
 
-import scala.xml.XML
+import scala.xml.{Attribute, Null, Text, XML}
 
 private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
 
@@ -23,7 +23,11 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {
-        val xml = XML.load(resources.get(name).load)
+        var xml = XML.load(resources.get(name).load)
+        // Old XML versions do not contain the id
+        if((xml \ "@id").isEmpty) {
+          xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
+        }
         fromXml[Task[Workflow]](xml)
       }
     tasks
