@@ -61,7 +61,7 @@
     }
 
     .ecc-silk-mapping__treenav--item-active {
-        font-weight: bold;
+        font-weight: 500;
         background-color: $button-active-color;
     }
 
@@ -226,7 +226,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-weight: bold;
+        font-weight: 500;
     }
 
     .ecc-silk-mapping__ruleitem-subline {
