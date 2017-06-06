@@ -126,7 +126,7 @@ const saveMockStore = () => {
 };
 
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
-    ({data, replySubject}) => {
+    (data) => {
         const payload = {
             comment: data.comment,
             "mappingTarget": {
@@ -158,13 +158,11 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
         }
 
         saveMockStore();
-        replySubject.onNext();
-        replySubject.onCompleted();
     }
 );
 
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
-    ({data, replySubject}) => {
+    (data) => {
         // TODO: What the heck is sourcePath here? We do not set it in the UI
         const payload = {
             comment: data.comment,
@@ -204,9 +202,6 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
         }
 
         saveMockStore();
-        replySubject.onNext();
-        replySubject.onCompleted();
-
     }
 );
 

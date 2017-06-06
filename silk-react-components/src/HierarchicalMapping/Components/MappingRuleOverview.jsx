@@ -36,6 +36,9 @@ const MappingRuleOverview = React.createClass({
         });
 
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id})=>{
+            const oldId = this.state.editingElements.length > 0 ? this.state.editingElements[0] : false;
+            if (oldId)
+                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: oldId});
             this.setState({
                 editingElements: [id],
             });
@@ -77,8 +80,7 @@ const MappingRuleOverview = React.createClass({
     },
     loadData() {
         if (this.state.editingElements.length > 0 &&
-            !confirm("Continue will delete all changes. Are you sure?"+
-                JSON.stringify(this.state.editingElements,null,2))) {
+            !confirm("Continue will delete all changes. Are you sure?")) {
             return false;
         }
         this.setState({
@@ -203,7 +205,7 @@ const MappingRuleOverview = React.createClass({
                                     pos={idx}
                                     expanded={_.includes(this.state.expandedElements, rule.id)}
                                     count={childRules.length}
-                                    key={`MappingRule_${id}_${idx}`}
+                                    key={`MappingRule_${rule.id}_${idx}`}
                                     {...rule}
                                 />
                             )

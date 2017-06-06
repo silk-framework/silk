@@ -42,7 +42,7 @@ const RuleValueEditView = React.createClass({
 
     handleConfirm(event) {
         event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.createValueMapping', data: {
+        hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
             type: this.props.type,
@@ -50,20 +50,7 @@ const RuleValueEditView = React.createClass({
             targetProperty: this.state.targetProperty,
             propertyType: this.state.propertyType,
             sourceProperty: this.state.sourceProperty,
-        }}) .subscribe(
-            () => {
-                // FIXME: let know the user which element is gone!
-                this.setState({
-                    elementToDelete: false,
-                });
-            },
-            (err) => {
-                // FIXME: let know the user what have happened!
-                this.setState({
-                    elementToDelete: false,
-                });
-            }
-        );
+        });
 
         this.handleClose(event);
     },

@@ -26,7 +26,6 @@ const RuleObjectEditView = React.createClass({
         rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
-        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
@@ -48,7 +47,7 @@ const RuleObjectEditView = React.createClass({
     },
     handleConfirm() {
 
-        hierarchicalMappingChannel.request({topic: 'rule.createObjectMapping', data: {
+        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
             type: this.props.type,
@@ -57,18 +56,7 @@ const RuleObjectEditView = React.createClass({
             targetEntityType: this.state.targetEntityType,
             pattern: this.state.pattern,
             entityConnection: this.state.entityConnection === 'to',
-        }}) .subscribe(
-            () => {
-                this.setState({
-                    loading: false,
-                });
-            },
-            (err) => {
-                this.setState({
-                    loading: false,
-                });
-            }
-        );
+        });
 
         this.handleClose();
     },
