@@ -180,12 +180,9 @@ const MappingRuleOverview = React.createClass({
             </div>
 
         );
-        const form = createRuleForm
-            ?   <li>{createRuleForm}</li>
-            :   false;
 
         const mappingRulesList = (
-            !form && _.isEmpty(childRules) ? (
+            !createRuleForm && _.isEmpty(childRules) ? (
                 <div className="mdl-card__content">
                     <Info vertSpacing border>
                         No existing mapping rules.
@@ -211,7 +208,6 @@ const MappingRuleOverview = React.createClass({
                             )
                         )
                     }
-                    {form}
                 </ol>
             )
         );
@@ -222,8 +218,10 @@ const MappingRuleOverview = React.createClass({
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 <div className="ecc-silk-mapping__ruleslist">
                     <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                        {mappingRulesListHead}
-                        {mappingRulesList}
+                        {
+                            createRuleForm ?
+                                createRuleForm : [mappingRulesListHead, mappingRulesList]
+                        }
                     </div>
                 </div>
             </div>
