@@ -39,12 +39,13 @@
     }
 
     .ecc-silk-mapping__treenav--maintree {
-        position: absolute;
+        position: sticky;
         left: 0;
         top: 0;
-        height: 100%;
         width: 100%;
         overflow: scroll;
+        padding-bottom: 1rem;
+        box-sizing: border-box;
 
         & > li {
             min-width: 20em;
@@ -124,7 +125,7 @@
 .ecc-silk-mapping__ruleshead {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 1;
     margin-bottom: 1rem;
 
     .mdl-card__title {
