@@ -99,17 +99,17 @@ const MappingRule = React.createClass({
         );
 
         const shortView = [
-            <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline">
+            <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
                 {mappingTarget.uri} {/* TODO: should be normalized and easy readable */}
             </div>,
-            <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline">
+            <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
                 {type} mapping
             </div>,
-            <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline">
-                from {sourcePath ? sourcePath : '(todo: complex overview)'}
+            <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
+                <span className="hide-in-table">from</span> {sourcePath ? sourcePath : '(todo: complex overview)'}
             </div>,
-            <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline">
-                by (todo: author, date)
+            <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
+                <span className="hide-in-table">by</span> (todo: author, date)
             </div>,
         ];
 
@@ -168,12 +168,15 @@ const MappingRule = React.createClass({
             <li className={
                     "ecc-silk-mapping__ruleitem mdl-list__item " +
                     (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
-                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : '')
+                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary')
             }>
                 {reorderHandleButton}
                 <div
+                    className={
+                        'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content' +
+                        (this.state.expanded ? '' : ' clickable')
+                    }
                     onClick={this.state.expanded ? null : mainAction}
-                    className={`${this.state.expanded?'':'clickable'} mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content`}
                     title={`${this.state.expanded?'':'Click to expand'}`} >
                     {this.state.expanded ? expandedView : shortView}
                 </div>
