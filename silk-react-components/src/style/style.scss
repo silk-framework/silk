@@ -1,4 +1,5 @@
 // FIXME: use sizes and colors from mdl config/presetting
+@import '~ecc-gui-elements/src/configuration.default';
 
 .ecc-silk-mapping {
     margin: 1rem;
@@ -56,11 +57,12 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        color: $button-secondary-color;
     }
 
     .ecc-silk-mapping__treenav--item-active {
         font-weight: bold;
-        background-color: #f6f6f6;
+        background-color: $button-active-color;
     }
 
     .ecc-silk-mapping__treenav--item-toggler {
@@ -81,7 +83,7 @@
         &.material-icons {
             font-size: 1rem;
             text-align: center;
-            opacity: 0.61;
+            color: to_color($palette-grey-500);
         }
     }
 
@@ -89,8 +91,7 @@
         flex-grow: 1;
         flex-shrink: 1;
         padding: 0.25rem 0.5rem;
-        font-size: 1rem;
-        line-height: 1.25;
+        @include typo-body-1();
         cursor: pointer;
         border: none;
         text-align: left;
@@ -98,7 +99,7 @@
         outline: none;
 
         &:hover, &:focus {
-            background-color: #eee;
+            background-color: $button-hover-color;
         }
     }
 
@@ -111,7 +112,7 @@
     }
 
     .ecc-silk-mapping__treenav--item-subtitle {
-        font-size: 0.75em;
+        @include typo-caption();
     }
 }
 
@@ -143,10 +144,10 @@
         align-self: center;
         display: flex;
         flex-direction: column;
-        line-height: 1.25;
+        @include typo-subhead();
 
         .mdl-card__title-text-sup {
-            font-size: 0.75rem;
+            @include typo-caption();
 
             .mdl-chip {
                 height: auto;
@@ -160,12 +161,12 @@
         }
 
         .mdl-card__title-text-main {
-            font-weight: bold;
-            font-size: 1.25rem;
+            font-weight: 500;
+            //font-size: 1.25rem;
         }
 
         .mdl-card__title-text-sub {
-            font-size: 1.25rem;
+            //font-size: 1.25rem;
         }
     }
 }
@@ -181,7 +182,7 @@
     }
 
     .mdl-list__item {
-        border-bottom: 1px solid #eee;
+        border-bottom: $data-table-dividers;
 
         &:last-child {
             border-bottom: none;
@@ -217,8 +218,7 @@
     }
 
     .ecc-silk-mapping__ruleitem-content {
-        font-size: 1rem;
-        line-height: 1.25rem;
+        @include typo-body-1();
         max-width: 100%;
     }
 
@@ -233,12 +233,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 0.75em;
+        @include typo-caption();
     }
 
     .ecc-silk-mapping__ruleitem--summary {
 
-        @media (min-width: 60em) {
+        @media (min-width: $grid-desktop-breakpoint) {
             .ecc-silk-mapping__ruleitem-content {
                 display: flex;
                 flex-direction: row;
@@ -249,15 +249,21 @@
 
             .ecc-silk-mapping__ruleitem-headline,
             .ecc-silk-mapping__ruleitem-subline {
-                font-size: 0.75em;
+                font-size: $data-table-font-size;
                 flex-grow: 1;
                 box-sizing: border-box;
-                padding: 0.25rem;
+                padding: 0.25em;
                 max-width: 25%;
             }
 
             .hide-in-table {
                 display: none;
+            }
+
+            .ecc-silk-mapping__ruleitem-reorderhandler {
+                .material-icons {
+                    transform: translate(-1px, 10%);
+                }
             }
         }
     }
@@ -266,7 +272,7 @@
         width: 1rem;
         position: relative;
         left: -0.5rem;
-        border: 1px solid #ddd;
+        border: $data-table-dividers;
         align-self: stretch;
 
         .contextmenu-container {
@@ -296,7 +302,7 @@
         }
 
         .material-icons {
-            transform: translate(-1px, 10%);
+            transform: translate(-1px, 25%);
         }
     }
 }
