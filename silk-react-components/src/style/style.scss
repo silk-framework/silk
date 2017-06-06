@@ -17,8 +17,8 @@
 }
 
 .ecc-silk-mapping__treenav {
-    flex-basis: 20%;
-    min-width: 10rem;
+    flex-basis: 30%;
+    min-width: 10em;
     min-height: 10em;
     max-width: 100%;
     flex-shrink: 1;
@@ -48,7 +48,7 @@
         box-sizing: border-box;
 
         & > li {
-            min-width: 20em;
+            //min-width: 20em;
         }
     }
 
@@ -117,7 +117,7 @@
 
 .ecc-silk-mapping__rules,
 .ecc-silk-mapping__createrule {
-  flex-basis: 80%;
+  flex-basis: 70%;
   flex-grow: 1;
   flex-shrink: 1;
 }
