@@ -7,15 +7,12 @@
             "id": "uri",
             "pattern": "https://eccenca.example.org/person/{id}"
         },
-        "typeRules": [
-            {
-                "type": "type",
-                "id": "explicitlyDefinedId",
-                "typeUri": "http://xmlns.com/foaf/0.1/Person"
-            }
-        ],
-        "propertyRules": [
-            {
+        "typeRules": [{
+            "type": "type",
+            "id": "explicitlyDefinedId",
+            "typeUri": "http://xmlns.com/foaf/0.1/Person"
+        }],
+        "propertyRules": [{
                 "metadata": {
                     "description": ""
                 },
@@ -48,8 +45,7 @@
                     "type": "transformInput",
                     "id": "concat1",
                     "function": "concat",
-                    "inputs": [
-                        {
+                    "inputs": [{
                             "type": "pathInput",
                             "id": "sourcePath1",
                             "path": "/<http://www.w3.org/2000/01/rdf-schema#label>"
@@ -92,14 +88,11 @@
                 },
                 "rules": {
                     "uriRule": null,
-                    "typeRules": [
-                        {
-                            "type": "type",
-                            "typeUri": "http://schema.org/PostalAddress"
-                        }
-                    ],
-                    "propertyRules": [
-                        {
+                    "typeRules": [{
+                        "type": "type",
+                        "typeUri": "http://schema.org/PostalAddress"
+                    }],
+                    "propertyRules": [{
                             "metadata": {
                                 "description": ""
                             },
@@ -159,12 +152,10 @@
                         "type": "uri",
                         "pattern": "https://eccenca.example.org/person/{friend id}"
                     },
-                    "typeRules": [
-                        {
-                            "type": "type",
-                            "typeUri": "http://xmlns.com/foaf/0.1/Person"
-                        }
-                    ]
+                    "typeRules": [{
+                        "type": "type",
+                        "typeUri": "http://xmlns.com/foaf/0.1/Person"
+                    }]
                 },
                 "id": "objectMapping116",
                 "type": "object"
@@ -182,28 +173,24 @@
                         "type": "uri",
                         "pattern": "{image}"
                     },
-                    "typeRules": [
-                        {
-                            "type": "type",
-                            "typeUri": "http://xmlns.com/foaf/0.1/Image"
-                        }
-                    ],
-                    "propertyRules": [
-                        {
-                            "metadata": {
-                                "description": "need complex here"
-                            },
-                            "mappingTarget": {
-                                "uri": "http://www.w3.org/2000/01/rdf-schema#label",
-                                "valueType": {
-                                    "nodeType": "StringValueType"
-                                }
-                            },
-                            "sourcePath": "last name",
-                            "id": "valueMapping87",
-                            "type": "direct"
-                        }
-                    ]
+                    "typeRules": [{
+                        "type": "type",
+                        "typeUri": "http://xmlns.com/foaf/0.1/Image"
+                    }],
+                    "propertyRules": [{
+                        "metadata": {
+                            "description": "need complex here"
+                        },
+                        "mappingTarget": {
+                            "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+                            "valueType": {
+                                "nodeType": "StringValueType"
+                            }
+                        },
+                        "sourcePath": "last name",
+                        "id": "valueMapping87",
+                        "type": "direct"
+                    }]
                 },
                 "id": "objectMapping41",
                 "type": "object"
@@ -221,11 +208,9 @@
                         "type": "uri",
                         "pattern": "mailto:{email}"
                     },
-                    "typeRules": [
-                        {
-                            "type": "type"
-                        }
-                    ]
+                    "typeRules": [{
+                        "type": "type"
+                    }]
                 },
                 "id": "objectMapping398",
                 "type": "object"
@@ -243,28 +228,24 @@
                         "type": "uri",
                         "pattern": "{depiction}"
                     },
-                    "typeRules": [
-                        {
-                            "type": "type",
-                            "typeUri": "http://xmlns.com/foaf/0.1/Image"
-                        }
-                    ],
-                    "propertyRules": [
-                        {
-                            "metadata": {
-                                "description": "need complex rules here"
-                            },
-                            "mappingTarget": {
-                                "uri": "http://www.w3.org/2000/01/rdf-schema#label",
-                                "valueType": {
-                                    "nodeType": "StringValueType"
-                                }
-                            },
-                            "sourcePath": "last name",
-                            "id": "valueMapping605",
-                            "type": "direct"
-                        }
-                    ]
+                    "typeRules": [{
+                        "type": "type",
+                        "typeUri": "http://xmlns.com/foaf/0.1/Image"
+                    }],
+                    "propertyRules": [{
+                        "metadata": {
+                            "description": "need complex rules here"
+                        },
+                        "mappingTarget": {
+                            "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+                            "valueType": {
+                                "nodeType": "StringValueType"
+                            }
+                        },
+                        "sourcePath": "last name",
+                        "id": "valueMapping605",
+                        "type": "direct"
+                    }]
                 },
                 "id": "objectMapping431",
                 "type": "object"
@@ -282,12 +263,10 @@
                         "type": "uri",
                         "pattern": "http://dbpedia.org/resource/{city}"
                     },
-                    "typeRules": [
-                        {
-                            "type": "type",
-                            "typeUri": "http://dbpedia.org/ontology/City"
-                        }
-                    ]
+                    "typeRules": [{
+                        "type": "type",
+                        "typeUri": "http://dbpedia.org/ontology/City"
+                    }]
                 },
                 "id": "objectMapping38",
                 "type": "object"
