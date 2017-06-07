@@ -10,6 +10,7 @@ import {
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
+import {SourcePath} from './SharedComponents';
 
 const RuleValueEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -132,58 +133,52 @@ const RuleValueEditView = React.createClass({
                 >
                     {deleteView}
                     <div className="mdl-card mdl-card--stretch">
-                        <div
-                            className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
-                            onClick={this.props.handleToggleExpand}
-                        >
-                            <div className="mdl-card__title-text">
-                                {_.get(this.props, 'mappingTarget.uri', undefined)}
-                            </div>
-                        </div>
                         <div className="mdl-card__content">
                             <div
-                                className="ecc-silk-mapping__rulesviewer__targetProperty"
+                                className="ecc-silk-mapping__ruleseditor__targetProperty"
                             >
                                 Target property
                                 {_.get(this.props, 'mappingTarget.uri', undefined)}
                             </div>
                             <div
-                                className="ecc-silk-mapping__rulesviewer__propertyType"
+                                className="ecc-silk-mapping__ruleseditor__propertyType"
                             >
                                 Property type
                                 {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
                             </div>
                             <div>
                                 Source property
-                                {this.props.sourcePath || 'Complex Mapping'}
+                                <SourcePath
+                                    rule={
+                                        {
+                                            type: this.props.type,
+                                            sourcePath: this.props.sourcePath,
+                                        }
+                                    }
+                                />
                             </div>
                             <div
-                                className="ecc-silk-mapping__rulesviewer__comment"
+                                className="ecc-silk-mapping__ruleseditor__comment"
                             >
                                 Comment
-                                {this.props.comment || ''}
+                                {_.get(this.props, 'metadata.description', '')}
                             </div>
-
-                            <div className="ecc-silk-mapping__rulesviewer__created">
-                                Created {this.props.created ? this.props.created : 0}</div>
-                            <div className="ecc-silk-mapping__rulesviewer__updated">
-                                Updated {this.props.updated ? this.props.updated : 0}</div>
                         </div>
-                        <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
+                        <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                             <Button
-                                className="ecc-silk-mapping__rulesviewer__actionrow-edit"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                                 onClick={this.handleEdit}
                             >
                                 Edit rule
                             </Button>
                             <Button
-                                className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.handleComplexEdit}
                             >
                                 Edit complex
                             </Button>
                             <DisruptiveButton
-                                className="ecc-silk-mapping__rulesviewer__actionrow-remove"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                                 onClick={this.handleClickRemove}
                                 disabled={false} // FIXME: all elements are removable?
                             >

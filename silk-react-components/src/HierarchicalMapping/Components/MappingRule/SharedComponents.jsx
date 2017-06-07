@@ -18,16 +18,19 @@ export const RuleTitle = ({rule}) => {
 
 };
 
+const ntt = '(no target type)';
+
 export const RuleTypes = ({rule}) => {
 
     switch (rule.type) {
     case 'object':
         let types = _.get(rule, 'rules.typeRules', []).map(({typeUri}) => typeUri);
-        types = _.isEmpty(types) ? '(no target type)' : types.join(', ');
+        types = _.isEmpty(types) ? ntt : types.join(', ');
         return <span>{types}</span>;
-    case 'root':
     case 'direct':
     case 'complex':
+        return <span>{_.get(rule, 'mappingTarget.valueType.nodeType', ntt)}</span>;
+    case 'root':
         return <span/>;
     }
 

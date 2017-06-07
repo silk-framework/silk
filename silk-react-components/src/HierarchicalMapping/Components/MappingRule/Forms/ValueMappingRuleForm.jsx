@@ -33,7 +33,8 @@ const ValueMappingRuleForm = React.createClass({
             //FIXME: Load from store, if we have an ID!!!
             this.setState({
                 loading: false,
-                comment: this.props.comment || '',
+                type: _.get(this.props, 'type', 'direct'),
+                comment: _.get(this.props, 'metadata.description', ''),
                 targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
                 propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
                 sourceProperty: this.props.sourcePath,
@@ -74,7 +75,7 @@ const ValueMappingRuleForm = React.createClass({
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
-            console.warn('ValueMappingRuleForm: No onClor')
+            console.warn('ValueMappingRuleForm: No onClose')
         }
         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
@@ -85,7 +86,7 @@ const ValueMappingRuleForm = React.createClass({
         } = this.props;
 
         const {
-            type = 'direct',
+            type,
             loading,
         } = this.state;
 

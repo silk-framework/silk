@@ -13,7 +13,7 @@ try {
 } catch (e) {
 }
 
-if(mockStore === null){
+if (mockStore === null) {
     mockStore = _.cloneDeep(rawMockStore);
 }
 
@@ -93,13 +93,11 @@ hierarchicalMappingChannel.subject('rule.get').subscribe(
 );
 
 const appendToMockStore = (mockStore, id, payload) => {
-    payload.created = Date.now();
-    payload.updated = Date.now();
     if (mockStore.id === id && _.has(mockStore, 'rules.propertyRules')) {
         mockStore.rules.propertyRules.push(payload);
     }
     else if (mockStore.id === id) {
-            mockStore.rules.propertyRules = [payload];
+        mockStore.rules.propertyRules = [payload];
     } else if (_.has(mockStore, 'rules.propertyRules')) {
         _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
             appendToMockStore(childRule, id, payload);
@@ -110,7 +108,6 @@ const appendToMockStore = (mockStore, id, payload) => {
 
 const editRule = (mockStore, id, payload) => {
     if (mockStore.id === id) {
-        payload.updated = Date.now();
         _.merge(mockStore, payload)
     } else if (_.has(mockStore, 'rules.propertyRules')) {
         _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
@@ -128,7 +125,9 @@ const saveMockStore = () => {
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
     (data) => {
         const payload = {
-            comment: data.comment,
+            "metadata": {
+                description: data.comment,
+            },
             "mappingTarget": {
                 "uri": data.targetProperty,
                 "valueType": {
@@ -148,7 +147,7 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 
         } else {
 
-            payload.id = _.uniqueId('valueMapping');
+            payload.id = Date.now() + "" + _.random(0, 100, false);
             payload.type = data.type;
 
             const parent = data.parentId ? data.parentId : mockStore.id;
@@ -163,9 +162,10 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
     (data) => {
-        // TODO: What the heck is sourcePath here? We do not set it in the UI
         const payload = {
-            comment: data.comment,
+            "metadata": {
+                description: data.comment,
+            },
             "mappingTarget": {
                 "uri": data.targetProperty,
                 "inverse": data.entityConnection,
@@ -173,6 +173,7 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
                     "nodeType": "UriValueType",
                 }
             },
+            sourcePath: data.sourcePath,
             "rules": {
                 "uriRule": data.pattern ? {
                     "type": "uri",
@@ -193,7 +194,7 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
 
         } else {
 
-            payload.id = _.uniqueId('objectMapping');
+            payload.id = Date.now() + "" + _.random(0, 100, false);
             payload.type = 'object';
 
             const parent = data.parentId ? data.parentId : mockStore.id;
@@ -207,7 +208,7 @@ hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
 
 const removeRule = (store, id) => {
 
-    if (store.id===id) {
+    if (store.id === id) {
         return null;
     } else if (_.has(store, 'rules.propertyRules')) {
         store.rules.propertyRules = _.filter(store.rules.propertyRules, (v) => removeRule(v, id) !== null);
@@ -215,7 +216,7 @@ const removeRule = (store, id) => {
     return store;
 };
 
-Array.prototype.move = function (old_index, new_index) {
+Array.prototype.move = function(old_index, new_index) {
     if (new_index >= this.length) {
         var k = new_index - this.length;
         while ((k--) + 1) {
@@ -243,8 +244,8 @@ const orderRule = (store, id, pos) => {
                 return i;
             else
                 return k;
-            }, -1);
-        if (idPos > -1){
+        }, -1);
+        if (idPos > -1) {
             pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
             store.rules.propertyRules.move(idPos, pos)
 

@@ -8,6 +8,7 @@ import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
+import {RuleTypes, SourcePath} from './SharedComponents';
 
 const MappingRule = React.createClass({
 
@@ -61,11 +62,9 @@ const MappingRule = React.createClass({
                 .subscribe(
                     () => {
                         // FIXME: let know the user which element is gone!
-
                     },
                     (err) => {
                         // FIXME: let know the user what have happened!
-
                     }
                 );
         }
@@ -76,8 +75,9 @@ const MappingRule = React.createClass({
             id,
             type,
             parent,
-            sourcePath = false,
+            sourcePath,
             mappingTarget,
+            rules,
             pos,
             count,
         } = this.props;
@@ -106,10 +106,27 @@ const MappingRule = React.createClass({
                 {type} mapping
             </div>,
             <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
-                <span className="hide-in-table">from</span> {sourcePath ? sourcePath : '(todo: complex overview)'}
+                <span className="hide-in-table">from</span>
+                <SourcePath
+                    rule={
+                        {
+                            type,
+                            sourcePath,
+                        }
+                    }
+                />
             </div>,
             <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
-                <span className="hide-in-table">by</span> (todo: author, date)
+                <span className="hide-in-table">DataType:</span>
+                <RuleTypes
+                    rule={
+                        {
+                            type,
+                            mappingTarget,
+                            rules,
+                        }
+                    }
+                />
             </div>,
         ];
 

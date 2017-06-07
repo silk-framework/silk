@@ -1,1 +1,306 @@
-{"type":"root","id":"root","rules":{"uriRule":{"type":"uri","id":"uri","pattern":"https://eccenca.example.org/person/{id}"},"typeRules":[{"type":"type","id":"explicitlyDefinedId","typeUri":"http://xmlns.com/foaf/0.1/Person"}],"propertyRules":[{"comment":"","mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/givenName","valueType":{}},"sourcePath":"first name","id":"valueMapping12","type":"direct","created":1496821614112,"updated":1496821614112},{"comment":"","mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/familyName","valueType":{"nodeType":"AutoDetectValueType"}},"sourcePath":"last name","id":"valueMapping25","type":"direct","created":1496821646511,"updated":1496821646511},{"comment":"persons address","mappingTarget":{"uri":"http://schema.org/address","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":null,"typeRules":[{"type":"type","typeUri":"http://schema.org/PostalAddress"}],"propertyRules":[{"comment":"","mappingTarget":{"uri":"http://schema.org/postalCode","valueType":{"nodeType":"StringValueType"}},"sourcePath":"zip code","id":"valueMapping34","type":"direct","created":1496823326372,"updated":1496823326372},{"comment":"maybe this should be an object?","mappingTarget":{"uri":"http://schema.org/addressLocality","valueType":{"nodeType":"StringValueType"}},"sourcePath":"city","id":"valueMapping38","type":"direct","created":1496823558270,"updated":1496823558270},{"comment":"I need a complex value mapping here in order to glue {street nr} to {street}","mappingTarget":{"uri":"http://schema.org/streetAddress","valueType":{"nodeType":"StringValueType"}},"sourcePath":"street","id":"valueMapping61","type":"direct","created":1496823635349,"updated":1496823635349}]},"id":"objectMapping78","type":"object","created":1496823208462,"updated":1496823208462},{"mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/knows","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":{"type":"uri","pattern":"https://eccenca.example.org/person/{friend id}"},"typeRules":[{"type":"type","typeUri":"http://xmlns.com/foaf/0.1/Person"}]},"id":"objectMapping116","type":"object","created":1496823705882,"updated":1496823751368},{"mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/depiction","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":{"type":"uri","pattern":"{image}"},"typeRules":[{"type":"type","typeUri":"http://xmlns.com/foaf/0.1/Image"}],"propertyRules":[{"comment":"need complex here","mappingTarget":{"uri":"http://www.w3.org/2000/01/rdf-schema#label","valueType":{"nodeType":"StringValueType"}},"sourcePath":"last name","id":"valueMapping87","type":"direct","created":1496824015444,"updated":1496824015444}]},"id":"objectMapping41","type":"object","created":1496823945613,"updated":1496823961128},{"mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/mbox","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":{"type":"uri","pattern":"mailto:{email}"},"typeRules":[{"type":"type"}]},"id":"objectMapping398","type":"object","created":1496825659360,"updated":1496825799583},{"mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/depiction","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":{"type":"uri","pattern":"{depiction}"},"typeRules":[{"type":"type","typeUri":"http://xmlns.com/foaf/0.1/Image"}],"propertyRules":[{"comment":"need complex rules here","mappingTarget":{"uri":"http://www.w3.org/2000/01/rdf-schema#label","valueType":{"nodeType":"StringValueType"}},"sourcePath":"last name","id":"valueMapping605","type":"direct","created":1496825873759,"updated":1496825873759}]},"id":"objectMapping431","type":"object","created":1496825673748,"updated":1496825774593},{"mappingTarget":{"uri":"http://xmlns.com/foaf/0.1/based_near","inverse":false,"valueType":{"nodeType":"UriValueType"}},"rules":{"uriRule":{"type":"uri","pattern":"http://dbpedia.org/resource/{city}"},"typeRules":[{"type":"type","typeUri":"http://dbpedia.org/ontology/City"}]},"id":"objectMapping38","type":"object","created":1496827764630,"updated":1496827794744}]},"comment":"persons ...","mappingTarget":{"inverse":false,"valueType":{"nodeType":"UriValueType"}},"updated":1496823165508}
+{
+    "type": "root",
+    "id": "root",
+    "rules": {
+        "uriRule": {
+            "type": "uri",
+            "id": "uri",
+            "pattern": "https://eccenca.example.org/person/{id}"
+        },
+        "typeRules": [
+            {
+                "type": "type",
+                "id": "explicitlyDefinedId",
+                "typeUri": "http://xmlns.com/foaf/0.1/Person"
+            }
+        ],
+        "propertyRules": [
+            {
+                "metadata": {
+                    "description": ""
+                },
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/givenName",
+                    "valueType": {}
+                },
+                "sourcePath": "first name",
+                "id": "valueMapping12",
+                "type": "direct"
+            },
+            {
+                "id": "XYZ_1",
+                "type": "complex",
+                "name": "sourcePath1",
+                "metadata": {
+                    "description": ""
+                },
+                "mappingTarget": {
+                    "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "valueType": {
+                        "nodeType": "AutoDetectValueType"
+                    }
+                },
+                "sourcePath": [
+                    "/<http://www.w3.org/2000/01/rdf-schema#label>",
+                    "/<http://dbpedia.org/ontology/budget>"
+                ],
+                "operator": {
+                    "type": "transformInput",
+                    "id": "concat1",
+                    "function": "concat",
+                    "inputs": [
+                        {
+                            "type": "pathInput",
+                            "id": "sourcePath1",
+                            "path": "/<http://www.w3.org/2000/01/rdf-schema#label>"
+                        },
+                        {
+                            "type": "pathInput",
+                            "id": "sourcePath2",
+                            "path": "/<http://dbpedia.org/ontology/budget>"
+                        }
+                    ],
+                    "parameters": {
+                        "glue": ""
+                    }
+                }
+            },
+            {
+                "metadata": {
+                    "description": ""
+                },
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/familyName",
+                    "valueType": {
+                        "nodeType": "AutoDetectValueType"
+                    }
+                },
+                "sourcePath": "last name",
+                "id": "valueMapping25",
+                "type": "direct"
+            },
+            {
+                "metadata": {
+                    "description": "persons address"
+                },
+                "mappingTarget": {
+                    "uri": "http://schema.org/address",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": null,
+                    "typeRules": [
+                        {
+                            "type": "type",
+                            "typeUri": "http://schema.org/PostalAddress"
+                        }
+                    ],
+                    "propertyRules": [
+                        {
+                            "metadata": {
+                                "description": ""
+                            },
+                            "mappingTarget": {
+                                "uri": "http://schema.org/postalCode",
+                                "valueType": {
+                                    "nodeType": "StringValueType"
+                                }
+                            },
+                            "sourcePath": "zip code",
+                            "id": "valueMapping34",
+                            "type": "direct"
+                        },
+                        {
+                            "metadata": {
+                                "description": "maybe this should be an object?"
+                            },
+                            "mappingTarget": {
+                                "uri": "http://schema.org/addressLocality",
+                                "valueType": {
+                                    "nodeType": "StringValueType"
+                                }
+                            },
+                            "sourcePath": "city",
+                            "id": "valueMapping38",
+                            "type": "direct"
+                        },
+                        {
+                            "metadata": {
+                                "description": "I need a complex value mapping here in order to glue {street nr} to {street}"
+                            },
+                            "mappingTarget": {
+                                "uri": "http://schema.org/streetAddress",
+                                "valueType": {
+                                    "nodeType": "StringValueType"
+                                }
+                            },
+                            "sourcePath": "street",
+                            "id": "valueMapping61",
+                            "type": "direct"
+                        }
+                    ]
+                },
+                "id": "objectMapping78",
+                "type": "object"
+            },
+            {
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/knows",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": {
+                        "type": "uri",
+                        "pattern": "https://eccenca.example.org/person/{friend id}"
+                    },
+                    "typeRules": [
+                        {
+                            "type": "type",
+                            "typeUri": "http://xmlns.com/foaf/0.1/Person"
+                        }
+                    ]
+                },
+                "id": "objectMapping116",
+                "type": "object"
+            },
+            {
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/depiction",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": {
+                        "type": "uri",
+                        "pattern": "{image}"
+                    },
+                    "typeRules": [
+                        {
+                            "type": "type",
+                            "typeUri": "http://xmlns.com/foaf/0.1/Image"
+                        }
+                    ],
+                    "propertyRules": [
+                        {
+                            "metadata": {
+                                "description": "need complex here"
+                            },
+                            "mappingTarget": {
+                                "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+                                "valueType": {
+                                    "nodeType": "StringValueType"
+                                }
+                            },
+                            "sourcePath": "last name",
+                            "id": "valueMapping87",
+                            "type": "direct"
+                        }
+                    ]
+                },
+                "id": "objectMapping41",
+                "type": "object"
+            },
+            {
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/mbox",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": {
+                        "type": "uri",
+                        "pattern": "mailto:{email}"
+                    },
+                    "typeRules": [
+                        {
+                            "type": "type"
+                        }
+                    ]
+                },
+                "id": "objectMapping398",
+                "type": "object"
+            },
+            {
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/depiction",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": {
+                        "type": "uri",
+                        "pattern": "{depiction}"
+                    },
+                    "typeRules": [
+                        {
+                            "type": "type",
+                            "typeUri": "http://xmlns.com/foaf/0.1/Image"
+                        }
+                    ],
+                    "propertyRules": [
+                        {
+                            "metadata": {
+                                "description": "need complex rules here"
+                            },
+                            "mappingTarget": {
+                                "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+                                "valueType": {
+                                    "nodeType": "StringValueType"
+                                }
+                            },
+                            "sourcePath": "last name",
+                            "id": "valueMapping605",
+                            "type": "direct"
+                        }
+                    ]
+                },
+                "id": "objectMapping431",
+                "type": "object"
+            },
+            {
+                "mappingTarget": {
+                    "uri": "http://xmlns.com/foaf/0.1/based_near",
+                    "inverse": false,
+                    "valueType": {
+                        "nodeType": "UriValueType"
+                    }
+                },
+                "rules": {
+                    "uriRule": {
+                        "type": "uri",
+                        "pattern": "http://dbpedia.org/resource/{city}"
+                    },
+                    "typeRules": [
+                        {
+                            "type": "type",
+                            "typeUri": "http://dbpedia.org/ontology/City"
+                        }
+                    ]
+                },
+                "id": "objectMapping38",
+                "type": "object"
+            }
+        ]
+    },
+    "metadata": {
+        "description": "persons ..."
+    },
+    "mappingTarget": {
+        "inverse": false,
+        "valueType": {
+            "nodeType": "UriValueType"
+        }
+    }
+}
