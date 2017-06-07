@@ -326,11 +326,7 @@ const RuleValueEditView = React.createClass({
                 >
                     {deleteView}
                     <div className="mdl-card mdl-card--stretch">
-                        <div
-                            onClick={this.props.handleToggleExpand}
-                            className="mdl-card__content clickable"
-                            title="Click to collapse"
-                        >
+                        <div className="mdl-card__content">
                             {targetPropertyInput}
                             {propertyTypeInput}
                             {sourceProperty}

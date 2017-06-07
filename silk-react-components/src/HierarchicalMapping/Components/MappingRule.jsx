@@ -168,16 +168,20 @@ const MappingRule = React.createClass({
             <li className={
                     "ecc-silk-mapping__ruleitem mdl-list__item " +
                     (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
-                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary')
-            }>
+                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary') +
+                    (this.state.expanded ? '' : ' clickable')
+                }
+                onClick={this.state.expanded ? null : mainAction}
+                title={
+                    this.state.expanded ? '' : 'Click to expand'
+                }
+            >
                 {reorderHandleButton}
                 <div
                     className={
-                        'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content' +
-                        (this.state.expanded ? '' : ' clickable')
+                        'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content'
                     }
-                    onClick={this.state.expanded ? null : mainAction}
-                    title={`${this.state.expanded?'':'Click to expand'}`} >
+                >
                     {this.state.expanded ? expandedView : shortView}
                 </div>
                 <div className="mdl-list__item-secondary-content" key="action">
