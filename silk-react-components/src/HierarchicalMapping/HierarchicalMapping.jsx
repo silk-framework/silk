@@ -4,8 +4,8 @@ import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {DisruptiveButton, Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
-import RuleObjectEdit from './Components/MappingRule/ObjectMappingRule';
 import ValueMappingRuleForm from './Components/MappingRule/Forms/ValueMappingRuleForm';
+import ObjectMappingRuleForm from './Components/MappingRule/Forms/ObjectMappingRuleForm';
 
 // Do not care about it yet
 /*const props = {
@@ -83,7 +83,7 @@ const HierarchicalMapping = React.createClass({
             <div className="ecc-silk-mapping__createrule">
                 {
                     this.state.ruleEditView.type === 'object' ? (
-                        <RuleObjectEdit
+                        <ObjectMappingRuleForm
                             {...this.state.ruleEditView}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.currentRuleId}
@@ -114,7 +114,6 @@ const HierarchicalMapping = React.createClass({
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }}
                 >RELOAD</Button></div>) : false;
-
 
         return (
             <div

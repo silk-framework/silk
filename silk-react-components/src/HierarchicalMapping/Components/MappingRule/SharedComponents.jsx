@@ -33,6 +33,13 @@ export const RuleTypes = ({rule}) => {
 
 };
 
+export const SourcePath = ({rule}) => {
+    const path = _.get(rule, 'sourcePath', '(no source path)');
+
+    return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
+
+};
+
 export const RuleTreeTitle = ({rule}) => {
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
     switch (rule.type) {
