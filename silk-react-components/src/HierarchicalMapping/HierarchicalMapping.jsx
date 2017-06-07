@@ -29,7 +29,7 @@ const HierarchicalMapping = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
         this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
         // listen to rule create event
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
+
 
         return {
             // currently selected rule id
@@ -81,21 +81,10 @@ const HierarchicalMapping = React.createClass({
             showNavigation: !this.state.showNavigation,
         });
     },
-    onRuleCreate({type}) {
-        this.setState({
-            ruleEditView: {
-                type,
-            },
-        });
-    },
-    handleRuleEditClose() {
-        this.setState({
-            ruleEditView: false,
-        });
-    },
+
     // template rendering
     render () {
-
+        const ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {};
         const treeView = (
             this.state.showNavigation ? (
                 <TreeView
@@ -106,25 +95,7 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
-        // render mapping edit / create view of value and object
-        const createRuleForm = this.state.ruleEditView ? (
-            <div className="ecc-silk-mapping__createrule">
-                {
-                    this.state.ruleEditView.type === 'object' ? (
-                        <ObjectMappingRuleForm
-                            {...this.state.ruleEditView}
-                            onClose={this.handleRuleEditClose}
-                            parentId={this.state.currentRuleId}
-                            edit={true}
-                        />
-                    ) : (
-                        <ValueMappingRuleForm
-                            {...this.state.ruleEditView}
-                            onClose={this.handleRuleEditClose}
-                            parentId={this.state.currentRuleId}
-                            edit={true}
-                        />
-                    )
+
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
@@ -144,6 +115,7 @@ const HierarchicalMapping = React.createClass({
             : false;
 
 
+        // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__
             ? (<div>
                 <DisruptiveButton
@@ -184,7 +156,7 @@ const HierarchicalMapping = React.createClass({
                                 project={this.props.project}
                                 transformationTask={this.props.transformationTask}
                                 currentRuleId={this.state.currentRuleId}
-                                createRuleForm={createRuleForm}
+                                ruleEditView={{...ruleEdit}}
                             />
                         }
                     </div>
