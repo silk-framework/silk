@@ -93,8 +93,6 @@ const RuleValueEditView = React.createClass({
             </ConfirmationDialog>
             : false;
 
-        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
-
         return (
             (
                 <div
@@ -124,7 +122,7 @@ const RuleValueEditView = React.createClass({
                                                 Label/Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                {_.get(this.props, 'mappingTarget.uri', undefined)}
+                                                <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <Info border>
@@ -154,17 +152,50 @@ const RuleValueEditView = React.createClass({
                                     </div>
                                 ) : false
                             }
-                            <div>
-                                Source property
-                                <SourcePath
-                                    rule={
-                                        {
-                                            type: this.props.type,
-                                            sourcePath: this.props.sourcePath,
-                                        }
-                                    }
-                                />
-                            </div>
+                            {
+                                this.props.sourcePath ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__sourcePath"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Source property
+                                            </dt>
+                                            {
+                                                _.isArray(this.props.sourcePath) ? [
+                                                    this.props.sourcePath.map(
+                                                        function(sourcePathItem) {
+                                                            return (
+                                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                                    <code>{sourcePathItem}</code>
+                                                                </dd>
+                                                            );
+                                                        }
+                                                    ),
+                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                        TODO: comma-separated list of used operator functions
+                                                    </dd>
+                                                ] : (
+                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                        <code>{this.props.sourcePath}</code>
+                                                    </dd>
+                                                )
+                                            }
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Button
+                                                    className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                    onClick={this.handleComplexEdit}
+                                                    raised
+                                                >
+                                                    {
+                                                        _.isArray(this.props.sourcePath) ? 'Edit complex mapping' : 'Create complex mapping'
+                                                    }
+                                                </Button>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
                             {
                                 this.props.comment ? (
                                     <div
@@ -188,12 +219,6 @@ const RuleValueEditView = React.createClass({
                                 onClick={this.handleEdit}
                             >
                                 Edit rule
-                            </Button>
-                            <Button
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                onClick={this.handleComplexEdit}
-                            >
-                                Edit complex
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"

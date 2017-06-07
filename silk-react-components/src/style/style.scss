@@ -207,7 +207,8 @@
 
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
-
+        border-left: $data-table-dividers;
+        border-right: $data-table-dividers;
     }
 
     .mdl-list__item-primary-content {
@@ -307,6 +308,11 @@
     }
 }
 
+.ecc-silk-mapping__rulesviewer {
+    margin: 0 auto;
+    max-width: 60em;
+}
+
 .ecc-silk-mapping__rulesviewer__title {
 
     .mdl-card__title-text {
@@ -320,8 +326,12 @@
     @include typo-body-1();
 
     dt, dd {
-        margin: 0;
+        margin: 0 0 0.25rem 0;
         padding: 0;
+    }
+
+    code {
+        font-size: 0.9em;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-label {
@@ -330,7 +340,7 @@
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-title {
-        font-size: $input-text-font-size;
+        //font-size: $input-text-font-size;
         font-weight: 500;
     }
 
