@@ -27,15 +27,15 @@ const MappingRuleOverview = React.createClass({
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
 
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.toggle'), ({expanded, id})=>{
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.toggle'), ({expanded, id}) => {
             this.setState({
                 expandedElements: expanded
                     ? _.concat(this.state.expandedElements, [id])
-                    : _.filter(this.state.expandedElements, (rule) => rule.id!==id),
+                    : _.filter(this.state.expandedElements, (rule) => rule.id !== id),
             })
         });
 
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id})=>{
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id}) => {
             const oldId = this.state.editingElements.length > 0 ? this.state.editingElements[0] : false;
             if (oldId)
                 hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: oldId});
@@ -44,21 +44,21 @@ const MappingRuleOverview = React.createClass({
             });
         });
 
-        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded})=>{
+        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
             this.setState({
                 expandedElements: expanded
                     ? _.map(this.state.ruleData.rules.propertyRules, (rule) => rule.id)
                     : []
             })
         });
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.created'), ({id})=>{
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.created'), ({id}) => {
             this.setState({
                 editingElements: [],
                 expandedElements: _.merge(this.state.expandedElements, [id])
             })
         });
 
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), ({id})=>{
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), ({id}) => {
             this.setState({
                 editingElements: _.filter(this.state.editingElements, (e) => e !== id),
             })
@@ -81,9 +81,9 @@ const MappingRuleOverview = React.createClass({
     loadData() {
         // TODO: fix conditions
         /*if (this.state.editingElements.length > 0 &&
-            !confirm("Continue will delete all changes. Are you sure?")) {
-            return false;
-        }*/
+         !confirm("Continue will delete all changes. Are you sure?")) {
+         return false;
+         }*/
         this.setState({
             editingElements: [],
             loading: true,
@@ -132,87 +132,92 @@ const MappingRuleOverview = React.createClass({
 
         const loading = this.state.loading ? <Spinner /> : false;
 
-        const mappingRulesListHead = (
-            <div className="mdl-card__title mdl-card--border">
-                <div className="mdl-card__title-text">
-                    Mapping rules {`(${childRules.length})`}
-                </div>
-                <ContextMenu
-                    className="ecc-silk-mapping__ruleslistmenu"
-                >
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-add-value"
-                        onClick={() => {
-                            this.handleCreate({type: 'direct'});
-                        }}
-                    >
-                        Add value mapping
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-add-object"
-                        onClick={() => {
-                            this.handleCreate({type: 'object'});
-                        }}
-                    >
-                        Add object mapping
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-                    >
-                        Suggest rules (0) (TODO)
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-expand"
-                        onClick={() => {
-                            this.handleToggleRuleDetails({expanded: true})
-                        }}
-                    >
-                        Expand all
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-reduce"
-                        onClick={() => {
-                            this.handleToggleRuleDetails({expanded: false})
-                        }}
-                    >
-                        Reduce all
-                    </MenuItem>
-                </ContextMenu>
-            </div>
+        let mappingRulesListHead = false;
+        let mappingRulesList = false;
 
-        );
-
-        const mappingRulesList = (
-            !createRuleForm && _.isEmpty(childRules) ? (
-                <div className="mdl-card__content">
-                    <Info vertSpacing border>
-                        No existing mapping rules.
-                    </Info>
-                    {
-                        /* TODO: we should provide options like adding rules or suggestions here,
-                           even a help text would be a good support for the user.
-                        */
-                     }
+        if (!createRuleForm) {
+            mappingRulesListHead = (
+                <div className="mdl-card__title mdl-card--border">
+                    <div className="mdl-card__title-text">
+                        Mapping rules {`(${childRules.length})`}
+                    </div>
+                    <ContextMenu
+                        className="ecc-silk-mapping__ruleslistmenu"
+                    >
+                        <MenuItem
+                            className="ecc-silk-mapping__ruleslistmenu__item-add-value"
+                            onClick={() => {
+                                this.handleCreate({type: 'direct'});
+                            }}
+                        >
+                            Add value mapping
+                        </MenuItem>
+                        <MenuItem
+                            className="ecc-silk-mapping__ruleslistmenu__item-add-object"
+                            onClick={() => {
+                                this.handleCreate({type: 'object'});
+                            }}
+                        >
+                            Add object mapping
+                        </MenuItem>
+                        <MenuItem
+                            className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                        >
+                            Suggest rules (0) (TODO)
+                        </MenuItem>
+                        <MenuItem
+                            className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                            onClick={() => {
+                                this.handleToggleRuleDetails({expanded: true})
+                            }}
+                        >
+                            Expand all
+                        </MenuItem>
+                        <MenuItem
+                            className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                            onClick={() => {
+                                this.handleToggleRuleDetails({expanded: false})
+                            }}
+                        >
+                            Reduce all
+                        </MenuItem>
+                    </ContextMenu>
                 </div>
-            ) : (
-                <ol className="mdl-list">
-                    {
-                        _.map(childRules, (rule, idx) =>
-                            (
-                                <MappingRule
-                                    pos={idx}
-                                    parent={this.props.currentRuleId}
-                                    expanded={_.includes(this.state.expandedElements, rule.id)}
-                                    count={childRules.length}
-                                    key={`MappingRule_${rule.id}_${idx}`}
-                                    {...rule}
-                                />
+
+            );
+
+            mappingRulesList = (
+                _.isEmpty(childRules) ? (
+                    <div className="mdl-card__content">
+                        <Info vertSpacing border>
+                            No existing mapping rules.
+                        </Info>
+                        {
+                            /* TODO: we should provide options like adding rules or suggestions here,
+                             even a help text would be a good support for the user.
+                             */
+                        }
+                    </div>
+                ) : (
+                    <ol className="mdl-list">
+                        {
+                            _.map(childRules, (rule, idx) =>
+                                (
+                                    <MappingRule
+                                        pos={idx}
+                                        parent={this.props.currentRuleId}
+                                        expanded={_.includes(this.state.expandedElements, rule.id)}
+                                        count={childRules.length}
+                                        key={`MappingRule_${rule.id}_${idx}`}
+                                        {...rule}
+                                    />
+                                )
                             )
-                        )
-                    }
-                </ol>
-            )
-        );
+                        }
+                    </ol>
+                )
+            );
+        }
 
         return (
             <div className="ecc-silk-mapping__rules">
@@ -220,10 +225,9 @@ const MappingRuleOverview = React.createClass({
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 <div className="ecc-silk-mapping__ruleslist">
                     <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                        {
-                            createRuleForm ?
-                                createRuleForm : [mappingRulesListHead, mappingRulesList]
-                        }
+                        {createRuleForm}
+                        {mappingRulesListHead}
+                        {mappingRulesList}
                     </div>
                 </div>
             </div>

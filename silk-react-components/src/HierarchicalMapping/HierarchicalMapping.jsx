@@ -4,8 +4,8 @@ import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {DisruptiveButton, Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
-import RuleValueEdit from './Components/MappingRule/ValueMappingRule';
 import RuleObjectEdit from './Components/MappingRule/ObjectMappingRule';
+import ValueMappingRuleForm from './Components/MappingRule/Forms/ValueMappingRuleForm';
 
 // Do not care about it yet
 /*const props = {
@@ -90,7 +90,7 @@ const HierarchicalMapping = React.createClass({
                             edit={true}
                         />
                     ) : (
-                        <RuleValueEdit
+                        <ValueMappingRuleForm
                             {...this.state.ruleEditView}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.currentRuleId}
