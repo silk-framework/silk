@@ -58,14 +58,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
 
   val metaData =
     MetaData(
-      label = "Some Label",
-      description = "Some Description"
+      label = "Task Label",
+      description = "Some Task Description"
     )
 
   val metaDataUpdated =
     MetaData(
-      label = "Updated Label",
-      description = "Updated Description"
+      label = "Updated Task Label",
+      description = "Updated Task Description"
     )
 
   val dataset = new DatasetTask(DATASET_ID, InternalDataset("default"))
@@ -82,13 +82,16 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       data =
         TransformSpec(
           selection = DatasetSelection("InputDS", "http://type1"),
-          mappingRule = RootMappingRule(MappingRules(
-            DirectMapping(
-              id = TRANSFORM_ID,
-              sourcePath = Path("prop1"),
-              metaData = metaData
-            )
-          ))
+          mappingRule =
+            RootMappingRule(
+              id = "root",
+              rules =
+                MappingRules(DirectMapping(
+                  id = TRANSFORM_ID,
+                  sourcePath = Path("prop1"),
+                  metaData = MetaData("Direct Rule Label", "Direct Rule Description")
+                )),
+              metaData = MetaData("Root Rule Label", "Root Rule Description"))
         ),
       metaData = metaData
   )
@@ -96,13 +99,17 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val transformTaskUpdated =
     PlainTask(
       id = TRANSFORM_ID,
-      data = transformTask.data.copy(mappingRule = RootMappingRule(MappingRules(
-        DirectMapping(
-          id = TRANSFORM_ID + 2,
-          sourcePath = Path("prop5"),
-          metaData = metaDataUpdated
-        )
-      ))),
+      data = transformTask.data.copy(mappingRule =
+        RootMappingRule(
+          id = "root",
+          rules =
+            MappingRules(DirectMapping(
+              id = TRANSFORM_ID + 2,
+              sourcePath = Path("prop5"),
+              metaData = MetaData("Direct Rule New Label", "Direct Rule New Description")
+            )),
+          metaData = MetaData("Root Rule New Label", "Root Rule New Description")
+        )),
       metaData = metaDataUpdated
     )
 

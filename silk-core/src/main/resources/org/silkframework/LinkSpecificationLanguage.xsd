@@ -119,6 +119,17 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="MappingRules">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="TransformRule"/>
+                    <xs:element ref="ObjectMapping"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="TransformRule">
         <xs:complexType>
             <xs:sequence>
@@ -134,20 +145,21 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="RootMappingRule">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
+                <xs:element ref="MappingRules"  minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="ObjectMapping">
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="MetaData" minOccurs="0"/>
-                <xs:element name="Rules"  minOccurs="1" maxOccurs="1">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:choice minOccurs="0" maxOccurs="unbounded">
-                                <xs:element ref="TransformRule"/>
-                                <xs:element ref="ObjectMapping"/>
-                            </xs:choice>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
+                <xs:element ref="MappingRules"  minOccurs="1" maxOccurs="1" />
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="relativePath" type="xs:string"/>
@@ -213,8 +225,10 @@
 
                 <xs:element ref="SourceDataset" minOccurs="1" maxOccurs="1"/>
 
-                <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="ObjectMapping" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/> <!-- old format -->
+                <xs:element ref="ObjectMapping" minOccurs="0" maxOccurs="unbounded"/>  <!-- old format -->
+
+                <xs:element ref="RootMappingRule" minOccurs="0" maxOccurs="1"/>
 
                 <xs:element ref="Outputs" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>

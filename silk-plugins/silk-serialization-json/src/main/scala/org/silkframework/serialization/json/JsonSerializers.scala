@@ -318,7 +318,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(fromJson[MappingRules]((value \ RULES_PROPERTY).get), metaData(value))
+      RootMappingRule(identifier(value, "root"), fromJson[MappingRules]((value \ RULES_PROPERTY).get), metaData(value))
     }
 
     /**

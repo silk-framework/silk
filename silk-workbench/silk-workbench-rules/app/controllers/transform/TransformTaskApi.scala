@@ -66,7 +66,7 @@ class TransformTaskApi extends Controller {
         proj.updateTask(task, updatedTransformSpec)
       //Create new task with no rule
       case None =>
-        val transformSpec = TransformSpec(input, RootMappingRule(MappingRules.empty), outputs, Seq.empty, targetVocabularies)
+        val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
     }
     Ok

@@ -35,7 +35,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          mappingRule = RootMappingRule(
+          mappingRule = RootMappingRule("root",
             MappingRules(
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
@@ -66,7 +66,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
       transform =
         TransformSpec(
           selection = DatasetSelection("id", uri("Person")),
-          mappingRule = RootMappingRule(
+          mappingRule = RootMappingRule("root",
             MappingRules(
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = uri("Person"))),

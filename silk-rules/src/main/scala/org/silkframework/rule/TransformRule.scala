@@ -6,6 +6,7 @@ import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
+import org.silkframework.rule.TransformRule.TransformRuleFormat.write
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
@@ -92,9 +93,7 @@ sealed trait TransformRule extends Operator {
   }
 }
 
-case class RootMappingRule(override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends TransformRule {
-
-  def id: Identifier = "root"
+case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends TransformRule {
 
   /**
     * The children operators.
@@ -121,6 +120,8 @@ case class RootMappingRule(override val rules: MappingRules, metaData: MetaData 
 
 object RootMappingRule {
 
+  def apply(rules: MappingRules): RootMappingRule = RootMappingRule("root", rules)
+
   /**
     * XML serialization format.
     */
@@ -129,14 +130,21 @@ object RootMappingRule {
       * Deserializes a value.
       */
     override def read(value: Node)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(MappingRulesFormat.read(value))
+      RootMappingRule(
+        id = (value \ "@id").text,
+        rules = MappingRulesFormat.read((value \ "MappingRules").head),
+        metaData = (value \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+      )
     }
 
     /**
       * Serializes a value.
       */
     override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
-      MappingRulesFormat.write(value.rules)
+      <RootMappingRule id={value.id}>
+        { MappingRulesFormat.write(value.rules) }
+        { MetaDataFormat.write(value.metaData) }
+      </RootMappingRule>
     }
   }
 
@@ -283,7 +291,7 @@ object TransformRule {
         id = (node \ "@name").text,
         sourcePath = Path.parse((node \ "@relativePath").text),
         targetProperty = (node \ "@targetProperty").headOption.map(_.text).filter(_.nonEmpty).map(Uri(_)),
-        rules = MappingRules.fromSeq((node \ "Rules" \ "_").map(read)),
+        rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
         metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
       )
     }
@@ -318,7 +326,7 @@ object TransformRule {
         case ObjectMapping(name, relativePath, targetProperty, childRules, metaData) =>
           <ObjectMapping name={name} relativePath={relativePath.serialize} targetProperty={targetProperty.map(_.uri).getOrElse("")} >
             {MetaDataFormat.write(metaData)}
-            <Rules>{childRules.allRules.map(write)}</Rules>
+            {MappingRulesFormat.write(childRules)}
           </ObjectMapping>
         case _ =>
           // At the moment, all other types are serialized generically
