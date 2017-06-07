@@ -113,6 +113,37 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       metaData = metaDataUpdated
     )
 
+  val transformTaskHierarchical =
+    PlainTask(
+      id = TRANSFORM_ID,
+      data =
+        TransformSpec(
+          selection = DatasetSelection("id", "Person"),
+          mappingRule = RootMappingRule("root",
+            MappingRules(
+              uriRule = None,
+              typeRules = Seq(TypeMapping(typeUri = "Person")),
+              propertyRules = Seq(
+                DirectMapping("name", sourcePath = Path("name"), mappingTarget = MappingTarget("name")),
+                ObjectMapping(
+                  sourcePath = Path.empty,
+                  targetProperty = Some("address"),
+                  rules = MappingRules(
+                    uriRule = Some(UriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}")),
+                    typeRules = Seq.empty,
+                    propertyRules = Seq(
+                      DirectMapping("city", sourcePath = Path("city"), mappingTarget = MappingTarget("city")),
+                      DirectMapping("country", sourcePath = Path("country"), mappingTarget = MappingTarget("country"))
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ),
+      metaData = metaData
+    )
+
   val miniWorkflow =
     PlainTask(
       id = WORKFLOW_ID,
@@ -204,6 +235,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
     }
   }
+
+  it should "update hierarchical transformation tasks" in {
+    workspace.putTask(PROJECT_NAME, transformTaskHierarchical)
+    refreshTest {
+      workspace.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskHierarchical)
+    }
+  }
+
 
   it should "read and write workflows" in {
     workspace.putTask(PROJECT_NAME, miniWorkflow)
