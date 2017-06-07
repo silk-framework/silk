@@ -34,12 +34,7 @@ const RuleObjectEditView = React.createClass({
         };
     },
 
-    handleClickRemove(event) {
-        event.stopPropagation();
-        this.setState({
-            elementToDelete: this.props.id,
-        });
-    },
+
     // open view in edit mode
     handleEdit() {
         hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: this.props.id});
@@ -47,29 +42,7 @@ const RuleObjectEditView = React.createClass({
             edit: !this.state.edit,
         })
     },
-    handleConfirmRemove(event) {
-        event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete}})
-            .subscribe(
-                () => {
-                    // FIXME: let know the user which element is gone!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                },
-                (err) => {
-                    // FIXME: let know the user what have happened!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                }
-            );
-    },
-    handleCancelRemove() {
-        this.setState({
-            elementToDelete: false,
-        });
-    },
+
     handleComplexEdit(event) {
         event.stopPropagation();
         alert('Normally this would open the complex editor (aka jsplumb view)')
@@ -130,7 +103,7 @@ const RuleObjectEditView = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                    onClick={this.handleClickRemove}
+                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type})}
                 >
                     Remove rule
                 </DisruptiveButton>
@@ -139,30 +112,10 @@ const RuleObjectEditView = React.createClass({
         }
 
         // TODO: Move up
-        const deleteView = this.state.elementToDelete
-            ? <ConfirmationDialog
-                active={true}
-                title="Delete Rule"
-                confirmButton={
-                    <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelRemove}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete}'?
-            </ConfirmationDialog>
-            : false;
-
-        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
 
         return (
             (
                 <div>
-                    {deleteView}
                     <div className="mdl-card__content">
                         {targetProperty}
                         {entityRelation}

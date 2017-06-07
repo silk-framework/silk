@@ -2,10 +2,8 @@ import React from 'react';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
-import {DisruptiveButton, Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
-import ValueMappingRuleForm from './Components/MappingRule/Forms/ValueMappingRuleForm';
-import ObjectMappingRuleForm from './Components/MappingRule/Forms/ObjectMappingRuleForm';
 
 // Do not care about it yet
 /*const props = {
@@ -29,6 +27,7 @@ const HierarchicalMapping = React.createClass({
     getInitialState() {
         // listen to rule id changes
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
+        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
         // listen to rule create event
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
 
@@ -39,7 +38,36 @@ const HierarchicalMapping = React.createClass({
             showNavigation: true,
             // which edit view are we viewing
             ruleEditView: false,
+            elementToDelete: false,
         };
+    },
+    handleClickRemove({id, type}) {
+        this.setState({
+            elementToDelete: {id, type},
+        });
+    },
+    handleConfirmRemove(event) {
+        event.stopPropagation();
+        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete.id}})
+            .subscribe(
+                () => {
+                    // FIXME: let know the user which element is gone!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                },
+                (err) => {
+                    // FIXME: let know the user what have happened!
+                    this.setState({
+                        elementToDelete: false,
+                    });
+                }
+            );
+    },
+    handleCancelRemove() {
+        this.setState({
+            elementToDelete: false,
+        });
     },
     // react to rule id changes
     onRuleNavigation({newRuleId}) {
@@ -97,9 +125,24 @@ const HierarchicalMapping = React.createClass({
                             edit={true}
                         />
                     )
+        const deleteView = this.state.elementToDelete
+            ? <ConfirmationDialog
+                active={true}
+                title="Delete Rule"
+                confirmButton={
+                    <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
+                        Delete
+                    </DisruptiveButton>
                 }
-            </div>
-        ) : false;
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelRemove}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and type '{this.state.elementToDelete.type}'?
+            </ConfirmationDialog>
+            : false;
+
 
         const debugOptions = __DEBUG__
             ? (<div>
@@ -122,6 +165,7 @@ const HierarchicalMapping = React.createClass({
                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
                     <div className="ecc-silk-mapping__header mdl-card__title">
                         {debugOptions}
+                        {deleteView}
                         <ContextMenu
                             iconName="tune"
                         >

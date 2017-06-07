@@ -28,20 +28,12 @@ const RuleValueEditView = React.createClass({
         mappingTarget: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
-        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
         return {
             edit: this.props.edit,
         };
-    },
-    // remove rule
-    handleClickRemove(event) {
-        event.stopPropagation();
-        this.setState({
-            elementToDelete: this.props.id,
-        });
     },
     handleComplexEdit(event) {
         event.stopPropagation();
@@ -65,30 +57,6 @@ const RuleValueEditView = React.createClass({
             })
         }
         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
-    },
-    handleConfirmRemove(event) {
-        event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete}})
-            .subscribe(
-                () => {
-                    // FIXME: let know the user which element is gone!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                },
-                (err) => {
-                    // FIXME: let know the user what have happened!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                }
-            );
-    },
-    handleCancelRemove() {
-        event.stopPropagation();
-        this.setState({
-            elementToDelete: false,
-        });
     },
     // template rendering
     render () {
@@ -132,7 +100,7 @@ const RuleValueEditView = React.createClass({
                 <div
                     className="ecc-silk-mapping__rulesviewer"
                 >
-                    {deleteView}
+
                     <div className="mdl-card mdl-card--stretch">
                         <div
                             className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
@@ -229,7 +197,7 @@ const RuleValueEditView = React.createClass({
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={this.handleClickRemove}
+                                onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type})}
                                 disabled={false} // FIXME: all elements are removable?
                             >
                                 Remove rule
