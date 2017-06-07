@@ -200,6 +200,7 @@ const MappingRuleOverview = React.createClass({
                             (
                                 <MappingRule
                                     pos={idx}
+                                    parent={this.props.currentRuleId}
                                     expanded={_.includes(this.state.expandedElements, rule.id)}
                                     count={childRules.length}
                                     key={`MappingRule_${rule.id}_${idx}`}

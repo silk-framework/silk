@@ -24,7 +24,7 @@ const MappingRule = React.createClass({
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
-        parent: React.PropTypes.bool,
+        parent: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
         expanded: React.PropTypes.bool.isRequired,
@@ -47,7 +47,7 @@ const MappingRule = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleNavigate() {
-        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id});
+        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id, parent: this.props.parent});
     },
     // show / hide additional row details
     handleToggleExpand() {
@@ -83,7 +83,7 @@ const MappingRule = React.createClass({
         } = this.props;
 
         const mainAction = (event) => {
-            if (type === 'object' && !parent) {
+            if (type === 'object') {
                 this.handleNavigate();
             } else {
                 this.handleToggleExpand({force: true});
@@ -92,8 +92,8 @@ const MappingRule = React.createClass({
         };
         const action = (
             <Button
-                iconName={type === 'object' && !parent ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
-                tooltip={type === 'object' && !parent ? 'Navigate to' : undefined}
+                iconName={type === 'object' ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                tooltip={type === 'object' ? 'Navigate to' : undefined}
                 onClick={mainAction}
             />
         );

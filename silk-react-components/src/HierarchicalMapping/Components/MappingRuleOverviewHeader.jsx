@@ -13,7 +13,7 @@ const MappingRuleOverviewHeader = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleNavigate(id, event) {
-        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: id});
+        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: id, parent: this.props.rule.id});
 
         event.stopPropagation();
     },
@@ -30,8 +30,7 @@ const MappingRuleOverviewHeader = React.createClass({
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-        console.log(breadcrumbs);
-
+        
         let parentTitle = false;
         let backButton = false;
 
