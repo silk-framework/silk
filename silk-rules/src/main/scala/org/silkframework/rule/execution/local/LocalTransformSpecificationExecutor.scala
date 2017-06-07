@@ -48,7 +48,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
       val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-      for(ObjectMapping(_, relativePath, _, childRules) <- rules) {
+      for(ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),

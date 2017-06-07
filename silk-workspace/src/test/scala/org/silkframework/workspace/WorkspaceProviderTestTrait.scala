@@ -85,7 +85,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
           mappingRule = RootMappingRule(MappingRules(
             DirectMapping(
               id = TRANSFORM_ID,
-              sourcePath = Path("prop1")
+              sourcePath = Path("prop1"),
+              metaData = metaData
             )
           ))
         ),
@@ -98,7 +99,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       data = transformTask.data.copy(mappingRule = RootMappingRule(MappingRules(
         DirectMapping(
           id = TRANSFORM_ID + 2,
-          sourcePath = Path("prop5")
+          sourcePath = Path("prop5"),
+          metaData = metaDataUpdated
         )
       ))),
       metaData = metaDataUpdated

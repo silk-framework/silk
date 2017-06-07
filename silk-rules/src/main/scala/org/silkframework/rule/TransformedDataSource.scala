@@ -19,7 +19,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    for(TypeMapping(name, typeUri) <- transform.rules.typeRules) yield {
+    for(TypeMapping(name, typeUri, _) <- transform.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
   }

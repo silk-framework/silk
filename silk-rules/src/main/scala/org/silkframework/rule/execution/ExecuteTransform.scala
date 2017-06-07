@@ -55,7 +55,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       }
     }
 
-    for(ObjectMapping(_, relativePath, _, childRules) <- rules) {
+    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
       val childInputSchema =
         EntitySchema(
           typeUri = inputSchema.typeUri,

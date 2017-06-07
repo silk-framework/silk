@@ -122,6 +122,7 @@
     <xs:element name="TransformRule">
         <xs:complexType>
             <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
                 <xs:choice minOccurs="1" maxOccurs="1">
                     <xs:element ref="Input"/>
                     <xs:element ref="TransformInput"/>
@@ -136,6 +137,7 @@
     <xs:element name="ObjectMapping">
         <xs:complexType>
             <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
                 <xs:element name="Rules"  minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
@@ -207,6 +209,8 @@
     <xs:element name="Transform">
         <xs:complexType>
             <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
+
                 <xs:element ref="SourceDataset" minOccurs="1" maxOccurs="1"/>
 
                 <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/>

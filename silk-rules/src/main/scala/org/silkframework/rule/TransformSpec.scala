@@ -54,7 +54,7 @@ case class TransformSpec(selection: DatasetSelection,
       subPath = subPath
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules) <- rules.allRules) {
+    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectInputSchemata(childRules, relativePath)
     }
 
@@ -69,7 +69,7 @@ case class TransformSpec(selection: DatasetSelection,
       typedPaths = rules.allRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).distinct.toIndexedSeq
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules) <- rules.allRules) {
+    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectOutputSchemata(childRules, relativePath)
     }
 
