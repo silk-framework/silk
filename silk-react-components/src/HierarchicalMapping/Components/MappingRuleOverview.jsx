@@ -79,10 +79,11 @@ const MappingRuleOverview = React.createClass({
         }
     },
     loadData() {
-        if (this.state.editingElements.length > 0 &&
+        // TODO: fix conditions
+        /*if (this.state.editingElements.length > 0 &&
             !confirm("Continue will delete all changes. Are you sure?")) {
             return false;
-        }
+        }*/
         this.setState({
             editingElements: [],
             loading: true,
