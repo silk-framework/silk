@@ -6,6 +6,7 @@ import {
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
+    Info,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
@@ -129,23 +130,62 @@ const RuleValueEditView = React.createClass({
         return (
             (
                 <div
-                    className="ecc-silk-mapping__rulesview"
+                    className="ecc-silk-mapping__rulesviewer"
                 >
                     {deleteView}
                     <div className="mdl-card mdl-card--stretch">
+                        <div
+                            className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
+                            onClick={this.props.handleToggleExpand}
+                        >
+                            <div className="mdl-card__title-text">
+                                Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)}
+                            </div>
+                        </div>
                         <div className="mdl-card__content">
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__targetProperty"
-                            >
-                                Target property
-                                {_.get(this.props, 'mappingTarget.uri', undefined)}
-                            </div>
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__propertyType"
-                            >
-                                Property type
-                                {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
-                            </div>
+                            {
+                                _.get(this.props, 'mappingTarget.uri', undefined) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__targetProperty"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Target property
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                Label/Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                {_.get(this.props, 'mappingTarget.uri', undefined)}
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Info border>
+                                                    Vocabulary description about {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                                </Info>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                _.get(this.props, 'mappingTarget.valueType.nodeType', undefined) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__propertyType"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Property type
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                Any other information available here? (TODO)
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
                             <div>
                                 Source property
                                 <SourcePath
@@ -157,12 +197,22 @@ const RuleValueEditView = React.createClass({
                                     }
                                 />
                             </div>
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__comment"
-                            >
-                                Comment
-                                {_.get(this.props, 'metadata.description', '')}
-                            </div>
+                            {
+                                this.props.comment ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__comment"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Comment
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                {this.props.comment}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
                         </div>
                         <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                             <Button

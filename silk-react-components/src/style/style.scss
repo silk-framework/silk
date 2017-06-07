@@ -314,6 +314,32 @@
     }
 }
 
+.ecc-silk-mapping__rulesviewer__attribute {
+
+    margin-bottom: 1rem;
+    @include typo-body-1();
+
+    dt, dd {
+        margin: 0;
+        padding: 0;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-label {
+        font-size: $input-text-floating-label-fontsize;
+        font-weight: 300;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-title {
+        font-size: $input-text-font-size;
+        font-weight: 500;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-info {
+
+    }
+
+}
+
 .clickable {
     cursor: pointer;
 }
