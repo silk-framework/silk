@@ -306,6 +306,14 @@
         }
     }
 }
+
+.ecc-silk-mapping__rulesviewer__title {
+
+    .mdl-card__title-text {
+        @include typo-subhead();
+    }
+}
+
 .clickable {
     cursor: pointer;
 }

@@ -132,15 +132,23 @@ const RuleValueEditView = React.createClass({
                 >
                     {deleteView}
                     <div className="mdl-card mdl-card--stretch">
+                        <div
+                            className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
+                            onClick={this.props.handleToggleExpand}
+                        >
+                            <div className="mdl-card__title-text">
+                                {_.get(this.props, 'mappingTarget.uri', undefined)}
+                            </div>
+                        </div>
                         <div className="mdl-card__content">
                             <div
-                                className="ecc-silk-mapping__ruleseditor__targetProperty"
+                                className="ecc-silk-mapping__rulesviewer__targetProperty"
                             >
                                 Target property
                                 {_.get(this.props, 'mappingTarget.uri', undefined)}
                             </div>
                             <div
-                                className="ecc-silk-mapping__ruleseditor__propertyType"
+                                className="ecc-silk-mapping__rulesviewer__propertyType"
                             >
                                 Property type
                                 {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
@@ -150,32 +158,32 @@ const RuleValueEditView = React.createClass({
                                 {this.props.sourcePath || 'Complex Mapping'}
                             </div>
                             <div
-                                className="ecc-silk-mapping__ruleseditor__comment"
+                                className="ecc-silk-mapping__rulesviewer__comment"
                             >
                                 Comment
                                 {this.props.comment || ''}
                             </div>
 
-                            <div className="ecc-silk-mapping__ruleseditor__created">
+                            <div className="ecc-silk-mapping__rulesviewer__created">
                                 Created {this.props.created ? this.props.created : 0}</div>
-                            <div className="ecc-silk-mapping__ruleseditor__updated">
+                            <div className="ecc-silk-mapping__rulesviewer__updated">
                                 Updated {this.props.updated ? this.props.updated : 0}</div>
                         </div>
-                        <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                        <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
                             <Button
-                                className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                                className="ecc-silk-mapping__rulesviewer__actionrow-edit"
                                 onClick={this.handleEdit}
                             >
                                 Edit rule
                             </Button>
                             <Button
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
                                 onClick={this.handleComplexEdit}
                             >
                                 Edit complex
                             </Button>
                             <DisruptiveButton
-                                className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                                className="ecc-silk-mapping__rulesviewer__actionrow-remove"
                                 onClick={this.handleClickRemove}
                                 disabled={false} // FIXME: all elements are removable?
                             >
