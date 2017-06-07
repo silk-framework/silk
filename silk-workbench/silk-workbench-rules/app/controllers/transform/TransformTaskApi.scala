@@ -4,20 +4,23 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
+import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
-import org.silkframework.util.{CollectLogs, Identifier, Uri}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.validation.{ValidationError, ValidationException}
+import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
-import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.{Project, ProjectTask, User}
+import play.api.libs.json._
+import play.api.mvc._
 
 import scala.util.control.NonFatal
 
@@ -38,27 +41,33 @@ class TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    serializeCompileTime[Task[TransformSpec]](task)
+  }
+
   def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
     val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
     proj.tasks[TransformSpec].find(_.id == task) match {
       //Update existing task
-      case Some(oldTask) => {
+      case Some(oldTask) =>
         val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
         proj.updateTask(task, updatedTransformSpec)
-      }
       //Create new task with no rule
-      case None => {
-        val transformSpec = TransformSpec(input, Seq.empty, outputs, Seq.empty, targetVocabularies)
+      case None =>
+        val transformSpec = TransformSpec(input, RootMappingRule(MappingRules.empty), outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
-      }
     }
     Ok
   }
@@ -76,7 +85,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serializeIterable(task.data.rules, containerName = Some("TransformRules"))
+    serializeCompileTime(task.data.mappingRule)
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
@@ -86,10 +95,10 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserializeIterable[TransformRule](expectedXmlRootElementLabel = Some("TransformRules")) { updatedRules =>
+    deserializeCompileTime[RootMappingRule]() { updatedRules =>
       try {
         //Update transformation task
-        val updatedTask = task.data.copy(rules = updatedRules.toSeq)
+        val updatedTask = task.data.copy(mappingRule = updatedRules)
         project.updateTask(taskName, updatedTask)
         Ok
       } catch {
@@ -108,41 +117,127 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    task.data.rules.find(_.name == rule) match {
+    RuleTraverser(task.data.mappingRule).find(rule) match {
       case Some(r) =>
-        serialize(r)
+        serializeCompileTime(r.operator.asInstanceOf[TransformRule])
       case None =>
-        NotFound(s"No rule named '$rule' found!")
+        NotFound(JsonError(s"No rule with id '$rule' found!"))
     }
   }
 
-  def putRule(projectName: String, taskName: String, ruleIndex: Int): Action[AnyContent] = Action { implicit request => {
+  def putRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+    implicit val resources = project.resources
+    implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
+
+    RuleTraverser(task.data.mappingRule).find(rule) match {
+      case Some(currentRule) =>
+        implicit val updatedRequest = updateJsonRequest(request, currentRule)
+        deserializeCompileTime[TransformRule]() { updatedRule =>
+          try {
+            updateRule(currentRule.update(updatedRule))
+            serializeCompileTime[TransformRule](updatedRule)
+          } catch {
+            case ex: ValidationException =>
+              log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
+              BadRequest(JsonError(INVALID_TRANSFORMATION_RULE, ex.errors))
+            case ex: Exception =>
+              log.log(Level.WARNING, "Failed to commit transformation rule", ex)
+              InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+          }
+        }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$rule' found!"))
+    }
+  }
+
+  def deleteRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
 
-    deserialize[TransformRule]() { updatedRule =>
-      try {
-        //Collect warnings while parsing transformation rule
-        val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
-          val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)
-          val updatedTask = task.data.copy(rules = updatedRules)
-          project.updateTask(taskName, updatedTask)
-        }
-        // Return warnings
-        Ok(JsonError("Transform rule committed successfully", warnings.map(log => ValidationWarning(log.getMessage))))
-      } catch {
-        case ex: ValidationException =>
-          log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
-          BadRequest(JsonError(INVALID_TRANSFORMATION_RULE, ex.errors))
-        case ex: Exception =>
-          log.log(Level.WARNING, "Failed to commit transformation rule", ex)
-          InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
-      }
+    try {
+      RuleTraverser(task.data.mappingRule).remove(rule)
+      Ok
+    } catch {
+      case ex: NoSuchElementException =>
+        NotFound(JsonError(ex.getMessage))
     }
   }
+
+  def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+
+    RuleTraverser(task.data.mappingRule).find(ruleName) match {
+      case Some(parentRule) =>
+        deserializeCompileTime[TransformRule]() { newChildRule =>
+          val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
+          updateRule(parentRule.update(updatedRule))
+          serializeCompileTime(newChildRule)
+        }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$ruleName' found!"))
+    }
+  }
+
+  def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    RuleTraverser(task.data.mappingRule).find(ruleName) match {
+      case Some(parentRule) =>
+        request.body.asJson match {
+          case Some(json) =>
+            val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
+            val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
+            val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
+            if(newOrder.toSet == currentOrder.toSet) {
+              val newPropertyRules =
+                for(id <- newOrder) yield {
+                  parentRule.operator.children.find(_.id == id).get
+                }
+              val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
+              updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
+              Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
+            } else {
+              BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+            }
+          case None =>
+            NotAcceptable(JsonError("Expected application/json."))
+        }
+      case None =>
+        NotFound(JsonError(s"No rule with id '$ruleName' found!"))
+    }
+  }
+
+  private def identifierGenerator(transformTask: Task[TransformSpec]): IdentifierGenerator = {
+    val identifierGenerator = new IdentifierGenerator()
+    for(id <- RuleTraverser(transformTask.data.mappingRule).iterateAllChildren.map(_.operator.id)) {
+      identifierGenerator.add(id)
+    }
+    identifierGenerator
+  }
+
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+    request.body.asJson match {
+      case Some(requestJson) =>
+        val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
+        val updatedJson = ruleJson.deepMerge(requestJson.as[JsObject])
+        request.map(_ => AnyContentAsJson(updatedJson))
+      case None => request
+    }
+  }
+
+  private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
+    val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
+    val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    task.project.updateTask(task.id, updatedTask)
   }
 
   def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action {
@@ -153,7 +248,7 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val activity = task.activity[ExecuteTransform].control
@@ -198,15 +293,102 @@ class TransformTaskApi extends Controller {
     */
   def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
     val (project, task) = projectAndTask(projectName, taskName)
-    val completions = TargetPathAutcompletion.retrieve(project, task, sourcePath, term)
+    val completions = TargetAutoCompletion.retrieve(project, task, sourcePath, term)
     Ok(JsArray(completions.map(_.toJson)))
+  }
+
+  /**
+    * Returns a JSON array of candidate types, either from the vocabulary cache or the matching cache of the transform task.
+    *
+    * @param projectName The name of the project
+    * @param taskName    The name of the transform task
+    */
+  def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val (_, task) = projectAndTask(projectName, taskName)
+    val typeCompletion = TargetAutoCompletion.retrieveTypeCompletions(task)
+    Ok(JsArray(typeCompletion.map(_.toJson)))
+  }
+
+  /**
+    * Returns all properties that are in the domain of the given class or one of its super classes.
+    * @param projectName Name of project
+    * @param taskName    Name of task
+    * @param classUri    Class URI
+    */
+  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = false)
+    serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
+  }
+
+  /**
+    * Returns all properties that are directly defined on a class or one of its parent classes.
+    * @param classUri The class we want to have the relations for.
+    * @param addBackwardRelations Specifies if backward relations should be added
+    * @return Tuple of (forward properties, backward properties)
+    */
+  private def vocabularyPropertiesByType(taskName: String,
+                                         project: Project,
+                                         classUri: String,
+                                         addBackwardRelations: Boolean): (Seq[VocabularyProperty], Seq[VocabularyProperty]) = {
+    val task = project.task[TransformSpec](taskName)
+    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularyClasses = vocabularies.flatMap(v => v.getClass(classUri).map(c => (v, c)))
+
+    def filterProperties(propFilter: (VocabularyProperty, List[String]) => Boolean): Seq[VocabularyProperty] = {
+      val props = for ((vocabulary, vocabularyClass) <- vocabularyClasses) yield {
+        val classes = (vocabularyClass.info.uri :: vocabularyClass.parentClasses.toList).distinct
+        val propsByAnyClass = vocabulary.properties.filter(propFilter(_, classes))
+        propsByAnyClass
+      }
+      props.flatten
+    }
+
+    val forwardProperties = filterProperties((prop, classes) => prop.domain.exists(vc => classes.contains(vc.info.uri)))
+    val backwardProperties = filterProperties((prop, classes) => addBackwardRelations && prop.range.exists(vc => classes.contains(vc.info.uri)))
+    (forwardProperties, backwardProperties)
+  }
+
+  case class ClassRelations(forwardRelations: Seq[Relation], backwardRelations: Seq[Relation])
+
+  case class Relation(property: VocabularyProperty, targetClass: VocabularyClass)
+
+  /** Json serializers */
+  implicit private val writeContext = WriteContext[JsValue]()
+  implicit private object vocabularyClassFormat extends Writes[VocabularyClass] {
+    override def writes(vocabularyClass: VocabularyClass): JsValue = {
+      JsonSerializers.VocabularyClassJsonFormat.write(vocabularyClass)
+    }
+  }
+  implicit private object vocabularyPropertyFormat extends Writes[VocabularyProperty] {
+    override def writes(vocabularyProperty: VocabularyProperty): JsValue = {
+      JsonSerializers.VocabularyPropertyJsonFormat.write(vocabularyProperty)
+    }
+  }
+  implicit private val relationFormat = Json.writes[Relation]
+  implicit private val classRelationsFormat = Json.writes[ClassRelations]
+
+  // Depending on the forward switch either the range or the domain is taken for the classUri.
+  private def vocabularyPropertyToRelation(vocabularyProperty: VocabularyProperty, forward: Boolean): Relation = {
+    val targetClass = if(forward) { vocabularyProperty.range } else { vocabularyProperty.domain }
+    assert(targetClass.isDefined, "No target class defined for relation property " + vocabularyProperty.info.uri)
+    Relation(vocabularyProperty, targetClass.get)
+  }
+
+  def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    // Filter only object properties
+    val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)
+    val forwardObjectProperties = forwardProperties.filter(vp => vp.range.isDefined && vp.domain.isDefined)
+    val f = forwardObjectProperties map (fp => vocabularyPropertyToRelation(fp, forward = true))
+    val b = backwardProperties map (bp => vocabularyPropertyToRelation(bp, forward = false))
+    val classRelations = ClassRelations(f, b)
+    Ok(Json.toJson(classRelations))
   }
 
   /**
     * Transform entities bundled with the request according to the transformation task.
     *
-    * @param projectName
-    * @param taskName
     * @return If no sink is specified in the request then return results in N-Triples format with the response,
     *         else write triples to defined data sink.
     */
@@ -225,7 +407,10 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  private def executeTransform(task: ProjectTask[TransformSpec], entitySink: EntitySink, dataSource: DataSource, errorEntitySinkOpt: Option[EntitySink]): Unit = {
+  private def executeTransform(task: ProjectTask[TransformSpec],
+                               entitySink: EntitySink,
+                               dataSource: DataSource,
+                               errorEntitySinkOpt: Option[EntitySink]): Unit = {
     val transform = new ExecuteTransform(dataSource, task.data, Seq(entitySink))
     Activity(transform).startBlocking()
   }
@@ -248,9 +433,9 @@ class TransformTaskApi extends Controller {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
+            val rule = task.data.mappingRule.rules.find(_.id.toString == ruleName).getOrElse(
               throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
-                  + task.data.rules.map(_.name).mkString(", "))
+                  + task.data.mappingRule.rules.map(_.id).mkString(", "))
             )
             val entityDescription = oneRuleEntitySchema(transformTask, rule)
             try {
@@ -263,7 +448,8 @@ class TransformTaskApi extends Controller {
                     " raised following issue:" + pe.msg))))
             }
           case _ =>
-            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString + " of type " + dataset.plugin.label +
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +
+                " of type " + dataset.plugin.label +
                 " does not support transformation preview!"))))
         }
       case _: TransformSpec =>
@@ -284,7 +470,8 @@ class TransformTaskApi extends Controller {
     } else if (errorCounter > 0) {
       Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
-          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. First exception: " + errorMessage))))
+          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
+              "First exception: " + errorMessage))))
     } else {
       Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))

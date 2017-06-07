@@ -29,14 +29,8 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] {
     */
   def mimeTypes: Set[String]
 
-  /**
-    * Deserializes a value.
-    */
   def read(value: U)(implicit readContext: ReadContext): T
 
-  /**
-    * Serializes a value.
-    */
   def write(value: T)(implicit writeContext: WriteContext[U]): U
 
   /**

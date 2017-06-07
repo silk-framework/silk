@@ -14,6 +14,7 @@ import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulExcepti
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 import SilkErrorHandler.prefersHtml
+import org.silkframework.serialization.json.JsonParseException
 
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
@@ -33,8 +34,9 @@ class SilkErrorHandler (env: Environment,
     if(prefersHtml(request)) {
       super.onClientError(request, statusCode, message)
     } else {
+      val m = if(statusCode == 404 && message.isEmpty) "Not Found." else message
       Future {
-        Status(statusCode)(JsonError(message))
+        Status(statusCode)(JsonError(m))
       }
     }
   }
@@ -117,6 +119,8 @@ class SilkErrorHandler (env: Environment,
           case None =>
             InternalServerError("Unknown error.")
         }
+      case JsonParseException(msg, _) =>
+        BadRequest(JsonError(msg))
       case _ =>
         log.log(Level.INFO, s"Error handling request to $requestPath", ex)
         InternalServerError(JsonError(ex))

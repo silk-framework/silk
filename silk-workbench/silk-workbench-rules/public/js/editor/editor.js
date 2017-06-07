@@ -402,15 +402,18 @@ function validateLinkSpec() {
       type: 'PUT',
       url: apiUrl + '/rule' + ruleIndex,
       contentType: 'text/xml',
+      accepts: {
+        json: 'application/json'
+      },
       processData: false,
       data: serializationFunction(),
       dataType: "json",
       success: function(response) {
-        updateEditorStatus(response.issues);
+        updateEditorStatus([]);
         updateScore();
         confirmOnExit = false;
       },
-      error: function(req) {
+      error: function(req, textStatus, errorThrown) {
         console.log('Error committing rule: ' + req.responseText);
         updateEditorStatus(req.responseJSON.issues);
       }

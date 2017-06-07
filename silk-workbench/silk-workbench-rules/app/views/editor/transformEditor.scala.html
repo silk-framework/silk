@@ -25,7 +25,7 @@
     var inEditorEnv = true;
     var projectName = '@context.project.name';
     var taskName = '@context.task.id';
-    var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
+    var ruleIndex = '/@rule.id.toString';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
@@ -69,7 +69,7 @@
     <li>
       <label>Name:</label>
       <div id="input_rulename" class="mdl-textfield mdl-js-textfield">
-        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.name" />
+        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.id" />
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_rulename">
         The name of this transformation rule.
