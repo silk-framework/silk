@@ -4,8 +4,8 @@ import hierarchicalMappingChannel from './store';
 import TreeView from './Components/TreeView';
 import {DisruptiveButton, Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
-import RuleValueEdit from './Components/RuleValueEditView';
-import RuleObjectEdit from './Components/RuleObjectEditView';
+import RuleValueEdit from './Components/MappingRule/ValueMappingRule';
+import RuleObjectEdit from './Components/MappingRule/ObjectMappingRule';
 
 // Do not care about it yet
 /*const props = {

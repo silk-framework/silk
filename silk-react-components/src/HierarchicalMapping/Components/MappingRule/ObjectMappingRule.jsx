@@ -1,18 +1,20 @@
 import React from 'react';
-import UseMessageBus from '../UseMessageBusMixin';
+import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    TextField,
     SelectBox,
+    Radio,
+    RadioGroup,
+    TextField,
     ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
 } from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 
-const RuleValueEditView = React.createClass({
+const RuleObjectEditView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -20,80 +22,76 @@ const RuleValueEditView = React.createClass({
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
-        //operator: React.PropTypes.object,
         type: React.PropTypes.string,
-        // FIXME: sourcePath === source property?
-        sourcePath: React.PropTypes.string,
-        mappingTarget: React.PropTypes.object,
+        rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
-        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
         return {
-            comment: this.props.comment || '',
             targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-            propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
-            sourceProperty: this.props.sourcePath,
-            edit: this.props.edit,
+            comment: this.props.comment,
+            targetEntityType: _.get(this.props, 'rules.typeRules[0].typeUri', undefined),
+            entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
+            pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
+            edit: !!this.props.edit,
         };
     },
 
-    handleConfirm(event) {
-        event.stopPropagation();
-        hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.props.type,
-            comment: this.state.comment,
-            targetProperty: this.state.targetProperty,
-            propertyType: this.state.propertyType,
-            sourceProperty: this.state.sourceProperty,
-        });
-
-        this.handleClose(event);
-    },
-    // remove rule
     handleClickRemove(event) {
         event.stopPropagation();
         this.setState({
             elementToDelete: this.props.id,
         });
     },
+    handleConfirm() {
 
-    handleChangeTextfield(state, {value}) {
-        this.setState({
-            [state]: value,
+        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
+            id: this.props.id,
+            parentId: this.props.parentId,
+            type: this.props.type,
+            comment: this.state.comment,
+            targetProperty: this.state.targetProperty,
+            targetEntityType: this.state.targetEntityType,
+            pattern: this.state.pattern,
+            entityConnection: this.state.entityConnection === 'to',
         });
+
+        this.handleClose();
     },
+
     handleChangeSelectBox(state, value) {
         this.setState({
             [state]: value,
         });
     },
-    handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
+    handleChangeTextfield(state, {value}) {
+        this.setState({
+            [state]: value,
+        });
     },
+    handleChangeRadio(state, {value}) {
+        this.setState({
+            [state]: value,
+        });
+    },
+
     // open view in edit mode
-    handleEdit(event) {
-        event.stopPropagation();
+    handleEdit() {
         hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: this.props.id});
         this.setState({
             edit: !this.state.edit,
         })
     },
-    handleClose(event) {
-        event.stopPropagation();
-        if(_.isFunction(this.props.onClose)){
+    handleClose() {
+        if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
             this.setState({
                 edit: false,
             })
         }
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
@@ -114,111 +112,108 @@ const RuleValueEditView = React.createClass({
             );
     },
     handleCancelRemove() {
-        event.stopPropagation();
         this.setState({
             elementToDelete: false,
         });
+    },
+    handleComplexEdit(event) {
+        event.stopPropagation();
+        alert('Normally this would open the complex editor (aka jsplumb view)')
     },
     // template rendering
     render () {
         const {
             id,
-            type = 'direct',
+            type,
         } = this.props;
         const {edit} = this.state;
 
         // FIXME: also check if data really has changed before allow saving
-        const allowConfirm = this.state.targetProperty;
+        const allowConfirm =  type === 'root'
+            ? true
+            : this.state.targetProperty;
+
+        console.warn('debug OBJECT edit view', this.props);
 
         const title = (
-            edit && !id ? (
+            // TODO: add source path if: parent, not edit, not root element
+            edit && !id
+                ? (
                 <div className="mdl-card__title mdl-card--border">
-                    Add value mapping
+                    Add object mapping
                 </div>
-            ) : false
+                )
+                : false
         );
 
-        //TODO: Where to get the list of target Properties?
-        const targetPropertyInput = (
-            edit ? (
-                <SelectBox
-                    placeholder={'Choose target property'}
-                    className="ecc-silk-mapping__ruleseditor__targetProperty"
-                    options={[
-                        'http://xmlns.com/foaf/0.1/name',
-                        'http://xmlns.com/foaf/0.1/knows',
-                        'http://xmlns.com/foaf/0.1/familyName',
-                    ]}
-                    value={this.state.targetProperty}
-                    onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
-                />
-            ) : (
-                <div
-                    className="ecc-silk-mapping__ruleseditor__targetProperty"
-                >
-                    Target property
-                    {this.state.targetProperty}
-                </div>
-            )
-        );
+        let targetPropertyInput = false;
+        let entityRelationInput = false;
 
-        //TODO: Where to get the list of target property types?
-        const propertyTypeInput = (
-            edit ? (
-                <SelectBox
-                    placeholder={'Choose property type'}
-                    className="ecc-silk-mapping__ruleseditor__propertyType"
-                    options={[
-                        "AutoDetectValueType",
-                        "UriValueType",
-                        "BooleanValueType",
-                        "StringValueType",
-                        "IntegerValueType",
-                        "LongValueType",
-                        "FloatValueType",
-                        "DoubleValueType",
-                    ]}
-                    value={this.state.propertyType || "AutoDetectValueType"}
-                    onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
-                />
-            ) : (
-                <div
-                    className="ecc-silk-mapping__ruleseditor__propertyType"
-                >
-                    Property type
-                    {this.state.propertyType}
-                </div>
-            )
-        );
-
-        //TODO: Unfold complex mapping
-        let sourceProperty = edit ? false : (
-            <div>
-                Source property
-                {this.state.sourceProperty || 'Complex Mapping'}
-            </div>
-        );
-
-
-        console.warn(type);
-
-        if (edit && type === 'direct') {
-            sourceProperty = (
-                <TextField
-                    label={'Source property'}
-                    onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
-                    value={this.state.sourceProperty}
-                />
+        if (type !== 'root') {
+            // TODO: where to get get list of target properties
+            targetPropertyInput = (
+                edit ? (
+                    <SelectBox
+                        placeholder={'Choose target property'}
+                        className="ecc-silk-mapping__ruleseditor__targetProperty"
+                        options={[
+                            'target:address',
+                            'target:country',
+                            'target:friend',
+                        ]}
+                        value={this.state.targetProperty}
+                        onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
+                    />
+                ) : (
+                    <div
+                        className="ecc-silk-mapping__ruleseditor__targetProperty"
+                    >
+                        Target property
+                        {this.state.targetProperty}
+                    </div>
+                )
             );
-        } else if (edit && type === 'complex') {
-            sourceProperty = (
-                <TextField
-                    disabled={true}
-                    label="Source property"
-                    value="Complex Mapping"
-                />
-            )
+
+            entityRelationInput = (
+                <RadioGroup
+                    onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
+                    value={this.state.entityConnection}
+                    name=""
+                    disabled={!edit}
+                >
+                    <Radio
+                        value="from"
+                        label="Connects from entity"
+                    />
+                    <Radio
+                        value="to"
+                        label="Connects to entity"
+                    />
+                </RadioGroup>
+            );
+
         }
+
+        // TODO: where to get get list of target entities
+        const targetEntityTypeInput = (
+            edit ? (
+                <SelectBox
+                    placeholder={'Choose target entity type'}
+                    className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
+                    options={['foaf:Person', 'schema:Country', 'schema:Address']}
+                    value={this.state.targetEntityType}
+                    //multi={true} // allow multi selection
+                    onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
+                />
+            ) : (
+                <div
+                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
+                >
+                    Target entity type
+                    {this.state.targetEntityType}
+                </div>
+            )
+        );
 
         const commentInput = (
             edit ? (
@@ -239,6 +234,37 @@ const RuleValueEditView = React.createClass({
             )
         );
 
+        let pattern = false;
+
+        if (id) {
+            pattern = (
+                edit ? (
+                    <TextField
+                        label="Id pattern"
+                        className="ecc-silk-mapping__ruleseditor__pattern"
+                        value={this.state.pattern}
+                        onChange={this.handleChangeTextfield.bind(null, 'pattern')}
+                    />
+                ) : (
+                    <div
+                        className="ecc-silk-mapping__ruleseditor__pattern"
+                    >
+                        Id pattern
+                        {this.state.pattern}
+                    </div>
+                )
+            );
+        }
+
+        const deleteButton = !edit && type !== 'root'
+            ? <DisruptiveButton
+                className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                onClick={this.handleClickRemove}
+            >
+                Remove rule
+            </DisruptiveButton>
+            : false;
+
         const actionRow = (
             edit ? (
                 <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
@@ -250,7 +276,7 @@ const RuleValueEditView = React.createClass({
                         Save
                     </AffirmativeButton>
                     <DismissiveButton
-                        className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
+                        className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
                         onClick={this.handleClose}
                     >
                         Cancel
@@ -264,19 +290,13 @@ const RuleValueEditView = React.createClass({
                     >
                         Edit rule
                     </Button>
+                    {deleteButton}
                     <Button
                         className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                         onClick={this.handleComplexEdit}
                     >
                         Edit complex
                     </Button>
-                    <DisruptiveButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                        onClick={this.handleClickRemove}
-                        disabled={false} // FIXME: all elements are removable?
-                    >
-                        Remove rule
-                    </DisruptiveButton>
                 </div>
             )
         );
@@ -313,30 +333,28 @@ const RuleValueEditView = React.createClass({
                         {title}
                         <div className="mdl-card__content">
                             {targetPropertyInput}
-                            {propertyTypeInput}
-                            {sourceProperty}
+                            {entityRelationInput}
+                            {targetEntityTypeInput}
                             {commentInput}
+                            {pattern}
+
                         </div>
                         {actionRow}
                     </div>
                 </div>
             ) : (
-                <div
-                    className="ecc-silk-mapping__rulesview"
-                >
+                <div>
                     {deleteView}
-                    <div className="mdl-card mdl-card--stretch">
-                        <div className="mdl-card__content">
-                            {targetPropertyInput}
-                            {propertyTypeInput}
-                            {sourceProperty}
-                            {commentInput}
-
-                            <div className="ecc-silk-mapping__ruleseditor__created">Created {this.props.created ? this.props.created : 0}</div>
-                            <div className="ecc-silk-mapping__ruleseditor__updated">Updated {this.props.updated ? this.props.updated : 0}</div>
-                        </div>
-                        {actionRow}
+                    <div className="mdl-card__content">
+                        {targetPropertyInput}
+                        {entityRelationInput}
+                        {targetEntityTypeInput}
+                        {commentInput}
+                        {pattern}
+                        {<div className="ecc-silk-mapping__ruleseditor__created">Created {this.props.created ? this.props.created : 0}</div>}
+                        {<div className="ecc-silk-mapping__ruleseditor__updated">Updated {this.props.updated ? this.props.updated : 0}</div>}
                     </div>
+                    {actionRow}
                 </div>
             )
         );
@@ -344,4 +362,4 @@ const RuleValueEditView = React.createClass({
 
 });
 
-export default RuleValueEditView;
+export default RuleObjectEditView;

@@ -3,11 +3,11 @@
  */
 
 import React from 'react';
-import UseMessageBus from '../UseMessageBusMixin';
+import UseMessageBus from '../../UseMessageBusMixin';
 import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../store';
-import RuleValueEdit from './RuleValueEditView';
-import RuleObjectEdit from './RuleObjectEditView';
+import hierarchicalMappingChannel from '../../store';
+import RuleValueEdit from './ValueMappingRule';
+import RuleObjectEdit from './ObjectMappingRule';
 
 const MappingRule = React.createClass({
 

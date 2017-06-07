@@ -1,6 +1,6 @@
 import React from 'react';
-import {RuleTitle, RuleTypes} from './RuleComponents';
-import RuleObjectEdit from './RuleObjectEditView';
+import {RuleTitle, RuleTypes} from './MappingRule/SharedComponents';
+import RuleObjectEdit from './MappingRule/ObjectMappingRule';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
 import {Button, Chip} from 'ecc-gui-elements';
@@ -30,7 +30,7 @@ const MappingRuleOverviewHeader = React.createClass({
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-        
+
         let parentTitle = false;
         let backButton = false;
 

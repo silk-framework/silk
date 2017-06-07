@@ -7,7 +7,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
-import MappingRule from './MappingRule';
+import MappingRule from './MappingRule/MappingRule';
 import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
 
 const MappingRuleOverview = React.createClass({

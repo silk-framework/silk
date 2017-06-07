@@ -7,7 +7,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import {Spinner, Button, Icon} from 'ecc-gui-elements';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
-import {RuleTreeTitle, RuleTreeTypes} from './RuleComponents';
+import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 
 const TreeView = React.createClass({
 
