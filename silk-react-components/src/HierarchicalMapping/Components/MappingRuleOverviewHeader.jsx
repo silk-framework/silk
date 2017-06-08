@@ -55,6 +55,7 @@ const MappingRuleOverviewHeader = React.createClass({
             content = (
                 <RuleObjectEdit
                     {...this.props.rule}
+                    parent={_.get(parent, 'id', '')}
                     edit={false}
                     onClose={this.handleRuleEditClose}
                 />

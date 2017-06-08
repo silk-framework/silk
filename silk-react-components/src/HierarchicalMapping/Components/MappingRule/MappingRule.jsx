@@ -135,6 +135,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
+                    parent={parent}
                     edit={false}
                 />
             ) : (
@@ -142,6 +143,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
+                    parent={parent}
                     edit={false}
                 />
             )

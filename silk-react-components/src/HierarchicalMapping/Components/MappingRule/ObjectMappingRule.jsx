@@ -27,6 +27,7 @@ const RuleObjectEditView = React.createClass({
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
+        parent: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
@@ -118,7 +119,7 @@ const RuleObjectEditView = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
-                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type})}
+                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent: this.props.parent})}
                 >
                     Remove
                 </DisruptiveButton>

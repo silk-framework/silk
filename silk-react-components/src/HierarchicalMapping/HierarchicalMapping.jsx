@@ -60,17 +60,20 @@ const HierarchicalMapping = React.createClass({
             editingElements: _.filter(this.state.editingElements, (e) => e !== id),
         })
     },
-    handleClickRemove({id, type}) {
+    handleClickRemove({id, type, parent}) {
         this.setState({
-            elementToDelete: {id, type},
+            elementToDelete: {id, type, parent},
         });
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete.id}})
+        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {...this.state.elementToDelete}})
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
+                    if (this.state.elementToDelete.type === 'object'){
+                        hierarchicalMappingChannel.subject('ruleId.change').onNext({id: this.state.elementToDelete.parent});
+                    }
                     this.setState({
                         elementToDelete: false,
                     });
