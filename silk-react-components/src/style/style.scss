@@ -187,6 +187,7 @@
         &:last-child {
             border-bottom: none;
         }
+
     }
 
     .ecc-silk-mapping__ruleitem--literal {
@@ -203,12 +204,22 @@
 
     .ecc-silk-mapping__ruleitem {
         overflow: visible;
+        @include material-animation-default(0.28s);
+        transition-property: background-color;
+
+        &:hover {
+            background-color: $data-table-hover-color;
+        }
     }
 
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
         border-left: $data-table-dividers;
         border-right: $data-table-dividers;
+
+        &:hover {
+            background-color: transparent;
+        }
     }
 
     .mdl-list__item-primary-content {
@@ -275,6 +286,7 @@
         left: -0.5rem;
         border: $data-table-dividers;
         align-self: stretch;
+        background-color: to_color($color-white);
 
         .contextmenu-container {
             position: absolute;
