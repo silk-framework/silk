@@ -1,0 +1,451 @@
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ *
+ * Configuration used for MDL and beyond.
+ */
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ *
+ * Configuration used for MDL and beyond.
+ */
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/* ==========  Color Palettes  ========== */
+/* colors.scss */
+/* Only a few sizes can be configured forehand. Most sizes mus be overwritten
+   after MDL was loaded.
+
+   @see https://github.com/google/material-design-lite/issues/864
+*/
+/* Forehand */
+/* Aftermath
+   We need to add own prefix here as long it is not implemented in MDL
+ */
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*------------------------------------*    $CONTENTS
+\*------------------------------------*/
+/**
+ * STYLE GUIDE VARIABLES------------------Declarations of Sass variables
+ * -----Typography
+ * -----Colors
+ * -----Textfield
+ * -----Switch
+ * -----Spinner
+ * -----Radio
+ * -----Menu
+ * -----List
+ * -----Layout
+ * -----Icon toggles
+ * -----Footer
+ * -----Column
+ * -----Checkbox
+ * -----Card
+ * -----Button
+ * -----Animation
+ * -----Progress
+ * -----Badge
+ * -----Shadows
+ * -----Grid
+ * -----Data table
+ * -----Dialog
+ * -----Snackbar
+ * -----Tooltip
+ * -----Chip
+ *
+ * Even though all variables have the `!default` directive, most of them
+ * should not be changed as they are dependent one another. This can cause
+ * visual distortions (like alignment issues) that are hard to track down
+ * and fix.
+ */
+/* ==========  TYPOGRAPHY  ========== */
+/* We're splitting fonts into "preferred" and "performance" in order to optimize
+   page loading. For important text, such as the body, we want it to load
+   immediately and not wait for the web font load, whereas for other sections,
+   such as headers and titles, we're OK with things taking a bit longer to load.
+   We do have some optional classes and parameters in the mixins, in case you
+   definitely want to make sure you're using the preferred font and don't mind
+   the performance hit.
+   We should be able to improve on this once CSS Font Loading L3 becomes more
+   widely available.
+*/
+/* ==========  COLORS  ========== */
+/**
+*
+* Material design color palettes.
+* @see http://www.google.com/design/spec/style/color.html
+*
+**/
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/* ==========  Color Palettes  ========== */
+/* colors.scss */
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/* ==========  IMAGES  ========== */
+/* ==========  Color & Themes  ========== */
+/* ==========  Typography  ========== */
+/* ==========  Components  ========== */
+/* ==========  Standard Buttons  ========== */
+/* ==========  Icon Toggles  ========== */
+/* ==========  Radio Buttons  ========== */
+/* ==========  Ripple effect  ========== */
+/* ==========  Layout  ========== */
+/* ==========  Content Tabs  ========== */
+/* ==========  Checkboxes  ========== */
+/* ==========  Switches  ========== */
+/* ==========  Spinner  ========== */
+/* ==========  Text fields  ========== */
+/* ==========  Card  ========== */
+/* ==========  Sliders ========== */
+/* ========== Progress ========== */
+/* ==========  List ========== */
+/* ==========  Item ========== */
+/* ==========  Dropdown menu ========== */
+/* ==========  Tooltips  ========== */
+/* ==========  Footer  ========== */
+/* TEXTFIELD */
+/* SWITCH */
+/* SPINNER */
+/* RADIO */
+/* MENU */
+/* LIST */
+/* LAYOUT */
+/* ICON TOGGLE */
+/* FOOTER */
+/*mega-footer*/
+/*mini-footer*/
+/* CHECKBOX */
+/* CARD */
+/* Card dimensions */
+/* Cover image */
+/* BUTTON */
+/**
+ *
+ * Dimensions
+ *
+ */
+/* ANIMATION */
+/* PROGRESS */
+/* BADGE */
+/* SHADOWS */
+/* GRID */
+/* DATA TABLE */
+/* DIALOG */
+/* SNACKBAR */
+/* TOOLTIP */
+/* CHIP */
+/**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/* Typography */
+/* Shadows */
+/* Animations */
+/* Dialog */
+.ecc-silk-mapping {
+  margin: 1rem; }
+
+.ecc-silk-mapping__header {
+  justify-content: flex-end; }
+
+.ecc-silk-mapping__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  padding: 0 1rem 1rem 1rem; }
+
+.ecc-silk-mapping__treenav {
+  flex-basis: 25%;
+  min-width: 10em;
+  min-height: 10em;
+  max-width: 100%;
+  flex-shrink: 1;
+  flex-grow: 1;
+  position: relative; }
+  .ecc-silk-mapping__treenav ul, .ecc-silk-mapping__treenav li {
+    list-style-type: none; }
+  .ecc-silk-mapping__treenav ul {
+    margin: 0;
+    padding: 0; }
+    .ecc-silk-mapping__treenav ul.ecc-silk-mapping__treenav--subtree {
+      padding-left: 2rem; }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--maintree {
+    position: sticky;
+    left: 0;
+    top: 0;
+    width: 100%;
+    overflow: scroll;
+    padding-bottom: 1rem;
+    box-sizing: border-box; }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    color: rgb(0,0,0); }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-active {
+    font-weight: 500;
+    background-color: rgba(158,158,158, 0.40); }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-toggler {
+    flex-grow: 0;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    width: 2rem;
+    min-width: 2rem;
+    height: 2rem; }
+    .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-toggler .material-icons {
+      transform: translate(-1rem, -1rem);
+      line-height: 2rem;
+      width: 2rem; }
+    .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-toggler.material-icons {
+      font-size: 1rem;
+      text-align: center;
+      color: #9e9e9e; }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-handler {
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 0.25rem 0.5rem;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0;
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    background-color: transparent;
+    outline: none; }
+    .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-handler:hover, .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-handler:focus {
+      background-color: rgba(158,158,158, 0.20); }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-maintitle,
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-subtitle {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; }
+  .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--item-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0; }
+
+.ecc-silk-mapping__rules,
+.ecc-silk-mapping__createrule {
+  flex-basis: 75%;
+  flex-grow: 1;
+  flex-shrink: 1; }
+
+.ecc-silk-mapping__ruleshead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 1rem; }
+  .ecc-silk-mapping__ruleshead .mdl-card__title {
+    align-items: flex-start; }
+  .ecc-silk-mapping__ruleshead .mdl-card__title-back {
+    position: relative;
+    left: -0.5rem;
+    top: -0.25rem; }
+  .ecc-silk-mapping__ruleshead .mdl-card__title-text {
+    flex-grow: 1;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0.04em; }
+    .ecc-silk-mapping__ruleshead .mdl-card__title-text .mdl-card__title-text-sup {
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0; }
+      .ecc-silk-mapping__ruleshead .mdl-card__title-text .mdl-card__title-text-sup .mdl-chip {
+        height: auto;
+        line-height: 2;
+        font-size: 1em; }
+      .ecc-silk-mapping__ruleshead .mdl-card__title-text .mdl-card__title-text-sup .mdl-chip__text {
+        font-size: 1em; }
+    .ecc-silk-mapping__ruleshead .mdl-card__title-text .mdl-card__title-text-main {
+      font-weight: 500; }
+
+.ecc-silk-mapping__ruleslist .mdl-card__title-text {
+  flex-grow: 1; }
+
+.ecc-silk-mapping__ruleslist .mdl-list {
+  margin: 0;
+  padding: 0; }
+
+.ecc-silk-mapping__ruleslist .mdl-list__item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12); }
+  .ecc-silk-mapping__ruleslist .mdl-list__item:last-child {
+    border-bottom: none; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--literal .mdl-list__item-secondary-content {
+  align-self: flex-start; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--object .mdl-list__item-secondary-content {
+  align-self: center; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem {
+  overflow: visible; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--expanded {
+  padding-left: 0; }
+
+.ecc-silk-mapping__ruleslist .mdl-list__item-primary-content {
+  display: block; }
+
+.ecc-silk-mapping__ruleslist .mdl-list__item-primary-content {
+  width: 50vw; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-content {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0;
+  max-width: 100%; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0; }
+
+@media (min-width: 840px) {
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: baseline; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-headline,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-subline {
+    font-size: 13px;
+    flex-grow: 1;
+    box-sizing: border-box;
+    padding: 0.25em;
+    max-width: 25%; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .hide-in-table {
+    display: none; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
+    transform: translate(-1px, 10%); } }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler {
+  width: 1rem;
+  position: relative;
+  left: -0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  align-self: stretch; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .contextmenu-container {
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .mdl-button--icon,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+    min-width: 0;
+    line-height: 100%;
+    opacity: 0.61; }
+    .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .mdl-button--icon:hover, .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .mdl-button--icon:focus, .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .mdl-button--icon:active,
+    .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons:hover,
+    .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons:focus,
+    .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons:active {
+      opacity: 1; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
+    transform: translate(-1px, 25%); }
+
+.ecc-silk-mapping__rulesviewer__title .mdl-card__title-text {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.04em; }
+
+.clickable {
+  cursor: pointer; }
