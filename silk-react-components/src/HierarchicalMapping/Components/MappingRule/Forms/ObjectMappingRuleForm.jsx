@@ -96,7 +96,7 @@ const ObjectMappingRuleForm = React.createClass({
         });
     },
     handleClose(event) {
-        event.stopPropagation();
+        //event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
