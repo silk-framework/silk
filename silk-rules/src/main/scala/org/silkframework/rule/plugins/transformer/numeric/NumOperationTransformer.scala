@@ -14,8 +14,9 @@
 
 package org.silkframework.rule.plugins.transformer.numeric
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.{TransformExample, TransformExamples, Transformer}
 import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
@@ -35,6 +36,38 @@ import org.silkframework.util.StringUtils.DoubleLiteral
         | Accepts one paramter:
         |   operator: One of '+', '-', '*', '/'"""
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1"),
+    input2 = Array("1"),
+    output = Array("2")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "-"),
+    input1 = Array("1"),
+    input2 = Array("1"),
+    output = Array("0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("5"),
+    input2 = Array("6"),
+    output = Array("30")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "/"),
+    input1 = Array("5"),
+    input2 = Array("2"),
+    output = Array("2.5")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1"),
+    input2 = Array("no number"),
+    output = Array()
+  )
+))
 case class NumOperationTransformer(operator: String) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
@@ -47,7 +80,7 @@ case class NumOperationTransformer(operator: String) extends Transformer {
   def parse(value: String): Double = {
     value match {
       case DoubleLiteral(d) => d
-      case str => 0.0
+      case _ => throw new ValidationException(s"Input value $value must be a number.")
     }
   }
 
