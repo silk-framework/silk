@@ -70,3 +70,11 @@ export const RuleTreeTypes = ({rule}) => {
     }
 
 };
+
+export const ThingName = ({id}) => {
+    return <span>{id} (TODO: readable name)</span>
+}
+
+export const ThingDescription = ({id}) => {
+    return <p>TODO: Include vocabulary description about {id}</p>
+}

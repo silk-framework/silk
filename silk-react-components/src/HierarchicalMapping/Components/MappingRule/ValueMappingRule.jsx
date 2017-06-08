@@ -11,7 +11,11 @@ import {
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
-import {SourcePath} from './SharedComponents';
+import {
+    SourcePath,
+    ThingName,
+    ThingDescription,
+} from './SharedComponents';
 
 const RuleValueEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -119,14 +123,14 @@ const RuleValueEditView = React.createClass({
                                                 Target property
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                Label/Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <Info border>
-                                                    Vocabulary description about {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
                                                 </Info>
                                             </dd>
                                         </dl>

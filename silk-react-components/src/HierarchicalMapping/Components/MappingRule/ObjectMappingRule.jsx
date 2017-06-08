@@ -13,7 +13,11 @@ import {
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
-import {SourcePath} from './SharedComponents';
+import {
+    SourcePath,
+    ThingName,
+    ThingDescription,
+} from './SharedComponents';
 
 const RuleObjectEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -82,14 +86,14 @@ const RuleObjectEditView = React.createClass({
                                 Target property
                             </dt>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                Label/Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <Info border>
-                                    Vocabulary description about {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
                                 </Info>
                             </dd>
                         </dl>
@@ -148,14 +152,14 @@ const RuleObjectEditView = React.createClass({
                                                 Target entity type
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                Label/Readable name of {_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} (TODO)
+                                                <ThingName id={_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} />
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <code>{_.get(this.props, 'rules.typeRules[0].typeUri', undefined)}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <Info border>
-                                                    Vocabulary description about {_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} (TODO)
+                                                    <ThingDescription id={_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} />
                                                 </Info>
                                             </dd>
                                         </dl>
@@ -206,7 +210,7 @@ const RuleObjectEditView = React.createClass({
                                                 </dd>
                                                 <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                     <Button
-                                                        className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                        className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
                                                         onClick={this.handleComplexEdit}
                                                         raised
                                                     >
@@ -258,12 +262,6 @@ const RuleObjectEditView = React.createClass({
                             Edit
                         </Button>
                         {deleteButton}
-                        <Button
-                            className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                            onClick={this.handleComplexEdit}
-                        >
-                            Edit complex
-                        </Button>
                     </div>
                 </div>
             )
