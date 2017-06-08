@@ -58,11 +58,7 @@ const findRule = (parentRule, id, breadcrumbs) => {
 
         _.forEach(_.get(parentRule, 'rules.propertyRules'), (childRule) => {
             if (childRule.id === id) {
-                if (childRule.type === 'object') {
-                    foundRule = childRule;
-                } else {
-                    foundRule = parentRule;
-                }
+                foundRule = childRule;
                 foundRule.breadcrumbs = bc;
                 return false;
             }
@@ -73,6 +69,7 @@ const findRule = (parentRule, id, breadcrumbs) => {
                 }
             }
         });
+
         return foundRule;
     }
 
@@ -82,12 +79,15 @@ hierarchicalMappingChannel.subject('rule.get').subscribe(
     ({data, replySubject}) => {
 
         const {id} = data;
-
+        console.log('LOAD from store', id)
         const searchId = id ? id : mockStore.id;
 
         const rule = findRule(_.cloneDeep(mockStore), searchId, []);
-
-        replySubject.onNext({rule: rule ? rule : mockStore});
+        console.log('LOAD from store', searchId)
+        console.log('LOAD from store', rule)
+        const result = _.isUndefined(rule) ? mockStore : rule;
+        console.log('LOAD from store', result)
+        replySubject.onNext({rule: result});
         replySubject.onCompleted();
     }
 );
@@ -124,6 +124,7 @@ const saveMockStore = () => {
 
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
     (data) => {
+        console.log('STORE', data)
         const payload = {
             "metadata": {
                 description: data.comment,
@@ -162,6 +163,7 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
     (data) => {
+        console.log('STORE', data)
         const payload = {
             "metadata": {
                 description: data.comment,
