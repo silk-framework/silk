@@ -68,10 +68,6 @@ const RuleValueEditView = React.createClass({
 
         if (edit) {
             return <ValueMappingRuleForm
-                {
-                    // Fixme: Remove once we load data directly in form
-                    ...this.props
-                }
                 id={this.props.id}
                 parentId={this.props.parentId}
                 onClose={() => this.setState({edit: false}) }

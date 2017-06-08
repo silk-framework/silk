@@ -30,16 +30,32 @@ const ObjectMappingRuleForm = React.createClass({
     },
     loadData(){
         if (this.props.id) {
-            //FIXME: Load from store, if we have an ID!!!
-            this.setState({
-                loading: false,
-                targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-                sourceProperty: _.get(this.props, 'sourcePath', undefined),
-                comment: _.get(this.props, 'metadata.description', ''),
-                targetEntityType: _.get(this.props, 'rules.typeRules[0].typeUri', undefined),
-                entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
-                pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
-            });
+            hierarchicalMappingChannel.request(
+                {
+                    topic: 'rule.get',
+                    data: {
+                        id: this.props.id,
+                    }
+                }
+            )
+                .subscribe(
+                    ({rule}) => {
+                        console.log('LOAD', rule)
+                        this.setState({
+                            loading: false,
+                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            sourceProperty: _.get(rule, 'sourcePath', undefined),
+                            comment: _.get(rule, 'metadata.description', ''),
+                            targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
+                            entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
+                            pattern: _.get(rule, 'rules.uriRule.pattern', ''),
+                        });
+                    },
+                    (err) => {
+                        console.warn('err MappingRuleOverview: rule.get');
+                        this.setState({loading: false});
+                    }
+                );
         } else {
             this.setState({
                 loading: false,

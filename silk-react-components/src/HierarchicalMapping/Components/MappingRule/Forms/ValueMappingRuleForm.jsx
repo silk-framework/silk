@@ -30,15 +30,32 @@ const ValueMappingRuleForm = React.createClass({
     },
     loadData(){
         if (this.props.id) {
-            //FIXME: Load from store, if we have an ID!!!
-            this.setState({
-                loading: false,
-                type: _.get(this.props, 'type', 'direct'),
-                comment: _.get(this.props, 'metadata.description', ''),
-                targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-                propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
-                sourceProperty: this.props.sourcePath,
-            });
+            hierarchicalMappingChannel.request(
+                {
+                    topic: 'rule.get',
+                    data: {
+                        id: this.props.id,
+                    }
+                }
+            )
+                .subscribe(
+
+                    ({rule}) => {
+                        console.log('LOAD', rule)
+                        this.setState({
+                            loading: false,
+                            type: _.get(rule, 'type', 'direct'),
+                            comment: _.get(rule, 'metadata.description', ''),
+                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
+                            sourceProperty: rule.sourcePath,
+                        });
+                    },
+                    (err) => {
+                        console.warn('err MappingRuleOverview: rule.get');
+                        this.setState({loading: false});
+                    }
+                );
         } else {
             this.setState({
                 loading: false,
