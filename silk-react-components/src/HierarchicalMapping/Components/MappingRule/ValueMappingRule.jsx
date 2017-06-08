@@ -74,25 +74,6 @@ const RuleValueEditView = React.createClass({
             />
         }
 
-        //TODO: Move delete view out of here!
-        const deleteView = this.state.elementToDelete
-            ? <ConfirmationDialog
-                active={true}
-                title="Delete Rule"
-                confirmButton={
-                    <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelRemove}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete}'?
-            </ConfirmationDialog>
-            : false;
-
         return (
             (
                 <div
