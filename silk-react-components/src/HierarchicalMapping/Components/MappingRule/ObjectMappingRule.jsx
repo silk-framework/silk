@@ -145,19 +145,29 @@ const RuleObjectEditView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Target entity type
+                                                {
+                                                    (this.props.rules.typeRules.length > 1) ? 'Target entity types' : 'Target entity type'
+                                                }
                                             </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <ThingName id={_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} />
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <code>{_.get(this.props, 'rules.typeRules[0].typeUri', undefined)}</code>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Info border>
-                                                    <ThingDescription id={_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} />
-                                                </Info>
-                                            </dd>
+                                            {
+                                                this.props.rules.typeRules.map(
+                                                    function(typeRule) {
+                                                        return [
+                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                                <ThingName id={typeRule.typeUri} />
+                                                            </dd>,
+                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                                <code>{typeRule.typeUri}</code>
+                                                            </dd>,
+                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                                <Info border>
+                                                                    <ThingDescription id={typeRule.typeUri} />
+                                                                </Info>
+                                                            </dd>
+                                                        ];
+                                                    }
+                                                )
+                                            }
                                         </dl>
                                     </div>
                                 ) : false
