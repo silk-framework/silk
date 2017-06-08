@@ -159,7 +159,9 @@ const RuleValueEditView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Source property
+                                                {
+                                                    _.isArray(this.props.sourcePath) ? 'Source properties of complex mapping' : 'Source property'
+                                                }
                                             </dt>
                                             {
                                                 _.isArray(this.props.sourcePath) ? [
