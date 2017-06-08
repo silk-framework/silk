@@ -8,6 +8,7 @@ import {
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
+    Info,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
@@ -74,10 +75,24 @@ const RuleObjectEditView = React.createClass({
             targetProperty = (
                 (
                     <div
-                        className="ecc-silk-mapping__ruleseditor__targetProperty"
+                        className="ecc-silk-mapping__rulesviewer__targetProperty"
                     >
-                        Target property
-                        {_.get(this.props, 'mappingTarget.uri', undefined)}
+                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                Target property
+                            </dt>
+                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                Label/Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                            </dd>
+                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
+                            </dd>
+                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                <Info border>
+                                    Vocabulary description about {_.get(this.props, 'mappingTarget.uri', undefined)} (TODO)
+                                </Info>
+                            </dd>
+                        </dl>
                     </div>
                 )
             );
@@ -102,10 +117,10 @@ const RuleObjectEditView = React.createClass({
 
             deleteButton = (
                 <DisruptiveButton
-                    className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                    className="ecc-silk-mapping__rulesviewer__actionrow-remove"
                     onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type})}
                 >
-                    Remove rule
+                    Remove
                 </DisruptiveButton>
             );
 
@@ -117,48 +132,134 @@ const RuleObjectEditView = React.createClass({
             (
                 <div>
                     <div className="mdl-card__content">
-                        {targetProperty}
-                        {entityRelation}
                         <div
-                            className="ecc-silk-mapping__ruleseditor__targetEntityType"
+                            className="ecc-silk-mapping__rulesviewer"
                         >
-                            Target entity type
-                            {_.get(this.props, 'rules.typeRules[0].typeUri', undefined)}
-                        </div>
-                        <div>
-                            Source property
-                            <SourcePath
-                                rule={
-                                    {
-                                        type: this.props.type,
-                                        sourcePath: this.props.sourcePath,
-                                    }
-                                }
-                            />
-                        </div>
-                        <div
-                            className="ecc-silk-mapping__ruleseditor__comment"
-                        >
-                            Comment
-                            {_.get(this.props, 'metadata.description', '')}
-                        </div>
-                        <div
-                            className="ecc-silk-mapping__ruleseditor__pattern"
-                        >
-                            Id pattern
-                            {_.get(this.props, 'rules.uriRule.pattern', '')}
+                            {targetProperty}
+                            {entityRelation}
+                            {
+                                // TODO: show multiple (array)
+                                _.get(this.props, 'rules.typeRules[0].typeUri', undefined) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__targetEntityType"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Target entity type
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                Label/Readable name of {_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} (TODO)
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <code>{_.get(this.props, 'rules.typeRules[0].typeUri', undefined)}</code>
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Info border>
+                                                    Vocabulary description about {_.get(this.props, 'rules.typeRules[0].typeUri', undefined)} (TODO)
+                                                </Info>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__sourcePath"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Source property
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                TODO: What is the source path of a object mapping?
+                                                <SourcePath
+                                                    rule={
+                                                        {
+                                                            type: this.props.type,
+                                                            sourcePath: this.props.sourcePath,
+                                                        }
+                                                    }
+                                                />
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                )
+                            }
+                            {
+                                _.get(this.props, 'rules.uriRule.pattern', '') ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__idpattern"
+                                    >
+                                        <div
+                                            className="ecc-silk-mapping__rulesviewer__comment"
+                                        >
+                                            <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                    Identifier pattern
+                                                </dt>
+                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                    <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
+                                                </dd>
+                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                    TODO: complex pattern example?
+                                                </dd>
+                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                    <Button
+                                                        className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                        onClick={this.handleComplexEdit}
+                                                        raised
+                                                    >
+                                                        {
+                                                            _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex mapping' : 'Create complex mapping'
+                                                        }
+                                                    </Button>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                _.get(this.props, 'metadata.description', '') ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__comment"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Comment
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                {_.get(this.props, 'metadata.description', '')}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            <div
+                                className="ecc-silk-mapping__rulesviewer__examples"
+                            >
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Examples of target data
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        TODO
+                                    </dd>
+                                </dl>
+                            </div>
                         </div>
                     </div>
-                    <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                    <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
                         <Button
-                            className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            className="ecc-silk-mapping__rulesviewer__actionrow-edit"
                             onClick={this.handleEdit}
                         >
-                            Edit rule
+                            Edit
                         </Button>
                         {deleteButton}
                         <Button
-                            className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                            className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
                             onClick={this.handleComplexEdit}
                         >
                             Edit complex

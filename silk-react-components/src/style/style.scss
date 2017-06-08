@@ -311,6 +311,7 @@
 .ecc-silk-mapping__rulesviewer {
     margin: 0 auto;
     max-width: 60em;
+    @include typo-body-1();
 }
 
 .ecc-silk-mapping__rulesviewer__title {
