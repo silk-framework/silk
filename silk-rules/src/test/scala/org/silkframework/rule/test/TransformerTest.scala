@@ -51,7 +51,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
       }
 
     def addTest(): Unit = {
-      it should s"return $expectedOutput for parameters $parameters and input values $inputValues" in {
+      it should s"return ${format(expectedOutput)} for parameters ${format(parameters)} and input values ${format(inputValues.map(format))}" in {
         generatedOutput should have size expectedOutput.size
         for ((value, expected) <- generatedOutput zip expectedOutput) {
           (value, expected) match {
@@ -62,6 +62,10 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
           }
         }
       }
+    }
+
+    private def format(traversable: Traversable[_]): String = {
+      traversable.mkString("[", ", ", "]")
     }
 
     private def retrieveParameters(transformExample: TransformExample): Map[String, String] = {
