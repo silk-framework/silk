@@ -40,47 +40,11 @@ const MappingRuleOverview = React.createClass({
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.toggle'), ({expanded, id}) => {
-            this.setState({
-                expandedElements: expanded
-                    ? _.concat(this.state.expandedElements, [id])
-                    : _.filter(this.state.expandedElements, (rule) => rule.id !== id),
-            })
-        });
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onRuleCreate);
 
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id}) => {
-            const oldId = this.state.editingElements.length > 0 ? this.state.editingElements[0] : false;
-            if (oldId)
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: oldId});
-            this.setState({
-                editingElements: [id],
-            });
-        });
-
-        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
-            this.setState({
-                expandedElements: expanded
-                    ? _.map(this.state.ruleData.rules.propertyRules, (rule) => rule.id)
-                    : []
-            })
-        });
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.created'), ({id}) => {
-            this.setState({
-                editingElements: [],
-                expandedElements: _.merge(this.state.expandedElements, [id])
-            })
-        });
-
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), ({id}) => {
-            this.setState({
-                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
-            })
-        });
         return {
             loading: true,
             ruleData: {},
-            expandedElements: [],
-            editingElements: [],
             ruleEditView: false
         };
     },
@@ -99,7 +63,6 @@ const MappingRuleOverview = React.createClass({
          return false;
          }*/
         this.setState({
-            editingElements: [],
             loading: true,
         });
         hierarchicalMappingChannel.request(
@@ -141,20 +104,20 @@ const MappingRuleOverview = React.createClass({
             id,
         } = this.state.ruleData;
 
-        const type = _.get(this.state, 'ruleEditView.type', false);
-        const createRuleForm = type ? (
+        const createType = _.get(this.state, 'ruleEditView.type', false);
+        const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
                 {
-                    this.state.ruleEditView.type === 'object' ? (
+                    createType === 'object' ? (
                         <ObjectMappingRuleForm
-                            type={this.state.ruleEditView.type}
+                            type={createType}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.currentRuleId}
                             edit={true}
                         />
                     ) : (
                         <ValueMappingRuleForm
-                            type={this.state.ruleEditView.type}
+                            type={createType}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.currentRuleId}
                             edit={true}
@@ -242,7 +205,6 @@ const MappingRuleOverview = React.createClass({
                                     <MappingRule
                                         pos={idx}
                                         parent={this.props.currentRuleId}
-                                        expanded={_.includes(this.state.expandedElements, rule.id)}
                                         count={childRules.length}
                                         key={`MappingRule_${rule.id}_${idx}`}
                                         {...rule}

@@ -28,7 +28,7 @@ const MappingRule = React.createClass({
         parent: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
-        expanded: React.PropTypes.bool.isRequired,
+
     },
 
     // initilize state
@@ -36,14 +36,14 @@ const MappingRule = React.createClass({
         // listen for event to expand / collapse mapping rule
         this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
             // only trigger state / render change if necessary
-            if (expanded !== this.state.expanded && !this.props.parent && this.props.type !== 'object') {
+            if (expanded !== this.state.expanded && this.props.type !== 'object') {
                 this.setState({expanded});
             }
         });
         // listen to rule edit event
 
         return {
-            expanded: this.props.expanded,
+            expanded: false,
         };
     },
     // jumps to selected rule as new center of view
@@ -52,7 +52,6 @@ const MappingRule = React.createClass({
     },
     // show / hide additional row details
     handleToggleExpand() {
-        hierarchicalMappingChannel.subject('ruleView.toggle').onNext({id: this.props.id, expanded: !this.state.expanded});
         this.setState({expanded: !this.state.expanded});
     },
     handleMoveElement(id, pos, parent){

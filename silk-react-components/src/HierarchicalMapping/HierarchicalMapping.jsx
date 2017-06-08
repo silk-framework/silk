@@ -1,6 +1,7 @@
 import React from 'react';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
+import _ from 'lodash';
 import TreeView from './Components/TreeView';
 import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
@@ -26,10 +27,14 @@ const HierarchicalMapping = React.createClass({
     // initilize state
     getInitialState() {
         // listen to rule id changes
+        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.reload);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
         this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
-        // listen to rule create event
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
 
+        // listen to rule create event
 
         return {
             // currently selected rule id
@@ -39,7 +44,21 @@ const HierarchicalMapping = React.createClass({
             // which edit view are we viewing
             ruleEditView: false,
             elementToDelete: false,
+            editingElements: [],
         };
+    },
+    onOpenEdit(obj) {
+        const id = _.get(obj, 'id', 0);
+        this.setState({
+            editingElements: _.merge(this.state.editingElements, [id]),
+        });
+    },
+    onCloseEdit(obj) {
+        const id = _.get(obj, 'id', 0);
+        if (!_.includes( ))
+        this.setState({
+            editingElements: _.filter(this.state.editingElements, (e) => e !== id),
+        })
     },
     handleClickRemove({id, type}) {
         this.setState({
@@ -71,9 +90,22 @@ const HierarchicalMapping = React.createClass({
     },
     // react to rule id changes
     onRuleNavigation({newRuleId}) {
-        this.setState({
-            currentRuleId: newRuleId,
-        })
+        if (this.state.editingElements.length === 0) {
+            this.setState({
+                currentRuleId: newRuleId,
+            });
+        }
+        else if (this.state.editingElements.length > 0 && confirm('Pressing ok will destroy all unsaved changes. \nAre you sure you want to continue?')){
+            if (_.includes(this.state.editingElements, 0)) {
+                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
+            }
+            this.setState({
+                editingElements: [],
+                currentRuleId: newRuleId,
+            });
+        }
+
+
     },
     // show / hide navigation
     handleToggleNavigation() {

@@ -77,7 +77,7 @@ const ObjectMappingRuleForm = React.createClass({
             entityConnection: this.state.entityConnection === 'to',
         });
 
-        this.handleClose();
+        this.handleClose(null);
     },
 
     handleChangeSelectBox(state, value) {
@@ -95,12 +95,14 @@ const ObjectMappingRuleForm = React.createClass({
             [state]: value,
         });
     },
-    handleClose() {
+    handleClose(event) {
+        event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
             console.warn('ValueMappingRuleForm: No onClose')
         }
+        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
     // template rendering
     render () {
