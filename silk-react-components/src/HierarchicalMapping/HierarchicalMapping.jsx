@@ -45,6 +45,7 @@ const HierarchicalMapping = React.createClass({
             ruleEditView: false,
             elementToDelete: false,
             editingElements: [],
+            askForDiscard: false,
         };
     },
     onOpenEdit(obj) {
@@ -61,21 +62,11 @@ const HierarchicalMapping = React.createClass({
         })
     },
     handleClickRemove({id, type, parent}) {
-        if (this.state.editingElements.length > 0 &&
-            type === 'object' &&
-            confirm('Pressing ok will destroy all unsaved changes. \nAre you sure you want to continue?')
-            ) {
-
-            this.setState({
+        this.setState({
                 editingElements: [],
                 elementToDelete: {id, type, parent},
-            });
-        }
-        else if (this.state.editingElements.length === 0) {
-            this.setState({
-                elementToDelete: {id, type, parent},
-            });
-        }
+        });
+
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
@@ -104,22 +95,19 @@ const HierarchicalMapping = React.createClass({
     },
     // react to rule id changes
     onRuleNavigation({newRuleId}) {
-        if (this.state.editingElements.length === 0) {
+        if (newRuleId === this.state.currentRuleId) {
+            // Do nothing!
+        }
+        else if (this.state.editingElements.length === 0) {
             this.setState({
                 currentRuleId: newRuleId,
             });
         }
-        else if (this.state.editingElements.length > 0 && confirm('Pressing ok will destroy all unsaved changes. \nAre you sure you want to continue?')){
-            if (_.includes(this.state.editingElements, 0)) {
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
-            }
+        else {
             this.setState({
-                editingElements: [],
-                currentRuleId: newRuleId,
+                askForDiscard: newRuleId
             });
-        }
-
-
+       }
     },
     // show / hide navigation
     handleToggleNavigation() {
@@ -127,7 +115,20 @@ const HierarchicalMapping = React.createClass({
             showNavigation: !this.state.showNavigation,
         });
     },
+    handleDiscardChanges() {
+        if (_.includes(this.state.editingElements, 0)) {
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
+        }
+        this.setState({
+            editingElements: [],
+            currentRuleId: this.state.askForDiscard,
+            askForDiscard: false,
+        });
 
+    },
+    handleCancelDiscard() {
+        this.setState({askForDiscard: false});
+    },
     // template rendering
     render () {
         const ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {};
@@ -156,7 +157,33 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and type '{this.state.elementToDelete.type}'?
+                Clicking on Delete will delete the current mapping rule
+                {this.state.elementToDelete.type === 'object'
+                    ? " as well as all existing children rules. "
+                    :'. '
+                }
+                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
+                type '{this.state.elementToDelete.type}'?
+
+            </ConfirmationDialog>
+            : false;
+
+        const discardView = this.state.askForDiscard
+            //confirm('')
+            ? <ConfirmationDialog
+                active={true}
+                title="Discard changes"
+                confirmButton={
+                    <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
+                        Continue
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>By clicking on CONTINUE, all unsaved changes will be destroy.</p><p>Are you sure you want to continue?</p>
             </ConfirmationDialog>
             : false;
 
@@ -184,6 +211,7 @@ const HierarchicalMapping = React.createClass({
                     <div className="ecc-silk-mapping__header mdl-card__title">
                         {debugOptions}
                         {deleteView}
+                        {discardView}
                         <ContextMenu
                             iconName="tune"
                         >
