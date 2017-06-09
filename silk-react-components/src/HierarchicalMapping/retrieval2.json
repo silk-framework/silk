@@ -158,7 +158,12 @@
                     }]
                 },
                 "id": "objectMapping116",
-                "type": "object"
+                "type": "object",
+                "status": [{
+                    "type": "error",
+                    "code": "666",
+                    "message": "something is broken"
+                }]
             },
             {
                 "mappingTarget": {

@@ -8,7 +8,11 @@ import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import {RuleTypes, SourcePath} from './SharedComponents';
+import {
+    RuleTypes,
+    SourcePath,
+    ThingName,
+} from './SharedComponents';
 
 const MappingRule = React.createClass({
 
@@ -97,9 +101,12 @@ const MappingRule = React.createClass({
             />
         );
 
+        // TODO: enable real API structure
+        const errorInfo = (_.get(this.props, 'status[0].type', false) == 'error') ? _.get(this.props, 'status[0].message', false) : false;
+
         const shortView = [
             <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
-                {mappingTarget.uri} {/* TODO: should be normalized and easy readable */}
+                <ThingName id={mappingTarget.uri} />
             </div>,
             <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
                 {type} mapping
@@ -186,7 +193,8 @@ const MappingRule = React.createClass({
             <li className={
                     "ecc-silk-mapping__ruleitem mdl-list__item " +
                     (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
-                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary')
+                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary') +
+                    (errorInfo ? ' ecc-silk-mapping__ruleitem--defect' : '')
                 }
             >
                 {reorderHandleButton}

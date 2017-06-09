@@ -222,6 +222,12 @@
         }
     }
 
+    .ecc-silk-mapping__ruleitem--defect {
+        color: to_color($palette-orange-800);
+        background-color: to_color($palette-orange-50);
+        border-color: to_color($palette-orange-100);
+    }
+
     .mdl-list__item-primary-content {
         display: block;
     }
