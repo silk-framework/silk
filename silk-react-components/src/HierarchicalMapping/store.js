@@ -56,7 +56,7 @@ function findRule(element, id, breadcrumbs){
             }
         ];
         _.forEach(element.rules.propertyRules, (child) => {
-            if (result !== null)
+            if (result === null)
             result = findRule(child, id, bc);
         });
 
@@ -108,7 +108,6 @@ const saveMockStore = () => {
 
 hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
     (data) => {
-        console.log('STORE', data)
         const payload = {
             "metadata": {
                 description: data.comment,
@@ -147,7 +146,6 @@ hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(
 
 hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(
     (data) => {
-        console.log('STORE', data)
         const payload = {
             "metadata": {
                 description: data.comment,
@@ -226,14 +224,16 @@ hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
 const orderRule = (store, id, pos) => {
     if (_.has(store, 'rules.propertyRules')) {
         const idPos = _.reduce(store.rules.propertyRules, function(i, children, k) {
-            if (i > -1 && children.id !== id)
+            if (i > -1 || children.id !== id)
                 return i;
             else
                 return k;
         }, -1);
         if (idPos > -1) {
             pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
+            console.log('before', store.rules.propertyRules)
             store.rules.propertyRules.move(idPos, pos)
+            console.log('after', store.rules.propertyRules)
 
         } else {
             store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));
