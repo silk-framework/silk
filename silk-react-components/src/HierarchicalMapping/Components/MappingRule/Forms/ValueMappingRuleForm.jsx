@@ -41,7 +41,6 @@ const ValueMappingRuleForm = React.createClass({
                 .subscribe(
 
                     ({rule}) => {
-                        console.log('LOAD', rule)
                         this.setState({
                             loading: false,
                             type: _.get(rule, 'type', 'direct'),

@@ -40,7 +40,6 @@ const ObjectMappingRuleForm = React.createClass({
             )
                 .subscribe(
                     ({rule}) => {
-                        console.log('LOAD', rule)
                         this.setState({
                             loading: false,
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),

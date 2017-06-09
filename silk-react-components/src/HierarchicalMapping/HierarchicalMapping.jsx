@@ -62,13 +62,12 @@ const HierarchicalMapping = React.createClass({
     },
     handleClickRemove({id, type, parent}) {
         if (this.state.editingElements.length > 0 &&
-            confirm('Pressing ok will destroy all unsaved changes. \nAre you sure you want to continue?') &&
-            type === 'object') {
-            if (_.includes(this.state.editingElements, 0)) {
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
-            }
+            type === 'object' &&
+            confirm('Pressing ok will destroy all unsaved changes. \nAre you sure you want to continue?')
+            ) {
 
             this.setState({
+                editingElements: [],
                 elementToDelete: {id, type, parent},
             });
         }
@@ -80,11 +79,13 @@ const HierarchicalMapping = React.createClass({
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
+        const parent = this.state.elementToDelete.parent;
         hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {...this.state.elementToDelete}})
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
                     this.setState({
+                        currentRuleId: parent,
                         elementToDelete: false,
                     });
                 },

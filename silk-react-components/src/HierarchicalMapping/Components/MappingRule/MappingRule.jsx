@@ -21,7 +21,7 @@ const MappingRule = React.createClass({
         type: React.PropTypes.string, // mapping type
         typeRules: React.PropTypes.array,
         mappingTarget: React.PropTypes.object,
-        sourcePath: React.PropTypes.string,
+        //sourcePath: React.PropTypes.string, // it can be array or single string ...
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
