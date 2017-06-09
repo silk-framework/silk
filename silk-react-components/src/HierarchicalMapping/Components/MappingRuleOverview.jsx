@@ -93,8 +93,15 @@ const MappingRuleOverview = React.createClass({
             //FIXME: do we need more data like id of parent as source?
         });
     },
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextState.ruleData !== null
+    },
     // template rendering
     render () {
+        if (this.state.ruleData === null){
+            return false;
+        }
+
         const {
             rules = {},
             id,
