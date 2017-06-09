@@ -12,6 +12,7 @@ import {
     RuleTypes,
     SourcePath,
     ThingName,
+    ThingIcon,
 } from './SharedComponents';
 
 const MappingRule = React.createClass({
@@ -106,11 +107,19 @@ const MappingRule = React.createClass({
 
         const shortView = [
             <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
+                <ThingIcon
+                    type={type}
+                    tooltip={type + ' mapping'}
+                    status={_.get(this.props, 'status[0].type', false)}
+                    message={_.get(this.props, 'status[0].message', false)}
+                />
                 <ThingName id={mappingTarget.uri} />
             </div>,
-            <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
-                {type} mapping
-            </div>,
+            /*
+                <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
+                    {type} mapping
+                </div>,
+            */
             <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
                 <span className="hide-in-table">from</span>
                 <SourcePath
