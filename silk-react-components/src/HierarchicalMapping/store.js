@@ -40,53 +40,37 @@ hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
     }
 );
 
-const findRule = (parentRule, id, breadcrumbs) => {
-
-    let foundRule = null;
-
-    if (parentRule.id === id) {
-        parentRule.breadcrumbs = breadcrumbs;
-        return parentRule;
-    } else if (_.has(parentRule, 'rules.propertyRules')) {
-
-        const bc = [...breadcrumbs, {
-            id: parentRule.id,
-            name: parentRule.type === 'root' ?
-                _.get(parentRule, 'rules.typeRules[0].typeUri', '(no target type)') :
-                _.get(parentRule, 'mappingTarget.uri', '(no target property)')
-        }];
-
-        _.forEach(_.get(parentRule, 'rules.propertyRules'), (childRule) => {
-            if (childRule.id === id) {
-                foundRule = childRule;
-                foundRule.breadcrumbs = bc;
-                return false;
+function findRule(element, id, breadcrumbs){
+    element.breadcrumbs = breadcrumbs;
+    if(element.id === id){
+        return element;
+    }else if (_.has(element, 'rules.propertyRules')) {
+        let result = null;
+        const bc = [
+            ...breadcrumbs,
+            {
+                id: element.id,
+                name: element.type === 'root'
+                    ? _.get(element, 'rules.typeRules[0].typeUri', '(no target type)')
+                    : _.get(element, 'mappingTarget.uri', '(no target property)')
             }
-            if (_.has(childRule, 'rules.propertyRules')) {
-                foundRule = findRule(childRule, id, bc);
-                if (foundRule) {
-                    return false;
-                }
-            }
+        ];
+        _.forEach(element.rules.propertyRules, (child) => {
+            if (result !== null)
+            result = findRule(child, id, bc);
         });
 
-        return foundRule;
+        return result;
     }
-
-};
+    return null;
+}
 
 hierarchicalMappingChannel.subject('rule.get').subscribe(
     ({data, replySubject}) => {
-
         const {id} = data;
-        console.log('LOAD from store', id)
         const searchId = id ? id : mockStore.id;
-
         const rule = findRule(_.cloneDeep(mockStore), searchId, []);
-        console.log('LOAD from store', searchId)
-        console.log('LOAD from store', rule)
         const result = _.isUndefined(rule) ? mockStore : rule;
-        console.log('LOAD from store', result)
         replySubject.onNext({rule: result});
         replySubject.onCompleted();
     }
