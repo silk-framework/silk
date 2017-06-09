@@ -94,14 +94,10 @@ const MappingRuleOverview = React.createClass({
         });
     },
     shouldComponentUpdate(nextProps, nextState) {
-        return nextState.ruleData !== null
+        return !_.isEmpty(nextState.ruleData);
     },
     // template rendering
     render () {
-        if (this.state.ruleData === null){
-            return false;
-        }
-
         const {
             rules = {},
             id,
