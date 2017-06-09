@@ -8,6 +8,7 @@ import {
     AffirmativeButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
+import {ThingClassName} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import _ from 'lodash';
 
@@ -156,11 +157,11 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label="Connects from entity"
+                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label="Connects to entity"
+                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                 </RadioGroup>
             );

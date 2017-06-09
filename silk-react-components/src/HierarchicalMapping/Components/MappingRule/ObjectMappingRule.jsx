@@ -17,6 +17,7 @@ import {
     SourcePath,
     ThingName,
     ThingDescription,
+    ThingClassName,
 } from './SharedComponents';
 
 const RuleObjectEditView = React.createClass({
@@ -28,6 +29,7 @@ const RuleObjectEditView = React.createClass({
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
         parent: React.PropTypes.string.isRequired,
+        parentName: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
         onClose: React.PropTypes.func,
@@ -63,6 +65,7 @@ const RuleObjectEditView = React.createClass({
         if (edit) {
             return <ObjectMappingRuleForm
                 id={this.props.id}
+                parentName={this.props.parentName}
                 parentId={this.props.parentId}
                 onClose={() => this.setState({edit: false}) }
             />
@@ -106,11 +109,11 @@ const RuleObjectEditView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label="Connects from entity"
+                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label="Connects to entity"
+                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                 </RadioGroup>
             );
