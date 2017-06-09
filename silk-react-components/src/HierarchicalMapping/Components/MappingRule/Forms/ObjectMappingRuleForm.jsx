@@ -49,6 +49,7 @@ const ObjectMappingRuleForm = React.createClass({
                             targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
                             entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
+                            type: _.get(rule, 'type'),
                         });
                     },
                     (err) => {
@@ -64,7 +65,7 @@ const ObjectMappingRuleForm = React.createClass({
         }
     },
     handleConfirm() {
-
+        console.log('wth', this.props)
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -108,9 +109,9 @@ const ObjectMappingRuleForm = React.createClass({
     render () {
         const {
             id,
-            type,
         } = this.props;
 
+        const type = this.state.type;
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
