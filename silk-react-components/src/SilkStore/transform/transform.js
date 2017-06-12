@@ -39,7 +39,7 @@ silkStore.subject('transform.task.rule.put').subscribe(({data, replySubject}) =>
             .type('application/json')
             .send(payload)
             .observe()
-            .multicast(-replySubject).connect();
+            .multicast(replySubject).connect();
 
     }
 );
