@@ -23,6 +23,7 @@ const ValueMappingRuleForm = React.createClass({
     getInitialState() {
         return {
             loading: true,
+            changed: false,
         };
     },
     componentDidMount(){
@@ -48,6 +49,13 @@ const ValueMappingRuleForm = React.createClass({
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
                             propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
                             sourceProperty: rule.sourcePath,
+                            initialValues: {
+                                type: _.get(rule, 'type', 'direct'),
+                                comment: _.get(rule, 'metadata.description', ''),
+                                targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                                propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
+                                sourceProperty: rule.sourcePath,
+                            }
                         });
                     },
                     (err) => {
@@ -77,14 +85,47 @@ const ValueMappingRuleForm = React.createClass({
     },
     // remove rule
     handleChangeTextfield(state, {value}) {
-        this.setState({
-            [state]: value,
-        });
+        this.handleChangeValue(state,value);
     },
     handleChangeSelectBox(state, value) {
-        this.setState({
-            [state]: value,
-        });
+        this.handleChangeValue(state, value);
+    },
+    handleChangeValue(name, value) {
+        if (!_.isEqual(this.state.initialValues.type, name==='type' ? value : this.state.type) ||
+            !_.isEqual(this.state.initialValues.comment, name==='comment' ? value : this.state.comment) ||
+            !_.isEqual(this.state.initialValues.targetProperty, name==='targetProperty' ? value : this.state.targetProperty) ||
+            !_.isEqual(this.state.initialValues.propertyType, name==='propertyType' ? value : this.state.propertyType) ||
+            !_.isEqual(this.state.initialValues.sourceProperty, name==='sourceProperty' ? value : this.state.sourceProperty))
+        {
+            if (!this.state.changed) {
+                hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
+                this.setState({
+                    [name]: value,
+                    changed: true,
+                });
+            }
+            else {
+                this.setState({
+                    [name]: value,
+                });
+            }
+
+        }
+        else {
+            if (this.state.changed) {
+                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+                this.setState({
+                    [name]: value,
+                    changed: false,
+                });
+            }
+            else {
+                this.setState({
+                    [name]: value,
+                });
+            }
+
+        }
     },
     handleClose(event) {
         //event.stopPropagation();
@@ -193,7 +234,7 @@ const ValueMappingRuleForm = React.createClass({
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             onClick={this.handleConfirm}
-                            disabled={!allowConfirm}
+                            disabled={!allowConfirm || !this.state.changed}
                         >
                             Save
                         </AffirmativeButton>

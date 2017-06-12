@@ -45,7 +45,6 @@ const RuleObjectEditView = React.createClass({
 
     // open view in edit mode
     handleEdit() {
-        hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: this.props.id});
         this.setState({
             edit: !this.state.edit,
         })

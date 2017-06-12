@@ -133,12 +133,14 @@ if (!__DEBUG__) {
 
                     const searchId = id ? id : mockStore.id;
 
+
                     const rule = findRule(_.cloneDeep(mockStore), searchId, []);
 
 
                     return {rule: rule ? rule : mockStore};
                 })
                 .multicast(replySubject).connect();
+
 
         }
     );

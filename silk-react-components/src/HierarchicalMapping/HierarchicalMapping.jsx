@@ -65,7 +65,7 @@ const HierarchicalMapping = React.createClass({
     },
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        if (!_.includes( ))
+        console.log('remove '+id+'from editingElements')
         this.setState({
             editingElements: _.filter(this.state.editingElements, (e) => e !== id),
         })
@@ -121,6 +121,7 @@ const HierarchicalMapping = React.createClass({
             });
         }
         else {
+            console.log('editing ', this.state.editingElements)
             this.setState({
                 askForDiscard: newRuleId
             });
