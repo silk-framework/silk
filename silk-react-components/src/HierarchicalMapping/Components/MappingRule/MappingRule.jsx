@@ -214,7 +214,8 @@ const MappingRule = React.createClass({
                     }
                     onClick={this.state.expanded ? null : mainAction}
                     title={
-                        this.state.expanded ? '' : 'Click to expand'
+                        type === 'object' ? "Click to navigate" :
+                            (this.state.expanded ? 'Click to collapse' : 'Click to expand')
                     }
                 >
                     {this.state.expanded ? expandedView : shortView}
