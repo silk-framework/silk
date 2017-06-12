@@ -15,10 +15,11 @@ const hierarchicalMapping = (containerId, apiSettings) => {
 };
 
 if (__DEBUG__) {
-    require('ecc-gui-elements/src/main.scss');
     hierarchicalMapping('react');
 }
 
+//TODO: @mhaschke, only import what we need?
+require('ecc-gui-elements/src/main.scss');
 require('./style/style.scss');
 
 window.HierarchicalMapping = hierarchicalMapping;
