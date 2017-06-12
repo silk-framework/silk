@@ -148,7 +148,7 @@ const MappingRule = React.createClass({
             )
         ) : false;
 
-        const reorderHandleButton = !this.state.expanded ? (
+        const reorderHandleButton = !this.state.expanded && __DEBUG__ ? (
             <div
                 className="ecc-silk-mapping__ruleitem-reorderhandler"
             >

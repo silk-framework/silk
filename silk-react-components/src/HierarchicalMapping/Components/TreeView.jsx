@@ -15,9 +15,6 @@ const TreeView = React.createClass({
 
     // define property types
     propTypes: {
-        //apiBase: React.PropTypes.string.isRequired, // used restApi url
-        //project: React.PropTypes.string.isRequired, // used project name
-        //transformationTask: React.PropTypes.string, // used transformation
         currentRuleId: React.PropTypes.string, // currently selected rule id (tree highlighting)
     },
 
@@ -56,7 +53,7 @@ const TreeView = React.createClass({
                     });
                 },
                 (err) => {
-                    console.warn('err TreeView: hierarchy.get');
+                    console.warn('err TreeView: hierarchy.get', err);
                     this.setState({loading: false});
                 }
             );

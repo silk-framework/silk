@@ -13,16 +13,16 @@
 @import org.silkframework.rule.MappingRules
 @import org.silkframework.rule.UriMapping
 
-@(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+  <link type="text/css" href="@CoreAssets.at("libs/silk-react-components/style.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@Assets.at("js/editor/transformRules.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
-  <script type="text/javascript" src="@CoreAssets.at("libs/silk-react-components/main.js")"/>
-  </script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/silk-react-components/main.js")"></script>
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var editorUrl = '@config.baseUrl/transform/@context.project.name/@context.task.id/editor';
@@ -54,6 +54,7 @@
 }
 
 @content = {
+  <div id="react-hierarchicalMapping"></div>
   <div id="ruleContainer">
     <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title di-vertical-align">
@@ -145,11 +146,17 @@
       @renderRule(ObjectMapping(targetProperty = None, rules = MappingRules(uriRule = Some(UriMapping()))))
   </table>
 
-  <div id="react-hierarchicalMapping"></div>
-
   <script type="text/javascript">
 
-    HierarchicalMapping('react-hierarchicalMapping', '@config.baseUrl/workspace/projects/@context.project.name/tasks/@context.task.id/metadata');
+    HierarchicalMapping(
+        'react-hierarchicalMapping',
+        {
+            baseUrl: '@config.baseUrl',
+            project: '@context.project.name',
+            transformTask: '@context.task.id',
+            initialRule: '@rule'
+        }
+    );
 
     var prefixes = {};
     @for((key, value) <- context.project.config.prefixes) {

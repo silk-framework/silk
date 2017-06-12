@@ -16,13 +16,8 @@ const MappingRuleOverview = React.createClass({
 
     // define property types
     propTypes: {
-        //apiBase: React.PropTypes.string.isRequired, // used restApi url
-        //project: React.PropTypes.string.isRequired, // used project name
-        //transformationTask: React.PropTypes.string, // used transformation
         currentRuleId: React.PropTypes.string, // selected rule id
-        //createRuleForm,
     },
-
     // initilize state
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
