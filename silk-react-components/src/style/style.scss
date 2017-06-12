@@ -332,10 +332,16 @@
     }
 }
 
-.ecc-silk-mapping__rulesviewer {
+.ecc-silk-mapping__rulesviewer,
+.ecc-silk-mapping__ruleseditor {
     margin: 0 auto;
     max-width: 60em;
     @include typo-body-1();
+
+    .ecc-silk-mapping__ruleslist & {
+        position: relative;
+        left: 16px;
+    }
 }
 
 .ecc-silk-mapping__rulesviewer__title {

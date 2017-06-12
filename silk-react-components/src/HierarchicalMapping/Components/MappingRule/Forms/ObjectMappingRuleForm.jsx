@@ -139,9 +139,9 @@ const ObjectMappingRuleForm = React.createClass({
                         placeholder={'Choose target property'}
                         className="ecc-silk-mapping__ruleseditor__targetProperty"
                         options={[
-                            'target:address',
-                            'target:country',
-                            'target:friend',
+                            'direct:address',
+                            'direct:country',
+                            'direct:friend',
                         ]}
                         value={this.state.targetProperty}
                         onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
@@ -202,7 +202,7 @@ const ObjectMappingRuleForm = React.createClass({
                             <SelectBox
                                 placeholder={'Choose target entity type'}
                                 className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
-                                options={['foaf:Person', 'schema:Country', 'schema:Address']}
+                                options={['http://xmlns.com/foaf/0.1/Person', 'http://schema.org/Country', 'http://schema.org/Address']}
                                 value={this.state.targetEntityType}
                                 //multi={true} // allow multi selection
                                 onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}

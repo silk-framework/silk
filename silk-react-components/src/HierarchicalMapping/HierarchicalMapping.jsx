@@ -6,26 +6,34 @@ import TreeView from './Components/TreeView';
 import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
-// Do not care about it yet
-/*const props = {
- apiBase: 'http://foo/bar',
- project: 'example',
- transformationTask: '',
- };*/
-
 const HierarchicalMapping = React.createClass({
 
     mixins: [UseMessageBus],
 
     // define property types
-    /*propTypes: {
-     apiBase: React.PropTypes.string.isRequired, // used restApi url
-     project: React.PropTypes.string.isRequired, // used project name
-     transformationTask: React.PropTypes.string, // used transformation
-     },*/
+    propTypes: {
+        baseUrl: React.PropTypes.string.isRequired, // DI API Base
+        project: React.PropTypes.string.isRequired, // Current DI Project
+        transformTask: React.PropTypes.string.isRequired, //Current Transformation
+        initialRule: React.PropTypes.string,
+     },
 
     // initilize state
     getInitialState() {
+
+        const {
+            baseUrl,
+            project,
+            transformTask,
+            initialRule,
+        } = this.props;
+
+        hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+            baseUrl,
+            project,
+            transformTask,
+        });
+
         // listen to rule id changes
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.reload);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
@@ -36,6 +44,7 @@ const HierarchicalMapping = React.createClass({
 
         // listen to rule create event
 
+        //TODO: Use initialRule
         return {
             // currently selected rule id
             currentRuleId: 'root',
@@ -143,9 +152,6 @@ const HierarchicalMapping = React.createClass({
         const treeView = (
             this.state.showNavigation ? (
                 <TreeView
-                    apiBase={this.props.apiBase}
-                    project={this.props.project}
-                    transformationTask={this.props.transformationTask}
                     currentRuleId={this.state.currentRuleId}
                 />
             ) : false
@@ -206,7 +212,7 @@ const HierarchicalMapping = React.createClass({
                     }}
                 >RESET</DisruptiveButton>
                 <Button
-                    onClick = {() => {
+                    onClick={() => {
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }}
                 >RELOAD</Button></div>) : false;
@@ -234,9 +240,6 @@ const HierarchicalMapping = React.createClass({
                         {treeView}
                         {
                             <MappingRuleOverview
-                                apiBase={this.props.apiBase}
-                                project={this.props.project}
-                                transformationTask={this.props.transformationTask}
                                 currentRuleId={this.state.currentRuleId}
                                 ruleEditView={{...ruleEdit}}
                             />

@@ -18,11 +18,7 @@ const MappingRuleOverview = React.createClass({
 
     // define property types
     propTypes: {
-        //apiBase: React.PropTypes.string.isRequired, // used restApi url
-        //project: React.PropTypes.string.isRequired, // used project name
-        //transformationTask: React.PropTypes.string, // used transformation
         currentRuleId: React.PropTypes.string, // selected rule id
-
     },
     onRuleCreate({type}) {
         this.setState({
