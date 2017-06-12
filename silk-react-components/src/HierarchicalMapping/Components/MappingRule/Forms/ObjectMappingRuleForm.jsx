@@ -74,6 +74,7 @@ const ObjectMappingRuleForm = React.createClass({
                 );
         } else {
             this.setState({
+                create: true,
                 loading: false,
                 type: 'direct',
             })
@@ -106,11 +107,11 @@ const ObjectMappingRuleForm = React.createClass({
     },
     handleChangeValue(name, value) {
 
-        const {initialValues, ...currValues} = this.state;
+        const {initialValues, create, ...currValues} = this.state;
 
         currValues[name] = value;
 
-        const touched = wasTouched(initialValues, currValues);
+        const touched = create || wasTouched(initialValues, currValues);
 
         if (touched) {
             hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
