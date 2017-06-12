@@ -460,13 +460,18 @@
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
     transform: translate(-1px, 25%); }
 
-.ecc-silk-mapping__rulesviewer {
+.ecc-silk-mapping__rulesviewer,
+.ecc-silk-mapping__ruleseditor {
   margin: 0 auto;
   max-width: 60em;
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
   letter-spacing: 0; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__rulesviewer, .ecc-silk-mapping__ruleslist
+  .ecc-silk-mapping__ruleseditor {
+    position: relative;
+    left: 16px; }
 
 .ecc-silk-mapping__rulesviewer__title .mdl-card__title-text {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;

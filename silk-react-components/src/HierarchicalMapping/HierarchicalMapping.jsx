@@ -35,7 +35,6 @@ const HierarchicalMapping = React.createClass({
         });
 
         // listen to rule id changes
-        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.reload);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
         this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);

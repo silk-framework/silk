@@ -57,6 +57,9 @@ const MappingRuleOverview = React.createClass({
         this.setState({
             loading: true,
         });
+
+        console.warn('DATA RELOAD')
+
         hierarchicalMappingChannel.request(
             {
                 topic: 'rule.get',
@@ -108,7 +111,7 @@ const MappingRuleOverview = React.createClass({
                             type={createType}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
-                            parentName={this.state.ruleData.mappingTarget.uri}
+                            parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}
                         />
                     ) : (
@@ -116,7 +119,7 @@ const MappingRuleOverview = React.createClass({
                             type={createType}
                             onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
-                            parentName={this.state.ruleData.mappingTarget.uri}
+                            parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}
                         />
                     )

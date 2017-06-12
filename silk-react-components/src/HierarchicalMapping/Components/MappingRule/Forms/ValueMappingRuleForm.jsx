@@ -9,6 +9,7 @@ import {
     Spinner,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../../store';
+import {wasTouched} from './helpers';
 import _ from 'lodash';
 
 const ValueMappingRuleForm = React.createClass({
@@ -27,7 +28,7 @@ const ValueMappingRuleForm = React.createClass({
         };
     },
     componentDidMount(){
-      this.loadData();
+        this.loadData();
     },
     loadData(){
         if (this.props.id) {
@@ -40,22 +41,20 @@ const ValueMappingRuleForm = React.createClass({
                 }
             )
                 .subscribe(
-
                     ({rule}) => {
-                        this.setState({
-                            loading: false,
+
+                        const initialValues = {
                             type: _.get(rule, 'type', 'direct'),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                            propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
+                            propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', 'AutoDetectValueType'),
                             sourceProperty: rule.sourcePath,
-                            initialValues: {
-                                type: _.get(rule, 'type', 'direct'),
-                                comment: _.get(rule, 'metadata.description', ''),
-                                targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                                propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
-                                sourceProperty: rule.sourcePath,
-                            }
+                        };
+
+                        this.setState({
+                            loading: false,
+                            ...initialValues,
+                            initialValues,
                         });
                     },
                     (err) => {
@@ -67,6 +66,9 @@ const ValueMappingRuleForm = React.createClass({
             this.setState({
                 loading: false,
                 type: 'direct',
+                propertyType: 'AutoDetectValueType',
+                sourceProperty: '',
+                initialValues: {},
             })
         }
     },
@@ -85,47 +87,30 @@ const ValueMappingRuleForm = React.createClass({
     },
     // remove rule
     handleChangeTextfield(state, {value}) {
-        this.handleChangeValue(state,value);
+        this.handleChangeValue(state, value);
     },
     handleChangeSelectBox(state, value) {
         this.handleChangeValue(state, value);
     },
     handleChangeValue(name, value) {
-        if (!_.isEqual(this.state.initialValues.type, name==='type' ? value : this.state.type) ||
-            !_.isEqual(this.state.initialValues.comment, name==='comment' ? value : this.state.comment) ||
-            !_.isEqual(this.state.initialValues.targetProperty, name==='targetProperty' ? value : this.state.targetProperty) ||
-            !_.isEqual(this.state.initialValues.propertyType, name==='propertyType' ? value : this.state.propertyType) ||
-            !_.isEqual(this.state.initialValues.sourceProperty, name==='sourceProperty' ? value : this.state.sourceProperty))
-        {
-            if (!this.state.changed) {
-                hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
-                this.setState({
-                    [name]: value,
-                    changed: true,
-                });
-            }
-            else {
-                this.setState({
-                    [name]: value,
-                });
-            }
 
-        }
-        else {
-            if (this.state.changed) {
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
-                this.setState({
-                    [name]: value,
-                    changed: false,
-                });
-            }
-            else {
-                this.setState({
-                    [name]: value,
-                });
-            }
+        const {initialValues, ...currValues} = this.state;
 
+        currValues[name] = value;
+
+        const touched = wasTouched(initialValues, currValues);
+
+        if (touched) {
+            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
+        } else {
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
         }
+
+        this.setState({
+            [name]: value,
+            changed: touched,
+        });
+
     },
     handleClose(event) {
         //event.stopPropagation();
@@ -218,7 +203,7 @@ const ValueMappingRuleForm = React.createClass({
                                 "FloatValueType",
                                 "DoubleValueType",
                             ]}
-                            value={this.state.propertyType || "AutoDetectValueType"}
+                            value={this.state.propertyType}
                             onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
                         />
                         {sourcePropertyInput}

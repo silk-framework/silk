@@ -158,10 +158,10 @@ if (!__DEBUG__) {
                 .subscribe(() => {
                         //TODO: Check that right events are fired
                         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: id});
-                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
                     }, (err) => {
                         //TODO: Beautify
-                        console.warn(`Error saving rule ${id}`, err);
+                        console.warn(`Error saving reule ${id}`, err);
                         alert(`Error saving rule ${id}`);
                     }
                 );
@@ -178,7 +178,7 @@ if (!__DEBUG__) {
                         //TODO: Check that right events are fired
                         hierarchicalMappingChannel.subject('ruleView.created')
                             .onNext({id: _.get(response, 'body.id')});
-                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving rule in ${parent}`, err);
@@ -221,7 +221,9 @@ if (!__DEBUG__) {
                 })
                 .subscribe(
                     () => {
-                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        replySubject.onNext();
+                        replySubject.onCompleted();
+                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
                     },
                     (err) => {
                         //TODO: Beautify
@@ -306,7 +308,7 @@ if (!__DEBUG__) {
     };
 
     const saveMockStore = () => {
-        hierarchicalMappingChannel.subject('reload').onNext(true);
+        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 

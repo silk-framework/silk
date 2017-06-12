@@ -10,6 +10,7 @@ import {
 } from 'ecc-gui-elements';
 import {ThingClassName} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
+import {wasTouched} from './helpers'
 import _ from 'lodash';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -43,8 +44,10 @@ const ObjectMappingRuleForm = React.createClass({
             )
                 .subscribe(
                     ({rule}) => {
-                        this.setState({
-                            loading: false,
+
+                        console.warn(rule);
+
+                        const initialValues = {
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
                             sourceProperty: _.get(rule, 'sourcePath', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
@@ -52,20 +55,21 @@ const ObjectMappingRuleForm = React.createClass({
                             entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
-                            initialValues: {
-                                targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                                sourceProperty: _.get(rule, 'sourcePath', undefined),
-                                comment: _.get(rule, 'metadata.description', ''),
-                                targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
-                                entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
-                                pattern: _.get(rule, 'rules.uriRule.pattern', ''),
-                                type: _.get(rule, 'type'),
-                            }
+                        };
+
+
+                        this.setState({
+                            loading: false,
+                            initialValues,
+                            ...initialValues,
+
                         });
                     },
                     (err) => {
                         console.warn('err MappingRuleOverview: rule.get');
-                        this.setState({loading: false});
+                        this.setState({
+                            loading: false, initialValues: {},
+                        });
                     }
                 );
         } else {
@@ -76,7 +80,6 @@ const ObjectMappingRuleForm = React.createClass({
         }
     },
     handleConfirm() {
-        console.log('wth', this.props)
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -102,45 +105,24 @@ const ObjectMappingRuleForm = React.createClass({
         this.handleChangeValue(state, value);
     },
     handleChangeValue(name, value) {
-        console.log(this.state.initialValues[name], name, value)
-        if (!_.isEqual(this.state.initialValues.type, name==='type' ? value : this.state.type) ||
-            !_.isEqual(this.state.initialValues.comment, name==='comment' ? value : this.state.comment) ||
-            !_.isEqual(this.state.initialValues.targetProperty, name==='targetProperty' ? value : this.state.targetProperty) ||
-            !_.isEqual(this.state.initialValues.targetEntityType, name==='targetEntityType' ? value : this.state.targetEntityType) ||
-            !_.isEqual(this.state.initialValues.sourceProperty, name==='sourceProperty' ? value : this.state.sourceProperty) ||
-            !_.isEqual(this.state.initialValues.pattern, name==='pattern' ? value : this.state.pattern) ||
-            !_.isEqual(this.state.initialValues.entityConnection, name==='entityConnection' ? value : this.state.entityConnection))
 
-        {
-            if (!this.state.changed) {
-                hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
-                this.setState({
-                    [name]: value,
-                    changed: true,
-                });
-            }
-            else {
-                this.setState({
-                    [name]: value,
-                });
-            }
+        const {initialValues, ...currValues} = this.state;
 
+        currValues[name] = value;
+
+        const touched = wasTouched(initialValues, currValues);
+
+        if (touched) {
+            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
+        } else {
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
         }
-        else {
-            if (this.state.changed) {
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
-                this.setState({
-                    [name]: value,
-                    changed: false,
-                });
-            }
-            else {
-                this.setState({
-                    [name]: value,
-                });
-            }
 
-        }
+        this.setState({
+            [name]: value,
+            changed: touched,
+        });
+
     },
     handleClose(event) {
         //event.stopPropagation();
@@ -204,11 +186,13 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects from {<ThingClassName id={this.props.parentId}
+                                                                   name={this.props.parentName}/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects to {<ThingClassName id={this.props.parentId}
+                                                                 name={this.props.parentName}/>}</div>}
                     />
                 </RadioGroup>
             );

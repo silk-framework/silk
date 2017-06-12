@@ -38,6 +38,9 @@ const TreeView = React.createClass({
         })
     },
     loadData(){
+
+        console.warn('TREE RELOAD')
+
         // get navigation tree data
         hierarchicalMappingChannel.request({topic: 'hierarchy.get'})
             .subscribe(
