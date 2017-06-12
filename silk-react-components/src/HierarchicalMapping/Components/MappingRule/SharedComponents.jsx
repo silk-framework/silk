@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
+import {Icon} from 'ecc-gui-elements';
 
 export const RuleTitle = ({rule}) => {
 
@@ -70,3 +71,35 @@ export const RuleTreeTypes = ({rule}) => {
     }
 
 };
+
+export const ThingClassName = ({id, name}) => {
+    return <span>{name ? name : 'super entity'}</span>
+};
+
+export const ThingName = ({id}) => {
+    return <span>{id} (TODO: readable name)</span>
+}
+
+export const ThingDescription = ({id}) => {
+    return <p>TODO: Include vocabulary description about {id}</p>
+}
+
+export const ThingIcon = ({type, tooltip, status, message}) => {
+    let iconName = 'help_outline';
+    switch(type) {
+        case 'direct':
+            iconName = "insert_drive_file";
+            break;
+        case 'object':
+            iconName = "folder";
+            break;
+        default:
+            iconName = 'help_outline';
+    }
+
+    return <Icon
+        className='ecc-silk-mapping__ruleitem-icon'
+        name={status === 'error' ? 'warning' : iconName}
+        tooltip={status === 'error' ? tooltip + ' (' + message + ')' : tooltip}
+    />
+}

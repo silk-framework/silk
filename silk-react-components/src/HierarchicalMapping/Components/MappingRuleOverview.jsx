@@ -6,6 +6,8 @@ import React from 'react';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
+import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
+import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
 import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
@@ -16,58 +18,30 @@ const MappingRuleOverview = React.createClass({
 
     // define property types
     propTypes: {
-        //apiBase: React.PropTypes.string.isRequired, // used restApi url
-        //project: React.PropTypes.string.isRequired, // used project name
-        //transformationTask: React.PropTypes.string, // used transformation
         currentRuleId: React.PropTypes.string, // selected rule id
-        //createRuleForm,
     },
-
+    onRuleCreate({type}) {
+        this.setState({
+            ruleEditView: {
+                type,
+            },
+        });
+    },
+    handleRuleEditClose() {
+        this.setState({
+            ruleEditView: false,
+        });
+    },
     // initilize state
     getInitialState() {
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onRuleCreate);
 
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.toggle'), ({expanded, id}) => {
-            this.setState({
-                expandedElements: expanded
-                    ? _.concat(this.state.expandedElements, [id])
-                    : _.filter(this.state.expandedElements, (rule) => rule.id !== id),
-            })
-        });
-
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), ({id}) => {
-            const oldId = this.state.editingElements.length > 0 ? this.state.editingElements[0] : false;
-            if (oldId)
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: oldId});
-            this.setState({
-                editingElements: [id],
-            });
-        });
-
-        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
-            this.setState({
-                expandedElements: expanded
-                    ? _.map(this.state.ruleData.rules.propertyRules, (rule) => rule.id)
-                    : []
-            })
-        });
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.created'), ({id}) => {
-            this.setState({
-                editingElements: [],
-                expandedElements: _.merge(this.state.expandedElements, [id])
-            })
-        });
-
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), ({id}) => {
-            this.setState({
-                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
-            })
-        });
         return {
             loading: true,
             ruleData: {},
-            expandedElements: [],
-            editingElements: [],
+            ruleEditView: false
         };
     },
     componentDidMount() {
@@ -80,12 +54,7 @@ const MappingRuleOverview = React.createClass({
     },
     loadData() {
         // TODO: fix conditions
-        /*if (this.state.editingElements.length > 0 &&
-         !confirm("Continue will delete all changes. Are you sure?")) {
-         return false;
-         }*/
         this.setState({
-            editingElements: [],
             loading: true,
         });
         hierarchicalMappingChannel.request(
@@ -120,14 +89,41 @@ const MappingRuleOverview = React.createClass({
             //FIXME: do we need more data like id of parent as source?
         });
     },
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEmpty(nextState.ruleData);
+    },
     // template rendering
     render () {
-
         const {
             rules = {},
             id,
         } = this.state.ruleData;
-        const createRuleForm = this.props.createRuleForm;
+
+        const createType = _.get(this.state, 'ruleEditView.type', false);
+        const createRuleForm = createType ? (
+            <div className="ecc-silk-mapping__createrule">
+                {
+                    createType === 'object' ? (
+                        <ObjectMappingRuleForm
+                            type={createType}
+                            onClose={this.handleRuleEditClose}
+                            parentId={this.state.ruleData.id}
+                            parentName={this.state.ruleData.mappingTarget.uri}
+                            edit={true}
+                        />
+                    ) : (
+                        <ValueMappingRuleForm
+                            type={createType}
+                            onClose={this.handleRuleEditClose}
+                            parentId={this.state.ruleData.id}
+                            parentName={this.state.ruleData.mappingTarget.uri}
+                            edit={true}
+                        />
+                    )
+                }
+            </div>
+        ) : false;
+
         const childRules = rules.propertyRules || [];
 
         const loading = this.state.loading ? <Spinner /> : false;
@@ -206,7 +202,6 @@ const MappingRuleOverview = React.createClass({
                                     <MappingRule
                                         pos={idx}
                                         parent={this.props.currentRuleId}
-                                        expanded={_.includes(this.state.expandedElements, rule.id)}
                                         count={childRules.length}
                                         key={`MappingRule_${rule.id}_${idx}`}
                                         {...rule}

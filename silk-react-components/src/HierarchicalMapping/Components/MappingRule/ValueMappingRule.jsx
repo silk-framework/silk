@@ -6,11 +6,16 @@ import {
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
+    Info,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
-import {SourcePath} from './SharedComponents';
+import {
+    SourcePath,
+    ThingName,
+    ThingDescription,
+} from './SharedComponents';
 
 const RuleValueEditView = React.createClass({
     mixins: [UseMessageBus],
@@ -27,20 +32,12 @@ const RuleValueEditView = React.createClass({
         mappingTarget: React.PropTypes.object,
         onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
-        handleToggleExpand: React.PropTypes.func,
     },
 
     getInitialState() {
         return {
             edit: this.props.edit,
         };
-    },
-    // remove rule
-    handleClickRemove(event) {
-        event.stopPropagation();
-        this.setState({
-            elementToDelete: this.props.id,
-        });
     },
     handleComplexEdit(event) {
         event.stopPropagation();
@@ -65,104 +62,139 @@ const RuleValueEditView = React.createClass({
         }
         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
-    handleConfirmRemove(event) {
-        event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {id: this.state.elementToDelete}})
-            .subscribe(
-                () => {
-                    // FIXME: let know the user which element is gone!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                },
-                (err) => {
-                    // FIXME: let know the user what have happened!
-                    this.setState({
-                        elementToDelete: false,
-                    });
-                }
-            );
-    },
-    handleCancelRemove() {
-        event.stopPropagation();
-        this.setState({
-            elementToDelete: false,
-        });
-    },
     // template rendering
     render () {
         const {edit} = this.state;
 
         if (edit) {
             return <ValueMappingRuleForm
-                {
-                    // Fixme: Remove once we load data directly in form
-                    ...this.props
-                }
                 id={this.props.id}
                 parentId={this.props.parentId}
                 onClose={() => this.setState({edit: false}) }
             />
         }
 
-        //TODO: Move delete view out of here!
-        const deleteView = this.state.elementToDelete
-            ? <ConfirmationDialog
-                active={true}
-                title="Delete Rule"
-                confirmButton={
-                    <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelRemove}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete}'?
-            </ConfirmationDialog>
-            : false;
-
-        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
-
         return (
             (
                 <div
-                    className="ecc-silk-mapping__rulesview"
+                    className="ecc-silk-mapping__rulesviewer"
                 >
-                    {deleteView}
+
                     <div className="mdl-card mdl-card--stretch">
+                        <div
+                            className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
+                            onClick={this.props.handleToggleExpand}
+                        >
+                            <div className="mdl-card__title-text">
+                                Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)}
+                            </div>
+                        </div>
                         <div className="mdl-card__content">
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__targetProperty"
-                            >
-                                Target property
-                                {_.get(this.props, 'mappingTarget.uri', undefined)}
-                            </div>
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__propertyType"
-                            >
-                                Property type
-                                {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
-                            </div>
-                            <div>
-                                Source property
-                                <SourcePath
-                                    rule={
-                                        {
-                                            type: this.props.type,
-                                            sourcePath: this.props.sourcePath,
-                                        }
-                                    }
-                                />
-                            </div>
-                            <div
-                                className="ecc-silk-mapping__ruleseditor__comment"
-                            >
-                                Comment
-                                {_.get(this.props, 'metadata.description', '')}
-                            </div>
+                            {
+                                _.get(this.props, 'mappingTarget.uri', undefined) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__targetProperty"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Target property
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Info border>
+                                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                                </Info>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                _.get(this.props, 'mappingTarget.valueType.nodeType', undefined) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__propertyType"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Property type
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                Any other information available here? (TODO)
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                this.props.sourcePath ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__sourcePath"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                {
+                                                    _.isArray(this.props.sourcePath) ? 'Source properties of complex mapping' : 'Source property'
+                                                }
+                                            </dt>
+                                            {
+                                                _.isArray(this.props.sourcePath) ? [
+                                                    this.props.sourcePath.map(
+                                                        function(sourcePathItem) {
+                                                            return (
+                                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                                    <code>{sourcePathItem}</code>
+                                                                </dd>
+                                                            );
+                                                        }
+                                                    ),
+                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                        TODO: comma-separated list of used operator functions
+                                                    </dd>
+                                                ] : (
+                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                        <code>{this.props.sourcePath}</code>
+                                                    </dd>
+                                                )
+                                            }
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Button
+                                                    className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                    onClick={this.handleComplexEdit}
+                                                    raised
+                                                >
+                                                    {
+                                                        _.isArray(this.props.sourcePath) ? 'Edit complex mapping' : 'Create complex mapping'
+                                                    }
+                                                </Button>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
+                                this.props.comment ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__comment"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Comment
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                {this.props.comment}
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
                         </div>
                         <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                             <Button
@@ -171,15 +203,9 @@ const RuleValueEditView = React.createClass({
                             >
                                 Edit rule
                             </Button>
-                            <Button
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                onClick={this.handleComplexEdit}
-                            >
-                                Edit complex
-                            </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={this.handleClickRemove}
+                                onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent:this.props.parentId})}
                                 disabled={false} // FIXME: all elements are removable?
                             >
                                 Remove rule
