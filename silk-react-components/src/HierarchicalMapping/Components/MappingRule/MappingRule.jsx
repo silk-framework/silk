@@ -8,7 +8,12 @@ import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import {RuleTypes, SourcePath} from './SharedComponents';
+import {
+    RuleTypes,
+    SourcePath,
+    ThingName,
+    ThingIcon,
+} from './SharedComponents';
 
 const MappingRule = React.createClass({
 
@@ -21,14 +26,14 @@ const MappingRule = React.createClass({
         type: React.PropTypes.string, // mapping type
         typeRules: React.PropTypes.array,
         mappingTarget: React.PropTypes.object,
-        sourcePath: React.PropTypes.string,
+        //sourcePath: React.PropTypes.string, // it can be array or single string ...
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
         parent: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
-        expanded: React.PropTypes.bool.isRequired,
+
     },
 
     // initilize state
@@ -36,14 +41,14 @@ const MappingRule = React.createClass({
         // listen for event to expand / collapse mapping rule
         this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
             // only trigger state / render change if necessary
-            if (expanded !== this.state.expanded && !this.props.parent && this.props.type !== 'object') {
+            if (expanded !== this.state.expanded && this.props.type !== 'object') {
                 this.setState({expanded});
             }
         });
         // listen to rule edit event
 
         return {
-            expanded: this.props.expanded,
+            expanded: false,
         };
     },
     // jumps to selected rule as new center of view
@@ -52,7 +57,6 @@ const MappingRule = React.createClass({
     },
     // show / hide additional row details
     handleToggleExpand() {
-        hierarchicalMappingChannel.subject('ruleView.toggle').onNext({id: this.props.id, expanded: !this.state.expanded});
         this.setState({expanded: !this.state.expanded});
     },
     handleMoveElement(id, pos, parent){
@@ -98,13 +102,24 @@ const MappingRule = React.createClass({
             />
         );
 
+        // TODO: enable real API structure
+        const errorInfo = (_.get(this.props, 'status[0].type', false) == 'error') ? _.get(this.props, 'status[0].message', false) : false;
+
         const shortView = [
             <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
-                {mappingTarget.uri} {/* TODO: should be normalized and easy readable */}
+                <ThingIcon
+                    type={type}
+                    tooltip={type + ' mapping'}
+                    status={_.get(this.props, 'status[0].type', false)}
+                    message={_.get(this.props, 'status[0].message', false)}
+                />
+                <ThingName id={mappingTarget.uri} />
             </div>,
-            <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
-                {type} mapping
-            </div>,
+            /*
+                <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
+                    {type} mapping
+                </div>,
+            */
             <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
                 <span className="hide-in-table">from</span>
                 <SourcePath
@@ -136,6 +151,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
+                    parent={parent}
                     edit={false}
                 />
             ) : (
@@ -143,6 +159,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
+                    parent={parent}
                     edit={false}
                 />
             )
@@ -185,7 +202,8 @@ const MappingRule = React.createClass({
             <li className={
                     "ecc-silk-mapping__ruleitem mdl-list__item " +
                     (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
-                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary')
+                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary') +
+                    (errorInfo ? ' ecc-silk-mapping__ruleitem--defect' : '')
                 }
             >
                 {reorderHandleButton}

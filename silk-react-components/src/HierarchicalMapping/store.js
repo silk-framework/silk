@@ -17,44 +17,30 @@ hierarchicalMappingChannel.subject('setSilkDetails').subscribe((data) => {
     apiDetails = {...data};
 });
 
-//TODO: move to mockStore only
-const findRule = (parentRule, id, breadcrumbs) => {
-
-    let foundRule = null;
-
-    if (parentRule.id === id) {
-        parentRule.breadcrumbs = breadcrumbs;
-        return parentRule;
-    } else if (_.has(parentRule, 'rules.propertyRules')) {
-
-        const bc = [...breadcrumbs, {
-            id: parentRule.id,
-            name: parentRule.type === 'root' ?
-                _.get(parentRule, 'rules.typeRules[0].typeUri', '(no target type)') :
-                _.get(parentRule, 'mappingTarget.uri', '(no target property)')
-        }];
-
-        _.forEach(_.get(parentRule, 'rules.propertyRules'), (childRule) => {
-            if (childRule.id === id) {
-                if (childRule.type === 'object') {
-                    foundRule = childRule;
-                } else {
-                    foundRule = parentRule;
-                }
-                foundRule.breadcrumbs = bc;
-                return false;
+function findRule(element, id, breadcrumbs) {
+    element.breadcrumbs = breadcrumbs;
+    if (element.id === id) {
+        return element;
+    } else if (_.has(element, 'rules.propertyRules')) {
+        let result = null;
+        const bc = [
+            ...breadcrumbs,
+            {
+                id: element.id,
+                name: element.type === 'root'
+                    ? _.get(element, 'rules.typeRules[0].typeUri', '(no target type)')
+                    : _.get(element, 'mappingTarget.uri', '(no target property)')
             }
-            if (_.has(childRule, 'rules.propertyRules')) {
-                foundRule = findRule(childRule, id, bc);
-                if (foundRule) {
-                    return false;
-                }
-            }
+        ];
+        _.forEach(element.rules.propertyRules, (child) => {
+            if (result === null)
+                result = findRule(child, id, bc);
         });
-        return foundRule;
-    }
 
-};
+        return result;
+    }
+    return null;
+}
 
 const prepareValueMappingPayload = (data) => {
     const payload = {
@@ -283,13 +269,12 @@ if (!__DEBUG__) {
         ({data, replySubject}) => {
 
             const {id} = data;
-
             const searchId = id ? id : mockStore.id;
-
             const rule = findRule(_.cloneDeep(mockStore), searchId, []);
-
-            replySubject.onNext({rule: rule ? rule : mockStore});
+            const result = _.isUndefined(rule) ? mockStore : rule;
+            replySubject.onNext({rule: result});
             replySubject.onCompleted();
+
         }
     );
 
@@ -404,21 +389,22 @@ if (!__DEBUG__) {
     const orderRule = (store, id, pos) => {
         if (_.has(store, 'rules.propertyRules')) {
             const idPos = _.reduce(store.rules.propertyRules, function(i, children, k) {
-                if (i > -1 && children.id !== id)
+                if (i > -1 || children.id !== id)
                     return i;
                 else
                     return k;
             }, -1);
             if (idPos > -1) {
                 pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
+                console.log('before', store.rules.propertyRules)
                 store.rules.propertyRules.move(idPos, pos)
+                console.log('after', store.rules.propertyRules)
 
             } else {
                 store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));
             }
         }
 
-        return store;
     };
 
     hierarchicalMappingChannel.subject('rule.orderRule').subscribe(

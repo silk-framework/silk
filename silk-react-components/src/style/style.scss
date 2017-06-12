@@ -187,6 +187,7 @@
         &:last-child {
             border-bottom: none;
         }
+
     }
 
     .ecc-silk-mapping__ruleitem--literal {
@@ -203,11 +204,28 @@
 
     .ecc-silk-mapping__ruleitem {
         overflow: visible;
+        @include material-animation-default(0.28s);
+        transition-property: background-color;
+
+        &:hover {
+            background-color: $data-table-hover-color;
+        }
     }
 
     .ecc-silk-mapping__ruleitem--expanded {
         padding-left: 0;
+        border-left: $data-table-dividers;
+        border-right: $data-table-dividers;
 
+        &:hover {
+            background-color: transparent;
+        }
+    }
+
+    .ecc-silk-mapping__ruleitem--defect {
+        color: to_color($palette-orange-800);
+        background-color: to_color($palette-orange-50);
+        border-color: to_color($palette-orange-100);
     }
 
     .mdl-list__item-primary-content {
@@ -215,6 +233,12 @@
     }
     .mdl-list__item-primary-content {
         width: 50vw;
+    }
+
+    .ecc-silk-mapping__ruleitem-icon {
+        font-size: 1.25em;
+        vertical-align: text-bottom;
+        margin-right: 0.1em;
     }
 
     .ecc-silk-mapping__ruleitem-content {
@@ -243,7 +267,7 @@
                 display: flex;
                 flex-direction: row;
                 flex-wrap: nowrap;
-                justify-content: flex-start;
+                justify-content: space-between;
                 align-items: baseline;
             }
 
@@ -253,7 +277,7 @@
                 flex-grow: 1;
                 box-sizing: border-box;
                 padding: 0.25em;
-                max-width: 25%;
+                max-width: 33%;
             }
 
             .hide-in-table {
@@ -274,6 +298,7 @@
         left: -0.5rem;
         border: $data-table-dividers;
         align-self: stretch;
+        background-color: to_color($color-white);
 
         .contextmenu-container {
             position: absolute;
@@ -307,11 +332,47 @@
     }
 }
 
+.ecc-silk-mapping__rulesviewer {
+    margin: 0 auto;
+    max-width: 60em;
+    @include typo-body-1();
+}
+
 .ecc-silk-mapping__rulesviewer__title {
 
     .mdl-card__title-text {
         @include typo-subhead();
     }
+}
+
+.ecc-silk-mapping__rulesviewer__attribute {
+
+    margin-bottom: 1rem;
+    @include typo-body-1();
+
+    dt, dd {
+        margin: 0 0 0.25rem 0;
+        padding: 0;
+    }
+
+    code {
+        font-size: 0.9em;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-label {
+        font-size: $input-text-floating-label-fontsize;
+        font-weight: 300;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-title {
+        //font-size: $input-text-font-size;
+        font-weight: 500;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-info {
+
+    }
+
 }
 
 .clickable {

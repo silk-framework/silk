@@ -30,15 +30,31 @@ const ValueMappingRuleForm = React.createClass({
     },
     loadData(){
         if (this.props.id) {
-            //FIXME: Load from store, if we have an ID!!!
-            this.setState({
-                loading: false,
-                type: _.get(this.props, 'type', 'direct'),
-                comment: _.get(this.props, 'metadata.description', ''),
-                targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-                propertyType: _.get(this.props, 'mappingTarget.valueType.nodeType', undefined),
-                sourceProperty: this.props.sourcePath,
-            });
+            hierarchicalMappingChannel.request(
+                {
+                    topic: 'rule.get',
+                    data: {
+                        id: this.props.id,
+                    }
+                }
+            )
+                .subscribe(
+
+                    ({rule}) => {
+                        this.setState({
+                            loading: false,
+                            type: _.get(rule, 'type', 'direct'),
+                            comment: _.get(rule, 'metadata.description', ''),
+                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', undefined),
+                            sourceProperty: rule.sourcePath,
+                        });
+                    },
+                    (err) => {
+                        console.warn('err MappingRuleOverview: rule.get');
+                        this.setState({loading: false});
+                    }
+                );
         } else {
             this.setState({
                 loading: false,
@@ -47,7 +63,7 @@ const ValueMappingRuleForm = React.createClass({
         }
     },
     handleConfirm(event) {
-        event.stopPropagation();
+        //event.stopPropagation();
         hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -71,7 +87,7 @@ const ValueMappingRuleForm = React.createClass({
         });
     },
     handleClose(event) {
-        event.stopPropagation();
+        //event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {

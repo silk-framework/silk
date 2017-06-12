@@ -8,6 +8,7 @@ import {
     AffirmativeButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
+import {ThingClassName} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import _ from 'lodash';
 
@@ -30,16 +31,32 @@ const ObjectMappingRuleForm = React.createClass({
     },
     loadData(){
         if (this.props.id) {
-            //FIXME: Load from store, if we have an ID!!!
-            this.setState({
-                loading: false,
-                targetProperty: _.get(this.props, 'mappingTarget.uri', undefined),
-                sourceProperty: _.get(this.props, 'sourcePath', undefined),
-                comment: _.get(this.props, 'metadata.description', ''),
-                targetEntityType: _.get(this.props, 'rules.typeRules[0].typeUri', undefined),
-                entityConnection: _.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from',
-                pattern: _.get(this.props, 'rules.uriRule.pattern', ''),
-            });
+            hierarchicalMappingChannel.request(
+                {
+                    topic: 'rule.get',
+                    data: {
+                        id: this.props.id,
+                    }
+                }
+            )
+                .subscribe(
+                    ({rule}) => {
+                        this.setState({
+                            loading: false,
+                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            sourceProperty: _.get(rule, 'sourcePath', undefined),
+                            comment: _.get(rule, 'metadata.description', ''),
+                            targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
+                            entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
+                            pattern: _.get(rule, 'rules.uriRule.pattern', ''),
+                            type: _.get(rule, 'type'),
+                        });
+                    },
+                    (err) => {
+                        console.warn('err MappingRuleOverview: rule.get');
+                        this.setState({loading: false});
+                    }
+                );
         } else {
             this.setState({
                 loading: false,
@@ -48,7 +65,7 @@ const ObjectMappingRuleForm = React.createClass({
         }
     },
     handleConfirm() {
-
+        console.log('wth', this.props)
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -61,7 +78,7 @@ const ObjectMappingRuleForm = React.createClass({
             entityConnection: this.state.entityConnection === 'to',
         });
 
-        this.handleClose();
+        this.handleClose(null);
     },
 
     handleChangeSelectBox(state, value) {
@@ -79,20 +96,22 @@ const ObjectMappingRuleForm = React.createClass({
             [state]: value,
         });
     },
-    handleClose() {
+    handleClose(event) {
+        //event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
             console.warn('ValueMappingRuleForm: No onClose')
         }
+        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
     // template rendering
     render () {
         const {
             id,
-            type,
         } = this.props;
 
+        const type = this.state.type;
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
@@ -139,11 +158,11 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label="Connects from entity"
+                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label="Connects to entity"
+                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
                     />
                 </RadioGroup>
             );
