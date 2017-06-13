@@ -132,135 +132,131 @@ const RuleObjectEditView = React.createClass({
         // TODO: Move up
 
         return (
-            (
-                <div>
+            <div>
+                <div className="ecc-silk-mapping__rulesviewer">
                     <div className="mdl-card__content">
-                        <div
-                            className="ecc-silk-mapping__rulesviewer"
-                        >
-                            {targetProperty}
-                            {entityRelation}
-                            {
-                                // TODO: show multiple (array)
-                                _.get(this.props, 'rules.typeRules[0].typeUri', undefined) ? (
-                                    <div
-                                        className="ecc-silk-mapping__rulesviewer__targetEntityType"
-                                    >
-                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                {
-                                                    (this.props.rules.typeRules.length > 1) ? 'Target entity types' : 'Target entity type'
-                                                }
-                                            </dt>
+                        {targetProperty}
+                        {entityRelation}
+                        {
+                            // TODO: show multiple (array)
+                            _.get(this.props, 'rules.typeRules[0].typeUri', undefined) ? (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__targetEntityType"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                             {
-                                                this.props.rules.typeRules.map(
-                                                    function(typeRule) {
-                                                        return [
-                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                                <ThingName id={typeRule.typeUri} />
-                                                            </dd>,
-                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                                <code>{typeRule.typeUri}</code>
-                                                            </dd>,
-                                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                                <Info border>
-                                                                    <ThingDescription id={typeRule.typeUri} />
-                                                                </Info>
-                                                            </dd>
-                                                        ];
-                                                    }
-                                                )
+                                                (this.props.rules.typeRules.length > 1) ? 'Target entity types' : 'Target entity type'
                                             }
-                                        </dl>
-                                    </div>
-                                ) : false
-                            }
-                            {
-                                (
-                                    <div
-                                        className="ecc-silk-mapping__rulesviewer__sourcePath"
-                                    >
-                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Source property
-                                            </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                TODO: What is the source path of a object mapping?
-                                                <SourcePath
-                                                    rule={
-                                                        {
-                                                            type: this.props.type,
-                                                            sourcePath: this.props.sourcePath,
-                                                        }
+                                        </dt>
+                                        {
+                                            this.props.rules.typeRules.map(
+                                                function(typeRule) {
+                                                    return [
+                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                            <ThingName id={typeRule.typeUri} />
+                                                        </dd>,
+                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                            <code>{typeRule.typeUri}</code>
+                                                        </dd>,
+                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                            <Info border>
+                                                                <ThingDescription id={typeRule.typeUri} />
+                                                            </Info>
+                                                        </dd>
+                                                    ];
+                                                }
+                                            )
+                                        }
+                                    </dl>
+                                </div>
+                            ) : false
+                        }
+                        {
+                            (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__sourcePath"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Source property
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                            TODO: What is the source path of a object mapping?
+                                            <SourcePath
+                                                rule={
+                                                    {
+                                                        type: this.props.type,
+                                                        sourcePath: this.props.sourcePath,
                                                     }
-                                                />
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                )
-                            }
-                            {
-                                _.get(this.props, 'rules.uriRule.pattern', '') ? (
-                                    <div
-                                        className="ecc-silk-mapping__rulesviewer__idpattern"
-                                    >
-                                        <div
-                                            className="ecc-silk-mapping__rulesviewer__comment"
-                                        >
-                                            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                    Identifier pattern
-                                                </dt>
-                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                    <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
-                                                </dd>
-                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                    TODO: complex pattern example?
-                                                </dd>
-                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                    <Button
-                                                        className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                                                        onClick={this.handleComplexEdit}
-                                                        raised
-                                                    >
-                                                        {
-                                                            _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
-                                                        }
-                                                    </Button>
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                ) : false
-                            }
-                            {
-                                _.get(this.props, 'metadata.description', '') ? (
+                                                }
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                            )
+                        }
+                        {
+                            _.get(this.props, 'rules.uriRule.pattern', '') ? (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__idpattern"
+                                >
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Comment
+                                                Identifier pattern
                                             </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
+                                            </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                {_.get(this.props, 'metadata.description', '')}
+                                                TODO: complex pattern example?
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <Button
+                                                    className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
+                                                    onClick={this.handleComplexEdit}
+                                                    raised
+                                                >
+                                                    {
+                                                        _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
+                                                    }
+                                                </Button>
                                             </dd>
                                         </dl>
                                     </div>
-                                ) : false
-                            }
-                            <div
-                                className="ecc-silk-mapping__rulesviewer__examples"
-                            >
-                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                        Examples of target data
-                                    </dt>
-                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                        TODO
-                                    </dd>
-                                </dl>
-                            </div>
+                                </div>
+                            ) : false
+                        }
+                        {
+                            _.get(this.props, 'metadata.description', '') ? (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__comment"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Comment
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                            {_.get(this.props, 'metadata.description', '')}
+                                        </dd>
+                                    </dl>
+                                </div>
+                            ) : false
+                        }
+                        <div
+                            className="ecc-silk-mapping__rulesviewer__examples"
+                        >
+                            <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                    Examples of target data
+                                </dt>
+                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                    TODO
+                                </dd>
+                            </dl>
                         </div>
                     </div>
                     <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
@@ -273,7 +269,7 @@ const RuleObjectEditView = React.createClass({
                         {deleteButton}
                     </div>
                 </div>
-            )
+            </div>
         );
     },
 

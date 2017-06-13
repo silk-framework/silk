@@ -44,7 +44,8 @@
         left: 0;
         top: 0;
         width: 100%;
-        overflow: scroll;
+        max-height: 100vh;
+        overflow: auto;
         padding-bottom: 1rem;
         box-sizing: border-box;
 
@@ -116,8 +117,7 @@
     }
 }
 
-.ecc-silk-mapping__rules,
-.ecc-silk-mapping__createrule {
+.ecc-silk-mapping__rules {
   flex-basis: 75%;
   flex-grow: 1;
   flex-shrink: 1;
@@ -168,6 +168,13 @@
         .mdl-card__title-text-sub {
             //font-size: 1.25rem;
         }
+    }
+
+    .mdl-card__content {
+        max-height: calc(99vh - 36px - 2*8px - 2*16px - 3*16px);
+        overflow: overlay;
+        margin: 0;
+        padding: 0 1rem;
     }
 }
 
@@ -334,13 +341,16 @@
 
 .ecc-silk-mapping__rulesviewer,
 .ecc-silk-mapping__ruleseditor {
-    margin: 0 auto;
-    max-width: 60em;
-    @include typo-body-1();
+
+    .mdl-card__content {
+        //max-width: 50em;
+        @include typo-body-1();
+        //position: relative;
+        //left: 16px;
+    }
 
     .ecc-silk-mapping__ruleslist & {
-        position: relative;
-        left: 16px;
+        margin: -1rem 0;
     }
 }
 

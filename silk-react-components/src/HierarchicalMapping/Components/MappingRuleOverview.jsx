@@ -221,13 +221,16 @@ const MappingRuleOverview = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
-                <div className="ecc-silk-mapping__ruleslist">
-                    <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                        {createRuleForm}
-                        {mappingRulesListHead}
-                        {mappingRulesList}
-                    </div>
-                </div>
+                {
+                    createRuleForm ?
+                        createRuleForm :
+                        <div className="ecc-silk-mapping__ruleslist">
+                            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                                {mappingRulesListHead}
+                                {mappingRulesList}
+                            </div>
+                        </div>
+                }
             </div>
         );
     },
