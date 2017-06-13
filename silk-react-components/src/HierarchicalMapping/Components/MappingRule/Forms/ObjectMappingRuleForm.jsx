@@ -80,7 +80,7 @@ const ObjectMappingRuleForm = React.createClass({
             })
         }
     },
-    handleConfirm() {
+    handleConfirm(event) {
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -93,7 +93,7 @@ const ObjectMappingRuleForm = React.createClass({
             entityConnection: this.state.entityConnection === 'to',
         });
 
-        this.handleClose(null);
+        this.handleClose(event);
     },
 
     handleChangeSelectBox(state, value) {

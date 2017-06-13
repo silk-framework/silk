@@ -74,7 +74,7 @@ const ValueMappingRuleForm = React.createClass({
         }
     },
     handleConfirm(event) {
-        //event.stopPropagation();
+        event.stopPropagation();
         hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -114,7 +114,7 @@ const ValueMappingRuleForm = React.createClass({
 
     },
     handleClose(event) {
-        //event.stopPropagation();
+        event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
