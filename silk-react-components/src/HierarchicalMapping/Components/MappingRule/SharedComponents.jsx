@@ -88,6 +88,7 @@ export const ThingIcon = ({type, tooltip, status, message}) => {
     let iconName = 'help_outline';
     switch(type) {
         case 'direct':
+        case 'complex':
             iconName = "insert_drive_file";
             break;
         case 'object':
