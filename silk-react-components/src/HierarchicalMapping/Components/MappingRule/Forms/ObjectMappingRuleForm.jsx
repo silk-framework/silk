@@ -32,7 +32,6 @@ const ObjectMappingRuleForm = React.createClass({
         this.loadData();
     },
     loadData(){
-        hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined ? 0 : this.props.id});
         if (this.props.id) {
             hierarchicalMappingChannel.request(
                 {
@@ -49,7 +48,7 @@ const ObjectMappingRuleForm = React.createClass({
 
                         const initialValues = {
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                            sourceProperty: _.get(rule, 'sourcePath', undefined),
+                            sourceProperty: _.get(rule, 'sourceProperty', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
                             entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
@@ -112,11 +111,12 @@ const ObjectMappingRuleForm = React.createClass({
         currValues[name] = value;
 
         const touched = create || wasTouched(initialValues, currValues);
+        const id = _.get(this.props, 'id', 0);
 
         if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
+            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id});
         } else {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
         }
 
         this.setState({
@@ -126,13 +126,14 @@ const ObjectMappingRuleForm = React.createClass({
 
     },
     handleClose(event) {
-        //event.stopPropagation();
+        event.stopPropagation();
         if (_.isFunction(this.props.onClose)) {
             this.props.onClose();
         } else {
             console.warn('ValueMappingRuleForm: No onClose')
         }
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+        const id = _.get(this.props, 'id', 0);
+        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
     },
     // template rendering
     render () {

@@ -100,11 +100,12 @@ const ValueMappingRuleForm = React.createClass({
         currValues[name] = value;
 
         const touched = create || wasTouched(initialValues, currValues);
+        const id = _.get(this.props, 'id', 0);
 
         if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id: _.isUndefined(this.props.id) ? 0 : this.props.id});
+            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id});
         } else {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
         }
 
         this.setState({
@@ -120,7 +121,8 @@ const ValueMappingRuleForm = React.createClass({
         } else {
             console.warn('ValueMappingRuleForm: No onClose')
         }
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+        const id = _.get(this.props, 'id', 0);
+        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
     },
     // template rendering
     render () {
