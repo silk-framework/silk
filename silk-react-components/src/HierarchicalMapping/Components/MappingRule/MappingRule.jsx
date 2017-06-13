@@ -4,10 +4,11 @@
 
 import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
-import {Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {Button, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
+import _ from 'lodash';
 import {
     RuleTypes,
     SourcePath,
@@ -38,6 +39,13 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
+        return {
+            expanded: false,
+            editing: false,
+            askForDiscard: false,
+        };
+    },
+    componentDidMount() {
         // listen for event to expand / collapse mapping rule
         this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
             // only trigger state / render change if necessary
@@ -45,11 +53,22 @@ const MappingRule = React.createClass({
                 this.setState({expanded});
             }
         });
-        // listen to rule edit event
-
-        return {
-            expanded: false,
-        };
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
+    },
+    onOpenEdit(obj) {
+        if (_.isEqual(this.props.id, obj.id)) {
+            this.setState({
+                editing: true,
+            });
+        }
+    },
+    onCloseEdit(obj) {
+        if (_.isEqual(this.props.id, obj.id)) {
+            this.setState({
+                editing: false,
+            });
+        }
     },
     // jumps to selected rule as new center of view
     handleNavigate() {
@@ -57,8 +76,26 @@ const MappingRule = React.createClass({
     },
     // show / hide additional row details
     handleToggleExpand() {
-        this.setState({expanded: !this.state.expanded});
+        if (this.state.editing) {
+            this.setState({
+                askForDiscard: true,
+            });
+        }
+        else this.setState({expanded: !this.state.expanded});
     },
+    handleDiscardChanges(){
+        this.setState({
+            expanded: !this.state.expanded,
+            askForDiscard: false
+        })
+        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+    },
+    handleCancelDiscard() {
+        this.setState({
+            askForDiscard: false,
+        })
+    },
+
     handleMoveElement(id, pos, parent){
         return (event) => {
             event.stopPropagation();
@@ -85,6 +122,25 @@ const MappingRule = React.createClass({
             pos,
             count,
         } = this.props;
+
+        const discardView = this.state.askForDiscard
+            ? <ConfirmationDialog
+                active={true}
+                title="Discard changes"
+                confirmButton={
+                    <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
+                        Continue
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
+                <p>Are you sure you want to close the form?</p>
+            </ConfirmationDialog>
+            : false;
 
         const mainAction = (event) => {
             if (type === 'object') {
@@ -206,6 +262,7 @@ const MappingRule = React.createClass({
                     (errorInfo ? ' ecc-silk-mapping__ruleitem--defect' : '')
                 }
             >
+                {discardView}
                 {reorderHandleButton}
                 <div
                     className={
