@@ -2,6 +2,8 @@ package controllers.transform
 
 import play.api.libs.json.{JsArray, JsString}
 import play.api.libs.ws.WS
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
@@ -175,6 +177,19 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
     val order = (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value).toSeq
     order mustBe Seq("objectRule", "directRule")
+  }
+
+  "Delete mapping rule" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val response = request.delete()
+    checkResponse(response)
+  }
+
+  "Return 404 if a requested rule does not exist" in {
+    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    request = request.withHeaders("Accept" -> "application/json")
+    val response = Await.result(request.get(), 100.seconds)
+    response.status mustBe 404
   }
 
 }

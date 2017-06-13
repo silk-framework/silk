@@ -159,7 +159,8 @@ class TransformTaskApi extends Controller {
     implicit val prefixes = project.config.prefixes
 
     try {
-      RuleTraverser(task.data.mappingRule).remove(rule)
+      val updatedTree = RuleTraverser(task.data.mappingRule).remove(rule)
+      task.update(task.data.copy(mappingRule = updatedTree.operator.asInstanceOf[RootMappingRule]))
       Ok
     } catch {
       case ex: NoSuchElementException =>
