@@ -44,7 +44,7 @@
         left: 0;
         top: 0;
         width: 100%;
-        max-height: 100vh;
+        max-height: calc(100vh - 150px);
         overflow: auto;
         padding-bottom: 1rem;
         box-sizing: border-box;
@@ -171,7 +171,7 @@
     }
 
     .mdl-card__content {
-        max-height: calc(99vh - 36px - 2*8px - 2*16px - 3*16px);
+        max-height: calc(99vh - 36px - 2*8px - 2*16px - 3*16px - 150px;);
         overflow: overlay;
         margin: 0;
         padding: 0 1rem;
