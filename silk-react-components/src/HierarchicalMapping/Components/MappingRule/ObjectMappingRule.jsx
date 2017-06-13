@@ -224,7 +224,7 @@ const RuleObjectEditView = React.createClass({
                                                         raised
                                                     >
                                                         {
-                                                            _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex mapping' : 'Create complex mapping'
+                                                            _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
                                                         }
                                                     </Button>
                                                 </dd>
