@@ -37,7 +37,11 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     for((property, valueSet) <- properties zip values;
         value <- valueSet) {
-      writeStatement(subject, property.propertyUri, value, property.valueType)
+      if(property.isBackwardProperty) {
+        writeStatement(value, property.propertyUri, subject, property.valueType)
+      } else {
+        writeStatement(subject, property.propertyUri, value, property.valueType)
+      }
     }
   }
 

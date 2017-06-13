@@ -16,7 +16,13 @@ case class TypedPath(path: Path, valueType: ValueType) {
 
   def propertyUri: Option[Uri] = path.propertyUri
 
-  def property: Option[TypedProperty] = path.propertyUri.map(uri => TypedProperty(uri.toString, valueType))
+  def property: Option[TypedProperty] = path.operators match {
+    case ForwardOperator(prop) :: Nil =>
+      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false))
+    case BackwardOperator(prop) :: Nil =>
+      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true))
+    case _ => None
+  }
 }
 
 object TypedPath {

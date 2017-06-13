@@ -42,7 +42,6 @@ object JsonSerializers {
             TYPE -> JsString(value.plugin.plugin.id.toString) ::
             PARAMETERS -> Json.toJson(value.plugin.parameters) :: Nil
       )
-
     }
   }
 
@@ -66,6 +65,17 @@ object JsonSerializers {
         value
       case None =>
         throw JsonParseException("Attribute " + attributeName + " not found!")
+    }
+  }
+
+  def booleanValueOption(json: JsValue, attributeName: String): Option[Boolean] = {
+    (json \ attributeName).toOption match {
+      case Some(jsBoolean: JsBoolean) =>
+        Some(jsBoolean.value)
+      case Some(_) =>
+        throw JsonParseException("Value for attribute " + attributeName + " is not a boolean!")
+      case None =>
+        None
     }
   }
 
@@ -119,7 +129,7 @@ object JsonSerializers {
   /**
     * Transform Input
     */
-  implicit object TransformInputFormat extends JsonFormat[TransformInput] {
+  implicit object TransformInputJsonFormat extends JsonFormat[TransformInput] {
     final val INPUTS = "inputs"
     final val FUNCTION = "function"
 
@@ -206,18 +216,21 @@ object JsonSerializers {
     */
   implicit object MappingTargetJsonFormat extends JsonFormat[MappingTarget] {
     final val VALUE_TYPE = "valueType"
+    final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
       val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
-      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType)
+      val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
+      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty = isBackwardProperty)
     }
 
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
           URI -> JsString(value.propertyUri.uri),
-          VALUE_TYPE -> toJson(value.valueType)
+          VALUE_TYPE -> toJson(value.valueType),
+          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty)
         )
       )
     }
