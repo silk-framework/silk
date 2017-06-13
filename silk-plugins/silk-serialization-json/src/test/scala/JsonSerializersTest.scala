@@ -1,8 +1,9 @@
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset._
+import org.silkframework.entity.UriValueType
+import org.silkframework.rule.MappingTarget
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import play.api.libs.json.JsValue
 
 import scala.reflect.ClassTag
 
@@ -21,6 +22,11 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
     val serialized = format.toString(value, mime)
     val deserialized = format.fromString(serialized, mime)
     value should be (deserialized)
+  }
+
+  "MappingTargetJsonFormat" should "serialize MappingTarget" in {
+    val mappingTarget = MappingTarget("http://dot.com/prop", UriValueType, isBackwardProperty = true)
+    verify(mappingTarget)
   }
 }
 

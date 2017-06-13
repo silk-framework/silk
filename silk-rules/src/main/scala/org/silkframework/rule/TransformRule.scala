@@ -10,6 +10,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
+import TransformRule.RDF_TYPE
 
 import scala.language.implicitConversions
 import scala.xml.{Node, Null}
@@ -68,13 +69,15 @@ sealed trait TransformRule {
   }
 }
 
-case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType) {
+case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType, isBackwardProperty: Boolean = false) {
 
   override def toString: String = {
-    if(valueType == AutoDetectValueType)
+    val addedType = if(valueType == AutoDetectValueType) {
       propertyUri.toString
-    else
+    } else {
       s"$propertyUri (${valueType.label})"
+    }
+    if(isBackwardProperty) "\\" + addedType else addedType
   }
 
 }
@@ -90,21 +93,22 @@ object MappingTarget {
       */
     override def read(value: Node)(implicit readContext: ReadContext): MappingTarget = {
       val uri = (value \ "@uri").text.trim
+      val isBackwardProperty = (value \ "@isBackwardProperty").headOption.exists(_.text == "true")
       val valueTypeNode = (value \ "ValueType").head
-      MappingTarget(Uri.parse(uri, readContext.prefixes), fromXml[ValueType](valueTypeNode))
+      MappingTarget(Uri.parse(uri, readContext.prefixes), fromXml[ValueType](valueTypeNode), isBackwardProperty = isBackwardProperty)
     }
 
     /**
       * Serializes a value.
       */
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[Node]): Node = {
-      <MappingTarget uri={value.propertyUri.uri}>
+      <MappingTarget uri={value.propertyUri.uri} isBackwardProperty={value.isBackwardProperty.toString}>
         {toXml[ValueType](value.valueType)}
       </MappingTarget>
     }
   }
 
-  implicit def toTypedProperty(mt: MappingTarget): TypedProperty = TypedProperty(mt.propertyUri.uri, mt.valueType)
+  implicit def toTypedProperty(mt: MappingTarget): TypedProperty = TypedProperty(mt.propertyUri.uri, mt.valueType, mt.isBackwardProperty)
 
 }
 
@@ -134,7 +138,7 @@ case class DirectMapping(name: Identifier = "sourcePath",
   */
 case class UriMapping(name: Identifier = "uri", pattern: String = "http://example.org/{ID}") extends TransformRule {
 
-  override val operator = {
+  override val operator: Input = {
     val inputs =
       for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
         if (i % 2 == 0)
@@ -160,7 +164,7 @@ case class ObjectMapping(name: Identifier = "object",
                          pattern: String = "http://example.org/{ID}",
                          targetProperty: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
 
-  override val operator = {
+  override val operator: Input = {
     val inputs =
       for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
         if (i % 2 == 0)
@@ -187,7 +191,7 @@ case class TypeMapping(name: Identifier = "type", typeUri: Uri = "http://www.w3.
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
 
   override val typeString = "Type"
 
@@ -210,6 +214,7 @@ case class ComplexMapping(name: Identifier = "mapping", operator: Input, target:
   * Creates new transform rules.
   */
 object TransformRule {
+  val RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
   /**
     * XML serialization format.
@@ -260,11 +265,11 @@ object TransformRule {
       ObjectMapping(id, buildPattern(inputs), target)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _))) =>
+    Some(MappingTarget(Uri(RDF_TYPE), _, false))) =>
       TypeMapping(id, typeUri)
     // Type Mapping (old style, to be removed)
     case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _))) =>
+    Some(MappingTarget(Uri(RDF_TYPE), _, false))) =>
       TypeMapping(id, typeUri)
     // Complex Mapping
     case _ => complexMapping

@@ -130,6 +130,7 @@
                 <xs:element ref="ValueType" />
             </xs:sequence>
             <xs:attribute name="uri" type="xs:string"/>
+            <xs:attribute name="isBackwardProperty" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
