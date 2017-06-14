@@ -17,7 +17,15 @@ const HierarchicalMapping = React.createClass({
         transformTask: React.PropTypes.string.isRequired, //Current Transformation
         initialRule: React.PropTypes.string,
      },
-
+    componentDidMount(){
+        // listen to rule id changes
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
+        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+    },
     // initilize state
     getInitialState() {
 
@@ -34,14 +42,6 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         });
 
-        // listen to rule id changes
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
-        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
-
-        // listen to rule create event
 
         //TODO: Use initialRule
         return {
