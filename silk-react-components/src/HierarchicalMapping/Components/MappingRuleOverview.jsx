@@ -10,7 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
-import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {Spinner, Info, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
 
 const MappingRuleOverview = React.createClass({
 
@@ -27,9 +27,15 @@ const MappingRuleOverview = React.createClass({
             },
         });
     },
-    handleRuleEditClose() {
+    handleRuleEditOpen({id}) {
+        this.setState({
+            editing: _.merge(this.state.editing, [id]),
+        })
+    },
+    handleRuleEditClose({id}) {
         this.setState({
             ruleEditView: false,
+            editing: _.filter(this.state.editing, (e) => e !== id),
         });
     },
     // initilize state
@@ -37,7 +43,9 @@ const MappingRuleOverview = React.createClass({
         return {
             loading: true,
             ruleData: {},
-            ruleEditView: false
+            ruleEditView: false,
+            editing: [],
+            askForDiscard: false,
         };
     },
     componentDidMount() {
@@ -45,6 +53,7 @@ const MappingRuleOverview = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.handleRuleEditOpen);
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -79,16 +88,55 @@ const MappingRuleOverview = React.createClass({
                 }
             );
     },
+    handleDiscardChanges(event){
+        event.stopPropagation();
+        const type = _.get(this.state.askForDiscard, 'type', false);
+        if (type) {
+            hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
+        }
+        else{
+            const expanded = this.state.askForDiscard.expanded;
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        }
+        this.setState({
+            editing: [],
+            askForDiscard: false,
+        });
+    },
+    handleCancelDiscard(event) {
+        event.stopPropagation();
+        this.setState({
+            askForDiscard: false,
+        })
+    },
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({expanded}) {
-        hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        if (this.state.editing.length === 0 || expanded) {
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        }
+        else {
+            this.setState({
+                askForDiscard: {
+                    expanded
+                },
+            });
+        }
     },
     // jumps to selected rule as new center of view
     handleCreate({type}) {
-        hierarchicalMappingChannel.subject('ruleId.create').onNext({
-            type,
-            //FIXME: do we need more data like id of parent as source?
-        });
+        if (this.state.editing.length === 0 ) {
+            hierarchicalMappingChannel.subject('ruleId.create').onNext({
+                type,
+                //FIXME: do we need more data like id of parent as source?
+            });
+        }
+        else{
+            this.setState({
+                askForDiscard: {
+                    type
+                },
+            });
+        }
     },
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEmpty(nextState.ruleData);
@@ -99,6 +147,25 @@ const MappingRuleOverview = React.createClass({
             rules = {},
             id,
         } = this.state.ruleData;
+
+        const discardView = this.state.askForDiscard !== false
+            ? <ConfirmationDialog
+                active={true}
+                title="Discard changes"
+                confirmButton={
+                    <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
+                        Continue
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
+                <p>Are you sure you want to close the form?</p>
+            </ConfirmationDialog>
+            : false;
 
         const createType = _.get(this.state, 'ruleEditView.type', false);
         const createRuleForm = createType ? (
@@ -216,6 +283,7 @@ const MappingRuleOverview = React.createClass({
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
+                {discardView}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 {
                     createRuleForm ?
