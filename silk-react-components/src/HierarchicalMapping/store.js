@@ -405,6 +405,7 @@ if (!__DEBUG__) {
                 store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));
             }
         }
+        return store;
 
     };
 
