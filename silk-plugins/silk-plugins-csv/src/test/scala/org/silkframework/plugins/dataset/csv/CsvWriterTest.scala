@@ -66,7 +66,7 @@ class CsvWriterTest extends FlatSpec with Matchers {
     val os = new ByteArrayOutputStream()
     val resource = OutputStreamWritableResource(os)
 
-    val writer = new CsvWriter(resource, headers.map(str => TypedProperty(str, StringValueType)), settings)
+    val writer = new CsvWriter(resource, headers.map(str => TypedProperty(str, StringValueType, isBackwardProperty = false)), settings)
     for(line <- values) {
       writer.writeLine(line)
     }

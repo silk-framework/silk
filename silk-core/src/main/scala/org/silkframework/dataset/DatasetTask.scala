@@ -17,7 +17,7 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task
-import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.entity.Link
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 
@@ -46,6 +46,8 @@ class DatasetTask(val id: Identifier,
     case ds: DatasetTask =>
       id == ds.id && plugin == ds.plugin &&
           minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+    case _ =>
+      false
   }
 
   override def toString = {

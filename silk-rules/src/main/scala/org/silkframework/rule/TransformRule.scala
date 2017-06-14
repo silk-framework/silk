@@ -11,6 +11,7 @@ import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, Co
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
+import TransformRule.RDF_TYPE
 
 import scala.language.implicitConversions
 import scala.xml.{Node, Null}
@@ -135,6 +136,8 @@ object RootMappingRule {
     }
   }
 
+  implicit def toTypedProperty(mt: MappingTarget): TypedProperty = TypedProperty(mt.propertyUri.uri, mt.valueType)
+
 }
 
 /**
@@ -163,7 +166,7 @@ case class DirectMapping(id: Identifier = "sourcePath",
   */
 case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}") extends TransformRule {
 
-  override val operator = {
+  override val operator: Input = {
     val inputs =
       for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
         if (i % 2 == 0)
@@ -180,6 +183,33 @@ case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.
 }
 
 /**
+  * Generates a link to another entity.
+  *
+  * @param name    The name of this mapping
+  * @param pattern A template pattern for generating the URIs based on the entity properties
+  */
+case class ObjectMapping(name: Identifier = "object",
+                         pattern: String = "http://example.org/{ID}",
+                         targetProperty: MappingTarget = MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)) extends TransformRule {
+
+  override val operator = {
+    val inputs =
+      for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
+        if (i % 2 == 0)
+          TransformInput("constant" + i, ConstantTransformer(str))
+        else
+          TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+      }
+    TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
+  }
+
+  override val target = Some(targetProperty)
+
+  override val typeString = "Object"
+
+}
+
+/**
   * A type mapping, which assigns a type to each entitity.
   *
   * @param id      The name of this mapping
@@ -189,7 +219,7 @@ case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.or
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
 
   override val typeString = "Type"
 
@@ -254,6 +284,7 @@ case class ObjectMapping(id: Identifier = "mapping",
   * Creates new transform rules.
   */
 object TransformRule {
+  val RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
   /**
     * XML serialization format.
@@ -331,11 +362,11 @@ object TransformRule {
       ObjectMapping(id, Path.empty, Some(target.propertyUri), MappingRules(uriRule = Some(UriMapping(id + "uri", buildPattern(inputs)))))
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _))) =>
+    Some(MappingTarget(Uri(RDF_TYPE), _, false))) =>
       TypeMapping(id, typeUri)
     // Type Mapping (old style, to be removed)
     case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _))) =>
+    Some(MappingTarget(Uri(RDF_TYPE), _, false))) =>
       TypeMapping(id, typeUri)
     // Complex Mapping
     case _ => complexMapping

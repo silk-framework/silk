@@ -1,12 +1,12 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{BufferedReader, InputStreamReader, StringReader}
+import java.io.{BufferedReader, InputStreamReader}
 import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{PathCoverageDataSource, DataSource, PeakDataSource}
+import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -31,38 +31,67 @@ class CsvSource(file: Resource,
                 maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
+  final val UNNAMED_COLUMN_PREFIX = "unnamed_col"
+  val unnamedRegex = s"""$UNNAMED_COLUMN_PREFIX([1-9]\\d*)(_[1-9]\\d*)?""".r
 
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
   lazy val propertyList: IndexedSeq[String] = {
-    val parser = new CsvParser(Seq.empty, csvSettings)
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
       val parser = csvParser()
       val firstLine = parser.parseNext()
       parser.stopParsing()
-      if (firstLine.isDefined && firstLine.nonEmpty) {
-        firstLine.get
-            .takeWhile(Option(_).isDefined) // Break if a header field is null
-            .map { s =>
-          if (Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
-            s
-          } else {
-            URLEncoder.encode(s, "UTF-8")
-          }
-        }.toIndexedSeq
+      if (firstLine.isDefined) {
+        val headerFields = firstLine.get
+        val existingUnnamedMap: Map[Int, Int] = unnamedColumnClashes(headerFields)
+        convertHeaderFields(headerFields, existingUnnamedMap)
       } else {
         mutable.IndexedSeq()
       }
     }
   }
 
+  /** Finds existing columns in the CSV header fields that follow the unnamed column name schema. Used later to prevent name clashes. */
+  private def unnamedColumnClashes(headerFields: Array[String]): Map[Int, Int] = {
+    val entries: Seq[Option[(Int, Int)]] = headerFields.toSeq.filter(f => Option(f).isDefined).map {
+      case unnamedRegex(colNr, offset) =>
+        Some((colNr.toInt, Option(offset).map(_.drop(1).toInt).getOrElse(1)))
+      case _ =>
+        None
+    }
+    entries.flatten.
+        groupBy(_._1).
+        mapValues(_.map(_._2).max)
+  }
+
+  /** Converts the field names to a representation that can be used in URIs */
+  private def convertHeaderFields(headerFields: Array[String],
+                                  existingUnnamedMap: Map[Int, Int]) = {
+    headerFields.zipWithIndex
+        .map {
+          case (null, idx) =>
+            val colIdx = idx + 1
+            val columnName = UNNAMED_COLUMN_PREFIX + colIdx
+            existingUnnamedMap.get(colIdx) match {
+              case Some(max) => columnName + "_" + (max + 1)
+              case None => columnName
+            }
+          case (s, _) =>
+            if (Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
+              s
+            } else {
+              URLEncoder.encode(s, "UTF-8")
+            }
+        }.toIndexedSeq
+  }
+
   // Number of lines in input file (including header and potential skipped lines)
-  lazy val nrLines = {
-    val reader = getBufferedReaderForCsvFile()
-    var count = 0l
+  lazy val nrLines: Long = {
+    val reader = bufferedReaderForCsvFile()
+    var count = 0L
     while (reader.readLine() != null) {
       count += 1
     }
@@ -89,13 +118,13 @@ class CsvSource(file: Resource,
   // automatically detect the separator, returns None if confidence is too low
   private def detectSeparatorChar(): Option[DetectedSeparator] = {
     try {
-      SeparatorDetector.detectSeparatorChar(getBufferedReaderForCsvFile(), settings, linesForDetection)
+      SeparatorDetector.detectSeparatorChar(bufferedReaderForCsvFile(), settings, linesForDetection)
     } finally {
       None
     }
   }
 
-  override def toString = file.toString
+  override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     try {
@@ -110,7 +139,7 @@ class CsvSource(file: Resource,
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
     if (entitySchema.filter.operator.isDefined) {
-      ??? // TODO: Implement Restriction handling!
+      throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
     val entities = retrieveEntities(entitySchema)
     limitOpt match {
@@ -195,7 +224,8 @@ class CsvSource(file: Resource,
   private def handleBadLine[U](index: Int, entry: Array[String]) = {
     // Bad line
     if (!ignoreBadLines) {
-      assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with ${entry.size} elements. Expected number of elements ${propertyList.size}.")
+      assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
+          s"${entry.length} elements. Expected number of elements ${propertyList.size}.")
     }
   }
 
@@ -231,7 +261,7 @@ class CsvSource(file: Resource,
   }
 
   private def csvParser(): CsvParser = {
-    lazy val reader = getAndInitBufferedReaderForCsvFile
+    lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
     parser.beginParsing(reader)
     parser
@@ -240,17 +270,18 @@ class CsvSource(file: Resource,
   // Skip lines that are not part of the CSV file, headers may be included
   private def initBufferedReader(reader: BufferedReader): Unit = {
     val nrLinesToSkip = skipLinesAutomatic getOrElse skipLinesBeginning
-    for (i <- 1 to nrLinesToSkip)
+    for (_ <- 1 to nrLinesToSkip) {
       reader.readLine() // Skip line
+    }
   }
 
   private def getAndInitBufferedReaderForCsvFile(): BufferedReader = {
-    val reader = getBufferedReaderForCsvFile()
+    val reader = bufferedReaderForCsvFile()
     initBufferedReader(reader)
     reader
   }
 
-  private def getBufferedReaderForCsvFile(): BufferedReader = {
+  private def bufferedReaderForCsvFile(): BufferedReader = {
     getBufferedReaderForCsvFile(codecToUse)
   }
 
@@ -433,7 +464,7 @@ case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBegi
 object CsvSourceHelper {
   lazy val standardCsvParser = new CsvParser(
     Seq.empty,
-    CsvSettings(separator = ',', quote = Some('"'))
+    CsvSettings(quote = Some('"'))
   )
 
   def serialize(fields: Traversable[String]): String = {
