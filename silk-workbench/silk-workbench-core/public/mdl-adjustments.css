@@ -18,6 +18,10 @@
 * Generic Stuff
 */
 
+.mdl-layout__header-row {
+    padding: 0 1rem 0 1rem;
+}
+
 .button-set .mdl-button {
   margin-right: 5px;
 }
