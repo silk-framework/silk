@@ -20,7 +20,6 @@ const ObjectMappingRuleForm = React.createClass({
     // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
-        onClose: React.PropTypes.func.isRequired,
     },
     getInitialState() {
         return {
@@ -127,13 +126,9 @@ const ObjectMappingRuleForm = React.createClass({
     },
     handleClose(event) {
         event.stopPropagation();
-        if (_.isFunction(this.props.onClose)) {
-            this.props.onClose();
-        } else {
-            console.warn('ValueMappingRuleForm: No onClose')
-        }
         const id = _.get(this.props, 'id', 0);
         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
+        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
     // template rendering
     render () {

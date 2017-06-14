@@ -109,7 +109,6 @@ const MappingRuleOverview = React.createClass({
                     createType === 'object' ? (
                         <ObjectMappingRuleForm
                             type={createType}
-                            onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
                             parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}

@@ -32,7 +32,6 @@ const RuleObjectEditView = React.createClass({
         parentName: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
-        onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
     },
 
@@ -66,7 +65,6 @@ const RuleObjectEditView = React.createClass({
                 id={this.props.id}
                 parentName={this.props.parentName}
                 parentId={this.props.parentId}
-                onClose={() => this.setState({edit: false}) }
             />
         }
 

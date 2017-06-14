@@ -30,10 +30,15 @@ const RuleValueEditView = React.createClass({
         // FIXME: sourcePath === source property?
         sourcePath: React.PropTypes.string,
         mappingTarget: React.PropTypes.object,
-        onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
     },
-
+    handleCloseEdit(obj) {
+        if (obj.id === this.props.id)
+            this.setState({edit: false})
+    },
+    componentDidMount() {
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleCloseEdit);
+    },
     getInitialState() {
         return {
             edit: this.props.edit,
@@ -52,13 +57,6 @@ const RuleValueEditView = React.createClass({
     },
     handleClose(event) {
         event.stopPropagation();
-        if (_.isFunction(this.props.onClose)) {
-            this.props.onClose();
-        } else {
-            this.setState({
-                edit: false,
-            })
-        }
         hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
     },
     // template rendering
@@ -69,7 +67,6 @@ const RuleValueEditView = React.createClass({
             return <ValueMappingRuleForm
                 id={this.props.id}
                 parentId={this.props.parentId}
-                onClose={() => this.setState({edit: false}) }
             />
         }
 
