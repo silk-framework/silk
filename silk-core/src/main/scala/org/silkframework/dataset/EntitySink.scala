@@ -14,7 +14,7 @@ trait EntitySink extends DataSink {
   def open(properties: Seq[TypedProperty]): Unit
 
   def openWithTypedPath(typedPaths: Seq[TypedPath]): Unit = {
-    val properties = typedPaths.map(tp => TypedProperty(tp.path.propertyUri.get.toString, tp.valueType))
+    val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
     open(properties)
   }
 
@@ -28,4 +28,4 @@ trait EntitySink extends DataSink {
   def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
 }
 
-case class TypedProperty(propertyUri: String, valueType: ValueType)
+case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean)

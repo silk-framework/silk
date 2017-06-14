@@ -68,7 +68,7 @@ sealed trait RuleTraverser {
   }
 
   /**
-    * Removes an operator from the tree.
+    * Removes an operator from the tree and returns the updated root.
     *
     * @throws NoSuchElementException If no operator with the given identifier could be found or the operator matches the root element itself.
     */

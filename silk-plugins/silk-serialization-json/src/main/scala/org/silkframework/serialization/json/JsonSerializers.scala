@@ -6,7 +6,7 @@ import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
-import org.silkframework.rule.{ComplexMapping, MappingTarget, TransformRule}
+import org.silkframework.rule.{MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
@@ -42,7 +42,6 @@ object JsonSerializers {
         LABEL -> JsString(value.label),
         DESCRIPTION -> JsString(value.description)
       )
-
     }
   }
 
@@ -66,6 +65,17 @@ object JsonSerializers {
         value
       case None =>
         throw JsonParseException("Attribute " + attributeName + " not found!")
+    }
+  }
+
+  def booleanValueOption(json: JsValue, attributeName: String): Option[Boolean] = {
+    (json \ attributeName).toOption match {
+      case Some(jsBoolean: JsBoolean) =>
+        Some(jsBoolean.value)
+      case Some(_) =>
+        throw JsonParseException("Value for attribute " + attributeName + " is not a boolean!")
+      case None =>
+        None
     }
   }
 
@@ -169,7 +179,7 @@ object JsonSerializers {
   /**
     * Transform Input
     */
-  implicit object TransformInputFormat extends JsonFormat[TransformInput] {
+  implicit object TransformInputJsonFormat extends JsonFormat[TransformInput] {
     final val INPUTS = "inputs"
     final val FUNCTION = "function"
 
@@ -256,18 +266,21 @@ object JsonSerializers {
     */
   implicit object MappingTargetJsonFormat extends JsonFormat[MappingTarget] {
     final val VALUE_TYPE = "valueType"
+    final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
       val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
-      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType)
+      val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
+      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty = isBackwardProperty)
     }
 
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
           URI -> JsString(value.propertyUri.serialize(writeContext.prefixes)),
-          VALUE_TYPE -> toJson(value.valueType)
+          VALUE_TYPE -> toJson(value.valueType),
+          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty)
         )
       )
     }
@@ -434,7 +447,7 @@ object JsonSerializers {
     */
   implicit object ObjectMappingJsonFormat extends JsonFormat[ObjectMapping] {
     final val SOURCE_PATH: String = "sourcePath"
-    final val TARGET_PROPERTY: String = "mappingTarget"
+    final val MAPPING_TARGET: String = "mappingTarget"
     final val RULES: String = "rules"
 
     /**
@@ -443,9 +456,9 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
       val name = identifier(value, "object")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
-      val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      ObjectMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children, metaData(value))
+      ObjectMapping(name, sourcePath, mappingTarget, children, metaData(value))
     }
 
     /**
@@ -456,7 +469,7 @@ object JsonSerializers {
         TYPE -> JsString("object"),
         ID -> JsString(value.id),
         SOURCE_PATH -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
-        TARGET_PROPERTY -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
+        MAPPING_TARGET -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
         RULES -> toJson(value.rules),
         METADATA -> toJson(value.metaData)
       )

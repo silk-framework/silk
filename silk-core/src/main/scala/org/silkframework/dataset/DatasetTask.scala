@@ -17,7 +17,7 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.{Task, MetaData}
-import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.entity.Link
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
