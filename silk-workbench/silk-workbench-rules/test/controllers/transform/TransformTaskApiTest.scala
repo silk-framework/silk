@@ -129,7 +129,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "valueType" : {
                   "nodeType" : "StringValueType"
                 },
- |              "isBackwardProperty" : false
+                "isBackwardProperty" : false
               },
               "metaData" : {
                 "label" : "My direct rule",
@@ -162,8 +162,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "description" : ""
           }
         }
-
       """
+
     }
   }
 
