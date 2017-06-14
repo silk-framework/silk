@@ -32,10 +32,12 @@ const TreeView = React.createClass({
     componentDidMount() {
         this.loadData();
     },
-    expandElement({newnewRuleId, parent}){
-        this.setState({
-            expanded: _.merge(this.state.expanded, {[parent]:true}),
-        })
+    expandElement({parent}){
+        if (!_.isUndefined(parent) && !_.includes(this.state.expanded, {[parent]:true})) {
+            this.setState({
+                expanded: _.concat(this.state.expanded, {[parent]: true}),
+            })
+        }
     },
     loadData(){
 
