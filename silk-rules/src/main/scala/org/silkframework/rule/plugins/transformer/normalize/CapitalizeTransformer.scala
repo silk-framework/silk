@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.plugins.transformer.normalize
 
-import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.rule.input.{SimpleTransformer, TransformExample, TransformExamples}
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
@@ -24,11 +24,23 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Capitalizes the string i.e. converts the first character to upper case. " +
     "If 'allWords' is set to true, all words are capitalized and not only the first character."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("allWords", "false"),
+    input1 = Array("capitalize me"),
+    output = Array("Capitalize me")
+  ),
+  new TransformExample(
+    parameters = Array("allWords", "true"),
+    input1 = Array("capitalize me"),
+    output = Array("Capitalize Me")
+  )
+))
 case class CapitalizeTransformer(allWords: Boolean = false) extends SimpleTransformer {
   override def evaluate(value: String) = {
-    if(allWords)
+    if(!allWords)
       value.capitalize
     else
-      value.split("\\s+").map(_.capitalize).mkString
+      value.split("\\s+").map(_.capitalize).mkString(" ")
   }
 }

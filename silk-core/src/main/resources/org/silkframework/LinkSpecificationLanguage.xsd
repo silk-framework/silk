@@ -137,10 +137,10 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+                <xs:element ref="MappingTarget" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="relativePath" type="xs:string"/>
-            <xs:attribute name="targetProperty" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
@@ -150,6 +150,7 @@
                 <xs:element ref="ValueType" />
             </xs:sequence>
             <xs:attribute name="uri" type="xs:string"/>
+            <xs:attribute name="isBackwardProperty" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 

@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream, StringWriter}
+import java.io._
+import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 import java.util.logging.Logger
 
 import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
@@ -38,11 +39,18 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
   }
 
   override def postDataToGraph(graph: String,
-                      contentType: String = "application/n-triples",
-                      chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
+                               contentType: String = "application/n-triples",
+                               chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))
     JenaDatasetWritingOutputStream(dataset, lang, graph)
+  }
+
+  override def getDataFromGraph(graph: String, acceptType: String): InputStream = {
+    val strippedAccessType = acceptType.split(";").head
+    val lang = Option(RDFLanguages.contentTypeToLang(strippedAccessType)).
+        getOrElse(throw new IllegalArgumentException("Unknown accept type: " + acceptType))
+    JenaDatasetWritingInputStream(dataset, lang, graph)
   }
 
   /**
@@ -79,5 +87,26 @@ case class JenaDatasetWritingOutputStream(dataset: Dataset, contentLang: Lang, g
   override def close(): Unit = {
     val model = dataset.getNamedModel(graph)
     model.read(new ByteArrayInputStream(outputStream.toByteArray), null, contentLang.getName)
+  }
+}
+
+case class JenaDatasetWritingInputStream(dataset: Dataset, contentLang: Lang, graph: String) extends InputStream {
+  private lazy val inputStream = {
+    val model = dataset.getNamedModel(graph)
+    val out = new ByteArrayOutputStream()
+    model.write(out, contentLang.getName)
+    out.flush()
+    val array = out.toByteArray
+    new ByteArrayInputStream(array)
+  }
+
+  override def read(): Int = {
+    inputStream.read()
+  }
+
+  override def read(b: Array[Byte]): Int = inputStream.read(b)
+
+  override def close(): Unit = {
+    inputStream.close()
   }
 }

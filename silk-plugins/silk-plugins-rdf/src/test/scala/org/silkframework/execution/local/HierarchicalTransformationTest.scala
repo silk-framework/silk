@@ -43,7 +43,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
                 DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
                 ObjectMapping(
                   sourcePath = Path.empty,
-                  targetProperty = Some(uri("address")),
+                  target = Some(MappingTarget(uri("address"))),
                   rules = MappingRules(
                     uriRule = Some(UriMapping(pattern = s"https://silkframework.org/ex/Address_{<${uri("city")}>}_{<${uri("country")}>")),
                     typeRules = Seq.empty,
@@ -74,7 +74,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
                 DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
                 ObjectMapping(
                   sourcePath = Path(uri("address")),
-                  targetProperty = None,
+                  target = None,
                   rules = MappingRules(
                     ComplexMapping(operator = PathInput(path = Path(BackwardOperator(uri("address")) :: Nil)), target = None),
                     ComplexMapping(

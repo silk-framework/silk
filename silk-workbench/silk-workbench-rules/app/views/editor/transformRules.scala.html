@@ -139,7 +139,7 @@
   </table>
 
   <table id="objectMappingTemplate" class="rule-template">
-      @renderRule(ObjectMapping(targetProperty = None, rules = MappingRules(uriRule = Some(UriMapping()))))
+      @renderRule(ObjectMapping(target = None, rules = MappingRules(uriRule = Some(UriMapping()))))
   </table>
   <style type="">
           /* TODO: Delete*/
@@ -327,7 +327,7 @@
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-property rule-table-cell">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.targetProperty.map(_.serialize(prefixes())).getOrElse("")">
+      <input class="mdl-textfield__input target" type="text" id="@{rule.id}-target" value="@rule.target.map(_.propertyUri.serialize(prefixes())).getOrElse("")">
     </div>
   </td>
   <td class="mdl-data-table__cell--non-numeric rule-target-type rule-table-cell">

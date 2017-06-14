@@ -116,7 +116,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "uri" : "target:name",
                 "valueType" : {
                   "nodeType" : "StringValueType"
-                }
+                },
+                "isBackwardProperty" : false
               }
             }, {
               "type" : "object",
@@ -126,7 +127,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "uri" : "target:address",
                 "valueType" : {
                   "nodeType" : "UriValueType"
-                }
+                },
+                "isBackwardProperty" : false
               },
               "rules" : {
                 "uriRule" : null,
@@ -151,7 +153,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "uri" : "target:address",
             "valueType" : {
               "nodeType" : "UriValueType"
-            }
+            },
+            "isBackwardProperty" : false
           },
           "rules" : {
             "uriRule" : null,
