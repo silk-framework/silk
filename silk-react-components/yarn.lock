@@ -1898,9 +1898,9 @@ duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-ecc-gui-elements@^2.11.7:
-  version "2.11.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.11.7.tgz#d3e59dda2261d302d975047373d254e18a0a9949"
+ecc-gui-elements@^2.12.0:
+  version "2.12.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.12.0.tgz#49e0b0cccb29c18e925d8a68fb97f4db1d3c32ed"
   dependencies:
     classnames "^2.2.5"
     ecc-messagebus "^3.3.2"
@@ -1915,9 +1915,9 @@ ecc-gui-elements@^2.11.7:
     react-select "^1.0.0-rc.2"
     sassyjson "^1.1.8"
 
-ecc-gulp-tasks@^3.6.0:
-  version "3.6.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gulp-tasks/-/ecc-gulp-tasks-3.6.0.tgz#4d8a2289fce78db8ae406cc34f7fde49ffea79bd"
+ecc-gulp-tasks@^3.6.2:
+  version "3.6.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gulp-tasks/-/ecc-gulp-tasks-3.6.2.tgz#5076a62d82bbefbfc362608cd29e1d932b60619f"
   dependencies:
     autoprefixer "^6.6.0"
     babel-core "^6.24.1"

@@ -21,7 +21,7 @@
     "babel-polyfill": "^6.23.0",
     "babel-runtime": "^6.23.0",
     "create-react-class": "^15.5.3",
-    "ecc-gui-elements": "^2.11.7",
+    "ecc-gui-elements": "^2.12.0",
     "ecc-messagebus": "^3.6.0",
     "ecc-superagent": "^1.2.0",
     "lodash": "^4.17.4",
@@ -29,7 +29,7 @@
     "react-dom": "^15.5.4"
   },
   "devDependencies": {
-    "ecc-gulp-tasks": "^3.6.0",
+    "ecc-gulp-tasks": "^3.6.2",
     "gulp": "^3.9.1"
   }
 }
