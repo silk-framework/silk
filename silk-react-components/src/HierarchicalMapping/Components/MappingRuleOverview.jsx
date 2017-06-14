@@ -52,7 +52,6 @@ const MappingRuleOverview = React.createClass({
         }
     },
     loadData() {
-        // TODO: fix conditions
         this.setState({
             loading: true,
         });
@@ -115,7 +114,6 @@ const MappingRuleOverview = React.createClass({
                     ) : (
                         <ValueMappingRuleForm
                             type={createType}
-                            onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
                             parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}

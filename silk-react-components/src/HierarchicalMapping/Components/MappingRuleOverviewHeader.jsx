@@ -26,23 +26,18 @@ const MappingRuleOverviewHeader = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
     },
     onOpenEdit(obj) {
-        console.log('Header', obj, this.props.rule)
         if (this.props.rule.id === obj.id) {
-            console.log('open edit for ' + obj.id);
             this.setState({
                 editing: true,
             });
         }
-        else console.log(obj, this.props.rule);
     },
     onCloseEdit(obj) {
         if (this.props.rule.id === obj.id) {
-            console.log('open edit for ' + obj.id);
             this.setState({
                 editing: false,
             });
         }
-        else console.log(obj, this.props.rule);
     },
     handleDiscardChanges(){
         this.setState({

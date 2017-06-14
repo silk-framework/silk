@@ -399,9 +399,7 @@ if (!__DEBUG__) {
             }, -1);
             if (idPos > -1) {
                 pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
-                console.log('before', store.rules.propertyRules)
                 store.rules.propertyRules.move(idPos, pos)
-                console.log('after', store.rules.propertyRules)
 
             } else {
                 store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));

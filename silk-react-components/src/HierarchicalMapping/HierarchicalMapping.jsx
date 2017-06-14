@@ -50,7 +50,6 @@ const HierarchicalMapping = React.createClass({
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
-            ruleEditView: false,
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
@@ -64,7 +63,6 @@ const HierarchicalMapping = React.createClass({
     },
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        console.log('remove '+id+'from editingElements')
         this.setState({
             editingElements: _.filter(this.state.editingElements, (e) => e !== id),
         })
@@ -120,7 +118,6 @@ const HierarchicalMapping = React.createClass({
             });
         }
         else {
-            console.log('editing ', this.state.editingElements)
             this.setState({
                 askForDiscard: newRuleId
             });
@@ -148,7 +145,6 @@ const HierarchicalMapping = React.createClass({
     },
     // template rendering
     render () {
-        const ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {};
         const treeView = (
             this.state.showNavigation ? (
                 <TreeView
@@ -241,7 +237,6 @@ const HierarchicalMapping = React.createClass({
                         {
                             <MappingRuleOverview
                                 currentRuleId={this.state.currentRuleId}
-                                ruleEditView={{...ruleEdit}}
                             />
                         }
                     </div>
