@@ -55,6 +55,7 @@ const MappingRule = React.createClass({
         });
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -83,10 +84,15 @@ const MappingRule = React.createClass({
         }
         else this.setState({expanded: !this.state.expanded});
     },
+    discardAll() {
+        this.setState({
+            editing: false,
+        });
+    },
     handleDiscardChanges(){
         this.setState({
             expanded: !this.state.expanded,
-            askForDiscard: false
+            askForDiscard: false,
         });
         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
     },

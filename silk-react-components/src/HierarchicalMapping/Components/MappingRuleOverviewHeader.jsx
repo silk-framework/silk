@@ -24,6 +24,7 @@ const MappingRuleOverviewHeader = React.createClass({
     componentDidMount() {
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     onOpenEdit(obj) {
         if (this.props.rule.id === obj.id) {
@@ -62,6 +63,11 @@ const MappingRuleOverviewHeader = React.createClass({
                 expanded: !this.state.expanded,
             })
         }
+    },
+    discardAll() {
+        this.setState({
+            editing: false,
+        });
     },
     render() {
 

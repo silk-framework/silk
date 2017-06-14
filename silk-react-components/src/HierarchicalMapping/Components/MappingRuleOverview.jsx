@@ -56,6 +56,12 @@ const MappingRuleOverview = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.handleRuleEditOpen);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+    },
+    discardAll() {
+        this.setState({
+            editing: [],
+        });
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -100,10 +106,10 @@ const MappingRuleOverview = React.createClass({
             const expanded = this.state.askForDiscard.expanded;
             hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
         }
+        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         this.setState({
-            editing: [],
             askForDiscard: false,
-        });
+        })
     },
     handleCancelDiscard(event) {
         event.stopPropagation();
