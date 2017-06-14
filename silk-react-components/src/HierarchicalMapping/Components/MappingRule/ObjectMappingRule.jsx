@@ -34,7 +34,9 @@ const RuleObjectEditView = React.createClass({
         rules: React.PropTypes.object,
         edit: React.PropTypes.bool.isRequired,
     },
-
+    componentDidMount() {
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleCloseEdit);
+    },
     getInitialState() {
         return {
             edit: !!this.props.edit,
@@ -48,7 +50,10 @@ const RuleObjectEditView = React.createClass({
             edit: !this.state.edit,
         })
     },
-
+    handleCloseEdit(obj) {
+        if (obj.id === this.props.id)
+            this.setState({edit: false})
+    },
     handleComplexEdit(event) {
         event.stopPropagation();
         alert('Normally this would open the complex editor (aka jsplumb view)')
