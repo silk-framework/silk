@@ -411,7 +411,7 @@ object JsonSerializers {
     */
   implicit object ObjectMappingJsonFormat extends JsonFormat[ObjectMapping] {
     final val SOURCE_PATH: String = "sourcePath"
-    final val TARGET_PROPERTY: String = "mappingTarget"
+    final val MAPPING_TARGET: String = "mappingTarget"
     final val RULES: String = "rules"
 
     /**
@@ -420,9 +420,9 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
       val name = identifier(value, "object")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
-      val mappingTarget = optionalValue(value, TARGET_PROPERTY).map(fromJson[MappingTarget])
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      ObjectMapping(name, sourcePath, mappingTarget.map(_.propertyUri), children)
+      ObjectMapping(name, sourcePath, mappingTarget, children)
     }
 
     /**
@@ -433,7 +433,7 @@ object JsonSerializers {
         TYPE -> JsString("object"),
         ID -> JsString(value.id),
         SOURCE_PATH -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
-        TARGET_PROPERTY -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
+        MAPPING_TARGET -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
         RULES -> toJson(value.rules)
       )
     }
