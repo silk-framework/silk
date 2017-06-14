@@ -157,8 +157,8 @@ if (!__DEBUG__) {
                 })
                 .subscribe(() => {
                         //TODO: Check that right events are fired
-                        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: id});
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+                        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: id});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving reule ${id}`, err);
@@ -176,9 +176,8 @@ if (!__DEBUG__) {
                 })
                 .subscribe((response) => {
                         //TODO: Check that right events are fired
-                        hierarchicalMappingChannel.subject('ruleView.created')
-                            .onNext({id: _.get(response, 'body.id')});
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+                        hierarchicalMappingChannel.subject('ruleEdit.created').onNext({id: _.get(response, 'body.id')});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving rule in ${parent}`, err);
@@ -223,7 +222,7 @@ if (!__DEBUG__) {
                     () => {
                         replySubject.onNext();
                         replySubject.onCompleted();
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     },
                     (err) => {
                         //TODO: Beautify
@@ -308,7 +307,7 @@ if (!__DEBUG__) {
     };
 
     const saveMockStore = () => {
-        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+        hierarchicalMappingChannel.subject('reload').onNext(true);
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
@@ -320,7 +319,7 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: payload.id});
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
 
             } else {
 

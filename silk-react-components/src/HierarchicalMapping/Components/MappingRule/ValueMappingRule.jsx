@@ -57,7 +57,7 @@ const RuleValueEditView = React.createClass({
     },
     handleClose(event) {
         event.stopPropagation();
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
     },
     // template rendering
     render () {

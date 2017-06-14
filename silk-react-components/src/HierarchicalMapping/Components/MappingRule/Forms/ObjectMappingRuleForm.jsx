@@ -113,9 +113,9 @@ const ObjectMappingRuleForm = React.createClass({
         const id = _.get(this.props, 'id', 0);
 
         if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id});
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
         } else {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
+            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
         }
 
         this.setState({
@@ -127,7 +127,7 @@ const ObjectMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
     // template rendering

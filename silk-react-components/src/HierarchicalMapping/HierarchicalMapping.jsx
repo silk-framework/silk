@@ -37,8 +37,8 @@ const HierarchicalMapping = React.createClass({
         // listen to rule id changes
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
         this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
 
         // listen to rule create event
@@ -134,7 +134,7 @@ const HierarchicalMapping = React.createClass({
     },
     handleDiscardChanges() {
         if (_.includes(this.state.editingElements, 0)) {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
+            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
         }
         this.setState({
             editingElements: [],
