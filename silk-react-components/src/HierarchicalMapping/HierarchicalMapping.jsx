@@ -3,7 +3,7 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
