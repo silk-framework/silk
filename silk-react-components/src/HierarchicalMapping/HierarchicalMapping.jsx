@@ -57,15 +57,20 @@ const HierarchicalMapping = React.createClass({
     },
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        this.setState({
-            editingElements: _.merge(this.state.editingElements, [id]),
-        });
+        if (!_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.concat(this.state.editingElements, [id]),
+            });
+        }
     },
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        this.setState({
-            editingElements: _.filter(this.state.editingElements, (e) => e !== id),
-        })
+        if (_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.filter(this.state.editingElements, (e) => e === id),
+            });
+        }
+
     },
     handleClickRemove({id, type, parent}) {
         this.setState({

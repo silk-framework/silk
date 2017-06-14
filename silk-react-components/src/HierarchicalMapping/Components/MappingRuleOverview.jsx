@@ -28,9 +28,11 @@ const MappingRuleOverview = React.createClass({
         });
     },
     handleRuleEditOpen({id}) {
-        this.setState({
-            editing: _.merge(this.state.editing, [id]),
-        })
+        if (!_.includes(this.state.editing, id)) {
+            this.setState({
+                editing: _.concat(this.state.editing, [id]),
+            });
+        }
     },
     handleRuleEditClose({id}) {
         this.setState({
