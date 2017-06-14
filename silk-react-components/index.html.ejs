@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE,chrome=1"/>
+    <meta charset="UTF-8"/>
+    <title>Loading...</title>
+    <!-- Setting rootPath correctly with thymeleaf in tomcat/war deployment: -->
+    <base th:href="@{/}" href="/"/>
+    <%
+    if (_.has(htmlWebpackPlugin, 'files.css') && !_.isEmpty(htmlWebpackPlugin.files.css)) {
+        print('<!-- main style -->\n    ');
+
+        var styles = _.map(htmlWebpackPlugin.files.css, function(file) {
+            return ('<link rel="stylesheet" type="text/css" th:href="@{/' + file + '}" href="' + file + '"/>');
+        });
+        print(styles.join('\n    '));
+    }
+    %>
+</head>
+
+<body>
+<div id="react"></div>
+
+<!-- fallback notification -->
+<noscript>
+    <p>
+        Please activate JavaScript, it is required to run eccenca DataManager.
+    </p>
+</noscript>
+
+<%
+if (htmlWebpackPlugin.options.addConfigJS) {
+    print('<!-- spring wrapper config -->\n');
+    print('<script type="text/javascript" th:src="@{/config.js}" src="config.js"></script>\n')
+}
+if (_.has(htmlWebpackPlugin, 'files.js') && !_.isEmpty(htmlWebpackPlugin.files.js)) {
+
+    print('<!-- app -->\n');
+
+    var scripts = _.map(htmlWebpackPlugin.files.js, function(file) {
+        return ('<script type="text/javascript" th:src="@{/' + file + '}" src="' + file + '"></script>');
+    });
+
+    print(scripts.join('\n'));
+}
+%>
+</body>
+
+</html>
