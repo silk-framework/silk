@@ -127,7 +127,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
                 DirectMapping("name", sourcePath = Path("name"), mappingTarget = MappingTarget("name")),
                 ObjectMapping(
                   sourcePath = Path.empty,
-                  targetProperty = Some("address"),
+                  target = Some(MappingTarget("address")),
                   rules = MappingRules(
                     uriRule = Some(UriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}")),
                     typeRules = Seq.empty,
