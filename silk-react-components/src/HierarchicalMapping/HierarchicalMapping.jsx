@@ -23,7 +23,7 @@ const HierarchicalMapping = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     // initilize state
@@ -67,7 +67,7 @@ const HierarchicalMapping = React.createClass({
         const id = _.get(obj, 'id', 0);
         if (_.includes(this.state.editingElements, id)) {
             this.setState({
-                editingElements: _.filter(this.state.editingElements, (e) => e === id),
+                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
             });
         }
 
@@ -162,7 +162,6 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
-
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}

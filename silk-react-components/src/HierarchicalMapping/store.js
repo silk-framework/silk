@@ -176,8 +176,9 @@ if (!__DEBUG__) {
                 })
                 .subscribe((response) => {
                         //TODO: Check that right events are fired
-                        hierarchicalMappingChannel.subject('ruleEdit.created').onNext({id: _.get(response, 'body.id')});
+
                         hierarchicalMappingChannel.subject('reload').onNext(true);
+                        hierarchicalMappingChannel.subject('ruleView.created').onNext({id: _.get(response, 'body.id')});
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving rule in ${parent}`, err);
@@ -320,6 +321,7 @@ if (!__DEBUG__) {
 
                 editRule(mockStore, data.id, payload);
                 hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
+                saveMockStore();
 
             } else {
 
@@ -327,11 +329,9 @@ if (!__DEBUG__) {
 
                 const parent = data.parentId ? data.parentId : mockStore.id;
                 appendToMockStore(mockStore, parent, payload);
-
+                saveMockStore();
                 hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
-
-            saveMockStore();
         }
     );
 
@@ -343,7 +343,8 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
+                saveMockStore();
             } else {
 
                 payload.id = Date.now() + "" + _.random(0, 100, false);
@@ -352,9 +353,11 @@ if (!__DEBUG__) {
                 const parent = data.parentId ? data.parentId : mockStore.id;
 
                 appendToMockStore(mockStore, parent, payload);
+                saveMockStore();
+                hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
 
-            saveMockStore();
+
         }
     );
 

@@ -35,7 +35,7 @@ const TreeView = React.createClass({
     expandElement({parent}){
         if (!_.isUndefined(parent) && !_.includes(this.state.expanded, {[parent]:true})) {
             this.setState({
-                expanded: _.concat(this.state.expanded, {[parent]: true}),
+                expanded: _.merge(this.state.expanded, {[parent]: true}),
             })
         }
     },
