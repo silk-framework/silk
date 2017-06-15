@@ -51,7 +51,7 @@ const ObjectMappingRuleForm = React.createClass({
                             sourceProperty: _.get(rule, 'sourceProperty', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
-                            entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
+                            entityConnection: _.get(rule, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
                         };

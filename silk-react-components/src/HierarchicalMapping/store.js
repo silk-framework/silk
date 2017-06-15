@@ -73,7 +73,7 @@ const prepareObjectMappingPayload = (data) => {
         },
         "mappingTarget": {
             "uri": data.targetProperty,
-            "inverse": data.entityConnection,
+            "isBackwardProperty": data.entityConnection,
             "valueType": {
                 "nodeType": "UriValueType",
             }

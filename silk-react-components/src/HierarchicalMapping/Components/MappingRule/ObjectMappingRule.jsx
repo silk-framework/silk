@@ -102,7 +102,7 @@ const RuleObjectEditView = React.createClass({
 
             entityRelation = (
                 <RadioGroup
-                    value={_.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from'}
+                    value={_.get(this.props, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from'}
                     name=""
                     disabled={true}
                 >

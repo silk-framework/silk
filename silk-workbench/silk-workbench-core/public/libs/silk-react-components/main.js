@@ -6926,7 +6926,7 @@
             },
             mappingTarget: {
                 uri: data.targetProperty,
-                inverse: data.entityConnection,
+                isBackwardProperty: data.entityConnection,
                 valueType: {
                     nodeType: "UriValueType"
                 }
@@ -17971,7 +17971,7 @@
                     sourceProperty: _lodash2.default.get(rule, "sourceProperty", void 0),
                     comment: _lodash2.default.get(rule, "metadata.description", ""),
                     targetEntityType: _lodash2.default.get(rule, "rules.typeRules[0].typeUri", void 0),
-                    entityConnection: _lodash2.default.get(rule, "mappingTarget.inverse", !1) ? "to" : "from",
+                    entityConnection: _lodash2.default.get(rule, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     pattern: _lodash2.default.get(rule, "rules.uriRule.pattern", ""),
                     type: _lodash2.default.get(rule, "type")
                 };
@@ -18346,7 +18346,7 @@
                     id: _lodash2.default.get(this.props, "mappingTarget.uri", void 0)
                 })))));
                 entityRelation = _react2.default.createElement(_eccGuiElements.RadioGroup, {
-                    value: _lodash2.default.get(this.props, "mappingTarget.inverse", !1) ? "to" : "from",
+                    value: _lodash2.default.get(this.props, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     name: "",
                     disabled: !0
                 }, _react2.default.createElement(_eccGuiElements.Radio, {
