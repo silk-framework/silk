@@ -9,19 +9,17 @@ import org.silkframework.workspace.activity.transform.{MappingCandidate, Mapping
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
+import scala.language.implicitConversions
 
 /**
   * Generates auto completions for mapping paths and types.
   */
 class AutoCompletionApi extends Controller {
 
-  // The maximum number of completions that will be returned after filtering
-  private val maxCompletions = 30
-
   /**
     * Given a search term, returns all possible completions for source property paths.
     */
-  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
@@ -33,7 +31,7 @@ class AutoCompletionApi extends Controller {
     completions += prefixCompletions(project.config.prefixes)
 
     // Return filtered result
-    Ok(completions.filter(term).toJson)
+    Ok(completions.filter(term, maxResults).toJson)
   }
 
   /**
@@ -44,12 +42,12 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val completions = vocabularyPropertyCompletions(task)
 
-    Ok(completions.filter(term).toJson)
+    Ok(completions.filter(term, maxResults).toJson)
   }
 
   /**
@@ -60,12 +58,12 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val completions = vocabularyTypeCompletions(task)
 
-    Ok(completions.filter(term).toJson)
+    Ok(completions.filter(term, maxResults).toJson)
   }
 
   /**
@@ -281,10 +279,10 @@ class AutoCompletionApi extends Controller {
     /**
       * Filters all completions using a search term.
       */
-    def filter(term: String): Completions = {
+    def filter(term: String, maxResults: Int): Completions = {
       if (term.isEmpty) {
         // If the term is empty, return some completions anyway
-        Completions(values.take(maxCompletions))
+        Completions(values.take(maxResults))
       } else {
         // Filter all completions that match the search term
         val normalizedTerm = normalizeTerm(term)
