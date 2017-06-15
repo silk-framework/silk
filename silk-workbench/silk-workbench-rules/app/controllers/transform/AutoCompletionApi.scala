@@ -1,42 +1,71 @@
 package controllers.transform
 
-import org.silkframework.config.Prefixes
+import controllers.transform.AutoCompletionApi.Categories
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.activity.TaskActivity
-import org.silkframework.workspace.activity.transform.{MappingCandidates, VocabularyCache}
-import org.silkframework.workspace.{Project, ProjectTask}
-import play.api.libs.json.{JsValue, Json}
+import org.silkframework.workspace.activity.transform.{MappingCandidate, MappingCandidates, TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.{Project, ProjectTask, User}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, Controller}
 
 /**
-  * Generates autocompletions for mapping target paths.
+  * Generates auto completions for mapping paths and types.
   */
-object TargetAutoCompletion {
+class AutoCompletionApi extends Controller {
+
+  // The maximum number of completions that will be returned after filtering
+  private val maxCompletions = 30
+
+  /**
+    * Given a search term, returns all possible completions for source property paths.
+    */
+  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    var completions = Completions()
+
+    // Add known paths
+    completions += pathsCacheCompletions(task)
+
+    // Add known prefixes last
+    completions += prefixCompletions(project.config.prefixes)
+
+    // Return filtered result
+    Ok(completions.filter(term).toJson)
+  }
 
   /**
     * Given a search term, returns possible completions for target paths.
     *
-    * @param project The project
-    * @param task The transformation
-    * @param sourcePath The source path to be completed. If none, types will be suggested
-    * @param term The search term
-    * @return The completions as Json.
+    * @param projectName The name of the project
+    * @param taskName    The name of the transformation
+    * @param term        The search term
+    * @return
     */
-  def retrieve(project: Project, task: ProjectTask[TransformSpec], sourcePath: Option[String], term: String): Seq[Completion] = {
-    // The maximum number of completions that will be returned
-    val maxCompletions = 30
+  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    val completions = vocabularyPropertyCompletions(task)
 
-    // Retrieve all available completions
-    val completions = retrieveAllCompletions(project, task, sourcePath)
+    Ok(completions.filter(term).toJson)
+  }
 
-    if (term.isEmpty) {
-      // If the term is empty, return some completions anyway
-      completions.take(maxCompletions)
-    } else {
-      // Filter all completions that match the search term
-      val normalizedTerm = normalizeTerm(term)
-      completions.filter(_.matches(normalizedTerm))
-    }
+  /**
+    * Given a search term, returns possible completions for target paths.
+    *
+    * @param projectName The name of the project
+    * @param taskName    The name of the transformation
+    * @param term        The search term
+    * @return
+    */
+  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    val completions = vocabularyTypeCompletions(task)
+
+    Ok(completions.filter(term).toJson)
   }
 
   /**
@@ -59,9 +88,11 @@ object TargetAutoCompletion {
       case None =>
         retrieveTypeCompletions(task)
     }
-    val prefixCompletions = retrievePrefixCompletions(project.config.prefixes)
+    //val prefixCompletions = prefixCompletions(project.config.prefixes)
 
-    mappingCompletions ++ prefixCompletions
+    // mappingCompletions ++ prefixCompletions
+
+    ???
   }
 
   /**
@@ -156,23 +187,115 @@ object TargetAutoCompletion {
     *
     * @return The completions, sorted alphabetically
     */
-  private def retrievePrefixCompletions(prefixes: Prefixes): Seq[Completion] = {
-    for(prefix <- prefixes.prefixMap.keys.toSeq.sorted) yield {
-      Completion(
-        value = prefix + ":",
-        label = Some(prefix + ":"),
-        description = None,
-        category = "Prefixes",
-        isCompletion = true
-      )
+  private def prefixCompletions(prefixes: Prefixes): Completions = {
+    Completions(
+      for(prefix <- prefixes.prefixMap.keys.toSeq.sorted) yield {
+        Completion(
+          value = prefix + ":",
+          label = Some(prefix + ":"),
+          description = None,
+          category = Categories.prefixes,
+          isCompletion = true
+        )
+      }
+    )
+  }
+
+  private def pathsCacheCompletions(task: ProjectTask[TransformSpec]): Completions = {
+    if (Option(task.activity[TransformPathsCache].value).isDefined) {
+      val paths = task.activity[TransformPathsCache].value.typedPaths
+      val serializedPaths = paths.map(_.path.serializeSimplified(task.project.config.prefixes)).sorted
+      for(pathStr <- serializedPaths) yield {
+        Completion(
+          value = pathStr,
+          label = None,
+          description = None,
+          category = Categories.sourcePaths,
+          isCompletion = true
+        )
+      }
+    } else {
+      Completions()
     }
+  }
+
+  private def vocabularyTypeCompletions(task: ProjectTask[TransformSpec]): Completions = {
+    val prefixes = task.project.config.prefixes
+    val vocabularyCache = task.activity[VocabularyCache].value
+
+    val typeCompletions =
+      for(vocab <- vocabularyCache.vocabularies; vocabClass <- vocab.classes) yield {
+        Completion(
+          value = prefixes.shorten(vocabClass.info.uri.toString),
+          label = vocabClass.info.label,
+          description = vocabClass.info.description,
+          category = Categories.vocabularyTypes,
+          isCompletion = true
+        )
+      }
+
+    typeCompletions.distinct
+  }
+
+  private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec]): Completions = {
+    val prefixes = task.project.config.prefixes
+    val vocabularyCache = task.activity[VocabularyCache].value
+
+    val propertyCompletions =
+      for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {
+        Completion(
+          value = prefixes.shorten(prop.info.uri.toString),
+          label = prop.info.label,
+          description = prop.info.description,
+          category = Categories.vocabularyProperties,
+          isCompletion = true
+        )
+      }
+
+    propertyCompletions.distinct
   }
 
   /**
     * Normalizes a term.
     */
-  def normalizeTerm(term: String): String = {
+  private def normalizeTerm(term: String): String = {
     term.toLowerCase.filterNot(_.isWhitespace)
+  }
+
+  private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
+
+  /**
+    * A list of auto completions.
+    */
+  case class Completions(values: Seq[Completion] = Seq.empty) {
+
+    import Completions._
+
+    /**
+      * Adds another list of completions to this one and returns the result.
+      */
+    def +(completions: Completions): Completions = {
+      Completions(values ++ completions.values)
+    }
+
+    /**
+      * Filters all completions using a search term.
+      */
+    def filter(term: String): Completions = {
+      if (term.isEmpty) {
+        // If the term is empty, return some completions anyway
+        Completions(values.take(maxCompletions))
+      } else {
+        // Filter all completions that match the search term
+        val normalizedTerm = normalizeTerm(term)
+        Completions(values.filter(_.matches(normalizedTerm)))
+      }
+    }
+
+    def toJson: JsValue = {
+      JsArray(values.map(_.toJson))
+    }
+
   }
 
   /**
@@ -194,7 +317,7 @@ object TargetAutoCompletion {
       case Some(existingLabel) =>
         existingLabel
       case None =>
-        value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1)
+        value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1).filterNot(_ == '>')
     }
 
     /**
@@ -218,6 +341,25 @@ object TargetAutoCompletion {
 
   }
 
+
+}
+
+object AutoCompletionApi {
+
+  /**
+    * The names of the auto completion categories.
+    */
+  object Categories {
+
+    val prefixes = "Prefixes"
+
+    val sourcePaths = "Source Paths"
+
+    val vocabularyTypes = "Vocabulary Types"
+
+    val vocabularyProperties = "Vocabulary Properties"
+
+  }
 
 }
 

@@ -11,7 +11,7 @@ import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, JsBoolean}
 import play.api.mvc._
 
 import scala.language.existentials

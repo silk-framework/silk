@@ -89,13 +89,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     *
     * @param projectId
     */
-  def addProjectPrefixes(projectId: String): WSResponse = {
+  def addProjectPrefixes(projectId: String, extraPrefixes: Map[String, String] = Map.empty): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
     val response = request.put(Map(
       "rdf" -> Seq("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
       "rdfs" -> Seq("http://www.w3.org/2000/01/rdf-schema#"),
       "owl" -> Seq("http://www.w3.org/2002/07/owl#"),
-      "source" -> Seq("https://ns.eccenca.com/source"),
+      "source" -> Seq("https://ns.eccenca.com/source/"),
       "loan" -> Seq("http://eccenca.com/ds/loans/"),
       "stat" -> Seq("http://eccenca.com/ds/unemployment/"),
       // TODO Currently the default mapping generator maps all properties to this namespace
@@ -103,7 +103,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
       "loans" -> Seq("http://eccenca.com/ds/loans/"),
       "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
-    ))
+    ) ++ extraPrefixes.mapValues(Seq(_)))
     checkResponse(response)
   }
 
