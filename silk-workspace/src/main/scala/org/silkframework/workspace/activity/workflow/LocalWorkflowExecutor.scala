@@ -64,9 +64,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def clearOutputDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
     // Clear all internal datasets and input datasets that are configured so
-    for (datasetTask <- workflow.outputDatasets(project)
-         if datasetTask.data.isInstanceOf[InternalDatasetTrait] ||
-             datasetTask.data.isInstanceOf[ClearableDatasetGraphTrait]) {
+    for (datasetTask <- workflow.outputDatasets(project)) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       usedDatasetTask.data match {
         case cdd: ClearableDatasetGraphTrait =>
