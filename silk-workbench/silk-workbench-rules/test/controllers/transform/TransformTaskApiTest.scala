@@ -62,8 +62,21 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             }
           },
           "metaData" : {
-            "label" : "My direct rule",
-            "description" : "Description of direct rule"
+            "label" : "direct rule label",
+            "description" : "direct rule description"
+          }
+        }
+      """
+    }
+  }
+
+  "Update meta data of direct mapping rule" in {
+    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
+      """
+        {
+          "metaData" : {
+            "label" : "updated direct rule label",
+            "description" : "updated direct rule description"
           }
         }
       """
@@ -132,8 +145,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "isBackwardProperty" : false
               },
               "metaData" : {
-                "label" : "My direct rule",
-                "description" : "Description of direct rule"
+                "label" : "updated direct rule label",
+                "description" : "updated direct rule description"
               }
             }, {
               "type" : "object",
