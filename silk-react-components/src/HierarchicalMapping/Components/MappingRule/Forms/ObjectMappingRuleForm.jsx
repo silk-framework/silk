@@ -161,7 +161,7 @@ const ObjectMappingRuleForm = React.createClass({
             targetPropertyInput = (
                 (
                     <SelectBox
-                        placeholder={'Choose target property'}
+                        placeholder={'Target property'}
                         className="ecc-silk-mapping__ruleseditor__targetProperty"
                         options={[
                             'direct:address',
@@ -228,7 +228,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 {targetPropertyInput}
                                 {entityRelationInput}
                                 <SelectBox
-                                    placeholder={'Choose target entity type'}
+                                    placeholder={'Target entity type'}
                                     className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
                                     options={['http://xmlns.com/foaf/0.1/Person', 'http://schema.org/Country', 'http://schema.org/Address']}
                                     value={this.state.targetEntityType}

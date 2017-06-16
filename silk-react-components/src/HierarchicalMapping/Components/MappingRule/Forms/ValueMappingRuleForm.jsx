@@ -178,7 +178,7 @@ const ValueMappingRuleForm = React.createClass({
                     {title}
                     <div className="mdl-card__content">
                         <SelectBox
-                            placeholder={'Choose target property'}
+                            placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             options={[
                                 'http://xmlns.com/foaf/0.1/name',
@@ -189,7 +189,7 @@ const ValueMappingRuleForm = React.createClass({
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
                         <SelectBox
-                            placeholder={'Choose property type'}
+                            placeholder={'Property type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             options={[
                                 "AutoDetectValueType",
