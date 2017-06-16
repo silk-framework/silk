@@ -94,6 +94,11 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       else
         fallbackResource.load
     }
+
+    /**
+      * Deletes this resource.
+      */
+    override def delete(): Unit = primaryResource.delete()
   }
 
 }

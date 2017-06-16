@@ -62,6 +62,4 @@ case class XmlDataset(
   override def linkSink: LinkSink = throw new NotImplementedError("XMLs cannot be written at the moment")
 
   override def entitySink: EntitySink = throw new NotImplementedError("XMLs cannot be written at the moment")
-
-  override def clear() = { }
 }

@@ -98,6 +98,11 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     override def write(bytes: Array[Byte]): Unit = {
       resources += ((name, bytes))
     }
+
+    override def delete(): Unit = {
+      resources -= name
+      children -= name
+    }
   }
 
 }

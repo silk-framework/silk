@@ -69,14 +69,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
              datasetTask.data.isInstanceOf[ClearableDatasetGraphTrait]) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       usedDatasetTask.data match {
-        case idd: InternalDatasetTrait =>
-          idd.clear()
         case cdd: ClearableDatasetGraphTrait =>
           if(cdd.clearGraphBeforeExecution) {
             cdd.clearGraph()
           }
-        case other: Dataset =>
-          log.warning("Unhandled input dataset type: " + other.getClass.getName)
+        case idd: Dataset =>
+          idd.entitySink.clear()
       }
     }
   }

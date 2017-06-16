@@ -40,8 +40,6 @@ class DatasetTask(val id: Identifier,
 
   lazy val linkSink: LinkSink = new LinkSinkWrapper
 
-  def clear(): Unit = plugin.clear()
-
   override def equals(obj: Any): Boolean = obj match {
     case ds: DatasetTask =>
       id == ds.id && plugin == ds.plugin &&
@@ -90,6 +88,11 @@ class DatasetTask(val id: Identifier,
       isOpen = false
       log.info(s"Wrote $entityCount entities.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   private class LinkSinkWrapper extends LinkSink {
@@ -130,6 +133,11 @@ class DatasetTask(val id: Identifier,
       isOpen = false
       log.info(s"Wrote $linkCount links.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   /** The task specification that holds the actual task specification. */

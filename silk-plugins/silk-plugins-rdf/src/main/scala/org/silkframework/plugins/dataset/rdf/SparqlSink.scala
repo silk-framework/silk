@@ -85,6 +85,12 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
+  override def clear(): Unit = {
+    for(graph <- params.graph) {
+      endpoint.update(s"DROP SILENT GRAPH <$graph>")
+    }
+  }
+
   def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
     if(body.isEmpty) {
       beginSparul(true)

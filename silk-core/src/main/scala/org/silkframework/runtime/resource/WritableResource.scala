@@ -43,4 +43,9 @@ trait WritableResource extends Resource {
     }
   }
 
+  /**
+    * Deletes this resource.
+    */
+  def delete(): Unit
+
 }

@@ -39,4 +39,9 @@ class FileResource(val file: File) extends WritableResource {
     outputStream.flush()
     outputStream.close()
   }
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = file.delete()
 }

@@ -27,4 +27,11 @@ class FormattedJenaLinkSink(model: Model,
   override def close(): Unit = {
     // Let the caller close this model
   }
+
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  override def clear(): Unit = {
+    model.removeAll()
+  }
 }

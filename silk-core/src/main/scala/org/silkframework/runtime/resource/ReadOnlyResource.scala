@@ -24,4 +24,9 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
   }
 
   override def toString = resource.toString
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = throw new UnsupportedOperationException("This resource is read-only cannot be deleted.")
 }

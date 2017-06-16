@@ -61,4 +61,11 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
         // Nothing to be done
     }
   }
+
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  override def clear(): Unit = {
+    resource.delete()
+  }
 }

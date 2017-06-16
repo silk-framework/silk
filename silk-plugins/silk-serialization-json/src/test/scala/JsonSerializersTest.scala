@@ -32,7 +32,6 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
 case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
   override def source: DataSource = ???
-  override def clear(): Unit = ???
   override def linkSink: LinkSink = ???
   override def entitySink: EntitySink = ???
 }

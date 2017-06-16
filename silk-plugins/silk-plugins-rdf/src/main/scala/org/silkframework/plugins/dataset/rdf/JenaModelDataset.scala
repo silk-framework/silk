@@ -21,13 +21,6 @@ case class JenaModelDataset(model: Model) extends RdfDataset {
   }
 
   /**
-    * Makes sure that the next write will start from an empty dataset.
-    */
-  override def clear(): Unit = {
-    model.removeAll()
-  }
-
-  /**
     * Returns a link sink for writing entity links to the data set.
     */
   override def linkSink: LinkSink = {
