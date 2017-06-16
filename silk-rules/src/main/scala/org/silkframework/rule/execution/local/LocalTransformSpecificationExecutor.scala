@@ -52,7 +52,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
-            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).toIndexedSeq
+            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
           )
 
         transformEntities(childRules, childOutputSchema, context)

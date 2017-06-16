@@ -177,6 +177,16 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     createDataset(projectId, datasetId, datasetConfig)
   }
 
+  def createRdfDumpDataset(projectId: String, datasetId: String, fileResourceId: String, format: String = "N-Triples", graph: String = ""): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="file">
+        <Param name="file" value={fileResourceId}/>
+        <Param name="format" value={format}/>
+        <Param name="graph" value={graph}/>
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
   def createSparkViewDataset(projectId: String, datasetId: String, viewName: String): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="sparkView">
