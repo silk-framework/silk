@@ -1,5 +1,9 @@
 .ecc-silk-mapping {
     margin: 1rem;
+
+    .Select-menu-outer {
+        z-index: 3;
+    }
 }
 
 .ecc-silk-mapping__header {
