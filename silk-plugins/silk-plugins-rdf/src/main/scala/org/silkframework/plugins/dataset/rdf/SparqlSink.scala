@@ -86,8 +86,11 @@ class SparqlSink(params: SparqlParams,
   }
 
   override def clear(): Unit = {
-    for(graph <- params.graph) {
-      endpoint.update(s"DROP SILENT GRAPH <$graph>")
+    params.graph match {
+      case Some(graph) =>
+        endpoint.update(s"DROP SILENT GRAPH <$graph>")
+      case None =>
+        endpoint.update(s"DROP SILENT DEFAULT")
     }
   }
 
