@@ -17,7 +17,7 @@ import {
     ThingDescription,
 } from './SharedComponents';
 
-const RuleValueEditView = React.createClass({
+const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -215,4 +215,4 @@ const RuleValueEditView = React.createClass({
 
 });
 
-export default RuleValueEditView;
+export default RuleValueView;
