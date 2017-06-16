@@ -67,6 +67,14 @@ const prepareValueMappingPayload = (data) => {
 };
 
 const prepareObjectMappingPayload = (data) => {
+
+    const typeRules = _.map(data.targetEntityType, ({value}) => {
+       return  {
+           "type": "type",
+           "typeUri": value,
+       }
+    });
+
     const payload = {
         "metadata": {
             description: data.comment,
@@ -84,12 +92,7 @@ const prepareObjectMappingPayload = (data) => {
                 "type": "uri",
                 "pattern": data.pattern
             } : null,
-            "typeRules": [
-                {
-                    "type": "type",
-                    "typeUri": data.targetEntityType,
-                }
-            ],
+            "typeRules": typeRules,
         }
     };
 

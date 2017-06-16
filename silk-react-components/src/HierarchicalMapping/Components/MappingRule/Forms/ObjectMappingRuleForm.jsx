@@ -49,7 +49,10 @@ const ObjectMappingRuleForm = React.createClass({
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
                             sourceProperty: _.get(rule, 'sourceProperty', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
-                            targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
+                            targetEntityType: _.chain(rule)
+                                .get('rules.typeRules', [])
+                                .map('typeUri')
+                                .value(),
                             entityConnection: _.get(rule, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
@@ -233,7 +236,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
                                     options={['http://xmlns.com/foaf/0.1/Person', 'http://schema.org/Country', 'http://schema.org/Address']}
                                     value={this.state.targetEntityType}
-                                    //multi={true} // allow multi selection
+                                    multi={true} // allow multi selection
                                     creatable={true}
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
