@@ -168,6 +168,7 @@ const ObjectMappingRuleForm = React.createClass({
                             'direct:country',
                             'direct:friend',
                         ]}
+                        creatable={true}
                         value={this.state.targetProperty}
                         onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                     />
@@ -233,6 +234,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     options={['http://xmlns.com/foaf/0.1/Person', 'http://schema.org/Country', 'http://schema.org/Address']}
                                     value={this.state.targetEntityType}
                                     //multi={true} // allow multi selection
+                                    creatable={true}
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
                                 <TextField

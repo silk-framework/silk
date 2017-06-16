@@ -185,6 +185,7 @@ const ValueMappingRuleForm = React.createClass({
                                 'http://xmlns.com/foaf/0.1/knows',
                                 'http://xmlns.com/foaf/0.1/familyName',
                             ]}
+                            creatable={true}
                             value={this.state.targetProperty}
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
