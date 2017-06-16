@@ -104,6 +104,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
+    * Updates the meta data of this task.
+    */
+  def update(metaData: MetaData): Unit = synchronized {
+    // Update data
+    currentMetaData = metaData
+    // (Re)Schedule write
+    for (writer <- scheduledWriter) {
+      writer.cancel(false)
+    }
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    log.info("Updated task '" + id + "'")
+  }
+
+  /**
     * All activities that belong to this task.
     */
   def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
@@ -164,6 +178,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
   }
 
+  override def toString: String = {
+    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+  }
 }
 
 object ProjectTask {
