@@ -6980,12 +6980,10 @@
                 payload: payload
             })
         }).subscribe(function() {
-            hierarchicalMappingChannel.subject("ruleView.closed").onNext({
+            hierarchicalMappingChannel.subject("ruleView.unchanged").onNext({
                 id: id
             });
-            hierarchicalMappingChannel.subject("reload").onNext({
-                rerender: !0
-            });
+            hierarchicalMappingChannel.subject("reload").onNext(!0);
         }, function(err) {
             console.warn("Error saving reule " + id, err);
             alert("Error saving rule " + id);
@@ -6996,11 +6994,9 @@
                 payload: payload
             })
         }).subscribe(function(response) {
+            hierarchicalMappingChannel.subject("reload").onNext(!0);
             hierarchicalMappingChannel.subject("ruleView.created").onNext({
                 id: _lodash2.default.get(response, "body.id")
-            });
-            hierarchicalMappingChannel.subject("reload").onNext({
-                rerender: !0
             });
         }, function(err) {
             console.warn("Error saving rule in " + parent, err);
@@ -7025,9 +7021,7 @@
         }).subscribe(function() {
             replySubject.onNext();
             replySubject.onCompleted();
-            hierarchicalMappingChannel.subject("reload").onNext({
-                rerender: !0
-            });
+            hierarchicalMappingChannel.subject("reload").onNext(!0);
         }, function(err) {
             console.warn("Error saving rule in " + id, err);
             alert("Error creating rule in " + id);
@@ -17944,8 +17938,7 @@
         displayName: "ObjectMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
-            id: _react2.default.PropTypes.string,
-            onClose: _react2.default.PropTypes.func.isRequired
+            id: _react2.default.PropTypes.string
         },
         getInitialState: function() {
             return {
@@ -18021,9 +18014,9 @@
             _objectWithoutProperties3.default)(_state, [ "initialValues", "create" ]);
             currValues[name] = value;
             var touched = create || (0, _helpers.wasTouched)(initialValues, currValues), id = _lodash2.default.get(this.props, "id", 0);
-            touched ? _store2.default.subject("ruleView.edit").onNext({
+            touched ? _store2.default.subject("ruleView.change").onNext({
                 id: id
-            }) : _store2.default.subject("ruleView.closed").onNext({
+            }) : _store2.default.subject("ruleView.unchanged").onNext({
                 id: id
             });
             this.setState((_setState = {}, _setState[name] = value, _setState.changed = touched, 
@@ -18031,9 +18024,11 @@
         },
         handleClose: function(event) {
             event.stopPropagation();
-            _lodash2.default.isFunction(this.props.onClose) ? this.props.onClose() : console.warn("ValueMappingRuleForm: No onClose");
             var id = _lodash2.default.get(this.props, "id", 0);
-            _store2.default.subject("ruleView.closed").onNext({
+            _store2.default.subject("ruleView.unchanged").onNext({
+                id: id
+            });
+            _store2.default.subject("ruleView.close").onNext({
                 id: id
             });
         },
@@ -18123,8 +18118,7 @@
         displayName: "ValueMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
-            id: _react2.default.PropTypes.string,
-            onClose: _react2.default.PropTypes.func.isRequired
+            id: _react2.default.PropTypes.string
         },
         getInitialState: function() {
             return {
@@ -18194,9 +18188,9 @@
             _objectWithoutProperties3.default)(_state, [ "initialValues", "create" ]);
             currValues[name] = value;
             var touched = create || (0, _helpers.wasTouched)(initialValues, currValues), id = _lodash2.default.get(this.props, "id", 0);
-            touched ? _store2.default.subject("ruleView.edit").onNext({
+            touched ? _store2.default.subject("ruleView.change").onNext({
                 id: id
-            }) : _store2.default.subject("ruleView.closed").onNext({
+            }) : _store2.default.subject("ruleView.unchanged").onNext({
                 id: id
             });
             this.setState((_setState = {}, _setState[name] = value, _setState.changed = touched, 
@@ -18204,9 +18198,11 @@
         },
         handleClose: function(event) {
             event.stopPropagation();
-            _lodash2.default.isFunction(this.props.onClose) ? this.props.onClose() : console.warn("ValueMappingRuleForm: No onClose");
             var id = _lodash2.default.get(this.props, "id", 0);
-            _store2.default.subject("ruleView.closed").onNext({
+            _store2.default.subject("ruleView.unchanged").onNext({
+                id: id
+            });
+            _store2.default.subject("ruleView.close").onNext({
                 id: id
             });
         },
@@ -18295,8 +18291,10 @@
             parentName: _react2.default.PropTypes.string.isRequired,
             type: _react2.default.PropTypes.string,
             rules: _react2.default.PropTypes.object,
-            onClose: _react2.default.PropTypes.func,
             edit: _react2.default.PropTypes.bool.isRequired
+        },
+        componentDidMount: function() {
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.handleCloseEdit);
         },
         getInitialState: function() {
             return {
@@ -18308,6 +18306,11 @@
                 edit: !this.state.edit
             });
         },
+        handleCloseEdit: function(obj) {
+            obj.id === this.props.id && this.setState({
+                edit: !1
+            });
+        },
         handleComplexEdit: function(event) {
             event.stopPropagation();
             alert("Normally this would open the complex editor (aka jsplumb view)");
@@ -18317,12 +18320,7 @@
             if (this.state.edit) return _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 id: this.props.id,
                 parentName: this.props.parentName,
-                parentId: this.props.parentId,
-                onClose: function() {
-                    return _this.setState({
-                        edit: !1
-                    });
-                }
+                parentId: this.props.parentId
             });
             var targetProperty = !1, entityRelation = !1, deleteButton = !1;
             if ("root" !== type) {
@@ -21039,6 +21037,14 @@
             transformTask: _react2.default.PropTypes.string.isRequired,
             initialRule: _react2.default.PropTypes.string
         },
+        componentDidMount: function() {
+            this.subscribe(_store2.default.subject("ruleId.change"), this.onRuleNavigation);
+            this.subscribe(_store2.default.subject("removeClick"), this.handleClickRemove);
+            this.subscribe(_store2.default.subject("ruleView.change"), this.onOpenEdit);
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.close"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
+        },
         getInitialState: function() {
             var _props = this.props, baseUrl = _props.baseUrl, project = _props.project, transformTask = _props.transformTask;
             _props.initialRule;
@@ -21047,15 +21053,9 @@
                 project: project,
                 transformTask: transformTask
             });
-            this.subscribe(_store2.default.subject("ruleId.change"), this.onRuleNavigation);
-            this.subscribe(_store2.default.subject("removeClick"), this.handleClickRemove);
-            this.subscribe(_store2.default.subject("ruleView.edit"), this.onOpenEdit);
-            this.subscribe(_store2.default.subject("ruleView.closed"), this.onCloseEdit);
-            this.subscribe(_store2.default.subject("ruleId.create"), this.onOpenEdit);
             return {
                 currentRuleId: "root",
                 showNavigation: !0,
-                ruleEditView: !1,
                 elementToDelete: !1,
                 editingElements: [],
                 askForDiscard: !1
@@ -21063,14 +21063,13 @@
         },
         onOpenEdit: function(obj) {
             var id = _lodash2.default.get(obj, "id", 0);
-            this.setState({
-                editingElements: _lodash2.default.merge(this.state.editingElements, [ id ])
+            _lodash2.default.includes(this.state.editingElements, id) || this.setState({
+                editingElements: _lodash2.default.concat(this.state.editingElements, [ id ])
             });
         },
         onCloseEdit: function(obj) {
             var id = _lodash2.default.get(obj, "id", 0);
-            console.log("remove " + id + "from editingElements");
-            this.setState({
+            _lodash2.default.includes(this.state.editingElements, id) && this.setState({
                 editingElements: _lodash2.default.filter(this.state.editingElements, function(e) {
                     return e !== id;
                 })
@@ -21114,14 +21113,11 @@
         },
         onRuleNavigation: function(_ref2) {
             var newRuleId = _ref2.newRuleId;
-            if (newRuleId === this.state.currentRuleId) ; else if (0 === this.state.editingElements.length) this.setState({
+            newRuleId === this.state.currentRuleId || (0 === this.state.editingElements.length ? this.setState({
                 currentRuleId: newRuleId
-            }); else {
-                console.log("editing ", this.state.editingElements);
-                this.setState({
-                    askForDiscard: newRuleId
-                });
-            }
+            }) : this.setState({
+                askForDiscard: newRuleId
+            }));
         },
         handleToggleNavigation: function() {
             this.setState({
@@ -21129,13 +21125,19 @@
             });
         },
         handleDiscardChanges: function() {
-            _lodash2.default.includes(this.state.editingElements, 0) && _store2.default.subject("ruleView.closed").onNext({
+            _lodash2.default.includes(this.state.editingElements, 0) && _store2.default.subject("ruleView.unchanged").onNext({
                 id: 0
             });
             this.setState({
                 editingElements: [],
                 currentRuleId: this.state.askForDiscard,
                 askForDiscard: !1
+            });
+            _store2.default.subject("ruleView.discardAll").onNext();
+        },
+        discardAll: function() {
+            this.setState({
+                editingElements: []
             });
         },
         handleCancelDiscard: function() {
@@ -21144,7 +21146,7 @@
             });
         },
         render: function() {
-            var ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {}, treeView = !!this.state.showNavigation && _react2.default.createElement(_TreeView2.default, {
+            var treeView = !!this.state.showNavigation && _react2.default.createElement(_TreeView2.default, {
                 currentRuleId: this.state.currentRuleId
             }), deleteView = !!this.state.elementToDelete && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
@@ -21180,8 +21182,7 @@
             }, this.state.showNavigation ? "Hide tree navigation" : "Show tree navigation"))), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__content"
             }, treeView, _react2.default.createElement(_MappingRuleOverview2.default, {
-                currentRuleId: this.state.currentRuleId,
-                ruleEditView: (0, _extends3.default)({}, ruleEdit)
+                currentRuleId: this.state.currentRuleId
             }))));
         }
     });
@@ -21232,8 +21233,9 @@
                     expanded: expanded
                 });
             });
-            this.subscribe(_store2.default.subject("ruleView.edit"), this.onOpenEdit);
-            this.subscribe(_store2.default.subject("ruleView.closed"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.change"), this.onOpenEdit);
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
         },
         onOpenEdit: function(obj) {
             _lodash2.default.isEqual(this.props.id, obj.id) && this.setState({
@@ -21258,12 +21260,17 @@
                 expanded: !this.state.expanded
             });
         },
+        discardAll: function() {
+            this.setState({
+                editing: !1
+            });
+        },
         handleDiscardChanges: function() {
             this.setState({
                 expanded: !this.state.expanded,
                 askForDiscard: !1
             });
-            _store2.default.subject("ruleView.closed").onNext({
+            _store2.default.subject("ruleView.unchanged").onNext({
                 id: this.props.id
             });
         },
@@ -21380,8 +21387,15 @@
             type: _react2.default.PropTypes.string,
             sourcePath: _react2.default.PropTypes.string,
             mappingTarget: _react2.default.PropTypes.object,
-            onClose: _react2.default.PropTypes.func,
             edit: _react2.default.PropTypes.bool.isRequired
+        },
+        handleCloseEdit: function(obj) {
+            obj.id === this.props.id && this.setState({
+                edit: !1
+            });
+        },
+        componentDidMount: function() {
+            this.subscribe(_store2.default.subject("ruleView.close"), this.handleCloseEdit);
         },
         getInitialState: function() {
             return {
@@ -21400,10 +21414,7 @@
         },
         handleClose: function(event) {
             event.stopPropagation();
-            _lodash2.default.isFunction(this.props.onClose) ? this.props.onClose() : this.setState({
-                edit: !1
-            });
-            _store2.default.subject("ruleView.closed").onNext({
+            _store2.default.subject("ruleView.unchanged").onNext({
                 id: this.props.id
             });
         },
@@ -21411,12 +21422,7 @@
             var _this = this;
             return this.state.edit ? _react2.default.createElement(_ValueMappingRuleForm2.default, {
                 id: this.props.id,
-                parentId: this.props.parentId,
-                onClose: function() {
-                    return _this.setState({
-                        edit: !1
-                    });
-                }
+                parentId: this.props.parentId
             }) : _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer"
             }, _react2.default.createElement("div", {
@@ -21526,23 +21532,42 @@
                 }
             });
         },
-        handleRuleEditClose: function() {
+        handleRuleEditOpen: function(_ref2) {
+            var id = _ref2.id;
+            _lodash2.default.includes(this.state.editing, id) || this.setState({
+                editing: _lodash2.default.concat(this.state.editing, [ id ])
+            });
+        },
+        handleRuleEditClose: function(_ref3) {
+            var id = _ref3.id;
             this.setState({
-                ruleEditView: !1
+                ruleEditView: !1,
+                editing: _lodash2.default.filter(this.state.editing, function(e) {
+                    return e !== id;
+                })
             });
         },
         getInitialState: function() {
-            this.subscribe(_store2.default.subject("reload"), this.loadData);
-            this.subscribe(_store2.default.subject("ruleId.create"), this.onRuleCreate);
-            this.subscribe(_store2.default.subject("ruleView.closed"), this.handleRuleEditClose);
             return {
                 loading: !0,
                 ruleData: {},
-                ruleEditView: !1
+                ruleEditView: !1,
+                editing: [],
+                askForDiscard: !1
             };
         },
         componentDidMount: function() {
             this.loadData();
+            this.subscribe(_store2.default.subject("reload"), this.loadData);
+            this.subscribe(_store2.default.subject("ruleId.create"), this.onRuleCreate);
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.handleRuleEditClose);
+            this.subscribe(_store2.default.subject("ruleView.change"), this.handleRuleEditOpen);
+            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
+        },
+        discardAll: function() {
+            this.setState({
+                editing: []
+            });
         },
         componentDidUpdate: function(prevProps) {
             prevProps.currentRuleId !== this.props.currentRuleId && this.loadData();
@@ -21558,8 +21583,8 @@
                 data: {
                     id: this.props.currentRuleId
                 }
-            }).subscribe(function(_ref2) {
-                var rule = _ref2.rule;
+            }).subscribe(function(_ref4) {
+                var rule = _ref4.rule;
                 _this.setState({
                     loading: !1,
                     ruleData: rule
@@ -21571,33 +21596,71 @@
                 });
             });
         },
-        handleToggleRuleDetails: function(_ref3) {
-            var expanded = _ref3.expanded;
-            _store2.default.subject("rulesView.toggle").onNext({
-                expanded: expanded
+        handleDiscardChanges: function(event) {
+            event.stopPropagation();
+            var type = _lodash2.default.get(this.state.askForDiscard, "type", !1);
+            if (type) _store2.default.subject("ruleId.create").onNext({
+                type: type
+            }); else {
+                var expanded = this.state.askForDiscard.expanded;
+                _store2.default.subject("rulesView.toggle").onNext({
+                    expanded: expanded
+                });
+            }
+            _store2.default.subject("ruleView.discardAll").onNext();
+            this.setState({
+                askForDiscard: !1
             });
         },
-        handleCreate: function(_ref4) {
-            var type = _ref4.type;
-            _store2.default.subject("ruleId.create").onNext({
+        handleCancelDiscard: function(event) {
+            event.stopPropagation();
+            this.setState({
+                askForDiscard: !1
+            });
+        },
+        handleToggleRuleDetails: function(_ref5) {
+            var expanded = _ref5.expanded;
+            0 === this.state.editing.length || expanded ? _store2.default.subject("rulesView.toggle").onNext({
+                expanded: expanded
+            }) : this.setState({
+                askForDiscard: {
+                    expanded: expanded
+                }
+            });
+        },
+        handleCreate: function(_ref6) {
+            var type = _ref6.type;
+            0 === this.state.editing.length ? _store2.default.subject("ruleId.create").onNext({
                 type: type
+            }) : this.setState({
+                askForDiscard: {
+                    type: type
+                }
             });
         },
         shouldComponentUpdate: function(nextProps, nextState) {
             return !_lodash2.default.isEmpty(nextState.ruleData);
         },
         render: function() {
-            var _this2 = this, _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
+            var _this2 = this, _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, discardView = !1 !== this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+                active: !0,
+                title: "Discard changes",
+                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                    disabled: !1,
+                    onClick: this.handleDiscardChanges
+                }, "Continue"),
+                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                    onClick: this.handleCancelDiscard
+                }, "Cancel")
+            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__createrule"
             }, "object" === createType ? _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 type: createType,
-                onClose: this.handleRuleEditClose,
                 parentId: this.state.ruleData.id,
                 parentName: _lodash2.default.get(this, "state.ruleData.mappingTarget.uri", ""),
                 edit: !0
             }) : _react2.default.createElement(_ValueMappingRuleForm2.default, {
                 type: createType,
-                onClose: this.handleRuleEditClose,
                 parentId: this.state.ruleData.id,
                 parentName: _lodash2.default.get(this, "state.ruleData.mappingTarget.uri", ""),
                 edit: !0
@@ -21652,13 +21715,13 @@
                         pos: idx,
                         parent: _this2.props.currentRuleId,
                         count: childRules.length,
-                        key: "MappingRule_" + rule.id + "_" + idx
+                        key: "MappingRule_" + rule.id
                     }, rule));
                 }));
             }
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rules"
-            }, loading, _react2.default.createElement(_MappingRuleOverviewHeader2.default, {
+            }, loading, discardView, _react2.default.createElement(_MappingRuleOverviewHeader2.default, {
                 rule: this.state.ruleData,
                 key: id
             }), createRuleForm || _react2.default.createElement("div", {
@@ -21696,32 +21759,26 @@
             event.stopPropagation();
         },
         componentDidMount: function() {
-            this.subscribe(_store2.default.subject("ruleView.edit"), this.onOpenEdit);
-            this.subscribe(_store2.default.subject("ruleView.closed"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.change"), this.onOpenEdit);
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.onCloseEdit);
+            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
         },
         onOpenEdit: function(obj) {
-            console.log("Header", obj, this.props.rule);
-            if (this.props.rule.id === obj.id) {
-                console.log("open edit for " + obj.id);
-                this.setState({
-                    editing: !0
-                });
-            } else console.log(obj, this.props.rule);
+            this.props.rule.id === obj.id && this.setState({
+                editing: !0
+            });
         },
         onCloseEdit: function(obj) {
-            if (this.props.rule.id === obj.id) {
-                console.log("open edit for " + obj.id);
-                this.setState({
-                    editing: !1
-                });
-            } else console.log(obj, this.props.rule);
+            this.props.rule.id === obj.id && this.setState({
+                editing: !1
+            });
         },
         handleDiscardChanges: function() {
             this.setState({
                 expanded: !this.state.expanded,
                 askForDiscard: !1
             });
-            _store2.default.subject("ruleView.closed").onNext({
+            _store2.default.subject("ruleView.unchanged").onNext({
                 id: this.props.rule.id
             });
         },
@@ -21735,6 +21792,11 @@
                 askForDiscard: !0
             }) : this.setState({
                 expanded: !this.state.expanded
+            });
+        },
+        discardAll: function() {
+            this.setState({
+                editing: !1
             });
         },
         render: function() {
@@ -21767,8 +21829,7 @@
             _extends3.default)({}, this.props.rule, {
                 parent: _lodash2.default.get(parent, "id", ""),
                 parentName: _lodash2.default.get(parent, "name", ""),
-                edit: !1,
-                onClose: this.handleRuleEditClose
+                edit: !1
             })));
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleshead"
@@ -21829,11 +21890,15 @@
             this.loadData();
         },
         expandElement: function(_ref) {
-            var _$merge, parent = (_ref.newnewRuleId, _ref.parent);
-            this.setState({
-                expanded: _lodash2.default.merge(this.state.expanded, (_$merge = {}, _$merge[parent] = !0, 
-                _$merge))
-            });
+            var _$includes, parent = _ref.parent;
+            if (!_lodash2.default.isUndefined(parent) && !_lodash2.default.includes(this.state.expanded, (_$includes = {}, 
+            _$includes[parent] = !0, _$includes))) {
+                var _$merge;
+                this.setState({
+                    expanded: _lodash2.default.merge(this.state.expanded, (_$merge = {}, _$merge[parent] = !0, 
+                    _$merge))
+                });
+            }
         },
         loadData: function() {
             var _this = this;

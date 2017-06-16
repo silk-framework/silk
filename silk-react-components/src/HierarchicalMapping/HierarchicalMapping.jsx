@@ -3,7 +3,7 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
@@ -17,7 +17,15 @@ const HierarchicalMapping = React.createClass({
         transformTask: React.PropTypes.string.isRequired, //Current Transformation
         initialRule: React.PropTypes.string,
      },
-
+    componentDidMount(){
+        // listen to rule id changes
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
+        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+    },
     // initilize state
     getInitialState() {
 
@@ -34,14 +42,6 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         });
 
-        // listen to rule id changes
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
-        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
-
-        // listen to rule create event
 
         //TODO: Use initialRule
         return {
@@ -50,7 +50,6 @@ const HierarchicalMapping = React.createClass({
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
-            ruleEditView: false,
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
@@ -58,16 +57,20 @@ const HierarchicalMapping = React.createClass({
     },
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        this.setState({
-            editingElements: _.merge(this.state.editingElements, [id]),
-        });
+        if (!_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.concat(this.state.editingElements, [id]),
+            });
+        }
     },
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        console.log('remove '+id+'from editingElements')
-        this.setState({
-            editingElements: _.filter(this.state.editingElements, (e) => e !== id),
-        })
+        if (_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
+            });
+        }
+
     },
     handleClickRemove({id, type, parent}) {
         this.setState({
@@ -120,7 +123,6 @@ const HierarchicalMapping = React.createClass({
             });
         }
         else {
-            console.log('editing ', this.state.editingElements)
             this.setState({
                 askForDiscard: newRuleId
             });
@@ -134,21 +136,25 @@ const HierarchicalMapping = React.createClass({
     },
     handleDiscardChanges() {
         if (_.includes(this.state.editingElements, 0)) {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
+            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
         }
         this.setState({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
         });
-
+        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+    },
+    discardAll() {
+        this.setState({
+            editingElements: [],
+        });
     },
     handleCancelDiscard() {
         this.setState({askForDiscard: false});
     },
     // template rendering
     render () {
-        const ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {};
         const treeView = (
             this.state.showNavigation ? (
                 <TreeView
@@ -156,7 +162,6 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
-
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
@@ -241,7 +246,6 @@ const HierarchicalMapping = React.createClass({
                         {
                             <MappingRuleOverview
                                 currentRuleId={this.state.currentRuleId}
-                                ruleEditView={{...ruleEdit}}
                             />
                         }
                     </div>

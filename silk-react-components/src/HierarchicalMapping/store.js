@@ -157,8 +157,8 @@ if (!__DEBUG__) {
                 })
                 .subscribe(() => {
                         //TODO: Check that right events are fired
-                        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: id});
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+                        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: id});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving reule ${id}`, err);
@@ -176,9 +176,9 @@ if (!__DEBUG__) {
                 })
                 .subscribe((response) => {
                         //TODO: Check that right events are fired
-                        hierarchicalMappingChannel.subject('ruleView.created')
-                            .onNext({id: _.get(response, 'body.id')});
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        hierarchicalMappingChannel.subject('ruleView.created').onNext({id: _.get(response, 'body.id')});
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving rule in ${parent}`, err);
@@ -223,7 +223,7 @@ if (!__DEBUG__) {
                     () => {
                         replySubject.onNext();
                         replySubject.onCompleted();
-                        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     },
                     (err) => {
                         //TODO: Beautify
@@ -308,7 +308,7 @@ if (!__DEBUG__) {
     };
 
     const saveMockStore = () => {
-        hierarchicalMappingChannel.subject('reload').onNext({rerender: true});
+        hierarchicalMappingChannel.subject('reload').onNext(true);
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
@@ -320,7 +320,8 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-                hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: payload.id});
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
+                saveMockStore();
 
             } else {
 
@@ -328,11 +329,9 @@ if (!__DEBUG__) {
 
                 const parent = data.parentId ? data.parentId : mockStore.id;
                 appendToMockStore(mockStore, parent, payload);
-
+                saveMockStore();
                 hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
-
-            saveMockStore();
         }
     );
 
@@ -344,7 +343,8 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
+                saveMockStore();
             } else {
 
                 payload.id = Date.now() + "" + _.random(0, 100, false);
@@ -353,9 +353,11 @@ if (!__DEBUG__) {
                 const parent = data.parentId ? data.parentId : mockStore.id;
 
                 appendToMockStore(mockStore, parent, payload);
+                saveMockStore();
+                hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
 
-            saveMockStore();
+
         }
     );
 
@@ -400,14 +402,13 @@ if (!__DEBUG__) {
             }, -1);
             if (idPos > -1) {
                 pos = pos < 0 ? pos + store.rules.propertyRules.length : pos;
-                console.log('before', store.rules.propertyRules)
                 store.rules.propertyRules.move(idPos, pos)
-                console.log('after', store.rules.propertyRules)
 
             } else {
                 store.rules.propertyRules = _.map(store.rules.propertyRules, (v) => orderRule(v, id, pos));
             }
         }
+        return store;
 
     };
 
