@@ -155,6 +155,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         let targetPropertyInput = false;
         let entityRelationInput = false;
+        let sourcePropertyInput = false;
 
         if (type !== 'root') {
             // TODO: where to get get list of target properties
@@ -193,6 +194,12 @@ const ObjectMappingRuleForm = React.createClass({
                     />
                 </RadioGroup>
             );
+
+            sourcePropertyInput = (<TextField
+                label={'Source property'}
+                onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
+                value={this.state.sourceProperty}
+            />);
 
         }
 
@@ -235,11 +242,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     //multi={true} // allow multi selection
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
-                                <TextField
-                                    label={'Source property'}
-                                    onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
-                                    value={this.state.sourceProperty}
-                                />
+                                {sourcePropertyInput}
                                 <TextField
                                     multiline={true}
                                     label="Comment"
