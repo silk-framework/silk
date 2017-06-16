@@ -9,11 +9,12 @@ import plugins.Context
 
 class TransformEditor extends Controller {
 
-  def start(project: String, task: String) = Action { implicit request =>
+  def start(project: String, task: String, rule: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
 
-    Ok(views.html.editor.transformRules(context, vocabularies))
+    // TODO: We should check whether the rule exists
+    Ok(views.html.editor.transformRules(context, vocabularies, rule))
   }
 
   def editor(project: String, task: String, rule: String) = Action { implicit request =>

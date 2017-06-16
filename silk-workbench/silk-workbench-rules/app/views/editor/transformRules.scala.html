@@ -4,6 +4,7 @@
 @import org.silkframework.rule.input.PathInput
 @import org.silkframework.entity.Path
 @import org.silkframework.workspace.activity.transform.TransformPathsCache
+@import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import org.silkframework.runtime.serialization.XmlSerialization
 @import org.silkframework.rule.vocab.Vocabularies
@@ -12,14 +13,12 @@
 @import org.silkframework.rule.MappingRules
 @import org.silkframework.rule.UriMapping
 
-@(context: Context[TransformSpec], vocabularies: Vocabularies)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit session: play.api.mvc.Session)
 
 @header = {
-  <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
-  <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
+  <!-- link type="text/css" href="@CoreAssets.at("libs/silk-react-components/style.css")" rel="stylesheet" / -->
 
-  <script type="text/javascript" src="@Assets.at("js/editor/transformRules.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/silk-react-components/main.js")"></script>
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var editorUrl = '@config.baseUrl/transform/@context.project.name/@context.task.id/editor';
@@ -27,7 +26,7 @@
 }
 
 @toolbar = {
-  <ul>
+  <ul id="ruleToolbar">
     <!--
         <li>
           <button id="add-uri-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
@@ -51,6 +50,7 @@
 }
 
 @content = {
+  <div id="react-hierarchicalMapping"></div>
   <div id="ruleContainer">
     <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title di-vertical-align">
@@ -141,8 +141,25 @@
   <table id="objectMappingTemplate" class="rule-template">
       @renderRule(ObjectMapping(target = None, rules = MappingRules(uriRule = Some(UriMapping()))))
   </table>
+  <style type="">
+          /* TODO: Delete*/
+          #ruleContainer, #ruleToolbar, .rule-template {
+            display: none !important;
+          }
 
+  </style>
   <script type="text/javascript">
+
+    HierarchicalMapping(
+        'react-hierarchicalMapping',
+        {
+            baseUrl: '@config.baseUrl',
+            project: '@context.project.name',
+            transformTask: '@context.task.id',
+            initialRule: '@rule'
+        }
+    );
+    /*TODO: Remove
 
     var prefixes = {};
     @for((key, value) <- context.project.config.prefixes) {
@@ -169,9 +186,11 @@
       addTypeAutocomplete($("#rule-type-textfield input"));
       addTypeSelections($(".rule-target-type select"));
     });
+    */
   </script>
 
-  <div id="valueTooltips"/>
+  <div id="valueTooltips"></div>
+
 }
 
 @renderRule(rule: TransformRule) = {

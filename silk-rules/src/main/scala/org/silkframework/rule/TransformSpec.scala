@@ -67,7 +67,10 @@ case class TransformSpec(selection: DatasetSelection,
 
     schemata :+= EntitySchema(
       typeUri = rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
-      typedPaths = rules.allRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).distinct.toIndexedSeq
+      typedPaths = rules.allRules.flatMap(_.target).map { mt =>
+        val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
+        TypedPath(Path(List(path)), mt.valueType)
+      }.distinct.toIndexedSeq
     )
 
     for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {

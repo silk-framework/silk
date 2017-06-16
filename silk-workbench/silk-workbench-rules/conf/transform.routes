@@ -4,7 +4,8 @@ GET           /dialogs/editTransformTask/:project/:task                      con
 GET           /dialogs/deleteRule/:name                                      controllers.transform.TransformDialogs.deleteRuleDialog(name: String)
 
 # Transformation Editor
-GET           /:project/:task/editor                                         controllers.transform.TransformEditor.start(project: String, task: String)
+GET           /:project/:task/editor                                         controllers.transform.TransformEditor.start(project: String, task: String, rule = "")
+GET           /:project/:task/editor/rule/:rule                              controllers.transform.TransformEditor.start(project: String, task: String, rule: String)
 GET           /:project/:task/editor/:rule                                   controllers.transform.TransformEditor.editor(project: String, task: String, rule: String)
 GET           /:project/:task/editor/widgets/property                        controllers.transform.TransformEditor.propertyDetails(project: String, task: String, property: String)
 GET           /:project/:task/editor/widgets/paths                           controllers.transform.TransformEditor.paths(project: String, task: String)

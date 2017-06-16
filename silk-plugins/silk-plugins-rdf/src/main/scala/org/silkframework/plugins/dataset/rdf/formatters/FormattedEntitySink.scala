@@ -7,7 +7,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 
 /**
- * Created by andreas on 12/11/15.
+ * An entity sink that writes formatted entity output to an output resource.
  */
 class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter) extends EntitySink with TripleSink {
 
