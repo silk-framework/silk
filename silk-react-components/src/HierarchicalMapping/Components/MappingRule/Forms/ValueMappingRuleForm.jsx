@@ -3,7 +3,6 @@ import UseMessageBus from '../../../UseMessageBusMixin';
 import {
     TextField,
     SelectBox,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     Spinner,

@@ -176,14 +176,15 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                Clicking on Delete will delete the current mapping rule
-                {this.state.elementToDelete.type === 'object'
-                    ? " as well as all existing children rules. "
-                    :'. '
-                }
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
-                type '{this.state.elementToDelete.type}'?
-
+                <p>
+                    Clicking on Delete will delete the current mapping rule
+                    {this.state.elementToDelete.type === 'object'
+                        ? " as well as all existing children rules. "
+                        :'. '
+                    }
+                    Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
+                    type '{this.state.elementToDelete.type}'?
+                </p>
             </ConfirmationDialog>
             : false;
 

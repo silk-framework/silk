@@ -2,7 +2,6 @@ import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
