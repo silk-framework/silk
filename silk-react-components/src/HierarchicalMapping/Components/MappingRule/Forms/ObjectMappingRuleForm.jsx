@@ -196,7 +196,7 @@ const ObjectMappingRuleForm = React.createClass({
             );
 
             sourcePropertyInput = (<TextField
-                label={'Source property'}
+                label={'Source path'}
                 onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
                 value={this.state.sourceProperty}
             />);
@@ -245,7 +245,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 {sourcePropertyInput}
                                 <TextField
                                     multiline={true}
-                                    label="Comment"
+                                    label="Description"
                                     className="ecc-silk-mapping__ruleseditor__comment"
                                     value={this.state.comment}
                                     onChange={this.handleChangeTextfield.bind(null, 'comment')}
