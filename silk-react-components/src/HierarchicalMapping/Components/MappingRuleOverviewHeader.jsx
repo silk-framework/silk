@@ -141,7 +141,6 @@ const MappingRuleOverviewHeader = React.createClass({
                         </div>
                         <div
                             className="mdl-card__title-text clickable"
-                            title={this.state.expand ? "Click to collapse":"Click to expand"}
                             onClick={this.handleToggleExpand}
                         >
                             {parentTitle}
