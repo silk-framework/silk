@@ -240,7 +240,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     val res2 = repository.get(PROJECT_NAME_OTHER)
     res1 should not be theSameInstanceAs (res2)
     val child1 = res1.get(CHILD)
-    child1.write("content")
+    child1.writeString("content")
     intercept[ResourceNotFoundException] {
       res2.get(CHILD, mustExist = true)
     }

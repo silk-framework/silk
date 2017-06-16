@@ -30,11 +30,11 @@ class FileResource(val file: File) extends WritableResource {
    * after it returns.
    * @param write A function that accepts an output stream and writes to it.
    */
-  override def write(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
     val baseDir = file.getParentFile
     if(!baseDir.exists && !baseDir.mkdirs())
       throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    val outputStream = new BufferedOutputStream(new FileOutputStream(file))
+    val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
     write(outputStream)
     outputStream.flush()
     outputStream.close()

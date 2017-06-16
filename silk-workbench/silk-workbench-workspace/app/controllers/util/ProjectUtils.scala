@@ -191,7 +191,7 @@ object ProjectUtils {
       val resourceId = inputResource \ s"@name"
       resourceManager.
           get(resourceId.text).
-          write(inputResource.text)
+          writeString(inputResource.text)
     }
     resourceManager
   }

@@ -54,7 +54,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
         writer.flush()
         writer.close()
         if(writer.isInstanceOf[StringWriter]) {
-          resource.write(writer.asInstanceOf[StringWriter].toString)
+          resource.writeString(writer.asInstanceOf[StringWriter].toString)
         }
       case _ =>
         log.warning("Not initialized!")

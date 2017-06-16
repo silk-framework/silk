@@ -56,7 +56,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
    * Writes an updated task.
    */
   override def writeTask(task: Task[CustomTask], resources: ResourceManager): Unit = {
-    resources.get(task.id.toString + ".xml").write{ os => XmlSerialization.toXml(task).write(os) }
+    resources.get(task.id.toString + ".xml").write(){ os => XmlSerialization.toXml(task).write(os) }
   }
 
   /**

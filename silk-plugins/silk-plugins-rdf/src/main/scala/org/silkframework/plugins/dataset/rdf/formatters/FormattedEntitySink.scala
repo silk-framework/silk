@@ -55,7 +55,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
       writer.close()
       // In case we used a string writer, we still need to write the generated string.
       writer match {
-        case stringWriter: StringWriter => resource.write(stringWriter.toString)
+        case stringWriter: StringWriter => resource.writeString(stringWriter.toString)
         case _ =>
       }
       writer = null

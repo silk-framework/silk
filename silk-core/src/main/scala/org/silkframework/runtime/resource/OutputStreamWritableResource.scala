@@ -11,7 +11,7 @@ case class OutputStreamWritableResource(outputStream: OutputStream) extends Writ
    *
    * @param write A function that accepts an output stream and writes to it.
    */
-  override def write(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
     write(outputStream)
   }
 

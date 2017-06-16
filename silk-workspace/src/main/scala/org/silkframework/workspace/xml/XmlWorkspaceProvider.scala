@@ -57,7 +57,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
       <ProjectConfig resourceUri={uri}>
         { config.prefixes.toXML }
       </ProjectConfig>
-    resources.child(config.id).get("config.xml").write { os => configXMl.write(os) }
+    resources.child(config.id).get("config.xml").write(){ os => configXMl.write(os) }
   }
 
   override def deleteProject(name: Identifier): Unit = {

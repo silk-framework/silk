@@ -78,8 +78,8 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       *
       * @param write A function that accepts an output stream and writes to it.
       */
-    override def write(write: (OutputStream) => Unit): Unit = {
-      primaryResource.write(write)
+    override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+      primaryResource.write(append)(write)
     }
 
     /**
