@@ -54,6 +54,5 @@ case class OutputStreamWritableResource(outputStream: OutputStream) extends Writ
     * Deletes this resource.
     */
   override def delete(): Unit = {
-    throw new UnsupportedOperationException("This output stream resource cannot be deleted.")
   }
 }
