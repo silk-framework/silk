@@ -123,6 +123,32 @@ if (!__DEBUG__) {
         }
     );
 
+    hierarchicalMappingChannel.subject('rule.getEditorHref').subscribe(
+        ({data, replySubject}) => {
+
+            const {id: ruleId} = data;
+
+            if(ruleId){
+                const {
+                    transformTask,
+                    baseUrl,
+                    project,
+                } = apiDetails;
+
+                replySubject.onNext({
+                    href: `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}`
+                });
+            } else {
+                replySubject.onNext({
+                    href: null
+                });
+            }
+
+            replySubject.onCompleted();
+
+        }
+    );
+
     hierarchicalMappingChannel.subject('rule.get').subscribe(
         ({data, replySubject}) => {
 
