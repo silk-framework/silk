@@ -103,28 +103,27 @@ const MappingRule = React.createClass({
         })
     },
 
-    handleMoveElement(id, pos, parent){
-        return (event) => {
-            event.stopPropagation();
-            hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
-                .subscribe(
-                    () => {
-                        // FIXME: let know the user which element is gone!
-                    },
-                    (err) => {
-                        // FIXME: let know the user what have happened!
-                    }
-                );
-        }
+    handleMoveElement(id, pos, parent, event){
         this.setState({
             loading: true,
         });
+        console.log(event, id, pos, parent)
+        event.stopPropagation();
+        hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
+            .subscribe(
+                () => {
+                    // FIXME: let know the user which element is gone!
                     this.setState({
                         loading: false,
                     });
+                },
+                (err) => {
+                    // FIXME: let know the user what have happened!
                     this.setState({
                         loading: false,
                     });
+                }
+            );
     },
     // template rendering
     render () {
@@ -248,22 +247,22 @@ const MappingRule = React.createClass({
                     valign='top'
                 >
                     <MenuItem
-                        onClick={this.handleMoveElement(id, 0, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, 0, parent)}
                     >
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, Math.max(0, pos -1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.max(0, pos -1), parent)}
                     >
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, Math.min(pos + 1, count-1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.min(pos + 1, count-1), parent)}
                     >
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, count - 1, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, count - 1, parent)}
                     >
                         Move to bottom
                     </MenuItem>
