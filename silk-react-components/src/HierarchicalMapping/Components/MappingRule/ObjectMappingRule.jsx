@@ -15,8 +15,7 @@ import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 import {
     SourcePath,
     ThingName,
-    ThingDescription,
-    ThingClassName,
+    ThingDescription
 } from './SharedComponents';
 
 const RuleObjectView = React.createClass({
@@ -110,11 +109,11 @@ const RuleObjectView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects from {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects to {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
                     />
                 </RadioGroup>
             );
