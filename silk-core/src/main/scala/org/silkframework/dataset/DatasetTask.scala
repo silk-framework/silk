@@ -16,9 +16,9 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Task, MetaData}
 import org.silkframework.entity.Link
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
@@ -29,6 +29,7 @@ import scala.xml.{Node, Text}
   */
 class DatasetTask(val id: Identifier,
                   val plugin: Dataset,
+                  val metaData: MetaData = MetaData.empty,
                   val minConfidence: Option[Double] = None,
                   val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
 
@@ -42,14 +43,17 @@ class DatasetTask(val id: Identifier,
 
   override def equals(obj: Any): Boolean = obj match {
     case ds: DatasetTask =>
-      id == ds.id && plugin == ds.plugin &&
-          minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+      id == ds.id &&
+      plugin == ds.plugin &&
+      metaData == ds.metaData &&
+      minConfidence == ds.minConfidence &&
+      maxConfidence == ds.maxConfidence
     case _ =>
       false
   }
 
   override def toString = {
-    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+    s"DatasetTask(id=$id, plugin=${plugin.toString}, metaData=${metaData.toString})"
   }
 
   private class EntitySinkWrapper extends EntitySink {
@@ -146,10 +150,10 @@ class DatasetTask(val id: Identifier,
 
 object DatasetTask {
 
-  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data)
+  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data, task.metaData)
 
   def empty = {
-    new DatasetTask("empty", EmptyDataset)
+    new DatasetTask("empty", EmptyDataset,  MetaData.empty)
   }
 
   /**
@@ -168,6 +172,7 @@ object DatasetTask {
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((node \ "@type").text, readParams(node)),
+          metaData = MetaData.empty,
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -179,6 +184,7 @@ object DatasetTask {
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((sourceNode \ "@type").text, readParams(sourceNode)),
+          metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -199,6 +205,7 @@ object DatasetTask {
             {params.map {
             case (name, v) => <Param name={name} value={v}/>
           }}
+            {XmlSerialization.toXml[MetaData](value.metaData)}
           </Dataset>
       }
     }

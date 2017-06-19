@@ -22,34 +22,30 @@ const MappingRuleOverviewHeader = React.createClass({
         event.stopPropagation();
     },
     componentDidMount() {
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     onOpenEdit(obj) {
-        console.log('Header', obj, this.props.rule)
         if (this.props.rule.id === obj.id) {
-            console.log('open edit for ' + obj.id);
             this.setState({
                 editing: true,
             });
         }
-        else console.log(obj, this.props.rule);
     },
     onCloseEdit(obj) {
         if (this.props.rule.id === obj.id) {
-            console.log('open edit for ' + obj.id);
             this.setState({
                 editing: false,
             });
         }
-        else console.log(obj, this.props.rule);
     },
     handleDiscardChanges(){
         this.setState({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.rule.id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.rule.id});
     },
     handleCancelDiscard() {
         this.setState({
@@ -67,6 +63,11 @@ const MappingRuleOverviewHeader = React.createClass({
                 expanded: !this.state.expanded,
             })
         }
+    },
+    discardAll() {
+        this.setState({
+            editing: false,
+        });
     },
     render() {
 
@@ -124,7 +125,6 @@ const MappingRuleOverviewHeader = React.createClass({
                     parent={_.get(parent, 'id', '')}
                     parentName={_.get(parent, 'name', '')}
                     edit={false}
-                    onClose={this.handleRuleEditClose}
                 />
             );
         }

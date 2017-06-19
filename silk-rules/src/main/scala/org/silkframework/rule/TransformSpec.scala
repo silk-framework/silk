@@ -3,6 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity._
 import org.silkframework.execution.local.MultiEntityTable
+import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -54,7 +55,7 @@ case class TransformSpec(selection: DatasetSelection,
       subPath = subPath
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules) <- rules.allRules) {
+    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectInputSchemata(childRules, relativePath)
     }
 
@@ -66,10 +67,13 @@ case class TransformSpec(selection: DatasetSelection,
 
     schemata :+= EntitySchema(
       typeUri = rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
-      typedPaths = rules.allRules.flatMap(_.target).map(mt => TypedPath(Path(mt.propertyUri), mt.valueType)).distinct.toIndexedSeq
+      typedPaths = rules.allRules.flatMap(_.target).map { mt =>
+        val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
+        TypedPath(Path(List(path)), mt.valueType)
+      }.distinct.toIndexedSeq
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules) <- rules.allRules) {
+    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectOutputSchemata(childRules, relativePath)
     }
 
@@ -83,7 +87,7 @@ case class TransformSpec(selection: DatasetSelection,
   */
 object TransformSpec {
 
-  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule(MappingRules.empty))
+  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
 
   implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
     /**
@@ -92,13 +96,22 @@ object TransformSpec {
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-      val rules = (node \ "TransformRule" ++ node \ "ObjectMapping").map(fromXml[TransformRule])
       val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
       val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
       val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
+      val rootMappingRule = {
+        // Stay compatible with the old format.
+        val oldRules = (node \ "TransformRule" ++ node \ "ObjectMapping").map(fromXml[TransformRule])
+        if(oldRules.nonEmpty) {
+          RootMappingRule("root", MappingRules.fromSeq(oldRules))
+        } else {
+          RootMappingRuleFormat.read((node \ "RootMappingRule").head)
+        }
+      }
+
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, RootMappingRule(MappingRules.fromSeq(rules)), sinks, errorSinks, targetVocabularies)
+      TransformSpec(datasetSelection, rootMappingRule, sinks, errorSinks, targetVocabularies)
     }
 
     /**
@@ -106,9 +119,11 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
-        {value.selection.toXML(true)}{value.mappingRule.rules.allRules.map(toXml[TransformRule])}<Outputs>
+        {value.selection.toXML(true)}
+        {toXml(value.mappingRule)}
+        <Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
-      </Outputs>{if (value.errorOutputs.isEmpty) {
+        </Outputs>{if (value.errorOutputs.isEmpty) {
         Null
       } else {
         <ErrorOutputs>

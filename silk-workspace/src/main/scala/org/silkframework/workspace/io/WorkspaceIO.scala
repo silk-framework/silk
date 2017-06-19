@@ -71,8 +71,8 @@ object WorkspaceIO {
   }
 
   private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, resources: ResourceManager, projectName: Identifier): Unit = {
-    for((taskName, taskData) <- inputWorkspace.readTasks[T](projectName, resources)) {
-      outputWorkspace.putTask(projectName, taskName, taskData)
+    for(task <- inputWorkspace.readTasks[T](projectName, resources)) {
+      outputWorkspace.putTask(projectName, task)
     }
   }
 

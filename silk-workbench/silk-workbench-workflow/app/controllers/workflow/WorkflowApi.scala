@@ -2,14 +2,16 @@ package controllers.workflow
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.{DataSource, Dataset, SinkTrait}
-import org.silkframework.rule.execution.{TransformReport}
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, OldWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
+import org.silkframework.config.Task
 
 import scala.xml.Elem
 
@@ -29,13 +31,13 @@ class WorkflowApi extends Controller {
   def getWorkflow(projectName: String, taskName: String) = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-
-    Ok(workflow.data.toXML)
+    Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
   def putWorkflow(projectName: String, taskName: String) = Action { request =>
     val project = fetchProject(projectName)
-    val workflow = Workflow.fromXML(request.body.asXml.get.head)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok

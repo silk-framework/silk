@@ -191,7 +191,7 @@ class WorkspaceApi extends Controller {
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    val silkConfig = SilkConfigExporter.build(project, task.task)
+    val silkConfig = SilkConfigExporter.build(project, task)
 
     Ok(XmlSerialization.toXml(silkConfig))
   }

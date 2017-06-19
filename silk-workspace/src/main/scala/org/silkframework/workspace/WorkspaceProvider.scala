@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Task, MetaData, TaskSpec}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 
@@ -31,12 +31,12 @@ trait WorkspaceProvider {
   /**
    * Reads all tasks of a specific type from a project.
    */
-  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[(Identifier, T)]
+  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[Task[T]]
 
   /**
    * Adds/Updates a task in a project.
    */
-  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier, data: T): Unit
+  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T]): Unit
 
   /**
    * Deletes a task from a project.
