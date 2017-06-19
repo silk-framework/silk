@@ -40,6 +40,14 @@ trait GraphStoreTrait {
     ConnectionClosingOutputStream(connection)
   }
 
+  def deleteGraph(graph: String): Unit = {
+    val connection = initConnection(graph)
+    connection.setRequestMethod("DELETE")
+    if(connection.getResponseCode / 100 != 2) {
+      throw new RuntimeException(s"Could not delete graph $graph. Message: ${connection.getResponseMessage}")
+    }
+  }
+
   private def initConnection(graph: String): HttpURLConnection = {
     val graphStoreUrl = graphStoreEndpoint(graph)
     val url = new URL(graphStoreUrl)
