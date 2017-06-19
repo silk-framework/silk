@@ -45,7 +45,7 @@ const ValueMappingRuleForm = React.createClass({
                         const initialValues = {
                             type: _.get(rule, 'type', 'direct'),
                             comment: _.get(rule, 'metadata.description', ''),
-                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            targetProperty: _.get(rule, 'mappingTarget.uri', ''),
                             propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', 'AutoDetectValueType'),
                             sourceProperty: rule.sourcePath,
                         };
