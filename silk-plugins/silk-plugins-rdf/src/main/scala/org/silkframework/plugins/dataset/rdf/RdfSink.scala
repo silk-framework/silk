@@ -22,8 +22,8 @@ trait RdfSink {
     * @param predicateUri
     * @return (serialized statements as N-Triples, triple count)
     */
-  protected def formatLink(link: Link,
-                         predicateUri: String): (String, Int) = {
+  def formatLink(link: Link,
+                           predicateUri: String): (String, Int) = {
     formatterOpt match {
       case Some(formatter) =>
         val model = formatter.formatAsRDF(link, predicateUri)
@@ -39,7 +39,7 @@ trait RdfSink {
     }
   }
 
-  protected def buildStatementString(subject: String, property: String, value: String, valueType: ValueType): String = {
+  def buildStatementString(subject: String, property: String, value: String, valueType: ValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value, valueType)
   }
 }
