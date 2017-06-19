@@ -4,7 +4,7 @@
 
 import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
-import {Button, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
+import {Button, ContextMenu, MenuItem, ConfirmationDialog, Spinner, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
@@ -43,6 +43,7 @@ const MappingRule = React.createClass({
             expanded: false,
             editing: false,
             askForDiscard: false,
+            loading: false,
         };
     },
     componentDidMount() {
@@ -54,7 +55,7 @@ const MappingRule = React.createClass({
             }
         });
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     onOpenEdit(obj) {
@@ -102,19 +103,27 @@ const MappingRule = React.createClass({
         })
     },
 
-    handleMoveElement(id, pos, parent){
-        return (event) => {
-            event.stopPropagation();
-            hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
-                .subscribe(
-                    () => {
-                        // FIXME: let know the user which element is gone!
-                    },
-                    (err) => {
-                        // FIXME: let know the user what have happened!
-                    }
-                );
-        }
+    handleMoveElement(id, pos, parent, event){
+        this.setState({
+            loading: true,
+        });
+        console.log(event, id, pos, parent)
+        event.stopPropagation();
+        hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
+            .subscribe(
+                () => {
+                    // FIXME: let know the user which element is gone!
+                    this.setState({
+                        loading: false,
+                    });
+                },
+                (err) => {
+                    // FIXME: let know the user what have happened!
+                    this.setState({
+                        loading: false,
+                    });
+                }
+            );
     },
     // template rendering
     render () {
@@ -129,6 +138,7 @@ const MappingRule = React.createClass({
             count,
         } = this.props;
 
+        const loading = this.state.loading ? <Spinner/> : false;
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
@@ -237,22 +247,22 @@ const MappingRule = React.createClass({
                     valign='top'
                 >
                     <MenuItem
-                        onClick={this.handleMoveElement(id, 0, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, 0, parent)}
                     >
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, Math.max(0, pos -1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.max(0, pos -1), parent)}
                     >
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, Math.min(pos + 1, count-1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.min(pos + 1, count-1), parent)}
                     >
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement(id, count - 1, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, count - 1, parent)}
                     >
                         Move to bottom
                     </MenuItem>
@@ -269,6 +279,7 @@ const MappingRule = React.createClass({
                 }
             >
                 {discardView}
+                {loading}
                 {reorderHandleButton}
                 <div
                     className={
