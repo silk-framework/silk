@@ -41,14 +41,24 @@ function findRule(element, id, breadcrumbs) {
     }
     return null;
 }
+const handleCreatedSelectBoxValue = (data, path) => {
+
+    if (_.has(data, [path, 'value'])) {
+        return _.get(data, [path, 'value'])
+    }
+
+    return _.get(data, [path]);
+
+};
 
 const prepareValueMappingPayload = (data) => {
+
     const payload = {
         "metadata": {
             description: data.comment,
         },
         "mappingTarget": {
-            "uri": data.targetProperty,
+            "uri": handleCreatedSelectBoxValue(data, 'targetProperty'),
             "valueType": {
                 "nodeType": data.propertyType,
             }
@@ -66,6 +76,7 @@ const prepareValueMappingPayload = (data) => {
     return payload;
 };
 
+
 const prepareObjectMappingPayload = (data) => {
 
     const typeRules = _.map(data.targetEntityType, ({value}) => {
@@ -80,13 +91,13 @@ const prepareObjectMappingPayload = (data) => {
             description: data.comment,
         },
         "mappingTarget": {
-            "uri": data.targetProperty,
+            "uri": handleCreatedSelectBoxValue(data, 'targetProperty'),
             "isBackwardProperty": data.entityConnection,
             "valueType": {
                 "nodeType": "UriValueType",
             }
         },
-        sourcePath: data.sourcePath || '',
+        sourcePath: data.sourceProperty || '',
         "rules": {
             "uriRule": data.pattern ? {
                 "type": "uri",
@@ -323,7 +334,10 @@ if (!__DEBUG__) {
 
     const handleUpdate = ({data, replySubject}) => {
 
-        const payload = data.type === 'object' ? prepareObjectMappingPayload(data) : prepareValueMappingPayload(data);
+
+        const payload = _.includes(['object', 'root'], data.type) ? prepareObjectMappingPayload(data) : prepareValueMappingPayload(data);
+
+        console.warn('MOCKSTORE: Saving: ', JSON.stringify(payload, null, 2));
 
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
@@ -342,6 +356,8 @@ if (!__DEBUG__) {
             saveMockStore();
 
         } else {
+
+            payload.id = `${Date.now()}${_.random(0, 100, false)}`;
 
             const parent = data.parentId ? data.parentId : mockStore.id;
             appendToMockStore(mockStore, parent, payload);
