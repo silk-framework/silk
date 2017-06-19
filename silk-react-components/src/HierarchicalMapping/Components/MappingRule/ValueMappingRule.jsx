@@ -200,7 +200,16 @@ const RuleValueView = React.createClass({
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent:this.props.parentId})}
+                                onClick={()=>hierarchicalMappingChannel.subject(
+                                    'removeClick'
+                                ).onNext(
+                                    {
+                                        id: this.props.id,
+                                        uri: this.props.mappingTarget.uri,
+                                        type: this.props.type,
+                                        parent:this.props.parentId
+                                    }
+                                )}
                                 disabled={false} // FIXME: all elements are removable?
                             >
                                 Remove

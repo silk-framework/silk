@@ -123,7 +123,18 @@ const RuleObjectView = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
-                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent: this.props.parent})}
+                    onClick={
+                        ()=>hierarchicalMappingChannel.subject(
+                            'removeClick'
+                        ).onNext(
+                            {
+                                id: this.props.id,
+                                uri: this.props.mappingTarget.uri,
+                                type: this.props.type,
+                                parent: this.props.parent
+                            }
+                        )
+                    }
                 >
                     Remove
                 </DisruptiveButton>

@@ -3,7 +3,17 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {
+    ConfirmationDialog,
+    DismissiveButton,
+    DisruptiveButton,
+    Button,
+    ContextMenu,
+    MenuItem
+} from 'ecc-gui-elements';
+import {
+    ThingName
+} from './Components/MappingRule/SharedComponents';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
@@ -72,10 +82,10 @@ const HierarchicalMapping = React.createClass({
         }
 
     },
-    handleClickRemove({id, type, parent}) {
+    handleClickRemove({id, uri, type, parent}) {
         this.setState({
                 editingElements: [],
-                elementToDelete: {id, type, parent},
+                elementToDelete: {id, uri, type, parent},
         });
 
     },
@@ -165,10 +175,10 @@ const HierarchicalMapping = React.createClass({
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
-                title="Delete Rule"
+                title="Remove mapping rule?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
+                        Remove
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -177,13 +187,12 @@ const HierarchicalMapping = React.createClass({
                     </DismissiveButton>
                 }>
                 <p>
-                    Clicking on Delete will delete the current mapping rule
+                    The {this.state.elementToDelete.type} mapping rule for <ThingName id={this.state.elementToDelete.uri} />
                     {this.state.elementToDelete.type === 'object'
-                        ? " as well as all existing children rules. "
-                        :'. '
+                        ? " and all its children rules are "
+                        :' is '
                     }
-                    Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
-                    type '{this.state.elementToDelete.type}'?
+                    going to be removed permanently.
                 </p>
             </ConfirmationDialog>
             : false;
