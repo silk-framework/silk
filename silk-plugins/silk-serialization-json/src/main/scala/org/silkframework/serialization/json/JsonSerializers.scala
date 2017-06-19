@@ -23,7 +23,7 @@ object JsonSerializers {
   final val TYPE = "type"
   final val PARAMETERS = "parameters"
   final val URI = "uri"
-  final val METADATA = "metaData"
+  final val METADATA = "metadata"
 
   implicit object JsonMetaDataFormat extends JsonFormat[MetaData] {
 
