@@ -6,6 +6,7 @@ import {
     RadioGroup,
     TextField,
     AffirmativeButton,
+    Spinner,
     DismissiveButton,
 } from 'ecc-gui-elements';
 import {ThingClassName} from '../SharedComponents';
@@ -79,6 +80,10 @@ const ObjectMappingRuleForm = React.createClass({
         }
     },
     handleConfirm(event) {
+        event.stopPropagation();
+        this.setState({
+            loading: true,
+        });
         hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -137,6 +142,7 @@ const ObjectMappingRuleForm = React.createClass({
         } = this.props;
 
         const type = this.state.type;
+        const loading = this.state.loading ? <Spinner/> : false;
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
@@ -231,6 +237,7 @@ const ObjectMappingRuleForm = React.createClass({
                             (!id ? ' mdl-shadow--2dp' : '')
                         }>
                             {title}
+                            {loading}
                             <div className="mdl-card__content">
                                 {targetPropertyInput}
                                 {entityRelationInput}

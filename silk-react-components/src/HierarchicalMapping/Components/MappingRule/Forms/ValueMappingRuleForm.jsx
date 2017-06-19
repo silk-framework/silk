@@ -74,6 +74,9 @@ const ValueMappingRuleForm = React.createClass({
     },
     handleConfirm(event) {
         event.stopPropagation();
+        this.setState({
+            loading: true
+        });
         hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
             id: this.props.id,
             parentId: this.props.parentId,
@@ -127,12 +130,9 @@ const ValueMappingRuleForm = React.createClass({
 
         const {
             type,
-            loading,
         } = this.state;
 
-        if (loading) {
-            return <Spinner/>
-        }
+        const loading = this.state.loading ? <Spinner/> : false;
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = this.state.targetProperty;
@@ -176,6 +176,7 @@ const ValueMappingRuleForm = React.createClass({
                     (!id ? ' mdl-shadow--2dp' : '')
                 }>
                     {title}
+                    {loading}
                     <div className="mdl-card__content">
                         <SelectBox
                             placeholder={'Choose target property'}

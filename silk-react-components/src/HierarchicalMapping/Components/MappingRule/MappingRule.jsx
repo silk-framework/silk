@@ -4,7 +4,7 @@
 
 import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
-import {Button, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
+import {Button, ContextMenu, MenuItem, ConfirmationDialog, Spinner, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
@@ -43,6 +43,7 @@ const MappingRule = React.createClass({
             expanded: false,
             editing: false,
             askForDiscard: false,
+            loading: false,
         };
     },
     componentDidMount() {
@@ -115,6 +116,15 @@ const MappingRule = React.createClass({
                     }
                 );
         }
+        this.setState({
+            loading: true,
+        });
+                    this.setState({
+                        loading: false,
+                    });
+                    this.setState({
+                        loading: false,
+                    });
     },
     // template rendering
     render () {
@@ -129,6 +139,7 @@ const MappingRule = React.createClass({
             count,
         } = this.props;
 
+        const loading = this.state.loading ? <Spinner/> : false;
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
@@ -269,6 +280,7 @@ const MappingRule = React.createClass({
                 }
             >
                 {discardView}
+                {loading}
                 {reorderHandleButton}
                 <div
                     className={

@@ -3,7 +3,7 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {Spinner, ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
@@ -81,8 +81,10 @@ const HierarchicalMapping = React.createClass({
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        const parent = this.state.elementToDelete.parent;
-        const type = this.state.elementToDelete.type;
+        const {parent, type}  = this.state.elementToDelete;
+        this.setState({
+            loading: true,
+        });
         hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {...this.state.elementToDelete}})
             .subscribe(
                 () => {
@@ -91,11 +93,13 @@ const HierarchicalMapping = React.createClass({
                         this.setState({
                             currentRuleId: parent,
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                     else{
                         this.setState({
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                 },
@@ -103,6 +107,7 @@ const HierarchicalMapping = React.createClass({
                     // FIXME: let know the user what have happened!
                     this.setState({
                         elementToDelete: false,
+                        loading: false,
                     });
                 }
             );
@@ -162,6 +167,7 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
+        const loading = this.state.loading ? <Spinner/> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
@@ -231,6 +237,7 @@ const HierarchicalMapping = React.createClass({
                         {debugOptions}
                         {deleteView}
                         {discardView}
+                        {loading}
                         <ContextMenu
                             iconName="tune"
                         >
