@@ -8,7 +8,7 @@ import java.time.Instant
   *
   * @param path The path of the resource, e.g., "org/silkframework/resource.txt"
   */
-class ClasspathResource(val path: String) extends Resource {
+case class ClasspathResource(path: String) extends Resource {
 
   val name: String = path.split(',').last
 

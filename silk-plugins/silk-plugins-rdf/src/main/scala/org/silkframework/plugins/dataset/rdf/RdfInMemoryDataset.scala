@@ -42,10 +42,6 @@ case class RdfInMemoryDataset(data: String,
     */
   override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
-  override def clear(): Unit = {
-    model.removeAll()
-  }
-
   override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
   override def graphToClear: String = "ignored"

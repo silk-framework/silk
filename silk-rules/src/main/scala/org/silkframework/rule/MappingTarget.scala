@@ -1,12 +1,12 @@
 package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
-import org.silkframework.entity.{AutoDetectValueType, ValueType}
+import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
-import org.silkframework.runtime.serialization.XmlSerialization._
-import scala.xml.Node
+
 import scala.language.implicitConversions
+import scala.xml.Node
 
 case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValueType, isBackwardProperty: Boolean = false) {
 
@@ -19,6 +19,11 @@ case class MappingTarget(propertyUri: Uri, valueType: ValueType = AutoDetectValu
     if(isBackwardProperty) "\\" + addedType else addedType
   }
 
+  /** Representation of the mapping target as Silk Path */
+  def asPath(): Path = {
+    val op = if (isBackwardProperty) BackwardOperator(propertyUri) else ForwardOperator(propertyUri)
+    Path(List(op))
+  }
 }
 
 object MappingTarget {

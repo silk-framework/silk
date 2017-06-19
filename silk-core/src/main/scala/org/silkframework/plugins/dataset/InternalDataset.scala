@@ -51,8 +51,6 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
   override def linkSink: LinkSink = _internalDatasetPluginImpl.linkSink
 
   override def entitySink: EntitySink = _internalDatasetPluginImpl.entitySink
-
-  override def clear(): Unit = _internalDatasetPluginImpl.clear()
 }
 
 /**

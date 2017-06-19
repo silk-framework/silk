@@ -60,6 +60,23 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "valueType": {
               "nodeType": "StringValueType"
             }
+          },
+          "metadata" : {
+            "label" : "direct rule label",
+            "description" : "direct rule description"
+          }
+        }
+      """
+    }
+  }
+
+  "Update meta data of direct mapping rule" in {
+    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
+      """
+        {
+          "metadata" : {
+            "label" : "updated direct rule label",
+            "description" : "updated direct rule description"
           }
         }
       """
@@ -101,12 +118,20 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "uriRule" : {
               "type" : "uri",
               "id" : "uri",
-              "pattern" : "http://example.org/{PersonID}"
+              "pattern" : "http://example.org/{PersonID}",
+              "metadata" : {
+                "label" : "",
+                "description" : ""
+              }
             },
             "typeRules" : [ {
               "type" : "type",
               "id" : "explicitlyDefinedId",
-              "typeUri" : "target:Person"
+              "typeUri" : "target:Person",
+              "metadata" : {
+                "label" : "",
+                "description" : ""
+              }
             } ],
             "propertyRules" : [ {
               "type" : "direct",
@@ -118,6 +143,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                   "nodeType" : "StringValueType"
                 },
                 "isBackwardProperty" : false
+              },
+              "metadata" : {
+                "label" : "updated direct rule label",
+                "description" : "updated direct rule description"
               }
             }, {
               "type" : "object",
@@ -134,11 +163,20 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "uriRule" : null,
                 "typeRules" : [ ],
                 "propertyRules" : [ ]
+              },
+              "metadata" : {
+                "label" : "",
+                "description" : ""
               }
             } ]
+          },
+          "metadata" : {
+            "label" : "",
+            "description" : ""
           }
         }
       """
+
     }
   }
 
@@ -160,6 +198,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "uriRule" : null,
             "typeRules" : [ ],
             "propertyRules" : [ ]
+          },
+          "metadata" : {
+            "label" : "",
+            "description" : ""
           }
         }
       """
