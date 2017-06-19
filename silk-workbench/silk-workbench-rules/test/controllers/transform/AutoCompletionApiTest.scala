@@ -76,7 +76,8 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
             propertyRules = Seq(
               DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
               ObjectMapping(
-                sourcePath = Path.empty,
+                id = "addressMapping",
+                sourcePath = Path(uri("address")),
                 target = Some(MappingTarget(uri("address"))),
                 rules = MappingRules(
                   uriRule = None,
@@ -100,7 +101,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
     waitForCaches(task)
   }
 
-  implicit class AutoCompletionChecks(json: JsValue) {
+  private implicit class AutoCompletionChecks(json: JsValue) {
 
     def checkCompletionValues(category: String, expectedValues: Set[String]): Unit = {
       val filteredCompletions = json.as[JsArray].value.filter(c => (c \ "category").get == JsString(category))
