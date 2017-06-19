@@ -204,7 +204,6 @@ if (!__DEBUG__) {
                         ...apiDetails, ruleId: parent, payload,
                     }
                 })
-
         }
     };
 
@@ -371,7 +370,6 @@ if (!__DEBUG__) {
     };
 
     hierarchicalMappingChannel.subject('rule.createValueMapping').subscribe(handleUpdate);
-
 
     hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(handleUpdate);
 

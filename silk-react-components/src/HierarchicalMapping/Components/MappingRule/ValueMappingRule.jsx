@@ -2,7 +2,6 @@ import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
@@ -17,7 +16,7 @@ import {
     ThingDescription,
 } from './SharedComponents';
 
-const RuleValueEditView = React.createClass({
+const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -204,14 +203,23 @@ const RuleValueEditView = React.createClass({
                                 className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                                 onClick={this.handleEdit}
                             >
-                                Edit rule
+                                Edit
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent:this.props.parentId})}
+                                onClick={()=>hierarchicalMappingChannel.subject(
+                                    'removeClick'
+                                ).onNext(
+                                    {
+                                        id: this.props.id,
+                                        uri: this.props.mappingTarget.uri,
+                                        type: this.props.type,
+                                        parent:this.props.parentId
+                                    }
+                                )}
                                 disabled={false} // FIXME: all elements are removable?
                             >
-                                Remove rule
+                                Remove
                             </DisruptiveButton>
                         </div>
                     </div>
@@ -222,4 +230,4 @@ const RuleValueEditView = React.createClass({
 
 });
 
-export default RuleValueEditView;
+export default RuleValueView;
