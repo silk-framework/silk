@@ -4,7 +4,6 @@ import {
     Button,
     Radio,
     RadioGroup,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
@@ -16,11 +15,10 @@ import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 import {
     SourcePath,
     ThingName,
-    ThingDescription,
-    ThingClassName,
+    ThingDescription
 } from './SharedComponents';
 
-const RuleObjectEditView = React.createClass({
+const RuleObjectView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -111,11 +109,11 @@ const RuleObjectEditView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects from {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects to {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
                     />
                 </RadioGroup>
             );
@@ -124,7 +122,18 @@ const RuleObjectEditView = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
-                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent: this.props.parent})}
+                    onClick={
+                        ()=>hierarchicalMappingChannel.subject(
+                            'removeClick'
+                        ).onNext(
+                            {
+                                id: this.props.id,
+                                uri: this.props.mappingTarget.uri,
+                                type: this.props.type,
+                                parent: this.props.parent
+                            }
+                        )
+                    }
                 >
                     Remove
                 </DisruptiveButton>
@@ -204,32 +213,28 @@ const RuleObjectEditView = React.createClass({
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__idpattern"
                                 >
-                                    <div
-                                        className="ecc-silk-mapping__rulesviewer__comment"
-                                    >
-                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Identifier pattern
-                                            </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                TODO: complex pattern example?
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Button
-                                                    className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                                                    onClick={this.handleComplexEdit}
-                                                    raised
-                                                >
-                                                    {
-                                                        _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
-                                                    }
-                                                </Button>
-                                            </dd>
-                                        </dl>
-                                    </div>
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Identifier pattern
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                            <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
+                                        </dd>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                            TODO: complex pattern example?
+                                        </dd>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                            <Button
+                                                className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
+                                                onClick={this.handleComplexEdit}
+                                                raised
+                                            >
+                                                {
+                                                    _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
+                                                }
+                                            </Button>
+                                        </dd>
+                                    </dl>
                                 </div>
                             ) : false
                         }
@@ -278,4 +283,4 @@ const RuleObjectEditView = React.createClass({
 
 });
 
-export default RuleObjectEditView;
+export default RuleObjectView;
