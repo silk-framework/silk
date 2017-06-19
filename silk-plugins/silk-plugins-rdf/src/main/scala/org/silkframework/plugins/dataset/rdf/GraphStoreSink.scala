@@ -20,6 +20,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var output: Option[BufferedOutputStream] = None
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
   private var stmtCount = 0
+  private var byteCount = 0L
+  private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
   override def open(properties: Seq[TypedProperty]): Unit = {
     init()
@@ -43,6 +45,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
 
   override def init(): Unit = {
     stmtCount = 0
+    byteCount = 0L
     if (output.isDefined) {
       log.warning("Calling init() on already initialized graph store output stream.")
     }
@@ -66,7 +69,14 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private def writeStatementString(stmtString: String) = {
     output match {
       case Some(o) =>
-        o.write(stmtString.getBytes("UTF-8"))
+        val outBytes = stmtString.getBytes("UTF-8")
+        val outputLength = outBytes.length
+        if(byteCount + outputLength > maxBytesPerRequest) {
+          close()
+          init()
+        }
+        byteCount += outputLength
+        o.write(outBytes)
       case None =>
         throw new IllegalStateException("Writing to a closed Graph Store output stream!")
     }

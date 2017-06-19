@@ -14,11 +14,12 @@ trait GraphStoreTrait {
 
   def graphStoreHeaders(): Map[String, String] = Map.empty
 
-  def defaultTimeouts: GraphStoreTimeouts = {
+  def defaultTimeouts: GraphStoreDefaults = {
     val cfg = DefaultConfig.instance()
     val connectionTimeout = cfg.getInt("graphstore.default.connection.timeout.ms")
     val readTimeout = cfg.getInt("graphstore.default.read.timeout.ms")
-    GraphStoreTimeouts(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout)
+    val maxRequestSize = cfg.getLong("graphstore.default.max.request.size")
+    GraphStoreDefaults(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout, maxRequestSize = maxRequestSize)
   }
 
   /**
@@ -124,4 +125,4 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection) extends I
   }
 }
 
-case class GraphStoreTimeouts(connectionTimeoutIsMs: Int, readTimeoutMs: Int)
+case class GraphStoreDefaults(connectionTimeoutIsMs: Int, readTimeoutMs: Int, maxRequestSize: Long)
