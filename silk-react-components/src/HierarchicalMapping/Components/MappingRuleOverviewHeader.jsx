@@ -89,8 +89,8 @@ const MappingRuleOverviewHeader = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
-                <p>Are you sure you want to close the form?</p>
+                <p>The current edit form contain changes and still active. Collapse the element will discard these changes.</p>
+                <p>Are you sure you want to continue?</p>
             </ConfirmationDialog>
             : false;
 

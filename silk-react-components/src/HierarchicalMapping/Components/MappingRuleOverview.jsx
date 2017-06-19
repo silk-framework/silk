@@ -170,8 +170,8 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
-                <p>Are you sure you want to close the form?</p>
+                <p>{this.state.editingElements.length} edit form{this.state.editingElements.length>1?'s':''} containing changes {this.state.editingElements.length>1?'are':'is'} still open. Collapse all views will discard these changes.</p>
+                <p>Are you sure you want to continue?</p>
             </ConfirmationDialog>
             : false;
 
