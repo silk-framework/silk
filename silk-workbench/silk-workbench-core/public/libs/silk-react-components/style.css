@@ -13071,6 +13071,10 @@ h6 {
 /* Dialog */
 .ecc-silk-mapping {
   margin: 1rem; }
+  .ecc-silk-mapping .Select-menu-outer {
+    z-index: 3; }
+  .ecc-silk-mapping .mdl-dialog {
+    width: 40rem; }
 
 .ecc-silk-mapping__header {
   justify-content: flex-end; }

@@ -3,7 +3,20 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {
+    Spinner,
+    ConfirmationDialog,
+    DismissiveButton,
+    DisruptiveButton,
+    Button,
+    ContextMenu,
+    MenuItem,
+} from 'ecc-gui-elements';
+
+import {
+    ThingName
+} from './Components/MappingRule/SharedComponents';
+
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
@@ -72,17 +85,19 @@ const HierarchicalMapping = React.createClass({
         }
 
     },
-    handleClickRemove({id, type, parent}) {
+    handleClickRemove({id, uri, type, parent}) {
         this.setState({
                 editingElements: [],
-                elementToDelete: {id, type, parent},
+                elementToDelete: {id, uri, type, parent},
         });
 
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        const parent = this.state.elementToDelete.parent;
-        const type = this.state.elementToDelete.type;
+        const {parent, type}  = this.state.elementToDelete;
+        this.setState({
+            loading: true,
+        });
         hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {...this.state.elementToDelete}})
             .subscribe(
                 () => {
@@ -91,11 +106,13 @@ const HierarchicalMapping = React.createClass({
                         this.setState({
                             currentRuleId: parent,
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                     else{
                         this.setState({
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                 },
@@ -103,6 +120,7 @@ const HierarchicalMapping = React.createClass({
                     // FIXME: let know the user what have happened!
                     this.setState({
                         elementToDelete: false,
+                        loading: false,
                     });
                 }
             );
@@ -162,13 +180,14 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
+        const loading = this.state.loading ? <Spinner/> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
-                title="Delete Rule"
+                title="Remove mapping rule?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
+                        Remove
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -176,14 +195,14 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                Clicking on Delete will delete the current mapping rule
-                {this.state.elementToDelete.type === 'object'
-                    ? " as well as all existing children rules. "
-                    :'. '
-                }
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
-                type '{this.state.elementToDelete.type}'?
-
+                <p>
+                    The {this.state.elementToDelete.type} mapping rule for <ThingName id={this.state.elementToDelete.uri} />
+                    {this.state.elementToDelete.type === 'object'
+                        ? " and all its children rules are "
+                        :' is '
+                    }
+                    going to be removed permanently.
+                </p>
             </ConfirmationDialog>
             : false;
 
@@ -232,6 +251,7 @@ const HierarchicalMapping = React.createClass({
                         {debugOptions}
                         {deleteView}
                         {discardView}
+                        {loading}
                         <ContextMenu
                             iconName="tune"
                         >

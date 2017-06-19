@@ -3,7 +3,6 @@ import UseMessageBus from '../../../UseMessageBusMixin';
 import {
     TextField,
     SelectBox,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     Spinner,
@@ -11,6 +10,7 @@ import {
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers';
 import _ from 'lodash';
+import FormSaveError from './FormSaveError';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -45,7 +45,7 @@ const ValueMappingRuleForm = React.createClass({
                         const initialValues = {
                             type: _.get(rule, 'type', 'direct'),
                             comment: _.get(rule, 'metadata.description', ''),
-                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            targetProperty: _.get(rule, 'mappingTarget.uri', ''),
                             propertyType: _.get(rule, 'mappingTarget.valueType.nodeType', 'AutoDetectValueType'),
                             sourceProperty: rule.sourcePath,
                         };
@@ -62,6 +62,7 @@ const ValueMappingRuleForm = React.createClass({
                     }
                 );
         } else {
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
             this.setState({
                 create: true,
                 loading: false,
@@ -74,16 +75,30 @@ const ValueMappingRuleForm = React.createClass({
     },
     handleConfirm(event) {
         event.stopPropagation();
-        hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.state.type,
-            comment: this.state.comment,
-            targetProperty: this.state.targetProperty,
-            propertyType: this.state.propertyType,
-            sourceProperty: this.state.sourceProperty,
+        this.setState({
+            loading: true
         });
-        this.handleClose(event);
+        hierarchicalMappingChannel.request({
+            topic: 'rule.createValueMapping',
+            data: {
+                id: this.props.id,
+                parentId: this.props.parentId,
+                type: this.state.type,
+                comment: this.state.comment,
+                targetProperty: this.state.targetProperty,
+                propertyType: this.state.propertyType,
+                sourceProperty: this.state.sourceProperty,
+            }
+        }).subscribe(
+            () => {
+                this.handleClose(event);
+                hierarchicalMappingChannel.subject('reload').onNext(true);
+            }, (err) => {
+                this.setState({
+                    error: err,
+                    loading: false,
+                });
+            });
     },
     // remove rule
     handleChangeTextfield(state, {value}) {
@@ -101,10 +116,12 @@ const ValueMappingRuleForm = React.createClass({
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
 
-        if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
-        } else {
-            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+        if (id !== 0) {
+            if (touched) {
+                hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
+            } else {
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+            }
         }
 
         this.setState({
@@ -127,12 +144,12 @@ const ValueMappingRuleForm = React.createClass({
 
         const {
             type,
-            loading,
+            error,
         } = this.state;
 
-        if (loading) {
-            return <Spinner/>
-        }
+        const loading = this.state.loading ? <Spinner/> : false;
+
+        const errorMessage = error ? <FormSaveError error={error}/> : false;
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = this.state.targetProperty;
@@ -176,20 +193,23 @@ const ValueMappingRuleForm = React.createClass({
                     (!id ? ' mdl-shadow--2dp' : '')
                 }>
                     {title}
+                    {loading}
                     <div className="mdl-card__content">
+                        {errorMessage}
                         <SelectBox
-                            placeholder={'Choose target property'}
+                            placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             options={[
                                 'http://xmlns.com/foaf/0.1/name',
                                 'http://xmlns.com/foaf/0.1/knows',
                                 'http://xmlns.com/foaf/0.1/familyName',
                             ]}
+                            creatable={true}
                             value={this.state.targetProperty}
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
                         <SelectBox
-                            placeholder={'Choose property type'}
+                            placeholder={'Property type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             options={[
                                 "AutoDetectValueType",
@@ -207,7 +227,7 @@ const ValueMappingRuleForm = React.createClass({
                         {sourcePropertyInput}
                         <TextField
                             multiline={true}
-                            label="Comment"
+                            label="Description"
                             className="ecc-silk-mapping__ruleseditor__comment"
                             value={this.state.comment}
                             onChange={this.handleChangeTextfield.bind(null, 'comment')}

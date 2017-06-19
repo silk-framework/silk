@@ -233,7 +233,7 @@ const MappingRuleOverview = React.createClass({
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
                         >
-                            Suggest rules (0) (TODO)
+                            Suggest mappings (0) (TODO)
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-expand"

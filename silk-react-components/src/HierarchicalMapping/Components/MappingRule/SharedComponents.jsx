@@ -72,12 +72,16 @@ export const RuleTreeTypes = ({rule}) => {
 
 };
 
-export const ThingClassName = ({id, name}) => {
-    return <span>{name ? name : 'super entity'}</span>
-};
-
-export const ThingName = ({id}) => {
-    return <span>{id} (TODO: readable name)</span>
+export const ThingName = ({id, prefixString, suffixString}) => {
+    return <span>
+        {
+            prefixString ? prefixString : false
+        }
+        {id} (TODO: readable name)
+        {
+            suffixString ? suffixString : false
+        }
+    </span>
 }
 
 export const ThingDescription = ({id}) => {
