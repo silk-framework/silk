@@ -26,7 +26,6 @@ const RuleValueView = React.createClass({
         id: React.PropTypes.string,
         //operator: React.PropTypes.object,
         type: React.PropTypes.string,
-        // FIXME: sourcePath === source property?
         sourcePath: React.PropTypes.string,
         mappingTarget: React.PropTypes.object,
         edit: React.PropTypes.bool.isRequired,
@@ -39,13 +38,22 @@ const RuleValueView = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleCloseEdit);
     },
     getInitialState() {
+        this.subscribe(hierarchicalMappingChannel
+                .request({topic: 'rule.getEditorHref', data: {id: this.props.id}}),
+            ({href}) => this.setState({href})
+        )
+
         return {
             edit: this.props.edit,
+            href: null,
         };
     },
     handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
+        if (__DEBUG__) {
+            event.stopPropagation();
+            alert('Normally this would open the complex editor (aka jsplumb view)');
+            return false;
+        }
     },
     // open view in edit mode
     handleEdit(event) {
@@ -163,11 +171,10 @@ const RuleValueView = React.createClass({
                                                 <Button
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
+                                                    href={this.state.href}
                                                     raised
                                                 >
-                                                    {
-                                                        _.isArray(this.props.sourcePath) ? 'Edit complex mapping' : 'Create complex mapping'
-                                                    }
+                                                    Edit source path
                                                 </Button>
                                             </dd>
                                         </dl>

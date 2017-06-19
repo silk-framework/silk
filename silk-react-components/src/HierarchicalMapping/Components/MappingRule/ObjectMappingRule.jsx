@@ -52,10 +52,6 @@ const RuleObjectView = React.createClass({
         if (obj.id === this.props.id)
             this.setState({edit: false})
     },
-    handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
-    },
     // template rendering
     render () {
         const {
@@ -86,14 +82,14 @@ const RuleObjectView = React.createClass({
                                 Target property
                             </dt>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <Info border>
-                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                                 </Info>
                             </dd>
                         </dl>
@@ -109,11 +105,13 @@ const RuleObjectView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
+                        label={<div>Connects from {<ThingName id={this.props.parentName}
+                                                              prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingName id={this.props.parentName} prefixString="parent element " />}</div>}
+                        label={<div>Connects to {<ThingName id={this.props.parentName}
+                                                            prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
             );
@@ -123,7 +121,7 @@ const RuleObjectView = React.createClass({
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
                     onClick={
-                        ()=>hierarchicalMappingChannel.subject(
+                        () => hierarchicalMappingChannel.subject(
                             'removeClick'
                         ).onNext(
                             {
@@ -166,14 +164,14 @@ const RuleObjectView = React.createClass({
                                                 function(typeRule) {
                                                     return [
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                            <ThingName id={typeRule.typeUri} />
+                                                            <ThingName id={typeRule.typeUri}/>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <code>{typeRule.typeUri}</code>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <Info border>
-                                                                <ThingDescription id={typeRule.typeUri} />
+                                                                <ThingDescription id={typeRule.typeUri}/>
                                                             </Info>
                                                         </dd>
                                                     ];
@@ -191,10 +189,9 @@ const RuleObjectView = React.createClass({
                                 >
                                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Source property
+                                            Source path
                                         </dt>
                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            TODO: What is the source path of a object mapping?
                                             <SourcePath
                                                 rule={
                                                     {
@@ -213,28 +210,18 @@ const RuleObjectView = React.createClass({
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__idpattern"
                                 >
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Identifier pattern
-                                        </dt>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                            <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
-                                        </dd>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            TODO: complex pattern example?
-                                        </dd>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            <Button
-                                                className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                                                onClick={this.handleComplexEdit}
-                                                raised
-                                            >
-                                                {
-                                                    _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
-                                                }
-                                            </Button>
-                                        </dd>
-                                    </dl>
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__comment"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Identifier pattern
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
+                                            </dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             ) : false
                         }

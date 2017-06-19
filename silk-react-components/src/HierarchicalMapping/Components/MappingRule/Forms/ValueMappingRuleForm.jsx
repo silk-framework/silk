@@ -10,6 +10,7 @@ import {
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers';
 import _ from 'lodash';
+import FormSaveError from './FormSaveError';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -77,15 +78,27 @@ const ValueMappingRuleForm = React.createClass({
         this.setState({
             loading: true
         });
-        hierarchicalMappingChannel.subject('rule.createValueMapping').onNext({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.state.type,
-            comment: this.state.comment,
-            targetProperty: this.state.targetProperty,
-            propertyType: this.state.propertyType,
-            sourceProperty: this.state.sourceProperty,
-        });
+        hierarchicalMappingChannel.request({
+            topic: 'rule.createValueMapping',
+            data: {
+                id: this.props.id,
+                parentId: this.props.parentId,
+                type: this.state.type,
+                comment: this.state.comment,
+                targetProperty: this.state.targetProperty,
+                propertyType: this.state.propertyType,
+                sourceProperty: this.state.sourceProperty,
+            }
+        }).subscribe(
+            () => {
+                this.handleClose(event);
+                hierarchicalMappingChannel.subject('reload').onNext(true);
+            }, (err) => {
+                this.setState({
+                    error: err,
+                    loading: false,
+                });
+            });
     },
     // remove rule
     handleChangeTextfield(state, {value}) {
@@ -131,9 +144,12 @@ const ValueMappingRuleForm = React.createClass({
 
         const {
             type,
+            error,
         } = this.state;
 
         const loading = this.state.loading ? <Spinner/> : false;
+
+        const errorMessage = error ? <FormSaveError error={error}/> : false;
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = this.state.targetProperty;
@@ -179,6 +195,7 @@ const ValueMappingRuleForm = React.createClass({
                     {title}
                     {loading}
                     <div className="mdl-card__content">
+                        {errorMessage}
                         <SelectBox
                             placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
@@ -187,6 +204,7 @@ const ValueMappingRuleForm = React.createClass({
                                 'http://xmlns.com/foaf/0.1/knows',
                                 'http://xmlns.com/foaf/0.1/familyName',
                             ]}
+                            creatable={true}
                             value={this.state.targetProperty}
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
