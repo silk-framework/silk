@@ -25,7 +25,7 @@ class OldWorkflowExecutor(task: ProjectTask[Workflow],
     canceled = false
     val operators = workflow.operators
     val internalDataset = InternalDataset(graphUri = null)
-    internalDataset.clear()
+    internalDataset.entitySink.clear()
 
     clearInternalDatasets(operators)
 
@@ -43,7 +43,7 @@ class OldWorkflowExecutor(task: ProjectTask[Workflow],
     for (datasetId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[Dataset](datasetId)
          if dataset.data.isInstanceOf[InternalDataset]) {
-      dataset.data.clear()
+      dataset.data.entitySink.clear()
     }
   }
 

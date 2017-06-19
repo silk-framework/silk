@@ -79,7 +79,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
 
   private def writeValue(context: ActivityContext[T]): Unit = {
     try {
-      resource.write(w => toXml[T](context.value()).write(w))
+      resource.write()(w => toXml[T](context.value()).write(w))
       context.log.info(s"Cache written to $resource.")
     } catch {
       case NonFatal(ex) =>

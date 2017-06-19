@@ -19,9 +19,14 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
 
   override def load: InputStream = resource.load
 
-  override def write(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
     throw new UnsupportedOperationException("This resource can not be written.")
   }
 
   override def toString = resource.toString
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = throw new UnsupportedOperationException("This resource is read-only cannot be deleted.")
 }

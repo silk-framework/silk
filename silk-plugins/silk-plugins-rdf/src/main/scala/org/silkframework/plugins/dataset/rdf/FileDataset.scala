@@ -71,8 +71,6 @@ case class FileDataset(
 
   override def entitySink = new FormattedEntitySink(file, formatter)
 
-  override def clear(): Unit = { }
-
   object FileSource extends DataSource with PeakDataSource {
 
     // Load dataset

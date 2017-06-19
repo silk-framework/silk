@@ -25,4 +25,9 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
     }
     writerOpt = None
   }
+
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  override def clear(): Unit = resource.delete()
 }

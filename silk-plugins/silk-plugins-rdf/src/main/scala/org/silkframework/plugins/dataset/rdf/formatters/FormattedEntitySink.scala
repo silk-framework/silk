@@ -55,7 +55,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
       writer.close()
       // In case we used a string writer, we still need to write the generated string.
       writer match {
-        case stringWriter: StringWriter => resource.write(stringWriter.toString)
+        case stringWriter: StringWriter => resource.writeString(stringWriter.toString, append = true)
         case _ =>
       }
       writer = null
@@ -69,4 +69,9 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   override def writeTriple(subject: String, predicate: String, value: String, valueType: ValueType): Unit = {
     writeStatement(subject, predicate, value, valueType)
   }
+
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  override def clear(): Unit = resource.delete()
 }

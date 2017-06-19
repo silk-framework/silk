@@ -191,7 +191,7 @@ class WorkspaceApi extends Controller {
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    val silkConfig = SilkConfigExporter.build(project, task.task)
+    val silkConfig = SilkConfigExporter.build(project, task)
 
     Ok(XmlSerialization.toXml(silkConfig))
   }
@@ -240,7 +240,7 @@ class WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          resource.write(inputStream)
+          resource.writeStream(inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -252,7 +252,7 @@ class WorkspaceApi extends Controller {
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
           val inputStream = urlResource.load
-          resource.write(inputStream)
+          resource.writeStream(inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -260,11 +260,11 @@ class WorkspaceApi extends Controller {
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
-        resource.write(bytes)
+        resource.writeBytes(bytes)
         Ok
       case _ =>
         // Put empty resource
-        resource.write(Array[Byte]())
+        resource.writeBytes(Array[Byte]())
         Ok
     }
   }

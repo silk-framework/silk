@@ -91,7 +91,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       var entry = zip.getNextEntry
       while (entry != null) {
         if (!entry.isDirectory) {
-          projectRes.getInPath(entry.getName).write(zip)
+          projectRes.getInPath(entry.getName).writeStream(zip)
         }
         zip.closeEntry()
         entry = zip.getNextEntry

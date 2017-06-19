@@ -85,18 +85,40 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       }
     }
 
-    override def write(write: (OutputStream) => Unit): Unit = {
+    override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
       val outputStream = new ByteArrayOutputStream()
       write(outputStream)
-      resources += ((name, outputStream.toByteArray))
+
+      val bytes =
+        resources.get(name) match {
+          case Some(data) if append =>
+            data ++ outputStream.toByteArray
+          case _ =>
+            outputStream.toByteArray
+        }
+
+      resources += ((name, bytes))
     }
 
     /**
       * Writes raw bytes.
       * Overridden for performance.
       */
-    override def write(bytes: Array[Byte]): Unit = {
-      resources += ((name, bytes))
+    override def writeBytes(bytes: Array[Byte], append: Boolean = false): Unit = {
+      val allBytes =
+        resources.get(name) match {
+          case Some(data) if append =>
+            data ++ bytes
+          case _ =>
+            bytes
+        }
+
+      resources += ((name, allBytes))
+    }
+
+    override def delete(): Unit = {
+      resources -= name
+      children -= name
     }
   }
 

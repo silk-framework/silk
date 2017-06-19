@@ -1,5 +1,13 @@
 .ecc-silk-mapping {
     margin: 1rem;
+
+    .Select-menu-outer {
+        z-index: 3;
+    }
+
+    .mdl-dialog {
+        width: 40rem;
+    }
 }
 
 .ecc-silk-mapping__header {

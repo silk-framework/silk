@@ -30,8 +30,6 @@ case class AlignmentDataset(
    */
   override def entitySink: EntitySink = ???
 
-  override def clear(): Unit = { }
-
   override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
     this.copy(file = writableResource)
   }
