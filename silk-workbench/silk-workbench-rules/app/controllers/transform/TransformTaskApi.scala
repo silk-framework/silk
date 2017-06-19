@@ -6,7 +6,7 @@ import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
@@ -427,20 +427,21 @@ class TransformTaskApi extends Controller {
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
     val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     val (project, task) = projectAndTask(projectName, taskName)
-    val transformTask = task.data
-    val inputTask = transformTask.selection.inputId
+    val transformSpec = task.data
+    val inputTask = transformSpec.selection.inputId
     implicit val prefixes = project.config.prefixes
     project.anyTask(inputTask).data match {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val rule = task.data.mappingRule.rules.find(_.id.toString == ruleName).getOrElse(
+            val (rule, sourcePath) = nestedRuleAndSourcePath(transformSpec, ruleName).getOrElse(
               throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
-                  + task.data.mappingRule.rules.map(_.id).mkString(", "))
+                  + validRuleNames(transformSpec.mappingRule).sorted.mkString(", "))
             )
-            val entityDescription = oneRuleEntitySchema(transformTask, rule)
+            val entityDescription = oneRuleEntitySchema(transformSpec, rule, Path(sourcePath))
             try {
               val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
+              println(exampleEntities.head)
               generateMappingPreviewResponse(rule, exampleEntities, limit)
             } catch {
               case pe: PeakException =>
@@ -456,6 +457,35 @@ class TransformTaskApi extends Controller {
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTask.toString +
             " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
+    }
+  }
+
+  private def validRuleNames(mappingRule: TransformRule): List[String] = {
+    val childRuleNames = mappingRule.rules.map(validRuleNames).foldLeft(List.empty[String])((l, ruleNames) => ruleNames ::: l)
+    mappingRule.id :: childRuleNames
+  }
+
+  private def nestedRuleAndSourcePath(transformSpec: TransformSpec, ruleName: String): Option[(TransformRule, List[PathOperator])] = {
+    fetchRuleAndSourcePath(transformSpec.mappingRule, ruleName, List.empty)
+  }
+
+  def extractSourcePath(transformRule: TransformRule): List[PathOperator] = {
+    transformRule match {
+      case objMapping: ObjectMapping =>
+        objMapping.sourcePath.operators
+      case _ =>
+        List.empty
+    }
+  }
+
+  private def fetchRuleAndSourcePath(transformRule: TransformRule,
+                                     ruleName: String,
+                                     sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
+    if(transformRule.id.toString == ruleName) {
+      Some(transformRule, sourcePath)
+    } else {
+      val childSourcePath = extractSourcePath(transformRule)
+      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: childSourcePath )).headOption
     }
   }
 
@@ -527,12 +557,14 @@ class TransformTaskApi extends Controller {
   }
 
   private def oneRuleEntitySchema(transformTask: TransformSpec,
-                                  rule: TransformRule) = {
+                                  rule: TransformRule,
+                                  subPath: Path) = {
     EntitySchema(
       typeUri = transformTask.selection.typeUri,
       typedPaths = rule.paths.distinct.
           map(_.asStringTypedPath).toIndexedSeq,
-      filter = transformTask.selection.restriction
+      filter = transformTask.selection.restriction,
+      subPath = subPath
     )
   }
 }
