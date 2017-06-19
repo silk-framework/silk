@@ -54,10 +54,6 @@ const RuleObjectEditView = React.createClass({
         if (obj.id === this.props.id)
             this.setState({edit: false})
     },
-    handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
-    },
     // template rendering
     render () {
         const {
@@ -88,14 +84,14 @@ const RuleObjectEditView = React.createClass({
                                 Target property
                             </dt>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <Info border>
-                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                                 </Info>
                             </dd>
                         </dl>
@@ -157,14 +153,14 @@ const RuleObjectEditView = React.createClass({
                                                 function(typeRule) {
                                                     return [
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                            <ThingName id={typeRule.typeUri} />
+                                                            <ThingName id={typeRule.typeUri}/>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <code>{typeRule.typeUri}</code>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <Info border>
-                                                                <ThingDescription id={typeRule.typeUri} />
+                                                                <ThingDescription id={typeRule.typeUri}/>
                                                             </Info>
                                                         </dd>
                                                     ];
@@ -182,10 +178,9 @@ const RuleObjectEditView = React.createClass({
                                 >
                                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Source property
+                                            Source path
                                         </dt>
                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            TODO: What is the source path of a object mapping?
                                             <SourcePath
                                                 rule={
                                                     {
@@ -213,20 +208,6 @@ const RuleObjectEditView = React.createClass({
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
                                                 <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                TODO: complex pattern example?
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Button
-                                                    className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                                                    onClick={this.handleComplexEdit}
-                                                    raised
-                                                >
-                                                    {
-                                                        _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
-                                                    }
-                                                </Button>
                                             </dd>
                                         </dl>
                                     </div>
