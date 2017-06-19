@@ -1,8 +1,10 @@
 package org.silkframework.dataset.rdf
 
 import java.io.{InputStream, OutputStream}
-import java.net.{HttpURLConnection, URL}
+import java.net.{HttpURLConnection, SocketTimeoutException, URL}
 import java.util.logging.Logger
+
+import org.silkframework.config.DefaultConfig
 
 /**
  * Graph Store API trait.
@@ -12,7 +14,12 @@ trait GraphStoreTrait {
 
   def graphStoreHeaders(): Map[String, String] = Map.empty
 
-  def defaultTimeouts: GraphStoreTimeouts = GraphStoreTimeouts(connectionTimeoutIsMs = 15000, readTimeoutMs = 10000)
+  def defaultTimeouts: GraphStoreTimeouts = {
+    val cfg = DefaultConfig.instance()
+    val connectionTimeout = cfg.getInt("graphstore.default.connection.timeout.ms")
+    val readTimeout = cfg.getInt("graphstore.default.read.timeout.ms")
+    GraphStoreTimeouts(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout)
+  }
 
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
@@ -27,7 +34,7 @@ trait GraphStoreTrait {
     val connection: HttpURLConnection = initConnection(graph)
     connection.setDoInput(true)
     connection.setDoOutput(true)
-    chunkedStreamingMode foreach { connection.setChunkedStreamingMode(_) }
+    chunkedStreamingMode foreach { connection.setChunkedStreamingMode }
     connection.setUseCaches(false)
     connection.setRequestProperty("Content-Type", contentType)
     ConnectionClosingOutputStream(connection)
@@ -42,7 +49,7 @@ trait GraphStoreTrait {
       connection.setRequestProperty(header, headerValue)
     }
     connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
-    connection.setReadTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection.setReadTimeout(defaultTimeouts.readTimeoutMs)
     connection
   }
 
@@ -81,6 +88,11 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
       } else {
         throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
       }
+    } catch {
+      case _: SocketTimeoutException =>
+        throw new RuntimeException("A read timeout has occurred during writing via the GraphStore protocol. " +
+            s"You might want to increase 'graphstore.default.read.timeout.ms' in the application config. " +
+            s"It is currently set to ${connection.getReadTimeout}ms.")
     } finally {
       connection.disconnect()
     }
