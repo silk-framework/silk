@@ -158,6 +158,7 @@ if (!__DEBUG__) {
                 .subscribe(() => {
                         //TODO: Check that right events are fired
                         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: id});
+                        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }, (err) => {
                         //TODO: Beautify
@@ -177,8 +178,11 @@ if (!__DEBUG__) {
                 .subscribe((response) => {
                         //TODO: Check that right events are fired
 
-                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        // 0 is the id for new element, close and unchanged elements notify the open editors
+                        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
+                        hierarchicalMappingChannel.subject('ruleView.close').onNext({id: 0});
                         hierarchicalMappingChannel.subject('ruleView.created').onNext({id: _.get(response, 'body.id')});
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
                     }, (err) => {
                         //TODO: Beautify
                         console.warn(`Error saving rule in ${parent}`, err);
@@ -320,8 +324,9 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
                 saveMockStore();
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: data.id});
+                hierarchicalMappingChannel.subject('ruleView.close').onNext({id: data.id});
 
             } else {
 
@@ -330,6 +335,9 @@ if (!__DEBUG__) {
                 const parent = data.parentId ? data.parentId : mockStore.id;
                 appendToMockStore(mockStore, parent, payload);
                 saveMockStore();
+                // 0 is the id for new element, close and unchanged elements notify the open editors
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
+                hierarchicalMappingChannel.subject('ruleView.close').onNext({id: 0});
                 hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
         }
@@ -343,7 +351,8 @@ if (!__DEBUG__) {
             if (data.id) {
 
                 editRule(mockStore, data.id, payload);
-                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: payload.id});
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: data.id});
+                hierarchicalMappingChannel.subject('ruleView.close').onNext({id: data.id});
                 saveMockStore();
             } else {
 
@@ -354,6 +363,9 @@ if (!__DEBUG__) {
 
                 appendToMockStore(mockStore, parent, payload);
                 saveMockStore();
+                // 0 is the id for new element, close and unchanged elements notify the open editors
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
+                hierarchicalMappingChannel.subject('ruleView.close').onNext({id: 0});
                 hierarchicalMappingChannel.subject('ruleView.created').onNext({id: payload.id});
             }
 

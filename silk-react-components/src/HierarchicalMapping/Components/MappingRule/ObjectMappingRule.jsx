@@ -35,7 +35,7 @@ const RuleObjectEditView = React.createClass({
         edit: React.PropTypes.bool.isRequired,
     },
     componentDidMount() {
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleCloseEdit);
     },
     getInitialState() {
         return {

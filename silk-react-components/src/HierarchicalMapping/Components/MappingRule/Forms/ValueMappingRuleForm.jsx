@@ -62,6 +62,7 @@ const ValueMappingRuleForm = React.createClass({
                     }
                 );
         } else {
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
             this.setState({
                 create: true,
                 loading: false,
@@ -86,7 +87,6 @@ const ValueMappingRuleForm = React.createClass({
             propertyType: this.state.propertyType,
             sourceProperty: this.state.sourceProperty,
         });
-        this.handleClose(event);
     },
     // remove rule
     handleChangeTextfield(state, {value}) {
@@ -104,10 +104,12 @@ const ValueMappingRuleForm = React.createClass({
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
 
-        if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
-        } else {
-            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+        if (id !== 0) {
+            if (touched) {
+                hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
+            } else {
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+            }
         }
 
         this.setState({

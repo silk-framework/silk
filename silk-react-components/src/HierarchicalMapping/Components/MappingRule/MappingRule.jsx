@@ -55,7 +55,7 @@ const MappingRule = React.createClass({
             }
         });
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     onOpenEdit(obj) {

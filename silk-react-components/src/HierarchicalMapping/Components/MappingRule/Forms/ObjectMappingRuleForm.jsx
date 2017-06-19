@@ -72,11 +72,12 @@ const ObjectMappingRuleForm = React.createClass({
                     }
                 );
         } else {
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
             this.setState({
                 create: true,
                 loading: false,
                 type: 'direct',
-            })
+            });
         }
     },
     handleConfirm(event) {
@@ -95,8 +96,6 @@ const ObjectMappingRuleForm = React.createClass({
             pattern: this.state.pattern,
             entityConnection: this.state.entityConnection === 'to',
         });
-
-        this.handleClose(event);
     },
 
     handleChangeSelectBox(state, value) {
@@ -117,10 +116,12 @@ const ObjectMappingRuleForm = React.createClass({
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
 
-        if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
-        } else {
-            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+        if (id !== 0) {
+            if (touched) {
+                hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
+            } else {
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+            }
         }
 
         this.setState({
