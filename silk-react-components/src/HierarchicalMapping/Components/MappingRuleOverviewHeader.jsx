@@ -110,7 +110,8 @@ const MappingRuleOverviewHeader = React.createClass({
             );
             backButton = (
                 <Button
-                    iconName={'arrow_back'}
+                    iconName={'chevron_left'}
+                    tooltip='Navigate back to parrent'
                     onClick={this.handleNavigate.bind(null, parent.id)}
                 />
             )
