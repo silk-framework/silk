@@ -43,7 +43,7 @@ const RuleValueEditView = React.createClass({
                 .request({topic: 'rule.getEditorHref', data: {id: this.props.id}}),
             ({href}) => this.setState({href})
         )
-        
+
         return {
             edit: this.props.edit,
             href: null,
@@ -51,7 +51,7 @@ const RuleValueEditView = React.createClass({
     },
     handleComplexEdit(event) {
         if (__DEBUG__) {
-        event.stopPropagation();
+            event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }

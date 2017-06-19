@@ -12,6 +12,7 @@ import {ThingClassName} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers'
 import _ from 'lodash';
+import FormSaveError from './FormSaveError';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -82,19 +83,25 @@ const ObjectMappingRuleForm = React.createClass({
         }
     },
     handleConfirm(event) {
-        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.props.type,
-            comment: this.state.comment,
-            sourceProperty: this.state.sourceProperty,
-            targetProperty: this.state.targetProperty,
-            targetEntityType: this.state.targetEntityType,
-            pattern: this.state.pattern,
-            entityConnection: this.state.entityConnection === 'to',
+        hierarchicalMappingChannel.request({
+            topic: 'rule.createObjectMapping',
+            data: {
+                id: this.props.id,
+                parentId: this.props.parentId,
+                type: this.props.type,
+                comment: this.state.comment,
+                sourceProperty: this.state.sourceProperty,
+                targetProperty: this.state.targetProperty,
+                targetEntityType: this.state.targetEntityType,
+                pattern: this.state.pattern,
+                entityConnection: this.state.entityConnection === 'to',
+            }
+        }).subscribe(() => {
+            this.handleClose(event);
+            hierarchicalMappingChannel.subject('reload').onNext(true);
+        }, (err) => {
+            this.setState({error: err});
         });
-
-        this.handleClose(event);
     },
 
     handleChangeSelectBox(state, value) {
@@ -139,11 +146,17 @@ const ObjectMappingRuleForm = React.createClass({
             id,
         } = this.props;
 
+        const {
+            error,
+        } = this.state;
+
         const type = this.state.type;
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
             : this.state.targetProperty;
+
+        const errorMessage = error ? <FormSaveError error={error}/> : false;
 
         const title = (
             // TODO: add source path if: parent, not edit, not root element
@@ -229,6 +242,7 @@ const ObjectMappingRuleForm = React.createClass({
                         }>
                             {title}
                             <div className="mdl-card__content">
+                                {errorMessage}
                                 {targetPropertyInput}
                                 {entityRelationInput}
                                 <SelectBox
