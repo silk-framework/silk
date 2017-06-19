@@ -213,12 +213,12 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingName id={this.props.parentName}
+                        label={<div>Connect from {<ThingName id={this.props.parentName}
                                                               prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingName id={this.props.parentName}
+                        label={<div>Connect to {<ThingName id={this.props.parentName}
                                                             prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
@@ -238,7 +238,7 @@ const ObjectMappingRuleForm = React.createClass({
             patternInput = (
                 (
                     <TextField
-                        label="Id pattern"
+                        label="URI pattern"
                         className="ecc-silk-mapping__ruleseditor__pattern"
                         value={this.state.pattern}
                         onChange={this.handleChangeTextfield.bind(null, 'pattern')}

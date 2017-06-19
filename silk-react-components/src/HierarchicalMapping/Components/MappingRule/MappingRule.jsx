@@ -181,7 +181,6 @@ const MappingRule = React.createClass({
             <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
                 <ThingIcon
                     type={type}
-                    tooltip={type + ' mapping'}
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />

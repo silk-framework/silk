@@ -21231,7 +21231,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to continue?"));
+            }, _react2.default.createElement("p", null, this.state.editingElements.length, " edit form", this.state.editingElements.length > 1 ? "s" : "", " containing changes ", this.state.editingElements.length > 1 ? "are" : "is", " still open. Navigation will discard these changes."), _react2.default.createElement("p", null, "Are you sure you want to continue?"));
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping"
             }, _react2.default.createElement("div", {
@@ -21379,7 +21379,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), mainAction = function(event) {
+            }, _react2.default.createElement("p", null, "The current edit forms contain changes and still active. Collapse the element will discard these changes."), _react2.default.createElement("p", null, "Are you sure you want to continue?")), mainAction = function(event) {
                 "object" === type ? _this3.handleNavigate() : _this3.handleToggleExpand({
                     force: !0
                 });
@@ -21738,7 +21738,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
+            }, _react2.default.createElement("p", null, this.state.editingElements.length, " edit form", this.state.editingElements.length > 1 ? "s" : "", " containing changes ", this.state.editingElements.length > 1 ? "are" : "is", " still open. Collapse all views will discard these changes."), _react2.default.createElement("p", null, "Are you sure you want to continue?")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__createrule"
             }, "object" === createType ? _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 type: createType,
@@ -21898,7 +21898,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), parentTitle = !1, backButton = !1;
+            }, _react2.default.createElement("p", null, "The current edit form contain changes and still active. Collapse the element will discard these changes."), _react2.default.createElement("p", null, "Are you sure you want to continue?")), breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), parentTitle = !1, backButton = !1;
             if (_lodash2.default.has(parent, "id") && _lodash2.default.has(parent, "name")) {
                 parentTitle = _react2.default.createElement("div", {
                     className: "mdl-card__title-text-sup"
