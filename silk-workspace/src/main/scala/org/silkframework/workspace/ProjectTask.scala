@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -35,12 +35,16 @@ import scala.util.control.NonFatal
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
+                                                   initialMetaData: MetaData,
                                                    module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
   @volatile
   private var currentData: TaskType = initialData
+
+  @volatile
+  private var currentMetaData: MetaData = initialMetaData
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -72,9 +76,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current data of this task.
     */
-  def data: TaskType = currentData
+  override def data: TaskType = currentData
 
-  def task: Task[TaskType] = PlainTask(id, currentData)
+  /**
+    * Retrieves the current meta data of this task.
+    */
+  override def metaData = currentMetaData
 
   def init(): Unit = {
     // Start auto-run activities
@@ -88,6 +95,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def update(newData: TaskType): Unit = synchronized {
     // Update data
     currentData = newData
+    // (Re)Schedule write
+    for (writer <- scheduledWriter) {
+      writer.cancel(false)
+    }
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    log.info("Updated task '" + id + "'")
+  }
+
+  /**
+    * Updates the meta data of this task.
+    */
+  def update(metaData: MetaData): Unit = synchronized {
+    // Update data
+    currentMetaData = metaData
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
@@ -147,7 +168,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(project.name, id, data)
+      module.provider.putTask(project.name, ProjectTask.this)
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
@@ -157,6 +178,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
   }
 
+  override def toString: String = {
+    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+  }
 }
 
 object ProjectTask {

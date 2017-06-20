@@ -1,4 +1,5 @@
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.MetaData
 import org.silkframework.dataset._
 import org.silkframework.entity.UriValueType
 import org.silkframework.rule.MappingTarget
@@ -11,7 +12,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   "JsonDatasetTaskFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
-    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0)))
+    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0), MetaData.empty))
   }
 
   private def verify[T: ClassTag](value: T) = {
@@ -32,7 +33,6 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
 case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
   override def source: DataSource = ???
-  override def clear(): Unit = ???
   override def linkSink: LinkSink = ???
   override def entitySink: EntitySink = ???
 }

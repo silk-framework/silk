@@ -2,7 +2,6 @@ import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
@@ -17,7 +16,7 @@ import {
     ThingDescription,
 } from './SharedComponents';
 
-const RuleValueEditView = React.createClass({
+const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -27,21 +26,34 @@ const RuleValueEditView = React.createClass({
         id: React.PropTypes.string,
         //operator: React.PropTypes.object,
         type: React.PropTypes.string,
-        // FIXME: sourcePath === source property?
         sourcePath: React.PropTypes.string,
         mappingTarget: React.PropTypes.object,
-        onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
     },
-
+    handleCloseEdit(obj) {
+        if (obj.id === this.props.id)
+            this.setState({edit: false})
+    },
+    componentDidMount() {
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleCloseEdit);
+    },
     getInitialState() {
+        this.subscribe(hierarchicalMappingChannel
+                .request({topic: 'rule.getEditorHref', data: {id: this.props.id}}),
+            ({href}) => this.setState({href})
+        )
+
         return {
             edit: this.props.edit,
+            href: null,
         };
     },
     handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
+        if (__DEBUG__) {
+            event.stopPropagation();
+            alert('Normally this would open the complex editor (aka jsplumb view)');
+            return false;
+        }
     },
     // open view in edit mode
     handleEdit(event) {
@@ -52,14 +64,7 @@ const RuleValueEditView = React.createClass({
     },
     handleClose(event) {
         event.stopPropagation();
-        if (_.isFunction(this.props.onClose)) {
-            this.props.onClose();
-        } else {
-            this.setState({
-                edit: false,
-            })
-        }
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: this.props.id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
     },
     // template rendering
     render () {
@@ -69,7 +74,6 @@ const RuleValueEditView = React.createClass({
             return <ValueMappingRuleForm
                 id={this.props.id}
                 parentId={this.props.parentId}
-                onClose={() => this.setState({edit: false}) }
             />
         }
 
@@ -167,11 +171,10 @@ const RuleValueEditView = React.createClass({
                                                 <Button
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
+                                                    href={this.state.href}
                                                     raised
                                                 >
-                                                    {
-                                                        _.isArray(this.props.sourcePath) ? 'Edit complex mapping' : 'Create complex mapping'
-                                                    }
+                                                    Edit source path
                                                 </Button>
                                             </dd>
                                         </dl>
@@ -200,14 +203,23 @@ const RuleValueEditView = React.createClass({
                                 className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                                 onClick={this.handleEdit}
                             >
-                                Edit rule
+                                Edit
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent:this.props.parentId})}
+                                onClick={()=>hierarchicalMappingChannel.subject(
+                                    'removeClick'
+                                ).onNext(
+                                    {
+                                        id: this.props.id,
+                                        uri: this.props.mappingTarget.uri,
+                                        type: this.props.type,
+                                        parent:this.props.parentId
+                                    }
+                                )}
                                 disabled={false} // FIXME: all elements are removable?
                             >
-                                Remove rule
+                                Remove
                             </DisruptiveButton>
                         </div>
                     </div>
@@ -218,4 +230,4 @@ const RuleValueEditView = React.createClass({
 
 });
 
-export default RuleValueEditView;
+export default RuleValueView;

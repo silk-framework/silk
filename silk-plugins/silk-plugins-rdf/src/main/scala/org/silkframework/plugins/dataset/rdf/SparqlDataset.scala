@@ -61,11 +61,6 @@ case class SparqlDataset(
 
   override val entitySink = new SparqlSink(params, sparqlEndpoint)
 
-  override def clear(): Unit = {
-    for(graph <- params.graph)
-      sparqlEndpoint.update(s"DROP SILENT GRAPH <$graph>")
-  }
-
   override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint)
 
   /**

@@ -30,13 +30,9 @@ case class InMemoryDataset(@Param(label = "Clear graph before workflow execution
     */
   override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
-  override def clear(): Unit = {
-    model.removeAll()
-  }
-
   override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
   override def graphToClear: String = "ignored"
 
-  override def clearGraph(): Unit = clear()
+  override def clearGraph(): Unit = entitySink.clear()
 }

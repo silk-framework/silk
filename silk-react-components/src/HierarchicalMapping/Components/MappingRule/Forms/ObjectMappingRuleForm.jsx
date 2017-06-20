@@ -6,12 +6,14 @@ import {
     RadioGroup,
     TextField,
     AffirmativeButton,
+    Spinner,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import {ThingClassName} from '../SharedComponents';
+import {ThingName} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers'
 import _ from 'lodash';
+import FormSaveError from './FormSaveError';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -20,7 +22,6 @@ const ObjectMappingRuleForm = React.createClass({
     // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
-        onClose: React.PropTypes.func.isRequired,
     },
     getInitialState() {
         return {
@@ -50,8 +51,11 @@ const ObjectMappingRuleForm = React.createClass({
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
                             sourceProperty: _.get(rule, 'sourceProperty', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
-                            targetEntityType: _.get(rule, 'rules.typeRules[0].typeUri', undefined),
-                            entityConnection: _.get(rule, 'mappingTarget.inverse', false) ? 'to' : 'from',
+                            targetEntityType: _.chain(rule)
+                                .get('rules.typeRules', [])
+                                .map('typeUri')
+                                .value(),
+                            entityConnection: _.get(rule, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
                         };
@@ -72,29 +76,43 @@ const ObjectMappingRuleForm = React.createClass({
                     }
                 );
         } else {
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
             this.setState({
                 create: true,
                 loading: false,
                 type: 'direct',
-            })
+            });
         }
     },
     handleConfirm(event) {
-        hierarchicalMappingChannel.subject('rule.createObjectMapping').onNext({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.props.type,
-            comment: this.state.comment,
-            sourceProperty: this.state.sourceProperty,
-            targetProperty: this.state.targetProperty,
-            targetEntityType: this.state.targetEntityType,
-            pattern: this.state.pattern,
-            entityConnection: this.state.entityConnection === 'to',
+        event.stopPropagation();
+        this.setState({
+            loading: true,
         });
-
-        this.handleClose(event);
+        hierarchicalMappingChannel.request({
+            topic: 'rule.createObjectMapping',
+            data: {
+                id: this.props.id,
+                parentId: this.props.parentId,
+                type: this.state.type,
+                comment: this.state.comment,
+                sourceProperty: this.state.sourceProperty,
+                targetProperty: this.state.targetProperty,
+                targetEntityType: this.state.targetEntityType,
+                pattern: this.state.pattern,
+                entityConnection: this.state.entityConnection === 'to',
+            }
+        }).subscribe(
+            () => {
+                this.handleClose(event);
+                hierarchicalMappingChannel.subject('reload').onNext(true);
+            }, (err) => {
+                this.setState({
+                    error: err,
+                    loading: false,
+                });
+            });
     },
-
     handleChangeSelectBox(state, value) {
         this.handleChangeValue(state, value);
     },
@@ -113,10 +131,12 @@ const ObjectMappingRuleForm = React.createClass({
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
 
-        if (touched) {
-            hierarchicalMappingChannel.subject('ruleView.edit').onNext({id});
-        } else {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
+        if (id !== 0) {
+            if (touched) {
+                hierarchicalMappingChannel.subject('ruleView.change').onNext({id});
+            } else {
+                hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+            }
         }
 
         this.setState({
@@ -127,13 +147,9 @@ const ObjectMappingRuleForm = React.createClass({
     },
     handleClose(event) {
         event.stopPropagation();
-        if (_.isFunction(this.props.onClose)) {
-            this.props.onClose();
-        } else {
-            console.warn('ValueMappingRuleForm: No onClose')
-        }
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject('ruleView.closed').onNext({id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
+        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
     // template rendering
     render () {
@@ -141,11 +157,18 @@ const ObjectMappingRuleForm = React.createClass({
             id,
         } = this.props;
 
+        const {
+            error,
+        } = this.state;
+
         const type = this.state.type;
+        const loading = this.state.loading ? <Spinner/> : false;
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
             : this.state.targetProperty;
+
+        const errorMessage = error ? <FormSaveError error={error}/> : false;
 
         const title = (
             // TODO: add source path if: parent, not edit, not root element
@@ -160,19 +183,21 @@ const ObjectMappingRuleForm = React.createClass({
 
         let targetPropertyInput = false;
         let entityRelationInput = false;
+        let sourcePropertyInput = false;
 
         if (type !== 'root') {
             // TODO: where to get get list of target properties
             targetPropertyInput = (
                 (
                     <SelectBox
-                        placeholder={'Choose target property'}
+                        placeholder={'Target property'}
                         className="ecc-silk-mapping__ruleseditor__targetProperty"
                         options={[
                             'direct:address',
                             'direct:country',
                             'direct:friend',
                         ]}
+                        creatable={true}
                         value={this.state.targetProperty}
                         onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                     />
@@ -188,16 +213,22 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingClassName id={this.props.parentId}
-                                                                   name={this.props.parentName}/>}</div>}
+                        label={<div>Connects from {<ThingName id={this.props.parentName}
+                                                              prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingClassName id={this.props.parentId}
-                                                                 name={this.props.parentName}/>}</div>}
+                        label={<div>Connects to {<ThingName id={this.props.parentName}
+                                                            prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
             );
+
+            sourcePropertyInput = (<TextField
+                label={'Source path'}
+                onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
+                value={this.state.sourceProperty}
+            />);
 
         }
 
@@ -229,32 +260,32 @@ const ObjectMappingRuleForm = React.createClass({
                             (!id ? ' mdl-shadow--2dp' : '')
                         }>
                             {title}
+                            {loading}
                             <div className="mdl-card__content">
+                                {errorMessage}
                                 {targetPropertyInput}
                                 {entityRelationInput}
                                 <SelectBox
-                                    placeholder={'Choose target entity type'}
+                                    placeholder={'Target entity type'}
                                     className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
                                     options={['http://xmlns.com/foaf/0.1/Person', 'http://schema.org/Country', 'http://schema.org/Address']}
                                     value={this.state.targetEntityType}
-                                    //multi={true} // allow multi selection
+                                    multi={true} // allow multi selection
+                                    creatable={true}
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
-                                <TextField
-                                    label={'Source property'}
-                                    onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
-                                    value={this.state.sourceProperty}
-                                />
+                                {sourcePropertyInput}
                                 <TextField
                                     multiline={true}
-                                    label="Comment"
+                                    label="Description"
                                     className="ecc-silk-mapping__ruleseditor__comment"
                                     value={this.state.comment}
                                     onChange={this.handleChangeTextfield.bind(null, 'comment')}
                                 />
                                 {patternInput}
                             </div>
-                            <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                            <div
+                                className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                                 <AffirmativeButton
                                     className="ecc-silk-mapping__ruleseditor__actionrow-save"
                                     onClick={this.handleConfirm}

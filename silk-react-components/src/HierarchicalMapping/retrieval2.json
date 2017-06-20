@@ -81,7 +81,7 @@
                 },
                 "mappingTarget": {
                     "uri": "http://schema.org/address",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -142,7 +142,7 @@
             {
                 "mappingTarget": {
                     "uri": "http://xmlns.com/foaf/0.1/knows",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -168,7 +168,7 @@
             {
                 "mappingTarget": {
                     "uri": "http://xmlns.com/foaf/0.1/depiction",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -203,7 +203,7 @@
             {
                 "mappingTarget": {
                     "uri": "http://xmlns.com/foaf/0.1/mbox",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -223,7 +223,7 @@
             {
                 "mappingTarget": {
                     "uri": "http://xmlns.com/foaf/0.1/depiction",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -258,7 +258,7 @@
             {
                 "mappingTarget": {
                     "uri": "http://xmlns.com/foaf/0.1/based_near",
-                    "inverse": false,
+                    "isBackwardProperty": false,
                     "valueType": {
                         "nodeType": "UriValueType"
                     }
@@ -282,7 +282,7 @@
         "description": "persons ..."
     },
     "mappingTarget": {
-        "inverse": false,
+        "isBackwardProperty": false,
         "valueType": {
             "nodeType": "UriValueType"
         }

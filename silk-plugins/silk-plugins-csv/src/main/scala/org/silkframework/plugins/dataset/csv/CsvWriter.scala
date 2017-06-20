@@ -44,7 +44,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     // If we are using a string writer, we still need to write the data to the resource
     writer match {
       case stringWriter: StringWriter =>
-        resource.write(stringWriter.toString)
+        resource.writeString(stringWriter.toString)
       case _ =>
     }
   }

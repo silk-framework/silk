@@ -3,7 +3,20 @@ import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
 import TreeView from './Components/TreeView';
-import {ConfirmationDialog, AffirmativeButton, DismissiveButton, DisruptiveButton,Button, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {
+    Spinner,
+    ConfirmationDialog,
+    DismissiveButton,
+    DisruptiveButton,
+    Button,
+    ContextMenu,
+    MenuItem,
+} from 'ecc-gui-elements';
+
+import {
+    ThingName
+} from './Components/MappingRule/SharedComponents';
+
 import MappingRuleOverview from './Components/MappingRuleOverview'
 
 const HierarchicalMapping = React.createClass({
@@ -17,7 +30,15 @@ const HierarchicalMapping = React.createClass({
         transformTask: React.PropTypes.string.isRequired, //Current Transformation
         initialRule: React.PropTypes.string,
      },
-
+    componentDidMount(){
+        // listen to rule id changes
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
+        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+    },
     // initilize state
     getInitialState() {
 
@@ -34,14 +55,6 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         });
 
-        // listen to rule id changes
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.change'), this.onRuleNavigation);
-        this.subscribe(hierarchicalMappingChannel.subject('removeClick'), this.handleClickRemove);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.edit'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.onCloseEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onOpenEdit);
-
-        // listen to rule create event
 
         //TODO: Use initialRule
         return {
@@ -50,7 +63,6 @@ const HierarchicalMapping = React.createClass({
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
-            ruleEditView: false,
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
@@ -58,28 +70,34 @@ const HierarchicalMapping = React.createClass({
     },
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        this.setState({
-            editingElements: _.merge(this.state.editingElements, [id]),
-        });
+        if (!_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.concat(this.state.editingElements, [id]),
+            });
+        }
     },
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
-        console.log('remove '+id+'from editingElements')
-        this.setState({
-            editingElements: _.filter(this.state.editingElements, (e) => e !== id),
-        })
+        if (_.includes(this.state.editingElements, id)) {
+            this.setState({
+                editingElements: _.filter(this.state.editingElements, (e) => e !== id),
+            });
+        }
+
     },
-    handleClickRemove({id, type, parent}) {
+    handleClickRemove({id, uri, type, parent}) {
         this.setState({
                 editingElements: [],
-                elementToDelete: {id, type, parent},
+                elementToDelete: {id, uri, type, parent},
         });
 
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        const parent = this.state.elementToDelete.parent;
-        const type = this.state.elementToDelete.type;
+        const {parent, type}  = this.state.elementToDelete;
+        this.setState({
+            loading: true,
+        });
         hierarchicalMappingChannel.request({topic: 'rule.removeRule', data: {...this.state.elementToDelete}})
             .subscribe(
                 () => {
@@ -88,11 +106,13 @@ const HierarchicalMapping = React.createClass({
                         this.setState({
                             currentRuleId: parent,
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                     else{
                         this.setState({
                             elementToDelete: false,
+                            loading: false,
                         });
                     }
                 },
@@ -100,6 +120,7 @@ const HierarchicalMapping = React.createClass({
                     // FIXME: let know the user what have happened!
                     this.setState({
                         elementToDelete: false,
+                        loading: false,
                     });
                 }
             );
@@ -120,7 +141,6 @@ const HierarchicalMapping = React.createClass({
             });
         }
         else {
-            console.log('editing ', this.state.editingElements)
             this.setState({
                 askForDiscard: newRuleId
             });
@@ -134,21 +154,25 @@ const HierarchicalMapping = React.createClass({
     },
     handleDiscardChanges() {
         if (_.includes(this.state.editingElements, 0)) {
-            hierarchicalMappingChannel.subject('ruleView.closed').onNext({id: 0});
+            hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: 0});
         }
         this.setState({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
         });
-
+        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+    },
+    discardAll() {
+        this.setState({
+            editingElements: [],
+        });
     },
     handleCancelDiscard() {
         this.setState({askForDiscard: false});
     },
     // template rendering
     render () {
-        const ruleEdit = this.state.ruleEditView ? this.state.ruleEditView : {};
         const treeView = (
             this.state.showNavigation ? (
                 <TreeView
@@ -156,14 +180,14 @@ const HierarchicalMapping = React.createClass({
                 />
             ) : false
         );
-
+        const loading = this.state.loading ? <Spinner/> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
-                title="Delete Rule"
+                title="Remove mapping rule?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
-                        Delete
+                        Remove
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -171,14 +195,14 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                Clicking on Delete will delete the current mapping rule
-                {this.state.elementToDelete.type === 'object'
-                    ? " as well as all existing children rules. "
-                    :'. '
-                }
-                Are you sure you want to delete the rule with id '{this.state.elementToDelete.id}' and
-                type '{this.state.elementToDelete.type}'?
-
+                <p>
+                    The {this.state.elementToDelete.type} mapping rule for <ThingName id={this.state.elementToDelete.uri} />
+                    {this.state.elementToDelete.type === 'object'
+                        ? " and all its children rules are "
+                        :' is '
+                    }
+                    going to be removed permanently.
+                </p>
             </ConfirmationDialog>
             : false;
 
@@ -226,6 +250,7 @@ const HierarchicalMapping = React.createClass({
                         {debugOptions}
                         {deleteView}
                         {discardView}
+                        {loading}
                         <ContextMenu
                             iconName="tune"
                         >
@@ -241,7 +266,6 @@ const HierarchicalMapping = React.createClass({
                         {
                             <MappingRuleOverview
                                 currentRuleId={this.state.currentRuleId}
-                                ruleEditView={{...ruleEdit}}
                             />
                         }
                     </div>

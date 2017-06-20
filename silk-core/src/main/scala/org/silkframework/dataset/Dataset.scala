@@ -14,11 +14,6 @@ trait Dataset extends TaskSpec with AnyPlugin with SinkTrait {
    */
   def source: DataSource
 
-  /**
-   * Makes sure that the next write will start from an empty dataset.
-   */
-  def clear(): Unit
-
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
 

@@ -18,7 +18,7 @@ class TypesCacheFactory extends TaskActivityFactory[Dataset, TypesCache] {
 
   def apply(task: ProjectTask[Dataset]): Activity[Types] = {
     new CachedActivity(
-      activity = new TypesCache(task.task),
+      activity = new TypesCache(task),
       resource = task.project.cacheResources.child("dataset").get(s"${task.id}_cache.xml")
     )
   }

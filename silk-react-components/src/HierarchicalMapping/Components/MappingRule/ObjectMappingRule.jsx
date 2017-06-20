@@ -4,7 +4,6 @@ import {
     Button,
     Radio,
     RadioGroup,
-    ConfirmationDialog,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
@@ -16,11 +15,10 @@ import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 import {
     SourcePath,
     ThingName,
-    ThingDescription,
-    ThingClassName,
+    ThingDescription
 } from './SharedComponents';
 
-const RuleObjectEditView = React.createClass({
+const RuleObjectView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -32,10 +30,11 @@ const RuleObjectEditView = React.createClass({
         parentName: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
-        onClose: React.PropTypes.func,
         edit: React.PropTypes.bool.isRequired,
     },
-
+    componentDidMount() {
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleCloseEdit);
+    },
     getInitialState() {
         return {
             edit: !!this.props.edit,
@@ -49,10 +48,9 @@ const RuleObjectEditView = React.createClass({
             edit: !this.state.edit,
         })
     },
-
-    handleComplexEdit(event) {
-        event.stopPropagation();
-        alert('Normally this would open the complex editor (aka jsplumb view)')
+    handleCloseEdit(obj) {
+        if (obj.id === this.props.id)
+            this.setState({edit: false})
     },
     // template rendering
     render () {
@@ -66,7 +64,6 @@ const RuleObjectEditView = React.createClass({
                 id={this.props.id}
                 parentName={this.props.parentName}
                 parentId={this.props.parentId}
-                onClose={() => this.setState({edit: false}) }
             />
         }
 
@@ -85,14 +82,14 @@ const RuleObjectEditView = React.createClass({
                                 Target property
                             </dt>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                             </dd>
                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                 <Info border>
-                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                                 </Info>
                             </dd>
                         </dl>
@@ -102,17 +99,19 @@ const RuleObjectEditView = React.createClass({
 
             entityRelation = (
                 <RadioGroup
-                    value={_.get(this.props, 'mappingTarget.inverse', false) ? 'to' : 'from'}
+                    value={_.get(this.props, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from'}
                     name=""
                     disabled={true}
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects from {<ThingName id={this.props.parentName}
+                                                              prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingClassName id={this.props.parentId} name={this.props.parentName}/>}</div>}
+                        label={<div>Connects to {<ThingName id={this.props.parentName}
+                                                            prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
             );
@@ -121,7 +120,18 @@ const RuleObjectEditView = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
-                    onClick={()=>hierarchicalMappingChannel.subject('removeClick').onNext({id: this.props.id, type: this.props.type, parent: this.props.parent})}
+                    onClick={
+                        () => hierarchicalMappingChannel.subject(
+                            'removeClick'
+                        ).onNext(
+                            {
+                                id: this.props.id,
+                                uri: this.props.mappingTarget.uri,
+                                type: this.props.type,
+                                parent: this.props.parent
+                            }
+                        )
+                    }
                 >
                     Remove
                 </DisruptiveButton>
@@ -154,14 +164,14 @@ const RuleObjectEditView = React.createClass({
                                                 function(typeRule) {
                                                     return [
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                            <ThingName id={typeRule.typeUri} />
+                                                            <ThingName id={typeRule.typeUri}/>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <code>{typeRule.typeUri}</code>
                                                         </dd>,
                                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                             <Info border>
-                                                                <ThingDescription id={typeRule.typeUri} />
+                                                                <ThingDescription id={typeRule.typeUri}/>
                                                             </Info>
                                                         </dd>
                                                     ];
@@ -179,10 +189,9 @@ const RuleObjectEditView = React.createClass({
                                 >
                                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Source property
+                                            Source path
                                         </dt>
                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            TODO: What is the source path of a object mapping?
                                             <SourcePath
                                                 rule={
                                                     {
@@ -210,20 +219,6 @@ const RuleObjectEditView = React.createClass({
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
                                                 <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                TODO: complex pattern example?
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Button
-                                                    className="ecc-silk-mapping__rulesviewer__actionrow-complex-edit"
-                                                    onClick={this.handleComplexEdit}
-                                                    raised
-                                                >
-                                                    {
-                                                        _.isArray(_.get(this.props, 'rules.uriRule.pattern', '')) ? 'Edit complex pattern' : 'Create complex pattern'
-                                                    }
-                                                </Button>
                                             </dd>
                                         </dl>
                                     </div>
@@ -275,4 +270,4 @@ const RuleObjectEditView = React.createClass({
 
 });
 
-export default RuleObjectEditView;
+export default RuleObjectView;

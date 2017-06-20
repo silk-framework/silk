@@ -15,7 +15,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "not return an entity for an empty JSON array" in {
     val resourceManager = InMemoryResourceManager()
     val resource = resourceManager.get("test.json")
-    resource.write(
+    resource.writeString(
       """
         |{"data":[]}
       """.stripMargin)
@@ -27,7 +27,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "not return entities for valid paths" in {
     val resourceManager = InMemoryResourceManager()
     val resource = resourceManager.get("test.json")
-    resource.write(
+    resource.writeString(
       """
         |{"data":{"entities":[{"id":"ID"}]}}
       """.stripMargin)

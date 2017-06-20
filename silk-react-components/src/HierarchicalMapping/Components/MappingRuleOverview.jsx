@@ -10,7 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
-import {Spinner, Info, ContextMenu, MenuItem} from 'ecc-gui-elements';
+import {Spinner, Info, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
 
 const MappingRuleOverview = React.createClass({
 
@@ -27,25 +27,41 @@ const MappingRuleOverview = React.createClass({
             },
         });
     },
-    handleRuleEditClose() {
+    handleRuleEditOpen({id}) {
+        if (!_.includes(this.state.editing, id)) {
+            this.setState({
+                editing: _.concat(this.state.editing, [id]),
+            });
+        }
+    },
+    handleRuleEditClose({id}) {
         this.setState({
             ruleEditView: false,
+            editing: _.filter(this.state.editing, (e) => e !== id),
         });
     },
     // initilize state
     getInitialState() {
-        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.closed'), this.handleRuleEditClose);
-
         return {
             loading: true,
             ruleData: {},
-            ruleEditView: false
+            ruleEditView: false,
+            editing: [],
+            askForDiscard: false,
         };
     },
     componentDidMount() {
         this.loadData();
+        this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.handleRuleEditOpen);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+    },
+    discardAll() {
+        this.setState({
+            editing: [],
+        });
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -53,7 +69,6 @@ const MappingRuleOverview = React.createClass({
         }
     },
     loadData() {
-        // TODO: fix conditions
         this.setState({
             loading: true,
         });
@@ -81,16 +96,55 @@ const MappingRuleOverview = React.createClass({
                 }
             );
     },
+    handleDiscardChanges(event){
+        event.stopPropagation();
+        const type = _.get(this.state.askForDiscard, 'type', false);
+        if (type) {
+            hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
+        }
+        else{
+            const expanded = this.state.askForDiscard.expanded;
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        }
+        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+        this.setState({
+            askForDiscard: false,
+        })
+    },
+    handleCancelDiscard(event) {
+        event.stopPropagation();
+        this.setState({
+            askForDiscard: false,
+        })
+    },
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({expanded}) {
-        hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        if (this.state.editing.length === 0 || expanded) {
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+        }
+        else {
+            this.setState({
+                askForDiscard: {
+                    expanded
+                },
+            });
+        }
     },
     // jumps to selected rule as new center of view
     handleCreate({type}) {
-        hierarchicalMappingChannel.subject('ruleId.create').onNext({
-            type,
-            //FIXME: do we need more data like id of parent as source?
-        });
+        if (this.state.editing.length === 0 ) {
+            hierarchicalMappingChannel.subject('ruleId.create').onNext({
+                type,
+                //FIXME: do we need more data like id of parent as source?
+            });
+        }
+        else{
+            this.setState({
+                askForDiscard: {
+                    type
+                },
+            });
+        }
     },
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEmpty(nextState.ruleData);
@@ -102,6 +156,25 @@ const MappingRuleOverview = React.createClass({
             id,
         } = this.state.ruleData;
 
+        const discardView = this.state.askForDiscard !== false
+            ? <ConfirmationDialog
+                active={true}
+                title="Discard changes"
+                confirmButton={
+                    <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
+                        Continue
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
+                <p>Are you sure you want to close the form?</p>
+            </ConfirmationDialog>
+            : false;
+
         const createType = _.get(this.state, 'ruleEditView.type', false);
         const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
@@ -109,7 +182,6 @@ const MappingRuleOverview = React.createClass({
                     createType === 'object' ? (
                         <ObjectMappingRuleForm
                             type={createType}
-                            onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
                             parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}
@@ -117,7 +189,6 @@ const MappingRuleOverview = React.createClass({
                     ) : (
                         <ValueMappingRuleForm
                             type={createType}
-                            onClose={this.handleRuleEditClose}
                             parentId={this.state.ruleData.id}
                             parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
                             edit={true}
@@ -162,7 +233,7 @@ const MappingRuleOverview = React.createClass({
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
                         >
-                            Suggest rules (0) (TODO)
+                            Suggest mappings (0) (TODO)
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-expand"
@@ -206,7 +277,7 @@ const MappingRuleOverview = React.createClass({
                                         pos={idx}
                                         parent={this.props.currentRuleId}
                                         count={childRules.length}
-                                        key={`MappingRule_${rule.id}_${idx}`}
+                                        key={`MappingRule_${rule.id}`}
                                         {...rule}
                                     />
                                 )
@@ -220,6 +291,7 @@ const MappingRuleOverview = React.createClass({
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
+                {discardView}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
                 {
                     createRuleForm ?
