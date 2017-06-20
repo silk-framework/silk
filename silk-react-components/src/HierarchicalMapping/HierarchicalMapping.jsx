@@ -196,12 +196,9 @@ const HierarchicalMapping = React.createClass({
                     </DismissiveButton>
                 }>
                 <p>
-                    The {this.state.elementToDelete.type} mapping rule for <ThingName id={this.state.elementToDelete.uri} />
-                    {this.state.elementToDelete.type === 'object'
-                        ? " and all its children rules are "
-                        :' is '
-                    }
-                    going to be removed permanently.
+                    When you click REMOVE the mapping rule
+                    {this.state.elementToDelete.type === 'object' ? " including all child rules " :''}
+                    will be deleted permanently.
                 </p>
             </ConfirmationDialog>
             : false;
