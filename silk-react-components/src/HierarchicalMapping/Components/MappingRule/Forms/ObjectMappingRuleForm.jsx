@@ -49,7 +49,7 @@ const ObjectMappingRuleForm = React.createClass({
 
                         const initialValues = {
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                            sourceProperty: _.get(rule, 'sourceProperty', undefined),
+                            sourceProperty: _.get(rule, 'sourcePath', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetEntityType: _.chain(rule)
                                 .get('rules.typeRules', [])
