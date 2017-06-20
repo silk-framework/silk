@@ -1,37 +1,94 @@
 package controllers.transform
 
+import java.util.logging.Logger
+
 import controllers.transform.AutoCompletionApi.Categories
-import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.entity.Path
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.activity.TaskActivity
-import org.silkframework.workspace.activity.transform.{MappingCandidate, MappingCandidates, TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask, User}
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
+
 import scala.language.implicitConversions
 
 /**
   * Generates auto completions for mapping paths and types.
   */
 class AutoCompletionApi extends Controller {
+  val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**
     * Given a search term, returns all possible completions for source property paths.
     */
   def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
+    implicit val prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
-
-    // Add known paths
-    completions += pathsCacheCompletions(task)
+    task.nestedRuleAndSourcePath(ruleName) match {
+      case Some((_, sourcePath)) =>
+        val simpleSourcePath = sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
+        val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
+        val allPaths = pathsCacheCompletions(task)
+        // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
+        val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths)
+        // Add known paths
+        completions += relativeForwardPaths
+      case None =>
+        log.warning("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
+    }
 
     // Add known prefixes last
     completions += prefixCompletions(project.config.prefixes)
 
     // Return filtered result
     Ok(completions.filter(term, maxResults).toJson)
+  }
+
+  /** Filter out paths that start with either the simple source or forward only source path, then
+    * rewrite the auto-completion to a relative path from the full paths. */
+  private def relativePaths(simpleSourcePath: List[PathOperator],
+                            forwardOnlySourcePath: List[PathOperator],
+                            pathCacheCompletions: Completions)
+                           (implicit prefixes: Prefixes) = {
+    pathCacheCompletions.values.filter { p =>
+      val path = Path.parse(p.value)
+      path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
+          path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
+    } map { completion =>
+      val path = Path.parse(completion.value)
+      val truncatedOps = if (path.operators.startsWith(forwardOnlySourcePath)) {
+        path.operators.drop(forwardOnlySourcePath.size)
+      } else {
+        path.operators.drop(simpleSourcePath.size)
+      }
+      completion.copy(value = Path(truncatedOps).serializeSimplified)
+    }
+  }
+
+  // Normalize this path by eliminating backward operators
+  private def forwardOnlyPath(simpleSourcePath: List[PathOperator]) = {
+    // Remove BackwardOperators
+    var pathStack = List.empty[PathOperator]
+    for (op <- simpleSourcePath) {
+      op match {
+        case f: ForwardOperator =>
+          pathStack ::= f
+        case BackwardOperator(prop) =>
+          if (pathStack.isEmpty) {
+            // TODO: What to do?
+          } else {
+            pathStack = pathStack.tail
+          }
+        case _ =>
+          throw new IllegalArgumentException("Path cannot contain path operators other than forward and backward operators!")
+      }
+    }
+    pathStack.reverse
+
   }
 
   /**
@@ -267,8 +324,6 @@ class AutoCompletionApi extends Controller {
     */
   case class Completions(values: Seq[Completion] = Seq.empty) {
 
-    import Completions._
-
     /**
       * Adds another list of completions to this one and returns the result.
       */
@@ -306,7 +361,12 @@ class AutoCompletionApi extends Controller {
     * @param category The category to be shown in the autocompletion
     * @param isCompletion True, if this is a valid completion. False, if this is a (error) message.
     */
-  case class Completion(value: String, confidence: Double = Double.MinValue, label: Option[String], description: Option[String], category: String, isCompletion: Boolean) {
+  case class Completion(value: String,
+                        confidence: Double = Double.MinValue,
+                        label: Option[String],
+                        description: Option[String],
+                        category: String,
+                        isCompletion: Boolean) {
 
     /**
       * Returns the label if present or generates a label from the value if no label is set.

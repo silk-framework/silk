@@ -80,6 +80,34 @@ case class TransformSpec(selection: DatasetSelection,
     schemata
   }
 
+  /**
+    * Return the transform rule and the combined source path to that rule.
+    * @param ruleName The ID of the rule.
+    */
+  def nestedRuleAndSourcePath(ruleName: String): Option[(TransformRule, List[PathOperator])] = {
+    fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
+  }
+
+  // Recursively search for the rule in the transform spec rule tree and accumulate the source path.
+  private def fetchRuleAndSourcePath(transformRule: TransformRule,
+                                     ruleName: String,
+                                     sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
+    val sourcePathOperators = sourcePathOfRule(transformRule)
+    if(transformRule.id.toString == ruleName) {
+      Some(transformRule, sourcePath ::: sourcePathOperators) // Found the rule, return the result
+    } else {
+      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: sourcePathOperators )).headOption
+    }
+  }
+
+  private def sourcePathOfRule(transformRule: TransformRule) = {
+    transformRule match {
+      case objMapping: ObjectMapping =>
+        objMapping.sourcePath.operators
+      case _ =>
+        Nil
+    }
+  }
 }
 
 /**
