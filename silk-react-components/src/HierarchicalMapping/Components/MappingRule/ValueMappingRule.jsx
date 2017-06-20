@@ -182,7 +182,7 @@ const RuleValueView = React.createClass({
                                 ) : false
                             }
                             {
-                                this.props.comment ? (
+                                _.has(this, 'props.metadata.description') ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
@@ -191,7 +191,7 @@ const RuleValueView = React.createClass({
                                                 Comment
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                {this.props.comment}
+                                                {_.get(this, 'props.metadata.description')}
                                             </dd>
                                         </dl>
                                     </div>
