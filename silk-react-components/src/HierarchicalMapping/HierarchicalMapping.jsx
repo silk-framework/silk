@@ -204,7 +204,6 @@ const HierarchicalMapping = React.createClass({
             : false;
 
         const discardView = this.state.askForDiscard
-            //confirm('')
             ? <ConfirmationDialog
                 active={true}
                 title="Discard changes"
@@ -218,8 +217,9 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>{this.state.editingElements.length} edit form{this.state.editingElements.length>1?'s':''} containing changes {this.state.editingElements.length>1?'are':'is'} still open. Navigation will discard these changes.</p>
-                <p>Are you sure you want to continue?</p>
+                <p>
+                    When you click CONTINUE, all unsaved changes will be lost.
+                </p>
             </ConfirmationDialog>
             : false;
 

@@ -159,7 +159,7 @@ const MappingRuleOverview = React.createClass({
         const discardView = this.state.askForDiscard !== false
             ? <ConfirmationDialog
                 active={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
                         Continue
@@ -170,8 +170,7 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>{this.state.editingElements.length} edit form{this.state.editingElements.length>1?'s':''} containing changes {this.state.editingElements.length>1?'are':'is'} still open. Collapse all views will discard these changes.</p>
-                <p>Are you sure you want to continue?</p>
+                <p>When you click CONTINUE, all unsaved changes will be lost.</p>
             </ConfirmationDialog>
             : false;
 
