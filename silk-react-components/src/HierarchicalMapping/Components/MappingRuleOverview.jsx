@@ -35,10 +35,17 @@ const MappingRuleOverview = React.createClass({
         }
     },
     handleRuleEditClose({id}) {
-        this.setState({
-            ruleEditView: false,
-            editing: _.filter(this.state.editing, (e) => e !== id),
-        });
+        if (id === 0) {
+            this.setState({
+                ruleEditView: false,
+                editing: _.filter(this.state.editing, (e) => e !== id),
+            });
+        }
+        else {
+            this.setState({
+                editing: _.filter(this.state.editing, (e) => e !== id),
+            });
+        }
     },
     // initilize state
     getInitialState() {
