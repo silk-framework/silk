@@ -159,7 +159,7 @@ const MappingRuleOverview = React.createClass({
         const discardView = this.state.askForDiscard !== false
             ? <ConfirmationDialog
                 active={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
                         Continue
@@ -170,8 +170,7 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
-                <p>Are you sure you want to close the form?</p>
+                <p>When you click CONTINUE, all unsaved changes will be lost.</p>
             </ConfirmationDialog>
             : false;
 

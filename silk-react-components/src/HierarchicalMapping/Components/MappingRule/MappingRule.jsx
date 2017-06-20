@@ -142,7 +142,7 @@ const MappingRule = React.createClass({
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
                         Continue
@@ -153,8 +153,7 @@ const MappingRule = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
-                <p>Are you sure you want to close the form?</p>
+                <p>When you click CONTINUE, all unsaved changes of the current form will be lost.</p>
             </ConfirmationDialog>
             : false;
 
@@ -181,7 +180,6 @@ const MappingRule = React.createClass({
             <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
                 <ThingIcon
                     type={type}
-                    tooltip={type + ' mapping'}
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />

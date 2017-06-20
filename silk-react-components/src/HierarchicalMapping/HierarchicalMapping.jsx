@@ -196,18 +196,14 @@ const HierarchicalMapping = React.createClass({
                     </DismissiveButton>
                 }>
                 <p>
-                    The {this.state.elementToDelete.type} mapping rule for <ThingName id={this.state.elementToDelete.uri} />
-                    {this.state.elementToDelete.type === 'object'
-                        ? " and all its children rules are "
-                        :' is '
-                    }
-                    going to be removed permanently.
+                    When you click REMOVE the mapping rule
+                    {this.state.elementToDelete.type === 'object' ? " including all child rules " :''}
+                    will be deleted permanently.
                 </p>
             </ConfirmationDialog>
             : false;
 
         const discardView = this.state.askForDiscard
-            //confirm('')
             ? <ConfirmationDialog
                 active={true}
                 title="Discard changes"
@@ -221,7 +217,9 @@ const HierarchicalMapping = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes will be destroy.</p><p>Are you sure you want to continue?</p>
+                <p>
+                    When you click CONTINUE, all unsaved changes will be lost.
+                </p>
             </ConfirmationDialog>
             : false;
 

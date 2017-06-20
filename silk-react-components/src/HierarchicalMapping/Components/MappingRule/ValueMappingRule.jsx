@@ -124,7 +124,7 @@ const RuleValueView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Property type
+                                                Data type
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
                                                 {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
@@ -144,7 +144,7 @@ const RuleValueView = React.createClass({
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                                 {
-                                                    _.isArray(this.props.sourcePath) ? 'Source properties of complex mapping' : 'Source property'
+                                                    (this.props.type === 'direct') ? 'Value path' : 'Value formula'
                                                 }
                                             </dt>
                                             {
@@ -168,14 +168,13 @@ const RuleValueView = React.createClass({
                                                 )
                                             }
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Button
+                                                <a
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
                                                     href={this.state.href}
-                                                    raised
                                                 >
-                                                    Edit source path
-                                                </Button>
+                                                    {(this.props.type === 'direct') ? 'Convert value path to value formula' : 'Edit value formula'}
+                                                </a>
                                             </dd>
                                         </dl>
                                     </div>
@@ -188,7 +187,7 @@ const RuleValueView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Comment
+                                                Description
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 {this.props.comment}
