@@ -159,7 +159,7 @@ const MappingRuleOverview = React.createClass({
         const discardView = this.state.askForDiscard !== false
             ? <ConfirmationDialog
                 active={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
                         Continue
@@ -170,12 +170,16 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>By clicking on CONTINUE, all unsaved changes from the current formular will be destroy.</p>
-                <p>Are you sure you want to close the form?</p>
+                <p>When you click CONTINUE, all unsaved changes will be lost.</p>
             </ConfirmationDialog>
             : false;
 
+        // The root element does not have mappingTarget uri so we get the name from tree?
         const createType = _.get(this.state, 'ruleEditView.type', false);
+        const parentName = _.has(this, 'state.ruleData.mappingTarget.uri')
+            ? _.get(this, 'state.ruleData.mappingTarget.uri', '')
+            : _.get(this.state, 'ruleData.rules.typeRules[0].typeUri', '');
+
         const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
                 {
@@ -183,14 +187,14 @@ const MappingRuleOverview = React.createClass({
                         <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
+                            parentName={parentName}
                             edit={true}
                         />
                     ) : (
                         <ValueMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={_.get(this, 'state.ruleData.mappingTarget.uri', '')}
+                            parentName={parentName}
                             edit={true}
                         />
                     )

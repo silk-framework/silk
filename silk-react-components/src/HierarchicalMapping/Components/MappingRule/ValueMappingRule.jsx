@@ -103,14 +103,15 @@ const RuleValueView = React.createClass({
                                                 Target property
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <Info border>
-                                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)} />
+                                                    <ThingDescription
+                                                        id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
                                                 </Info>
                                             </dd>
                                         </dl>
@@ -124,7 +125,7 @@ const RuleValueView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Property type
+                                                Data type
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
                                                 {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
@@ -137,61 +138,70 @@ const RuleValueView = React.createClass({
                                 ) : false
                             }
                             {
-                                this.props.sourcePath ? (
+
+                                this.props.type === 'direct' ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__sourcePath"
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                {
-                                                    _.isArray(this.props.sourcePath) ? 'Source properties of complex mapping' : 'Source property'
-                                                }
+                                                Value path
                                             </dt>
-                                            {
-                                                _.isArray(this.props.sourcePath) ? [
-                                                    this.props.sourcePath.map(
-                                                        function(sourcePathItem) {
-                                                            return (
-                                                                <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                                    <code>{sourcePathItem}</code>
-                                                                </dd>
-                                                            );
-                                                        }
-                                                    ),
-                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                        TODO: comma-separated list of used operator functions
-                                                    </dd>
-                                                ] : (
-                                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                        <code>{this.props.sourcePath}</code>
-                                                    </dd>
-                                                )
-                                            }
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                <code>{this.props.sourcePath}</code>
+                                            </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Button
+                                                <a
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
                                                     href={this.state.href}
-                                                    raised
                                                 >
-                                                    Edit source path
-                                                </Button>
+                                                    Convert value path to value formula
+                                                </a>
                                             </dd>
                                         </dl>
                                     </div>
-                                ) : false
+                                ) : (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__sourcePath"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Value formula
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                <code>
+                                                    Value Paths: {_.get(this, 'props.sourcePaths', []).join(', ')}
+                                                </code>
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                TODO: comma-separated list of used operator functions
+                                            </dd>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                <a
+                                                    className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                    onClick={this.handleComplexEdit}
+                                                    href={this.state.href}
+                                                >
+                                                    Edit value formula
+                                                </a>
+                                            </dd>
+                                        </dl>
+                                    </div>
+
+                                )
                             }
                             {
-                                this.props.comment ? (
+                                _.has(this, 'props.metadata.description') ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Comment
+                                                Description
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                {this.props.comment}
+                                                {_.get(this, 'props.metadata.description')}
                                             </dd>
                                         </dl>
                                     </div>
@@ -207,14 +217,14 @@ const RuleValueView = React.createClass({
                             </Button>
                             <DisruptiveButton
                                 className="ecc-silk-mapping__ruleseditor__actionrow-remove"
-                                onClick={()=>hierarchicalMappingChannel.subject(
+                                onClick={() => hierarchicalMappingChannel.subject(
                                     'removeClick'
                                 ).onNext(
                                     {
                                         id: this.props.id,
                                         uri: this.props.mappingTarget.uri,
                                         type: this.props.type,
-                                        parent:this.props.parentId
+                                        parent: this.props.parentId
                                     }
                                 )}
                                 disabled={false} // FIXME: all elements are removable?

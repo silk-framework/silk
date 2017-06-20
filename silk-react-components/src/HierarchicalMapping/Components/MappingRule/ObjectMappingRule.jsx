@@ -105,12 +105,12 @@ const RuleObjectView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connects from {<ThingName id={this.props.parentName}
+                        label={<div>Connect from {<ThingName id={this.props.parentName}
                                                               prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connects to {<ThingName id={this.props.parentName}
+                        label={<div>Connect to {<ThingName id={this.props.parentName}
                                                             prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
@@ -183,7 +183,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            (
+                            (this.props.type === 'object') ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__sourcePath"
                                 >
@@ -203,7 +203,7 @@ const RuleObjectView = React.createClass({
                                         </dd>
                                     </dl>
                                 </div>
-                            )
+                            ) : false
                         }
                         {
                             _.get(this.props, 'rules.uriRule.pattern', '') ? (
@@ -215,7 +215,7 @@ const RuleObjectView = React.createClass({
                                     >
                                         <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                                Identifier pattern
+                                                URI pattern
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
                                                 <code>{_.get(this.props, 'rules.uriRule.pattern', '')}</code>
@@ -226,13 +226,13 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.get(this.props, 'metadata.description', '') ? (
+                            _.has(this.props, 'metadata.description', '') ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__comment"
                                 >
                                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Comment
+                                            Description
                                         </dt>
                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                             {_.get(this.props, 'metadata.description', '')}

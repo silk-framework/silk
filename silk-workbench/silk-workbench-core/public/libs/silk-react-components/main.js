@@ -6922,10 +6922,10 @@
         data.id || (payload.type = data.type);
         return payload;
     }, prepareObjectMappingPayload = function(data) {
-        var typeRules = _lodash2.default.map(data.targetEntityType, function(_ref) {
+        var typeRules = _lodash2.default.map(data.targetEntityType, function(typeRule) {
             return {
                 type: "type",
-                typeUri: _ref.value
+                typeUri: _lodash2.default.get(typeRule, "value", typeRule)
             };
         }), payload = {
             metadata: {
@@ -6953,8 +6953,8 @@
         }
         return payload;
     };
-    hierarchicalMappingChannel.subject("hierarchy.get").subscribe(function(_ref2) {
-        var replySubject = (_ref2.data, _ref2.replySubject);
+    hierarchicalMappingChannel.subject("hierarchy.get").subscribe(function(_ref) {
+        var replySubject = (_ref.data, _ref.replySubject);
         silkStore.request({
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
@@ -6964,8 +6964,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.getEditorHref").subscribe(function(_ref3) {
-        var data = _ref3.data, replySubject = _ref3.replySubject, ruleId = data.id;
+    hierarchicalMappingChannel.subject("rule.getEditorHref").subscribe(function(_ref2) {
+        var data = _ref2.data, replySubject = _ref2.replySubject, ruleId = data.id;
         if (ruleId) {
             var _apiDetails = apiDetails, transformTask = _apiDetails.transformTask, baseUrl = _apiDetails.baseUrl, project = _apiDetails.project;
             replySubject.onNext({
@@ -6976,8 +6976,8 @@
         });
         replySubject.onCompleted();
     });
-    hierarchicalMappingChannel.subject("rule.get").subscribe(function(_ref4) {
-        var data = _ref4.data, replySubject = _ref4.replySubject, id = data.id;
+    hierarchicalMappingChannel.subject("rule.get").subscribe(function(_ref3) {
+        var data = _ref3.data, replySubject = _ref3.replySubject, id = data.id;
         silkStore.request({
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
@@ -7003,16 +7003,16 @@
             })
         });
     };
-    hierarchicalMappingChannel.subject("rule.createValueMapping").subscribe(function(_ref5) {
-        var data = _ref5.data, replySubject = _ref5.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : "root";
+    hierarchicalMappingChannel.subject("rule.createValueMapping").subscribe(function(_ref4) {
+        var data = _ref4.data, replySubject = _ref4.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : "root";
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.createObjectMapping").subscribe(function(_ref6) {
-        var data = _ref6.data, replySubject = _ref6.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : "root";
+    hierarchicalMappingChannel.subject("rule.createObjectMapping").subscribe(function(_ref5) {
+        var data = _ref5.data, replySubject = _ref5.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : "root";
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref7) {
-        var data = _ref7.data, replySubject = _ref7.replySubject, id = data.id;
+    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref6) {
+        var data = _ref6.data, replySubject = _ref6.replySubject, id = data.id;
         silkStore.request({
             topic: "transform.task.rule.delete",
             data: (0, _extends3.default)({}, apiDetails, {
@@ -7027,8 +7027,8 @@
             alert("Error creating rule in " + id);
         });
     });
-    hierarchicalMappingChannel.subject("rule.orderRule").subscribe(function(_ref8) {
-        _ref8.data, _ref8.replySubject;
+    hierarchicalMappingChannel.subject("rule.orderRule").subscribe(function(_ref7) {
+        _ref7.data, _ref7.replySubject;
         console.warn("TODO: implement");
     });
     exports.default = hierarchicalMappingChannel;
@@ -7183,50 +7183,50 @@
     }
     exports.__esModule = !0;
     exports.ThingIcon = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(11), ntt = (exports.RuleTitle = function(_ref) {
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(11);
+    exports.RuleTitle = function(_ref) {
         var rule = _ref.rule;
         switch (rule.type) {
           case "root":
-            var title = _lodash2.default.get(rule, "rules.typeRules[0].typeUri", "(no target type)");
+            var title = _lodash2.default.get(rule, "rules.typeRules[0].typeUri", "(No target type)");
             return _react2.default.createElement("span", null, _lodash2.default.isEmpty(title) ? "[no type]" : title);
 
           case "direct":
           case "object":
-            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.uri", "(no target property)"));
+            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.uri", "(No target property)"));
 
           case "complex":
             return "Complex Mapping";
         }
-    }, "(no target type)");
-    exports.RuleTypes = function(_ref2) {
+    }, exports.RuleTypes = function(_ref2) {
         var rule = _ref2.rule;
         switch (rule.type) {
           case "object":
             var types = _lodash2.default.get(rule, "rules.typeRules", []).map(function(_ref3) {
                 return _ref3.typeUri;
             });
-            types = _lodash2.default.isEmpty(types) ? ntt : types.join(", ");
+            types = _lodash2.default.isEmpty(types) ? "(No target type)" : types.join(", ");
             return _react2.default.createElement("span", null, types);
 
           case "direct":
           case "complex":
-            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.valueType.nodeType", ntt));
+            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.valueType.nodeType", "(No target type)"));
 
           case "root":
             return _react2.default.createElement("span", null);
         }
     }, exports.SourcePath = function(_ref4) {
-        var rule = _ref4.rule, path = _lodash2.default.get(rule, "sourcePath", "(no source path)");
+        var rule = _ref4.rule, path = _lodash2.default.get(rule, "sourcePath", "(No source path)");
         return _react2.default.createElement("span", null, _lodash2.default.isArray(path) ? path.join(", ") : path);
     }, exports.RuleTreeTitle = function(_ref5) {
         var rule = _ref5.rule, childCount = _lodash2.default.get(rule, "rules.propertyRules", []).length;
         switch (rule.type) {
           case "root":
-            var title = _lodash2.default.get(rule, "rules.typeRules[0].typeUri", "(no target type)");
+            var title = _lodash2.default.get(rule, "rules.typeRules[0].typeUri", "(No target type)");
             return _react2.default.createElement("span", null, _lodash2.default.isEmpty(title) ? "[no type]" : title, " (", childCount, ")");
 
           case "object":
-            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.uri", "(no target property)"), " (", childCount, ")");
+            return _react2.default.createElement("span", null, _lodash2.default.get(rule, "mappingTarget.uri", "(No target property)"), " (", childCount, ")");
 
           default:
             return !1;
@@ -7238,7 +7238,7 @@
             var types = _lodash2.default.get(rule, "rules.typeRules", []).map(function(_ref7) {
                 return _ref7.typeUri;
             });
-            types = _lodash2.default.isEmpty(types) ? "(no target type)" : types.join(", ");
+            types = _lodash2.default.isEmpty(types) ? "(No target type)" : types.join(", ");
             return _react2.default.createElement("span", null, types);
 
           case "root":
@@ -7252,14 +7252,16 @@
         var id = _ref9.id;
         return _react2.default.createElement("p", null, "TODO: Include vocabulary description about ", id);
     }, exports.ThingIcon = function(_ref10) {
-        var type = _ref10.type, tooltip = _ref10.tooltip, status = _ref10.status, message = _ref10.message, iconName = "help_outline";
+        var type = _ref10.type, status = _ref10.status, message = _ref10.message, iconName = "help_outline", tooltip = "";
         switch (type) {
           case "direct":
           case "complex":
+            tooltip = "Value mapping";
             iconName = "insert_drive_file";
             break;
 
           case "object":
+            tooltip = "Object mapping";
             iconName = "folder";
             break;
 
@@ -17980,7 +17982,7 @@
                 console.warn(rule);
                 var initialValues = {
                     targetProperty: _lodash2.default.get(rule, "mappingTarget.uri", void 0),
-                    sourceProperty: _lodash2.default.get(rule, "sourceProperty", void 0),
+                    sourceProperty: _lodash2.default.get(rule, "sourcePath", void 0),
                     comment: _lodash2.default.get(rule, "metadata.description", ""),
                     targetEntityType: _lodash2.default.chain(rule).get("rules.typeRules", []).map("typeUri").value(),
                     entityConnection: _lodash2.default.get(rule, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
@@ -18093,13 +18095,13 @@
                     disabled: !1
                 }, _react2.default.createElement(_eccGuiElements.Radio, {
                     value: "from",
-                    label: _react2.default.createElement("div", null, "Connects from ", _react2.default.createElement(_SharedComponents.ThingName, {
+                    label: _react2.default.createElement("div", null, "Connect from ", _react2.default.createElement(_SharedComponents.ThingName, {
                         id: this.props.parentName,
                         prefixString: "parent element "
                     }))
                 }), _react2.default.createElement(_eccGuiElements.Radio, {
                     value: "to",
-                    label: _react2.default.createElement("div", null, "Connects to ", _react2.default.createElement(_SharedComponents.ThingName, {
+                    label: _react2.default.createElement("div", null, "Connect to ", _react2.default.createElement(_SharedComponents.ThingName, {
                         id: this.props.parentName,
                         prefixString: "parent element "
                     }))
@@ -18112,7 +18114,7 @@
             }
             var patternInput = !1;
             id && (patternInput = _react2.default.createElement(_eccGuiElements.TextField, {
-                label: "Id pattern",
+                label: "URI pattern",
                 className: "ecc-silk-mapping__ruleseditor__pattern",
                 value: this.state.pattern,
                 onChange: this.handleChangeTextfield.bind(null, "pattern")
@@ -18277,13 +18279,13 @@
                 className: "mdl-card__title mdl-card--border"
             }, "Add value mapping"), sourcePropertyInput = !1;
             "direct" === type ? sourcePropertyInput = _react2.default.createElement(_eccGuiElements.TextField, {
-                label: "Source property",
+                label: "Value path",
                 onChange: this.handleChangeTextfield.bind(null, "sourceProperty"),
                 value: this.state.sourceProperty
             }) : "complex" === type && (sourcePropertyInput = _react2.default.createElement(_eccGuiElements.TextField, {
                 disabled: !0,
-                label: "Source property",
-                value: "Complex Mapping"
+                label: "Value formula",
+                value: "The value formula cannot be modified in the edit form."
             }));
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
@@ -18299,10 +18301,11 @@
                 value: this.state.targetProperty,
                 onChange: this.handleChangeSelectBox.bind(null, "targetProperty")
             }), _react2.default.createElement(_eccGuiElements.SelectBox, {
-                placeholder: "Property type",
+                placeholder: "Data type",
                 className: "ecc-silk-mapping__ruleseditor__propertyType",
                 options: [ "AutoDetectValueType", "UriValueType", "BooleanValueType", "StringValueType", "IntegerValueType", "LongValueType", "FloatValueType", "DoubleValueType" ],
                 value: this.state.propertyType,
+                clearable: !1,
                 onChange: this.handleChangeSelectBox.bind(null, "propertyType")
             }), sourcePropertyInput, _react2.default.createElement(_eccGuiElements.TextField, {
                 multiline: !0,
@@ -18410,13 +18413,13 @@
                     disabled: !0
                 }, _react2.default.createElement(_eccGuiElements.Radio, {
                     value: "from",
-                    label: _react2.default.createElement("div", null, "Connects from ", _react2.default.createElement(_SharedComponents.ThingName, {
+                    label: _react2.default.createElement("div", null, "Connect from ", _react2.default.createElement(_SharedComponents.ThingName, {
                         id: this.props.parentName,
                         prefixString: "parent element "
                     }))
                 }), _react2.default.createElement(_eccGuiElements.Radio, {
                     value: "to",
-                    label: _react2.default.createElement("div", null, "Connects to ", _react2.default.createElement(_SharedComponents.ThingName, {
+                    label: _react2.default.createElement("div", null, "Connect to ", _react2.default.createElement(_SharedComponents.ThingName, {
                         id: this.props.parentName,
                         prefixString: "parent element "
                     }))
@@ -18457,7 +18460,7 @@
                 }, _react2.default.createElement(_SharedComponents.ThingDescription, {
                     id: typeRule.typeUri
                 }))) ];
-            }))), _react2.default.createElement("div", {
+            }))), "object" === this.props.type && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__sourcePath"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -18478,15 +18481,15 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "Identifier pattern"), _react2.default.createElement("dd", {
+            }, "URI pattern"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title"
-            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")))))), !!_lodash2.default.get(this.props, "metadata.description", "") && _react2.default.createElement("div", {
+            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")))))), !!_lodash2.default.has(this.props, "metadata.description", "") && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "Comment"), _react2.default.createElement("dd", {
+            }, "Description"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
             }, _lodash2.default.get(this.props, "metadata.description", "")))), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__examples"
@@ -21082,7 +21085,8 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(16), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _TreeView = __webpack_require__(159), _TreeView2 = _interopRequireDefault(_TreeView), _eccGuiElements = __webpack_require__(11), _SharedComponents = __webpack_require__(23), _MappingRuleOverview = __webpack_require__(157), _MappingRuleOverview2 = _interopRequireDefault(_MappingRuleOverview), HierarchicalMapping = _react2.default.createClass({
+    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(16), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _TreeView = __webpack_require__(159), _TreeView2 = _interopRequireDefault(_TreeView), _eccGuiElements = __webpack_require__(11), _MappingRuleOverview = (__webpack_require__(23), 
+    __webpack_require__(157)), _MappingRuleOverview2 = _interopRequireDefault(_MappingRuleOverview), HierarchicalMapping = _react2.default.createClass({
         displayName: "HierarchicalMapping",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -21219,9 +21223,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelRemove
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "The ", this.state.elementToDelete.type, " mapping rule for ", _react2.default.createElement(_SharedComponents.ThingName, {
-                id: this.state.elementToDelete.uri
-            }), "object" === this.state.elementToDelete.type ? " and all its children rules are " : " is ", "going to be removed permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", "object" === this.state.elementToDelete.type ? " including all child rules " : "", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 title: "Discard changes",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
@@ -21231,7 +21233,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to continue?"));
+            }, _react2.default.createElement("p", null, "When you click CONTINUE, all unsaved changes will be lost."));
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping"
             }, _react2.default.createElement("div", {
@@ -21371,7 +21373,7 @@
             var _this3 = this, _props = this.props, type = (_props.id, _props.type), parent = _props.parent, sourcePath = _props.sourcePath, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
             _props.count, !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null)), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
-                title: "Discard changes",
+                title: "Discard changes?",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
@@ -21379,7 +21381,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), mainAction = function(event) {
+            }, _react2.default.createElement("p", null, "When you click CONTINUE, all unsaved changes of the current form will be lost.")), mainAction = function(event) {
                 "object" === type ? _this3.handleNavigate() : _this3.handleToggleExpand({
                     force: !0
                 });
@@ -21393,7 +21395,6 @@
                 className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure"
             }, _react2.default.createElement(_SharedComponents.ThingIcon, {
                 type: type,
-                tooltip: type + " mapping",
                 status: _lodash2.default.get(this.props, "status[0].type", !1),
                 message: _lodash2.default.get(this.props, "status[0].message", !1)
             }), _react2.default.createElement(_SharedComponents.ThingName, {
@@ -21542,40 +21543,49 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "Property type"), _react2.default.createElement("dd", {
+            }, "Data type"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title"
             }, _lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", void 0)), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, "Any other information available here? (TODO)"))), !!this.props.sourcePath && _react2.default.createElement("div", {
+            }, "Any other information available here? (TODO)"))), "direct" === this.props.type ? _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__sourcePath"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, _lodash2.default.isArray(this.props.sourcePath) ? "Source properties of complex mapping" : "Source property"), _lodash2.default.isArray(this.props.sourcePath) ? [ this.props.sourcePath.map(function(sourcePathItem) {
-                return _react2.default.createElement("dd", {
-                    className: "ecc-silk-mapping__rulesviewer__attribute-title"
-                }, _react2.default.createElement("code", null, sourcePathItem));
-            }), _react2.default.createElement("dd", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, "TODO: comma-separated list of used operator functions") ] : _react2.default.createElement("dd", {
+            }, "Value path"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title"
             }, _react2.default.createElement("code", null, this.props.sourcePath)), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement("a", {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.handleComplexEdit,
-                href: this.state.href,
-                raised: !0
-            }, "Edit source path")))), !!this.props.comment && _react2.default.createElement("div", {
+                href: this.state.href
+            }, "Convert value path to value formula")))) : _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__sourcePath"
+            }, _react2.default.createElement("dl", {
+                className: "ecc-silk-mapping__rulesviewer__attribute"
+            }, _react2.default.createElement("dt", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-label"
+            }, "Value formula"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-title"
+            }, _react2.default.createElement("code", null, "Value Paths: ", _lodash2.default.get(this, "props.sourcePaths", []).join(", "))), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-info"
+            }, "TODO: comma-separated list of used operator functions"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-info"
+            }, _react2.default.createElement("a", {
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
+                onClick: this.handleComplexEdit,
+                href: this.state.href
+            }, "Edit value formula")))), !!_lodash2.default.has(this, "props.metadata.description") && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "Comment"), _react2.default.createElement("dd", {
+            }, "Description"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, this.props.comment)))), _react2.default.createElement("div", {
+            }, _lodash2.default.get(this, "props.metadata.description"))))), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border"
             }, _react2.default.createElement(_eccGuiElements.Button, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-edit",
@@ -21730,7 +21740,7 @@
         render: function() {
             var _this2 = this, _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, discardView = !1 !== this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
-                title: "Discard changes",
+                title: "Discard changes?",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
@@ -21738,17 +21748,17 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
+            }, _react2.default.createElement("p", null, "When you click CONTINUE, all unsaved changes will be lost.")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), parentName = _lodash2.default.has(this, "state.ruleData.mappingTarget.uri") ? _lodash2.default.get(this, "state.ruleData.mappingTarget.uri", "") : _lodash2.default.get(this.state, "ruleData.rules.typeRules[0].typeUri", ""), createRuleForm = !!createType && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__createrule"
             }, "object" === createType ? _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 type: createType,
                 parentId: this.state.ruleData.id,
-                parentName: _lodash2.default.get(this, "state.ruleData.mappingTarget.uri", ""),
+                parentName: parentName,
                 edit: !0
             }) : _react2.default.createElement(_ValueMappingRuleForm2.default, {
                 type: createType,
                 parentId: this.state.ruleData.id,
-                parentName: _lodash2.default.get(this, "state.ruleData.mappingTarget.uri", ""),
+                parentName: parentName,
                 edit: !0
             })), childRules = rules.propertyRules || [], loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), mappingRulesListHead = !1, mappingRulesList = !1;
             if (!createRuleForm) {
@@ -21890,7 +21900,7 @@
             if (_lodash2.default.isEmpty(this.props.rule)) return !1;
             var discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
-                title: "Discard changes",
+                title: "Discard changes?",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
@@ -21898,7 +21908,7 @@
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "By clicking on CONTINUE, all unsaved changes from the current formular will be destroy."), _react2.default.createElement("p", null, "Are you sure you want to close the form?")), breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), parentTitle = !1, backButton = !1;
+            }, _react2.default.createElement("p", null, "When you click CONTINUE, all unsaved changes of the current form will be lost.")), breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), parentTitle = !1, backButton = !1;
             if (_lodash2.default.has(parent, "id") && _lodash2.default.has(parent, "name")) {
                 parentTitle = _react2.default.createElement("div", {
                     className: "mdl-card__title-text-sup"

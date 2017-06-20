@@ -168,7 +168,7 @@ const ValueMappingRuleForm = React.createClass({
         if (type === 'direct') {
             sourcePropertyInput = (
                 <TextField
-                    label={'Source property'}
+                    label={'Value path'}
                     onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
                     value={this.state.sourceProperty}
                 />
@@ -177,8 +177,8 @@ const ValueMappingRuleForm = React.createClass({
             sourcePropertyInput = (
                 <TextField
                     disabled={true}
-                    label="Source property"
-                    value="Complex Mapping"
+                    label="Value formula"
+                    value="The value formula cannot be modified in the edit form."
                 />
             )
         }
@@ -209,7 +209,7 @@ const ValueMappingRuleForm = React.createClass({
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
                         <SelectBox
-                            placeholder={'Property type'}
+                            placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             options={[
                                 "AutoDetectValueType",
@@ -222,6 +222,7 @@ const ValueMappingRuleForm = React.createClass({
                                 "DoubleValueType",
                             ]}
                             value={this.state.propertyType}
+                            clearable={false}
                             onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
                         />
                         {sourcePropertyInput}
