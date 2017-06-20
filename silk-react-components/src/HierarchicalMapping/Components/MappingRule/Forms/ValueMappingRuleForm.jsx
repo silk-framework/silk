@@ -222,6 +222,7 @@ const ValueMappingRuleForm = React.createClass({
                                 "DoubleValueType",
                             ]}
                             value={this.state.propertyType}
+                            clearable={false}
                             onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
                         />
                         {sourcePropertyInput}
