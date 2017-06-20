@@ -79,7 +79,10 @@ const prepareValueMappingPayload = (data) => {
 
 const prepareObjectMappingPayload = (data) => {
 
-    const typeRules = _.map(data.targetEntityType, ({value}) => {
+    const typeRules = _.map(data.targetEntityType, (typeRule) => {
+
+        const value = _.get(typeRule, 'value', typeRule);
+
         return {
             "type": "type",
             "typeUri": value,
