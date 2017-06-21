@@ -391,7 +391,66 @@
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-info {
+        max-width: 100%;
+        overflow: auto;
+    }
 
+}
+
+.ecc-silk-mapping__rulesviewer__examples-table {
+
+    border: 0;
+    width: 100%;
+
+    th, td {
+        text-align: left;
+        padding: 0.5em 1em;
+        white-space: normal;
+        height: auto;
+
+        &:first-of-type,
+        &:last-of-type {
+            padding: 0.5em 1em;
+        }
+
+        &.ecc-silk-mapping__rulesviewer__examples-table__path {
+            max-width: 33%;
+        }
+        &.ecc-silk-mapping__rulesviewer__examples-table__value {
+            max-width: 33%;
+        }
+        &.ecc-silk-mapping__rulesviewer__examples-table__result {
+            max-width: 33%;
+        }
+    }
+
+    td {
+        border-top-color: #bbb;
+        border-bottom-color: #bbb;
+    }
+
+    .ecc-silk-mapping__rulesviewer__examples-table-item {
+        td {
+            border-bottom-color: #ddd;
+        }
+
+        td.ecc-silk-mapping__rulesviewer__examples-table__result {
+            border-bottom-color: #bbb;
+        }
+    }
+
+    thead {
+        border: 0;
+    }
+
+    tbody {
+        border: 0;
+
+        tr {
+            &:hover {
+                background-color: transparent;
+            }
+        }
     }
 
 }

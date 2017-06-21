@@ -56,20 +56,17 @@ const ExampleView = React.createClass({
             return <Error>{this.state.example.status.msg}</Error>;
         }
         else {
-            // FIXME: the table requires some beauty.
             const pathsCount = this.state.example.sourcePaths.length;
-            return <div className="di-rule__expanded-example-values-container">
+            return (
                 <table
-                    id='myRule'
-                    className="mdl-data-table mdl-js-data-table di-rule__expanded-example-values"
-                    style={{width: '100%'}}
+                    className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table"
                 >
                     <thead>
-                    <tr>
-                        <th className="mdl-data-table__cell--non-numeric di-example-values-source-value">Source Path</th>
-                        <th className="mdl-data-table__cell--non-numeric di-example-values-source-value">Source Value</th>
-                        <th className="mdl-data-table__cell--non-numeric di-example-values-transformed-value">Transformed Value</th>
-                    </tr>
+                        <tr>
+                            <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Source path</th>
+                            <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Source value</th>
+                            <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
+                        </tr>
                     </thead>
                     <tbody>
                     {_.map(this.state.example.results, (result, index) =>
@@ -77,15 +74,19 @@ const ExampleView = React.createClass({
                             <tr
                                 key={`${index}_${i}`}
                                 id={`${index}_${i}`}
-                                className={i===0 ? 'di-rule-first-path' : (i===pathsCount-1 ? 'di-rule-last-path' : '')}
+                                className={
+                                    (i === 0 ? 'ecc-silk-mapping__rulesviewer__examples-table-item' : '')
+                                }
                             >
-                                <td key='xxx1' className="mdl-data-table__cell--non-numeric">
+                                <td key='xxx1' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
                                     <Chip>{sourcePath}</Chip>
                                 </td>
-                                <td key='xxx2' className="mdl-data-table__cell--non-numeric">{result.sourceValues[i].map(t => <Chip>{t}</Chip>)}</td>
+                                <td key='xxx2' className='ecc-silk-mapping__rulesviewer__examples-table__value'>
+                                    {result.sourceValues[i].map(t => <Chip>{t}</Chip>)}
+                                </td>
                                 {
                                     i>0 ? false :
-                                        <td key='xxx3' className="mdl-data-table__cell--non-numeric" rowSpan={pathsCount}>
+                                        <td key='xxx3' className='ecc-silk-mapping__rulesviewer__examples-table__result' rowSpan={pathsCount}>
                                             {
                                                 this.state.example.results[index].transformedValues.map(transformedValue =>
                                                     <Chip>{transformedValue}</Chip>
@@ -98,7 +99,7 @@ const ExampleView = React.createClass({
                     )}
                     </tbody>
                 </table>
-            </div>
+            );
         }
     }
 });

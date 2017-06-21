@@ -193,7 +193,7 @@ const RuleValueView = React.createClass({
                                 )
                             }
                             {
-                                _.has(this, 'props.metadata.description') ? (
+                                (_.has(this, 'props.metadata.description') && this.props.metadata.description) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
