@@ -228,7 +228,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.has(this.props, 'metadata.description', '') ? (
+                            _.has(this.props, 'metadata.description', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__comment"
                                 >

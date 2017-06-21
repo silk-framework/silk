@@ -407,6 +407,7 @@
         padding: 0.5em 1em;
         white-space: normal;
         height: auto;
+        border-bottom-color: #ddd;
 
         &:first-of-type,
         &:last-of-type {
@@ -424,19 +425,9 @@
         }
     }
 
-    td {
-        border-top-color: #bbb;
+    tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
+    tr:last-of-type td {
         border-bottom-color: #bbb;
-    }
-
-    .ecc-silk-mapping__rulesviewer__examples-table-item {
-        td {
-            border-bottom-color: #ddd;
-        }
-
-        td.ecc-silk-mapping__rulesviewer__examples-table__result {
-            border-bottom-color: #bbb;
-        }
     }
 
     thead {
@@ -444,8 +435,6 @@
     }
 
     tbody {
-        border: 0;
-
         tr {
             &:hover {
                 background-color: transparent;

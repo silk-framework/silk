@@ -68,15 +68,12 @@ const ExampleView = React.createClass({
                             <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
                         </tr>
                     </thead>
-                    <tbody>
                     {_.map(this.state.example.results, (result, index) =>
-                        _.map(this.state.example.sourcePaths, (sourcePath, i) =>
+                        <tbody>
+                        {_.map(this.state.example.sourcePaths, (sourcePath, i) =>
                             <tr
                                 key={`${index}_${i}`}
                                 id={`${index}_${i}`}
-                                className={
-                                    (i === 0 ? 'ecc-silk-mapping__rulesviewer__examples-table-item' : '')
-                                }
                             >
                                 <td key='xxx1' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
                                     <Chip>{sourcePath}</Chip>
@@ -95,9 +92,9 @@ const ExampleView = React.createClass({
                                         </td>
                                 }
                             </tr>
-                        )
+                        )}
+                        </tbody>
                     )}
-                    </tbody>
                 </table>
             );
         }
