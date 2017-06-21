@@ -57,7 +57,6 @@ silkStore.subject('transform.task.rule.delete').subscribe(({data, replySubject})
     }
 );
 
-//TODO: Implement once needed
 silkStore.subject('transform.task.rule.peak').subscribe(({data, replySubject}) => {
 
         const {baseUrl, project, transformTask, id} = data;
