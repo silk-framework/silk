@@ -342,6 +342,87 @@
             transform: translate(-1px, 25%);
         }
     }
+
+    .mdl-card__actions--fixed {
+        position: sticky;
+        bottom: 0;
+    }
+
+}
+
+.ecc-silk-mapping__ruleslist-floatingactions {
+    position: absolute;
+    bottom: 3rem;
+    right: calc(2rem + 32px);
+
+    .mdl-button--fab {
+        // TODO: large fab is broken, need to be fixed in gui elements
+        width: 56px;
+        height: 56px;
+    }
+
+}
+
+.ecc-silk-mapping__ruleslist-floatingactions--trigger {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    transition: opacity .2s, width .2s, height .2s, border-radius .2s;
+
+    &.is-active {
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+}
+
+.ecc-silk-mapping__ruleslist-floatingactions--list {
+    position: relative;
+    bottom: 3px;
+    right: 3px;
+    top: auto;
+    left: auto;
+    height: auto;
+    overflow: hidden;
+    width: 50px;
+    min-width: 0;
+    max-height: 50px;
+    padding: 0;
+    opacity: 0;
+    border-radius: 50%;
+    z-index: 0;
+    transition: opacity .2s, width .2s, max-height .2s, border-radius .2s;
+
+    .mdl-menu__item {
+        opacity: 1;
+    }
+
+    .material-icons {
+        vertical-align: middle;
+        margin-right: 0.5em
+    }
+
+    .ecc-silk-mapping__ruleslist-floatingactions--trigger.is-active + & {
+        bottom: 0;
+        right: 0;
+        width: 20em;
+        max-height: 20em;
+        background-color: white;
+        opacity: 1;
+        border-radius: 0;
+        z-index: 2;
+    }
+}
+
+.ecc-silk-mapping__ruleslist-floatingactions--list-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
 }
 
 .ecc-silk-mapping__rulesviewer,

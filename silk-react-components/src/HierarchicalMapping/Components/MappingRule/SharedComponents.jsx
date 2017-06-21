@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon} from 'ecc-gui-elements';
+import {Icon, Button} from 'ecc-gui-elements';
 const NO_TARGET_TYPE = '(No target type)';
 const NO_TARGET_PROPERTY = '(No target property)';
 
@@ -114,3 +114,83 @@ export const ThingIcon = ({type, status, message}) => {
         tooltip={status === 'error' ? tooltip + ' (' + message + ')' : tooltip}
     />
 }
+
+export const FloatingListActions = React.createClass({
+
+    propTypes: {
+        actions: React.PropTypes.array.isRequired,
+        iconName: React.PropTypes.string.isRequired,
+    },
+
+    getInitialState() {
+        return {
+            activeFAB: false,
+        };
+    },
+
+    handleFAB(event) {
+        event.stopPropagation();
+        this.setState({
+            activeFAB: !this.state.activeFAB,
+        })
+    },
+
+    render () {
+
+        const {iconName, actions} = this.props;
+
+        if (!actions || actions.length < 1) {
+            return false;
+        }
+
+        return <div
+            className="ecc-silk-mapping__ruleslist-floatingactions"
+        >
+            <Button
+                className={
+                    "ecc-silk-mapping__ruleslist-floatingactions--trigger" +
+                    (this.state.activeFAB ? ' is-active' : '')
+                }
+                iconName="add"
+                fabSize="large"
+                colored
+                tooltip={(actions.length > 1) ? false : actions[0].label}
+                onClick={(actions.length > 1) ? this.handleFAB : actions[0].handler}
+            />
+            {
+                actions.length > 1 ? (
+                    <ul
+                        className="ecc-silk-mapping__ruleslist-floatingactions--list mdl-menu mdl-shadow--2dp"
+                    >
+                        {
+                            _.map(actions, (action, idx) =>
+                                (
+                                    <li
+                                        key={'FloatingAction_' + idx}
+                                    >
+                                        <button
+                                            className="mdl-menu__item"
+                                            onClick={action.handler}
+                                        >
+                                            {
+                                                action.icon ? <Icon name={action.icon} /> : false
+                                            }
+                                            {action.label}
+                                        </button>
+                                    </li>
+                                )
+                            )
+                        }
+                    </ul>
+                ) : false
+            }
+            {
+                (actions.length > 1 && this.state.activeFAB) ?
+                    <div
+                        className="ecc-silk-mapping__ruleslist-floatingactions--list-backdrop"
+                        onMouseOver={this.handleFAB}
+                    /> : false
+            }
+        </div>;
+    },
+})
