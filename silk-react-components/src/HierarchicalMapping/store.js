@@ -122,6 +122,30 @@ if (!__DEBUG__) {
 
     const rootId = 'root';
 
+    hierarchicalMappingChannel.subject('rule.example').subscribe(
+        ({data, replySubject}) => {
+            const {id} = data;
+
+            if (id) {
+                const {
+                    transformTask,
+                    baseUrl,
+                    project,
+                } = apiDetails;
+
+                replySubject.onNext({
+                    href: `/transform/tasks/${project}/${transformTask}/peak/${id}`
+                });
+            } else {
+                replySubject.onNext({
+                    href: null
+                });
+            }
+
+            replySubject.onCompleted();
+        }
+    );
+
     hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
         ({data, replySubject}) => {
 
@@ -290,6 +314,17 @@ if (!__DEBUG__) {
             replySubject.onCompleted();
         }
     );
+
+    hierarchicalMappingChannel.subject('rule.example').subscribe(
+        ({data, replySubject}) => {
+            ///transform/tasks/{project}/{transformationTask}/peak/{rule}
+            //const {id} = data;
+            const example = {"sourcePaths":[["/name"],["/birthdate"]],"results":[{"sourceValues":[["Abigale Purdy"],["7/21/1977"]],"transformedValues":["abigale purdy7/21/1977"]},{"sourceValues":[["Ronny Wiegand"],["10/24/1963"]],"transformedValues":["ronny wiegand10/24/1963"]},{"sourceValues":[["Rosalyn Wisozk"],["5/8/1982"]],"transformedValues":["rosalyn wisozk5/8/1982"]}],"status":{"id":"success","msg":""}}
+            replySubject.onNext({example});
+            replySubject.onCompleted();
+        }
+    );
+
 
     hierarchicalMappingChannel.subject('rule.get').subscribe(
         ({data, replySubject}) => {
