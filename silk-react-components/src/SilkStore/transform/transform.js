@@ -62,7 +62,7 @@ silkStore.subject('transform.task.rule.peak').subscribe(({data, replySubject}) =
         const {baseUrl, project, transformTask, id} = data;
 
         superagent
-            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}`)
+            .post(`${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}`)
             .accept('application/json')
             .observe()
             .multicast(replySubject).connect();
