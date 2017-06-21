@@ -13,7 +13,7 @@ import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{ValidationError, ValidationException}
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.{JsonParseException, JsonSerializers}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
@@ -49,26 +49,37 @@ class TransformTaskApi extends Controller {
   }
 
   def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
-    val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
-
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
+    implicit val readContext = ReadContext()
 
-    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
-    val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
-    val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
+    request.body match {
+      case AnyContentAsFormUrlEncoded(v) =>
+        val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+        val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
+        val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
+        val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
-    proj.tasks[TransformSpec].find(_.id == task) match {
-      //Update existing task
-      case Some(oldTask) =>
-        val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
-        proj.updateTask(task, updatedTransformSpec)
-      //Create new task with no rule
-      case None =>
-        val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-        proj.updateTask(task, transformSpec)
+        proj.tasks[TransformSpec].find(_.id == task) match {
+          //Update existing task
+          case Some(oldTask) =>
+            val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
+            proj.updateTask(task, updatedTransformSpec)
+          //Create new task with no rule
+          case None =>
+            val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
+            proj.updateTask(task, transformSpec)
+        }
+
+        Ok
+      case _ =>
+        catchExceptions {
+          deserializeCompileTime[Task[TransformSpec]]() { task =>
+            proj.updateTask(task.id, task.data)
+            Ok
+          }
+        }
     }
-    Ok
   }
   }
 
@@ -210,12 +221,14 @@ class TransformTaskApi extends Controller {
       case ex: ValidationException =>
         log.log(Level.INFO, "Invalid transformation rule", ex)
         BadRequest(JsonError("Invalid transformation rule", ex.errors))
+      case ex: JsonParseException =>
+        log.log(Level.INFO, "Invalid transformation rule JSON", ex)
+        BadRequest(JsonError(ex))
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
         InternalServerError(JsonError("Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
     }
   }
-
 
   private def identifierGenerator(transformTask: Task[TransformSpec]): IdentifierGenerator = {
     val identifierGenerator = new IdentifierGenerator()
@@ -258,47 +271,6 @@ class TransformTaskApi extends Controller {
   }
 
   /**
-    * Given a search term, returns all possible completions for source property paths.
-    */
-  def sourcePathCompletions(projectName: String, taskName: String, term: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    var completions = Seq[String]()
-
-    // Add known paths
-    if (Option(task.activity[TransformPathsCache].value).isDefined) {
-      val knownPaths = task.activity[TransformPathsCache].value.typedPaths
-      // TODO: The paths could be typed, discuss
-      completions ++= knownPaths.map(_.path.serializeSimplified(project.config.prefixes)).sorted
-    }
-
-    // Add known prefixes last
-    val prefixCompletions = project.config.prefixes.prefixMap.keys.map(_ + ":")
-    completions ++= prefixCompletions
-
-    // Filter all completions that match the search term
-    val matches = completions.filter(_.contains(term))
-
-    // Convert to JSON and return
-    Ok(JsArray(matches.map(JsString)))
-  }
-
-  /**
-    * Given a search term, returns possible completions for target paths.
-    *
-    * @param projectName The name of the project
-    * @param taskName    The name of the transformation
-    * @param sourcePath  The source path to be completed. If none, types will be suggested
-    * @param term        The search term
-    * @return
-    */
-  def targetPathCompletions(projectName: String, taskName: String, sourcePath: Option[String], term: String): Action[AnyContent] = Action {
-    val (project, task) = projectAndTask(projectName, taskName)
-    val completions = TargetAutoCompletion.retrieve(project, task, sourcePath, term)
-    Ok(JsArray(completions.map(_.toJson)))
-  }
-
-  /**
     * Returns a JSON array of candidate types, either from the vocabulary cache or the matching cache of the transform task.
     *
     * @param projectName The name of the project
@@ -306,7 +278,7 @@ class TransformTaskApi extends Controller {
     */
   def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
     val (_, task) = projectAndTask(projectName, taskName)
-    val typeCompletion = TargetAutoCompletion.retrieveTypeCompletions(task)
+    val typeCompletion = new AutoCompletionApi().retrieveTypeCompletions(task)
     Ok(JsArray(typeCompletion.map(_.toJson)))
   }
 
