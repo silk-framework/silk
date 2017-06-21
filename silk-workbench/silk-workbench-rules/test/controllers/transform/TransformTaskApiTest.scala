@@ -8,7 +8,7 @@ import scala.concurrent.Await
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
-  def printResponses = true
+  def printResponses = false
 
   "Setup project" in {
     createProject(project)

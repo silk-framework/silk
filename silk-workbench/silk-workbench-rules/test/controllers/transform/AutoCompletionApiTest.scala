@@ -10,7 +10,7 @@ import play.api.libs.ws.WS
 
 class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
-  def printResponses: Boolean = true
+  def printResponses: Boolean = false
 
   "Setup project" in {
     setup()
