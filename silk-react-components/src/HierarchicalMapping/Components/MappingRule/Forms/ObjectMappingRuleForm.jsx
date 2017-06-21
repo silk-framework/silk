@@ -86,6 +86,7 @@ const ObjectMappingRuleForm = React.createClass({
     },
     handleConfirm(event) {
         event.stopPropagation();
+        event.persist();
         this.setState({
             loading: true,
         });
