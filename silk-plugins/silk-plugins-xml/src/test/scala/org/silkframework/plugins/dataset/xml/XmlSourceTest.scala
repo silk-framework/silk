@@ -109,6 +109,13 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
     result.head.values mustBe IndexedSeq(Seq("V1", "V2", "V3"))
   }
 
+  it should "return peak results with sub path set" in {
+    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/Value").asStringTypedPath),
+      subPath = Path.parse("/Person/Properties/Property")), 3).toSeq
+    result.size mustBe 3
+    result.map(_.values) mustBe Seq(IndexedSeq(Seq("V1")), IndexedSeq(Seq("V2")), IndexedSeq(Seq("V3")))
+  }
+
   private def matchPath(sourcePath: String,
                         inputPath: String,
                         typePath: String = "")

@@ -41,7 +41,10 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val nodes = loadXmlNodes(entitySchema.typeUri.uri)
-    new Entities(nodes, entitySchema)
+    val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
+      nodes.flatMap(_.evaluatePath(entitySchema.subPath))
+    } else { nodes }
+    new Entities(subTypeEntities, entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
