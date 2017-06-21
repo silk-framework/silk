@@ -22236,7 +22236,7 @@
     });
     silkStore.subject("transform.task.rule.peak").subscribe(function(_ref4) {
         var data = _ref4.data, replySubject = _ref4.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, id = data.id;
-        _eccSuperagent2.default.get(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/peak/" + id).accept("application/json").observe().multicast(replySubject).connect();
+        _eccSuperagent2.default.post(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/peak/" + id).accept("application/json").observe().multicast(replySubject).connect();
     });
     silkStore.subject("transform.task.rule.rules.append").subscribe(function(_ref5) {
         var data = _ref5.data, replySubject = _ref5.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, ruleId = data.ruleId, payload = data.payload;
