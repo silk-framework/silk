@@ -37,6 +37,9 @@ POST          /tasks/:project/:task/reloadCache                  controllers.tra
 PUT           /tasks/:project/:task/executeTransform             controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
 POST          /tasks/:project/:task/peak/:rule                   controllers.transform.TransformTaskApi.peakIntoTransformRule(project: String, task: String, rule: String)
 
+GET           /tasks/:project/:task/targetVocabularies/type      controllers.transform.VocabularyInfoApi.getTypeInfo(project: String, task: String, uri: String)
+GET           /tasks/:project/:task/targetVocabularies/property  controllers.transform.VocabularyInfoApi.getPropertyInfo(project: String, task: String, uri: String)
+
 GET           /tasks/:project/:task/sourcePathCompletions                    controllers.transform.TransformTaskApi.sourcePathCompletions(project: String, task: String, term: String)
 GET           /tasks/:project/:task/targetPathCompletions                    controllers.transform.TransformTaskApi.targetPathCompletions(project: String, task: String, sourcePath: Option[String], term: String)
 GET           /tasks/:project/:task/targetVocabulary/typeSuggestions         controllers.transform.TransformTaskApi.typeCandidates(project: String, task: String)
