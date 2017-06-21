@@ -331,7 +331,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(identifier(value, "root"), fromJson[MappingRules]((value \ RULES_PROPERTY).get), metaData(value))
+      RootMappingRule(identifier(value, "root"), fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY)), metaData(value))
     }
 
     /**
@@ -596,7 +596,7 @@ object JsonSerializers {
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = fromJson[RootMappingRule](mustBeDefined(value, RULES_PROPERTY)),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
-        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.toString))
+        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }
 
@@ -606,7 +606,7 @@ object JsonSerializers {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         SELECTION -> toJson(value.selection),
-        RULES_PROPERTY -> toJson(value.rules),
+        RULES_PROPERTY -> toJson(value.mappingRule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
         TARGET_VOCABULARIES -> JsArray(value.targetVocabularies.toSeq.map(JsString))
 
@@ -617,7 +617,7 @@ object JsonSerializers {
   /**
     * Transform Task
     */
-  object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
+  implicit object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
 
   /**
     * Task

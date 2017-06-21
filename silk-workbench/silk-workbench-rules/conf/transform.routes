@@ -40,8 +40,10 @@ POST          /tasks/:project/:task/peak/:rule                   controllers.tra
 GET           /tasks/:project/:task/targetVocabularies/type      controllers.transform.VocabularyInfoApi.getTypeInfo(project: String, task: String, uri: String)
 GET           /tasks/:project/:task/targetVocabularies/property  controllers.transform.VocabularyInfoApi.getPropertyInfo(project: String, task: String, uri: String)
 
-GET           /tasks/:project/:task/sourcePathCompletions                    controllers.transform.TransformTaskApi.sourcePathCompletions(project: String, task: String, term: String)
-GET           /tasks/:project/:task/targetPathCompletions                    controllers.transform.TransformTaskApi.targetPathCompletions(project: String, task: String, sourcePath: Option[String], term: String)
+GET           /tasks/:project/:task/rule/:rule/completions/sourcePaths         controllers.transform.AutoCompletionApi.sourcePaths(project: String, task: String, rule: String, term ?= "", maxResults: Int ?= 30)
+GET           /tasks/:project/:task/rule/:rule/completions/targetTypes         controllers.transform.AutoCompletionApi.targetTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
+GET           /tasks/:project/:task/rule/:rule/completions/targetProperties    controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
+
 GET           /tasks/:project/:task/targetVocabulary/typeSuggestions         controllers.transform.TransformTaskApi.typeCandidates(project: String, task: String)
 GET           /tasks/:project/:task/targetVocabulary/propertiesByClass       controllers.transform.TransformTaskApi.propertiesByType(project: String, task: String, classUri: String)
 GET           /tasks/:project/:task/targetVocabulary/relationsOfClass        controllers.transform.TransformTaskApi.relationsOfType(project: String, task: String, classUri: String)

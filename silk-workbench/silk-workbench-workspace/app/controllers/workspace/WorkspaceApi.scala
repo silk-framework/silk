@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsObject}
+import play.api.libs.json.{JsArray, JsBoolean, JsObject}
 import play.api.mvc._
 
 import scala.language.existentials
@@ -294,5 +294,13 @@ class WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     Ok(JsonSerializer.taskMetadata(task))
+  }
+
+  def cachesLoaded(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
+
+    Ok(JsBoolean(cachesLoaded))
   }
 }

@@ -3,14 +3,16 @@ package controllers.transform
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.config.DefaultConfig
+import org.silkframework.util.ConfigTestTrait
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsValue, Json}
 import play.api.libs.ws.WS
 
 /**
   * Base trait for transformation API tests.
   */
-trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait {
+trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with ConfigTestTrait {
 
   protected def log: Logger = Logger(getClass.getName)
 
@@ -20,6 +22,8 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait {
   protected val task = "TestTransform"
 
   override def workspaceProvider = "inMemory"
+
+  override def propertyMap = Map("vocabulary.manager.plugin" -> Some("rdfFiles"))
 
   def jsonGetRequest(url: String): JsValue = {
     var request = WS.url(url)
@@ -58,6 +62,16 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait {
     }
 
     responseJson
+  }
+
+  def waitForCaches(task: String): Unit = {
+    var cachesLoaded = false
+    do {
+      val response = jsonGetRequest(s"$baseUrl/workspace/projects/$project/tasks/$task/cachesLoaded")
+      cachesLoaded = response.as[JsBoolean].value
+      if(!cachesLoaded)
+        Thread.sleep(1000)
+    } while(!cachesLoaded)
   }
 
   implicit class JsonOperations(json: JsValue) {
