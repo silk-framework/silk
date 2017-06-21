@@ -124,25 +124,19 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.example').subscribe(
         ({data, replySubject}) => {
+
             const {id} = data;
-
             if (id) {
-                const {
-                    transformTask,
-                    baseUrl,
-                    project,
-                } = apiDetails;
-
-                replySubject.onNext({
-                    href: `/transform/tasks/${project}/${transformTask}/peak/${id}`
-                });
-            } else {
-                replySubject.onNext({
-                    href: null
-                });
+                silkStore
+                    .request({topic: 'transform.task.rule.peak', data: {...apiDetails, id}}).
+                map((returned) => {
+                    return {
+                        example: returned.body
+                    };
+                })
+                    .multicast(replySubject).connect();
             }
 
-            replySubject.onCompleted();
         }
     );
 
