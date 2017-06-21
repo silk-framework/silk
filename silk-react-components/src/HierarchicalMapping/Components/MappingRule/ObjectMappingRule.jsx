@@ -11,7 +11,9 @@ import {
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
+import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
+
 import {
     SourcePath,
     ThingName,
@@ -241,18 +243,23 @@ const RuleObjectView = React.createClass({
                                 </div>
                             ) : false
                         }
-                        <div
+                        { _.has(this.props, 'rules.uriRule.id')
+                            ? <div
                             className="ecc-silk-mapping__rulesviewer__examples"
-                        >
+                            >
                             <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                 <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                     Examples of target data
                                 </dt>
                                 <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                    TODO
+
+                                    <ExampleView
+                                        id={this.props.rules.uriRule.id}
+                                    />
                                 </dd>
                             </dl>
                         </div>
+                        : false}
                     </div>
                     <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
                         <Button
