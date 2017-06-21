@@ -31,11 +31,11 @@ const ExampleView = React.createClass({
                     this.setState({example});
                 },
                 (err) => {
-                    console.warn('err MappingRuleOverview: rule.get');
+                    console.warn('err MappingRuleOverview: rule.example');
                     this.setState({example: {
                         status: {
                             id: 'error',
-                            msg: 'Error',
+                            msg: err.toString(),
                         }
                     }});
                 }
