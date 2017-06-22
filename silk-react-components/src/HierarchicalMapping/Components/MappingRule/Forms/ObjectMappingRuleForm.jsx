@@ -45,8 +45,6 @@ const ObjectMappingRuleForm = React.createClass({
                 .subscribe(
                     ({rule}) => {
 
-                        console.warn(rule);
-
                         const initialValues = {
                             targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
                             sourceProperty: _.get(rule, 'sourcePath', undefined),
@@ -204,11 +202,10 @@ const ObjectMappingRuleForm = React.createClass({
                     />
                 )
             );
-
             entityRelationInput = (
                 <RadioGroup
                     onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
-                    value={this.state.entityConnection}
+                    value={!_.isEmpty(this.state.entityConnection)?this.state.entityConnection:'from'}
                     name=""
                     disabled={false}
                 >
