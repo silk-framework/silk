@@ -75,15 +75,15 @@ const ExampleView = React.createClass({
                                 key={`${index}_${i}`}
                                 id={`${index}_${i}`}
                             >
-                                <td key='xxx1' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
+                                <td key='path' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
                                     <Chip>{sourcePath}</Chip>
                                 </td>
-                                <td key='xxx2' className='ecc-silk-mapping__rulesviewer__examples-table__value'>
+                                <td key='value' className='ecc-silk-mapping__rulesviewer__examples-table__value'>
                                     {result.sourceValues[i].map(t => <Chip>{t}</Chip>)}
                                 </td>
                                 {
                                     i>0 ? false :
-                                        <td key='xxx3' className='ecc-silk-mapping__rulesviewer__examples-table__result' rowSpan={pathsCount}>
+                                        <td key='result' className='ecc-silk-mapping__rulesviewer__examples-table__result' rowSpan={pathsCount}>
                                             {
                                                 this.state.example.results[index].transformedValues.map(transformedValue =>
                                                     <Chip>{transformedValue}</Chip>
