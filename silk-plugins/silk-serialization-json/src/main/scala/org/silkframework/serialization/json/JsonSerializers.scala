@@ -25,6 +25,22 @@ object JsonSerializers {
   final val URI = "uri"
   final val METADATA = "metadata"
 
+  implicit object UriJsonFormat extends JsonFormat[Uri] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): Uri = {
+      Uri.parse(value.as[JsString].value, readContext.prefixes)
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: Uri)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsString(value.serialize(writeContext.prefixes))
+    }
+  }
+
   implicit object JsonMetaDataFormat extends JsonFormat[MetaData] {
 
     final val LABEL = "label"
@@ -659,7 +675,7 @@ object JsonSerializers {
     override def write(value: GenericInfo)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
-          URI -> JsString(value.uri)
+          URI -> UriJsonFormat.write(value.uri)
         ) ++ value.label.map { l =>
           LABEL -> JsString(l)
         } ++ value.description.map { d =>
@@ -680,9 +696,9 @@ object JsonSerializers {
         Seq(
           "genericInfo" -> GenericInfoJsonFormat.write(value.info)
         ) ++ value.domain.map { d =>
-          "domain" -> JsString(d.info.uri)
+          "domain" -> UriJsonFormat.write(d.info.uri)
         } ++ value.range.map { r =>
-          "range" -> JsString(r.info.uri)
+          "range" -> UriJsonFormat.write(r.info.uri)
         }
       )
     }
@@ -698,7 +714,7 @@ object JsonSerializers {
       JsObject(
         Seq(
           "genericInfo" -> GenericInfoJsonFormat.write(value.info),
-          "parentClasses" -> JsArray(value.parentClasses.map(JsString).toSeq)
+          "parentClasses" -> JsArray(value.parentClasses.map(uri => UriJsonFormat.write(uri)).toSeq)
         )
       )
     }

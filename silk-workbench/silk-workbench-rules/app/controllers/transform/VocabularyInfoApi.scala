@@ -5,6 +5,7 @@ import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.VocabularyCache
 import play.api.mvc.{Action, Controller}
 import controllers.util.SerializationUtils._
+import org.silkframework.util.Uri
 
 /**
   * Provides access to the target vocabulary.
@@ -15,8 +16,9 @@ class VocabularyInfoApi extends Controller {
     implicit val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val vocabularies = task.activity[VocabularyCache].value
+    val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
 
-    vocabularies.findClass(typeUri) match {
+    vocabularies.findClass(fullTypeUri.uri) match {
       case Some(vocabType) =>
         serializeCompileTime(vocabType)
       case None =>
@@ -28,8 +30,9 @@ class VocabularyInfoApi extends Controller {
     implicit val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val vocabularies = task.activity[VocabularyCache].value
+    val fullPropertyUri = Uri.parse(propertyUri, project.config.prefixes)
 
-    vocabularies.findProperty(propertyUri) match {
+    vocabularies.findProperty(fullPropertyUri.uri) match {
       case Some(vocabProperty) =>
         serializeCompileTime(vocabProperty)
       case None =>
