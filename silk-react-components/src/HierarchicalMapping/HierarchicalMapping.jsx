@@ -184,6 +184,7 @@ const HierarchicalMapping = React.createClass({
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Remove mapping rule?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleConfirmRemove}>
@@ -206,6 +207,7 @@ const HierarchicalMapping = React.createClass({
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Discard changes"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
