@@ -147,18 +147,14 @@ const RuleValueView = React.createClass({
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                                 Value path
                                             </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                {console.log(this.props)}
-                                                <code>{this.props.sourcePath}</code>
-                                            </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <a
+                                                <code>{this.props.sourcePath}</code> <Button
+                                                    iconName="edit"
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
                                                     href={this.state.href}
-                                                >
-                                                    Convert value path to value formula
-                                                </a>
+                                                    tooltip="Convert value path to value formula"
+                                                />
                                             </dd>
                                         </dl>
                                     </div>
@@ -173,22 +169,16 @@ const RuleValueView = React.createClass({
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                                 Value formula
                                             </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <code>
-                                                    Value Paths: {_.get(this, 'props.sourcePaths', []).join(', ')}
-                                                </code>
-                                            </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                TODO: comma-separated list of used operator functions
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <a
+                                                Formula uses {_.get(this, 'props.sourcePaths', []).length} value paths <code>
+                                                    {_.get(this, 'props.sourcePaths', []).join(', ')}
+                                                </code> and # operator functions <code>[TODO]</code>. <Button
+                                                    iconName="edit"
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
                                                     href={this.state.href}
-                                                >
-                                                    Edit value formula
-                                                </a>
+                                                    tooltip="Edit value formula"
+                                                />
                                             </dd>
                                         </dl>
                                     </div>
