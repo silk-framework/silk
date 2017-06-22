@@ -464,6 +464,9 @@
     .ecc-silk-mapping__rulesviewer__attribute-label {
         font-size: $input-text-floating-label-fontsize;
         font-weight: 300;
+        display: list-item;
+        list-style-type: square;
+        list-style-position: inside;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-title {
