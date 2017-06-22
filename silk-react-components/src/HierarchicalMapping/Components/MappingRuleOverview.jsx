@@ -10,7 +10,20 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
-import {Spinner, Info, ContextMenu, MenuItem, ConfirmationDialog, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
+import {
+    Spinner,
+    Info,
+    Icon,
+    ContextMenu,
+    MenuItem,
+    ConfirmationDialog,
+    DisruptiveButton,
+    DismissiveButton,
+    Button,
+} from 'ecc-gui-elements';
+import {
+    FloatingListActions,
+} from './MappingRule/SharedComponents';
 
 const MappingRuleOverview = React.createClass({
 
@@ -311,6 +324,29 @@ const MappingRuleOverview = React.createClass({
                             <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                                 {mappingRulesListHead}
                                 {mappingRulesList}
+                                <div className="mdl-card__actions--fixed">
+                                    <FloatingListActions
+                                        iconName="add"
+                                        actions={
+                                            [
+                                                {
+                                                    icon: 'insert_drive_file',
+                                                    label: 'Add value mapping',
+                                                    handler: () => {
+                                                        this.handleCreate({type: 'direct'});
+                                                    },
+                                                },
+                                                {
+                                                    icon: 'folder',
+                                                    label: 'Add object mapping',
+                                                    handler: () => {
+                                                        this.handleCreate({type: 'object'});
+                                                    },
+                                                },
+                                            ]
+                                        }
+                                    />
+                                </div>
                             </div>
                         </div>
                 }
