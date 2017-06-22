@@ -8,7 +8,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import play.api.libs.json._
 import play.api.libs.ws.WS
 
-class VocabularyInfoApiTest extends TransformTaskApiTestBase {
+class TargetVocabularyApiTest extends TransformTaskApiTestBase {
 
   def printResponses: Boolean = true
 
@@ -17,7 +17,7 @@ class VocabularyInfoApiTest extends TransformTaskApiTestBase {
   }
 
   "retrieve information about a vocabulary type using its full URI" in {
-    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabularies/type?uri=http://xmlns.com/foaf/0.1/Person")
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabulary/type?uri=http://xmlns.com/foaf/0.1/Person")
     response mustMatchJson
       """
         {
@@ -32,7 +32,7 @@ class VocabularyInfoApiTest extends TransformTaskApiTestBase {
   }
 
   "retrieve information about a vocabulary type using a prefixed name" in {
-    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabularies/type?uri=foaf:Person")
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabulary/type?uri=foaf:Person")
     response mustMatchJson
       """
         {
@@ -47,7 +47,7 @@ class VocabularyInfoApiTest extends TransformTaskApiTestBase {
   }
 
   "retrieve information about a vocabulary property" in {
-    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabularies/property?uri=foaf:name")
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabulary/property?uri=foaf:name")
     response mustMatchJson
       """
         {
