@@ -139,8 +139,7 @@ const RuleValueView = React.createClass({
                                 ) : false
                             }
                             {
-
-                                this.props.type === 'direct' ? (
+                                (this.props.type === 'direct' && _.get(this.props, 'sourcePath', false)) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__sourcePath"
                                     >
@@ -149,6 +148,7 @@ const RuleValueView = React.createClass({
                                                 Value path
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                                                {console.log(this.props)}
                                                 <code>{this.props.sourcePath}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
@@ -162,7 +162,10 @@ const RuleValueView = React.createClass({
                                             </dd>
                                         </dl>
                                     </div>
-                                ) : (
+                                ) : false
+                            }
+                            {
+                                (this.props.type !== 'direct' && _.get(this.props, 'sourcePaths', false)) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__sourcePath"
                                     >
@@ -189,8 +192,7 @@ const RuleValueView = React.createClass({
                                             </dd>
                                         </dl>
                                     </div>
-
-                                )
+                                ) : false
                             }
                             {
                                 _.get(this.props, 'id', false) ? (

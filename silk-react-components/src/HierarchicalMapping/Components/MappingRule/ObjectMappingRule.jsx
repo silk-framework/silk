@@ -185,7 +185,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            (this.props.type === 'object') ? (
+                            (this.props.type === 'object' && _.get(this.props, 'sourcePath', false)) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__sourcePath"
                                 >
