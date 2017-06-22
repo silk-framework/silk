@@ -151,7 +151,7 @@ const RuleObjectView = React.createClass({
                         {entityRelation}
                         {
                             // TODO: show multiple (array)
-                            _.get(this.props, 'rules.typeRules[0].typeUri', undefined) ? (
+                            _.get(this.props, 'rules.typeRules[0].typeUri', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__targetEntityType"
                                 >
@@ -208,7 +208,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.get(this.props, 'rules.uriRule.pattern', '') ? (
+                            _.get(this.props, 'rules.uriRule.pattern', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__idpattern"
                                 >
@@ -228,7 +228,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.has(this.props, 'metadata.description', false) ? (
+                            _.get(this.props, 'metadata.description', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__comment"
                                 >
@@ -243,7 +243,7 @@ const RuleObjectView = React.createClass({
                                 </div>
                             ) : false
                         }
-                        { _.has(this.props, 'rules.uriRule.id')
+                        { _.get(this.props, 'rules.uriRule.id', false)
                             ? <div
                             className="ecc-silk-mapping__rulesviewer__examples"
                             >

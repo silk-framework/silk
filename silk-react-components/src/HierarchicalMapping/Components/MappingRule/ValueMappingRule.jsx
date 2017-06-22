@@ -90,12 +90,12 @@ const RuleValueView = React.createClass({
                             onClick={this.props.handleToggleExpand}
                         >
                             <div className="mdl-card__title-text">
-                                Readable name of {_.get(this.props, 'mappingTarget.uri', undefined)}
+                                Readable name of {_.get(this.props, 'mappingTarget.uri', false)}
                             </div>
                         </div>
                         <div className="mdl-card__content">
                             {
-                                _.get(this.props, 'mappingTarget.uri', undefined) ? (
+                                _.get(this.props, 'mappingTarget.uri', false) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__targetProperty"
                                     >
@@ -104,15 +104,15 @@ const RuleValueView = React.createClass({
                                                 Target property
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', false)}/>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
+                                                <code>{_.get(this.props, 'mappingTarget.uri', false)}</code>
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 <Info border>
                                                     <ThingDescription
-                                                        id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                                        id={_.get(this.props, 'mappingTarget.uri', false)}/>
                                                 </Info>
                                             </dd>
                                         </dl>
@@ -120,7 +120,7 @@ const RuleValueView = React.createClass({
                                 ) : false
                             }
                             {
-                                _.get(this.props, 'mappingTarget.valueType.nodeType', undefined) ? (
+                                _.get(this.props, 'mappingTarget.valueType.nodeType', false) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__propertyType"
                                     >
@@ -129,7 +129,7 @@ const RuleValueView = React.createClass({
                                                 Data type
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                {_.get(this.props, 'mappingTarget.valueType.nodeType', undefined)}
+                                                {_.get(this.props, 'mappingTarget.valueType.nodeType', false)}
                                             </dd>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 Any other information available here? (TODO)
@@ -193,7 +193,7 @@ const RuleValueView = React.createClass({
                                 )
                             }
                             {
-                                _.has(this, 'props.metadata.description', false) ? (
+                                _.get(this, 'props.metadata.description', false) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
@@ -202,13 +202,13 @@ const RuleValueView = React.createClass({
                                                 Description
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                {_.get(this, 'props.metadata.description')}
+                                                {this.props.metadata.description}
                                             </dd>
                                         </dl>
                                     </div>
                                 ) : false
                             }
-                            { _.has(this.props, 'id')
+                            { _.get(this.props, 'id', false)
                                 ? <div
                                     className="ecc-silk-mapping__rulesviewer__examples"
                                 >
