@@ -37,7 +37,7 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: Uri)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsString(value.serialize(writeContext.prefixes))
+      JsString(writeContext.prefixes.shorten(value.uri))
     }
   }
 
