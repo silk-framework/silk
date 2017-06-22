@@ -4390,7 +4390,7 @@
     }([ function(module, exports) {
         module.exports = __webpack_require__(0);
     }, function(module, exports) {
-        module.exports = __webpack_require__(21);
+        module.exports = __webpack_require__(22);
     }, function(module, exports) {
         module.exports = __webpack_require__(57);
     }, function(module, exports, __webpack_require__) {
@@ -6776,7 +6776,7 @@
     }
     exports.__esModule = !0;
     var _stringify = __webpack_require__(99), _extends2 = (_interopRequireDefault(_stringify), 
-    __webpack_require__(21)), _extends3 = _interopRequireDefault(_extends2), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _eccMessagebus = __webpack_require__(113), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), hierarchicalMappingChannel = _eccMessagebus2.default.channel("silk.hierarchicalMapping"), silkStore = _eccMessagebus2.default.channel("silk.api"), apiDetails = {
+    __webpack_require__(22)), _extends3 = _interopRequireDefault(_extends2), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _eccMessagebus = __webpack_require__(113), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), hierarchicalMappingChannel = _eccMessagebus2.default.channel("silk.hierarchicalMapping"), silkStore = _eccMessagebus2.default.channel("silk.api"), apiDetails = {
         transformTask: !1,
         baseUrl: !1,
         project: !1
@@ -7171,31 +7171,13 @@
     module.exports = ReactCurrentOwner;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    exports.__esModule = !0;
-    var _assign = __webpack_require__(100), _assign2 = function(obj) {
-        return obj && obj.__esModule ? obj : {
-            default: obj
-        };
-    }(_assign);
-    exports.default = _assign2.default || function(target) {
-        for (var i = 1; i < arguments.length; i++) {
-            var source = arguments[i];
-            for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
-        }
-        return target;
-    };
-}, function(module, exports) {
-    var global = module.exports = "undefined" != typeof window && window.Math == Math ? window : "undefined" != typeof self && self.Math == Math ? self : Function("return this")();
-    "number" == typeof __g && (__g = global);
-}, function(module, exports, __webpack_require__) {
-    "use strict";
     function _interopRequireDefault(obj) {
         return obj && obj.__esModule ? obj : {
             default: obj
         };
     }
     exports.__esModule = !0;
-    exports.ThingIcon = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
+    exports.FloatingListActions = exports.ThingIcon = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
     var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10);
     exports.RuleTitle = function(_ref) {
         var rule = _ref.rule;
@@ -7286,7 +7268,69 @@
             name: "error" === status ? "warning" : iconName,
             tooltip: "error" === status ? tooltip + " (" + message + ")" : tooltip
         });
+    }, exports.FloatingListActions = _react2.default.createClass({
+        displayName: "FloatingListActions",
+        propTypes: {
+            actions: _react2.default.PropTypes.array.isRequired,
+            iconName: _react2.default.PropTypes.string.isRequired
+        },
+        getInitialState: function() {
+            return {
+                activeFAB: !1
+            };
+        },
+        handleFAB: function(event) {
+            event.stopPropagation();
+            this.setState({
+                activeFAB: !this.state.activeFAB
+            });
+        },
+        render: function() {
+            var _props = this.props, actions = (_props.iconName, _props.actions);
+            return !(!actions || actions.length < 1) && _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__ruleslist-floatingactions"
+            }, _react2.default.createElement(_eccGuiElements.Button, {
+                className: "ecc-silk-mapping__ruleslist-floatingactions--trigger" + (this.state.activeFAB ? " is-active" : ""),
+                iconName: "add",
+                fabSize: "large",
+                colored: !0,
+                tooltip: !(actions.length > 1) && actions[0].label,
+                onClick: actions.length > 1 ? this.handleFAB : actions[0].handler
+            }), actions.length > 1 && _react2.default.createElement("ul", {
+                className: "ecc-silk-mapping__ruleslist-floatingactions--list mdl-menu mdl-shadow--2dp"
+            }, _lodash2.default.map(actions, function(action, idx) {
+                return _react2.default.createElement("li", {
+                    key: "FloatingAction_" + idx
+                }, _react2.default.createElement("button", {
+                    className: "mdl-menu__item",
+                    onClick: action.handler
+                }, !!action.icon && _react2.default.createElement(_eccGuiElements.Icon, {
+                    name: action.icon
+                }), action.label));
+            })), !!(actions.length > 1 && this.state.activeFAB) && _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__ruleslist-floatingactions--list-backdrop",
+                onMouseOver: this.handleFAB
+            }));
+        }
+    });
+}, function(module, exports, __webpack_require__) {
+    "use strict";
+    exports.__esModule = !0;
+    var _assign = __webpack_require__(100), _assign2 = function(obj) {
+        return obj && obj.__esModule ? obj : {
+            default: obj
+        };
+    }(_assign);
+    exports.default = _assign2.default || function(target) {
+        for (var i = 1; i < arguments.length; i++) {
+            var source = arguments[i];
+            for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
+        }
+        return target;
     };
+}, function(module, exports) {
+    var global = module.exports = "undefined" != typeof window && window.Math == Math ? window : "undefined" != typeof self && self.Math == Math ? self : Function("return this")();
+    "number" == typeof __g && (__g = global);
 }, function(module, exports) {
     var hasOwnProperty = {}.hasOwnProperty;
     module.exports = function(it, key) {
@@ -7361,7 +7405,7 @@
         }).a;
     });
 }, function(module, exports, __webpack_require__) {
-    var global = __webpack_require__(22), core = __webpack_require__(17), ctx = __webpack_require__(103), hide = __webpack_require__(30), $export = function(type, name, source) {
+    var global = __webpack_require__(23), core = __webpack_require__(17), ctx = __webpack_require__(103), hide = __webpack_require__(30), $export = function(type, name, source) {
         var key, own, out, IS_FORCED = type & $export.F, IS_GLOBAL = type & $export.G, IS_STATIC = type & $export.S, IS_PROTO = type & $export.P, IS_BIND = type & $export.B, IS_WRAP = type & $export.W, exports = IS_GLOBAL ? core : core[name] || (core[name] = {}), expProto = exports.prototype, target = IS_GLOBAL ? global : IS_STATIC ? global[name] : (global[name] || {}).prototype;
         IS_GLOBAL && (source = name);
         for (key in source) {
@@ -7434,7 +7478,7 @@
         return O;
     };
 }, function(module, exports, __webpack_require__) {
-    var store = __webpack_require__(66)("wks"), uid = __webpack_require__(49), Symbol = __webpack_require__(22).Symbol, USE_SYMBOL = "function" == typeof Symbol;
+    var store = __webpack_require__(66)("wks"), uid = __webpack_require__(49), Symbol = __webpack_require__(23).Symbol, USE_SYMBOL = "function" == typeof Symbol;
     (module.exports = function(name) {
         return store[name] || (store[name] = USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)("Symbol." + name));
     }).store = store;
@@ -17189,7 +17233,7 @@
         return shared[key] || (shared[key] = uid(key));
     };
 }, function(module, exports, __webpack_require__) {
-    var global = __webpack_require__(22), store = global["__core-js_shared__"] || (global["__core-js_shared__"] = {});
+    var global = __webpack_require__(23), store = global["__core-js_shared__"] || (global["__core-js_shared__"] = {});
     module.exports = function(key) {
         return store[key] || (store[key] = {});
     };
@@ -17214,7 +17258,7 @@
         throw TypeError("Can't convert object to primitive value");
     };
 }, function(module, exports, __webpack_require__) {
-    var global = __webpack_require__(22), core = __webpack_require__(17), LIBRARY = __webpack_require__(61), wksExt = __webpack_require__(71), defineProperty = __webpack_require__(31).f;
+    var global = __webpack_require__(23), core = __webpack_require__(17), LIBRARY = __webpack_require__(61), wksExt = __webpack_require__(71), defineProperty = __webpack_require__(31).f;
     module.exports = function(name) {
         var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
         "_" == name.charAt(0) || name in $Symbol || defineProperty($Symbol, name, {
@@ -17987,43 +18031,36 @@
             if (_lodash2.default.isUndefined(this.state.example)) return _react2.default.createElement(_eccGuiElements.Spinner, null);
             if ("success" !== this.state.example.status.id) return _react2.default.createElement(_eccGuiElements.Error, null, this.state.example.status.msg);
             var pathsCount = this.state.example.sourcePaths.length;
-            return _react2.default.createElement("div", {
-                className: "di-rule__expanded-example-values-container"
-            }, _react2.default.createElement("table", {
-                id: "myRule",
-                className: "mdl-data-table mdl-js-data-table di-rule__expanded-example-values",
-                style: {
-                    width: "100%"
-                }
+            return _react2.default.createElement("table", {
+                className: "mdl-data-table ecc-silk-mapping__rulesviewer__examples-table"
             }, _react2.default.createElement("thead", null, _react2.default.createElement("tr", null, _react2.default.createElement("th", {
-                className: "mdl-data-table__cell--non-numeric di-example-values-source-value"
-            }, "Source Path"), _react2.default.createElement("th", {
-                className: "mdl-data-table__cell--non-numeric di-example-values-source-value"
-            }, "Source Value"), _react2.default.createElement("th", {
-                className: "mdl-data-table__cell--non-numeric di-example-values-transformed-value"
-            }, "Transformed Value"))), _react2.default.createElement("tbody", null, _lodash2.default.map(this.state.example.results, function(result, index) {
-                return _lodash2.default.map(_this2.state.example.sourcePaths, function(sourcePath, i) {
+                className: "ecc-silk-mapping__rulesviewer__examples-table__path"
+            }, "Source path"), _react2.default.createElement("th", {
+                className: "ecc-silk-mapping__rulesviewer__examples-table__value"
+            }, "Source value"), _react2.default.createElement("th", {
+                className: "ecc-silk-mapping__rulesviewer__examples-table__result"
+            }, "Transformed value"))), _lodash2.default.map(this.state.example.results, function(result, index) {
+                return _react2.default.createElement("tbody", null, _lodash2.default.map(_this2.state.example.sourcePaths, function(sourcePath, i) {
                     return _react2.default.createElement("tr", {
                         key: index + "_" + i,
-                        id: index + "_" + i,
-                        className: 0 === i ? "di-rule-first-path" : i === pathsCount - 1 ? "di-rule-last-path" : ""
+                        id: index + "_" + i
                     }, _react2.default.createElement("td", {
-                        key: "xxx1",
-                        className: "mdl-data-table__cell--non-numeric"
+                        key: "path",
+                        className: "ecc-silk-mapping__rulesviewer__examples-table__path"
                     }, _react2.default.createElement(_eccGuiElements.Chip, null, sourcePath)), _react2.default.createElement("td", {
-                        key: "xxx2",
-                        className: "mdl-data-table__cell--non-numeric"
+                        key: "value",
+                        className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, result.sourceValues[i].map(function(t) {
                         return _react2.default.createElement(_eccGuiElements.Chip, null, t);
                     })), !(i > 0) && _react2.default.createElement("td", {
-                        key: "xxx3",
-                        className: "mdl-data-table__cell--non-numeric",
+                        key: "result",
+                        className: "ecc-silk-mapping__rulesviewer__examples-table__result",
                         rowSpan: pathsCount
                     }, _this2.state.example.results[index].transformedValues.map(function(transformedValue) {
                         return _react2.default.createElement(_eccGuiElements.Chip, null, transformedValue);
                     })));
-                });
-            }))));
+                }));
+            }));
         }
     });
     exports.default = ExampleView;
@@ -18058,7 +18095,7 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(57), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _SharedComponents = __webpack_require__(23), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(97), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _FormSaveError = __webpack_require__(94), _FormSaveError2 = _interopRequireDefault(_FormSaveError), ObjectMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(57), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _SharedComponents = __webpack_require__(21), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(97), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _FormSaveError = __webpack_require__(94), _FormSaveError2 = _interopRequireDefault(_FormSaveError), ObjectMappingRuleForm = _react2.default.createClass({
         displayName: "ObjectMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -18265,7 +18302,7 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(57), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(97), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _FormSaveError = __webpack_require__(94), _FormSaveError2 = _interopRequireDefault(_FormSaveError), ValueMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(57), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(97), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _FormSaveError = __webpack_require__(94), _FormSaveError2 = _interopRequireDefault(_FormSaveError), ValueMappingRuleForm = _react2.default.createClass({
         displayName: "ValueMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -18454,7 +18491,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(93), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(95), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(23), RuleObjectView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(93), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(95), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(21), RuleObjectView = _react2.default.createClass({
         displayName: "RuleObjectView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -18588,7 +18625,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "URI pattern"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title"
-            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")))))), !!_lodash2.default.has(this.props, "metadata.description", "") && _react2.default.createElement("div", {
+            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")))))), !!_lodash2.default.has(this.props, "metadata.description", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -18675,7 +18712,7 @@
         };
     };
 }, function(module, exports, __webpack_require__) {
-    var isObject = __webpack_require__(41), document = __webpack_require__(22).document, is = isObject(document) && isObject(document.createElement);
+    var isObject = __webpack_require__(41), document = __webpack_require__(23).document, is = isObject(document) && isObject(document.createElement);
     module.exports = function(it) {
         return is ? document.createElement(it) : {};
     };
@@ -21197,7 +21234,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _TreeView = __webpack_require__(161), _TreeView2 = _interopRequireDefault(_TreeView), _eccGuiElements = __webpack_require__(10), _MappingRuleOverview = (__webpack_require__(23), 
+    var _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _TreeView = __webpack_require__(161), _TreeView2 = _interopRequireDefault(_TreeView), _eccGuiElements = __webpack_require__(10), _MappingRuleOverview = (__webpack_require__(21), 
     __webpack_require__(159)), _MappingRuleOverview2 = _interopRequireDefault(_MappingRuleOverview), HierarchicalMapping = _react2.default.createClass({
         displayName: "HierarchicalMapping",
         mixins: [ _UseMessageBusMixin2.default ],
@@ -21379,7 +21416,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(158), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(98), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _SharedComponents = __webpack_require__(23), MappingRule = _react2.default.createClass({
+    var _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(158), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(98), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _SharedComponents = __webpack_require__(21), MappingRule = _react2.default.createClass({
         displayName: "MappingRule",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -21565,7 +21602,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _ExampleView = __webpack_require__(93), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ValueMappingRuleForm = __webpack_require__(96), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(23), RuleValueView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _ExampleView = __webpack_require__(93), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ValueMappingRuleForm = __webpack_require__(96), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(21), RuleValueView = _react2.default.createClass({
         displayName: "RuleValueView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -21689,7 +21726,7 @@
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.handleComplexEdit,
                 href: this.state.href
-            }, "Edit value formula")))), !!_lodash2.default.has(this, "props.metadata.description") && _react2.default.createElement("div", {
+            }, "Edit value formula")))), !!_lodash2.default.has(this, "props.metadata.description", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -21736,7 +21773,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ObjectMappingRuleForm = __webpack_require__(95), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(96), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingRuleOverviewHeader = __webpack_require__(160), _MappingRuleOverviewHeader2 = _interopRequireDefault(_MappingRuleOverviewHeader), _MappingRule = __webpack_require__(157), _MappingRule2 = _interopRequireDefault(_MappingRule), _eccGuiElements = __webpack_require__(10), MappingRuleOverview = _react2.default.createClass({
+    var _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _ObjectMappingRuleForm = __webpack_require__(95), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(96), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingRuleOverviewHeader = __webpack_require__(160), _MappingRuleOverviewHeader2 = _interopRequireDefault(_MappingRuleOverviewHeader), _MappingRule = __webpack_require__(157), _MappingRule2 = _interopRequireDefault(_MappingRule), _eccGuiElements = __webpack_require__(10), _SharedComponents = __webpack_require__(21), MappingRuleOverview = _react2.default.createClass({
         displayName: "MappingRuleOverview",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -21950,7 +21987,28 @@
                 className: "ecc-silk-mapping__ruleslist"
             }, _react2.default.createElement("div", {
                 className: "mdl-card mdl-card--stretch mdl-shadow--2dp"
-            }, mappingRulesListHead, mappingRulesList)));
+            }, mappingRulesListHead, mappingRulesList, _react2.default.createElement("div", {
+                className: "mdl-card__actions--fixed"
+            }, _react2.default.createElement(_SharedComponents.FloatingListActions, {
+                iconName: "add",
+                actions: [ {
+                    icon: "insert_drive_file",
+                    label: "Add value mapping",
+                    handler: function() {
+                        _this2.handleCreate({
+                            type: "direct"
+                        });
+                    }
+                }, {
+                    icon: "folder",
+                    label: "Add object mapping",
+                    handler: function() {
+                        _this2.handleCreate({
+                            type: "object"
+                        });
+                    }
+                } ]
+            })))));
         }
     });
     exports.default = MappingRuleOverview;
@@ -21963,7 +22021,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(21), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _SharedComponents = __webpack_require__(23), _ObjectMappingRule = __webpack_require__(98), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _eccGuiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), MappingRuleOverviewHeader = _react2.default.createClass({
+    var _extends2 = __webpack_require__(22), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _SharedComponents = __webpack_require__(21), _ObjectMappingRule = __webpack_require__(98), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _eccGuiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), MappingRuleOverviewHeader = _react2.default.createClass({
         displayName: "MappingRuleOverviewHeader",
         mixins: [ _UseMessageBusMixin2.default ],
         getInitialState: function() {
@@ -22093,7 +22151,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(23), TreeView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _UseMessageBusMixin = __webpack_require__(14), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(8), _lodash2 = _interopRequireDefault(_lodash), _store = __webpack_require__(15), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(21), TreeView = _react2.default.createClass({
         displayName: "TreeView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -22442,7 +22500,7 @@
         return result;
     };
 }, function(module, exports, __webpack_require__) {
-    module.exports = __webpack_require__(22).document && document.documentElement;
+    module.exports = __webpack_require__(23).document && document.documentElement;
 }, function(module, exports, __webpack_require__) {
     var cof = __webpack_require__(102);
     module.exports = Array.isArray || function(arg) {
@@ -22655,7 +22713,7 @@
     });
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var global = __webpack_require__(22), has = __webpack_require__(24), DESCRIPTORS = __webpack_require__(27), $export = __webpack_require__(28), redefine = __webpack_require__(112), META = __webpack_require__(189).KEY, $fails = __webpack_require__(29), shared = __webpack_require__(66), setToStringTag = __webpack_require__(64), uid = __webpack_require__(49), wks = __webpack_require__(32), wksExt = __webpack_require__(71), wksDefine = __webpack_require__(70), keyOf = __webpack_require__(188), enumKeys = __webpack_require__(183), isArray = __webpack_require__(185), anObject = __webpack_require__(40), toIObject = __webpack_require__(25), toPrimitive = __webpack_require__(69), createDesc = __webpack_require__(48), _create = __webpack_require__(62), gOPNExt = __webpack_require__(192), $GOPD = __webpack_require__(108), $DP = __webpack_require__(31), $keys = __webpack_require__(42), gOPD = $GOPD.f, dP = $DP.f, gOPN = gOPNExt.f, $Symbol = global.Symbol, $JSON = global.JSON, _stringify = $JSON && $JSON.stringify, HIDDEN = wks("_hidden"), TO_PRIMITIVE = wks("toPrimitive"), isEnum = {}.propertyIsEnumerable, SymbolRegistry = shared("symbol-registry"), AllSymbols = shared("symbols"), OPSymbols = shared("op-symbols"), ObjectProto = Object.prototype, USE_NATIVE = "function" == typeof $Symbol, QObject = global.QObject, setter = !QObject || !QObject.prototype || !QObject.prototype.findChild, setSymbolDesc = DESCRIPTORS && $fails(function() {
+    var global = __webpack_require__(23), has = __webpack_require__(24), DESCRIPTORS = __webpack_require__(27), $export = __webpack_require__(28), redefine = __webpack_require__(112), META = __webpack_require__(189).KEY, $fails = __webpack_require__(29), shared = __webpack_require__(66), setToStringTag = __webpack_require__(64), uid = __webpack_require__(49), wks = __webpack_require__(32), wksExt = __webpack_require__(71), wksDefine = __webpack_require__(70), keyOf = __webpack_require__(188), enumKeys = __webpack_require__(183), isArray = __webpack_require__(185), anObject = __webpack_require__(40), toIObject = __webpack_require__(25), toPrimitive = __webpack_require__(69), createDesc = __webpack_require__(48), _create = __webpack_require__(62), gOPNExt = __webpack_require__(192), $GOPD = __webpack_require__(108), $DP = __webpack_require__(31), $keys = __webpack_require__(42), gOPD = $GOPD.f, dP = $DP.f, gOPN = gOPNExt.f, $Symbol = global.Symbol, $JSON = global.JSON, _stringify = $JSON && $JSON.stringify, HIDDEN = wks("_hidden"), TO_PRIMITIVE = wks("toPrimitive"), isEnum = {}.propertyIsEnumerable, SymbolRegistry = shared("symbol-registry"), AllSymbols = shared("symbols"), OPSymbols = shared("op-symbols"), ObjectProto = Object.prototype, USE_NATIVE = "function" == typeof $Symbol, QObject = global.QObject, setter = !QObject || !QObject.prototype || !QObject.prototype.findChild, setSymbolDesc = DESCRIPTORS && $fails(function() {
         return 7 != _create(dP({}, "a", {
             get: function() {
                 return dP(this, "a", {
@@ -22803,7 +22861,7 @@
     __webpack_require__(70)("observable");
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(198);
-    for (var global = __webpack_require__(22), hide = __webpack_require__(30), Iterators = __webpack_require__(60), TO_STRING_TAG = __webpack_require__(32)("toStringTag"), collections = [ "NodeList", "DOMTokenList", "MediaList", "StyleSheetList", "CSSRuleList" ], i = 0; i < 5; i++) {
+    for (var global = __webpack_require__(23), hide = __webpack_require__(30), Iterators = __webpack_require__(60), TO_STRING_TAG = __webpack_require__(32)("toStringTag"), collections = [ "NodeList", "DOMTokenList", "MediaList", "StyleSheetList", "CSSRuleList" ], i = 0; i < 5; i++) {
         var NAME = collections[i], Collection = global[NAME], proto = Collection && Collection.prototype;
         proto && !proto[TO_STRING_TAG] && hide(proto, TO_STRING_TAG, NAME);
         Iterators[NAME] = Iterators.Array;

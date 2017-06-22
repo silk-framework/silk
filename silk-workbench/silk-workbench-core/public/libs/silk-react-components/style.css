@@ -13328,6 +13328,69 @@ h6 {
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
     transform: translate(-1px, 25%); }
 
+.ecc-silk-mapping__ruleslist .mdl-card__actions--fixed {
+  position: sticky;
+  bottom: 0; }
+
+.ecc-silk-mapping__ruleslist-floatingactions {
+  position: absolute;
+  bottom: 3rem;
+  right: calc(2rem + 32px); }
+  .ecc-silk-mapping__ruleslist-floatingactions .mdl-button--fab {
+    width: 56px;
+    height: 56px; }
+
+.ecc-silk-mapping__ruleslist-floatingactions--trigger {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  transition: opacity .2s, width .2s, height .2s, border-radius .2s; }
+  .ecc-silk-mapping__ruleslist-floatingactions--trigger.is-active {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0; }
+
+.ecc-silk-mapping__ruleslist-floatingactions--list {
+  position: relative;
+  bottom: 3px;
+  right: 3px;
+  top: auto;
+  left: auto;
+  height: auto;
+  overflow: hidden;
+  width: 50px;
+  min-width: 0;
+  max-height: 50px;
+  padding: 0;
+  opacity: 0;
+  border-radius: 50%;
+  z-index: 0;
+  transition: opacity .2s, width .2s, max-height .2s, border-radius .2s; }
+  .ecc-silk-mapping__ruleslist-floatingactions--list .mdl-menu__item {
+    opacity: 1; }
+  .ecc-silk-mapping__ruleslist-floatingactions--list .material-icons {
+    vertical-align: middle;
+    margin-right: 0.5em; }
+  .ecc-silk-mapping__ruleslist-floatingactions--trigger.is-active + .ecc-silk-mapping__ruleslist-floatingactions--list {
+    bottom: 0;
+    right: 0;
+    width: 20em;
+    max-height: 20em;
+    background-color: white;
+    opacity: 1;
+    border-radius: 0;
+    z-index: 2; }
+
+.ecc-silk-mapping__ruleslist-floatingactions--list-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent; }
+
 .ecc-silk-mapping__rulesviewer .mdl-card__content,
 .ecc-silk-mapping__ruleseditor .mdl-card__content {
   font-size: 14px;
@@ -13362,6 +13425,34 @@ h6 {
     font-weight: 300; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-title {
     font-weight: 500; }
+  .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-info {
+    max-width: 100%;
+    overflow: auto; }
+
+.ecc-silk-mapping__rulesviewer__examples-table {
+  border: 0;
+  width: 100%; }
+  .ecc-silk-mapping__rulesviewer__examples-table th, .ecc-silk-mapping__rulesviewer__examples-table td {
+    text-align: left;
+    padding: 0.5em 1em;
+    white-space: normal;
+    height: auto;
+    border-bottom-color: #ddd; }
+    .ecc-silk-mapping__rulesviewer__examples-table th:first-of-type, .ecc-silk-mapping__rulesviewer__examples-table th:last-of-type, .ecc-silk-mapping__rulesviewer__examples-table td:first-of-type, .ecc-silk-mapping__rulesviewer__examples-table td:last-of-type {
+      padding: 0.5em 1em; }
+    .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__path, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__path {
+      max-width: 33%; }
+    .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__value, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__value {
+      max-width: 33%; }
+    .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__result, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__result {
+      max-width: 33%; }
+  .ecc-silk-mapping__rulesviewer__examples-table tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
+  .ecc-silk-mapping__rulesviewer__examples-table tr:last-of-type td {
+    border-bottom-color: #bbb; }
+  .ecc-silk-mapping__rulesviewer__examples-table thead {
+    border: 0; }
+  .ecc-silk-mapping__rulesviewer__examples-table tbody tr:hover {
+    background-color: transparent; }
 
 .clickable {
   cursor: pointer; }
