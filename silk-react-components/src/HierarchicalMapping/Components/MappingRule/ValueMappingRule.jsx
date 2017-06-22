@@ -193,6 +193,25 @@ const RuleValueView = React.createClass({
                                 )
                             }
                             {
+                                _.get(this.props, 'id', false) ? (
+                                    <div
+                                        className="ecc-silk-mapping__rulesviewer__examples"
+                                    >
+                                        <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                            <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                                Examples of target data
+                                            </dt>
+                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+
+                                                <ExampleView
+                                                    id={this.props.id}
+                                                />
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                ) : false
+                            }
+                            {
                                 _.get(this, 'props.metadata.description', false) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
@@ -208,23 +227,6 @@ const RuleValueView = React.createClass({
                                     </div>
                                 ) : false
                             }
-                            { _.get(this.props, 'id', false)
-                                ? <div
-                                    className="ecc-silk-mapping__rulesviewer__examples"
-                                >
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Examples of target data
-                                        </dt>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-
-                                            <ExampleView
-                                                id={this.props.id}
-                                            />
-                                        </dd>
-                                    </dl>
-                                </div>
-                                : false}
                         </div>
                         <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                             <Button

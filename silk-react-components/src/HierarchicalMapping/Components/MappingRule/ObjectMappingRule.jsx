@@ -228,6 +228,25 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
+                            _.get(this.props, 'rules.uriRule.id', false) ? (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__examples"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Examples of target data
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+
+                                            <ExampleView
+                                                id={this.props.rules.uriRule.id}
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                            ) : false
+                        }
+                        {
                             _.get(this.props, 'metadata.description', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__comment"
@@ -243,23 +262,6 @@ const RuleObjectView = React.createClass({
                                 </div>
                             ) : false
                         }
-                        { _.get(this.props, 'rules.uriRule.id', false)
-                            ? <div
-                            className="ecc-silk-mapping__rulesviewer__examples"
-                            >
-                            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                    Examples of target data
-                                </dt>
-                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-
-                                    <ExampleView
-                                        id={this.props.rules.uriRule.id}
-                                    />
-                                </dd>
-                            </dl>
-                        </div>
-                        : false}
                     </div>
                     <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
                         <Button
