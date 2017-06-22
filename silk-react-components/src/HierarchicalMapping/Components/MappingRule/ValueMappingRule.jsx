@@ -7,6 +7,7 @@ import {
     DisruptiveButton,
     Info,
 } from 'ecc-gui-elements';
+import ExampleView from './ExampleView';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
@@ -192,7 +193,7 @@ const RuleValueView = React.createClass({
                                 )
                             }
                             {
-                                _.has(this, 'props.metadata.description') ? (
+                                _.has(this, 'props.metadata.description', false) ? (
                                     <div
                                         className="ecc-silk-mapping__rulesviewer__comment"
                                     >
@@ -207,6 +208,23 @@ const RuleValueView = React.createClass({
                                     </div>
                                 ) : false
                             }
+                            { _.has(this.props, 'id')
+                                ? <div
+                                    className="ecc-silk-mapping__rulesviewer__examples"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Examples of target data
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+
+                                            <ExampleView
+                                                id={this.props.id}
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                                : false}
                         </div>
                         <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
                             <Button

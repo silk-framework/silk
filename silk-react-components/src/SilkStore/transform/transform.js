@@ -57,8 +57,18 @@ silkStore.subject('transform.task.rule.delete').subscribe(({data, replySubject})
     }
 );
 
-//TODO: Implement once needed
-silkStore.subject('transform.task.rule.peak').subscribe();
+silkStore.subject('transform.task.rule.peak').subscribe(({data, replySubject}) => {
+
+        const {baseUrl, project, transformTask, id} = data;
+
+        superagent
+            .post(`${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}`)
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);
 
 silkStore.subject('transform.task.rule.rules.append').subscribe(({data, replySubject}) => {
 
