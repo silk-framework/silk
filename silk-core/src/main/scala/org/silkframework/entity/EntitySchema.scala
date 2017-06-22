@@ -12,7 +12,10 @@ import scala.xml.Node
  * @param typedPaths The list of paths
  * @param filter A filter for restricting the entity set
  */
-case class EntitySchema(typeUri: Uri, typedPaths: IndexedSeq[TypedPath], filter: Restriction = Restriction.empty) {
+case class EntitySchema(typeUri: Uri,
+                        typedPaths: IndexedSeq[TypedPath],
+                        filter: Restriction = Restriction.empty,
+                        subPath: Path = Path.empty) {
   //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
@@ -28,11 +31,13 @@ case class EntitySchema(typeUri: Uri, typedPaths: IndexedSeq[TypedPath], filter:
     }
     index
   }
+
+  def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 }
 
 object EntitySchema {
 
-  def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), Restriction.empty)
+  def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
 
   /**
     * XML serialization format.

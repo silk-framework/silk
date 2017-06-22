@@ -8,7 +8,7 @@ import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
-import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingTarget, TransformSpec}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -23,9 +23,11 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val prop2 = "http:// prop2"
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
+    val dataSourceMock = mock[DataSource]
+    when(dataSourceMock.retrieve(any(), any())).thenReturn(entities)
     val execute = new ExecuteTransform(
-      entities = entities,
-      transform = TransformSpec(datasetSelection(), Seq(mapping("propTransform", prop), mapping("prop2Transform", prop2))),
+      input = dataSourceMock,
+      transform = TransformSpec(datasetSelection(), RootMappingRule("root", MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
       outputs = Seq(outputMock)
     )
     val contextMock = mock[ActivityContext[TransformReport]]
@@ -59,7 +61,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
 
   private def mapping(id: String, prop: String) = {
     val transformation = TransformInput(inputs = Seq(PathInput(path = Path(prop))), transformer = transformerWithExceptions())
-    ComplexMapping(name = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
+    ComplexMapping(id = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 
   private def datasetSelection(): DatasetSelection = {

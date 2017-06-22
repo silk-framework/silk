@@ -27,6 +27,7 @@ class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[LinkSink]) exte
   override def name = "Writing output"
 
   override def run(context: ActivityContext[Unit]) {
+    outputs.foreach(_.clear())
     outputs.foreach(_.init())
 
     for (link <- links;

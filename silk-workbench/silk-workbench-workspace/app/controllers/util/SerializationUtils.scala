@@ -1,5 +1,6 @@
 package controllers.util
 
+import org.silkframework.runtime.serialization.Serialization.serializationFormats
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.Project
@@ -173,15 +174,13 @@ object SerializationUtils extends Results {
     * @param defaultMimeType The MIME type to be used if the content-type header specifies none or accepts any
     * @param func            The user provided function to be executed with the parsed value.
     * @param request         The HTTP request to get the value from.
-    * @param project         The project
     * @tparam T The expected parsed type.
     * @return A HTTP result. If the serialization succeeds, this will be the result returned by the user-provided function.
     */
   def deserializeCompileTime[T: ClassTag](defaultMimeType: String = "application/xml")
                                          (func: T => Result)
-                                         (implicit request: Request[AnyContent], project: Project): Result = {
+                                         (implicit request: Request[AnyContent], readContext: ReadContext): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
     mimeType(request.mediaType.toList, Seq(defaultMimeType)) match {
       case Some(mimeType) =>
@@ -203,7 +202,7 @@ object SerializationUtils extends Results {
   private def mimeType[T: ClassTag](mediaTypes: Seq[MediaType],
                                     defaultMimeTypes: Seq[String]): Option[String] = {
     val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)
-    if (mimeTypes.isEmpty || mimeTypes.contains("*/*")) {
+    if (mimeTypes.isEmpty) {
       defaultMimeTypes.find(Serialization.hasSerialization[T])
     } else {
       mimeTypes.find(Serialization.hasSerialization[T])

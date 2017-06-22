@@ -64,8 +64,6 @@ case class CsvDataset
 
   override def entitySink: EntitySink = new CsvEntitySink(file, settings)
 
-  override def clear(): Unit = {}
-
   /**
     * returns an auto-configured version of this plugin
     */

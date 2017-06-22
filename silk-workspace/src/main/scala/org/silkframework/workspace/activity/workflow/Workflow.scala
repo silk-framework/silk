@@ -3,6 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, VariableDataset}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -21,31 +22,6 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   def nodeById(nodeId: String): WorkflowNode = {
     nodes.find(_.nodeId == nodeId)
         .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
-  }
-
-  def toXML: Elem = {
-    <Workflow>
-      {for (op <- operators) yield {
-        <Operator
-        posX={op.position._1.toString}
-        posY={op.position._2.toString}
-        task={op.task}
-        inputs={op.inputs.mkString(",")}
-        outputs={op.outputs.mkString(",")}
-        errorOutputs={op.errorOutputs.mkString(",")}
-        id={op.nodeId}
-        outputPriority={op.outputPriority map (priority => Text(priority.toString))}/>
-    }}{for (ds <- datasets) yield {
-        <Dataset
-        posX={ds.position._1.toString}
-        posY={ds.position._2.toString}
-        task={ds.task}
-        inputs={ds.inputs.mkString(",")}
-        outputs={ds.outputs.mkString(",")}
-        id={ds.nodeId}
-        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}/>
-    }}
-    </Workflow>
   }
 
   /**
@@ -249,58 +225,92 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
 
 object Workflow {
 
-  private def parseOutputPriority(op: Node): Option[Double] = {
-    val node = ((op \ "@outputPriority"))
-    if (node.isEmpty) {
-      None
-    } else {
-      Some(node.text.toDouble)
+  implicit object TransformSpecificationFormat extends XmlFormat[Workflow] {
+    /**
+      * Deserialize a value from XML.
+      */
+    override def read(xml: Node)(implicit readContext: ReadContext): Workflow = {
+      val operators =
+        for (op <- xml \ "Operator") yield {
+          val inputStr = (op \ "@inputs").text
+          val outputStr = (op \ "@outputs").text
+          val errorOutputStr = (op \ "@errorOutputs").text
+          val task = (op \ "@task").text
+          WorkflowOperator(
+            inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
+            task = task,
+            outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
+            errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
+            position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
+            nodeId = parseNodeId(op, task),
+            outputPriority = parseOutputPriority(op)
+          )
+        }
+
+      val datasets =
+        for (ds <- xml \ "Dataset") yield {
+          val inputStr = (ds \ "@inputs").text
+          val outputStr = (ds \ "@outputs").text
+          val task = (ds \ "@task").text
+          WorkflowDataset(
+            inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
+            task = task,
+            outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
+            position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
+            nodeId = parseNodeId(ds, task),
+            outputPriority = parseOutputPriority(ds)
+          )
+        }
+
+      new Workflow(operators, datasets)
     }
-  }
 
-  private def parseNodeId(op: Node, task: String): String = {
-    val node = ((op \ "@id"))
-    if (node.isEmpty) {
-      task
-    } else {
-      node.text
+    /**
+      * Serialize a value to XML.
+      */
+    override def write(workflow: Workflow)(implicit writeContext: WriteContext[Node]): Node = {
+      import workflow._
+      <Workflow>
+        {for (op <- operators) yield {
+          <Operator
+          posX={op.position._1.toString}
+          posY={op.position._2.toString}
+          task={op.task}
+          inputs={op.inputs.mkString(",")}
+          outputs={op.outputs.mkString(",")}
+          errorOutputs={op.errorOutputs.mkString(",")}
+          id={op.nodeId}
+          outputPriority={op.outputPriority map (priority => Text(priority.toString))}/>
+      }}{for (ds <- datasets) yield {
+          <Dataset
+          posX={ds.position._1.toString}
+          posY={ds.position._2.toString}
+          task={ds.task}
+          inputs={ds.inputs.mkString(",")}
+          outputs={ds.outputs.mkString(",")}
+          id={ds.nodeId}
+          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}/>
+      }}
+      </Workflow>
     }
-  }
 
-  def fromXML(xml: Node): Workflow = {
-    val operators =
-      for (op <- xml \ "Operator") yield {
-        val inputStr = (op \ "@inputs").text
-        val outputStr = (op \ "@outputs").text
-        val errorOutputStr = (op \ "@errorOutputs").text
-        val task = (op \ "@task").text
-        WorkflowOperator(
-          inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
-          task = task,
-          outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
-          errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
-          position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
-          nodeId = parseNodeId(op, task),
-          outputPriority = parseOutputPriority(op)
-        )
+    private def parseOutputPriority(op: Node): Option[Double] = {
+      val node = ((op \ "@outputPriority"))
+      if (node.isEmpty) {
+        None
+      } else {
+        Some(node.text.toDouble)
       }
+    }
 
-    val datasets =
-      for (ds <- xml \ "Dataset") yield {
-        val inputStr = (ds \ "@inputs").text
-        val outputStr = (ds \ "@outputs").text
-        val task = (ds \ "@task").text
-        WorkflowDataset(
-          inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
-          task = task,
-          outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
-          position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
-          nodeId = parseNodeId(ds, task),
-          outputPriority = parseOutputPriority(ds)
-        )
+    private def parseNodeId(op: Node, task: String): String = {
+      val node = ((op \ "@id"))
+      if (node.isEmpty) {
+        task
+      } else {
+        node.text
       }
-
-    new Workflow(operators, datasets)
+    }
   }
 }
 

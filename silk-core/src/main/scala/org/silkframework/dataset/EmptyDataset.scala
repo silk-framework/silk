@@ -35,6 +35,12 @@ private object EmptyDataset extends Dataset {
     override def open(properties: Seq[TypedProperty]): Unit = {}
 
     override def close(): Unit = {}
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      * Does nothing as this dataset is always empty
+      */
+    override def clear(): Unit = {}
   }
 
   /**
@@ -52,5 +58,11 @@ private object EmptyDataset extends Dataset {
     override def writeLink(link: Link, predicateUri: String): Unit = {}
 
     override def close(): Unit = {}
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      * Does nothing as this dataset is always empty
+      */
+    override def clear(): Unit = {}
   }
 }

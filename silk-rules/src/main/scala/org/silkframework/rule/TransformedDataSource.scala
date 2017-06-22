@@ -19,7 +19,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    for(TypeMapping(name, typeUri) <- transform.rules) yield {
+    for(TypeMapping(name, typeUri, _) <- transform.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
   }
@@ -32,7 +32,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    transform.rules.flatMap(_.target).map(mt => Path(mt.propertyUri)).distinct.toIndexedSeq
+    transform.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
   }
 
   /**
@@ -58,10 +58,10 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
   }
 
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]) = {
-    val subjectRule = transform.rules.find(_.target.isEmpty)
+    val subjectRule = transform.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for(typedPath <- entitySchema.typedPaths) yield {
-        transform.rules.filter(_.target.map(_.propertyUri) == typedPath.path.propertyUri)
+        transform.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.path))
       }
 
     val allRules = (subjectRule ++ pathRules.flatten).toSeq

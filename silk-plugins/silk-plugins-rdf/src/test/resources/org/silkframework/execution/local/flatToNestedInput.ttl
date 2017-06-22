@@ -1,0 +1,15 @@
+@prefix :     <https://silkframework.org/ex/> .
+
+:Person1
+  a :Person ;
+  :name "John Doe" ;
+  :city "Berlin" ;
+  :country "Germany"
+.
+
+:Person2
+  a :Person ;
+  :name "Max Power" ;
+  :city "Leipzig" ;
+  :country "Germany"
+.

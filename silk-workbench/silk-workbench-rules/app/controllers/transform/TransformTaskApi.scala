@@ -4,27 +4,27 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
-import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.runtime.validation.{ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.util.{CollectLogs, Identifier, Uri}
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
+import play.api.mvc._
 
 import scala.util.control.NonFatal
 
 class TransformTaskApi extends Controller {
-  private final val INVALID_TRANSFORMATION_RULE = "Invalid transformation rule"
   implicit private val peakStatusWrites = Json.writes[PeakStatus]
   implicit private val peakResultWrites = Json.writes[PeakResult]
   implicit private val peakResultsWrites = Json.writes[PeakResults]
@@ -40,13 +40,21 @@ class TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
+  def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    serializeCompileTime[Task[TransformSpec]](task)
+  }
+
   def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
 
     val proj = User().workspace.project(project)
     implicit val prefixes = proj.config.prefixes
 
-    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values("restriction")))
+    val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
     val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
     val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
@@ -57,7 +65,7 @@ class TransformTaskApi extends Controller {
         proj.updateTask(task, updatedTransformSpec)
       //Create new task with no rule
       case None =>
-        val transformSpec = TransformSpec(input, Seq.empty, outputs, Seq.empty, targetVocabularies)
+        val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
         proj.updateTask(task, transformSpec)
     }
     Ok
@@ -76,7 +84,7 @@ class TransformTaskApi extends Controller {
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    serializeIterableCompileTime(task.data.rules, containerName = Some("TransformRules"))
+    serializeCompileTime(task.data.mappingRule)
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
@@ -86,63 +94,151 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes)
 
-    deserializeIterable[TransformRule](expectedXmlRootElementLabel = Some("TransformRules")) { updatedRules =>
-      try {
+    catchExceptions {
+      deserializeCompileTime[RootMappingRule]() { updatedRules =>
         //Update transformation task
-        val updatedTask = task.data.copy(rules = updatedRules.toSeq)
+        val updatedTask = task.data.copy(mappingRule = updatedRules)
         project.updateTask(taskName, updatedTask)
         Ok
-      } catch {
-        case ex: ValidationException =>
-          log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
-          BadRequest(ex.toString)
-        case ex: Exception =>
-          log.log(Level.WARNING, "Failed to parse transformation rule", ex)
-          InternalServerError("Error in back end: " + ex.getMessage)
       }
     }
   }
 
-  def getRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
+  def getRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    task.data.rules.find(_.name == rule) match {
-      case Some(r) =>
-        serializeCompileTime(r)
-      case None =>
-        NotFound(s"No rule named '$rule' found!")
+    processRule(task, ruleId) { rule =>
+      serializeCompileTime(rule.operator.asInstanceOf[TransformRule])
     }
   }
 
-  def putRule(projectName: String, taskName: String, ruleIndex: Int): Action[AnyContent] = Action { implicit request => {
+  def putRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+    implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
 
-    deserializeCompileTime[TransformRule]() { updatedRule =>
-      try {
-        //Collect warnings while parsing transformation rule
-        val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkagerule") {
-          val updatedRules = task.data.rules.updated(ruleIndex, updatedRule)
-          val updatedTask = task.data.copy(rules = updatedRules)
-          project.updateTask(taskName, updatedTask)
-        }
-        // Return warnings
-        Ok(JsonError("Transform rule committed successfully", warnings.map(log => ValidationWarning(log.getMessage))))
-      } catch {
-        case ex: ValidationException =>
-          log.log(Level.INFO, INVALID_TRANSFORMATION_RULE, ex)
-          BadRequest(JsonError(INVALID_TRANSFORMATION_RULE, ex.errors))
-        case ex: Exception =>
-          log.log(Level.WARNING, "Failed to commit transformation rule", ex)
-          InternalServerError(JsonError("Failed to commit transformation rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+    processRule(task, ruleId) { currentRule =>
+      implicit val updatedRequest = updateJsonRequest(request, currentRule)
+      deserializeCompileTime[TransformRule]() { updatedRule =>
+        updateRule(currentRule.update(updatedRule))
+        serializeCompileTime[TransformRule](updatedRule)
       }
     }
   }
+
+  def deleteRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    try {
+      val updatedTree = RuleTraverser(task.data.mappingRule).remove(rule)
+      task.update(task.data.copy(mappingRule = updatedTree.operator.asInstanceOf[RootMappingRule]))
+      Ok
+    } catch {
+      case ex: NoSuchElementException =>
+        NotFound(JsonError(ex.getMessage))
+    }
+  }
+
+  def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+
+    processRule(task, ruleName) { parentRule =>
+      deserializeCompileTime[TransformRule]() { newChildRule =>
+        val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
+        updateRule(parentRule.update(updatedRule))
+        serializeCompileTime(newChildRule)
+      }
+    }
+  }
+
+  def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val project = User().workspace.project(projectName)
+    implicit val task = project.task[TransformSpec](taskName)
+    implicit val prefixes = project.config.prefixes
+
+    processRule(task, ruleName) { parentRule =>
+      request.body.asJson match {
+        case Some(json) =>
+          val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
+          val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
+          val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
+          if (newOrder.toSet == currentOrder.toSet) {
+            val newPropertyRules =
+              for (id <- newOrder) yield {
+                parentRule.operator.children.find(_.id == id).get
+              }
+            val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
+            updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
+            Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
+          } else {
+            BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+          }
+        case None =>
+          NotAcceptable(JsonError("Expected application/json."))
+      }
+    }
+  }
+
+  /**
+    * Processes a rule a catches relevant exceptions
+    */
+  private def processRule(task: Task[TransformSpec], ruleId: String)(processFunc: RuleTraverser => Result): Result = {
+    RuleTraverser(task.data.mappingRule).find(ruleId) match {
+      case Some(rule) =>
+        catchExceptions(processFunc(rule))
+      case None =>
+        NotFound(JsonError(s"No rule with id '$ruleId' found!"))
+    }
+  }
+
+  /**
+    * Catches relevant exceptions and returns appropriate error codes.
+    */
+  private def catchExceptions(func: => Result): Result = {
+    try {
+      func
+    } catch {
+      case ex: ValidationException =>
+        log.log(Level.INFO, "Invalid transformation rule", ex)
+        BadRequest(JsonError("Invalid transformation rule", ex.errors))
+      case ex: Exception =>
+        log.log(Level.WARNING, "Failed process mapping rule", ex)
+        InternalServerError(JsonError("Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+    }
+  }
+
+
+  private def identifierGenerator(transformTask: Task[TransformSpec]): IdentifierGenerator = {
+    val identifierGenerator = new IdentifierGenerator()
+    for(id <- RuleTraverser(transformTask.data.mappingRule).iterateAllChildren.map(_.operator.id)) {
+      identifierGenerator.add(id)
+    }
+    identifierGenerator
+  }
+
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+    request.body.asJson match {
+      case Some(requestJson) =>
+        val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
+        val updatedJson = ruleJson.deepMerge(requestJson.as[JsObject])
+        request.map(_ => AnyContentAsJson(updatedJson))
+      case None => request
+    }
+  }
+
+  private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
+    val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
+    val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    task.project.updateTask(task.id, updatedTask)
   }
 
   def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action {
@@ -338,9 +434,9 @@ class TransformTaskApi extends Controller {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val rule = task.data.rules.find(_.name.toString == ruleName).getOrElse(
+            val rule = task.data.mappingRule.rules.find(_.id.toString == ruleName).getOrElse(
               throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
-                  + task.data.rules.map(_.name).mkString(", "))
+                  + task.data.mappingRule.rules.map(_.id).mkString(", "))
             )
             val entityDescription = oneRuleEntitySchema(transformTask, rule)
             try {

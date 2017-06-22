@@ -86,6 +86,10 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     writeStatement(subject, predicate, obj, valueType)
   }
 
+  override def clear(): Unit = {
+    graphStore.deleteGraph(graphUri)
+  }
+
   override def close(): Unit = {
     output match {
       case Some(o) =>

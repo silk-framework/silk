@@ -17,7 +17,7 @@ private trait XmlSerializer[TaskType <: TaskSpec] {
   /**
    * Loads all tasks of this module.
    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Map[Identifier, TaskType]
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[TaskType]]
 
   /**
    * Removes a specific task.

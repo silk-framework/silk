@@ -29,6 +29,4 @@ case class JsonDataset(
   override def linkSink: LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 
   override def entitySink: EntitySink = throw new NotImplementedError("JSON files cannot be written at the moment")
-
-  override def clear() = { }
 }

@@ -9,18 +9,19 @@ import plugins.Context
 
 class TransformEditor extends Controller {
 
-  def start(project: String, task: String) = Action { implicit request =>
+  def start(project: String, task: String, rule: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
 
-    Ok(views.html.editor.transformRules(context, vocabularies))
+    // TODO: We should check whether the rule exists
+    Ok(views.html.editor.transformRules(context, vocabularies, rule))
   }
 
   def editor(project: String, task: String, rule: String) = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    context.task.data.rules.find(_.name == rule) match {
+    context.task.data.rules.find(_.id == rule) match {
       case Some(r) => Ok(views.html.editor.transformEditor(context, r))
-      case None => NotFound(s"No rule named '$rule' found!. Available rules: ${context.task.data.rules.map(_.name).mkString(", ")}")
+      case None => NotFound(s"No rule named '$rule' found!. Available rules: ${context.task.data.rules.map(_.id).mkString(", ")}")
     }
   }
 

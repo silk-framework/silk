@@ -4,7 +4,8 @@ GET           /dialogs/editTransformTask/:project/:task                      con
 GET           /dialogs/deleteRule/:name                                      controllers.transform.TransformDialogs.deleteRuleDialog(name: String)
 
 # Transformation Editor
-GET           /:project/:task/editor                                         controllers.transform.TransformEditor.start(project: String, task: String)
+GET           /:project/:task/editor                                         controllers.transform.TransformEditor.start(project: String, task: String, rule = "")
+GET           /:project/:task/editor/rule/:rule                              controllers.transform.TransformEditor.start(project: String, task: String, rule: String)
 GET           /:project/:task/editor/:rule                                   controllers.transform.TransformEditor.editor(project: String, task: String, rule: String)
 GET           /:project/:task/editor/widgets/property                        controllers.transform.TransformEditor.propertyDetails(project: String, task: String, property: String)
 GET           /:project/:task/editor/widgets/paths                           controllers.transform.TransformEditor.paths(project: String, task: String)
@@ -21,15 +22,20 @@ GET           /:project/:task/executeDialog                                  con
 GET           /:project/:task/execute/statusStream                           controllers.transform.ExecuteTransformTab.statusStream(project: String, task: String)
 
 # API
-PUT           /tasks/:project/:task                                          controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String)
-DELETE        /tasks/:project/:task                                          controllers.transform.TransformTaskApi.deleteTransformTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
-GET           /tasks/:project/:task/rules                                    controllers.transform.TransformTaskApi.getRules(project: String, task: String)
-PUT           /tasks/:project/:task/rules                                    controllers.transform.TransformTaskApi.putRules(project: String, task: String)
-GET           /tasks/:project/:task/rule/:rule                               controllers.transform.TransformTaskApi.getRule(project: String, task: String, rule: String)
-PUT           /tasks/:project/:task/rule/:rule                               controllers.transform.TransformTaskApi.putRule(project: String, task: String, rule: Int)
-POST          /tasks/:project/:task/reloadCache                              controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
-PUT           /tasks/:project/:task/executeTransform                         controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
-POST          /tasks/:project/:task/peak/:rule                               controllers.transform.TransformTaskApi.peakIntoTransformRule(project: String, task: String, rule: String)
+GET           /tasks/:project/:task                              controllers.transform.TransformTaskApi.getTransformTask(project: String, task: String)
+PUT           /tasks/:project/:task                              controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String)
+DELETE        /tasks/:project/:task                              controllers.transform.TransformTaskApi.deleteTransformTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
+GET           /tasks/:project/:task/rules                        controllers.transform.TransformTaskApi.getRules(project: String, task: String)
+PUT           /tasks/:project/:task/rules                        controllers.transform.TransformTaskApi.putRules(project: String, task: String)
+GET           /tasks/:project/:task/rule/:rule                   controllers.transform.TransformTaskApi.getRule(project: String, task: String, rule: String)
+PUT           /tasks/:project/:task/rule/:rule                   controllers.transform.TransformTaskApi.putRule(project: String, task: String, rule: String)
+DELETE        /tasks/:project/:task/rule/:rule                   controllers.transform.TransformTaskApi.deleteRule(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/rule/:rule/rules             controllers.transform.TransformTaskApi.appendRule(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/rule/:rule/rules/reorder     controllers.transform.TransformTaskApi.reorderRules(project: String, task: String, rule: String)
+
+POST          /tasks/:project/:task/reloadCache                  controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
+PUT           /tasks/:project/:task/executeTransform             controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
+POST          /tasks/:project/:task/peak/:rule                   controllers.transform.TransformTaskApi.peakIntoTransformRule(project: String, task: String, rule: String)
 
 GET           /tasks/:project/:task/sourcePathCompletions                    controllers.transform.TransformTaskApi.sourcePathCompletions(project: String, task: String, term: String)
 GET           /tasks/:project/:task/targetPathCompletions                    controllers.transform.TransformTaskApi.targetPathCompletions(project: String, task: String, sourcePath: Option[String], term: String)

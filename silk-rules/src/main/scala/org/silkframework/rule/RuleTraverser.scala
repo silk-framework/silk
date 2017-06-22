@@ -14,6 +14,8 @@
 
 package org.silkframework.rule
 
+import org.silkframework.util.Identifier
+
 /**
  * Allows to traverse through a rule tree while editing specific operators.
  */
@@ -56,6 +58,34 @@ sealed trait RuleTraverser {
   /** Iterates through all descendant operators (i.e. the operator itself and all of its direct and indirect children) */
   def iterateAllChildren: Iterator[RuleTraverser] = {
     Iterator.single(this) ++ iterateChildren.flatMap(_.iterateAllChildren)
+  }
+
+  /**
+    * Finds an operator in the tree by its identifier.
+    */
+  def find(id: Identifier): Option[RuleTraverser] = {
+    iterateAllChildren.find(_.operator.id == id)
+  }
+
+  /**
+    * Removes an operator from the tree and returns the updated root.
+    *
+    * @throws NoSuchElementException If no operator with the given identifier could be found or the operator matches the root element itself.
+    */
+  def remove(id: Identifier): RuleTraverser = {
+    find(id) match {
+      case Some(childToBeRemoved) =>
+        childToBeRemoved.moveUp match {
+          case Some(parent) =>
+            val newChildren = parent.operator.children.filterNot(_.id == id)
+            val newParent = parent.update(parent.operator.withChildren(newChildren))
+            newParent.root
+          case None =>
+            throw new NoSuchElementException("Cannot remove the root operator.")
+        }
+      case None =>
+        throw new NoSuchElementException(s"Did not find operator with id $id for removal.")
+    }
   }
 
   def iterateParents: Iterator[RuleTraverser] = iterate(_.moveUp)

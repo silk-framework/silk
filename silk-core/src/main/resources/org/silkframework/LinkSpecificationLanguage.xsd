@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+    <xs:element name="MetaData">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Label" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="Description" minOccurs="0" maxOccurs="1" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="Dataset">
         <xs:complexType>
             <xs:sequence>
@@ -110,9 +119,21 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="MappingRules">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="TransformRule"/>
+                    <xs:element ref="ObjectMapping"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="TransformRule">
         <xs:complexType>
-          <xs:sequence>
+            <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
                 <xs:choice minOccurs="1" maxOccurs="1">
                     <xs:element ref="Input"/>
                     <xs:element ref="TransformInput"/>
@@ -121,6 +142,28 @@
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="targetProperty" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RootMappingRule">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
+                <xs:element ref="MappingRules"  minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ObjectMapping">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
+                <xs:element ref="MappingRules"  minOccurs="1" maxOccurs="1" />
+                <xs:element ref="MappingTarget" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="relativePath" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
@@ -179,9 +222,14 @@
     <xs:element name="Transform">
         <xs:complexType>
             <xs:sequence>
+                <xs:element ref="MetaData" minOccurs="0"/>
+
                 <xs:element ref="SourceDataset" minOccurs="1" maxOccurs="1"/>
 
-                <xs:element ref="TransformRule" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element ref="TransformRule" minOccurs="0" maxOccurs="unbounded"/> <!-- old format -->
+                <xs:element ref="ObjectMapping" minOccurs="0" maxOccurs="unbounded"/>  <!-- old format -->
+
+                <xs:element ref="RootMappingRule" minOccurs="0" maxOccurs="1"/>
 
                 <xs:element ref="Outputs" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
@@ -194,6 +242,8 @@
     <xs:element name="Interlink">
         <xs:complexType>
             <xs:sequence>
+
+                <xs:element ref="MetaData" minOccurs="0"/>
 
                 <!-- Deprecated: LinkType is now an attribute of a linkage rule -->
                 <xs:element name="LinkType" type="xs:string" minOccurs="0"/>
