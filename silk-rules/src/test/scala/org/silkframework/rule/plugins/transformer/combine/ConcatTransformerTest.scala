@@ -14,22 +14,6 @@
 
 package org.silkframework.rule.plugins.transformer.combine
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.rule.test.TransformerTest
 
-
-
-
-class ConcatTransformerTest extends FlatSpec with Matchers {
-
-  val transformer = new ConcatTransformer()
-
-  "ConcatTransformer" should "return 'abcdef'" in {
-    transformer.apply(Seq(Seq("abc"), Seq("def"))) should equal(Seq("abcdef"))
-  }
-
-  val transformer1 = new ConcatTransformer()
-
-  "ConcatTransformer" should "return 'def123'" in {
-    transformer1.apply(Seq(Seq("def"), Seq("123"))) should equal(Seq("def123"))
-  }
-}
+class ConcatTransformerTest extends TransformerTest[ConcatTransformer]
