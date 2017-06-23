@@ -206,10 +206,10 @@ const HierarchicalMapping = React.createClass({
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -218,7 +218,8 @@ const HierarchicalMapping = React.createClass({
                     </DismissiveButton>
                 }>
                 <p>
-                    When you click CONTINUE, all unsaved changes will be lost.
+                    You currently have unsaved changes{this.state.editingElements.length === 1 ? '' :
+                        ` in ${this.state.editingElements.length} mapping rules`}.
                 </p>
             </ConfirmationDialog>
             : false;

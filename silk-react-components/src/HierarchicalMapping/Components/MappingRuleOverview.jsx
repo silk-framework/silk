@@ -182,7 +182,7 @@ const MappingRuleOverview = React.createClass({
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -190,7 +190,10 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>When you click CONTINUE, all unsaved changes will be lost.</p>
+                <p>
+                    You currently have unsaved changes{this.state.editing.length === 1 ? '' :
+                    ` in ${this.state.editingElements.length} mapping rules`}.
+                </p>
             </ConfirmationDialog>
             : false;
 
