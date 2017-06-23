@@ -6,7 +6,7 @@ import java.net.{BindException, InetSocketAddress, URLDecoder}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -15,7 +15,7 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
-import org.silkframework.config.Task
+
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -26,7 +26,8 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
 /**
   * Created on 3/17/16.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { this: Suite =>
+trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
+  this: Suite =>
 
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
@@ -41,7 +42,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {
       for (c <- f.listFiles())
-      deleteRecursively(c)
+        deleteRecursively(c)
     }
     if (!f.delete()) {
       throw new FileNotFoundException("Failed to delete file: " + f)
@@ -172,8 +173,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>
-        {uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
+        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
@@ -423,6 +423,14 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     response
   }
 
+  def checkResponseCode(futureResponse: Future[WSResponse],
+                        responseCode: Int = 200): WSResponse = {
+    val response = Await.result(futureResponse, 100.seconds)
+    assert(response.status == responseCode, s"Expected $responseCode response code. " +
+        s"Found: status text: ${response.statusText}. Response Body: ${response.body}")
+    response
+  }
+
   def getTransformationTaskRules(project: String, taskName: String): String = {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
     val response = request.get()
@@ -476,7 +484,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
   def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
     val server: HttpServer = createHttpServer
-    for(responseContent <- servedContent) {
+    for (responseContent <- servedContent) {
       val handler = new HttpHandler {
         override def handle(httpExchange: HttpExchange): Unit = {
           val response = responseContent.content
