@@ -10,6 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
+import SuggestionsView from './MappingRule/SuggestionsView';
 import {
     Spinner,
     Info,
@@ -68,6 +69,7 @@ const MappingRuleOverview = React.createClass({
             ruleEditView: false,
             editing: [],
             askForDiscard: false,
+            showSuggestions: false,
         };
     },
     componentDidMount() {
@@ -82,6 +84,12 @@ const MappingRuleOverview = React.createClass({
         this.setState({
             editing: [],
         });
+    },
+    handleToggleSuggestions(event) {
+        event.stopPropagation();
+        this.setState({
+            showSuggestions: true,
+        })
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -165,6 +173,10 @@ const MappingRuleOverview = React.createClass({
                 },
             });
         }
+    },
+    handleCloseSuggestions(event) {
+        event.stopPropagation();
+        this.setState({showSuggestions: false});
     },
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEmpty(nextState.ruleData);
@@ -259,8 +271,9 @@ const MappingRuleOverview = React.createClass({
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                            onClick={this.handleToggleSuggestions}
                         >
-                            Suggest mappings (0) (TODO)
+                            Suggest mappings
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-expand"
@@ -315,44 +328,52 @@ const MappingRuleOverview = React.createClass({
             );
         }
 
+        const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
+            ? <SuggestionsView
+                onClose={this.handleCloseSuggestions}
+                targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>','').toLowerCase())} />
+            : false;
+
+        const rulesList = !createRuleForm && !suggestions ? <div className="ecc-silk-mapping__ruleslist">
+            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                {mappingRulesListHead}
+                {mappingRulesList}
+                <div className="mdl-card__actions--fixed">
+                    <FloatingListActions
+                        iconName="add"
+                        actions={
+                            [
+                                {
+                                    icon: 'insert_drive_file',
+                                    label: 'Add value mapping',
+                                    handler: () => {
+                                        this.handleCreate({type: 'direct'});
+                                    },
+                                },
+                                {
+                                    icon: 'folder',
+                                    label: 'Add object mapping',
+                                    handler: () => {
+                                        this.handleCreate({type: 'object'});
+                                    },
+                                },
+                            ]
+                        }
+                    />
+                </div>
+            </div>
+        </div> : false;
+
+
+
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
-                {
-                    createRuleForm ?
-                        createRuleForm :
-                        <div className="ecc-silk-mapping__ruleslist">
-                            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                                {mappingRulesListHead}
-                                {mappingRulesList}
-                                <div className="mdl-card__actions--fixed">
-                                    <FloatingListActions
-                                        iconName="add"
-                                        actions={
-                                            [
-                                                {
-                                                    icon: 'insert_drive_file',
-                                                    label: 'Add value mapping',
-                                                    handler: () => {
-                                                        this.handleCreate({type: 'direct'});
-                                                    },
-                                                },
-                                                {
-                                                    icon: 'folder',
-                                                    label: 'Add object mapping',
-                                                    handler: () => {
-                                                        this.handleCreate({type: 'object'});
-                                                    },
-                                                },
-                                            ]
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                }
+                {suggestions}
+                {createRuleForm}
+                {rulesList}
             </div>
         );
     },
