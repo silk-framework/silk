@@ -242,14 +242,11 @@ case class ObjectMapping(id: Identifier = "mapping",
           case Some (rule) => Some(rule)
           case None if sourcePath.isEmpty =>
             Some(UriMapping(pattern = s"{}/$id"))
-            //TransformInput("concat", ConcatTransformer(), Seq(PathInput(path = sourcePath), TransformInput("ruleId", ConstantTransformer("/" + id))))
           case None =>
             Some(UriMapping(pattern = s"{/${sourcePath.serialize}}"))
-            //PathInput(path = sourcePath)
         }
       case None =>
         None
-        // TransformInput(transformer = EmptyValueTransformer())
     }
   }
 
@@ -260,18 +257,6 @@ case class ObjectMapping(id: Identifier = "mapping",
       case None =>
         TransformInput(transformer = EmptyValueTransformer())
     }
-//    target match {
-//      case Some(prop) =>
-//        rules.uriRule match {
-//          case Some (rule) => rule.operator
-//          case None if sourcePath.isEmpty =>
-//            TransformInput("concat", ConcatTransformer(), Seq(PathInput(path = sourcePath), TransformInput("ruleId", ConstantTransformer("/" + id))))
-//          case None =>
-//            PathInput(path = sourcePath)
-//        }
-//      case None =>
-//        TransformInput(transformer = EmptyValueTransformer())
-//    }
   }
 
   /**
