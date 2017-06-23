@@ -47,6 +47,11 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case _ => None
   }
 
+  /**
+    * Tests if this path is empty, i.e, has not operators.
+    */
+  def isEmpty: Boolean = operators.isEmpty
+
   override def toString: String = serializedFull
 
   /**
