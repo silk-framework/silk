@@ -27,6 +27,11 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
   def run(context: ActivityContext[TransformReport]): Unit = {
     isCanceled = false
 
+    // Clear outputs before writing
+    for (output <- outputs) {
+      output.clear()
+    }
+
     transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
   }
 
