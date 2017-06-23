@@ -19,7 +19,7 @@ class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
                 properties: String = "",
                 prefix: String = "",
-                uri: String = "",
+                uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
                 skipLinesBeginning: Int = 0,
@@ -245,12 +245,12 @@ class CsvSource(file: Resource,
     * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
     * as defined in the *properties* field. */
   private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uri.isEmpty && prefix.isEmpty) {
-      file.name + "/" + (index + 1)
-    } else if (uri.isEmpty) {
+    if (uriPattern.isEmpty && prefix.isEmpty) {
+      "urn:" + URLEncoder.encode(file.name, "UTF-8") + "/" + (index + 1)
+    } else if (uriPattern.isEmpty) {
       prefix + (index + 1)
     } else {
-      "\\{([^\\}]+)\\}".r.replaceAllIn(uri, m => {
+      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
         val propName = m.group(1)
 
         assert(propertyList.contains(propName))
