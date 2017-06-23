@@ -13261,13 +13261,15 @@ h6 {
   letter-spacing: 0;
   max-width: 100%; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline,
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-headline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline,
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-subline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -13275,6 +13277,13 @@ h6 {
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__suggestitem-checkbox {
+  width: 20px;
+  display: flex;
+  flex-flow: column;
+  align-items: flex-end;
+  align-self: flex-start; }
 
 @media (min-width: 840px) {
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-content {
@@ -13290,6 +13299,16 @@ h6 {
     box-sizing: border-box;
     padding: 0.25em;
     max-width: 33%; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-headline,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-subline,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-lastline {
+    font-size: 13px;
+    flex-grow: 1;
+    box-sizing: border-box;
+    padding: 0.25em;
+    width: 31%; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-lastline {
+    width: 7%; }
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .hide-in-table {
     display: none; }
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
