@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.{Project, User}
 import org.silkframework.workspace.activity.transform.VocabularyCache
@@ -14,11 +15,11 @@ import play.api.libs.json.{JsArray, JsValue, Json, Writes}
 /**
   * Provides access to the target vocabulary.
   */
-class TargetVocabularyApi extends Controller {
+class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
 
-  def getTypeInfo(projectName: String, taskName: String, typeUri: String) = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+  /** Returns meta data for a vocabulary class */
+  def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = task.activity[VocabularyCache].value
     val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
 
@@ -30,9 +31,9 @@ class TargetVocabularyApi extends Controller {
     }
   }
 
-  def getPropertyInfo(projectName: String, taskName: String, propertyUri: String) = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+  /** Returns meta data for a vocabulary property */
+  def getPropertyInfo(projectName: String, transformTaskName: String, propertyUri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = task.activity[VocabularyCache].value
     val fullPropertyUri = Uri.parse(propertyUri, project.config.prefixes)
 
@@ -51,8 +52,7 @@ class TargetVocabularyApi extends Controller {
     * @param taskName    The name of the transform task
     */
   def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
+    val (_, task) = projectAndTask[TransformSpec](projectName, taskName)
     val typeCompletion = new AutoCompletionApi().retrieveTypeCompletions(task)
     Ok(JsArray(typeCompletion.map(_.toJson)))
   }
@@ -124,7 +124,7 @@ class TargetVocabularyApi extends Controller {
   }
 
   def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
+    implicit val project = getProject(projectName)
     // Filter only object properties
     val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)
     val forwardObjectProperties = forwardProperties.filter(vp => vp.range.isDefined && vp.domain.isDefined)

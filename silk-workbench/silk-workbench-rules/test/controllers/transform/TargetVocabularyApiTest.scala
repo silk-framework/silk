@@ -1,11 +1,8 @@
 package controllers.transform
 
-import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.entity.Path
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
-import play.api.libs.json._
 import play.api.libs.ws.WS
 
 class TargetVocabularyApiTest extends TransformTaskApiTestBase {
