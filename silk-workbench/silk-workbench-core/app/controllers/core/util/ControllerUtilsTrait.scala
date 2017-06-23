@@ -32,4 +32,10 @@ trait ControllerUtilsTrait {
     val task = project.task[T](taskName)
     (project, task)
   }
+
+  def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String): ProjectTask[T] = {
+    val project = User().workspace.project(projectName)
+    val task = project.task[T](taskName)
+    task
+  }
 }

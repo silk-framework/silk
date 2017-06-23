@@ -22,6 +22,7 @@ import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.json._
 import play.api.mvc._
 
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 class TransformTaskApi extends Controller {
@@ -406,14 +407,14 @@ class TransformTaskApi extends Controller {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val (rule, sourcePath) = nestedRuleAndSourcePath(transformSpec, ruleName).getOrElse(
-              throw new IllegalArgumentException(s"Transform task $taskName in project $projectName has no transformation rule $ruleName! Valid rule names: "
-                  + validRuleNames(transformSpec.mappingRule).sorted.mkString(", "))
-            )
-            val entityDescription = oneRuleEntitySchema(transformSpec, rule, Path(sourcePath))
+            val (entityDescription, rule) = transformSpec.oneRuleEntitySchemaById(ruleName) match {
+              case Success(tuple) =>
+                tuple
+              case Failure(ex) =>
+                throw ex
+            }
             try {
               val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
-              println(exampleEntities.head)
               generateMappingPreviewResponse(rule, exampleEntities, limit)
             } catch {
               case pe: PeakException =>
@@ -432,32 +433,12 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  private def validRuleNames(mappingRule: TransformRule): List[String] = {
-    val childRuleNames = mappingRule.rules.map(validRuleNames).foldLeft(List.empty[String])((l, ruleNames) => ruleNames ::: l)
-    mappingRule.id :: childRuleNames
-  }
-
-  private def nestedRuleAndSourcePath(transformSpec: TransformSpec, ruleName: String): Option[(TransformRule, List[PathOperator])] = {
-    fetchRuleAndSourcePath(transformSpec.mappingRule, ruleName, List.empty)
-  }
-
   def extractSourcePath(transformRule: TransformRule): List[PathOperator] = {
     transformRule match {
       case objMapping: ObjectMapping =>
         objMapping.sourcePath.operators
       case _ =>
         List.empty
-    }
-  }
-
-  private def fetchRuleAndSourcePath(transformRule: TransformRule,
-                                     ruleName: String,
-                                     sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
-    if(transformRule.id.toString == ruleName) {
-      Some(transformRule, sourcePath)
-    } else {
-      val childSourcePath = extractSourcePath(transformRule)
-      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: childSourcePath )).headOption
     }
   }
 
@@ -526,18 +507,6 @@ class TransformTaskApi extends Controller {
     path.operators.map { op =>
       op.serialize
     }
-  }
-
-  private def oneRuleEntitySchema(transformTask: TransformSpec,
-                                  rule: TransformRule,
-                                  subPath: Path) = {
-    EntitySchema(
-      typeUri = transformTask.selection.typeUri,
-      typedPaths = rule.paths.distinct.
-          map(_.asStringTypedPath).toIndexedSeq,
-      filter = transformTask.selection.restriction,
-      subPath = subPath
-    )
   }
 }
 
