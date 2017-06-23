@@ -73,7 +73,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
           typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
         )
 
-      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule))
+      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
 
       transformEntities(childInputSchema, updatedChildRules, childOutputSchema, context)
     }

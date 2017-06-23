@@ -235,7 +235,7 @@ case class ObjectMapping(id: Identifier = "mapping",
 
   override val typeString = "Object"
 
-  val uriRule: Option[UriMapping] = {
+  def uriRule(pathPrefix: Path = Path.empty): Option[UriMapping] = {
     target match {
       case Some(prop) =>
         rules.uriRule match {
@@ -243,7 +243,7 @@ case class ObjectMapping(id: Identifier = "mapping",
           case None if sourcePath.isEmpty =>
             Some(UriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(UriMapping(pattern = s"{/${sourcePath.serialize}}"))
+            Some(UriMapping(pattern = s"{${pathPrefix.serialize}}"))
         }
       case None =>
         None
@@ -251,7 +251,7 @@ case class ObjectMapping(id: Identifier = "mapping",
   }
 
   override val operator = {
-    uriRule match {
+    uriRule(sourcePath) match {
       case Some(rule) =>
         rule.operator
       case None =>

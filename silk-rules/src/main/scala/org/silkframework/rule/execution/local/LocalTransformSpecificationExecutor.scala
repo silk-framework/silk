@@ -55,7 +55,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
             typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
           )
 
-        val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule))
+        val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
 
         transformEntities(updatedChildRules, childOutputSchema, context)
       }
