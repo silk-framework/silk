@@ -12,7 +12,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
   def printResponses: Boolean = false
 
-  "Setup project" in {
+  "setup project" in {
     setup()
   }
 
