@@ -60,7 +60,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       }
     }
 
-    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
+    for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
       val childInputSchema =
         EntitySchema(
           typeUri = inputSchema.typeUri,
@@ -73,7 +73,9 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
           typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
         )
 
-      transformEntities(childInputSchema, childRules, childOutputSchema, context)
+      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule))
+
+      transformEntities(childInputSchema, updatedChildRules, childOutputSchema, context)
     }
   }
 

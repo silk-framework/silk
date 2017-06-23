@@ -180,16 +180,7 @@ case class DirectMapping(id: Identifier = "sourcePath",
   */
 case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty) extends TransformRule {
 
-  override val operator: Input = {
-    val inputs =
-      for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
-        if (i % 2 == 0)
-          TransformInput("constant" + i, ConstantTransformer(str))
-        else
-          TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
-      }
-    TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
-  }
+  override val operator: Input = UriPattern.parse(pattern)
 
   override val target = None
 
@@ -244,16 +235,43 @@ case class ObjectMapping(id: Identifier = "mapping",
 
   override val typeString = "Object"
 
-  override val operator = {
+  val uriRule: Option[UriMapping] = {
     target match {
       case Some(prop) =>
         rules.uriRule match {
-          case Some (rule) => rule.operator
-          case None => PathInput (path = sourcePath)
+          case Some (rule) => Some(rule)
+          case None if sourcePath.isEmpty =>
+            Some(UriMapping(pattern = s"{}/$id"))
+            //TransformInput("concat", ConcatTransformer(), Seq(PathInput(path = sourcePath), TransformInput("ruleId", ConstantTransformer("/" + id))))
+          case None =>
+            Some(UriMapping(pattern = s"{/${sourcePath.serialize}}"))
+            //PathInput(path = sourcePath)
         }
+      case None =>
+        None
+        // TransformInput(transformer = EmptyValueTransformer())
+    }
+  }
+
+  override val operator = {
+    uriRule match {
+      case Some(rule) =>
+        rule.operator
       case None =>
         TransformInput(transformer = EmptyValueTransformer())
     }
+//    target match {
+//      case Some(prop) =>
+//        rules.uriRule match {
+//          case Some (rule) => rule.operator
+//          case None if sourcePath.isEmpty =>
+//            TransformInput("concat", ConcatTransformer(), Seq(PathInput(path = sourcePath), TransformInput("ruleId", ConstantTransformer("/" + id))))
+//          case None =>
+//            PathInput(path = sourcePath)
+//        }
+//      case None =>
+//        TransformInput(transformer = EmptyValueTransformer())
+//    }
   }
 
   /**
@@ -349,11 +367,11 @@ object TransformRule {
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
       DirectMapping(id, path, target, metaData)
     // URI Mapping
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None, metaData) if isPattern(inputs) =>
-      UriMapping(id, buildPattern(inputs), metaData)
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
+      UriMapping(id, UriPattern.build(inputs), metaData)
     // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if isPattern(inputs) && target.valueType == UriValueType =>
-      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(UriMapping(id + "uri", buildPattern(inputs)))), metaData)
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
+      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(UriMapping(id + "uri", UriPattern.build(inputs)))), metaData)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
     Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
@@ -366,20 +384,47 @@ object TransformRule {
     case _ => complexMapping
   }
 
-  private def isPattern(inputs: Seq[Input]) = {
+
+}
+
+/**
+  * Handles URI patterns of the form http://example.org/{ID}.
+  */
+private object UriPattern {
+
+  def parse(pattern: String): Input = {
+    // FIXME we should write a real parser for this
+    val inputs = {
+      if(pattern == "{}") {
+        Seq(TransformInput("uri", UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path", Path.empty))))
+      } else {
+        for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
+          if (i % 2 == 0)
+            TransformInput("constant" + i, ConstantTransformer(str))
+          else
+            TransformInput("encode" + i, UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path" + i, Path.parse(str))))
+        }
+      }
+    }
+
+    TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
+  }
+
+  def isPattern(inputs: Seq[Input]): Boolean = {
     inputs.forall {
       case PathInput(id, path) => true
-      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
+      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => true
       case TransformInput(id, ConstantTransformer(constant), Nil) => true
       case _ => false
     }
   }
 
-  private def buildPattern(inputs: Seq[Input]) = {
+  def build(inputs: Seq[Input]): String = {
     inputs.map {
       case PathInput(id, path) => "{" + path.serializeSimplified() + "}"
-      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }
+
 }

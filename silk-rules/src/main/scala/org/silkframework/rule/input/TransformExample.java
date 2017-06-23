@@ -8,9 +8,9 @@ import java.lang.annotation.*;
 @Documented
 public @interface TransformExample {
 
-    String[] parameters();
+    String[] parameters() default {};
 
-    String[] input1();
+    String[] input1() default {};
 
     String[] input2() default {};
 
