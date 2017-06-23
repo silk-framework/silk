@@ -33,6 +33,8 @@ trait ControllerUtilsTrait {
     (project, task)
   }
 
+  def getProject(projectName: String): Project = User().workspace.project(projectName)
+
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String): ProjectTask[T] = {
     val project = User().workspace.project(projectName)
     val task = project.task[T](taskName)
