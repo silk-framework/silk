@@ -9,6 +9,7 @@ import {
     MenuItem,
     Chip,
 } from 'ecc-gui-elements';
+import SuggestionView from './SuggestionView';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 
@@ -21,6 +22,28 @@ const SuggestionsView = React.createClass({
     propTypes: {
         targets: React.PropTypes.array,
 
+    },
+    expand(k, i, event) {
+        this.setState({
+            expanded: _.includes(this.state.expanded, k)
+                ? _.filter(this.state.expanded, (e) => k !== e)
+                : _.concat(this.state.expanded, [k])
+        });
+    },
+    changed(value, id, event) {
+        const i = `${value}-${id}`;
+        this.setState({
+            checked: _.includes(this.state.checked, i)
+                ? _.filter(this.state.checked, (v) => v !== i)
+                : _.concat(this.state.checked, [i])
+        })
+    },
+    isExpanded(key,i){
+
+        return _.includes(this.state.expanded, key)
+    },
+    isChecked(key,i){
+        return _.includes(this.state.checked,`${key}-${i}`)
     },
     componentDidMount() {
             this.setState({
@@ -61,15 +84,7 @@ const SuggestionsView = React.createClass({
             checked: [],
         };
     },
-    changed(value, id, event) {
-        const i = `${value}-${id}`;
-        this.setState({
-            checked: _.includes(this.state.checked, i)
-                ? _.filter(this.state.checked, (v) => v !== i)
-                : _.concat(this.state.checked, [i])
 
-        })
-    },
     // template rendering
     render () {
 
@@ -115,42 +130,18 @@ const SuggestionsView = React.createClass({
             </div>
 
         );
-        console.warn(this.state.checked);
+
         const suggestionsList = _.map(this.state.data, (value, key) => {
-            return _.map(value, (item, i) => {
-                const ix = `${key}-${i}`;
-                const action = i > 0 ? <div style={{width:'32px'}}>&nbsp;</div> : (
-                    <Button
-                        iconName={_.includes(this.state.expanded, key) ? 'expand_less' : 'expand_more'}
-                        onClick={()=> {
-                            this.setState({
-                                expanded: _.includes(this.state.expanded, key)
-                                    ? _.filter(this.state.expanded, (e)=> key!==e)
-                                    : _.concat(this.state.expanded, [key])
-                            })
-                        }}
-                    />
-                );
-                return i > 0 && !_.includes(this.state.expanded, key) ? false : <li
-                    className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
-                    <Checkbox
-                        onChange={this.changed.bind(null, key, i)}
-                        checked={_.includes(this.state.checked, ix)}
-                        className='ecc-silk-mapping__suggestitem-checkbox '
-                        ripple={true}/>
-                    <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable">
-                        <div className="ecc-silk-mapping__sug-ruleitem-headline">{key}</div>
-                        <div className="ecc-silk-mapping__sug-ruleitem-subline">{item.uri}</div>
-
-                        <div className="ecc-silk-mapping__sug-ruleitem-subline">Sample data</div>
-                        <div className="ecc-silk-mapping__sug-ruleitem-lastline">{item.confidence}</div>
-                        <div className="mdl-list__item-secondary-content" key="action">{action}</div>
-                    </div>
-                </li>
-            })}
-        );
-
-
+            return _.map(_.filter(value,(e,x)=> !(x===0&&this.isExpanded(e, x))), (item, i) => <SuggestionView
+                item={item}
+                i={i}
+                k={key}
+                check={this.changed}
+                expand={this.expand}
+                expanded={this.isExpanded(key, i)}
+                checked={this.isChecked(key, i)}
+            />
+        )});
 
         const actions = <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
             <div className="mdl-card__actions mdl-card--border">
