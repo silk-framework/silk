@@ -48,7 +48,6 @@ const ExampleView = React.createClass({
     },
     // template rendering
     render () {
-        console.warn(JSON.stringify(this.state.example, null, 2));
         if (_.isUndefined(this.state.example)) {
             return <Spinner/>;
         }

@@ -331,7 +331,7 @@ const MappingRuleOverview = React.createClass({
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
             ? <SuggestionsView
                 onClose={this.handleCloseSuggestions}
-                targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>','').toLowerCase())} />
+                targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>',''))} />
             : false;
 
         const rulesList = !createRuleForm && !suggestions ? <div className="ecc-silk-mapping__ruleslist">
