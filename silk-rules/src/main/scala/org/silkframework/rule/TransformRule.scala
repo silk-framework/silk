@@ -94,7 +94,10 @@ sealed trait TransformRule extends Operator {
   }
 }
 
-case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends TransformRule {
+// Trait of classes that can have child rules
+trait ContainerTransformationRule extends TransformRule
+
+case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends ContainerTransformationRule {
 
   /**
     * The children operators.
@@ -240,7 +243,7 @@ case class ObjectMapping(id: Identifier = "mapping",
                          sourcePath: Path = Path(Nil),
                          target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
                          override val rules: MappingRules,
-                         metaData: MetaData = MetaData.empty) extends TransformRule {
+                         metaData: MetaData = MetaData.empty) extends ContainerTransformationRule {
 
   override val typeString = "Object"
 
