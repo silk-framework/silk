@@ -43,7 +43,6 @@ const AutoComplete = React.createClass({
             <div>
                 <strong><Highlight textToHighlight={label} searchWord={this._inputValue}/></strong>
                 <small><Highlight textToHighlight={value} searchWord={this._inputValue}/></small>
-                <br/>
                 <small><Highlight textToHighlight={description} searchWord={this._inputValue}/></small>
             </div>
         );
