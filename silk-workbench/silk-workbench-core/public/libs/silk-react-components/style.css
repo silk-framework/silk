@@ -13391,16 +13391,21 @@ h6 {
   height: 100%;
   background-color: transparent; }
 
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__rulesviewer, .ecc-silk-mapping__ruleslist
+.ecc-silk-mapping__ruleseditor {
+  margin: -1rem 0; }
+
 .ecc-silk-mapping__rulesviewer .mdl-card__content,
 .ecc-silk-mapping__ruleseditor .mdl-card__content {
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
-  letter-spacing: 0; }
+  letter-spacing: 0;
+  margin: 0 1rem; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__rulesviewer, .ecc-silk-mapping__ruleslist
-.ecc-silk-mapping__ruleseditor {
-  margin: -1rem 0; }
+.ecc-silk-mapping__rulesviewer .mdl-alert__content,
+.ecc-silk-mapping__ruleseditor .mdl-alert__content {
+  padding: 0.5rem; }
 
 .ecc-silk-mapping__rulesviewer__title .mdl-card__title-text {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -13410,7 +13415,7 @@ h6 {
   letter-spacing: 0.04em; }
 
 .ecc-silk-mapping__rulesviewer__attribute {
-  margin-bottom: 1rem;
+  margin: 0.5rem 0 1rem 0;
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
@@ -13422,7 +13427,10 @@ h6 {
     font-size: 0.9em; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-label {
     font-size: 12px;
-    font-weight: 300; }
+    font-weight: 300;
+    display: list-item;
+    list-style-type: square;
+    list-style-position: inside; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-title {
     font-weight: 500; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-info {
