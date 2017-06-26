@@ -123,7 +123,7 @@ const MappingRuleOverviewHeader = React.createClass({
             content = (
                 <RuleObjectEdit
                     {...this.props.rule}
-                    parent={_.get(parent, 'id', '')}
+                    parentId={_.get(parent, 'id', '')}
                     parentName={_.get(parent, 'name', '')}
                     edit={false}
                 />
