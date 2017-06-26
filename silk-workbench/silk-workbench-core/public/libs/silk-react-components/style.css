@@ -12308,6 +12308,38 @@ button.mdl-chip {
  *
  * @author Michael Haschke
  */
+.mdl-menu {
+  /*
+    - MDL javascript injects clip rule for unknown reasons
+    - we remove it here because clip introduces a rendering bug in our app and
+      the attribute is deprecated in spec anyway
+    */
+  clip: auto !important; }
+
+.mdl-menu__item {
+  width: 100%;
+  box-sizing: border-box; }
+  .mdl-menu__item.has-contextblock {
+    padding-right: calc(1.5rem + 24px); }
+
+.mdl-menu__item-contextmenu {
+  display: block;
+  position: absolute;
+  height: 32px;
+  right: 16px;
+  top: 50%;
+  margin-top: -16px; }
+  .mdl-menu__item-contextmenu .material-icons {
+    vertical-align: middle; }
+
+.contextmenu-container {
+  position: relative; }
+
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ */
 .mdl-data-table th .material-icons {
   font-size: 16px; }
 
@@ -12457,36 +12489,19 @@ hr.mdl-layout-spacer {
   display: none; }
 
 /**
- * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ * Copyright 2017 eccenca GmbH. All Rights Reserved.
  *
  * @author Michael Haschke
  */
-.mdl-menu {
-  /*
-    - MDL javascript injects clip rule for unknown reasons
-    - we remove it here because clip introduces a rendering bug in our app and
-      the attribute is deprecated in spec anyway
-    */
-  clip: auto !important; }
-
-.mdl-menu__item {
-  width: 100%;
-  box-sizing: border-box; }
-  .mdl-menu__item.has-contextblock {
-    padding-right: calc(1.5rem + 24px); }
-
-.mdl-menu__item-contextmenu {
+.ecc-gui-elements__notavailable {
   display: block;
-  position: absolute;
-  height: 32px;
-  right: 16px;
-  top: 50%;
-  margin-top: -16px; }
-  .mdl-menu__item-contextmenu .material-icons {
-    vertical-align: middle; }
+  white-space: nowrap; }
 
-.contextmenu-container {
-  position: relative; }
+.ecc-gui-elements__notavailable-label {
+  opacity: 0.61; }
+
+.ecc-gui-elements__notavailable--inline {
+  display: inline; }
 
 .mdl-radio-group {
   margin-bottom: 1rem; }
@@ -12663,6 +12678,10 @@ hr.mdl-layout-spacer {
     .mdl-input__clearable-holder .mdl-button--icon:focus, .mdl-input__clearable-holder .mdl-button--icon:hover {
       opacity: 1;
       background-color: transparent; }
+
+textarea.mdl-textfield__input {
+  margin-top: 4px;
+  padding-top: 0; }
 
 .mdl-textfield__input[readonly] {
   cursor: normal;
