@@ -151,7 +151,7 @@ const RuleObjectView = React.createClass({
                         {entityRelation}
                         {
                             // TODO: show multiple (array)
-                            _.get(this.props, 'rules.typeRules[0].typeUri', undefined) ? (
+                            _.get(this.props, 'rules.typeRules[0].typeUri', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__targetEntityType"
                                 >
@@ -185,7 +185,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            (this.props.type === 'object') ? (
+                            (this.props.type === 'object' && _.get(this.props, 'sourcePath', false)) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__sourcePath"
                                 >
@@ -208,7 +208,7 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.get(this.props, 'rules.uriRule.pattern', '') ? (
+                            _.get(this.props, 'rules.uriRule.pattern', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__idpattern"
                                 >
@@ -228,7 +228,26 @@ const RuleObjectView = React.createClass({
                             ) : false
                         }
                         {
-                            _.has(this.props, 'metadata.description', false) ? (
+                            _.get(this.props, 'rules.uriRule.id', false) ? (
+                                <div
+                                    className="ecc-silk-mapping__rulesviewer__examples"
+                                >
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                            Examples of target data
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+
+                                            <ExampleView
+                                                id={this.props.rules.uriRule.id}
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                            ) : false
+                        }
+                        {
+                            _.get(this.props, 'metadata.description', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__comment"
                                 >
@@ -243,23 +262,6 @@ const RuleObjectView = React.createClass({
                                 </div>
                             ) : false
                         }
-                        { _.has(this.props, 'rules.uriRule.id')
-                            ? <div
-                            className="ecc-silk-mapping__rulesviewer__examples"
-                            >
-                            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                    Examples of target data
-                                </dt>
-                                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-
-                                    <ExampleView
-                                        id={this.props.rules.uriRule.id}
-                                    />
-                                </dd>
-                            </dl>
-                        </div>
-                        : false}
                     </div>
                     <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
                         <Button

@@ -179,6 +179,7 @@ const MappingRuleOverview = React.createClass({
         const discardView = this.state.askForDiscard !== false
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
