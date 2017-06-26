@@ -87,3 +87,55 @@ silkStore.subject('transform.task.rule.rules.append').subscribe(({data, replySub
 
 //TODO: Implement once needed
 silkStore.subject('transform.task.rule.rules.reorder').subscribe();
+
+silkStore.subject('transform.task.rule.completions.sourcePaths').subscribe(({data, replySubject}) => {
+
+        const {baseUrl, project, transformTask, ruleId, term, maxResults = 30} = data;
+
+        superagent
+            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/sourcePaths`)
+            .query({
+                term,
+                maxResults,
+            })
+            .accept('application/json')
+            .type('application/json')
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);
+silkStore.subject('transform.task.rule.completions.targetProperties').subscribe(({data, replySubject}) => {
+
+        const {baseUrl, project, transformTask, ruleId, term, maxResults = 30} = data;
+
+        superagent
+            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetProperties`)
+            .query({
+                term,
+                maxResults,
+            })
+            .accept('application/json')
+            .type('application/json')
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);
+silkStore.subject('transform.task.rule.completions.targetTypes').subscribe(({data, replySubject}) => {
+
+        const {baseUrl, project, transformTask, ruleId, term, maxResults = 30} = data;
+
+        superagent
+            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetTypes`)
+            .query({
+                term,
+                maxResults,
+            })
+            .accept('application/json')
+            .type('application/json')
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);

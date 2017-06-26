@@ -921,7 +921,7 @@ babel-register@^6.24.1:
     mkdirp "^0.5.1"
     source-map-support "^0.4.2"
 
-babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.20.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0:
+babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.20.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0:
   version "6.23.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/babel-runtime/-/babel-runtime-6.23.0.tgz#0a9489f144de70efb3ce4300accdb329e2fc543b"
   dependencies:
@@ -1898,19 +1898,13 @@ duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-ecc-gui-elements@^2.12.0:
-  version "2.12.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.12.0.tgz#49e0b0cccb29c18e925d8a68fb97f4db1d3c32ed"
+ecc-gui-elements@^2.14.0:
+  version "2.14.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.14.0.tgz#a2d798f61c5e76efc12817f906d201d15c95d947"
   dependencies:
     classnames "^2.2.5"
-    ecc-messagebus "^3.3.2"
-    emitter-component "^1.1.1"
-    hammerjs "^2.0.8"
-    keycharm "^0.2.0"
     lodash "^4.16.4"
     material-design-lite "^1.3.0"
-    moment "^2.17.1"
-    propagating-hammerjs "^1.4.6"
     react-mdl "^1.9.0"
     react-select "^1.0.0-rc.2"
     sassyjson "^1.1.8"
@@ -1989,7 +1983,7 @@ ecc-license-checker@^2.5.2:
     mkdirp "^0.5.1"
     spdx "^0.5.1"
 
-ecc-messagebus@^3.3.2, ecc-messagebus@^3.6.0:
+ecc-messagebus@^3.6.0:
   version "3.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-messagebus/-/ecc-messagebus-3.6.0.tgz#8cdb8c23c700a0f7c405fa1e6167e30843fdf7e7"
   dependencies:
@@ -2025,10 +2019,6 @@ elliptic@^6.0.0:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
-
-emitter-component@^1.1.1:
-  version "1.1.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/emitter-component/-/emitter-component-1.1.1.tgz#065e2dbed6959bf470679edabeaf7981d1003ab6"
 
 emojis-list@^2.0.0:
   version "2.1.0"
@@ -2922,10 +2912,6 @@ gulplog@^1.0.0:
   dependencies:
     glogg "^1.0.0"
 
-hammerjs@^2.0.6, hammerjs@^2.0.8:
-  version "2.0.8"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/hammerjs/-/hammerjs-2.0.8.tgz#04ef77862cff2bb79d30f7692095930222bf60f1"
-
 handlebars@^4.0.1:
   version "4.0.8"
   resolved "https://artifactory.eccenca.com/api/npm/npm/handlebars/-/handlebars-4.0.8.tgz#22b875cd3f0e6cbea30314f144e82bc7a72ff420"
@@ -2997,6 +2983,12 @@ hawk@~3.1.3:
 he@1.1.x:
   version "1.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/he/-/he-1.1.1.tgz#93410fd21b009735151f8868c2f271f3427e23fd"
+
+highlight-words-core@^1.0.2:
+  version "1.0.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/highlight-words-core/-/highlight-words-core-1.0.3.tgz#0886d0e757c8ca3928cbc873042bd544f8f6b2e5"
+  dependencies:
+    babel-runtime "^6.11.6"
 
 hmac-drbg@^1.0.0:
   version "1.0.1"
@@ -3552,10 +3544,6 @@ jsx-ast-utils@^1.3.4:
   version "1.4.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsx-ast-utils/-/jsx-ast-utils-1.4.1.tgz#3867213e8dd79bf1e8f2300c0cfc1efb182c0df1"
 
-keycharm@^0.2.0:
-  version "0.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/keycharm/-/keycharm-0.2.0.tgz#fa6ea2e43b90a68028843d27f2075d35a8c3e6f9"
-
 kind-of@^2.0.1:
   version "2.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/kind-of/-/kind-of-2.0.1.tgz#018ec7a4ce7e3a86cb9141be519d24c8faa981b5"
@@ -4023,10 +4011,6 @@ mocha@^3.3.0:
     lodash.create "3.1.1"
     mkdirp "0.5.1"
     supports-color "3.1.2"
-
-moment@^2.17.1:
-  version "2.18.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
 ms@0.7.2:
   version "0.7.2"
@@ -4777,17 +4761,11 @@ promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@^15.5.0, prop-types@^15.5.7, prop-types@~15.5.7:
+prop-types@^15.5.0, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@~15.5.7:
   version "15.5.8"
   resolved "https://artifactory.eccenca.com/api/npm/npm/prop-types/-/prop-types-15.5.8.tgz#6b7b2e141083be38c8595aa51fc55775c7199394"
   dependencies:
     fbjs "^0.8.9"
-
-propagating-hammerjs@^1.4.6:
-  version "1.4.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/propagating-hammerjs/-/propagating-hammerjs-1.4.6.tgz#fed00e9b00767ffd42d14f5b531bc493eb672e37"
-  dependencies:
-    hammerjs "^2.0.6"
 
 proxy-addr@~1.1.3:
   version "1.1.4"
@@ -4889,6 +4867,13 @@ react-dom@^15.5.4:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "~15.5.7"
+
+react-highlight-words@^0.8.0:
+  version "0.8.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-highlight-words/-/react-highlight-words-0.8.0.tgz#a83055378c1e5e46fe2061b663b0b37fde60bad6"
+  dependencies:
+    highlight-words-core "^1.0.2"
+    prop-types "^15.5.8"
 
 react-input-autosize@^1.1.0:
   version "1.1.3"
