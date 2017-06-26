@@ -12308,6 +12308,38 @@ button.mdl-chip {
  *
  * @author Michael Haschke
  */
+.mdl-menu {
+  /*
+    - MDL javascript injects clip rule for unknown reasons
+    - we remove it here because clip introduces a rendering bug in our app and
+      the attribute is deprecated in spec anyway
+    */
+  clip: auto !important; }
+
+.mdl-menu__item {
+  width: 100%;
+  box-sizing: border-box; }
+  .mdl-menu__item.has-contextblock {
+    padding-right: calc(1.5rem + 24px); }
+
+.mdl-menu__item-contextmenu {
+  display: block;
+  position: absolute;
+  height: 32px;
+  right: 16px;
+  top: 50%;
+  margin-top: -16px; }
+  .mdl-menu__item-contextmenu .material-icons {
+    vertical-align: middle; }
+
+.contextmenu-container {
+  position: relative; }
+
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ */
 .mdl-data-table th .material-icons {
   font-size: 16px; }
 
@@ -12457,36 +12489,19 @@ hr.mdl-layout-spacer {
   display: none; }
 
 /**
- * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ * Copyright 2017 eccenca GmbH. All Rights Reserved.
  *
  * @author Michael Haschke
  */
-.mdl-menu {
-  /*
-    - MDL javascript injects clip rule for unknown reasons
-    - we remove it here because clip introduces a rendering bug in our app and
-      the attribute is deprecated in spec anyway
-    */
-  clip: auto !important; }
-
-.mdl-menu__item {
-  width: 100%;
-  box-sizing: border-box; }
-  .mdl-menu__item.has-contextblock {
-    padding-right: calc(1.5rem + 24px); }
-
-.mdl-menu__item-contextmenu {
+.ecc-gui-elements__notavailable {
   display: block;
-  position: absolute;
-  height: 32px;
-  right: 16px;
-  top: 50%;
-  margin-top: -16px; }
-  .mdl-menu__item-contextmenu .material-icons {
-    vertical-align: middle; }
+  white-space: nowrap; }
 
-.contextmenu-container {
-  position: relative; }
+.ecc-gui-elements__notavailable-label {
+  opacity: 0.61; }
+
+.ecc-gui-elements__notavailable--inline {
+  display: inline; }
 
 .mdl-radio-group {
   margin-bottom: 1rem; }
@@ -12663,6 +12678,10 @@ hr.mdl-layout-spacer {
     .mdl-input__clearable-holder .mdl-button--icon:focus, .mdl-input__clearable-holder .mdl-button--icon:hover {
       opacity: 1;
       background-color: transparent; }
+
+textarea.mdl-textfield__input {
+  margin-top: 4px;
+  padding-top: 0; }
 
 .mdl-textfield__input[readonly] {
   cursor: normal;
@@ -13261,13 +13280,15 @@ h6 {
   letter-spacing: 0;
   max-width: 100%; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline,
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-headline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline,
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-subline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -13275,6 +13296,13 @@ h6 {
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__suggestitem-checkbox {
+  width: 20px;
+  display: flex;
+  flex-flow: column;
+  align-items: flex-end;
+  align-self: flex-start; }
 
 @media (min-width: 840px) {
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-content {
@@ -13290,6 +13318,16 @@ h6 {
     box-sizing: border-box;
     padding: 0.25em;
     max-width: 33%; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-headline,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-subline,
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-lastline {
+    font-size: 13px;
+    flex-grow: 1;
+    box-sizing: border-box;
+    padding: 0.25em;
+    width: 31%; }
+  .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__sug-ruleitem-lastline {
+    width: 7%; }
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .hide-in-table {
     display: none; }
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-reorderhandler .material-icons {
@@ -13391,16 +13429,21 @@ h6 {
   height: 100%;
   background-color: transparent; }
 
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__rulesviewer, .ecc-silk-mapping__ruleslist
+.ecc-silk-mapping__ruleseditor {
+  margin: -1rem 0; }
+
 .ecc-silk-mapping__rulesviewer .mdl-card__content,
 .ecc-silk-mapping__ruleseditor .mdl-card__content {
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
-  letter-spacing: 0; }
+  letter-spacing: 0;
+  margin: 0 1rem; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__rulesviewer, .ecc-silk-mapping__ruleslist
-.ecc-silk-mapping__ruleseditor {
-  margin: -1rem 0; }
+.ecc-silk-mapping__rulesviewer .mdl-alert__content,
+.ecc-silk-mapping__ruleseditor .mdl-alert__content {
+  padding: 0.5rem; }
 
 .ecc-silk-mapping__rulesviewer__title .mdl-card__title-text {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -13410,7 +13453,7 @@ h6 {
   letter-spacing: 0.04em; }
 
 .ecc-silk-mapping__rulesviewer__attribute {
-  margin-bottom: 1rem;
+  margin: 0.5rem 0 1rem 0;
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
@@ -13422,7 +13465,10 @@ h6 {
     font-size: 0.9em; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-label {
     font-size: 12px;
-    font-weight: 300; }
+    font-weight: 300;
+    display: list-item;
+    list-style-type: square;
+    list-style-position: inside; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-title {
     font-weight: 500; }
   .ecc-silk-mapping__rulesviewer__attribute .ecc-silk-mapping__rulesviewer__attribute-info {

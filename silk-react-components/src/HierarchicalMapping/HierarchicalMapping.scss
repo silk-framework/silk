@@ -258,18 +258,29 @@
         max-width: 100%;
     }
 
-    .ecc-silk-mapping__ruleitem-headline {
+    .ecc-silk-mapping__ruleitem-headline,
+    .ecc-silk-mapping__sug-ruleitem-headline{
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: 500;
     }
 
-    .ecc-silk-mapping__ruleitem-subline {
+    .ecc-silk-mapping__ruleitem-subline,
+    .ecc-silk-mapping__sug-ruleitem-subline{
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         @include typo-caption();
+    }
+
+
+    .ecc-silk-mapping__suggestitem-checkbox {
+        width:20px;
+        display: flex;
+        flex-flow: column;
+        align-items: flex-end;
+        align-self: flex-start;
     }
 
     .ecc-silk-mapping__ruleitem--summary {
@@ -291,7 +302,18 @@
                 padding: 0.25em;
                 max-width: 33%;
             }
-
+            .ecc-silk-mapping__sug-ruleitem-headline,
+            .ecc-silk-mapping__sug-ruleitem-subline,
+            .ecc-silk-mapping__sug-ruleitem-lastline {
+                font-size: $data-table-font-size;
+                flex-grow: 1;
+                box-sizing: border-box;
+                padding: 0.25em;
+                width: 31%;
+            }
+            .ecc-silk-mapping__sug-ruleitem-lastline {
+                width: 7%;
+            }
             .hide-in-table {
                 display: none;
             }
@@ -428,15 +450,17 @@
 .ecc-silk-mapping__rulesviewer,
 .ecc-silk-mapping__ruleseditor {
 
-    .mdl-card__content {
-        //max-width: 50em;
-        @include typo-body-1();
-        //position: relative;
-        //left: 16px;
-    }
-
     .ecc-silk-mapping__ruleslist & {
         margin: -1rem 0;
+    }
+
+    .mdl-card__content {
+        @include typo-body-1();
+        margin: 0 1rem;
+    }
+
+    .mdl-alert__content {
+        padding: 0.5rem;
     }
 }
 
@@ -449,7 +473,7 @@
 
 .ecc-silk-mapping__rulesviewer__attribute {
 
-    margin-bottom: 1rem;
+    margin: 0.5rem 0 1rem 0;
     @include typo-body-1();
 
     dt, dd {
@@ -464,6 +488,9 @@
     .ecc-silk-mapping__rulesviewer__attribute-label {
         font-size: $input-text-floating-label-fontsize;
         font-weight: 300;
+        display: list-item;
+        list-style-type: square;
+        list-style-position: inside;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-title {

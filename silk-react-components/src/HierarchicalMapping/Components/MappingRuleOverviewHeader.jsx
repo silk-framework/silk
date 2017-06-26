@@ -78,10 +78,11 @@ const MappingRuleOverviewHeader = React.createClass({
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -89,7 +90,9 @@ const MappingRuleOverviewHeader = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>When you click CONTINUE, all unsaved changes of the current form will be lost.</p>
+                <p>
+                    You currently have unsaved changes.
+                </p>
             </ConfirmationDialog>
             : false;
 
@@ -110,7 +113,7 @@ const MappingRuleOverviewHeader = React.createClass({
             backButton = (
                 <Button
                     iconName={'chevron_left'}
-                    tooltip='Navigate back to parrent'
+                    tooltip='Navigate back to parent'
                     onClick={this.handleNavigate.bind(null, parent.id)}
                 />
             )
@@ -122,7 +125,7 @@ const MappingRuleOverviewHeader = React.createClass({
             content = (
                 <RuleObjectEdit
                     {...this.props.rule}
-                    parent={_.get(parent, 'id', '')}
+                    parentId={_.get(parent, 'id', '')}
                     parentName={_.get(parent, 'name', '')}
                     edit={false}
                 />
