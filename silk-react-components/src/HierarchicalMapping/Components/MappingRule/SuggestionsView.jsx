@@ -30,8 +30,8 @@ const SuggestionsView = React.createClass({
                 : _.concat(this.state.expanded, [k])
         });
     },
-    changed(value, id, event) {
-        const i = `${value}-${id}`;
+    check(value, id, event) {
+        const i = `${value};${id}`;
         this.setState({
             checked: _.includes(this.state.checked, i)
                 ? _.filter(this.state.checked, (v) => v !== i)
@@ -43,12 +43,13 @@ const SuggestionsView = React.createClass({
         return _.includes(this.state.expanded, key)
     },
     isChecked(key,i){
-        return _.includes(this.state.checked,`${key}-${i}`)
+        return _.includes(this.state.checked,`${key};${i}`)
     },
     componentDidMount() {
             this.setState({
                 loading: true,
             });
+            // FIXME: the transformation information should be available. Move these call to HierarchicalMapping?
             hierarchicalMappingChannel.request({
                 topic: 'transform.get',
             }).subscribe(
@@ -56,7 +57,10 @@ const SuggestionsView = React.createClass({
                     hierarchicalMappingChannel.request(
                         {
                             topic: 'rule.suggestions',
-                            data: {targets: this.props.targets, dataset: transform.example.selection.inputId}
+                            data: {
+                                targets: this.props.targets,
+                                dataset: transform.example.selection.inputId
+                            }
                         }).subscribe(
                         (response) => {
                             this.setState({
@@ -68,7 +72,6 @@ const SuggestionsView = React.createClass({
                             console.warn('err MappingRuleOverview: rule.suggestions');
                             this.setState({loading: false});
                         },
-                        () => {this.setState({loading: false})}
                     );
                 },
                 (err) => {
@@ -77,6 +80,47 @@ const SuggestionsView = React.createClass({
                 }
             )
     },
+    handleAddSuggestions(event) {
+        event.stopPropagation();
+        let remaining = this.state.checked.length;
+        this.setState({
+            loading: true,
+        })
+        _.map(this.state.checked, (suggestion) => {
+            const a = _.split(suggestion, ';');
+            const suggestionForAdding = this.state.data[a[0]][a[1]];
+            suggestionForAdding.targetClassUri = a[0];
+            hierarchicalMappingChannel.request({
+                topic: 'rule.createValueMapping',
+                data: {
+                    id: undefined,
+                    parentId: this.props.id,
+                    type: 'direct',
+                    comment: '',
+                    targetProperty: suggestionForAdding.targetClassUri,
+                    propertyType: '',
+                    sourceProperty: suggestionForAdding.uri,
+                }
+            }).subscribe(
+                () => {
+                    remaining--;
+                    if (remaining === 0){
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        this.setState({loading: false});
+                        this.props.onClose(event);
+                    }
+
+                }, (err) => {
+                    this.setState({
+                        error: err,
+                        loading: false,
+                    });
+                });
+
+
+        });
+
+    },
     getInitialState() {
         return {
             data: undefined,
@@ -84,10 +128,27 @@ const SuggestionsView = React.createClass({
             checked: [],
         };
     },
+    checkAll(event) {
+        let checked = [];
+        event.stopPropagation();
+        _.map(this.state.data, (value, key) => {
+            _.map(value, (e,i) => {
+                if (i===0 || this.isExpanded(key, i)) {
+                    checked.push(`${key};${i}`)
+                }
 
+            })
+        })
+        this.setState({checked});
+    },
+    checkNone(event) {
+        event.stopPropagation();
+        this.setState({
+            checked: false,
+        });
+    },
     // template rendering
     render () {
-
         const suggestionsHeader = (
             <div className="mdl-card__title mdl-card--border">
                 <div className="mdl-card__title-text">
@@ -98,33 +159,32 @@ const SuggestionsView = React.createClass({
                 >
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-add-value"
-
+                        onClick={this.checkAll}
                     >
                         Select all
                     </MenuItem>
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-add-object"
-
+                        onClick={this.checkNone}
                     >
                         Select none
                     </MenuItem>
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-
                     >
-                        Select entity prop.
+                        Select entity prop. (TODO)
                     </MenuItem>
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-expand"
 
                     >
-                        Select source matches
+                        Select source matches (TODO)
                     </MenuItem>
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-reduce"
 
                     >
-                        Hide unselected
+                        Hide unselected (TODO)
                     </MenuItem>
                 </ContextMenu>
             </div>
@@ -136,7 +196,7 @@ const SuggestionsView = React.createClass({
                 item={item}
                 i={i}
                 k={key}
-                check={this.changed}
+                check={this.check}
                 expand={this.expand}
                 expanded={this.isExpanded(key, i)}
                 checked={this.isChecked(key, i)}
@@ -145,18 +205,17 @@ const SuggestionsView = React.createClass({
 
         const actions = <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
             <div className="mdl-card__actions mdl-card--border">
-                <Button accent onClick={this.props.onClose} >Save</Button>
+                <Button accent onClick={this.handleAddSuggestions} >Add</Button>
                 <Button onClick={this.props.onClose} >Close</Button>
             </div>
         </div>
 
-        if (_.isUndefined(this.state.data)) {
+        if (this.state.loading) {
             return <Spinner/>;
         }
         else {
             return <div className="ecc-silk-mapping__ruleslist mdl-card mdl-card--stretch mdl-shadow--2dp">
                 {suggestionsHeader}
-                {actions}
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
                     <ol className="mdl-list">
                         {suggestionsList}

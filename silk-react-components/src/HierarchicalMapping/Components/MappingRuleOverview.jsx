@@ -61,6 +61,7 @@ const MappingRuleOverview = React.createClass({
             });
         }
     },
+
     // initilize state
     getInitialState() {
         return {
@@ -85,11 +86,18 @@ const MappingRuleOverview = React.createClass({
             editing: [],
         });
     },
-    handleToggleSuggestions(event) {
+    handleShowSuggestions(event) {
         event.stopPropagation();
-        this.setState({
-            showSuggestions: true,
-        })
+        if (this.state.editing.length === 0) {
+            this.setState({
+                showSuggestions: true,
+            })
+        }
+        else {
+            this.setState({askForDiscard: {
+                suggestions: true,
+            }})
+        }
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -127,17 +135,25 @@ const MappingRuleOverview = React.createClass({
     handleDiscardChanges(event){
         event.stopPropagation();
         const type = _.get(this.state.askForDiscard, 'type', false);
+        const suggestions = _.get(this.state.askForDiscard, 'suggestions', false);
+        const expanded = _.get(this.state.askForDiscard, 'expanded', false);
+
         if (type) {
             hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
         }
+        else if (suggestions) {
+            this.setState({
+                showSuggestions: true,
+            })
+        }
         else{
-            const expanded = this.state.askForDiscard.expanded;
             hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
         }
         hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         this.setState({
             askForDiscard: false,
-        })
+        });
+
     },
     handleCancelDiscard(event) {
         event.stopPropagation();
@@ -271,7 +287,7 @@ const MappingRuleOverview = React.createClass({
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-                            onClick={this.handleToggleSuggestions}
+                            onClick={this.handleShowSuggestions}
                         >
                             Suggest mappings
                         </MenuItem>
@@ -330,6 +346,7 @@ const MappingRuleOverview = React.createClass({
 
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
             ? <SuggestionsView
+                id={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
                 targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>',''))} />
             : false;
