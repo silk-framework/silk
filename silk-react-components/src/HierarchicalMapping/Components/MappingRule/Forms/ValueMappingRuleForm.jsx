@@ -149,7 +149,9 @@ const ValueMappingRuleForm = React.createClass({
             error,
         } = this.state;
 
-        const loading = this.state.loading ? <Spinner/> : false;
+        if(this.state.loading){
+            return <Spinner />;
+        }
 
         const errorMessage = error ? <FormSaveError error={error}/> : false;
 
@@ -199,7 +201,6 @@ const ValueMappingRuleForm = React.createClass({
                     (!id ? ' mdl-shadow--2dp' : '')
                 }>
                     {title}
-                    {loading}
                     <div className="mdl-card__content">
                         {errorMessage}
                         <AutoComplete

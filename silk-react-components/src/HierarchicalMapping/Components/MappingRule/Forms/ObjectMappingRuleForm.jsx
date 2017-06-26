@@ -162,7 +162,11 @@ const ObjectMappingRuleForm = React.createClass({
         } = this.state;
 
         const type = this.state.type;
-        const loading = this.state.loading ? <Spinner/> : false;
+
+        if(this.state.loading){
+            return <Spinner />;
+        }
+
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
@@ -260,7 +264,6 @@ const ObjectMappingRuleForm = React.createClass({
                             (!id ? ' mdl-shadow--2dp' : '')
                         }>
                             {title}
-                            {loading}
                             <div className="mdl-card__content">
                                 {errorMessage}
                                 {targetPropertyInput}
