@@ -221,7 +221,7 @@ const ObjectMappingRuleForm = React.createClass({
             );
 
             sourcePropertyInput = (<TextField
-                label={'Source path'}
+                label={'Value path'}
                 onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
                 value={this.state.sourceProperty}
             />);
