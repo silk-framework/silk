@@ -191,7 +191,7 @@ const RuleObjectView = React.createClass({
                                 >
                                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Source path
+                                            Value path
                                         </dt>
                                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                             <SourcePath

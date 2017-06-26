@@ -20,7 +20,6 @@ const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
     },
@@ -163,7 +162,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         const type = this.state.type;
 
-        if(this.state.loading){
+        if (this.state.loading) {
             return <Spinner />;
         }
 
@@ -207,32 +206,34 @@ const ObjectMappingRuleForm = React.createClass({
             entityRelationInput = (
                 <RadioGroup
                     onChange={this.handleChangeRadio.bind(null, 'entityConnection')}
-                    value={!_.isEmpty(this.state.entityConnection)?this.state.entityConnection:'from'}
+                    value={!_.isEmpty(this.state.entityConnection) ? this.state.entityConnection : 'from'}
                     name=""
                     disabled={false}
                 >
                     <Radio
                         value="from"
                         label={<div>Connect from {<ThingName id={this.props.parentName}
-                                                              prefixString="parent element "/>}</div>}
+                                                             prefixString="parent element "/>}</div>}
                     />
                     <Radio
                         value="to"
                         label={<div>Connect to {<ThingName id={this.props.parentName}
-                                                            prefixString="parent element "/>}</div>}
+                                                           prefixString="parent element "/>}</div>}
                     />
                 </RadioGroup>
             );
 
-            sourcePropertyInput = (<AutoComplete
-                placeholder={'Value path'}
-                className="ecc-silk-mapping__ruleseditor__sourcePath"
-                entity='sourcePath'
-                creatable={true}
-                value={this.state.sourceProperty}
-                ruleId={this.props.parentId}
-                onChange={this.handleChangeSelectBox.bind(null, 'sourceProperty')}
-            />);
+            sourcePropertyInput = (
+                <AutoComplete
+                    placeholder={'Value path'}
+                    className="ecc-silk-mapping__ruleseditor__sourcePath"
+                    entity='sourcePath'
+                    creatable={true}
+                    value={this.state.sourceProperty}
+                    ruleId={this.props.parentId}
+                    onChange={this.handleChangeSelectBox.bind(null, 'sourceProperty')}
+                />
+            );
 
         }
 
@@ -250,8 +251,6 @@ const ObjectMappingRuleForm = React.createClass({
                 )
             );
         }
-
-        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
 
         return (
             (

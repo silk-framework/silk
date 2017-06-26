@@ -7,7 +7,6 @@ const silkStore = rxmq.channel('silk.api');
 
 
 //TODO: Implement those once needed
-silkStore.subject('transform.task.get').subscribe();
 silkStore.subject('transform.task.put').subscribe();
 silkStore.subject('transform.task.delete').subscribe();
 
@@ -24,11 +23,46 @@ silkStore.subject('transform.task.rules.get')
 
         }
     );
+
 //TODO: Implement once needed
 silkStore.subject('transform.task.rules.put').subscribe();
 
 //TODO: Implement once needed
 silkStore.subject('transform.task.rule.get').subscribe();
+
+silkStore.subject('transform.task.rule.suggestions').subscribe(({data, replySubject}) => {
+    const {dataset, targets, baseUrl, project, transformTask } = data;
+
+    const json = {
+        sourceDatasetName: dataset,
+        projectName: project,
+        transformTaskName: transformTask,
+        targetClassUri: targets[0],
+        datasetUriPrefix: '',
+        nrCandidates: 1,
+    };
+
+    superagent
+            .post(`${baseUrl}/ontologyMatching/matchVocabularyClassDataset`)
+            .accept('application/json')
+            .send(json)
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);
+
+silkStore.subject('transform.task.get').subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask } = data;
+
+        superagent
+            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}`)
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject).connect();
+    }
+);
+
 silkStore.subject('transform.task.rule.put').subscribe(({data, replySubject}) => {
 
         const {baseUrl, project, transformTask, ruleId, payload} = data;

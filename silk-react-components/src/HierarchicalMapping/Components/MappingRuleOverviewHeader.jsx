@@ -82,7 +82,7 @@ const MappingRuleOverviewHeader = React.createClass({
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -90,7 +90,9 @@ const MappingRuleOverviewHeader = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>When you click CONTINUE, all unsaved changes of the current form will be lost.</p>
+                <p>
+                    You currently have unsaved changes.
+                </p>
             </ConfirmationDialog>
             : false;
 

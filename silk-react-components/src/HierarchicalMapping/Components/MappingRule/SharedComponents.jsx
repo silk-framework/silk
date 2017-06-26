@@ -39,7 +39,7 @@ export const RuleTypes = ({rule}) => {
 };
 
 export const SourcePath = ({rule}) => {
-    const path = _.get(rule, 'sourcePath', '(No source path)');
+    const path = _.get(rule, 'sourcePath', '(No value path)');
 
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 

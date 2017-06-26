@@ -17,7 +17,6 @@ const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
     },
@@ -155,7 +154,6 @@ const ValueMappingRuleForm = React.createClass({
 
         const errorMessage = error ? <FormSaveError error={error}/> : false;
 
-        // FIXME: also check if data really has changed before allow saving
         const allowConfirm = this.state.targetProperty;
 
         const title = (

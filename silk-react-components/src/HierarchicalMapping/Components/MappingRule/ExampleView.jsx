@@ -48,7 +48,6 @@ const ExampleView = React.createClass({
     },
     // template rendering
     render () {
-        //console.warn(JSON.stringify(this.state.example, null, 2));
         if (_.isUndefined(this.state.example)) {
             return <Spinner/>;
         }
@@ -63,8 +62,8 @@ const ExampleView = React.createClass({
                 >
                     <thead>
                         <tr>
-                            <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Source path</th>
-                            <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Source value</th>
+                            <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Value path</th>
+                            <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Value</th>
                             <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
                         </tr>
                     </thead>

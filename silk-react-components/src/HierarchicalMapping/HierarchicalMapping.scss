@@ -258,18 +258,29 @@
         max-width: 100%;
     }
 
-    .ecc-silk-mapping__ruleitem-headline {
+    .ecc-silk-mapping__ruleitem-headline,
+    .ecc-silk-mapping__sug-ruleitem-headline{
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: 500;
     }
 
-    .ecc-silk-mapping__ruleitem-subline {
+    .ecc-silk-mapping__ruleitem-subline,
+    .ecc-silk-mapping__sug-ruleitem-subline{
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         @include typo-caption();
+    }
+
+
+    .ecc-silk-mapping__suggestitem-checkbox {
+        width:20px;
+        display: flex;
+        flex-flow: column;
+        align-items: flex-end;
+        align-self: flex-start;
     }
 
     .ecc-silk-mapping__ruleitem--summary {
@@ -291,7 +302,18 @@
                 padding: 0.25em;
                 max-width: 33%;
             }
-
+            .ecc-silk-mapping__sug-ruleitem-headline,
+            .ecc-silk-mapping__sug-ruleitem-subline,
+            .ecc-silk-mapping__sug-ruleitem-lastline {
+                font-size: $data-table-font-size;
+                flex-grow: 1;
+                box-sizing: border-box;
+                padding: 0.25em;
+                width: 31%;
+            }
+            .ecc-silk-mapping__sug-ruleitem-lastline {
+                width: 7%;
+            }
             .hide-in-table {
                 display: none;
             }

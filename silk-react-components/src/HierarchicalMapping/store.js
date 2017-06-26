@@ -122,6 +122,29 @@ if (!__DEBUG__) {
 
     const rootId = 'root';
 
+    hierarchicalMappingChannel.subject('transform.get').subscribe(
+        ({data, replySubject}) => {
+
+            silkStore
+                .request({topic: 'transform.task.get', data: apiDetails}).map((returned) => {
+                return {
+                    example: returned.body
+                };
+            }).multicast(replySubject).connect();
+        }
+    );
+
+    hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
+        ({data, replySubject}) => {
+            silkStore
+                .request({topic: 'transform.task.rule.suggestions', data: {...apiDetails, ...data}}).map((returned) => {
+                return {
+                    example: returned.body
+                };
+            }).multicast(replySubject).connect();
+        }
+    );
+
     hierarchicalMappingChannel.subject('rule.example').subscribe(
         ({data, replySubject}) => {
 
@@ -324,6 +347,68 @@ if (!__DEBUG__) {
         mockStore = _.cloneDeep(rawMockStore);
     }
 
+    hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
+        ({data, replySubject}) => {
+            let suggestions = {};
+            _.forEach(data.targets, (t) => {
+                suggestions[t] = [];
+                _.forEach(new Array(78), (a, i) => {
+                    suggestions[t].push({
+                        "uri": "http://eccenca.com/ds/loans/field_" + i,
+                        "confidence": Math.floor((i === 0
+                                    ? 1 - 0.1 * Math.random()
+                                    : 0.5 + 0.5 * Math.random()
+                            ) * 100) / 100
+                    });
+                });
+
+
+            });
+            replySubject.onNext(suggestions);
+            replySubject.onCompleted();
+        }
+    );
+
+    hierarchicalMappingChannel.subject('transform.get').subscribe(
+        ({data, replySubject}) => {
+            const transform = {
+                example: {
+                    "id": "test2",
+                    "selection": {"inputId": "customers", "typeUri": "1495455156290_customers.csv", "restriction": ""},
+                    "root": {
+                        "type": "root",
+                        "id": "root",
+                        "rules": {
+                            "uriRule": null,
+                            "typeRules": [{
+                                "type": "type",
+                                "id": "type9",
+                                "typeUri": "<http://schema.org/Address>",
+                                "metadata": {"label": "", "description": ""}
+                            }],
+                            "propertyRules": [{
+                                "type": "direct",
+                                "id": "direct",
+                                "sourcePath": "/city",
+                                "mappingTarget": {
+                                    "uri": "<http://schema.org/address>",
+                                    "valueType": {"nodeType": "AutoDetectValueType"},
+                                    "isBackwardProperty": false
+                                },
+                                "metadata": {"label": "", "description": ""}
+                            }]
+                        },
+                        "metadata": {"label": "", "description": ""}
+                    },
+                    "outputs": [],
+                    "targetVocabularies": ["http://schema.org"]
+                }
+            };
+            replySubject.onNext(transform);
+            replySubject.onCompleted();
+        }
+    );
+
     hierarchicalMappingChannel.subject('autocomplete').subscribe(({data, replySubject}) => {
 
         const {entity, input} = data;
@@ -369,7 +454,7 @@ if (!__DEBUG__) {
         }
 
         replySubject.onNext({options: _.filter(result, ({value, label}) => _.includes(`${value}|${label}`, input))});
-        
+
         replySubject.onCompleted();
 
     });
@@ -388,7 +473,6 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.example').subscribe(
         ({data, replySubject}) => {
-            ///transform/tasks/{project}/{transformationTask}/peak/{rule}
             //const {id} = data;
             const example = {
                 "sourcePaths": [["/name"], ["/birthdate"]],
@@ -403,7 +487,7 @@ if (!__DEBUG__) {
                     "transformedValues": ["rosalyn wisozk5/8/1982"]
                 }],
                 "status": {"id": "success", "msg": ""}
-            }
+            };
             replySubject.onNext({example});
             replySubject.onCompleted();
         }
