@@ -15,6 +15,9 @@ import ValueType.XSD
   */
 sealed trait ValueType {
 
+  /** The unique ID of this value type. This will be used for serialization and deserialization */
+  def id: String
+
   /**
     * A human-readable label for this type.
     */
@@ -29,6 +32,8 @@ sealed trait ValueType {
 
 object ValueType {
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
+  final val CUSTOM_VALUE_TYPE = "CustomValueType"
+  final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
 
   implicit object ValueTypeFormat extends XmlFormat[ValueType] {
     /**
@@ -89,7 +94,7 @@ object ValueType {
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
     nodeType match {
-      case "CustomValueType" =>
+      case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {
           case Some(typeUri) =>
             val uri = Uri.parse(typeUri.text.trim, prefixes)
@@ -97,7 +102,7 @@ object ValueType {
           case None =>
             throw new IllegalArgumentException("Uri element not existing in node")
         }
-      case "LanguageValueType" =>
+      case LANGUAGE_VALUE_TYPE =>
         (value \ "@lang").headOption match {
           case Some(lang) =>
             LanguageValueType(lang.text.trim)
@@ -108,9 +113,9 @@ object ValueType {
   }
 
   /** All [[ValueType]] classes/singletons */
-  val allValueType = Seq[Either[Class[_], ValueType]](
-    Left(classOf[CustomValueType]),
-    Left(classOf[LanguageValueType]),
+  val allValueType: Seq[Either[(String, Class[_]), ValueType]] = Seq(
+    Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])),
+    Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
     Right(IntValueType),
     Right(LongValueType),
     Right(StringValueType),
@@ -124,8 +129,8 @@ object ValueType {
   )
 
   val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
-    case l@Left(clazz) => (clazz.getSimpleName.stripSuffix("$"), l)
-    case r@Right(obj) => (obj.getClass.getSimpleName.stripSuffix("$"), r)
+    case Left((id, clazz)) => (id, Left(clazz))
+    case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
   val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map { case (id, classOrObj) =>
@@ -134,6 +139,12 @@ object ValueType {
       case Right(obj) => (obj.getClass, id)
     }
   }.toMap
+}
+
+object Test {
+  def main(args: Array[String]): Unit = {
+    println(ValueType.valueTypeMapByStringId.keys.toSeq.sorted.mkString("\n"))
+  }
 }
 
 /**
@@ -149,6 +160,8 @@ case object AutoDetectValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
+
+  override def id: String = "AutoDetectValueType"
 }
 
 /** A custom type that is used for all types not covered by any other types. */
@@ -161,6 +174,8 @@ case class CustomValueType(typeUri: String) extends ValueType {
   }
 
   override def uri: Option[String] = Some(typeUri)
+
+  override def id: String = ValueType.CUSTOM_VALUE_TYPE
 }
 
 /** Represents language tagged strings. */
@@ -171,6 +186,8 @@ case class LanguageValueType(language: String) extends ValueType {
   override def validate(lexicalString: String): Boolean = true // No validation needed
 
   override def uri: Option[String] = None // These are always strings
+
+  override def id: String = ValueType.LANGUAGE_VALUE_TYPE
 }
 
 case object IntValueType extends ValueType with Serializable {
@@ -183,6 +200,8 @@ case object IntValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "int")
+
+  override def id: String = "IntValueType"
 }
 
 case object LongValueType extends ValueType with Serializable {
@@ -195,6 +214,8 @@ case object LongValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "long")
+
+  override def id: String = "LongValueType"
 }
 
 case object StringValueType extends ValueType with Serializable {
@@ -206,6 +227,8 @@ case object StringValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "string") // In RDF this can be omitted
+
+  override def id: String = "StringValueType"
 }
 
 case object FloatValueType extends ValueType with Serializable {
@@ -218,6 +241,8 @@ case object FloatValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "float")
+
+  override def id: String = "FloatValueType"
 }
 
 case object DoubleValueType extends ValueType with Serializable {
@@ -230,6 +255,8 @@ case object DoubleValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "double")
+
+  override def id: String = "DoubleValueType"
 }
 
 case object BooleanValueType extends ValueType with Serializable {
@@ -242,6 +269,8 @@ case object BooleanValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "boolean")
+
+  override def id: String = "BooleanValueType"
 }
 
 case object IntegerValueType extends ValueType with Serializable {
@@ -256,6 +285,8 @@ case object IntegerValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = Some(XSD + "integer")
+
+  override def id: String = "IntegerValueType"
 }
 
 case object UriValueType extends ValueType with Serializable {
@@ -268,6 +299,8 @@ case object UriValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
+
+  override def id: String = "UriValueType"
 }
 
 case object BlankNodeValueType extends ValueType with Serializable {
@@ -278,4 +311,6 @@ case object BlankNodeValueType extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
+
+  override def id: String = "BlankNodeValueType"
 }
