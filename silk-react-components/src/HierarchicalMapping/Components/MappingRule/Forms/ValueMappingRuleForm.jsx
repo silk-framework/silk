@@ -11,6 +11,7 @@ import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers';
 import _ from 'lodash';
 import FormSaveError from './FormSaveError';
+import AutoComplete from './AutoComplete';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -148,7 +149,9 @@ const ValueMappingRuleForm = React.createClass({
             error,
         } = this.state;
 
-        const loading = this.state.loading ? <Spinner/> : false;
+        if(this.state.loading){
+            return <Spinner />;
+        }
 
         const errorMessage = error ? <FormSaveError error={error}/> : false;
 
@@ -168,10 +171,14 @@ const ValueMappingRuleForm = React.createClass({
 
         if (type === 'direct') {
             sourcePropertyInput = (
-                <TextField
-                    label={'Value path'}
-                    onChange={this.handleChangeTextfield.bind(null, 'sourceProperty')}
+                <AutoComplete
+                    placeholder={'Value path'}
+                    className="ecc-silk-mapping__ruleseditor__sourcePath"
+                    entity='sourcePath'
+                    creatable={true}
                     value={this.state.sourceProperty}
+                    ruleId={this.props.parentId}
+                    onChange={this.handleChangeSelectBox.bind(null, 'sourceProperty')}
                 />
             );
         } else if (type === 'complex') {
@@ -194,19 +201,15 @@ const ValueMappingRuleForm = React.createClass({
                     (!id ? ' mdl-shadow--2dp' : '')
                 }>
                     {title}
-                    {loading}
                     <div className="mdl-card__content">
                         {errorMessage}
-                        <SelectBox
+                        <AutoComplete
                             placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
-                            options={[
-                                'http://xmlns.com/foaf/0.1/name',
-                                'http://xmlns.com/foaf/0.1/knows',
-                                'http://xmlns.com/foaf/0.1/familyName',
-                            ]}
+                            entity='targetProperty'
                             creatable={true}
                             value={this.state.targetProperty}
+                            ruleId={this.props.parentId}
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
                         <SelectBox

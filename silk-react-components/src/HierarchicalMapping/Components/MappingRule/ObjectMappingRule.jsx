@@ -28,7 +28,7 @@ const RuleObjectView = React.createClass({
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
-        parent: React.PropTypes.string.isRequired,
+        parentId: React.PropTypes.string.isRequired,
         parentName: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
@@ -130,7 +130,7 @@ const RuleObjectView = React.createClass({
                                 id: this.props.id,
                                 uri: this.props.mappingTarget.uri,
                                 type: this.props.type,
-                                parent: this.props.parent
+                                parent: this.props.parentId
                             }
                         )
                     }

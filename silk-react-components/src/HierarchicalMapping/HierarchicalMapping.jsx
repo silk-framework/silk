@@ -208,7 +208,7 @@ const HierarchicalMapping = React.createClass({
             ? <ConfirmationDialog
                 active={true}
                 modal={true}
-                title="Discard changes"
+                title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
                         Continue

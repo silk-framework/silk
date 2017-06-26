@@ -300,7 +300,7 @@ const MappingRuleOverview = React.createClass({
                                 (
                                     <MappingRule
                                         pos={idx}
-                                        parent={this.props.currentRuleId}
+                                        parentId={this.props.currentRuleId}
                                         count={childRules.length}
                                         key={`MappingRule_${rule.id}`}
                                         {...rule}
