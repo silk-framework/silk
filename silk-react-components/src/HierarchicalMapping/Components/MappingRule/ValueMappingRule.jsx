@@ -245,7 +245,7 @@ const RuleValueView = React.createClass({
                                         parent: this.props.parentId
                                     }
                                 )}
-                                disabled={false} // FIXME: all elements are removable?
+                                disabled={false}
                             >
                                 Remove
                             </DisruptiveButton>

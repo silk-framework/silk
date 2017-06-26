@@ -19,7 +19,6 @@ const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
     },
@@ -162,7 +161,6 @@ const ObjectMappingRuleForm = React.createClass({
 
         const type = this.state.type;
         const loading = this.state.loading ? <Spinner/> : false;
-        // FIXME: also check if data really has changed before allow saving
         const allowConfirm = type === 'root'
             ? true
             : this.state.targetProperty;
@@ -244,8 +242,6 @@ const ObjectMappingRuleForm = React.createClass({
                 )
             );
         }
-
-        // FIXME: created and updated need to be formated. Creator is not available in Dataintegration :(
 
         return (
             (

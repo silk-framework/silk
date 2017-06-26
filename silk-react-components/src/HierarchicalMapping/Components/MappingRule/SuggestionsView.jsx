@@ -90,6 +90,7 @@ const SuggestionsView = React.createClass({
             const a = _.split(suggestion, ';');
             const suggestionForAdding = this.state.data[a[0]][a[1]];
             suggestionForAdding.targetClassUri = a[0];
+            // FIXME: atomize it with only 1 call to DI or stop when the first save fails?
             hierarchicalMappingChannel.request({
                 topic: 'rule.createValueMapping',
                 data: {
