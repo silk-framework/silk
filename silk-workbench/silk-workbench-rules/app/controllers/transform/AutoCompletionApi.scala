@@ -341,7 +341,7 @@ class AutoCompletionApi extends Controller {
       } else {
         // Filter all completions that match the search term
         val normalizedTerm = normalizeTerm(term)
-        Completions(values.filter(_.matches(normalizedTerm)))
+        Completions(values.filter(_.matches(normalizedTerm)).take(maxResults))
       }
     }
 

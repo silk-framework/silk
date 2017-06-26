@@ -66,7 +66,7 @@ const prepareValueMappingPayload = (data) => {
     };
 
     if (data.type === 'direct') {
-        payload.sourcePath = data.sourceProperty || '';
+        payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, 'sourceProperty') : '';
     }
 
     if (!data.id) {
@@ -100,7 +100,7 @@ const prepareObjectMappingPayload = (data) => {
                 "nodeType": "UriValueType",
             }
         },
-        sourcePath: data.sourceProperty || '',
+        sourcePath: data.sourceProperty ? handleCreatedSelectBoxValue(data, 'sourceProperty') : '',
         "rules": {
             "uriRule": data.pattern ? {
                 "type": "uri",
@@ -126,8 +126,7 @@ if (!__DEBUG__) {
         ({data, replySubject}) => {
 
             silkStore
-                .request({topic: 'transform.task.get', data: apiDetails}).
-            map((returned) => {
+                .request({topic: 'transform.task.get', data: apiDetails}).map((returned) => {
                 return {
                     example: returned.body
                 };
@@ -138,8 +137,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
             silkStore
-                .request({topic: 'transform.task.rule.suggestions', data: {...apiDetails, ...data}}).
-            map((returned) => {
+                .request({topic: 'transform.task.rule.suggestions', data: {...apiDetails, ...data}}).map((returned) => {
                 return {
                     example: returned.body
                 };
@@ -153,8 +151,7 @@ if (!__DEBUG__) {
             const {id} = data;
             if (id) {
                 silkStore
-                    .request({topic: 'transform.task.rule.peak', data: {...apiDetails, id}}).
-                map((returned) => {
+                    .request({topic: 'transform.task.rule.peak', data: {...apiDetails, id}}).map((returned) => {
                     return {
                         example: returned.body
                     };
@@ -230,6 +227,34 @@ if (!__DEBUG__) {
 
         }
     );
+
+    hierarchicalMappingChannel.subject('autocomplete').subscribe(({data, replySubject}) => {
+
+        const {entity, input, ruleId} = data;
+
+        let channel = 'transform.task.rule.completions.';
+
+        switch (entity) {
+        case 'targetProperty':
+            channel += 'targetProperties';
+            break;
+        case 'targetEntityType':
+            channel += 'targetTypes';
+            break;
+        case 'sourcePath':
+            channel += 'sourcePaths';
+            break;
+        default:
+            console.error(`No autocomplete defined for ${entity}`)
+        }
+
+        silkStore
+            .request({topic: channel, data: {...apiDetails, term: input, ruleId}})
+            .map((returned) => {
+                return {options: returned.body};
+            })
+            .multicast(replySubject).connect();
+    });
 
     const editMappingRule = (payload, id, parent) => {
 
@@ -327,13 +352,13 @@ if (!__DEBUG__) {
             let suggestions = {};
             _.forEach(data.targets, (t) => {
                 suggestions[t] = [];
-                _.forEach(new Array(78) , (a,i) => {
+                _.forEach(new Array(78), (a, i) => {
                     suggestions[t].push({
                         "uri": "http://eccenca.com/ds/loans/field_" + i,
-                        "confidence": Math.floor((i===0
-                            ? 1 - 0.1 * Math.random()
-                            : 0.5 + 0.5 * Math.random()
-                        )*100)/100
+                        "confidence": Math.floor((i === 0
+                                    ? 1 - 0.1 * Math.random()
+                                    : 0.5 + 0.5 * Math.random()
+                            ) * 100) / 100
                     });
                 });
 
@@ -346,12 +371,93 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('transform.get').subscribe(
         ({data, replySubject}) => {
-            const transform = {example:{"id":"test2","selection":{"inputId":"customers","typeUri":"1495455156290_customers.csv","restriction":""},"root":{"type":"root","id":"root","rules":{"uriRule":null,"typeRules":[{"type":"type","id":"type9","typeUri":"<http://schema.org/Address>","metadata":{"label":"","description":""}}],"propertyRules":[{"type":"direct","id":"direct","sourcePath":"/city","mappingTarget":{"uri":"<http://schema.org/address>","valueType":{"nodeType":"AutoDetectValueType"},"isBackwardProperty":false},"metadata":{"label":"","description":""}}]},"metadata":{"label":"","description":""}},"outputs":[],"targetVocabularies":["http://schema.org"]}};
+            const transform = {
+                example: {
+                    "id": "test2",
+                    "selection": {"inputId": "customers", "typeUri": "1495455156290_customers.csv", "restriction": ""},
+                    "root": {
+                        "type": "root",
+                        "id": "root",
+                        "rules": {
+                            "uriRule": null,
+                            "typeRules": [{
+                                "type": "type",
+                                "id": "type9",
+                                "typeUri": "<http://schema.org/Address>",
+                                "metadata": {"label": "", "description": ""}
+                            }],
+                            "propertyRules": [{
+                                "type": "direct",
+                                "id": "direct",
+                                "sourcePath": "/city",
+                                "mappingTarget": {
+                                    "uri": "<http://schema.org/address>",
+                                    "valueType": {"nodeType": "AutoDetectValueType"},
+                                    "isBackwardProperty": false
+                                },
+                                "metadata": {"label": "", "description": ""}
+                            }]
+                        },
+                        "metadata": {"label": "", "description": ""}
+                    },
+                    "outputs": [],
+                    "targetVocabularies": ["http://schema.org"]
+                }
+            };
             replySubject.onNext(transform);
             replySubject.onCompleted();
         }
     );
 
+    hierarchicalMappingChannel.subject('autocomplete').subscribe(({data, replySubject}) => {
+
+        const {entity, input} = data;
+
+        let result = [];
+
+        switch (entity) {
+        case 'targetProperty':
+            result = [
+                {
+                    value: 'http://xmlns.com/foaf/0.1/knows', label: 'foaf:knows',
+                    description: 'A person known by this person (indicating some level of reciprocated interaction between the parties).'
+                }, {
+                    value: 'http://xmlns.com/foaf/0.1/name', label: 'foaf:name',
+                    description: 'A name for some thing.'
+                }, {
+                    value: 'http://schmea.org/address', label: 'schema:address',
+                    description: 'Physical address of the item.'
+                }
+            ];
+            break;
+        case 'targetEntityType':
+            result = [
+                {
+                    value: 'http://xmlns.com/foaf/0.1/Person', label: 'foaf:Person',
+                    description: 'The Person class represents people. Something is a Person if it is a person. We don\'t nitpic about whether they\'re alive, dead, real, or imaginary. The Person class is a sub-class of the Agent class, since all people are considered \'agents\' in FOAF.'
+
+                }, {
+                    value: 'http://schema.org/PostalAddress', label: 'schema:PostalAddress',
+                    description: 'The mailing address.'
+                }
+            ];
+            break;
+        case 'sourcePath':
+            result = [
+                {value: '/name'},
+                {value: '/address'},
+                {value: '/last_name'},
+            ];
+            break;
+        default:
+            console.error(`No autocomplete defined for ${entity}`)
+        }
+
+        replySubject.onNext({options: _.filter(result, ({value, label}) => _.includes(`${value}|${label}`, input))});
+
+        replySubject.onCompleted();
+
+    });
 
     hierarchicalMappingChannel.subject('hierarchy.get').subscribe(
         ({data, replySubject}) => {
@@ -367,7 +473,21 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.example').subscribe(
         ({data, replySubject}) => {
-            const example = {"sourcePaths":[["/name"],["/birthdate"]],"results":[{"sourceValues":[["Abigale Purdy"],["7/21/1977"]],"transformedValues":["abigale purdy7/21/1977"]},{"sourceValues":[["Ronny Wiegand"],["10/24/1963"]],"transformedValues":["ronny wiegand10/24/1963"]},{"sourceValues":[["Rosalyn Wisozk"],["5/8/1982"]],"transformedValues":["rosalyn wisozk5/8/1982"]}],"status":{"id":"success","msg":""}}
+            //const {id} = data;
+            const example = {
+                "sourcePaths": [["/name"], ["/birthdate"]],
+                "results": [{
+                    "sourceValues": [["Abigale Purdy"], ["7/21/1977"]],
+                    "transformedValues": ["abigale purdy7/21/1977"]
+                }, {
+                    "sourceValues": [["Ronny Wiegand"], ["10/24/1963"]],
+                    "transformedValues": ["ronny wiegand10/24/1963"]
+                }, {
+                    "sourceValues": [["Rosalyn Wisozk"], ["5/8/1982"]],
+                    "transformedValues": ["rosalyn wisozk5/8/1982"]
+                }],
+                "status": {"id": "success", "msg": ""}
+            };
             replySubject.onNext({example});
             replySubject.onCompleted();
         }

@@ -450,15 +450,17 @@
 .ecc-silk-mapping__rulesviewer,
 .ecc-silk-mapping__ruleseditor {
 
-    .mdl-card__content {
-        //max-width: 50em;
-        @include typo-body-1();
-        //position: relative;
-        //left: 16px;
-    }
-
     .ecc-silk-mapping__ruleslist & {
         margin: -1rem 0;
+    }
+
+    .mdl-card__content {
+        @include typo-body-1();
+        margin: 0 1rem;
+    }
+
+    .mdl-alert__content {
+        padding: 0.5rem;
     }
 }
 
@@ -471,7 +473,7 @@
 
 .ecc-silk-mapping__rulesviewer__attribute {
 
-    margin-bottom: 1rem;
+    margin: 0.5rem 0 1rem 0;
     @include typo-body-1();
 
     dt, dd {
@@ -486,6 +488,9 @@
     .ecc-silk-mapping__rulesviewer__attribute-label {
         font-size: $input-text-floating-label-fontsize;
         font-weight: 300;
+        display: list-item;
+        list-style-type: square;
+        list-style-position: inside;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-title {
