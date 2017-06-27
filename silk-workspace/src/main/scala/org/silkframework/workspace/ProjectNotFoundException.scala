@@ -1,3 +1,5 @@
 package org.silkframework.workspace
 
-case class ProjectNotFoundException(projectName: String) extends NoSuchElementException(s"Project '$projectName' not found")
+import org.silkframework.runtime.validation.NotFoundException
+
+case class ProjectNotFoundException(projectName: String) extends NotFoundException(s"Project '$projectName' not found")

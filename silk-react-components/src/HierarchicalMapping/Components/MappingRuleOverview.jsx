@@ -10,6 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
+import SuggestionsView from './MappingRule/SuggestionsView';
 import {
     Spinner,
     Info,
@@ -60,6 +61,7 @@ const MappingRuleOverview = React.createClass({
             });
         }
     },
+
     // initilize state
     getInitialState() {
         return {
@@ -68,6 +70,7 @@ const MappingRuleOverview = React.createClass({
             ruleEditView: false,
             editing: [],
             askForDiscard: false,
+            showSuggestions: false,
         };
     },
     componentDidMount() {
@@ -82,6 +85,19 @@ const MappingRuleOverview = React.createClass({
         this.setState({
             editing: [],
         });
+    },
+    handleShowSuggestions(event) {
+        event.stopPropagation();
+        if (this.state.editing.length === 0) {
+            this.setState({
+                showSuggestions: true,
+            })
+        }
+        else {
+            this.setState({askForDiscard: {
+                suggestions: true,
+            }})
+        }
     },
     componentDidUpdate(prevProps) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
@@ -119,17 +135,25 @@ const MappingRuleOverview = React.createClass({
     handleDiscardChanges(event){
         event.stopPropagation();
         const type = _.get(this.state.askForDiscard, 'type', false);
+        const suggestions = _.get(this.state.askForDiscard, 'suggestions', false);
+        const expanded = _.get(this.state.askForDiscard, 'expanded', false);
+
         if (type) {
             hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
         }
+        else if (suggestions) {
+            this.setState({
+                showSuggestions: true,
+            })
+        }
         else{
-            const expanded = this.state.askForDiscard.expanded;
             hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
         }
         hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         this.setState({
             askForDiscard: false,
-        })
+        });
+
     },
     handleCancelDiscard(event) {
         event.stopPropagation();
@@ -166,6 +190,10 @@ const MappingRuleOverview = React.createClass({
             });
         }
     },
+    handleCloseSuggestions(event) {
+        event.stopPropagation();
+        this.setState({showSuggestions: false});
+    },
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEmpty(nextState.ruleData);
     },
@@ -179,10 +207,11 @@ const MappingRuleOverview = React.createClass({
         const discardView = this.state.askForDiscard !== false
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -190,7 +219,10 @@ const MappingRuleOverview = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>When you click CONTINUE, all unsaved changes will be lost.</p>
+                <p>
+                    You currently have unsaved changes{this.state.editing.length === 1 ? '' :
+                    ` in ${this.state.editingElements.length} mapping rules`}.
+                </p>
             </ConfirmationDialog>
             : false;
 
@@ -256,8 +288,9 @@ const MappingRuleOverview = React.createClass({
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                            onClick={this.handleShowSuggestions}
                         >
-                            Suggest mappings (0) (TODO)
+                            Suggest mappings
                         </MenuItem>
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-expand"
@@ -299,7 +332,7 @@ const MappingRuleOverview = React.createClass({
                                 (
                                     <MappingRule
                                         pos={idx}
-                                        parent={this.props.currentRuleId}
+                                        parentId={this.props.currentRuleId}
                                         count={childRules.length}
                                         key={`MappingRule_${rule.id}`}
                                         {...rule}
@@ -312,44 +345,53 @@ const MappingRuleOverview = React.createClass({
             );
         }
 
+        const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
+            ? <SuggestionsView
+                id={this.props.currentRuleId}
+                onClose={this.handleCloseSuggestions}
+                targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>',''))} />
+            : false;
+
+        const rulesList = !createRuleForm && !suggestions ? <div className="ecc-silk-mapping__ruleslist">
+            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                {mappingRulesListHead}
+                {mappingRulesList}
+                <div className="mdl-card__actions--fixed">
+                    <FloatingListActions
+                        iconName="add"
+                        actions={
+                            [
+                                {
+                                    icon: 'insert_drive_file',
+                                    label: 'Add value mapping',
+                                    handler: () => {
+                                        this.handleCreate({type: 'direct'});
+                                    },
+                                },
+                                {
+                                    icon: 'folder',
+                                    label: 'Add object mapping',
+                                    handler: () => {
+                                        this.handleCreate({type: 'object'});
+                                    },
+                                },
+                            ]
+                        }
+                    />
+                </div>
+            </div>
+        </div> : false;
+
+
+
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
                 <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
-                {
-                    createRuleForm ?
-                        createRuleForm :
-                        <div className="ecc-silk-mapping__ruleslist">
-                            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-                                {mappingRulesListHead}
-                                {mappingRulesList}
-                                <div className="mdl-card__actions--fixed">
-                                    <FloatingListActions
-                                        iconName="add"
-                                        actions={
-                                            [
-                                                {
-                                                    icon: 'insert_drive_file',
-                                                    label: 'Add value mapping',
-                                                    handler: () => {
-                                                        this.handleCreate({type: 'direct'});
-                                                    },
-                                                },
-                                                {
-                                                    icon: 'folder',
-                                                    label: 'Add object mapping',
-                                                    handler: () => {
-                                                        this.handleCreate({type: 'object'});
-                                                    },
-                                                },
-                                            ]
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                }
+                {suggestions}
+                {createRuleForm}
+                {rulesList}
             </div>
         );
     },

@@ -2,12 +2,13 @@ package org.silkframework.rule
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity._
-import org.silkframework.execution.local.MultiEntityTable
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.util.{Identifier, Uri}
 
+import scala.util.Try
 import scala.xml.{Node, Null}
 
 /**
@@ -55,7 +56,7 @@ case class TransformSpec(selection: DatasetSelection,
       subPath = subPath
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
+    for (ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectInputSchemata(childRules, relativePath)
     }
 
@@ -73,7 +74,7 @@ case class TransformSpec(selection: DatasetSelection,
       }.distinct.toIndexedSeq
     )
 
-    for(ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
+    for (ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
       schemata ++= collectOutputSchemata(childRules, relativePath)
     }
 
@@ -82,6 +83,7 @@ case class TransformSpec(selection: DatasetSelection,
 
   /**
     * Return the transform rule and the combined source path to that rule.
+    *
     * @param ruleName The ID of the rule.
     */
   def nestedRuleAndSourcePath(ruleName: String): Option[(TransformRule, List[PathOperator])] = {
@@ -93,10 +95,10 @@ case class TransformSpec(selection: DatasetSelection,
                                      ruleName: String,
                                      sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
     val sourcePathOperators = sourcePathOfRule(transformRule)
-    if(transformRule.id.toString == ruleName) {
+    if (transformRule.id.toString == ruleName) {
       Some(transformRule, sourcePath ::: sourcePathOperators) // Found the rule, return the result
     } else {
-      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: sourcePathOperators )).headOption
+      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: sourcePathOperators)).headOption
     }
   }
 
@@ -107,6 +109,46 @@ case class TransformSpec(selection: DatasetSelection,
       case _ =>
         Nil
     }
+  }
+
+  /** Return an entity schema for one specific rule of the transform specification */
+  def oneRuleEntitySchema(rule: TransformRule,
+                          subPath: Path,
+                          typeUri: Option[String] = None,
+                          restriction: Restriction = Restriction.empty): EntitySchema = {
+    entitySchema(rule.paths.distinct, subPath, typeUri, restriction)
+  }
+
+  def entitySchema(paths: Seq[Path],
+                   subPath: Path,
+                   typeUri: Option[String] = None,
+                   restriction: Restriction = Restriction.empty): EntitySchema = {
+    EntitySchema(
+      typeUri = Uri(typeUri.getOrElse("")),
+      typedPaths = paths.map(_.asStringTypedPath).toIndexedSeq,
+      filter = restriction,
+      subPath = subPath
+    )
+  }
+
+  /** Return an entity schema for one specific rule of the transform specification */
+  def oneRuleEntitySchemaById(ruleId: String,
+                              typeUri: Option[String] = None,
+                              restriction: Restriction = Restriction.empty): Try[(EntitySchema, TransformRule)] = {
+    Try {
+      nestedRuleAndSourcePath(ruleId) match {
+        case Some((rule, subPathOps)) =>
+          (oneRuleEntitySchema(rule, Path(subPathOps), typeUri, restriction), rule)
+        case None =>
+          val ruleIds = validRuleNames(mappingRule).sorted.mkString(", ")
+          throw new NotFoundException(s"No rule with ID '$ruleId' found! Value rule IDs: $ruleIds")
+      }
+    }
+  }
+
+  def validRuleNames(mappingRule: TransformRule): List[String] = {
+    val childRuleNames = mappingRule.rules.map(validRuleNames).foldLeft(List.empty[String])((l, ruleNames) => ruleNames ::: l)
+    mappingRule.id :: childRuleNames
   }
 }
 
@@ -131,7 +173,7 @@ object TransformSpec {
       val rootMappingRule = {
         // Stay compatible with the old format.
         val oldRules = (node \ "TransformRule" ++ node \ "ObjectMapping").map(fromXml[TransformRule])
-        if(oldRules.nonEmpty) {
+        if (oldRules.nonEmpty) {
           RootMappingRule("root", MappingRules.fromSeq(oldRules))
         } else {
           RootMappingRuleFormat.read((node \ "RootMappingRule").head)
@@ -147,11 +189,9 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
-        {value.selection.toXML(true)}
-        {toXml(value.mappingRule)}
-        <Outputs>
+        {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
         {value.outputs.map(o => <Output id={o}></Output>)}
-        </Outputs>{if (value.errorOutputs.isEmpty) {
+      </Outputs>{if (value.errorOutputs.isEmpty) {
         Null
       } else {
         <ErrorOutputs>

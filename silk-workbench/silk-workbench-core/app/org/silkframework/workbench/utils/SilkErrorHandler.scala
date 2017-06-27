@@ -14,6 +14,7 @@ import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulExcepti
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 import SilkErrorHandler.prefersHtml
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonParseException
 
 class SilkErrorHandler (env: Environment,
@@ -110,7 +111,7 @@ class SilkErrorHandler (env: Environment,
     ex match {
       case _: ExceptionSource if Option(ex.getCause).isDefined =>
         handleError(requestPath, ex.getCause)
-      case _: ProjectNotFoundException | _: TaskNotFoundException =>
+      case _: NotFoundException=>
         NotFound(JsonError(ex))
       case executionException: ExecutionException =>
         Option(executionException.getCause) match {
@@ -119,6 +120,8 @@ class SilkErrorHandler (env: Environment,
           case None =>
             InternalServerError("Unknown error.")
         }
+      case BadUserInputException(msg) =>
+        BadRequest(JsonError(msg))
       case JsonParseException(msg, _) =>
         BadRequest(JsonError(msg))
       case _ =>

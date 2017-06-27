@@ -4,7 +4,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, AnyContent, Controller}
 import plugins.Context
 
 class TransformEditor extends Controller {
@@ -17,11 +17,14 @@ class TransformEditor extends Controller {
     Ok(views.html.editor.transformRules(context, vocabularies, rule))
   }
 
-  def editor(project: String, task: String, rule: String) = Action { implicit request =>
+  def editor(project: String, task: String, rule: String): Action[AnyContent] = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    context.task.data.rules.find(_.id == rule) match {
-      case Some(r) => Ok(views.html.editor.transformEditor(context, r))
-      case None => NotFound(s"No rule named '$rule' found!. Available rules: ${context.task.data.rules.map(_.id).mkString(", ")}")
+    val transformSpec = context.task.data
+    transformSpec.nestedRuleAndSourcePath(rule) match {
+      case Some((r, _)) => Ok(views.html.editor.transformEditor(context, r))
+      case None =>
+        val validRuleNames = transformSpec.validRuleNames(transformSpec.mappingRule).mkString(", ")
+        NotFound(s"No rule named '$rule' found!. Available rules: $validRuleNames")
     }
   }
 

@@ -31,7 +31,7 @@ const MappingRule = React.createClass({
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
-        parent: React.PropTypes.string,
+        parentId: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
 
@@ -74,7 +74,7 @@ const MappingRule = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleNavigate() {
-        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id, parent: this.props.parent});
+        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id, parent: this.props.parentId});
     },
     // show / hide additional row details
     handleToggleExpand() {
@@ -103,13 +103,13 @@ const MappingRule = React.createClass({
         })
     },
 
-    handleMoveElement(id, pos, parent, event){
+    handleMoveElement(id, pos, parentId, event){
         this.setState({
             loading: true,
         });
-        console.log(event, id, pos, parent)
+        console.log(event, id, pos, parentId)
         event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parent}})
+        hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parentId}})
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
@@ -130,8 +130,9 @@ const MappingRule = React.createClass({
         const {
             id,
             type,
-            parent,
+            parentId,
             sourcePath,
+            sourcePaths,
             mappingTarget,
             rules,
             pos,
@@ -142,10 +143,11 @@ const MappingRule = React.createClass({
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
                 active={true}
+                modal={true}
                 title="Discard changes?"
                 confirmButton={
                     <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Continue
+                        Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
@@ -153,7 +155,7 @@ const MappingRule = React.createClass({
                         Cancel
                     </DismissiveButton>
                 }>
-                <p>When you click CONTINUE, all unsaved changes of the current form will be lost.</p>
+                <p>You currently have unsaved changes.</p>
             </ConfirmationDialog>
             : false;
 
@@ -196,7 +198,7 @@ const MappingRule = React.createClass({
                     rule={
                         {
                             type,
-                            sourcePath,
+                            sourcePath: sourcePath || sourcePaths,
                         }
                     }
                 />
@@ -221,7 +223,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
-                    parent={parent}
+                    parentId={parentId}
                     edit={false}
                 />
             ) : (
@@ -229,7 +231,7 @@ const MappingRule = React.createClass({
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
-                    parent={parent}
+                    parentId={parentId}
                     edit={false}
                 />
             )
@@ -245,22 +247,22 @@ const MappingRule = React.createClass({
                     valign='top'
                 >
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, 0, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, 0, parentId)}
                     >
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, Math.max(0, pos -1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.max(0, pos -1), parentId)}
                     >
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, Math.min(pos + 1, count-1), parent)}
+                        onClick={this.handleMoveElement.bind(null, id, Math.min(pos + 1, count-1), parentId)}
                     >
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, count - 1, parent)}
+                        onClick={this.handleMoveElement.bind(null, id, count - 1, parentId)}
                     >
                         Move to bottom
                     </MenuItem>

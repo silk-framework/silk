@@ -1,6 +1,5 @@
 package controllers.util
 
-import org.silkframework.runtime.serialization.Serialization.serializationFormats
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.Project
@@ -101,7 +100,7 @@ object SerializationUtils extends Results {
   def serializeIterableCompileTime[T: ClassTag](value: Iterable[T],
                                                 defaultMimeTypes: Seq[String] = defaultMimeTypes,
                                                 containerName: Option[String] = None)
-                                               (implicit request: Request[AnyContent],
+                                               (implicit request: Request[_],
                                                 project: Project): Result = {
     implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
