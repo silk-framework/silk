@@ -6740,6 +6740,15 @@
             default: obj
         };
     }
+    function filterPropertyType(input, replySubject) {
+        var search = _lodash2.default.deburr(input).toLocaleLowerCase();
+        replySubject.onNext({
+            options: _lodash2.default.filter(datatypes, function(datatype) {
+                return _lodash2.default.includes(datatype.$search, search);
+            })
+        });
+        replySubject.onCompleted();
+    }
     function findRule(element, id, breadcrumbs) {
         element.breadcrumbs = breadcrumbs;
         if (element.id === id) return element;
@@ -6765,7 +6774,42 @@
     hierarchicalMappingChannel.subject("setSilkDetails").subscribe(function(data) {
         apiDetails = (0, _extends3.default)({}, data);
     });
-    var handleCreatedSelectBoxValue = function(data, path) {
+    var datatypes = _lodash2.default.map([ {
+        value: "AutoDetectValueType",
+        label: "Auto Detect",
+        description: "The best suitable data type will be chosen automatically"
+    }, {
+        value: "UriValueType",
+        label: "URI",
+        description: "Suited for values which are Unique Resource Identifiers"
+    }, {
+        value: "BooleanValueType",
+        label: "Boolean",
+        description: "Suited for values which are either true or false"
+    }, {
+        value: "StringValueType",
+        label: "String",
+        description: "Suited for values which contain text"
+    }, {
+        value: "IntegerValueType",
+        label: "Integer",
+        description: "Suited for numbers which have no fractional value"
+    }, {
+        value: "FloatValueType",
+        label: "Float",
+        description: "Suited for numbers which have a fractional value"
+    }, {
+        value: "LongValueType",
+        label: "Long",
+        description: "Suited for large numbers which have no fractional value"
+    }, {
+        value: "DoubleValueType",
+        label: "Double",
+        description: "Suited for large numbers which have a fractional value"
+    } ], function(datatype) {
+        datatype.$search = _lodash2.default.deburr(datatype.value + "|" + datatype.label + "|" + datatype.description).toLocaleLowerCase();
+        return datatype;
+    }), handleCreatedSelectBoxValue = function(data, path) {
         return _lodash2.default.has(data, [ path, "value" ]) ? _lodash2.default.get(data, [ path, "value" ]) : _lodash2.default.get(data, [ path ]);
     }, prepareValueMappingPayload = function(data) {
         var payload = {
@@ -6775,7 +6819,7 @@
             mappingTarget: {
                 uri: handleCreatedSelectBoxValue(data, "targetProperty"),
                 valueType: {
-                    nodeType: data.propertyType
+                    nodeType: handleCreatedSelectBoxValue(data, "propertyType")
                 }
             }
         };
@@ -6887,6 +6931,10 @@
     hierarchicalMappingChannel.subject("autocomplete").subscribe(function(_ref7) {
         var data = _ref7.data, replySubject = _ref7.replySubject, entity = data.entity, input = data.input, ruleId = data.ruleId, channel = "transform.task.rule.completions.";
         switch (entity) {
+          case "propertyType":
+            filterPropertyType(input, replySubject);
+            return;
+
           case "targetProperty":
             channel += "targetProperties";
             break;
@@ -18600,10 +18648,11 @@
                 value: this.state.targetProperty,
                 ruleId: this.props.parentId,
                 onChange: this.handleChangeSelectBox.bind(null, "targetProperty")
-            }), _react2.default.createElement(_eccGuiElements.SelectBox, {
+            }), _react2.default.createElement(_AutoComplete2.default, {
                 placeholder: "Data type",
                 className: "ecc-silk-mapping__ruleseditor__propertyType",
-                options: [ "AutoDetectValueType", "UriValueType", "BooleanValueType", "StringValueType", "IntegerValueType", "LongValueType", "FloatValueType", "DoubleValueType" ],
+                entity: "propertyType",
+                ruleId: this.props.parentId,
                 value: this.state.propertyType,
                 clearable: !1,
                 onChange: this.handleChangeSelectBox.bind(null, "propertyType")
@@ -22259,7 +22308,7 @@
             });
         },
         render: function() {
-            var _this3 = this, _props = this.props, type = (_props.id, _props.type), parentId = _props.parentId, sourcePath = _props.sourcePath, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
+            var _this3 = this, _props = this.props, type = (_props.id, _props.type), parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
             _props.count, !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null)), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
@@ -22297,7 +22346,7 @@
             }, "from"), _react2.default.createElement(_SharedComponents.SourcePath, {
                 rule: {
                     type: type,
-                    sourcePath: sourcePath
+                    sourcePath: sourcePath || sourcePaths
                 }
             })), _react2.default.createElement("div", {
                 key: "sl3",

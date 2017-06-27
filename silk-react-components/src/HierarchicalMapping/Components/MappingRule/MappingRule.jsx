@@ -132,6 +132,7 @@ const MappingRule = React.createClass({
             type,
             parentId,
             sourcePath,
+            sourcePaths,
             mappingTarget,
             rules,
             pos,
@@ -197,7 +198,7 @@ const MappingRule = React.createClass({
                     rule={
                         {
                             type,
-                            sourcePath,
+                            sourcePath: sourcePath || sourcePaths,
                         }
                     }
                 />

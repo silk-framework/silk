@@ -2,7 +2,6 @@ import React from 'react';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {
     TextField,
-    SelectBox,
     AffirmativeButton,
     DismissiveButton,
     Spinner,
@@ -210,19 +209,11 @@ const ValueMappingRuleForm = React.createClass({
                             ruleId={this.props.parentId}
                             onChange={this.handleChangeSelectBox.bind(null, 'targetProperty')}
                         />
-                        <SelectBox
+                        <AutoComplete
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
-                            options={[
-                                "AutoDetectValueType",
-                                "UriValueType",
-                                "BooleanValueType",
-                                "StringValueType",
-                                "IntegerValueType",
-                                "LongValueType",
-                                "FloatValueType",
-                                "DoubleValueType",
-                            ]}
+                            entity='propertyType'
+                            ruleId={this.props.parentId}
                             value={this.state.propertyType}
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(null, 'propertyType')}
