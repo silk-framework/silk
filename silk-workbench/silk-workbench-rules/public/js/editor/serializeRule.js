@@ -33,7 +33,10 @@ function serializeTransformRule() {
   mappingTarget.appendChild(valueType);
   xml.appendChild(mappingTarget);
 
-  console.log(xml);
+  // Add metadata
+  var metaDataXml = $.parseXML($("#rule-metadata").text());
+  xml.insertBefore(metaDataXml.documentElement, xml.firstChild);
+
   return makeXMLString(xml);
 }
 
@@ -203,5 +206,6 @@ function findRootOperator(connections) {
  */
 function makeXMLString(xml) {
   var xmlString = (new XMLSerializer()).serializeToString(xml);
+  console.log(xmlString);
   return xmlString;
 }

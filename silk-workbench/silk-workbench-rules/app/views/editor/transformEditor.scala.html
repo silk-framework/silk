@@ -3,6 +3,7 @@
 @import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.entity.ValueType
+@import org.silkframework.runtime.serialization.XmlSerialization.toXml
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
@@ -29,6 +30,11 @@
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
+  </script>
+
+  @** As the editor does not manage the meta data, we just hold it and attach it to updated rules. **@
+  <script id="rule-metadata" type="text/xml">
+    @toXml(rule.metaData)
   </script>
 }
 
