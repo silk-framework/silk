@@ -14,10 +14,10 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
 
   val graphUri = "urn:example"
 
-  private val loader = load()
+  private lazy val loader = load("vocabulary.ttl")
 
-  val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
-  val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
+  lazy val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
+  lazy val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
 
   it should "load classes" in {
     classes.size shouldBe 3
@@ -43,9 +43,9 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
       )
   }
 
-  private def load(): VocabularyLoader = {
+  private def load(resource: String): VocabularyLoader = {
     // Load example into Jena model
-    val stream = getClass.getClassLoader.getResourceAsStream("org/silkframework/plugins/dataset/rdf/vocab/vocabulary.ttl")
+    val stream = getClass.getClassLoader.getResourceAsStream("org/silkframework/plugins/dataset/rdf/vocab/" + resource)
     val model = ModelFactory.createDefaultModel()
     model.read(stream, null, "TURTLE")
 

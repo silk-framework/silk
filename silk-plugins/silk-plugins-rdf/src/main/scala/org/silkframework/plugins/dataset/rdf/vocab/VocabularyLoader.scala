@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.silkframework.dataset.rdf.{RdfNode, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{BlankNode, RdfNode, SparqlEndpoint}
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 
 import scala.collection.immutable.SortedMap
@@ -63,7 +63,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     override def foreach[U](emit: ((String, Traversable[SortedMap[String, RdfNode]])) => U): Unit = {
       var currentUri: Option[String] = None
       var groupedBindings: Vector[SortedMap[String, RdfNode]] = Vector.empty
-      for(binding <- bindings) {
+      for(binding <- bindings if !binding("c").isInstanceOf[BlankNode]) {
         val uri = binding("c").value
         if(!currentUri.contains(uri)) {
           emitIfExists(emit, currentUri, groupedBindings)
@@ -101,7 +101,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          |
          |     OPTIONAL { ?p rdfs:label ?label }
          |     OPTIONAL { ?p rdfs:comment ?desc }
-         |     OPTIONAL { ?c skos:definition ?desc }
+         |     OPTIONAL { ?p skos:definition ?def }
          |     OPTIONAL { ?p rdfs:domain ?domain }
          |     OPTIONAL { ?p rdfs:range ?range }
          |   }
@@ -111,7 +111,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     val classMap = classes.map(c => (c.info.uri, c)).toMap
     def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri), Seq()))
 
-    for(result <- endpoint.select(propertyQuery).bindings) yield {
+    for(result <- endpoint.select(propertyQuery).bindings if !result("p").isInstanceOf[BlankNode]) yield {
       val info =
         GenericInfo(
           uri = result("p").value,

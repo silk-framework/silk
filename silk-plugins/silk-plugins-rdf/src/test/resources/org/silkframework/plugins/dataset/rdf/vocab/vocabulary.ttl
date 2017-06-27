@@ -7,6 +7,7 @@
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix void: <http://rdfs.org/ns/void#> .
 @prefix vann: <http://purl.org/vocab/vann/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#>
 
 : a owl:Ontology ;
   rdfs:label "Test Ontology"@en ;
@@ -21,7 +22,7 @@
 :Person
   a rdfs:Class ;
   rdfs:label "Person"@en ;
-  rdfs:comment "A Person"@en ;
+  skos:definition "A Person"@en ;
   rdfs:isDefinedBy : ;
 .
 
@@ -49,5 +50,17 @@
   rdfs:comment "Employee of a company"@en ;
   rdfs:comment "Angestellter einer Firma"@de ;
   rdfs:subClassOf :Person ;
+  rdfs:isDefinedBy : ;
+.
+
+_:BlankNodeProperty
+   a owl:ObjectProperty ;
+   rdfs:label "Ignore me"@en ;
+   rdfs:isDefinedBy : ;
+.
+
+_:BlankNodeClass
+  a owl:Class ;
+  rdfs:label "Ignore me"@en ;
   rdfs:isDefinedBy : ;
 .
