@@ -29,6 +29,10 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
 trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   this: Suite =>
 
+  final val APPLICATION_JSON: String = "application/json"
+  final val APPLICATION_XML: String = "application/xml"
+  final val CONTENT_TYPE: String = "content-type"
+
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
   final val START_PORT = 10600
@@ -431,9 +435,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     response
   }
 
-  def getTransformationTaskRules(project: String, taskName: String): String = {
+  def getTransformationTaskRules(project: String, taskName: String, accept: String = "application/json"): String = {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
-    val response = request.get()
+    val response = request.
+        withHeaders("accept" -> accept).
+        get()
     val r = checkResponse(response)
     r.body
   }
