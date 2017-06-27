@@ -7,6 +7,8 @@ import org.silkframework.config.DefaultConfig
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.resource.Resource
 
+import scala.util.control.NonFatal
+
 /**
   * A dataset extension that allows to retrieve example values for a specific path quickly.
   */
@@ -18,7 +20,12 @@ trait PeakDataSource {
   /** Default peak implementation that should work with all sources that offer fast "random access".
     * It filters entities that have no input value for any input path. */
   def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
-    retrieve(entitySchema, Some(limit))
+    try {
+      retrieve(entitySchema, Some(limit))
+    } catch {
+      case NonFatal(ex) =>
+        throw PeakException("Cannot retrieve values. Reason: " + ex.getMessage, Some(ex))
+    }
   }
 
   protected def peakWithMaximumFileSize(inputResource: Resource,
@@ -39,4 +46,4 @@ trait PeakDataSource {
   }
 }
 
-case class PeakException(msg: String) extends RuntimeException(msg)
+case class PeakException(msg: String, cause: Option[Throwable] = None) extends RuntimeException(msg, cause.orNull)
