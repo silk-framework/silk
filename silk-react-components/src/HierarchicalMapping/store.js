@@ -17,6 +17,42 @@ hierarchicalMappingChannel.subject('setSilkDetails').subscribe((data) => {
     apiDetails = {...data};
 });
 
+const datatypes = _.map(
+    [
+        {
+            value: "AutoDetectValueType",
+            label: "Auto Detect",
+            description: "The best suitable data type will be chosen automatically"
+        },
+        {value: "UriValueType", label: "URI", description: "Suited for values which are Unique Resource Identifiers"},
+        {value: "BooleanValueType", label: "Boolean", description: "Suited for values which are either true or false"},
+        {value: "StringValueType", label: "String", description: "Suited for values which contain text"},
+        {value: "IntegerValueType", label: "Integer", description: "Suited for numbers which have no fractional value"},
+        {value: "FloatValueType", label: "Float", description: "Suited for numbers which have a fractional value"},
+        {value: "LongValueType", label: "Long", description: "Suited for large numbers which have no fractional value"},
+        {
+            value: "DoubleValueType",
+            label: "Double",
+            description: "Suited for large numbers which have a fractional value"
+        },
+    ],
+    (datatype) => {
+        datatype.$search = _.deburr(`${datatype.value}|${datatype.label}|${datatype.description}`).toLocaleLowerCase()
+        return datatype;
+    });
+
+function filterPropertyType(input, replySubject) {
+
+    const search = _.deburr(input).toLocaleLowerCase();
+
+    replySubject.onNext({
+            options: _.filter(datatypes, (datatype) => _.includes(datatype.$search, search))
+        }
+    );
+    replySubject.onCompleted();
+}
+
+
 function findRule(element, id, breadcrumbs) {
     element.breadcrumbs = breadcrumbs;
     if (element.id === id) {
@@ -60,7 +96,7 @@ const prepareValueMappingPayload = (data) => {
         "mappingTarget": {
             "uri": handleCreatedSelectBoxValue(data, 'targetProperty'),
             "valueType": {
-                "nodeType": data.propertyType,
+                "nodeType": handleCreatedSelectBoxValue(data, 'propertyType'),
             }
         }
     };
@@ -235,6 +271,9 @@ if (!__DEBUG__) {
         let channel = 'transform.task.rule.completions.';
 
         switch (entity) {
+        case 'propertyType':
+            filterPropertyType(input, replySubject);
+            return;
         case 'targetProperty':
             channel += 'targetProperties';
             break;
@@ -416,6 +455,9 @@ if (!__DEBUG__) {
         let result = [];
 
         switch (entity) {
+        case 'propertyType':
+            filterPropertyType(input, replySubject);
+            return;
         case 'targetProperty':
             result = [
                 {
@@ -444,9 +486,9 @@ if (!__DEBUG__) {
             break;
         case 'sourcePath':
             result = [
-                {value: '/name'},
-                {value: '/address'},
-                {value: '/last_name'},
+                {value: '/name', label: 'name',},
+                {value: '/address', label: 'address',},
+                {value: '/last_name', label: 'last name',},
             ];
             break;
         default:
