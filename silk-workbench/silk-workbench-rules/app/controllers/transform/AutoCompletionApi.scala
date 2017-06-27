@@ -335,16 +335,18 @@ class AutoCompletionApi extends Controller {
     }
 
     /**
-      * Filters all completions using a search term.
+      * Filters and ranks all completions using a search term.
       */
     def filter(term: String, maxResults: Int): Completions = {
       if (term.isEmpty) {
         // If the term is empty, return some completions anyway
-        Completions(values.take(maxResults))
+        Completions(values.sortBy(_.labelOrGenerated.length).take(maxResults))
       } else {
-        // Filter all completions that match the search term
+        // Filter all completions that match the search term and sort them by score
         val normalizedTerm = normalizeTerm(term)
-        Completions(values.filter(_.matches(normalizedTerm)).take(maxResults))
+        val scoredValues = for(value <- values; score <- value.matches(normalizedTerm)) yield (value, score)
+        val sortedValues = scoredValues.sortBy(-_._2).map(_._1)
+        Completions(sortedValues.take(maxResults))
       }
     }
 
@@ -385,10 +387,28 @@ class AutoCompletionApi extends Controller {
       * Checks if a term matches this completion.
       *
       * @param normalizedTerm the term normalized using normalizeTerm(term)
+      * @return None, if the term does not match at all.
+      *         Some(matchScore), if the terms match.
       */
-    def matches(normalizedTerm: String): Boolean = {
+    def matches(normalizedTerm: String): Option[Double] = {
       val values = Set(value) ++ label ++ description
-      values.exists(v => normalizeTerm(v).contains(normalizedTerm))
+      val scores = values.flatMap(rank(normalizedTerm))
+      if(scores.isEmpty)
+        None
+      else
+        Some(scores.max)
+    }
+
+    /**
+      * Ranks a term, the higher the result the higher the ranking.
+      */
+    private def rank(normalizedTerm: String)(value: String): Option[Double] = {
+      val normalizedValue = normalizeTerm(value)
+      if(normalizedValue.contains(normalizedTerm)) {
+        Some(normalizedTerm.length.toDouble / normalizedValue.length)
+      } else {
+        None
+      }
     }
 
     def toJson: JsValue = {
