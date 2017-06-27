@@ -310,11 +310,14 @@ class AutoCompletionApi extends Controller {
     propertyCompletions.distinct
   }
 
+  // Characters that are removed before comparing (in addition to whitespaces)
+  private val ignoredCharacters = Set('/', '\\')
+
   /**
     * Normalizes a term.
     */
   private def normalizeTerm(term: String): String = {
-    term.toLowerCase.filterNot(_.isWhitespace)
+    term.toLowerCase.filterNot(c => c.isWhitespace || ignoredCharacters.contains(c))
   }
 
   private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
