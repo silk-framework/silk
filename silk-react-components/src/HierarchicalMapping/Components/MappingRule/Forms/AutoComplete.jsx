@@ -33,18 +33,18 @@ const AutoComplete = React.createClass({
 
         if ($userCreated) {
             return (
-                <div>
-                    <strong>{label}</strong>
-                </div>
+                <strong className="Select-option__label">
+                    {label}
+                </strong>
             );
         }
 
         return (
-            <div>
-                <strong><Highlight textToHighlight={label} searchWord={this._inputValue}/></strong>
-                <small><Highlight textToHighlight={value} searchWord={this._inputValue}/></small>
-                <small><Highlight textToHighlight={description} searchWord={this._inputValue}/></small>
-            </div>
+            [
+                <strong className="Select-option__label"><Highlight textToHighlight={label} searchWord={this._inputValue}/></strong>,
+                <code className="Select-option__value"><Highlight textToHighlight={value} searchWord={this._inputValue}/></code>,
+                <span className="Select-option__description"><Highlight textToHighlight={description} searchWord={this._inputValue}/></span>
+            ]
         );
     },
     newOptionCreator({label, labelKey, valueKey}) {

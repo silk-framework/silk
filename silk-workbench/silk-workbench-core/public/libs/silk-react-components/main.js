@@ -18154,16 +18154,24 @@
         },
         optionRender: function(option) {
             var label = option.label, value = option.value, description = option.description;
-            return option.$userCreated ? _react2.default.createElement("div", null, _react2.default.createElement("strong", null, label)) : _react2.default.createElement("div", null, _react2.default.createElement("strong", null, _react2.default.createElement(Highlight, {
+            return option.$userCreated ? _react2.default.createElement("strong", {
+                className: "Select-option__label"
+            }, label) : [ _react2.default.createElement("strong", {
+                className: "Select-option__label"
+            }, _react2.default.createElement(Highlight, {
                 textToHighlight: label,
                 searchWord: this._inputValue
-            })), _react2.default.createElement("small", null, _react2.default.createElement(Highlight, {
+            })), _react2.default.createElement("code", {
+                className: "Select-option__value"
+            }, _react2.default.createElement(Highlight, {
                 textToHighlight: value,
                 searchWord: this._inputValue
-            })), _react2.default.createElement("small", null, _react2.default.createElement(Highlight, {
+            })), _react2.default.createElement("span", {
+                className: "Select-option__description"
+            }, _react2.default.createElement(Highlight, {
                 textToHighlight: description,
                 searchWord: this._inputValue
-            })));
+            })) ];
         },
         newOptionCreator: function(_ref) {
             var _ref2, label = _ref.label, labelKey = _ref.labelKey, valueKey = _ref.valueKey;

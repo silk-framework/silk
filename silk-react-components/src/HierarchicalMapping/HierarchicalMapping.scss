@@ -1,12 +1,39 @@
 .ecc-silk-mapping {
     margin: 1rem;
 
+    .mdl-dialog {
+        width: 40rem;
+    }
+
     .Select-menu-outer {
         z-index: 3;
     }
 
-    .mdl-dialog {
-        width: 40rem;
+    .Select-option {
+        @include typo-body-1();
+    }
+
+    .Select-option__label,
+    .Select-option__value,
+    .Select-option__description {
+        display: block;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.25;
+    }
+
+    .Select-option__label {
+        font-weight: 500;
+    }
+
+    .Select-option__value {
+        font-size: 0.8em;
+    }
+
+    .Select-option__description {
+        font-size: 0.9em;
     }
 }
 
