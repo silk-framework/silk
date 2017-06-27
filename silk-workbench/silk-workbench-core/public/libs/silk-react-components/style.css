@@ -13090,10 +13090,30 @@ h6 {
 /* Dialog */
 .ecc-silk-mapping {
   margin: 1rem; }
-  .ecc-silk-mapping .Select-menu-outer {
-    z-index: 3; }
   .ecc-silk-mapping .mdl-dialog {
     width: 40rem; }
+  .ecc-silk-mapping .Select-menu-outer {
+    z-index: 3; }
+  .ecc-silk-mapping .Select-option {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0; }
+  .ecc-silk-mapping .Select-option__label,
+  .ecc-silk-mapping .Select-option__value,
+  .ecc-silk-mapping .Select-option__description {
+    display: block;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25; }
+  .ecc-silk-mapping .Select-option__label {
+    font-weight: 500; }
+  .ecc-silk-mapping .Select-option__value {
+    font-size: 0.8em; }
+  .ecc-silk-mapping .Select-option__description {
+    font-size: 0.9em; }
 
 .ecc-silk-mapping__header {
   justify-content: flex-end; }
