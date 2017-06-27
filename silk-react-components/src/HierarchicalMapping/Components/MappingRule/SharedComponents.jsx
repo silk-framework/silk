@@ -48,7 +48,7 @@ export const RuleTypes = ({rule}) => {
 };
 
 export const SourcePath = ({rule}) => {
-    const path = _.get(rule, 'sourcePath', <NotAvailable/>);
+    const path = _.get(rule, 'sourcePath', <NotAvailable inline={true} />);
 
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 
@@ -218,3 +218,38 @@ export const ParentElement = ({parent}) => {
     return _.get(parent, 'type') ? <ThingName id={parent.type}/> : <span>parent element</span>
 
 }
+
+export const InfoBox = React.createClass({
+
+    getInitialState() {
+        return {
+            expanded: false,
+        };
+    },
+
+    toggleExpander(event) {
+        event.stopPropagation();
+        this.setState({
+            expanded: !this.state.expanded,
+        })
+    },
+
+    render () {
+        return <div
+            className={
+                "ecc-silk-mapping__rulesviewer__infobox" +
+                (!this.state.expanded ? ' is-narrowed' : '')
+            }
+        >
+            <Button
+                className="ecc-silk-mapping__rulesviewer__infobox-toggler"
+                iconName={this.state.expanded ? 'expand_more' : 'chevron_right'}
+                tooltip={this.state.expanded ? 'Show less' : 'Show more'}
+                onClick={this.toggleExpander}
+            />
+            <div className="ecc-silk-mapping__rulesviewer__infobox-content">
+                {this.props.children}
+            </div>
+        </div>
+    },
+})

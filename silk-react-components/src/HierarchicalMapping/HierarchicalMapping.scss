@@ -483,7 +483,8 @@
 
     .mdl-card__content {
         @include typo-body-1();
-        margin: 0 1rem;
+        margin: 0;
+        padding: 0 1rem;
     }
 
     .mdl-alert__content {
@@ -514,23 +515,120 @@
 
     .ecc-silk-mapping__rulesviewer__attribute-label {
         font-size: $input-text-floating-label-fontsize;
-        font-weight: 300;
-        display: list-item;
+        //font-weight: 300;
+        //display: list-item;
         list-style-type: square;
         list-style-position: inside;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-title {
-        //font-size: $input-text-font-size;
-        font-weight: 500;
+        // font-weight: 500;
     }
 
     .ecc-silk-mapping__rulesviewer__attribute-info {
         max-width: 100%;
         overflow: auto;
+        font-weight: 300;
+
+        p {
+            font-weight: 300;
+            margin-bottom: 0;
+        }
     }
 
 }
+
+.ecc-silk-mapping__rulesviewer__infobox {
+
+    display: flex;
+
+    &.is-narrowed {
+
+        .ecc-silk-mapping__rulesviewer__infobox-main,
+        .ecc-silk-mapping__rulesviewer__infobox-sub {
+
+            max-height: 1.39em;
+            overflow: hidden;
+
+            * {
+                display: inline;
+            }
+
+            & > * {
+                display: inline-block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                &:not(:first-child) {
+                    display: none;
+                }
+            }
+        }
+
+        @media (min-width: $grid-desktop-breakpoint) {
+            .ecc-silk-mapping__rulesviewer__infobox-content {
+                display: flex;
+                // align-items: baseline;
+                flex-wrap: nowrap;
+
+                & > div + div {
+                    padding-left: 1rem;
+                    box-sizing: border-box;
+                    position: relative;
+
+                    &:before {
+                        content: '•';
+                        font-size: 1rem;
+                        width: 1rem;
+                        height: 1.39em;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        text-align: center;
+                        vertical-align: middle;
+                        /*
+                        */
+                    }
+                }
+
+            }
+
+            .ecc-silk-mapping__rulesviewer__infobox-main {
+                flex-grow: 0;
+                flex-shrink: 0;
+            }
+
+            .ecc-silk-mapping__rulesviewer__infobox-sub {
+                flex-grow: 1;
+                flex-shrink: 1;
+            }
+        }
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__infobox-toggler {
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin: -0.5rem 0 0 -1rem;
+}
+
+.ecc-silk-mapping__rulesviewer__infobox-content {
+
+    flex-grow: 1;
+    flex-shrink: 1;
+    line-height: 1.39;
+
+    p {
+        line-height: 1.39;
+        font-size: 1em;
+    }
+
+    .ecc-silk-mapping__rulesviewer__infobox-sub {
+        font-size: 0.95em;
+    }
+}
+
+
 
 .ecc-silk-mapping__rulesviewer__examples-table {
 

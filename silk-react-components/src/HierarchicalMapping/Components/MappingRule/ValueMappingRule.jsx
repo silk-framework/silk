@@ -15,6 +15,7 @@ import {
     SourcePath,
     ThingName,
     ThingDescription,
+    InfoBox
 } from './SharedComponents';
 
 const RuleValueView = React.createClass({
@@ -103,17 +104,18 @@ const RuleValueView = React.createClass({
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                                 Target property
                                             </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                <ThingName id={_.get(this.props, 'mappingTarget.uri', false)}/>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <code>{_.get(this.props, 'mappingTarget.uri', false)}</code>
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                <Info border>
-                                                    <ThingDescription
-                                                        id={_.get(this.props, 'mappingTarget.uri', false)}/>
-                                                </Info>
+                                            <dd>
+                                                <InfoBox>
+                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                        <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                                    </div>
+                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
+                                                        <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
+                                                    </div>
+                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                        <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                                    </div>
+                                                </InfoBox>
                                             </dd>
                                         </dl>
                                     </div>
@@ -128,11 +130,15 @@ const RuleValueView = React.createClass({
                                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                                 Data type
                                             </dt>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                {_.get(this.props, 'mappingTarget.valueType.nodeType', false)}
-                                            </dd>
-                                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                Any other information available here? (TODO)
+                                            <dd>
+                                                <InfoBox>
+                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                        {_.get(this.props, 'mappingTarget.valueType.nodeType', false)}
+                                                    </div>
+                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                        Any other information available here? (TODO)
+                                                    </div>
+                                                </InfoBox>
                                             </dd>
                                         </dl>
                                     </div>
