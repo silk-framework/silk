@@ -387,7 +387,8 @@ class AutoCompletionApi extends Controller {
       * @param normalizedTerm the term normalized using normalizeTerm(term)
       */
     def matches(normalizedTerm: String): Boolean = {
-      normalizeTerm(value).contains(normalizedTerm) || label.exists(l => normalizeTerm(l).contains(normalizedTerm))
+      val values = Set(value) ++ label ++ description
+      values.exists(v => normalizeTerm(v).contains(normalizedTerm))
     }
 
     def toJson: JsValue = {

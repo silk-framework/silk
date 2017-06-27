@@ -48,7 +48,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyTypes,
-      expectedValues = Set("foaf:Person", "foaf:PersonalProfileDocument")
+      expectedValues = Set("foaf:Agent", "foaf:Person", "foaf:PersonalProfileDocument")
     )
   }
 
@@ -58,6 +58,15 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
     response.checkCompletionValues(
       category = Categories.vocabularyProperties,
       expectedValues = Set("foaf:givenname", "foaf:givenName")
+    )
+  }
+
+  "auto complete target properties matching input term in their description" in {
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/completions/targetProperties?term=depiction")
+
+    response.checkCompletionValues(
+      category = Categories.vocabularyProperties,
+      expectedValues = Set("foaf:img", "foaf:depiction")
     )
   }
 
