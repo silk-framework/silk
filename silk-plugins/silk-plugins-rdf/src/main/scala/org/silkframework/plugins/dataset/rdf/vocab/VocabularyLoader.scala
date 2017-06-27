@@ -21,6 +21,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       s"""
          | PREFIX owl: <http://www.w3.org/2002/07/owl#>
          | PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+         | PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
          |
          | SELECT * WHERE {
          |   GRAPH <$uri> {
@@ -29,6 +30,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          |     { ?c a rdfs:Class }
          |     OPTIONAL { ?c rdfs:label ?label }
          |     OPTIONAL { ?c rdfs:comment ?desc }
+         |     OPTIONAL { ?c skos:definition ?desc }
          |     OPTIONAL { ?c rdfs:subClassOf ?parent }
          |   }
          | }
@@ -87,6 +89,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       s"""
          | PREFIX owl: <http://www.w3.org/2002/07/owl#>
          | PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+         | PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
          |
          | SELECT * WHERE {
          |   GRAPH <$uri> {
@@ -98,6 +101,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          |
          |     OPTIONAL { ?p rdfs:label ?label }
          |     OPTIONAL { ?p rdfs:comment ?desc }
+         |     OPTIONAL { ?c skos:definition ?desc }
          |     OPTIONAL { ?p rdfs:domain ?domain }
          |     OPTIONAL { ?p rdfs:range ?range }
          |   }
