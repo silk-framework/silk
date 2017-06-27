@@ -85,7 +85,7 @@ object GenericInfo {
     def read(node: Node)(implicit readContext: ReadContext): GenericInfo = {
       GenericInfo(
         uri = (node \ "@uri").text,
-        label = (node \ "@label").headOption.filter(_.nonEmpty).map(_.text),
+        label = (node \ "@label").headOption.map(_.text).filter(_.nonEmpty),
         description = if (node.text.trim.nonEmpty) Some(node.text.trim) else None
       )
     }
