@@ -8,7 +8,7 @@ import {
     Spinner,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import {ThingName} from '../SharedComponents';
+import {ThingName, ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers'
 import _ from 'lodash';
@@ -212,13 +212,11 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connect from {<ThingName id={this.props.parentName}
-                                                             prefixString="parent element "/>}</div>}
+                        label={<div>Connect from <ParentElement parent={this.props.parent}/></div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connect to {<ThingName id={this.props.parentName}
-                                                           prefixString="parent element "/>}</div>}
+                        label={<div>Connect to <ParentElement parent={this.props.parent}/></div>}
                     />
                 </RadioGroup>
             );

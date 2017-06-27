@@ -63,9 +63,8 @@ function findRule(element, id, breadcrumbs) {
             ...breadcrumbs,
             {
                 id: element.id,
-                name: element.type === 'root'
-                    ? _.get(element, 'rules.typeRules[0].typeUri', '(no target type)')
-                    : _.get(element, 'mappingTarget.uri', '(no target property)')
+                type: _.get(element, 'rules.typeRules[0].typeUri', false),
+                property: _.get(element, 'mappingTarget.uri', false)
             }
         ];
         _.forEach(element.rules.propertyRules, (child) => {

@@ -212,3 +212,9 @@ export const FloatingListActions = React.createClass({
         </div>;
     },
 })
+
+export const ParentElement = ({parent}) => {
+
+    return _.get(parent, 'type') ? <ThingName id={parent.type}/> : <span>parent element</span>
+
+}

@@ -230,9 +230,6 @@ const MappingRuleOverview = React.createClass({
 
         // The root element does not have mappingTarget uri so we get the name from tree?
         const createType = _.get(this.state, 'ruleEditView.type', false);
-        const parentName = _.has(this, 'state.ruleData.mappingTarget.uri')
-            ? _.get(this, 'state.ruleData.mappingTarget.uri', '')
-            : _.get(this.state, 'ruleData.rules.typeRules[0].typeUri', '');
 
         const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
@@ -241,14 +238,13 @@ const MappingRuleOverview = React.createClass({
                         <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={parentName}
+                            parent={_.last(this.state.ruleData.breadcrumbs)}
                             edit={true}
                         />
                     ) : (
                         <ValueMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={parentName}
                             edit={true}
                         />
                     )
