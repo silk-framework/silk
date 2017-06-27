@@ -276,6 +276,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
                                 {sourcePropertyInput}
+                                {patternInput}
                                 <TextField
                                     multiline={true}
                                     label="Description"
@@ -283,7 +284,6 @@ const ObjectMappingRuleForm = React.createClass({
                                     value={this.state.comment}
                                     onChange={this.handleChangeTextfield.bind(null, 'comment')}
                                 />
-                                {patternInput}
                             </div>
                             <div
                                 className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
