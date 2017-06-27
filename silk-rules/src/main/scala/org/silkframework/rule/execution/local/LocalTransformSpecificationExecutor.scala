@@ -48,14 +48,16 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
       val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-      for(ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
+      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
             typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
           )
 
-        transformEntities(childRules, childOutputSchema, context)
+        val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
+
+        transformEntities(updatedChildRules, childOutputSchema, context)
       }
     }
 
