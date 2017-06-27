@@ -22308,7 +22308,7 @@
             });
         },
         render: function() {
-            var _this3 = this, _props = this.props, type = (_props.id, _props.type), parentId = _props.parentId, sourcePath = _props.sourcePath, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
+            var _this3 = this, _props = this.props, type = (_props.id, _props.type), parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
             _props.count, !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null)), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
@@ -22346,7 +22346,7 @@
             }, "from"), _react2.default.createElement(_SharedComponents.SourcePath, {
                 rule: {
                     type: type,
-                    sourcePath: sourcePath
+                    sourcePath: sourcePath || sourcePaths
                 }
             })), _react2.default.createElement("div", {
                 key: "sl3",

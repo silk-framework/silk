@@ -37,7 +37,7 @@
                         "nodeType": "AutoDetectValueType"
                     }
                 },
-                "sourcePath": [
+                "sourcePaths": [
                     "/<http://www.w3.org/2000/01/rdf-schema#label>",
                     "/<http://dbpedia.org/ontology/budget>"
                 ],
