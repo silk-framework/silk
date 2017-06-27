@@ -1,18 +1,23 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon, Button} from 'ecc-gui-elements';
-const NO_TARGET_TYPE = '(No target type)';
-const NO_TARGET_PROPERTY = '(No target property)';
+import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
+const NO_TARGET_TYPE = <NotAvailable/>;
+const NO_TARGET_PROPERTY = <NotAvailable/>;
+import hierarchicalMappingChannel from '../../store';
+
 
 export const RuleTitle = ({rule}) => {
 
+    let uri;
+
     switch (rule.type) {
     case 'root':
-        const title = _.get(rule, 'rules.typeRules[0].typeUri', NO_TARGET_TYPE);
-        return (<span>{_.isEmpty(title) ? '[no type]' : title}</span>);
+        uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
+        return uri ? <ThingName id={uri}/> : NO_TARGET_TYPE;
     case 'direct':
     case 'object':
-        return (<span>{_.get(rule, 'mappingTarget.uri', NO_TARGET_PROPERTY)}</span>);
+        uri = _.get(rule, 'mappingTarget.uri', false);
+        return uri ? <ThingName id={uri}/> : NO_TARGET_PROPERTY;
     case 'complex':
         //TODO: Complex Mappings need better titles
         return 'Complex Mapping';
@@ -26,8 +31,12 @@ export const RuleTypes = ({rule}) => {
 
     switch (rule.type) {
     case 'object':
-        let types = _.get(rule, 'rules.typeRules', []).map(({typeUri}) => typeUri);
-        types = _.isEmpty(types) ? NO_TARGET_TYPE : types.join(', ');
+        let types = _.get(rule, 'rules.typeRules', []);
+        types = _.isEmpty(types) ?
+            NO_TARGET_TYPE :
+            types
+                .map(({typeUri}) => <ThingName id={typeUri} key={typeUri}/>)
+                .reduce((prev, curr) => [prev, ', ', curr]);
         return <span>{types}</span>;
     case 'direct':
     case 'complex':
@@ -39,7 +48,7 @@ export const RuleTypes = ({rule}) => {
 };
 
 export const SourcePath = ({rule}) => {
-    const path = _.get(rule, 'sourcePath', '(No value path)');
+    const path = _.get(rule, 'sourcePath', <NotAvailable/>);
 
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 
@@ -47,65 +56,74 @@ export const SourcePath = ({rule}) => {
 
 export const RuleTreeTitle = ({rule}) => {
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
-    switch (rule.type) {
-        case 'root':
-            const title = _.get(rule, 'rules.typeRules[0].typeUri', NO_TARGET_TYPE);
-            return (<span>{_.isEmpty(title) ? '[no type]' : title} ({childCount})</span>);
-        case 'object':
-            return (<span>{_.get(rule, 'mappingTarget.uri', NO_TARGET_PROPERTY)} ({childCount})</span>);
-        default:
-            return false;
-    }
+
+    return <span><RuleTitle rule={rule}/> ({childCount})</span>;
 
 };
 
 export const RuleTreeTypes = ({rule}) => {
 
-    switch (rule.type) {
-        case 'object':
-            let types = _.get(rule, 'rules.typeRules', []).map(({typeUri}) => typeUri);
-            types = _.isEmpty(types) ? NO_TARGET_TYPE : types.join(', ');
-            return <span>{types}</span>;
-        case 'root':
-        default:
-            return false;
-    }
-
+    return <RuleTypes rule={rule}/>
 };
 
-export const ThingName = ({id, prefixString, suffixString}) => {
-    return <span>
-        {
-            prefixString ? prefixString : false
+const URIInfo = React.createClass({
+    getInitialState(){
+
+        hierarchicalMappingChannel.request(
+            {
+                topic: 'vocabularyInfo.get',
+                data: {
+                    uri: this.props.uri,
+                    field: this.props.field,
+                }
+            }
+        )
+            .subscribe(
+                ({info}) => {
+                    this.setState({
+                        info,
+                    });
+                },
+                () => {
+                    console.warn('Could not get any info, suckerz');
+                }
+            );
+
+        return {
+            info: this.props.uri
         }
-        {id} (TODO: readable name)
-        {
-            suffixString ? suffixString : false
-        }
-    </span>
-}
+    },
+    render(){
+        return <span>
+            {this.state.info}
+        </span>
+    }
+});
+
+export const ThingName = ({id}) => {
+    return <span><URIInfo uri={id} field="label"/></span>
+};
 
 export const ThingDescription = ({id}) => {
-    return <p>TODO: Include vocabulary description about {id}</p>
-}
+    return <p><URIInfo uri={id} field="description"/></p>
+};
 
 export const ThingIcon = ({type, status, message}) => {
     let iconName = 'help_outline';
-    let tooltip= '';
-    switch(type) {
-        case 'direct':
-        case 'complex':
-            tooltip = 'Value mapping';
-            iconName = "insert_drive_file";
-            break;
-        case 'object':
-            tooltip = 'Object mapping';
-            iconName = "folder";
-            break;
-        default:
-            iconName = 'help_outline';
+    let tooltip = '';
+    switch (type) {
+    case 'direct':
+    case 'complex':
+        tooltip = 'Value mapping';
+        iconName = "insert_drive_file";
+        break;
+    case 'object':
+        tooltip = 'Object mapping';
+        iconName = "folder";
+        break;
+    default:
+        iconName = 'help_outline';
     }
-
 
 
     return <Icon
@@ -113,7 +131,7 @@ export const ThingIcon = ({type, status, message}) => {
         name={status === 'error' ? 'warning' : iconName}
         tooltip={status === 'error' ? tooltip + ' (' + message + ')' : tooltip}
     />
-}
+};
 
 export const FloatingListActions = React.createClass({
 
@@ -173,7 +191,7 @@ export const FloatingListActions = React.createClass({
                                             onClick={action.handler}
                                         >
                                             {
-                                                action.icon ? <Icon name={action.icon} /> : false
+                                                action.icon ? <Icon name={action.icon}/> : false
                                             }
                                             {action.label}
                                         </button>

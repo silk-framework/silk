@@ -42,8 +42,6 @@ const RuleObjectView = React.createClass({
             edit: !!this.props.edit,
         };
     },
-
-
     // open view in edit mode
     handleEdit() {
         this.setState({

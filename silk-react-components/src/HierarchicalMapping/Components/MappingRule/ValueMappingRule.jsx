@@ -90,7 +90,7 @@ const RuleValueView = React.createClass({
                             onClick={this.props.handleToggleExpand}
                         >
                             <div className="mdl-card__title-text">
-                                Readable name of {_.get(this.props, 'mappingTarget.uri', false)}
+                                <ThingName id={_.get(this.props, 'mappingTarget.uri', false)}/>
                             </div>
                         </div>
                         <div className="mdl-card__content">
