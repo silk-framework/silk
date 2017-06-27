@@ -78,7 +78,7 @@ const ObjectMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'direct',
+                type: 'object',
             });
         }
     },

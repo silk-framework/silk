@@ -212,10 +212,7 @@
                     "uriRule": {
                         "type": "uri",
                         "pattern": "mailto:{email}"
-                    },
-                    "typeRules": [{
-                        "type": "type"
-                    }]
+                    }
                 },
                 "id": "objectMapping398",
                 "type": "object"
