@@ -162,9 +162,9 @@ const RuleObjectView = React.createClass({
                                         </dt>
                                         {
                                             this.props.rules.typeRules.map(
-                                                function(typeRule) {
+                                                function(typeRule, idx) {
                                                     return (
-                                                        <dd>
+                                                        <dd key={"TargetEntityType_" + idx}>
                                                             <InfoBox>
                                                                 <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                                     <ThingName id={typeRule.typeUri}/>
