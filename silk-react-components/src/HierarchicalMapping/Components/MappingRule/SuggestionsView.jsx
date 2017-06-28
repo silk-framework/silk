@@ -5,6 +5,8 @@ import {
     Error,
     Checkbox,
     Button,
+    AffirmativeButton,
+    DismissiveButton,
     ContextMenu,
     MenuItem,
     Chip,
@@ -153,7 +155,7 @@ const SuggestionsView = React.createClass({
         const suggestionsHeader = (
             <div className="mdl-card__title mdl-card--border">
                 <div className="mdl-card__title-text">
-                    Add suggested mapping rules ({_.sum(_.map(this.state.data, v => v.length))})
+                     Add suggested mapping rules ({_.sum(_.map(this.state.data, v => v.length))})
                 </div>
                 <ContextMenu
                     className="ecc-silk-mapping__ruleslistmenu"
@@ -204,25 +206,23 @@ const SuggestionsView = React.createClass({
             />
         )});
 
-        const actions = <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
-            <div className="mdl-card__actions mdl-card--border">
-                <Button accent onClick={this.handleAddSuggestions} >Add</Button>
-                <Button onClick={this.props.onClose} >Close</Button>
-            </div>
+        const actions = <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
+            <AffirmativeButton onClick={this.handleAddSuggestions} >Save</AffirmativeButton>
+            <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
 
         if (this.state.loading) {
             return <Spinner/>;
         }
         else {
-            return <div className="ecc-silk-mapping__ruleslist mdl-card mdl-card--stretch mdl-shadow--2dp">
-                {suggestionsHeader}
+            return <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
                 <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                    {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
                     </ol>
+                    {actions}
                 </div>
-                {actions}
             </div>
 
         }

@@ -44,13 +44,12 @@ const SuggestionsView = React.createClass({
                 checked={checked}
                 className='ecc-silk-mapping__suggestitem-checkbox'
                 ripple={true}/>
-            <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable">
-                <div className="ecc-silk-mapping__sug-ruleitem-headline">{k}</div>
-                <div className="ecc-silk-mapping__sug-ruleitem-subline">{item.uri}</div>
-                <div className="ecc-silk-mapping__sug-ruleitem-subline">Sample data (TODO)</div>
-                <div className="ecc-silk-mapping__sug-ruleitem-lastline">{item.confidence}</div>
-                <div className="mdl-list__item-secondary-content" key="action">{action}</div>
+            <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content">
+                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{k}</div>
+                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.uri}</div>
+                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.confidence}</div>
             </div>
+            <div className="mdl-list__item-secondary-content" key="action">{action}</div>
         </li>
     }
 });
