@@ -285,16 +285,14 @@
         max-width: 100%;
     }
 
-    .ecc-silk-mapping__ruleitem-headline,
-    .ecc-silk-mapping__sug-ruleitem-headline{
+    .ecc-silk-mapping__ruleitem-headline {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: 500;
     }
 
-    .ecc-silk-mapping__ruleitem-subline,
-    .ecc-silk-mapping__sug-ruleitem-subline{
+    .ecc-silk-mapping__ruleitem-subline {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -303,11 +301,10 @@
 
 
     .ecc-silk-mapping__suggestitem-checkbox {
-        width:20px;
-        display: flex;
-        flex-flow: column;
-        align-items: flex-end;
-        align-self: flex-start;
+        align-self: center;
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 0;
     }
 
     .ecc-silk-mapping__ruleitem--summary {
@@ -395,6 +392,11 @@
     .mdl-card__actions--fixed {
         position: sticky;
         bottom: 0;
+    }
+
+    & > .mdl-card > .mdl-card__actions {
+        background-color: rgba(to_color($card-background-color), 0.90);
+        z-index: 1;
     }
 
 }
