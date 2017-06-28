@@ -724,7 +724,6 @@ if (!__DEBUG__) {
 
             switch (field) {
             case 'label':
-                ret.info = _.last(_.split(uri, '/'));
                 break;
             case 'description':
                 ret.info = loremIpsum({
