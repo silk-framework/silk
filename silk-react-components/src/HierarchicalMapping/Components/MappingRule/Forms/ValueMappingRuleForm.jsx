@@ -7,7 +7,7 @@ import {
     Spinner,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../../store';
-import {wasTouched} from './helpers';
+import {newValueIsIRI, wasTouched} from './helpers';
 import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
@@ -204,6 +204,7 @@ const ValueMappingRuleForm = React.createClass({
                             placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             entity='targetProperty'
+                            isValidNewOption={newValueIsIRI}
                             creatable={true}
                             value={this.state.targetProperty}
                             ruleId={this.props.parentId}

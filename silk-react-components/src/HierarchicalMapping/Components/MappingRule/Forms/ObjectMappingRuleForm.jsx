@@ -10,7 +10,7 @@ import {
 } from 'ecc-gui-elements';
 import {ThingName, ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
-import {wasTouched} from './helpers'
+import {newValueIsIRI, wasTouched} from './helpers'
 import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
@@ -196,6 +196,7 @@ const ObjectMappingRuleForm = React.createClass({
                         placeholder={'Target property'}
                         className="ecc-silk-mapping__ruleseditor__targetProperty"
                         entity="targetProperty"
+                        isValidNewOption={newValueIsIRI}
                         creatable={true}
                         ruleId={this.props.parentId}
                         value={this.state.targetProperty}
@@ -269,6 +270,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     placeholder={'Target entity type'}
                                     className={'ecc-silk-mapping__ruleseditor__targetEntityType'}
                                     entity="targetEntityType"
+                                    isValidNewOption={newValueIsIRI}
                                     ruleId={type === 'root' ? this.props.id : this.props.parentId}
                                     value={this.state.targetEntityType}
                                     multi={true} // allow multi selection
