@@ -420,14 +420,17 @@ if (!__DEBUG__) {
         ({data, replySubject}) => {
             let suggestions = {};
             _.forEach(data.targets, (t) => {
-                suggestions[t] = [];
-                _.forEach(new Array(78), (a, i) => {
-                    suggestions[t].push({
-                        "uri": "http://eccenca.com/ds/loans/field_" + i,
-                        "confidence": Math.floor((i === 0
-                                    ? 1 - 0.1 * Math.random()
-                                    : 0.5 + 0.5 * Math.random()
-                            ) * 100) / 100
+                _.forEach(['/name', '/city','/loan','/country','/lastname','/firstName'], (p) => {
+                    console.log(t,p)
+                    suggestions[t+p] = [];
+                    _.forEach(new Array(1), (a, i) => {
+                        suggestions[t+p].push({
+                            "uri": "http://eccenca.com/ds/loans/field_" + i,
+                            "confidence": Math.floor((i === 0
+                                        ? 1 - 0.1 * Math.random()
+                                        : 0.5 + 0.5 * Math.random()
+                                ) * 100) / 100
+                        });
                     });
                 });
 
