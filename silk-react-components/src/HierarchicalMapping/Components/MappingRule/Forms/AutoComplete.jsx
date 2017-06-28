@@ -80,7 +80,7 @@ const AutoComplete = React.createClass({
         return (
             <SelectBox {...otherProps}
                        onInputChange={(inputValue) => {
-                           this._inputValue = inputValue;
+                           this._inputValue = _.clone(inputValue);
                            return inputValue;
                        }}
                        async={true}
