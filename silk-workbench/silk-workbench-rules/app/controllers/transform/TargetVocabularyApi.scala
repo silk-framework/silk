@@ -46,18 +46,6 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
   }
 
   /**
-    * Returns a JSON array of candidate types, either from the vocabulary cache or the matching cache of the transform task.
-    *
-    * @param projectName The name of the project
-    * @param taskName    The name of the transform task
-    */
-  def typeCandidates(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val (_, task) = projectAndTask[TransformSpec](projectName, taskName)
-    val typeCompletion = new AutoCompletionApi().retrieveTypeCompletions(task)
-    Ok(JsArray(typeCompletion.map(_.toJson)))
-  }
-
-  /**
     * Returns all properties that are in the domain of the given class or one of its super classes.
     * @param projectName Name of project
     * @param taskName    Name of task
