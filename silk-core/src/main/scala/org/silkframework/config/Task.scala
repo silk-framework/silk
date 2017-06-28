@@ -39,6 +39,12 @@ trait Task[+TaskType <: TaskSpec] {
 
 case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType]
 
+object PlainTask {
+  def fromTask[T <: TaskSpec](task: Task[T]): PlainTask[T] = {
+    PlainTask(task.id, task.data, task.metaData)
+  }
+}
+
 object Task {
 
   /**
