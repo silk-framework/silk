@@ -63,9 +63,8 @@ function findRule(element, id, breadcrumbs) {
             ...breadcrumbs,
             {
                 id: element.id,
-                name: element.type === 'root'
-                    ? _.get(element, 'rules.typeRules[0].typeUri', '(no target type)')
-                    : _.get(element, 'mappingTarget.uri', '(no target property)')
+                type: _.get(element, 'rules.typeRules[0].typeUri', false),
+                property: _.get(element, 'mappingTarget.uri', false)
             }
         ];
         _.forEach(element.rules.propertyRules, (child) => {
@@ -157,6 +156,37 @@ const prepareObjectMappingPayload = (data) => {
 if (!__DEBUG__) {
 
     const rootId = 'root';
+
+    const vocabularyCache = {};
+
+    hierarchicalMappingChannel.subject('vocabularyInfo.get').subscribe(
+        ({data, replySubject}) => {
+
+            const {uri, field} = data;
+
+            const path = [uri, field];
+
+            if(_.has(vocabularyCache, path)){
+                replySubject.onNext({
+                    info: _.get(vocabularyCache, path)
+                });
+                replySubject.onCompleted()
+            } else {
+                silkStore
+                    .request({topic: 'transform.task.targetVocabulary.type', data: {...apiDetails, uri}})
+                    .map((returned) => {
+
+                        const info = _.get(returned, ['body', 'genericInfo', field], null);
+
+                        _.set(vocabularyCache, path, info);
+
+                        return {
+                            info,
+                        };
+                    }).multicast(replySubject).connect();
+            }
+        }
+    );
 
     hierarchicalMappingChannel.subject('transform.get').subscribe(
         ({data, replySubject}) => {
@@ -681,6 +711,35 @@ if (!__DEBUG__) {
             replySubject.onCompleted();
         }
     );
+
+    const loremIpsum = require('lorem-ipsum');
+
+
+    hierarchicalMappingChannel.subject('vocabularyInfo.get').subscribe(
+        ({data, replySubject}) => {
+
+            const {uri, field} = data;
+
+            const ret = {info: null};
+
+            switch (field) {
+            case 'label':
+                ret.info = _.last(_.split(uri, '/'));
+                break;
+            case 'description':
+                ret.info = loremIpsum({
+                    count: _.random(0, 2),
+                    units: 'paragraphs'
+                });
+            }
+
+            replySubject.onNext(ret);
+            replySubject.onCompleted();
+
+
+        }
+    );
+
 
 }
 

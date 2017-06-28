@@ -1,5 +1,5 @@
 import React from 'react';
-import {RuleTitle, RuleTypes} from './MappingRule/SharedComponents';
+import {RuleTitle, RuleTypes, ParentElement} from './MappingRule/SharedComponents';
 import RuleObjectEdit from './MappingRule/ObjectMappingRule';
 import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
@@ -103,13 +103,15 @@ const MappingRuleOverviewHeader = React.createClass({
         let parentTitle = false;
         let backButton = false;
 
-        if (_.has(parent, 'id') && _.has(parent, 'name')) {
-            // parentTitle should be the main entity type, or the parent relation if type is not set
+        if (_.has(parent, 'id')) {
             parentTitle = (
                 <div className="mdl-card__title-text-sup">
-                    <Chip onClick={this.handleNavigate.bind(null, parent.id)}>{parent.name} (fixme)</Chip>
+                    <Chip onClick={this.handleNavigate.bind(null, parent.id)}>
+                        <ParentElement parent={parent}/>
+                    </Chip>
                 </div>
             );
+
             backButton = (
                 <Button
                     iconName={'chevron_left'}
@@ -126,7 +128,7 @@ const MappingRuleOverviewHeader = React.createClass({
                 <RuleObjectEdit
                     {...this.props.rule}
                     parentId={_.get(parent, 'id', '')}
-                    parentName={_.get(parent, 'name', '')}
+                    parent={parent}
                     edit={false}
                 />
             );

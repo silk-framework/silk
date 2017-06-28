@@ -17,7 +17,9 @@ import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 import {
     SourcePath,
     ThingName,
-    ThingDescription
+    ThingDescription,
+    ParentElement,
+    InfoBox
 } from './SharedComponents';
 
 const RuleObjectView = React.createClass({
@@ -42,8 +44,6 @@ const RuleObjectView = React.createClass({
             edit: !!this.props.edit,
         };
     },
-
-
     // open view in edit mode
     handleEdit() {
         this.setState({
@@ -64,7 +64,7 @@ const RuleObjectView = React.createClass({
         if (edit) {
             return <ObjectMappingRuleForm
                 id={this.props.id}
-                parentName={this.props.parentName}
+                parent={this.props.parent}
                 parentId={this.props.parentId}
             />
         }
@@ -83,16 +83,18 @@ const RuleObjectView = React.createClass({
                             <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                 Target property
                             </dt>
-                            <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
-                            </dd>
-                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
-                            </dd>
-                            <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                <Info border>
-                                    <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
-                                </Info>
+                            <dd>
+                                <InfoBox>
+                                    <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                        <ThingName id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                    </div>
+                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
+                                        <code>{_.get(this.props, 'mappingTarget.uri', undefined)}</code>
+                                    </div>
+                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                        <ThingDescription id={_.get(this.props, 'mappingTarget.uri', undefined)}/>
+                                    </div>
+                                </InfoBox>
                             </dd>
                         </dl>
                     </div>
@@ -107,13 +109,11 @@ const RuleObjectView = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connect from {<ThingName id={this.props.parentName}
-                                                              prefixString="parent element "/>}</div>}
+                        label={<div>Connect from <ParentElement parent={this.props.parent}/></div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connect to {<ThingName id={this.props.parentName}
-                                                            prefixString="parent element "/>}</div>}
+                        label={<div>Connect to <ParentElement parent={this.props.parent}/></div>}
                     />
                 </RadioGroup>
             );
@@ -150,7 +150,6 @@ const RuleObjectView = React.createClass({
                         {targetProperty}
                         {entityRelation}
                         {
-                            // TODO: show multiple (array)
                             _.get(this.props, 'rules.typeRules[0].typeUri', false) ? (
                                 <div
                                     className="ecc-silk-mapping__rulesviewer__targetEntityType"
@@ -163,20 +162,22 @@ const RuleObjectView = React.createClass({
                                         </dt>
                                         {
                                             this.props.rules.typeRules.map(
-                                                function(typeRule) {
-                                                    return [
-                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
-                                                            <ThingName id={typeRule.typeUri}/>
-                                                        </dd>,
-                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                            <code>{typeRule.typeUri}</code>
-                                                        </dd>,
-                                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                            <Info border>
-                                                                <ThingDescription id={typeRule.typeUri}/>
-                                                            </Info>
+                                                function(typeRule, idx) {
+                                                    return (
+                                                        <dd key={"TargetEntityType_" + idx}>
+                                                            <InfoBox>
+                                                                <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                                    <ThingName id={typeRule.typeUri}/>
+                                                                </div>
+                                                                <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
+                                                                    <code>{typeRule.typeUri}</code>
+                                                                </div>
+                                                                <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                                    <ThingDescription id={typeRule.typeUri}/>
+                                                                </div>
+                                                            </InfoBox>
                                                         </dd>
-                                                    ];
+                                                    );
                                                 }
                                             )
                                         }

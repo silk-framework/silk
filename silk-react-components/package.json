@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "ecc-gulp-tasks": "^3.7.0",
-    "gulp": "^3.9.1"
+    "gulp": "^3.9.1",
+    "lorem-ipsum": "^1.0.4"
   }
 }

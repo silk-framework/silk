@@ -8,7 +8,7 @@ import {
     Spinner,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import {ThingName} from '../SharedComponents';
+import {ThingName, ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {wasTouched} from './helpers'
 import _ from 'lodash';
@@ -78,7 +78,7 @@ const ObjectMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'direct',
+                type: 'object',
             });
         }
     },
@@ -212,13 +212,11 @@ const ObjectMappingRuleForm = React.createClass({
                 >
                     <Radio
                         value="from"
-                        label={<div>Connect from {<ThingName id={this.props.parentName}
-                                                             prefixString="parent element "/>}</div>}
+                        label={<div>Connect from <ParentElement parent={this.props.parent}/></div>}
                     />
                     <Radio
                         value="to"
-                        label={<div>Connect to {<ThingName id={this.props.parentName}
-                                                           prefixString="parent element "/>}</div>}
+                        label={<div>Connect to <ParentElement parent={this.props.parent}/></div>}
                     />
                 </RadioGroup>
             );
@@ -278,6 +276,7 @@ const ObjectMappingRuleForm = React.createClass({
                                     onChange={this.handleChangeSelectBox.bind(null, 'targetEntityType')}
                                 />
                                 {sourcePropertyInput}
+                                {patternInput}
                                 <TextField
                                     multiline={true}
                                     label="Description"
@@ -285,7 +284,6 @@ const ObjectMappingRuleForm = React.createClass({
                                     value={this.state.comment}
                                     onChange={this.handleChangeTextfield.bind(null, 'comment')}
                                 />
-                                {patternInput}
                             </div>
                             <div
                                 className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">

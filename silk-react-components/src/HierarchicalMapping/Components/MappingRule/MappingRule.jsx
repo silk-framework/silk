@@ -193,8 +193,7 @@ const MappingRule = React.createClass({
                 </div>,
             */
             <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
-                <span className="hide-in-table">from</span>
-                <SourcePath
+                <span className="hide-in-table">from</span> <SourcePath
                     rule={
                         {
                             type,
@@ -204,8 +203,7 @@ const MappingRule = React.createClass({
                 />
             </div>,
             <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
-                <span className="hide-in-table">DataType:</span>
-                <RuleTypes
+                <span className="hide-in-table">DataType:</span> <RuleTypes
                     rule={
                         {
                             type,

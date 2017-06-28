@@ -94,9 +94,11 @@ const MappingRuleOverview = React.createClass({
             })
         }
         else {
-            this.setState({askForDiscard: {
-                suggestions: true,
-            }})
+            this.setState({
+                askForDiscard: {
+                    suggestions: true,
+                }
+            })
         }
     },
     componentDidUpdate(prevProps) {
@@ -146,7 +148,7 @@ const MappingRuleOverview = React.createClass({
                 showSuggestions: true,
             })
         }
-        else{
+        else {
             hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
         }
         hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
@@ -176,13 +178,13 @@ const MappingRuleOverview = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleCreate({type}) {
-        if (this.state.editing.length === 0 ) {
+        if (this.state.editing.length === 0) {
             hierarchicalMappingChannel.subject('ruleId.create').onNext({
                 type,
                 //FIXME: do we need more data like id of parent as source?
             });
         }
-        else{
+        else {
             this.setState({
                 askForDiscard: {
                     type
@@ -228,9 +230,6 @@ const MappingRuleOverview = React.createClass({
 
         // The root element does not have mappingTarget uri so we get the name from tree?
         const createType = _.get(this.state, 'ruleEditView.type', false);
-        const parentName = _.has(this, 'state.ruleData.mappingTarget.uri')
-            ? _.get(this, 'state.ruleData.mappingTarget.uri', '')
-            : _.get(this.state, 'ruleData.rules.typeRules[0].typeUri', '');
 
         const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
@@ -239,14 +238,13 @@ const MappingRuleOverview = React.createClass({
                         <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={parentName}
+                            parent={_.last(this.state.ruleData.breadcrumbs)}
                             edit={true}
                         />
                     ) : (
                         <ValueMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parentName={parentName}
                             edit={true}
                         />
                     )
@@ -349,8 +347,9 @@ const MappingRuleOverview = React.createClass({
             ? <SuggestionsView
                 id={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
-                targets={_.map(this.state.ruleData.rules.typeRules,v => v.typeUri.replace('<','').replace('>',''))} />
+                targets={_.map(this.state.ruleData.rules.typeRules, v => v.typeUri.replace('<', '').replace('>', ''))}/>
             : false;
+
 
         const rulesList = !createRuleForm && !suggestions ? <div className="ecc-silk-mapping__ruleslist">
             <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
