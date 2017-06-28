@@ -9,21 +9,20 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.{ValidationError, ValidationException}
-import org.silkframework.serialization.json.{JsonParseException, JsonSerializers}
+import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationError, ValidationException}
+import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.JsonError
-import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 class TransformTaskApi extends Controller {
   implicit private val peakStatusWrites = Json.writes[PeakStatus]
@@ -107,11 +106,13 @@ class TransformTaskApi extends Controller {
     implicit val readContext = ReadContext(resources, prefixes)
 
     catchExceptions {
-      deserializeCompileTime[RootMappingRule]() { updatedRules =>
-        //Update transformation task
-        val updatedTask = task.data.copy(mappingRule = updatedRules)
-        project.updateTask(taskName, updatedTask)
-        Ok
+      task.synchronized {
+        deserializeCompileTime[RootMappingRule]() { updatedRules =>
+          //Update transformation task
+          val updatedTask = task.data.copy(mappingRule = updatedRules)
+          project.updateTask(taskName, updatedTask)
+          Ok
+        }
       }
     }
   }
@@ -133,11 +134,13 @@ class TransformTaskApi extends Controller {
     implicit val resources = project.resources
     implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
 
-    processRule(task, ruleId) { currentRule =>
-      implicit val updatedRequest = updateJsonRequest(request, currentRule)
-      deserializeCompileTime[TransformRule]() { updatedRule =>
-        updateRule(currentRule.update(updatedRule))
-        serializeCompileTime[TransformRule](updatedRule)
+    task.synchronized {
+      processRule(task, ruleId) { currentRule =>
+        implicit val updatedRequest = updateJsonRequest(request, currentRule)
+        deserializeCompileTime[TransformRule]() { updatedRule =>
+          updateRule(currentRule.update(updatedRule))
+          serializeCompileTime[TransformRule](updatedRule)
+        }
       }
     }
   }
@@ -148,9 +151,11 @@ class TransformTaskApi extends Controller {
     implicit val prefixes = project.config.prefixes
 
     try {
-      val updatedTree = RuleTraverser(task.data.mappingRule).remove(rule)
-      task.update(task.data.copy(mappingRule = updatedTree.operator.asInstanceOf[RootMappingRule]))
-      Ok
+      task.synchronized {
+        val updatedTree = RuleTraverser(task.data.mappingRule).remove(rule)
+        task.update(task.data.copy(mappingRule = updatedTree.operator.asInstanceOf[RootMappingRule]))
+        Ok
+      }
     } catch {
       case ex: NoSuchElementException =>
         NotFound(JsonError(ex.getMessage))
@@ -162,12 +167,16 @@ class TransformTaskApi extends Controller {
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
     implicit val readContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
-
-    processRule(task, ruleName) { parentRule =>
-      deserializeCompileTime[TransformRule]() { newChildRule =>
-        val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
-        updateRule(parentRule.update(updatedRule))
-        serializeCompileTime(newChildRule)
+    task.synchronized {
+      processRule(task, ruleName) { parentRule =>
+        deserializeCompileTime[TransformRule]() { newChildRule =>
+          if(task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
+            throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
+          }
+          val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
+          updateRule(parentRule.update(updatedRule))
+          serializeCompileTime(newChildRule)
+        }
       }
     }
   }
@@ -177,25 +186,27 @@ class TransformTaskApi extends Controller {
     implicit val task = project.task[TransformSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    processRule(task, ruleName) { parentRule =>
-      request.body.asJson match {
-        case Some(json) =>
-          val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
-          val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
-          val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
-          if (newOrder.toSet == currentOrder.toSet) {
-            val newPropertyRules =
-              for (id <- newOrder) yield {
-                parentRule.operator.children.find(_.id == id).get
-              }
-            val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
-            updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
-            Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
-          } else {
-            BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
-          }
-        case None =>
-          NotAcceptable(JsonError("Expected application/json."))
+    task.synchronized {
+      processRule(task, ruleName) { parentRule =>
+        request.body.asJson match {
+          case Some(json) =>
+            val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
+            val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
+            val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
+            if (newOrder.toSet == currentOrder.toSet) {
+              val newPropertyRules =
+                for (id <- newOrder) yield {
+                  parentRule.operator.children.find(_.id == id).get
+                }
+              val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
+              updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
+              Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
+            } else {
+              BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+            }
+          case None =>
+            NotAcceptable(JsonError("Expected application/json."))
+        }
       }
     }
   }

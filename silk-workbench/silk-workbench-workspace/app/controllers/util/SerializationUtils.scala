@@ -145,7 +145,7 @@ object SerializationUtils extends Results {
     }
   }
 
-  private def deserializeJsonIterable[T: ClassTag](jsArray: JsArray)
+  def deserializeJsonIterable[T: ClassTag](jsArray: JsArray)
                                                   (implicit readContext: ReadContext): Seq[T] = {
     val deserialized = for (jsObj <- jsArray.value) yield {
       Serialization.formatForType[T, JsValue].read(jsObj)
