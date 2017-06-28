@@ -85,27 +85,31 @@ const URIInfo = React.createClass({
                     });
                 },
                 () => {
-                    console.warn('Could not get any info, suckerz');
+                    console.warn('Could not get any info for ' + this.props.uri + '@' + this.props.field);
                 }
             );
 
         return {
-            info: this.props.uri
+            info: this.props.uri,
+            fallback: (typeof this.props.fallback !== 'undefined') ? this.props.fallback : this.props.uri,
         }
     },
     render(){
-        return <span>
-            {this.state.info}
-        </span>
+        return <span>{this.state.info ? this.state.info : this.state.fallback}</span>
     }
 });
 
 export const ThingName = ({id}) => {
-    return <span><URIInfo uri={id} field="label"/></span>
+    return <URIInfo uri={id} field="label" />
 };
 
 export const ThingDescription = ({id}) => {
-    return <p><URIInfo uri={id} field="description"/></p>
+    const fallbackInfo = <NotAvailable
+        inline
+        label="No description available."
+        description={false}
+    />
+return <URIInfo uri={id} field="description" fallback={fallbackInfo} />
 };
 
 export const ThingIcon = ({type, status, message}) => {
