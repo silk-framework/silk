@@ -3,6 +3,7 @@
 import rxmq from 'ecc-messagebus';
 import superagent from 'ecc-superagent';
 
+import _ from 'lodash';
 const silkStore = rxmq.channel('silk.api');
 
 
@@ -49,15 +50,15 @@ silkStore.subject('transform.task.rule.generate').subscribe(({data, replySubject
 );
 
 silkStore.subject('transform.task.rule.suggestions').subscribe(({data, replySubject}) => {
-    const {dataset, targets, baseUrl, project, transformTask } = data;
+    const {targets, baseUrl, project, transformTask } = data;
 
     const json = {
-        sourceDatasetName: dataset,
         projectName: project,
         transformTaskName: transformTask,
-        targetClassUri: targets[0],
         datasetUriPrefix: '',
+        targetClassUris: targets,
         nrCandidates: 1,
+        dataTypePropertiesOnly: false,
     };
 
     superagent
