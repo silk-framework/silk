@@ -13215,7 +13215,8 @@ h6 {
 .ecc-silk-mapping__rules {
   flex-basis: 75%;
   flex-grow: 1;
-  flex-shrink: 1; }
+  flex-shrink: 1;
+  min-width: 50%; }
 
 .ecc-silk-mapping__ruleshead {
   position: sticky;
