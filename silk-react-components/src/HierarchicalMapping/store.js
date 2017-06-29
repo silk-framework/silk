@@ -532,7 +532,15 @@ if (!__DEBUG__) {
             console.error(`No autocomplete defined for ${entity}`)
         }
 
-        replySubject.onNext({options: _.filter(result, ({value, label}) => _.includes(`${value}|${label}`, input))});
+        const search = _.isString(input) ? input.toLocaleLowerCase() : '';
+
+        replySubject.onNext({
+            options: _.filter(result, ({value, label, description}) => {
+                return _.includes(value.toLocaleLowerCase(), search)
+                    || _.includes(label.toLocaleLowerCase(), search)
+                    || _.includes(description.toLocaleLowerCase(), search)
+            })
+        });
 
         replySubject.onCompleted();
 
