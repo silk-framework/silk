@@ -36,22 +36,29 @@ class TransformedEntities(entities: Traversable[Entity],
     var count = 0
     for(entity <- entities) {
       errorFlag = false
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-      val values =
-        for(rules <- rulesPerPath) yield {
-          rules.flatMap(evaluateRule(entity))
+
+      val uriOption = subjectRule match {
+        case Some(rule) => rule(entity).headOption
+        case None => Some(entity.uri)
+      }
+
+      for(uri <- uriOption) {
+        val values =
+          for (rules <- rulesPerPath) yield {
+            rules.flatMap(evaluateRule(entity))
+          }
+
+        f(new Entity(uri, values, outputSchema))
+
+        report.incrementEntityCounter()
+        if (errorFlag)
+          report.incrementEntityErrorCounter()
+
+        count += 1
+        if (count % 1000 == 0) {
+          context.value.update(report.build())
+          context.status.updateMessage(s"Executing ($count Entities)")
         }
-
-      f(new Entity(uri, values, outputSchema))
-
-      report.incrementEntityCounter()
-      if(errorFlag)
-        report.incrementEntityErrorCounter()
-
-      count += 1
-      if (count % 1000 == 0) {
-        context.value.update(report.build())
-        context.status.updateMessage(s"Executing ($count Entities)")
       }
     }
 
