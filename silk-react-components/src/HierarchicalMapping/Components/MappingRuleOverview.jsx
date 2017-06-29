@@ -78,12 +78,14 @@ const MappingRuleOverview = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleRuleEditClose);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.handleRuleEditOpen);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     discardAll() {
         this.setState({
             editing: [],
+            showSuggestions: false,
         });
     },
     handleShowSuggestions(event) {
@@ -91,7 +93,9 @@ const MappingRuleOverview = React.createClass({
         if (this.state.editing.length === 0) {
             this.setState({
                 showSuggestions: true,
-            })
+
+            });
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
         }
         else {
             this.setState({
@@ -195,6 +199,7 @@ const MappingRuleOverview = React.createClass({
     handleCloseSuggestions(event) {
         event.stopPropagation();
         this.setState({showSuggestions: false});
+        hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
     },
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEmpty(nextState.ruleData);
@@ -223,7 +228,7 @@ const MappingRuleOverview = React.createClass({
                 }>
                 <p>
                     You currently have unsaved changes{this.state.editing.length === 1 ? '' :
-                    ` in ${this.state.editingElements.length} mapping rules`}.
+                    ` in ${this.state.editing.length} mapping rules`}.
                 </p>
             </ConfirmationDialog>
             : false;
