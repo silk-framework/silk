@@ -146,30 +146,30 @@ const SuggestionsView = React.createClass({
                     className="ecc-silk-mapping__ruleslistmenu"
                 >
                     <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-add-value"
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-all"
                         onClick={this.checkAll}
                     >
                         Select all
                     </MenuItem>
                     <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-add-object"
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-none"
                         onClick={this.checkNone}
                     >
                         Select none
                     </MenuItem>
                     <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
                     >
                         Select entity prop. (TODO)
                     </MenuItem>
                     <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
 
                     >
                         Select source matches (TODO)
                     </MenuItem>
                     <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
 
                     >
                         Hide unselected (TODO)
