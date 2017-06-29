@@ -30,14 +30,9 @@ const SuggestionsView = React.createClass({
     },
     // template rendering
     render () {
-        const {k, i, item,expanded, checked} = this.props;
-        const action = i > 0 ? <div style={{width:'32px'}}>&nbsp;</div> : (
-            <Button
-                iconName={expanded ? 'expand_less' : 'expand_more'}
-                onClick={this.props.expand.bind(null, k, i)}
-            />
-        );
-        return i > 0 && !expanded ? false : <li
+        const {k, i, item, checked} = this.props;
+
+        return <li
             className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
             <Checkbox
                 onChange={this.props.check.bind(null, k, i)}
@@ -49,7 +44,6 @@ const SuggestionsView = React.createClass({
                 <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.uri}</div>
                 <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.confidence}</div>
             </div>
-            <div className="mdl-list__item-secondary-content" key="action">{action}</div>
         </li>
     }
 });

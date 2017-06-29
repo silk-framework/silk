@@ -25,13 +25,6 @@ const SuggestionsView = React.createClass({
         targets: React.PropTypes.array,
 
     },
-    expand(k, i, event) {
-        this.setState({
-            expanded: _.includes(this.state.expanded, k)
-                ? _.filter(this.state.expanded, (e) => k !== e)
-                : _.concat(this.state.expanded, [k])
-        });
-    },
     check(value, id, event) {
         const i = `${value};${id}`;
         this.setState({
@@ -39,10 +32,6 @@ const SuggestionsView = React.createClass({
                 ? _.filter(this.state.checked, (v) => v !== i)
                 : _.concat(this.state.checked, [i])
         })
-    },
-    isExpanded(key,i){
-
-        return _.includes(this.state.expanded, key)
     },
     isChecked(key,i){
         return _.includes(this.state.checked,`${key};${i}`)
@@ -127,7 +116,6 @@ const SuggestionsView = React.createClass({
     getInitialState() {
         return {
             data: undefined,
-            expanded: [],
             checked: [],
         };
     },
@@ -136,10 +124,7 @@ const SuggestionsView = React.createClass({
         event.stopPropagation();
         _.map(this.state.data, (value, key) => {
             _.map(value, (e,i) => {
-                if (i===0 || this.isExpanded(key, i)) {
-                    checked.push(`${key};${i}`)
-                }
-
+                checked.push(`${key};${i}`);
             })
         })
         this.setState({checked});
@@ -194,14 +179,14 @@ const SuggestionsView = React.createClass({
 
         );
 
-        const suggestionsList = _.map(this.state.data, (value, key) => {
-            return _.map(_.filter(value,(e,x)=> !(x===0&&this.isExpanded(e, x))), (item, i) => <SuggestionView
+
+        const suggestionsList = _.isEmpty(this.state.error)
+            ?_.map(this.state.data, (value, key) => {
+            return _.map(value, (item, i) => <SuggestionView
                 item={item}
                 i={i}
                 k={key}
                 check={this.check}
-                expand={this.expand}
-                expanded={this.isExpanded(key, i)}
                 checked={this.isChecked(key, i)}
             />
         )});
