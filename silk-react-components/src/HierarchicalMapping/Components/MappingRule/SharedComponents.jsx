@@ -109,10 +109,12 @@ const URIInfo = React.createClass({
 
         if (fallback !== undefined) {
             noInfo = fallback;
+        } else if (!_.isString(uri)) {
+            noInfo = <NotAvailable/>;
         } else if (field === 'label') {
             const lastHash = uri.lastIndexOf('#');
             const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
-            noInfo = uri.substring(lastSlash + 1).replace(/>$/,'');
+            noInfo = uri.substring(lastSlash + 1).replace(/>$/, '');
         }
 
         return <span>{noInfo}</span>

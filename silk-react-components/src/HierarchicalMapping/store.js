@@ -1,7 +1,7 @@
 // Store specific to hierarchical mappings, will use silk-store internally
 
 import _ from 'lodash';
-import rxmq from 'ecc-messagebus';
+import rxmq, {Rx} from 'ecc-messagebus';
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
 
@@ -166,14 +166,21 @@ if (!__DEBUG__) {
 
             const path = [uri, field];
 
-            if(_.has(vocabularyCache, path)){
+            if (_.has(vocabularyCache, path)) {
                 replySubject.onNext({
                     info: _.get(vocabularyCache, path)
                 });
                 replySubject.onCompleted()
             } else {
+
                 silkStore
                     .request({topic: 'transform.task.targetVocabulary.type', data: {...apiDetails, uri}})
+                    .catch((e) => {
+                        return silkStore.request({
+                            topic: 'transform.task.targetVocabulary.property',
+                            data: {...apiDetails, uri}
+                        }).catch(() => Rx.Observable.just({}))
+                    })
                     .map((returned) => {
 
                         const info = _.get(returned, ['body', 'genericInfo', field], null);
