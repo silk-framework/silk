@@ -6870,6 +6870,15 @@
             data: (0, _extends3.default)({}, apiDetails, {
                 uri: uri
             })
+        }).catch(function(e) {
+            return silkStore.request({
+                topic: "transform.task.targetVocabulary.property",
+                data: (0, _extends3.default)({}, apiDetails, {
+                    uri: uri
+                })
+            }).catch(function() {
+                return _eccMessagebus.Rx.Observable.just({});
+            });
         }).map(function(returned) {
             var info = _lodash2.default.get(returned, [ "body", "genericInfo", field ], null);
             _lodash2.default.set(vocabularyCache, path, info);
@@ -7431,7 +7440,19 @@
     }, _react2.default.createClass({
         displayName: "URIInfo",
         getInitialState: function() {
-            var _this = this, _props = this.props, uri = _props.uri, field = _props.field;
+            this.loadData(this.props);
+            return {
+                info: !1
+            };
+        },
+        componentWillReceiveProps: function(nextProps) {
+            _lodash2.default.isEqual(this.props, nextProps) || this.loadData(nextProps);
+        },
+        shouldComponentUpdate: function(nextProps, nextState) {
+            return !_lodash2.default.isEqual(nextState, this.state) || !_lodash2.default.isEqual(nextProps, this.props);
+        },
+        loadData: function(props) {
+            var _this = this, uri = props.uri, field = props.field;
             _store2.default.request({
                 topic: "vocabularyInfo.get",
                 data: {
@@ -7444,20 +7465,21 @@
                     info: info
                 });
             }, function() {
-                console.warn("Could not get any info for " + uri + "@" + field);
+                _this.setState({
+                    info: !1
+                });
             });
-            return {
-                info: !1
-            };
         },
         render: function() {
             var info = this.state.info;
             if (info) return _react2.default.createElement("span", null, info);
-            var _props2 = this.props, uri = _props2.uri, fallback = _props2.fallback, field = _props2.field, noInfo = !1;
-            if (void 0 !== fallback) noInfo = fallback; else if ("label" === field) {
-                var lastHash = uri.lastIndexOf("#"), lastSlash = -1 === lastHash ? uri.lastIndexOf("/") : lastHash;
-                noInfo = uri.substring(lastSlash + 1).replace(/>$/, "");
-            }
+            var _props = this.props, uri = _props.uri, fallback = _props.fallback, field = _props.field, noInfo = !1;
+            if (void 0 !== fallback) noInfo = fallback; else if (_lodash2.default.isString(uri)) {
+                if ("label" === field) {
+                    var lastHash = uri.lastIndexOf("#"), lastSlash = -1 === lastHash ? uri.lastIndexOf("/") : lastHash;
+                    noInfo = uri.substring(lastSlash + 1).replace(/>$/, "");
+                }
+            } else noInfo = _react2.default.createElement(_eccGuiElements.NotAvailable, null);
             return _react2.default.createElement("span", null, noInfo);
         }
     })), ThingName = exports.ThingName = function(_ref8) {
@@ -7518,7 +7540,7 @@
             });
         },
         render: function() {
-            var _props3 = this.props, actions = (_props3.iconName, _props3.actions);
+            var _props2 = this.props, actions = (_props2.iconName, _props2.actions);
             return !(!actions || actions.length < 1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleslist-floatingactions"
             }, _react2.default.createElement(_eccGuiElements.Button, {
@@ -18356,16 +18378,19 @@
             return option.$userCreated ? _react2.default.createElement("strong", {
                 className: "Select-option__label"
             }, label) : [ _react2.default.createElement("strong", {
+                key: "autoCompleteLabel",
                 className: "Select-option__label"
             }, _react2.default.createElement(Highlight, {
                 textToHighlight: label,
                 searchWord: this._inputValue
             })), _react2.default.createElement("code", {
+                key: "autoCompleteValue",
                 className: "Select-option__value"
             }, _react2.default.createElement(Highlight, {
                 textToHighlight: value,
                 searchWord: this._inputValue
             })), _react2.default.createElement("span", {
+                key: "autoCompleteDescription",
                 className: "Select-option__description"
             }, _react2.default.createElement(Highlight, {
                 textToHighlight: description,
@@ -18399,6 +18424,9 @@
                 onInputChange: function(inputValue) {
                     _this._inputValue = _lodash2.default.clone(inputValue);
                     return inputValue;
+                },
+                filterOption: function() {
+                    return !0;
                 },
                 async: !0,
                 optionRenderer: this.optionRender,
@@ -23929,6 +23957,12 @@
     silkStore.subject("transform.task.targetVocabulary.type").subscribe(function(_ref11) {
         var data = _ref11.data, replySubject = _ref11.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, uri = data.uri;
         _eccSuperagent2.default.get(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/targetVocabulary/type").accept("application/json").query({
+            uri: uri
+        }).observe().multicast(replySubject).connect();
+    });
+    silkStore.subject("transform.task.targetVocabulary.property").subscribe(function(_ref12) {
+        var data = _ref12.data, replySubject = _ref12.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, uri = data.uri;
+        _eccSuperagent2.default.get(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/targetVocabulary/property").accept("application/json").query({
             uri: uri
         }).observe().multicast(replySubject).connect();
     });

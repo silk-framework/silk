@@ -41,9 +41,15 @@ const AutoComplete = React.createClass({
 
         return (
             [
-                <strong className="Select-option__label"><Highlight textToHighlight={label} searchWord={this._inputValue}/></strong>,
-                <code className="Select-option__value"><Highlight textToHighlight={value} searchWord={this._inputValue}/></code>,
-                <span className="Select-option__description"><Highlight textToHighlight={description} searchWord={this._inputValue}/></span>
+                <strong key="autoCompleteLabel" className="Select-option__label">
+                    <Highlight textToHighlight={label} searchWord={this._inputValue}/>
+                </strong>,
+                <code key="autoCompleteValue" className="Select-option__value">
+                    <Highlight textToHighlight={value} searchWord={this._inputValue}/>
+                </code>,
+                <span key="autoCompleteDescription" className="Select-option__description">
+                    <Highlight textToHighlight={description} searchWord={this._inputValue}/>
+                </span>,
             ]
         );
     },
@@ -83,6 +89,7 @@ const AutoComplete = React.createClass({
                            this._inputValue = _.clone(inputValue);
                            return inputValue;
                        }}
+                       filterOption={() => true}
                        async={true}
                        optionRenderer={this.optionRender}
                        newOptionCreator={this.newOptionCreator}

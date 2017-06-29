@@ -69,31 +69,51 @@ export const RuleTreeTypes = ({rule}) => {
 const URIInfo = React.createClass({
     getInitialState(){
 
-        const {uri, field} = this.props;
-
-        hierarchicalMappingChannel.request(
-            {
-                topic: 'vocabularyInfo.get',
-                data: {
-                    uri,
-                    field,
-                }
-            }
-        )
-            .subscribe(
-                ({info}) => {
-                    this.setState({
-                        info,
-                    });
-                },
-                () => {
-                    console.warn('Could not get any info for ' + uri + '@' + field);
-                }
-            );
+        this.loadData(this.props);
 
         return {
             info: false,
         }
+    },
+    componentWillReceiveProps: function(nextProps) {
+
+        if (!_.isEqual(this.props, nextProps)) {
+            this.loadData(nextProps);
+        }
+
+    },
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(nextState, this.state) || !_.isEqual(nextProps, this.props);
+    },
+    loadData(props){
+
+        const {uri, field} = props;
+
+        hierarchicalMappingChannel
+            .request(
+                {
+                    topic: 'vocabularyInfo.get',
+                    data: {
+                        uri,
+                        field,
+                    }
+                }
+            ).subscribe(
+            ({info}) => {
+                this.setState({
+                    info,
+                });
+            },
+            () => {
+                if (__DEBUG__) {
+                    console.warn('Could not get any info for ' + uri + '@' + field);
+                }
+                this.setState({
+                    info: false,
+                });
+            }
+        );
+
     },
     render(){
 
@@ -109,10 +129,12 @@ const URIInfo = React.createClass({
 
         if (fallback !== undefined) {
             noInfo = fallback;
+        } else if (!_.isString(uri)) {
+            noInfo = <NotAvailable/>;
         } else if (field === 'label') {
             const lastHash = uri.lastIndexOf('#');
             const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
-            noInfo = uri.substring(lastSlash + 1).replace(/>$/,'');
+            noInfo = uri.substring(lastSlash + 1).replace(/>$/, '');
         }
 
         return <span>{noInfo}</span>

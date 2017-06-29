@@ -4,7 +4,7 @@ import com.hp.hpl.jena.query.DatasetFactory
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
-import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.vocab._
 
 class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
   private val MOVIE = "Movie"
@@ -33,13 +33,15 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
       VocabularyProperty(
         info = GenericInfo(uri("hasDate"), Some("release date"), None),
         domain = Some(classMap(uri(MOVIE))),
-        range = None
+        range = None,
+        propertyType = DatatypePropertyType
       )
     properties(1) shouldBe
       VocabularyProperty(
         info = GenericInfo(uri("hasDirector"), Some("director"), Some("Director of a movie")),
         domain = Some(classMap(uri(MOVIE))),
-        range = Some(classMap(uri(PERSON)))
+        range = Some(classMap(uri(PERSON))),
+        propertyType = ObjectPropertyType
       )
   }
 
