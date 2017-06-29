@@ -258,7 +258,7 @@ case class ObjectMapping(id: Identifier = "mapping",
       case Some(rule) =>
         rule.operator
       case None =>
-        TransformInput(transformer = EmptyValueTransformer())
+        PathInput(path = Path.empty)
     }
   }
 
