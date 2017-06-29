@@ -21,19 +21,20 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   val noSeparatorSettings = settings.copy(separator = ' ')
 
-  val source = new CsvSource(resources.get("persons.csv"), settings)
+  val personSource = new CsvSource(resources.get("persons.csv"), settings)
+  val personsWithNullValues = new CsvSource(resources.get("personsWithNullValues.csv"), settings)
   val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
   val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
   val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
-    val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
+    val properties = personSource.retrievePaths("").map(_.propertyUri.get.toString).toSet
     properties should equal(Set("ID", "Name", "Age"))
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("ID").asStringTypedPath, Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
-    val persons = source.retrieve(entityDesc).toIndexedSeq
+    val persons = personSource.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
@@ -41,9 +42,17 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
-    val persons = source.retrieve(entityDesc).toIndexedSeq
+    val persons = personSource.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
+    persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
+  }
+
+  "For configured null values, CsvParser" should "extract no values" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
+    val persons = personsWithNullValues.retrieve(entityDesc).toIndexedSeq
+    persons(0).values should equal(IndexedSeq(Seq("NULL"), Seq("30")))
+    persons(1).values should equal(IndexedSeq(Seq(), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
   }
 
@@ -101,9 +110,9 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val entities = source.retrieve(EntitySchema(Uri(""), paths)).toSeq
     entities.size shouldBe 3
     val multilineEntity = entities.drop(1).head
-    val expectedValue = """Markus from
-                          |the other company,
-                          |who does not like pizza""".stripMargin
+    val expectedValue = "Markus from\n" +
+                        "the other company,\n" +
+                        "who does not like pizza"
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
   }
 
