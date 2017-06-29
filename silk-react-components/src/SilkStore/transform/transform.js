@@ -30,6 +30,24 @@ silkStore.subject('transform.task.rules.put').subscribe();
 //TODO: Implement once needed
 silkStore.subject('transform.task.rule.get').subscribe();
 
+silkStore.subject('transform.task.rule.generate').subscribe(({data, replySubject}) => {
+
+        const {correspondences, parentRuleId, baseUrl, project, transformTask } = data;
+
+        superagent
+            .post(`${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentRuleId}`)
+            .accept('application/json')
+            .send({
+                correspondences: _.map(correspondences, (c) => { return {
+                    sourcePath: _.last(_.split(c.sourcePath, '/')),
+                    targetProperty: c.targetProperty,
+                }
+            })})
+            .observe()
+            .multicast(replySubject).connect();
+    }
+);
+
 silkStore.subject('transform.task.rule.suggestions').subscribe(({data, replySubject}) => {
     const {dataset, targets, baseUrl, project, transformTask } = data;
 

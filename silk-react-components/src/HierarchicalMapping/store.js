@@ -159,6 +159,21 @@ if (!__DEBUG__) {
 
     const vocabularyCache = {};
 
+    hierarchicalMappingChannel.subject('rules.generate').subscribe(
+        ({data, replySubject}) => {
+            const {correspondences, parentRuleId} = data;
+            silkStore
+                .request({topic: 'transform.task.rule.generate', data: {...apiDetails, correspondences, parentRuleId}})
+                .map((returned) => {
+                    return {
+                        rules: _.get(returned, ['body'], []),
+                    }
+                }).multicast(replySubject).connect();
+
+
+        }
+    );
+
     hierarchicalMappingChannel.subject('vocabularyInfo.get').subscribe(
         ({data, replySubject}) => {
 
@@ -422,6 +437,36 @@ if (!__DEBUG__) {
     if (mockStore === null) {
         mockStore = _.cloneDeep(rawMockStore);
     }
+
+    hierarchicalMappingChannel.subject('rules.generate').subscribe(
+        ({data, replySubject}) => {
+            const {correspondences, parentRuleId} = data;
+
+            let rules = [];
+
+            _.map(correspondences, (correspondence) => {
+                console.log(correspondence)
+                rules.push(
+                    {
+                        "metadata": {
+                            "description": ""
+                        },
+                        "mappingTarget": {
+                            "uri": correspondence.targetProperty,
+                            "valueType": {
+                                "nodeType": "AutoDetectValueType"
+                            }
+                        },
+                        "sourcePath": correspondence.sourcePath,
+                        "type": "direct"
+                    }
+                );
+            });
+
+            replySubject.onNext({rules});
+            replySubject.onCompleted();
+        }
+    );
 
     hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
