@@ -227,7 +227,7 @@ if (!__DEBUG__) {
             silkStore
                 .request({topic: 'transform.task.rule.suggestions', data: {...apiDetails, ...data}}).map((returned) => {
                 return {
-                    example: returned.body
+                    suggestions: returned.body
                 };
             }).multicast(replySubject).connect();
         }
