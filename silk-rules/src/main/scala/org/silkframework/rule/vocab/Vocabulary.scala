@@ -45,10 +45,13 @@ object Vocabulary {
     def readProperties(node: Node, classes: Seq[VocabularyClass])(implicit readContext: ReadContext): Seq[VocabularyProperty] = {
       val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(GenericInfo(uri), Seq.empty))
       for (propertyNode <- node \ "Properties" \ "VocabularyProperty") yield {
+        val propertyTypeStr = (propertyNode \ "@type").headOption.map(_.text).getOrElse("")
+        val propertyType = PropertyType.idToTypeMap.getOrElse(propertyTypeStr, BasePropertyType)
         VocabularyProperty(
           info = GenericInfoFormat.read((propertyNode \ INFO).head),
           domain = (propertyNode \ "@domain").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
-          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap)
+          range = (propertyNode \ "@range").headOption.map(_.text).filter(_.nonEmpty).map(classMap),
+          propertyType = propertyType
         )
       }
     }
@@ -74,7 +77,59 @@ object Vocabulary {
 
 case class VocabularyClass(info: GenericInfo, parentClasses: Traversable[String])
 
-case class VocabularyProperty(info: GenericInfo, domain: Option[VocabularyClass], range: Option[VocabularyClass])
+sealed trait PropertyType {
+  /** Unique ID */
+  def id: String
+
+  /** URI of this type */
+  def uri: String
+
+  /** preference, higher is better */
+  def preference: Double
+}
+
+object BasePropertyType extends PropertyType {
+  override val id: String = "Property"
+
+  override def uri: String = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
+
+  override def preference: Double = 1
+}
+
+object ObjectPropertyType extends PropertyType {
+  override val id: String = "ObjectProperty"
+
+  override def uri: String = "http://www.w3.org/2002/07/owl#ObjectProperty"
+
+  override def preference: Double = 2
+}
+
+object DatatypePropertyType extends PropertyType {
+  override val id: String = "DatatypeProperty"
+
+  override def uri: String = "http://www.w3.org/2002/07/owl#DatatypeProperty"
+
+  override def preference: Double = 3
+}
+
+object PropertyType {
+  val propertyTypes = Seq(BasePropertyType, ObjectPropertyType, DatatypePropertyType)
+  def idToTypeMap: Map[String, PropertyType] = {
+    val seq = propertyTypes.map { t =>
+      (t.id, t)
+    }
+    seq.toMap
+  }
+
+  def uriToTypeMap: Map[String, PropertyType] = {
+    val seq = propertyTypes.map { t =>
+      (t.uri, t)
+    }
+    seq.toMap
+  }
+}
+
+case class VocabularyProperty(info: GenericInfo, propertyType: PropertyType, domain: Option[VocabularyClass], range: Option[VocabularyClass])
 
 case class GenericInfo(uri: String, label: Option[String] = None, description: Option[String] = None)
 
@@ -131,15 +186,18 @@ object VocabularyProperty {
         "This warning will not be repeated again.")
         loggedWarning = true
       }
+      val propertyTypeStr = (propertyNode \ "@type").headOption.map(_.text).getOrElse("")
+      val propertyType = PropertyType.idToTypeMap.getOrElse(propertyTypeStr, BasePropertyType)
       VocabularyProperty(
         info = GenericInfoFormat.read((propertyNode \ Vocabulary.INFO).head),
         domain = None,
-        range = None
+        range = None,
+        propertyType = propertyType
       )
     }
 
     override def write(prop: VocabularyProperty)(implicit writeContext: WriteContext[Node]): Node = {
-      <VocabularyProperty domain={prop.domain.map(_.info.uri).getOrElse("")} range={prop.range.map(_.info.uri).getOrElse("")}>
+      <VocabularyProperty domain={prop.domain.map(_.info.uri).getOrElse("")} range={prop.range.map(_.info.uri).getOrElse("")} type={prop.propertyType.id}>
         {GenericInfoFormat.write(prop.info)}
       </VocabularyProperty>
     }
