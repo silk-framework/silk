@@ -22984,19 +22984,17 @@
                 className: "ecc-silk-mapping__suggestitem-checkbox",
                 ripple: !0
             }), _react2.default.createElement("div", {
-                className: "mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable"
+                className: "mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content"
             }, _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__sug-ruleitem-headline"
+                className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
             }, k), _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__sug-ruleitem-subline"
+                className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
             }, item.uri), _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__sug-ruleitem-subline"
-            }, "Sample data (TODO)"), _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__sug-ruleitem-lastline"
-            }, item.confidence), _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
+            }, item.confidence)), _react2.default.createElement("div", {
                 className: "mdl-list__item-secondary-content",
                 key: "action"
-            }, action)));
+            }, action));
         }
     }));
     exports.default = SuggestionsView;
@@ -23167,22 +23165,19 @@
                     });
                 });
             }), actions = _react2.default.createElement("div", {
-                className: "mdl-card mdl-card--stretch mdl-shadow--2dp"
-            }, _react2.default.createElement("div", {
-                className: "mdl-card__actions mdl-card--border"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
-                accent: !0,
+                className: "mdl-card__actions mdl-card__actions--fixed mdl-card--border"
+            }, _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
                 onClick: this.handleAddSuggestions
-            }, "Add"), _react2.default.createElement(_eccGuiElements.Button, {
+            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                 onClick: this.props.onClose
-            }, "Close")));
+            }, "Cancel"));
             return this.state.loading ? _react2.default.createElement(_eccGuiElements.Spinner, null) : _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__ruleslist mdl-card mdl-card--stretch mdl-shadow--2dp"
-            }, suggestionsHeader, _react2.default.createElement("div", {
-                className: "mdl-card mdl-card--stretch mdl-shadow--2dp"
-            }, _react2.default.createElement("ol", {
+                className: "ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist"
+            }, _react2.default.createElement("div", {
+                className: "mdl-card mdl-card--stretch"
+            }, suggestionsHeader, _react2.default.createElement("ol", {
                 className: "mdl-list"
-            }, suggestionsList)), actions);
+            }, suggestionsList), actions));
         }
     });
     exports.default = SuggestionsView;
@@ -23586,16 +23581,10 @@
                     }, rule));
                 }));
             }
-            var suggestions = !(createRuleForm || !this.state.showSuggestions || !_lodash2.default.has(this.state, "ruleData.rules.typeRules")) && _react2.default.createElement(_SuggestionsView2.default, {
-                id: this.props.currentRuleId,
-                onClose: this.handleCloseSuggestions,
-                targets: _lodash2.default.map(this.state.ruleData.rules.typeRules, function(v) {
-                    return v.typeUri.replace("<", "").replace(">", "");
-                })
-            }), rulesList = !createRuleForm && !suggestions && _react2.default.createElement("div", {
+            var rulesList = !createRuleForm && !suggestions && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleslist"
             }, _react2.default.createElement("div", {
-                className: "mdl-card mdl-card--stretch mdl-shadow--2dp"
+                className: "mdl-card mdl-card--stretch"
             }, mappingRulesListHead, mappingRulesList, _react2.default.createElement("div", {
                 className: "mdl-card__actions--fixed"
             }, _react2.default.createElement(_SharedComponents.FloatingListActions, {
@@ -23617,13 +23606,21 @@
                         });
                     }
                 } ]
-            }))));
+            })))), suggestions = !(createRuleForm || !this.state.showSuggestions || !_lodash2.default.has(this.state, "ruleData.rules.typeRules")) && _react2.default.createElement(_SuggestionsView2.default, {
+                id: this.props.currentRuleId,
+                onClose: this.handleCloseSuggestions,
+                targets: _lodash2.default.map(this.state.ruleData.rules.typeRules, function(v) {
+                    return v.typeUri.replace("<", "").replace(">", "");
+                })
+            });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rules"
-            }, loading, discardView, _react2.default.createElement(_MappingRuleOverviewHeader2.default, {
+            }, loading, discardView, _react2.default.createElement("div", {
+                className: "mdl-shadow--2dp"
+            }, _react2.default.createElement(_MappingRuleOverviewHeader2.default, {
                 rule: this.state.ruleData,
                 key: id
-            }), suggestions, createRuleForm, rulesList);
+            }), suggestions || rulesList), createRuleForm);
         }
     });
     exports.default = MappingRuleOverview;
@@ -23733,7 +23730,7 @@
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleshead"
             }, discardView, _react2.default.createElement("div", {
-                className: "mdl-card mdl-card--stretch mdl-shadow--2dp"
+                className: "mdl-card mdl-card--stretch"
             }, _react2.default.createElement("div", {
                 className: "mdl-card__title mdl-card--border"
             }, _react2.default.createElement("div", {

@@ -13219,12 +13219,14 @@ h6 {
   min-width: 50%; }
 
 .ecc-silk-mapping__ruleshead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: relative;
   margin-bottom: 1rem; }
   .ecc-silk-mapping__ruleshead .mdl-card__title {
-    align-items: flex-start; }
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: rgb(255,255,255); }
   .ecc-silk-mapping__ruleshead .mdl-card__title-back {
     position: relative;
     left: -0.5rem;
@@ -13257,6 +13259,8 @@ h6 {
     overflow: overlay;
     margin: 0;
     padding: 0 1rem; }
+  .ecc-silk-mapping__ruleshead .mdl-card__actions {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
 
 .ecc-silk-mapping__ruleslist .mdl-card__title-text {
   flex-grow: 1; }
@@ -13314,15 +13318,13 @@ h6 {
   letter-spacing: 0;
   max-width: 100%; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline,
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-headline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-headline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline,
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__sug-ruleitem-subline {
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem-subline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -13332,11 +13334,10 @@ h6 {
   letter-spacing: 0; }
 
 .ecc-silk-mapping__ruleslist .ecc-silk-mapping__suggestitem-checkbox {
-  width: 20px;
-  display: flex;
-  flex-flow: column;
-  align-items: flex-end;
-  align-self: flex-start; }
+  align-self: center;
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 0; }
 
 @media (min-width: 840px) {
   .ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem--summary .ecc-silk-mapping__ruleitem-content {
@@ -13403,6 +13404,10 @@ h6 {
 .ecc-silk-mapping__ruleslist .mdl-card__actions--fixed {
   position: sticky;
   bottom: 0; }
+
+.ecc-silk-mapping__ruleslist > .mdl-card > .mdl-card__actions {
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 1; }
 
 .ecc-silk-mapping__ruleslist-floatingactions {
   position: absolute;
