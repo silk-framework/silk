@@ -43,7 +43,6 @@ GET           /tasks/:project/:task/rule/:rule/completions/targetProperties     
 
 GET           /tasks/:project/:task/targetVocabulary/type                          controllers.transform.TargetVocabularyApi.getTypeInfo(project: String, task: String, uri: String)
 GET           /tasks/:project/:task/targetVocabulary/property                      controllers.transform.TargetVocabularyApi.getPropertyInfo(project: String, task: String, uri: String)
-GET           /tasks/:project/:task/targetVocabulary/typeSuggestions               controllers.transform.TargetVocabularyApi.typeCandidates(project: String, task: String)
 GET           /tasks/:project/:task/targetVocabulary/propertiesByClass             controllers.transform.TargetVocabularyApi.propertiesByType(project: String, task: String, classUri: String)
 GET           /tasks/:project/:task/targetVocabulary/relationsOfClass              controllers.transform.TargetVocabularyApi.relationsOfType(project: String, task: String, classUri: String)
 
