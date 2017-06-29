@@ -210,18 +210,6 @@ if (!__DEBUG__) {
         }
     );
 
-    hierarchicalMappingChannel.subject('transform.get').subscribe(
-        ({data, replySubject}) => {
-
-            silkStore
-                .request({topic: 'transform.task.get', data: apiDetails}).map((returned) => {
-                return {
-                    example: returned.body
-                };
-            }).multicast(replySubject).connect();
-        }
-    );
-
     hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
             silkStore
@@ -499,47 +487,7 @@ if (!__DEBUG__) {
 
 
             });
-            replySubject.onNext(suggestions);
-            replySubject.onCompleted();
-        }
-    );
-
-    hierarchicalMappingChannel.subject('transform.get').subscribe(
-        ({data, replySubject}) => {
-            const transform = {
-                example: {
-                    "id": "test2",
-                    "selection": {"inputId": "customers", "typeUri": "1495455156290_customers.csv", "restriction": ""},
-                    "root": {
-                        "type": "root",
-                        "id": "root",
-                        "rules": {
-                            "uriRule": null,
-                            "typeRules": [{
-                                "type": "type",
-                                "id": "type9",
-                                "typeUri": "<http://schema.org/Address>",
-                                "metadata": {"label": "", "description": ""}
-                            }],
-                            "propertyRules": [{
-                                "type": "direct",
-                                "id": "direct",
-                                "sourcePath": "/city",
-                                "mappingTarget": {
-                                    "uri": "<http://schema.org/address>",
-                                    "valueType": {"nodeType": "AutoDetectValueType"},
-                                    "isBackwardProperty": false
-                                },
-                                "metadata": {"label": "", "description": ""}
-                            }]
-                        },
-                        "metadata": {"label": "", "description": ""}
-                    },
-                    "outputs": [],
-                    "targetVocabularies": ["http://schema.org"]
-                }
-            };
-            replySubject.onNext(transform);
+            replySubject.onNext({suggestions});
             replySubject.onCompleted();
         }
     );
@@ -669,6 +617,7 @@ if (!__DEBUG__) {
 
     const editRule = (mockStore, id, payload) => {
         if (mockStore.id === id) {
+            mockStore.rules.typeRules = payload.rules.typeRules;
             _.merge(mockStore, payload)
         } else if (_.has(mockStore, 'rules.propertyRules')) {
             _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
