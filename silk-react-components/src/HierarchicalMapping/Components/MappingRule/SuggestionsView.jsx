@@ -216,7 +216,7 @@ const SuggestionsView = React.createClass({
         }
         else {
             return <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                <div className="mdl-card mdl-card--stretch">
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
