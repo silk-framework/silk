@@ -139,7 +139,7 @@ const MappingRuleOverviewHeader = React.createClass({
                 className="ecc-silk-mapping__ruleshead"
             >
                 {discardView}
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                <div className="mdl-card mdl-card--stretch">
                     <div className="mdl-card__title mdl-card--border">
                         <div className="mdl-card__title-back">
                             {backButton}
