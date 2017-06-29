@@ -1585,7 +1585,7 @@ create-hmac@^1.1.0, create-hmac@^1.1.2:
     create-hash "^1.1.0"
     inherits "^2.0.1"
 
-create-react-class@^15.6.0:
+create-react-class@^15.5.2, create-react-class@^15.6.0:
   version "15.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/create-react-class/-/create-react-class-15.6.0.tgz#ab448497c26566e1e29413e883207d57cfe7bed4"
   dependencies:
@@ -1912,15 +1912,15 @@ duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-ecc-gui-elements@^2.14.0:
-  version "2.14.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.14.0.tgz#a2d798f61c5e76efc12817f906d201d15c95d947"
+ecc-gui-elements@^2.15.0:
+  version "2.15.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.15.0.tgz#5f0be2baebb033ff52e30fafc625a82a6a165946"
   dependencies:
     classnames "^2.2.5"
     lodash "^4.16.4"
     material-design-lite "^1.3.0"
-    react-mdl "^1.9.0"
-    react-select "^1.0.0-rc.2"
+    react-mdl "^1.10.3"
+    react-select "^1.0.0-rc.5"
     sassyjson "^1.1.8"
 
 ecc-gulp-tasks@^3.7.0:
@@ -2015,6 +2015,14 @@ ecc-superagent@^1.2.0:
     methods "^1.1.2"
     superagent "^3.3.1"
     superagent-rx "^0.3.0"
+
+ecc-utils@^1.3.0:
+  version "1.3.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-utils/-/ecc-utils-1.3.0.tgz#ae2039e7641a6eac7973206102f1b05a27f7057a"
+  dependencies:
+    lodash "^4.15.0"
+    urijs "^1.18.4"
+    uuid "^3.0.1"
 
 ee-first@1.1.1:
   version "1.1.1"
@@ -3824,7 +3832,7 @@ lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
 
-lodash@^4.0.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.16.4, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0:
+lodash@^4.0.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.16.4, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0:
   version "4.17.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -4925,25 +4933,30 @@ react-highlight-words@^0.8.0:
     highlight-words-core "^1.0.2"
     prop-types "^15.5.8"
 
-react-input-autosize@^1.1.0:
-  version "1.1.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-input-autosize/-/react-input-autosize-1.1.3.tgz#ced3acd0f237cc04a1475c9207d4da1b7c0a0c86"
+react-input-autosize@^1.1.3:
+  version "1.1.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-input-autosize/-/react-input-autosize-1.1.4.tgz#cbc45072d4084ddc57806db8e3b34e644b8366ac"
+  dependencies:
+    create-react-class "^15.5.2"
+    prop-types "^15.5.8"
 
-react-mdl@^1.9.0:
-  version "1.10.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-mdl/-/react-mdl-1.10.2.tgz#7edc1f5312e8d25e90428f9c35e6150081c11a91"
+react-mdl@^1.10.3:
+  version "1.10.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-mdl/-/react-mdl-1.10.3.tgz#f783e26a5eea4154a32129ab2562c09d5eeacf0d"
   dependencies:
     clamp "^1.0.1"
     classnames "^2.2.3"
     lodash.isequal "^4.4.0"
     prop-types "^15.5.0"
 
-react-select@^1.0.0-rc.2:
-  version "1.0.0-rc.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.0.0-rc.3.tgz#94ade090522153067eff09282d0525249ea1d9e3"
+react-select@^1.0.0-rc.5:
+  version "1.0.0-rc.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.0.0-rc.5.tgz#9d316f252b1adc372ddb5cdf1f119c6b7cfdb5d6"
   dependencies:
     classnames "^2.2.4"
-    react-input-autosize "^1.1.0"
+    create-react-class "^15.5.2"
+    prop-types "^15.5.8"
+    react-input-autosize "^1.1.3"
 
 react@^15.6.1:
   version "15.6.1"
@@ -5918,6 +5931,10 @@ upper-case@^1.1.1:
   version "1.1.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/upper-case/-/upper-case-1.1.3.tgz#f6b4501c2ec4cdd26ba78be7222961de77621598"
 
+urijs@^1.18.4:
+  version "1.18.10"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/urijs/-/urijs-1.18.10.tgz#b94463eaba59a1a796036a467bb633c667f221ab"
+
 url-loader@^0.5.9:
   version "0.5.9"
   resolved "https://artifactory.eccenca.com/api/npm/npm/url-loader/-/url-loader-0.5.9.tgz#cc8fea82c7b906e7777019250869e569e995c295"
@@ -5968,7 +5985,7 @@ utils-merge@1.0.0:
   version "1.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/utils-merge/-/utils-merge-1.0.0.tgz#0294fb922bb9375153541c4f7096231f287c8af8"
 
-uuid@^3.0.0:
+uuid@^3.0.0, uuid@^3.0.1:
   version "3.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/uuid/-/uuid-3.0.1.tgz#6544bba2dfda8c1cf17e629a3a305e2bb1fee6c1"
 

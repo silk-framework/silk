@@ -48,7 +48,7 @@ export const RuleTypes = ({rule}) => {
 };
 
 export const SourcePath = ({rule}) => {
-    const path = _.get(rule, 'sourcePath', <NotAvailable inline={true} />);
+    const path = _.get(rule, 'sourcePath', <NotAvailable inline={true}/>);
 
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 
@@ -69,12 +69,14 @@ export const RuleTreeTypes = ({rule}) => {
 const URIInfo = React.createClass({
     getInitialState(){
 
+        const {uri, field} = this.props;
+
         hierarchicalMappingChannel.request(
             {
                 topic: 'vocabularyInfo.get',
                 data: {
-                    uri: this.props.uri,
-                    field: this.props.field,
+                    uri,
+                    field,
                 }
             }
         )
@@ -85,22 +87,40 @@ const URIInfo = React.createClass({
                     });
                 },
                 () => {
-                    console.warn('Could not get any info for ' + this.props.uri + '@' + this.props.field);
+                    console.warn('Could not get any info for ' + uri + '@' + field);
                 }
             );
 
         return {
-            info: this.props.uri,
-            fallback: (typeof this.props.fallback !== 'undefined') ? this.props.fallback : this.props.uri,
+            info: false,
         }
     },
     render(){
-        return <span>{this.state.info ? this.state.info : this.state.fallback}</span>
+
+        const {info} = this.state;
+
+        if (info) {
+            return <span>{info}</span>
+        }
+
+        const {uri, fallback, field} = this.props;
+
+        let noInfo = false;
+
+        if (fallback !== undefined) {
+            noInfo = fallback;
+        } else if (field === 'label') {
+            const lastHash = uri.lastIndexOf('#');
+            const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
+            noInfo = uri.substring(lastSlash + 1).replace(/>$/,'');
+        }
+
+        return <span>{noInfo}</span>
     }
 });
 
 export const ThingName = ({id}) => {
-    return <URIInfo uri={id} field="label" />
+    return <URIInfo uri={id} field="label"/>
 };
 
 export const ThingDescription = ({id}) => {
@@ -109,7 +129,7 @@ export const ThingDescription = ({id}) => {
         label="No description available."
         description={false}
     />
-return <URIInfo uri={id} field="description" fallback={fallbackInfo} />
+    return <URIInfo uri={id} field="description" fallback={fallbackInfo}/>
 };
 
 export const ThingIcon = ({type, status, message}) => {

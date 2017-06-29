@@ -35,6 +35,20 @@
     .Select-option__description {
         font-size: 0.9em;
     }
+
+    .mdl-alert--narrowed {
+        .mdl-alert__content > *:not(:first-child) {
+            display: hidden;
+        }
+
+        .mdl-alert__content,
+        .mdl-alert__content > * {
+            max-height: 5em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
 }
 
 .ecc-silk-mapping__header {
@@ -486,10 +500,6 @@
         margin: 0;
         padding: 0 1rem;
     }
-
-    .mdl-alert__content {
-        padding: 0.5rem;
-    }
 }
 
 .ecc-silk-mapping__rulesviewer__title {
@@ -596,6 +606,7 @@
             .ecc-silk-mapping__rulesviewer__infobox-main {
                 flex-grow: 0;
                 flex-shrink: 0;
+                max-width: 61%;
             }
 
             .ecc-silk-mapping__rulesviewer__infobox-sub {
@@ -617,6 +628,7 @@
     flex-grow: 1;
     flex-shrink: 1;
     line-height: 1.39;
+    width: 50vw; // this is a spooky hack but it prevents that the layout explodes
 
     p {
         line-height: 1.39;
@@ -627,8 +639,6 @@
         font-size: 0.95em;
     }
 }
-
-
 
 .ecc-silk-mapping__rulesviewer__examples-table {
 

@@ -44,6 +44,7 @@ const ExampleView = React.createClass({
     getInitialState() {
         return {
             example: undefined,
+            errorExpanded: false,
         };
     },
     // template rendering
@@ -52,7 +53,31 @@ const ExampleView = React.createClass({
             return <Spinner/>;
         }
         else if (this.state.example.status.id !== 'success') {
-            return <Error>{this.state.example.status.msg}</Error>;
+            const errorClassName = this.state.errorExpanded ? '' : 'mdl-alert--narrowed';
+            if (__DEBUG__) {
+                const loremIpsum = require('lorem-ipsum');
+                return <Error
+                        border
+                        className={errorClassName}
+                        handlerDismiss={() => {this.setState({errorExpanded: !this.state.errorExpanded})}}
+                        labelDismiss={this.state.errorExpanded ? 'Show less' : 'Show more'}
+                        iconDismiss={this.state.errorExpanded ? 'expand_less' : 'expand_more'}
+                    >
+                        {loremIpsum({
+                            count: _.random(5, 10),
+                            units: 'paragraphs'
+                        })}
+                    </Error>;
+            }
+            return <Error
+                border
+                className={errorClassName}
+                handlerDismiss={() => {this.setState({errorExpanded: !this.state.errorExpanded})}}
+                labelDismiss={this.state.errorExpanded ? 'Show less' : 'Show more'}
+                iconDismiss={this.state.errorExpanded ? 'expand_less' : 'expand_more'}
+            >
+                {this.state.example.status.msg}
+            </Error>;
         }
         else {
             const pathsCount = this.state.example.sourcePaths.length;

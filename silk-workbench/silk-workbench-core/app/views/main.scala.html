@@ -78,9 +78,11 @@
       </header>
       }
       @tabbar(context, selectedTab)
-      <div id="toolbar" class="clearfix">
+      @if(toolbar != null) {
+        <div id="toolbar" class="clearfix">
         @toolbar
-      </div>
+        </div>
+      }
       <main class="mdl-layout__content">
         <div id="content" class="mdl-tabs__panel is-active">
           @content

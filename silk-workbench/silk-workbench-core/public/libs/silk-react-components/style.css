@@ -12691,6 +12691,10 @@ textarea.mdl-textfield__input {
     .mdl-textfield__input[readonly] + .mdl-textfield__label:after {
       display: none; }
 
+.mdl-textfield__label .material-icons {
+  font-size: 1.25em;
+  vertical-align: text-bottom; }
+
 /**
  * Copyright 2016 eccenca GmbH. All Rights Reserved.
  *
@@ -13115,6 +13119,14 @@ h6 {
     font-size: 0.8em; }
   .ecc-silk-mapping .Select-option__description {
     font-size: 0.9em; }
+  .ecc-silk-mapping .mdl-alert--narrowed .mdl-alert__content > *:not(:first-child) {
+    display: hidden; }
+  .ecc-silk-mapping .mdl-alert--narrowed .mdl-alert__content,
+  .ecc-silk-mapping .mdl-alert--narrowed .mdl-alert__content > * {
+    max-height: 5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; }
 
 .ecc-silk-mapping__header {
   justify-content: flex-end; }
@@ -13463,10 +13475,6 @@ h6 {
   margin: 0;
   padding: 0 1rem; }
 
-.ecc-silk-mapping__rulesviewer .mdl-alert__content,
-.ecc-silk-mapping__ruleseditor .mdl-alert__content {
-  padding: 0.5rem; }
-
 .ecc-silk-mapping__rulesviewer__title .mdl-card__title-text {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
   font-size: 16px;
@@ -13536,7 +13544,8 @@ h6 {
                         */ }
     .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-main {
       flex-grow: 0;
-      flex-shrink: 0; }
+      flex-shrink: 0;
+      max-width: 61%; }
     .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-sub {
       flex-grow: 1;
       flex-shrink: 1; } }
@@ -13549,7 +13558,8 @@ h6 {
 .ecc-silk-mapping__rulesviewer__infobox-content {
   flex-grow: 1;
   flex-shrink: 1;
-  line-height: 1.39; }
+  line-height: 1.39;
+  width: 50vw; }
   .ecc-silk-mapping__rulesviewer__infobox-content p {
     line-height: 1.39;
     font-size: 1em; }
