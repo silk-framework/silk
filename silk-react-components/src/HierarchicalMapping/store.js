@@ -391,6 +391,17 @@ if (!__DEBUG__) {
         }
     );
 
+    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(({data, replySubject}) => {
+
+            const payload = data;
+            const parent = data.parentId ? data.parentId : rootId;
+
+            editMappingRule(payload, data.id, parent)
+                .multicast(replySubject).connect();
+
+        }
+    );
+
     hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
         ({data, replySubject}) => {
             const {id} = data;
@@ -672,12 +683,35 @@ if (!__DEBUG__) {
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
+    const handleUpdatePost = ({data, replySubject}) => {
+        const payload = data;
+
+        if (_.includes(data.comment, 'error')) {
+            const err = new Error('Could not save rule.');
+            _.set(err, 'response.body', {
+                message: 'Comment cannot contain "error"',
+                issues: [{message: 'None really, we just want to test the feature'}]
+            });
+
+            replySubject.onError(err);
+            replySubject.onCompleted();
+        }
+
+        payload.id = `${Date.now()}${_.random(0, 100, false)}`;
+
+        const parent = data.parentId ? data.parentId : mockStore.id;
+        appendToMockStore(mockStore, parent, payload);
+
+        saveMockStore();
+
+
+        replySubject.onNext();
+        replySubject.onCompleted();
+    };
+
     const handleUpdate = ({data, replySubject}) => {
 
-
         const payload = _.includes(['object', 'root'], data.type) ? prepareObjectMappingPayload(data) : prepareValueMappingPayload(data);
-
-        console.warn('MOCKSTORE: Saving: ', JSON.stringify(payload, null, 2));
 
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
@@ -714,6 +748,7 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(handleUpdate);
 
+    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(handleUpdatePost);
     const removeRule = (store, id) => {
 
         if (store.id === id) {
