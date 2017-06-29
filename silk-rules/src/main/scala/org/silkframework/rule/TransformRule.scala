@@ -92,6 +92,22 @@ sealed trait TransformRule extends Operator {
       throw new IllegalArgumentException(s"$this cannot have any children")
     }
   }
+
+  /**
+    * Returns a list of unique input paths used in this transform rule
+    */
+  def sourcePaths(): Seq[Path] = {
+    sourcePathRecursive(operator)
+  }
+
+  private def sourcePathRecursive(input: Input): Seq[Path] = {
+    input match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(sourcePathRecursive)
+      case PathInput(_, path) =>
+        Seq(path)
+    }
+  }
 }
 
 // Trait of classes that can have child rules
@@ -258,7 +274,7 @@ case class ObjectMapping(id: Identifier = "mapping",
       case Some(rule) =>
         rule.operator
       case None =>
-        TransformInput(transformer = EmptyValueTransformer())
+        PathInput(path = Path.empty)
     }
   }
 

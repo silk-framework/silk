@@ -13215,7 +13215,8 @@ h6 {
 .ecc-silk-mapping__rules {
   flex-basis: 75%;
   flex-grow: 1;
-  flex-shrink: 1; }
+  flex-shrink: 1;
+  min-width: 50%; }
 
 .ecc-silk-mapping__ruleshead {
   position: sticky;
@@ -13544,7 +13545,8 @@ h6 {
                         */ }
     .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-main {
       flex-grow: 0;
-      flex-shrink: 0; }
+      flex-shrink: 0;
+      max-width: 61%; }
     .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-sub {
       flex-grow: 1;
       flex-shrink: 1; } }
@@ -13557,7 +13559,8 @@ h6 {
 .ecc-silk-mapping__rulesviewer__infobox-content {
   flex-grow: 1;
   flex-shrink: 1;
-  line-height: 1.39; }
+  line-height: 1.39;
+  width: 50vw; }
   .ecc-silk-mapping__rulesviewer__infobox-content p {
     line-height: 1.39;
     font-size: 1em; }

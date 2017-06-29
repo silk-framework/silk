@@ -188,3 +188,18 @@ silkStore.subject('transform.task.targetVocabulary.type').subscribe(({data, repl
 
     }
 );
+
+silkStore.subject('transform.task.targetVocabulary.property').subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask, uri } = data;
+
+        superagent
+            .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/property`)
+            .accept('application/json')
+            .query({
+                uri,
+            })
+            .observe()
+            .multicast(replySubject).connect();
+
+    }
+);

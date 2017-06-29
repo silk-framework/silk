@@ -30,7 +30,7 @@
       url: '@config.baseUrl/workflow/workflows/@project/' + values.name,
       contentType: 'text/xml',
       processData: false,
-      data: "<Workflow></Workflow>",
+      data: '<Workflow id="' + values.name + '"></Workflow>',
       success: function(data) {
         closeDialog();
         reloadWorkspace();
