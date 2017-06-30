@@ -70,7 +70,6 @@ const SuggestionsView = React.createClass({
     handleAddSuggestions(event) {
         event.stopPropagation();
         let correspondences = [];
-        console.log(this.state.data)
         this.setState({
             loading: true,
         })
