@@ -41,9 +41,6 @@ class AutoCompletionApi extends Controller {
         log.warning("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
     }
 
-    // Add known prefixes last
-    completions += prefixCompletions(project.config.prefixes)
-
     // Return filtered result
     Ok(completions.filter(term, maxResults).toJson)
   }
@@ -102,7 +99,8 @@ class AutoCompletionApi extends Controller {
   def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    val completions = vocabularyPropertyCompletions(task)
+    var completions = vocabularyPropertyCompletions(task)
+    completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filter(term, maxResults).toJson)
   }
@@ -118,7 +116,8 @@ class AutoCompletionApi extends Controller {
   def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    val completions = vocabularyTypeCompletions(task)
+    var completions = vocabularyTypeCompletions(task)
+    completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filter(term, maxResults).toJson)
   }
