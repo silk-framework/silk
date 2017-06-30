@@ -377,11 +377,18 @@ const MappingRuleOverview = React.createClass({
             </div>
         </div> : false;
 
+        const types = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
+            ? _.map(
+            this.state.ruleData.rules.typeRules,
+            v => v.typeUri.replace('<', '').replace('>', ''))
+            : [];
+
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
             ? <SuggestionsView
-                id={this.props.currentRuleId}
+                key={_.join(types, ',')}
+                ruleId={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
-                targets={_.map(this.state.ruleData.rules.typeRules, v => v.typeUri.replace('<', '').replace('>', ''))}/>
+                targetClassUris={types}/>
             : false;
 
         return (
