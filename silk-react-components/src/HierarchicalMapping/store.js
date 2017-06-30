@@ -407,7 +407,7 @@ if (!__DEBUG__) {
                     },
                     (err) => {
                         //TODO: Beautify
-                        console.warn(`Error saving rule in ${id}`, err);
+                        console.warn(`Error deleting rule in ${id}`, err);
                         alert(`Error creating rule in ${id}`);
                     }
                 )
@@ -444,11 +444,10 @@ if (!__DEBUG__) {
             let rules = [];
 
             _.map(correspondences, (correspondence) => {
-                console.log(correspondence)
                 rules.push(
                     {
                         "metadata": {
-                            "description": ""
+                            "description": _.includes(correspondence.sourcePath, 'error') ? 'error' : ''
                         },
                         "mappingTarget": {
                             "uri": correspondence.targetProperty,
@@ -469,24 +468,19 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
+            const paths = ['/name', '/city','/loan','/country','/lastname','/firstName','/address', '/expected-error'];
+            const types = ['/name', '/city','/loan','/country','/lastname','/firstName','/address', '/one-error'];
             let suggestions = {};
-            _.forEach(data.targets, (t) => {
-                _.forEach(['/name', '/city','/loan','/country','/lastname','/firstName'], (p) => {
-                    console.log(t,p)
-                    suggestions[t+p] = [];
-                    _.forEach(new Array(1), (a, i) => {
-                        suggestions[t+p].push({
-                            "uri": "http://eccenca.com/ds/loans/field_" + i,
-                            "confidence": Math.floor((i === 0
-                                        ? 1 - 0.1 * Math.random()
-                                        : 0.5 + 0.5 * Math.random()
-                                ) * 100) / 100
-                        });
-                    });
-                });
-
-
+            _.forEach(data.targetClassUris, (target) => {
+                _.forEach(types, (type, key) => {
+                    const path = paths[key];
+                    suggestions[`${target}${type}`] = [{
+                        "uri": path,
+                        "confidence": Math.floor(100 - 0.1 * Math.random() * 100) / 100
+                    }];
+                })
             });
+
             replySubject.onNext({suggestions});
             replySubject.onCompleted();
         }
@@ -617,7 +611,9 @@ if (!__DEBUG__) {
 
     const editRule = (mockStore, id, payload) => {
         if (mockStore.id === id) {
-            mockStore.rules.typeRules = payload.rules.typeRules;
+            if (_.has(mockStore.rules, 'typeRules') && _.has(payload.rules, 'typeRules')){
+                mockStore.rules.typeRules = payload.rules.typeRules;
+            }
             _.merge(mockStore, payload)
         } else if (_.has(mockStore, 'rules.propertyRules')) {
             _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
@@ -632,10 +628,10 @@ if (!__DEBUG__) {
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
-    const handleUpdatePost = ({data, replySubject}) => {
+    const handleUpdatePreparedRule = ({data, replySubject}) => {
         const payload = data;
 
-        if (_.includes(data.comment, 'error')) {
+        if (_.includes(data.metadata.description, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
                 message: 'Comment cannot contain "error"',
@@ -644,6 +640,7 @@ if (!__DEBUG__) {
 
             replySubject.onError(err);
             replySubject.onCompleted();
+            return;
         }
 
         payload.id = `${Date.now()}${_.random(0, 100, false)}`;
@@ -652,7 +649,6 @@ if (!__DEBUG__) {
         appendToMockStore(mockStore, parent, payload);
 
         saveMockStore();
-
 
         replySubject.onNext();
         replySubject.onCompleted();
@@ -670,7 +666,7 @@ if (!__DEBUG__) {
             });
             replySubject.onError(err);
             replySubject.onCompleted();
-
+            return;
         }
 
         if (data.id) {
@@ -697,7 +693,7 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(handleUpdate);
 
-    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(handleUpdatePost);
+    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(handleUpdatePreparedRule);
     const removeRule = (store, id) => {
 
         if (store.id === id) {

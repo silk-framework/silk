@@ -23,7 +23,7 @@ const SuggestionsView = React.createClass({
     // define property types
     // FIXME: check propTypes
     propTypes: {
-        targets: React.PropTypes.array,
+        targetClassUris: React.PropTypes.array,
 
     },
     check(value, id, event) {
@@ -47,7 +47,8 @@ const SuggestionsView = React.createClass({
             {
                 topic: 'rule.suggestions',
                 data: {
-                    targets: this.props.targets,
+                    targetClassUris: this.props.targetClassUris,
+                    ruleId: this.props.ruleId,
                 }
             }).subscribe(
             (response) => {
@@ -67,9 +68,7 @@ const SuggestionsView = React.createClass({
         this.loadData();
     },
     handleAddSuggestions(event) {
-
         event.stopPropagation();
-        event.persist();
         let correspondences = [];
         console.log(this.state.data)
         this.setState({
@@ -87,14 +86,14 @@ const SuggestionsView = React.createClass({
             topic: 'rules.generate',
             data: {
                 correspondences,
-                parentRuleId: this.props.id,
+                parentRuleId: this.props.ruleId,
             }
         }).subscribe(
 
             (response) => {
                 this.setState({loading: true});
                 _.map(response.rules, (rule, k) => {
-                    this.saveRule({...rule, parentId: this.props.id}, k, event);
+                    this.saveRule({...rule, parentId: this.props.ruleId}, k);
                 });
                 hierarchicalMappingChannel.subject('reload').onNext(true);
             },
@@ -104,51 +103,41 @@ const SuggestionsView = React.createClass({
             }
         );
     },
-    saveRule(rule, pos, event) {
-
+    saveRule(rule, pos) {
         rule.id = undefined;
-        // element number 5 and 6 simulate error in debug modus
-        if (__DEBUG__ &&  pos === 4 || pos === 5) {
-            // case to test errors
-            wrongRules[pos] = {
-                msg: 'Unexpected error!',
-                rule: rule,
+        pendingRules[pos]= true;
+        hierarchicalMappingChannel.request({
+            topic: 'rule.createGeneratedMapping',
+            data: {...rule},
+        }).subscribe(
+            () => {
+                this.onSafeDone(pos);
+            },
+            (err) => {
+                wrongRules[pos] = {
+                    msg: err,
+                    rule: rule,
+                };
+                this.onSafeDone(pos);
+            },
+            () => {
             }
-            console.log('added error hola')
-        } else {
-            pendingRules[pos]= true;
-            hierarchicalMappingChannel.request({
-                topic: 'rule.createGeneratedMapping',
-                data: {...rule}, // Force an error
-            }).subscribe(
-                () => {
-                    // TODO: notify?
-                },
-                (err) => {
-                    wrongRules[pos] = {
-                        msg: err,
-                        rule: rule,
-                    }
-                },
-                () => {
-                    delete pendingRules[pos];
-                    if (_.size(pendingRules) === 0) {
-                        if (_.size(wrongRules) > 0) {
-                            this.setState({
-                                loading: false,
-                                error: wrongRules,
-                            })
-                        }
-                        else {
-                            console.log('whattt')
-                            this.props.onClose(event);
-                        }
-
-                    }
-                }
-            );
+        );
+    },
+    onSafeDone(pos) {
+        delete pendingRules[pos];
+        if (_.size(pendingRules) === 0) {
+            if (_.size(wrongRules) > 0) {
+                this.setState({
+                    loading: false,
+                    error: wrongRules,
+                })
+            }
+            else {
+                hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
+                this.props.onClose();
+            }
         }
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
     },
     getInitialState() {
         return {
@@ -175,13 +164,13 @@ const SuggestionsView = React.createClass({
     },
     // template rendering
     render () {
-        console.warn(this.state.data);
-        console.warn(this.state.error);
         const suggestionsHeader = (
             <div className="mdl-card__title mdl-card--border">
                 <div className="mdl-card__title-text">
-                     Add suggested mapping rules
-                    {!_.isEmpty(this.state.error)?` ${_.size(this.state.error)} errors while saving`:false}
+                    {_.isEmpty(this.state.error)
+                        ? `Add suggested mapping rules`
+                        :`${_.size(this.state.error)} errors saving suggestions`
+                    }
                 </div>
                 <ContextMenu
                     className="ecc-silk-mapping__ruleslistmenu"
@@ -198,28 +187,9 @@ const SuggestionsView = React.createClass({
                     >
                         Select none
                     </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
-                    >
-                        Select entity prop. (TODO)
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
-
-                    >
-                        Select source matches (TODO)
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-tbd"
-
-                    >
-                        Hide unselected (TODO)
-                    </MenuItem>
                 </ContextMenu>
             </div>
-
         );
-
 
         const suggestionsList = !_.isEmpty(this.state.error) ? false :
             _.map(this.state.data, (value, key) => {
@@ -242,7 +212,7 @@ const SuggestionsView = React.createClass({
                         {err.rule.sourcePath}
                     </div>
                     <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline">
-                        {err.msg}
+                        <Error>{err.msg.message}</Error>
                     </div>
                 </div>
             </li>
@@ -267,7 +237,6 @@ const SuggestionsView = React.createClass({
                     {actions}
                 </div>
             </div>
-
         }
     }
 });

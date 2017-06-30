@@ -185,7 +185,6 @@ const MappingRuleOverview = React.createClass({
         if (this.state.editing.length === 0) {
             hierarchicalMappingChannel.subject('ruleId.create').onNext({
                 type,
-                //FIXME: do we need more data like id of parent as source?
             });
         }
         else {
@@ -196,12 +195,13 @@ const MappingRuleOverview = React.createClass({
             });
         }
     },
-    handleCloseSuggestions(event) {
-        event.stopPropagation();
+    handleCloseSuggestions() {
         this.setState({showSuggestions: false});
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
     },
     shouldComponentUpdate(nextProps, nextState) {
+        // Required to prevent empty redraws while not all data is there.
+        // The issue is due to bad use of React ...
         return !_.isEmpty(nextState.ruleData);
     },
     // template rendering
@@ -233,7 +233,6 @@ const MappingRuleOverview = React.createClass({
             </ConfirmationDialog>
             : false;
 
-        // The root element does not have mappingTarget uri so we get the name from tree?
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
         const createRuleForm = createType ? (
