@@ -50,15 +50,16 @@ silkStore.subject('transform.task.rule.generate').subscribe(({data, replySubject
 );
 
 silkStore.subject('transform.task.rule.suggestions').subscribe(({data, replySubject}) => {
-    const {targets, baseUrl, project, transformTask } = data;
+    const {ruleId, targetClassUris, baseUrl, project, transformTask } = data;
 
     const json = {
         projectName: project,
         transformTaskName: transformTask,
         datasetUriPrefix: '',
-        targetClassUris: targets,
+        targetClassUris,
         nrCandidates: 1,
         dataTypePropertiesOnly: false,
+        ruleId,
     };
 
     superagent
