@@ -18871,7 +18871,7 @@
         });
     }, exports.newValueIsIRI = function(_ref) {
         var label = _ref.label;
-        return !!_lodash2.default.isString(label) && new _eccUtils.URI(label).is("resourceURI");
+        return !!_lodash2.default.isString(label) && new _eccUtils.URI(label.replace(/^<|>$/g, "")).is("resourceURI");
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
