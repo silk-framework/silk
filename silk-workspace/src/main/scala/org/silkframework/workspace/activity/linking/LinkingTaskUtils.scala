@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.{DataSource, Dataset}
-import org.silkframework.rule.{LinkSpec, TransformSpec, TransformedDataSource}
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 /**
   * Adds additional methods to linking tasks.
@@ -25,8 +26,7 @@ object LinkingTaskUtils {
     def dataSource(sourceId: Identifier): DataSource = {
       task.project.taskOption[TransformSpec](sourceId) match {
         case Some(transformTask) =>
-          val source = task.project.task[Dataset](transformTask.data.selection.inputId).data.source
-          new TransformedDataSource(source, transformTask.data)
+          transformTask.dataSource
         case None =>
           task.project.task[Dataset](sourceId).data.source
       }

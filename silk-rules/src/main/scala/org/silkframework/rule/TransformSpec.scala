@@ -40,7 +40,7 @@ case class TransformSpec(selection: DatasetSelection,
   /**
     * Input and output schemata of all rules in the tree.
     */
-  lazy val schemata: Seq[RuleSchemata] = {
+  lazy val ruleSchemata: Seq[RuleSchemata] = {
     collectSchemata(mappingRule, Path.empty)
   }
 
@@ -48,7 +48,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Input schemata of all rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(schemata.head.inputSchema, schemata.tail.map(_.inputSchema))
+    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema))
   }
 
 
@@ -56,7 +56,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Output schemata of all rules in the tree.
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(schemata.head.outputSchema, schemata.tail.map(_.outputSchema))
+    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
   }
 
   /**
