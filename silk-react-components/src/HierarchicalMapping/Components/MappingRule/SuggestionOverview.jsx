@@ -17,7 +17,7 @@ import _ from 'lodash';
 
 let pendingRules = {};
 let wrongRules = {};
-const SuggestionsView = React.createClass({
+const SuggestionOverview = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -27,15 +27,22 @@ const SuggestionsView = React.createClass({
 
     },
     check(value, id, event) {
-        const i = `${value};${id}`;
+        const item = {
+            suggestedClass: value,
+            pos: id,
+        };
         this.setState({
-            checked: _.includes(this.state.checked, i)
-                ? _.filter(this.state.checked, (v) => v !== i)
-                : _.concat(this.state.checked, [i])
+            checked: _.some(this.state.checked, item)
+                ? _.filter(this.state.checked, (v) => !_.isEqual(v, item))
+                : _.concat(this.state.checked, [item])
         })
     },
     isChecked(key,i){
-        return _.includes(this.state.checked,`${key};${i}`)
+        const item = {
+            suggestedClass: key,
+            pos: i,
+        };
+        return _.some(this.state.checked, item);
     },
     loadData(){
         this.setState({
@@ -73,11 +80,11 @@ const SuggestionsView = React.createClass({
         this.setState({
             loading: true,
         })
-        _.map(this.state.checked, (suggestion) => {
-            const a = _.split(suggestion, ';');
+        _.map(this.state.checked, ({suggestedClass, pos}) => {
+
             correspondences.push({
-                sourcePath: this.state.data[a[0]][a[1]].uri,
-                targetProperty: a[0],
+                sourcePath: this.state.data[suggestedClass][pos].uri,
+                targetProperty: suggestedClass,
             });
         });
         hierarchicalMappingChannel.request(
@@ -136,6 +143,7 @@ const SuggestionsView = React.createClass({
                 hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
                 this.props.onClose();
             }
+
         }
     },
     getInitialState() {
@@ -150,7 +158,7 @@ const SuggestionsView = React.createClass({
         event.stopPropagation();
         _.map(this.state.data, (value, key) => {
             _.map(value, (e,i) => {
-                checked.push(`${key};${i}`);
+                checked.push({suggestedClass: key, pos:i});
             })
         })
         this.setState({checked});
@@ -163,6 +171,23 @@ const SuggestionsView = React.createClass({
     },
     // template rendering
     render () {
+        const suggestionsMenu = !_.isEmpty(this.state.error) ? false : <ContextMenu
+            className="ecc-silk-mapping__ruleslistmenu"
+        >
+            <MenuItem
+                className="ecc-silk-mapping__ruleslistmenu__item-select-all"
+                onClick={this.checkAll}
+            >
+                Select all
+            </MenuItem>
+            <MenuItem
+                className="ecc-silk-mapping__ruleslistmenu__item-select-none"
+                onClick={this.checkNone}
+            >
+                Select none
+            </MenuItem>
+        </ContextMenu>;
+
         const suggestionsHeader = (
             <div className="mdl-card__title mdl-card--border">
                 <div className="mdl-card__title-text">
@@ -173,33 +198,18 @@ const SuggestionsView = React.createClass({
                     }
 
                 </div>
-                <ContextMenu
-                    className="ecc-silk-mapping__ruleslistmenu"
-                >
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                        onClick={this.checkAll}
-                    >
-                        Select all
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-select-none"
-                        onClick={this.checkNone}
-                    >
-                        Select none
-                    </MenuItem>
-                </ContextMenu>
+                {suggestionsMenu}
             </div>
         );
 
         const suggestionsList = !_.isEmpty(this.state.error) ? false :
-            _.map(this.state.data, (value, key) => {
-            return _.map(value, (item, i) => <SuggestionView
+            _.map(this.state.data, (value, suggestedClass) => {
+            return _.map(value, (item, pos) => <SuggestionView
                 item={item}
-                order={i}
-                suggestedClass={key}
+                pos={pos}
+                suggestedClass={suggestedClass}
                 check={this.check}
-                checked={this.isChecked(key, i)}
+                checked={this.isChecked(suggestedClass, pos)}
             />
         )});
 
@@ -243,4 +253,4 @@ const SuggestionsView = React.createClass({
     }
 });
 
-export default SuggestionsView;
+export default SuggestionOverview;

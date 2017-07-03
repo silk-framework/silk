@@ -10,7 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
-import SuggestionsView from './MappingRule/SuggestionsView';
+import SuggestionOverview from './MappingRule/SuggestionOverview';
 import {
     Spinner,
     Info,
@@ -385,7 +385,7 @@ const MappingRuleOverview = React.createClass({
             : [];
 
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
-            ? <SuggestionsView
+            ? <SuggestionOverview
                 key={_.join(types, ',')}
                 ruleId={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
