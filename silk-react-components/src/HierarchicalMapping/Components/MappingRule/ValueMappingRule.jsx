@@ -15,7 +15,9 @@ import {
     SourcePath,
     ThingName,
     ThingDescription,
-    InfoBox
+    InfoBox,
+    PropertyTypeLabel,
+    PropertyTypeDescription,
 } from './SharedComponents';
 
 const RuleValueView = React.createClass({
@@ -133,10 +135,10 @@ const RuleValueView = React.createClass({
                                             <dd>
                                                 <InfoBox>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                        {_.get(this.props, 'mappingTarget.valueType.nodeType', false)}
+                                                        <PropertyTypeLabel name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}></PropertyTypeLabel>
                                                     </div>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                        Any other information available here? (TODO)
+                                                        <PropertyTypeDescription name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}></PropertyTypeDescription>
                                                     </div>
                                                 </InfoBox>
                                             </dd>
