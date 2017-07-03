@@ -171,13 +171,15 @@
 }
 
 .ecc-silk-mapping__ruleshead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    position: relative;
     margin-bottom: 1rem;
 
     .mdl-card__title {
         align-items: flex-start;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: $card-background-color;
     }
 
     .mdl-card__title-back {
@@ -223,9 +225,14 @@
         margin: 0;
         padding: 0 1rem;
     }
+
+    .mdl-card__actions {
+        border-bottom: 1px solid $card-border-color;
+    }
 }
 
 .ecc-silk-mapping__ruleslist {
+
     .mdl-card__title-text {
         flex-grow: 1;
     }

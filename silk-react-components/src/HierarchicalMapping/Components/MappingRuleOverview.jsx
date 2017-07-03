@@ -348,7 +348,7 @@ const MappingRuleOverview = React.createClass({
         }
 
         const rulesList = !createRuleForm && !suggestions ? <div className="ecc-silk-mapping__ruleslist">
-            <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+            <div className="mdl-card mdl-card--stretch">
                 {mappingRulesListHead}
                 {mappingRulesList}
                 <div className="mdl-card__actions--fixed">
@@ -377,6 +377,7 @@ const MappingRuleOverview = React.createClass({
             </div>
         </div> : false;
 
+
         const types = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
             ? _.map(
             this.state.ruleData.rules.typeRules,
@@ -388,16 +389,18 @@ const MappingRuleOverview = React.createClass({
                 key={_.join(types, ',')}
                 ruleId={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
-                targetClassUris={types}/>
-            : false;
+                targetClassUris={types}/> : false;
+
 
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
+                <div className="mdl-shadow--2dp">
+                    <MappingRuleOverviewHeader rule={this.state.ruleData} key={id}/>
+                    {suggestions || rulesList}
+                </div>
                 {createRuleForm}
-                {suggestions || rulesList}
             </div>
         );
     },

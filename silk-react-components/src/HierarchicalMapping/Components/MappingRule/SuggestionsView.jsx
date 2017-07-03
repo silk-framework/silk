@@ -166,10 +166,12 @@ const SuggestionsView = React.createClass({
         const suggestionsHeader = (
             <div className="mdl-card__title mdl-card--border">
                 <div className="mdl-card__title-text">
+
                     {_.isEmpty(this.state.error)
                         ? `Add suggested mapping rules`
                         :`${_.size(this.state.error)} errors saving suggestions`
                     }
+
                 </div>
                 <ContextMenu
                     className="ecc-silk-mapping__ruleslistmenu"
@@ -219,6 +221,7 @@ const SuggestionsView = React.createClass({
 
         const actions = <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
             {_.isEmpty(this.state.error)?<AffirmativeButton onClick={this.handleAddSuggestions} >Save</AffirmativeButton>:false}
+
             <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
 
@@ -227,7 +230,7 @@ const SuggestionsView = React.createClass({
         }
         else {
             return <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
-                <div className="mdl-card mdl-card--stretch mdl-shadow--2dp">
+                <div className="mdl-card mdl-card--stretch">
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
