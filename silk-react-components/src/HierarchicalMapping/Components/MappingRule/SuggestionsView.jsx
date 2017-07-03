@@ -196,8 +196,8 @@ const SuggestionsView = React.createClass({
             _.map(this.state.data, (value, key) => {
             return _.map(value, (item, i) => <SuggestionView
                 item={item}
-                i={i}
-                k={key}
+                order={i}
+                suggestedClass={key}
                 check={this.check}
                 checked={this.isChecked(key, i)}
             />

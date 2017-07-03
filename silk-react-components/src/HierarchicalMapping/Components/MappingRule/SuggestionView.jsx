@@ -30,22 +30,22 @@ const SuggestionsView = React.createClass({
     },
     // template rendering
     render () {
-        const {k, i, item, checked} = this.props;
+        const {suggestedClass, order, item, checked} = this.props;
 
         return <li
             className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
             <Checkbox
-                onChange={this.props.check.bind(null, k, i)}
+                onChange={this.props.check.bind(null, suggestedClass, order)}
                 checked={checked}
                 className='ecc-silk-mapping__suggestitem-checkbox'
                 ripple={true}/>
 
             <div
                 className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content"
-                onClick={this.props.check.bind(null, k, i)}
+                onClick={this.props.check.bind(null, suggestedClass, order)}
             >
 
-                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{k}</div>
+                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{suggestedClass}</div>
                 <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.uri}</div>
                 <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.confidence}</div>
             </div>
