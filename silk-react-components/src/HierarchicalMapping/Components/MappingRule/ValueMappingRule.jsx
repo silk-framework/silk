@@ -86,8 +86,7 @@ const RuleValueView = React.createClass({
     // template rendering
     render () {
         const {edit} = this.state;
-
-
+        const paths = _.get(this, 'props.sourcePaths', []);
         const operators = this.getOperators(this.props.operator, []);
 
         if (edit) {
@@ -151,10 +150,10 @@ const RuleValueView = React.createClass({
                                             <dd>
                                                 <InfoBox>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                        <PropertyTypeLabel name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}></PropertyTypeLabel>
+                                                        <PropertyTypeLabel name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}/>
                                                     </div>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                        <PropertyTypeDescription name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}></PropertyTypeDescription>
+                                                        <PropertyTypeDescription name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}/>
                                                     </div>
                                                 </InfoBox>
                                             </dd>
@@ -194,9 +193,15 @@ const RuleValueView = React.createClass({
                                                 Value formula
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                Formula uses {_.get(this, 'props.sourcePaths', []).length} value paths <code>
-                                                    {_.get(this, 'props.sourcePaths', []).join(', ')}
-                                                </code> and {operators.length} operator functions <code>{operators.join(',')}</code>. <Button
+                                                Formula uses {paths.length} value path{paths.length>1?'s':''}:
+                                                <code>
+                                                    {paths.join(', ')}
+                                                </code>
+                                                  and {operators.length} operator function{operators.length>1?'s':''}:
+                                                <code>
+                                                    {operators.join(', ')}
+                                                </code>.
+                                                <Button
                                                     iconName="edit"
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
