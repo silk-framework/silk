@@ -70,9 +70,25 @@ const RuleValueView = React.createClass({
         event.stopPropagation();
         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
     },
+    getOperators(operator, accumulator) {
+        if (_.has(operator, 'function')) {
+            if (_.has(operator, 'inputs')){
+                _.forEach(operator.inputs, (input) => accumulator =_.concat(
+                    accumulator,
+                    this.getOperators(input,[])
+                ));
+            }
+            accumulator.push(operator.function);
+        }
+
+        return accumulator;
+    },
     // template rendering
     render () {
         const {edit} = this.state;
+
+
+        const operators = this.getOperators(this.props.operator, []);
 
         if (edit) {
             return <ValueMappingRuleForm
@@ -180,7 +196,7 @@ const RuleValueView = React.createClass({
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                                 Formula uses {_.get(this, 'props.sourcePaths', []).length} value paths <code>
                                                     {_.get(this, 'props.sourcePaths', []).join(', ')}
-                                                </code> and # operator functions <code>[TODO]</code>. <Button
+                                                </code> and {operators.length} operator functions <code>{operators.join(',')}</code>. <Button
                                                     iconName="edit"
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}
