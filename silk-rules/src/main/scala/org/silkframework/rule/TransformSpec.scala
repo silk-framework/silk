@@ -28,6 +28,7 @@ case class TransformSpec(selection: DatasetSelection,
                          errorOutputs: Seq[Identifier] = Seq.empty,
                          targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
 
+  /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
@@ -36,46 +37,54 @@ case class TransformSpec(selection: DatasetSelection,
 
   override lazy val referencedTasks = Set(selection.inputId)
 
-  lazy val inputSchema: EntitySchema = {
-    val schemata = collectInputSchemata(mappingRule.rules, Path.empty)
-    new MultiEntitySchema(schemata.head, schemata.tail)
+  /**
+    * Input and output schemata of all rules in the tree.
+    */
+  lazy val schemata: Seq[RuleSchemata] = {
+    collectSchemata(mappingRule, Path.empty)
   }
 
-  lazy val outputSchema: EntitySchema = {
-    val schemata = collectOutputSchemata(mappingRule.rules, Path.empty)
-    new MultiEntitySchema(schemata.head, schemata.tail)
+  /**
+    * Input schemata of all rules in the tree.
+    */
+  lazy val inputSchema: MultiEntitySchema = {
+    new MultiEntitySchema(schemata.head.inputSchema, schemata.tail.map(_.inputSchema))
   }
 
-  private def collectInputSchemata(rules: MappingRules, subPath: Path): Seq[EntitySchema] = {
-    var schemata = Seq[EntitySchema]()
 
-    schemata :+= EntitySchema(
+  /**
+    * Output schemata of all rules in the tree.
+    */
+  lazy val outputSchema: MultiEntitySchema = {
+    new MultiEntitySchema(schemata.head.outputSchema, schemata.tail.map(_.outputSchema))
+  }
+
+  /**
+    * Collects the input and output schemata of all rules recursively.
+    */
+  private def collectSchemata(rule: TransformRule, subPath: Path): Seq[RuleSchemata] = {
+    var schemata = Seq[RuleSchemata]()
+
+    val inputSchema = EntitySchema(
       typeUri = selection.typeUri,
-      typedPaths = rules.allRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+      typedPaths = rule.rules.allRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
       filter = selection.restriction,
       subPath = subPath
     )
 
-    for (ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
-      schemata ++= collectInputSchemata(childRules, relativePath)
-    }
-
-    schemata
-  }
-
-  private def collectOutputSchemata(rules: MappingRules, subPath: Path): Seq[EntitySchema] = {
-    var schemata = Seq[EntitySchema]()
-
-    schemata :+= EntitySchema(
-      typeUri = rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
-      typedPaths = rules.allRules.flatMap(_.target).map { mt =>
+    val outputSchema = EntitySchema(
+      typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
+      typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
         val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
         TypedPath(Path(List(path)), mt.valueType)
       }.distinct.toIndexedSeq
     )
 
-    for (ObjectMapping(_, relativePath, _, childRules, _) <- rules.allRules) {
-      schemata ++= collectOutputSchemata(childRules, relativePath)
+    schemata :+= RuleSchemata(rule, inputSchema, outputSchema)
+
+    val objectMappings = rule.rules.allRules.collect { case m: ObjectMapping => m }
+    for (objectMapping <- objectMappings) {
+      schemata ++= collectSchemata(objectMapping, subPath ++ objectMapping.sourcePath)
     }
 
     schemata
@@ -150,6 +159,8 @@ case class TransformSpec(selection: DatasetSelection,
     val childRuleNames = mappingRule.rules.map(validRuleNames).foldLeft(List.empty[String])((l, ruleNames) => ruleNames ::: l)
     mappingRule.id :: childRuleNames
   }
+
+  case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema)
 }
 
 /**

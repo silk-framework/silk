@@ -52,6 +52,11 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     */
   def isEmpty: Boolean = operators.isEmpty
 
+  /**
+    * Concatenates this path with another path.
+    */
+  def ++(path: Path): Path = Path(operators ::: path.operators)
+
   override def toString: String = serializedFull
 
   /**
