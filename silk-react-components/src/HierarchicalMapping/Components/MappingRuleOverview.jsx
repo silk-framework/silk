@@ -10,7 +10,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm'
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm'
 import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
-import SuggestionsView from './MappingRule/SuggestionsView';
+import SuggestionOverview from './MappingRule/SuggestionOverview';
 import {
     Spinner,
     Info,
@@ -78,12 +78,14 @@ const MappingRuleOverview = React.createClass({
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
+        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.handleRuleEditClose);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.handleRuleEditOpen);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
     },
     discardAll() {
         this.setState({
             editing: [],
+            showSuggestions: false,
         });
     },
     handleShowSuggestions(event) {
@@ -91,7 +93,9 @@ const MappingRuleOverview = React.createClass({
         if (this.state.editing.length === 0) {
             this.setState({
                 showSuggestions: true,
-            })
+
+            });
+            hierarchicalMappingChannel.subject('ruleView.change').onNext({id: 0});
         }
         else {
             this.setState({
@@ -181,7 +185,6 @@ const MappingRuleOverview = React.createClass({
         if (this.state.editing.length === 0) {
             hierarchicalMappingChannel.subject('ruleId.create').onNext({
                 type,
-                //FIXME: do we need more data like id of parent as source?
             });
         }
         else {
@@ -192,11 +195,13 @@ const MappingRuleOverview = React.createClass({
             });
         }
     },
-    handleCloseSuggestions(event) {
-        event.stopPropagation();
+    handleCloseSuggestions() {
         this.setState({showSuggestions: false});
+        hierarchicalMappingChannel.subject('ruleView.close').onNext({id:0});
     },
     shouldComponentUpdate(nextProps, nextState) {
+        // Required to prevent empty redraws while not all data is there.
+        // The issue is due to bad use of React ...
         return !_.isEmpty(nextState.ruleData);
     },
     // template rendering
@@ -223,12 +228,11 @@ const MappingRuleOverview = React.createClass({
                 }>
                 <p>
                     You currently have unsaved changes{this.state.editing.length === 1 ? '' :
-                    ` in ${this.state.editingElements.length} mapping rules`}.
+                    ` in ${this.state.editing.length} mapping rules`}.
                 </p>
             </ConfirmationDialog>
             : false;
 
-        // The root element does not have mappingTarget uri so we get the name from tree?
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
         const createRuleForm = createType ? (
@@ -373,12 +377,20 @@ const MappingRuleOverview = React.createClass({
             </div>
         </div> : false;
 
+
+        const types = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
+            ? _.map(
+            this.state.ruleData.rules.typeRules,
+            v => v.typeUri.replace('<', '').replace('>', ''))
+            : [];
+
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
-            ? <SuggestionsView
-                id={this.props.currentRuleId}
+            ? <SuggestionOverview
+                key={_.join(types, ',')}
+                ruleId={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
-                targets={_.map(this.state.ruleData.rules.typeRules, v => v.typeUri.replace('<', '').replace('>', ''))}/>
-            : false;
+                targetClassUris={types}/> : false;
+
 
         return (
             <div className="ecc-silk-mapping__rules">

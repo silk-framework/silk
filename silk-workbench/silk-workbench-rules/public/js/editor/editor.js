@@ -645,7 +645,7 @@ function getPropertyPaths(targetElement, groupPaths) {
     complete: function(response, status) {
       $(targetElement).html(response.responseText);
       if(status == "error") {
-        setTimeout('getPropertyPaths(' + targetElement + ', ' + groupPaths + ')', 2000);
+        setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
       } else {
         updateWindowSize();
       }

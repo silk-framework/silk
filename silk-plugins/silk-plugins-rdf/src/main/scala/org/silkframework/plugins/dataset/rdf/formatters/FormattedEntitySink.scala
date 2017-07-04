@@ -5,6 +5,7 @@ import java.io._
 import org.silkframework.dataset.{EntitySink, TripleSink, TypedProperty}
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
+import org.silkframework.util.Uri
 
 /**
  * An entity sink that writes formatted entity output to an output resource.
@@ -21,7 +22,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   private var writer: Writer = _
 
-  override def open(properties: Seq[TypedProperty]) {
+  override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     writer = javaFile match {
@@ -63,7 +64,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   }
 
   override def init(): Unit = {
-    open(properties = Seq())
+    open(typeUri = "", properties = Seq())
   }
 
   override def writeTriple(subject: String, predicate: String, value: String, valueType: ValueType): Unit = {

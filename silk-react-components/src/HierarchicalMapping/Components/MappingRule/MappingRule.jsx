@@ -107,7 +107,6 @@ const MappingRule = React.createClass({
         this.setState({
             loading: true,
         });
-        console.log(event, id, pos, parentId)
         event.stopPropagation();
         hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parentId}})
             .subscribe(

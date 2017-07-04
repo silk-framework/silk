@@ -16,10 +16,10 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{Task, MetaData}
+import org.silkframework.config.{MetaData, Task}
 import org.silkframework.entity.Link
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
@@ -67,13 +67,13 @@ class DatasetTask(val id: Identifier,
     /**
       * Initializes this writer.
       */
-    override def open(properties: Seq[TypedProperty]) {
+    override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
       if (isOpen) {
         writer.close()
         isOpen = false
       }
 
-      writer.open(properties)
+      writer.open(typeUri, properties)
       entityCount = 0
       isOpen = true
     }

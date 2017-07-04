@@ -14,6 +14,7 @@ case class MappingRules(uriRule: Option[UriMapping] = None,
                         typeRules: Seq[TypeMapping] = Seq.empty,
                         propertyRules: Seq[TransformRule] = Seq.empty) {
 
+  /** All rules (URI rule, type rules and property rules). Does not include recursive children. */
   def allRules: Seq[TransformRule] = uriRule.toSeq ++ typeRules ++ propertyRules
 
 }

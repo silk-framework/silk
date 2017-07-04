@@ -39,7 +39,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
                                 context: ActivityContext[TransformReport]): Unit = {
     try {
       for (output <- outputs) {
-        output.open(outputSchema.typedPaths.map(_.property.get))
+        output.open(outputSchema.typeUri, outputSchema.typedPaths.map(_.property.get))
       }
 
       val entities = input.retrieve(inputSchema)
