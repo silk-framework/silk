@@ -242,7 +242,11 @@ const MappingRuleOverview = React.createClass({
                         <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
-                            parent={_.last(this.state.ruleData.breadcrumbs)}
+                            parent={{
+                                id: this.state.ruleData.id,
+                                property: this.state.ruleData.mappingTarget.uri,
+                                type: this.state.ruleData.rules.typeRules[0].typeUri,
+                            }}
                             edit={true}
                         />
                     ) : (
