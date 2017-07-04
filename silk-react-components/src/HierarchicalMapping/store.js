@@ -159,6 +159,21 @@ if (!__DEBUG__) {
 
     const vocabularyCache = {};
 
+    hierarchicalMappingChannel.subject('rules.generate').subscribe(
+        ({data, replySubject}) => {
+            const {correspondences, parentRuleId} = data;
+            silkStore
+                .request({topic: 'transform.task.rule.generate', data: {...apiDetails, correspondences, parentRuleId}})
+                .map((returned) => {
+                    return {
+                        rules: _.get(returned, ['body'], []),
+                    }
+                }).multicast(replySubject).connect();
+
+
+        }
+    );
+
     hierarchicalMappingChannel.subject('vocabularyInfo.get').subscribe(
         ({data, replySubject}) => {
 
@@ -195,24 +210,12 @@ if (!__DEBUG__) {
         }
     );
 
-    hierarchicalMappingChannel.subject('transform.get').subscribe(
-        ({data, replySubject}) => {
-
-            silkStore
-                .request({topic: 'transform.task.get', data: apiDetails}).map((returned) => {
-                return {
-                    example: returned.body
-                };
-            }).multicast(replySubject).connect();
-        }
-    );
-
     hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
             silkStore
                 .request({topic: 'transform.task.rule.suggestions', data: {...apiDetails, ...data}}).map((returned) => {
                 return {
-                    example: returned.body
+                    suggestions: returned.body
                 };
             }).multicast(replySubject).connect();
         }
@@ -376,6 +379,17 @@ if (!__DEBUG__) {
         }
     );
 
+    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(({data, replySubject}) => {
+
+            const payload = data;
+            const parent = data.parentId ? data.parentId : rootId;
+
+            editMappingRule(payload, data.id, parent)
+                .multicast(replySubject).connect();
+
+        }
+    );
+
     hierarchicalMappingChannel.subject('rule.removeRule').subscribe(
         ({data, replySubject}) => {
             const {id} = data;
@@ -393,7 +407,7 @@ if (!__DEBUG__) {
                     },
                     (err) => {
                         //TODO: Beautify
-                        console.warn(`Error saving rule in ${id}`, err);
+                        console.warn(`Error deleting rule in ${id}`, err);
                         alert(`Error creating rule in ${id}`);
                     }
                 )
@@ -423,64 +437,51 @@ if (!__DEBUG__) {
         mockStore = _.cloneDeep(rawMockStore);
     }
 
-    hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
+    hierarchicalMappingChannel.subject('rules.generate').subscribe(
         ({data, replySubject}) => {
-            let suggestions = {};
-            _.forEach(data.targets, (t) => {
-                suggestions[t] = [];
-                _.forEach(new Array(78), (a, i) => {
-                    suggestions[t].push({
-                        "uri": "http://eccenca.com/ds/loans/field_" + i,
-                        "confidence": Math.floor((i === 0
-                                    ? 1 - 0.1 * Math.random()
-                                    : 0.5 + 0.5 * Math.random()
-                            ) * 100) / 100
-                    });
-                });
+            const {correspondences, parentRuleId} = data;
 
+            let rules = [];
 
+            _.map(correspondences, (correspondence) => {
+                rules.push(
+                    {
+                        "metadata": {
+                            "description": _.includes(correspondence.sourcePath, 'error') ? 'error' : ''
+                        },
+                        "mappingTarget": {
+                            "uri": correspondence.targetProperty,
+                            "valueType": {
+                                "nodeType": "AutoDetectValueType"
+                            }
+                        },
+                        "sourcePath": correspondence.sourcePath,
+                        "type": "direct"
+                    }
+                );
             });
-            replySubject.onNext(suggestions);
+
+            replySubject.onNext({rules});
             replySubject.onCompleted();
         }
     );
 
-    hierarchicalMappingChannel.subject('transform.get').subscribe(
+    hierarchicalMappingChannel.subject('rule.suggestions').subscribe(
         ({data, replySubject}) => {
-            const transform = {
-                example: {
-                    "id": "test2",
-                    "selection": {"inputId": "customers", "typeUri": "1495455156290_customers.csv", "restriction": ""},
-                    "root": {
-                        "type": "root",
-                        "id": "root",
-                        "rules": {
-                            "uriRule": null,
-                            "typeRules": [{
-                                "type": "type",
-                                "id": "type9",
-                                "typeUri": "<http://schema.org/Address>",
-                                "metadata": {"label": "", "description": ""}
-                            }],
-                            "propertyRules": [{
-                                "type": "direct",
-                                "id": "direct",
-                                "sourcePath": "/city",
-                                "mappingTarget": {
-                                    "uri": "<http://schema.org/address>",
-                                    "valueType": {"nodeType": "AutoDetectValueType"},
-                                    "isBackwardProperty": false
-                                },
-                                "metadata": {"label": "", "description": ""}
-                            }]
-                        },
-                        "metadata": {"label": "", "description": ""}
-                    },
-                    "outputs": [],
-                    "targetVocabularies": ["http://schema.org"]
-                }
-            };
-            replySubject.onNext(transform);
+            const paths = ['/name', '/city','/loan','/country','/lastname','/firstName','/address', '/expected-error'];
+            const types = ['/name', '/city','/loan','/country','/lastname','/firstName','/address', '/one-error'];
+            let suggestions = {};
+            _.forEach(data.targetClassUris, (target) => {
+                _.forEach(types, (type, key) => {
+                    const path = paths[key];
+                    suggestions[`${target}${type}`] = [{
+                        "uri": path,
+                        "confidence": Math.floor(100 - 0.1 * Math.random() * 100) / 100
+                    }];
+                })
+            });
+
+            replySubject.onNext({suggestions});
             replySubject.onCompleted();
         }
     );
@@ -610,6 +611,9 @@ if (!__DEBUG__) {
 
     const editRule = (mockStore, id, payload) => {
         if (mockStore.id === id) {
+            if (_.has(mockStore.rules, 'typeRules') && _.has(payload.rules, 'typeRules')){
+                mockStore.rules.typeRules = payload.rules.typeRules;
+            }
             _.merge(mockStore, payload)
         } else if (_.has(mockStore, 'rules.propertyRules')) {
             _.forEach(_.get(mockStore, 'rules.propertyRules'), (childRule) => {
@@ -624,12 +628,35 @@ if (!__DEBUG__) {
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
+    const handleUpdatePreparedRule = ({data, replySubject}) => {
+        const payload = data;
+
+        if (_.includes(data.metadata.description, 'error')) {
+            const err = new Error('Could not save rule.');
+            _.set(err, 'response.body', {
+                message: 'Comment cannot contain "error"',
+                issues: [{message: 'None really, we just want to test the feature'}]
+            });
+
+            replySubject.onError(err);
+            replySubject.onCompleted();
+            return;
+        }
+
+        payload.id = `${Date.now()}${_.random(0, 100, false)}`;
+
+        const parent = data.parentId ? data.parentId : mockStore.id;
+        appendToMockStore(mockStore, parent, payload);
+
+        saveMockStore();
+
+        replySubject.onNext();
+        replySubject.onCompleted();
+    };
+
     const handleUpdate = ({data, replySubject}) => {
 
-
         const payload = _.includes(['object', 'root'], data.type) ? prepareObjectMappingPayload(data) : prepareValueMappingPayload(data);
-
-        console.warn('MOCKSTORE: Saving: ', JSON.stringify(payload, null, 2));
 
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
@@ -639,7 +666,7 @@ if (!__DEBUG__) {
             });
             replySubject.onError(err);
             replySubject.onCompleted();
-
+            return;
         }
 
         if (data.id) {
@@ -666,6 +693,7 @@ if (!__DEBUG__) {
 
     hierarchicalMappingChannel.subject('rule.createObjectMapping').subscribe(handleUpdate);
 
+    hierarchicalMappingChannel.subject('rule.createGeneratedMapping').subscribe(handleUpdatePreparedRule);
     const removeRule = (store, id) => {
 
         if (store.id === id) {
