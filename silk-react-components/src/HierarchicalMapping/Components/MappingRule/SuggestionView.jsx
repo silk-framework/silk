@@ -47,7 +47,6 @@ const SuggestionsView = React.createClass({
 
                 <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{suggestedClass}</div>
                 <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.uri}</div>
-                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.confidence}</div>
             </div>
         </li>
     }
