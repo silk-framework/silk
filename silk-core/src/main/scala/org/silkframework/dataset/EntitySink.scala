@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.{TypedPath, ValueType}
+import org.silkframework.util.Uri
 
 /**
  * An entity sink implements methods to write entities, e.g. the result of a transformation task.
@@ -11,11 +12,11 @@ trait EntitySink extends DataSink {
    *
    * @param properties The list of properties of the entities to be written.
    */
-  def open(properties: Seq[TypedProperty]): Unit
+  def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit
 
-  def openWithTypedPath(typedPaths: Seq[TypedPath]): Unit = {
+  def openWithTypedPath(typeUri: Uri, typedPaths: Seq[TypedPath]): Unit = {
     val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
-    open(properties)
+    open(typeUri, properties)
   }
 
   /**

@@ -7,6 +7,7 @@ import org.silkframework.dataset.rdf.GraphStoreTrait
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.util.Uri
 
 /**
   * An RDF sink based on the graph store protocol.
@@ -23,7 +24,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var byteCount = 0L
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def open(properties: Seq[TypedProperty]): Unit = {
+  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     init()
     this.properties = properties
   }

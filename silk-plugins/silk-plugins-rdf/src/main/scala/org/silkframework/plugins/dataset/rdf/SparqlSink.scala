@@ -6,6 +6,7 @@ import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.util.Uri
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
@@ -24,7 +25,7 @@ class SparqlSink(params: SparqlParams,
 
   private var properties = Seq[TypedProperty]()
 
-  override def open(properties: Seq[TypedProperty]) {
+  override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
   }
 
