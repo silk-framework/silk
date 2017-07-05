@@ -53,7 +53,7 @@ function filterPropertyType(input, replySubject) {
 }
 
 
-function findRule(element, id, breadcrumbs) {
+function findRule(element, id, isObjectMapping, breadcrumbs) {
     element.breadcrumbs = breadcrumbs;
     if (element.id === id) {
         return element;
@@ -68,9 +68,14 @@ function findRule(element, id, breadcrumbs) {
             }
         ];
         _.forEach(element.rules.propertyRules, (child) => {
-            if (result === null)
-                result = findRule(child, id, bc);
+            if (result === null){
+                result = findRule(child, id, isObjectMapping, bc);
+            }
         });
+
+        if(isObjectMapping && result !== null && !_.includes(['root', 'object'], result.type)){
+            result = element;
+        }
 
         return result;
     }
@@ -282,21 +287,19 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel.subject('rule.get').subscribe(
         ({data, replySubject}) => {
 
-            const {id} = data;
+            const {id, isObjectMapping} = data;
 
             silkStore
                 .request({topic: 'transform.task.rules.get', data: {...apiDetails}})
                 .map((returned) => {
 
-                    const mockStore = returned.body;
+                    const rules = returned.body;
 
-                    const searchId = id ? id : mockStore.id;
+                    const searchId = id ? id : rules.id;
 
+                    const rule = findRule(_.cloneDeep(rules), searchId, isObjectMapping, []);
 
-                    const rule = findRule(_.cloneDeep(mockStore), searchId, []);
-
-
-                    return {rule: rule ? rule : mockStore};
+                    return {rule: rule ? rule : rules};
                 })
                 .multicast(replySubject).connect();
 
@@ -585,9 +588,8 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel.subject('rule.get').subscribe(
         ({data, replySubject}) => {
 
-            const {id} = data;
-            const searchId = id ? id : mockStore.id;
-            const rule = findRule(_.cloneDeep(mockStore), searchId, []);
+            const {id, isObjectMapping = false} = data;
+            const rule = findRule(_.cloneDeep(mockStore), id, isObjectMapping, []);
             const result = _.isUndefined(rule) ? mockStore : rule;
             replySubject.onNext({rule: result});
             replySubject.onCompleted();

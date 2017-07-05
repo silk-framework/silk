@@ -33,7 +33,7 @@ const TreeView = React.createClass({
         this.loadData();
     },
     expandElement({parent}){
-        if (!_.isUndefined(parent) && !_.includes(this.state.expanded, {[parent]:true})) {
+        if (!_.isUndefined(parent) && !_.includes(this.state.expanded, {[parent]: true})) {
             this.setState({
                 expanded: _.merge(this.state.expanded, {[parent]: true}),
             })
@@ -41,7 +41,7 @@ const TreeView = React.createClass({
     },
     loadData(){
 
-        console.warn('TREE RELOAD')
+        console.warn('TREE RELOAD');
 
         // get navigation tree data
         hierarchicalMappingChannel.request({topic: 'hierarchy.get'})
@@ -78,22 +78,56 @@ const TreeView = React.createClass({
         expanded[id] = !currentlyExpanded;
         this.setState({expanded});
     },
+    markTree(tree) {
 
+        if (_.isEmpty(tree)) {
+            return tree;
+        }
+
+        const {id, type} = tree;
+
+        let expanded = _.get(this.state, ['expanded', id], false);
+        let isHighlighted = id === this.props.currentRuleId || (type === 'root' && _.isUndefined(this.props.currentRuleId));
+
+        if (_.has(tree, 'rules.propertyRules')) {
+            tree.rules.propertyRules = _.map(tree.rules.propertyRules, (rule) => {
+                const subtree = this.markTree(rule);
+
+                expanded = expanded || subtree.expanded;
+
+                if (subtree.type !== 'object' && subtree.id === this.props.currentRuleId) {
+                    isHighlighted = true;
+                    expanded = true;
+                }
+
+                return subtree;
+            })
+        }
+
+        tree.expanded = expanded;
+        tree.isHighlighted = isHighlighted;
+
+        return tree;
+    },
     // template rendering
     render () {
+
+        let tree = this.markTree(_.cloneDeep(this.state.tree));
+
         // construct parent-child tree
-        const navigationList = ({parent, root}) => {
-            const {id, rules = {}, type} = parent;
+        const navigationList = ({parent}) => {
+
+            const {id, type, rules = {}, isHighlighted, expanded} = parent;
+
+            // get expanded state
             const childs = (
                 _.chain(rules.propertyRules)
-                    .cloneDeep()
-                    .filter(({type}) => type === 'object')
+                    .filter(({type}) => {
+                        return type === 'object';
+                    })
                     .value()
             );
-            // get expanded state
-            const expanded = _.get(this.state, ['expanded', id], false);
-            // check if this element is selected (select root if no selected exist)
-            const isHighlighted = id === this.props.currentRuleId || (type === 'root' && _.isUndefined(this.props.currentRuleId));
+
             const element = () => {
 
                 return (
@@ -115,12 +149,13 @@ const TreeView = React.createClass({
                         )}
                     </button>
                 );
-            }
+            };
+
             return (
                 <div>
                     <div className={
-                            'ecc-silk-mapping__treenav--item' +
-                            (isHighlighted ? ' ecc-silk-mapping__treenav--item-active' : '')
+                        'ecc-silk-mapping__treenav--item' +
+                        (isHighlighted ? ' ecc-silk-mapping__treenav--item-active' : '')
                     }
                     >
                         {
@@ -151,7 +186,7 @@ const TreeView = React.createClass({
                                 {
                                     _.map(childs, (child, idx) => (
                                         <li
-                                            key={id + '.' + idx}
+                                            key={child.id}
                                         >
                                             {navigationList({parent: child})}
                                         </li>
@@ -166,10 +201,10 @@ const TreeView = React.createClass({
         };
 
         const content = (
-            !_.isEmpty(this.state.tree) ? (
+            !_.isEmpty(tree) ? (
                 <ul className="ecc-silk-mapping__treenav--maintree">
                     <li>
-                        {navigationList({parent: this.state.tree, root: true})}
+                        {navigationList({parent: tree})}
                     </li>
                 </ul>
             ) : false

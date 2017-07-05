@@ -31,13 +31,17 @@ const ExampleView = React.createClass({
                     this.setState({example});
                 },
                 (err) => {
-                    if (__DEBUG__) {console.warn('err MappingRuleOverview: rule.example');}
-                    this.setState({example: {
-                        status: {
-                            id: 'error',
-                            msg: err.toString(),
+                    if (__DEBUG__) {
+                        console.warn('err MappingRuleOverview: rule.example');
+                    }
+                    this.setState({
+                        example: {
+                            status: {
+                                id: 'error',
+                                msg: err.toString(),
+                            }
                         }
-                    }});
+                    });
                 }
             );
     },
@@ -57,22 +61,26 @@ const ExampleView = React.createClass({
             if (__DEBUG__) {
                 const loremIpsum = require('lorem-ipsum');
                 return <Error
-                        border
-                        className={errorClassName}
-                        handlerDismiss={() => {this.setState({errorExpanded: !this.state.errorExpanded})}}
-                        labelDismiss={this.state.errorExpanded ? 'Show less' : 'Show more'}
-                        iconDismiss={this.state.errorExpanded ? 'expand_less' : 'expand_more'}
-                    >
-                        {loremIpsum({
-                            count: _.random(5, 10),
-                            units: 'paragraphs'
-                        })}
-                    </Error>;
+                    border
+                    className={errorClassName}
+                    handlerDismiss={() => {
+                        this.setState({errorExpanded: !this.state.errorExpanded})
+                    }}
+                    labelDismiss={this.state.errorExpanded ? 'Show less' : 'Show more'}
+                    iconDismiss={this.state.errorExpanded ? 'expand_less' : 'expand_more'}
+                >
+                    {loremIpsum({
+                        count: _.random(5, 10),
+                        units: 'paragraphs'
+                    })}
+                </Error>;
             }
             return <Error
                 border
                 className={errorClassName}
-                handlerDismiss={() => {this.setState({errorExpanded: !this.state.errorExpanded})}}
+                handlerDismiss={() => {
+                    this.setState({errorExpanded: !this.state.errorExpanded})
+                }}
                 labelDismiss={this.state.errorExpanded ? 'Show less' : 'Show more'}
                 iconDismiss={this.state.errorExpanded ? 'expand_less' : 'expand_more'}
             >
@@ -81,44 +89,55 @@ const ExampleView = React.createClass({
         }
         else {
             const pathsCount = this.state.example.sourcePaths.length;
+
             return (
                 <table
                     className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table"
                 >
                     <thead>
-                        <tr>
-                            <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Value path</th>
-                            <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Value</th>
-                            <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
-                        </tr>
+                    <tr>
+                        <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Value path</th>
+                        <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Value</th>
+                        <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
+                    </tr>
                     </thead>
-                    {_.map(this.state.example.results, (result, index) =>
-                        <tbody>
-                        {_.map(this.state.example.sourcePaths, (sourcePath, i) =>
-                            <tr
-                                key={`${index}_${i}`}
-                                id={`${index}_${i}`}
-                            >
-                                <td key='path' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
-                                    <Chip>{sourcePath}</Chip>
-                                </td>
-                                <td key='value' className='ecc-silk-mapping__rulesviewer__examples-table__value'>
-                                    {result.sourceValues[i].map(t => <Chip>{t}</Chip>)}
-                                </td>
-                                {
-                                    i>0 ? false :
-                                        <td key='result' className='ecc-silk-mapping__rulesviewer__examples-table__result' rowSpan={pathsCount}>
-                                            {
-                                                this.state.example.results[index].transformedValues.map(transformedValue =>
-                                                    <Chip>{transformedValue}</Chip>
-                                                )
-                                            }
+                    {
+                        _.map(this.state.example.results, (result, index) =>
+                            <tbody key={`tbody_${index}`}>
+                            {
+                                _.map(this.state.example.sourcePaths, (sourcePath, i) =>
+                                    <tr
+                                        key={`${index}_${sourcePath}_${i}`}
+                                        id={`${index}_${sourcePath}_${i}`}
+                                    >
+                                        <td key='path' className='ecc-silk-mapping__rulesviewer__examples-table__path'>
+                                            <Chip>{sourcePath}</Chip>
                                         </td>
-                                }
-                            </tr>
+                                        <td key='value'
+                                            className='ecc-silk-mapping__rulesviewer__examples-table__value'>
+                                            {
+                                            _.map(result.sourceValues[i], (value, valueIndex) =>
+                                                <Chip
+                                                    key={`${index}_${sourcePath}_${i}_${valueIndex}`}>{value}</Chip>
+                                            )}
+                                            </td>
+                                        {
+                                            i > 0 ? false :
+                                                <td key='result'
+                                                    className='ecc-silk-mapping__rulesviewer__examples-table__result'
+                                                    rowSpan={pathsCount}>
+                                                    {
+                                                        _.map(this.state.example.results[index].transformedValues, (transformedValue, row) =>
+                                                            <Chip key={`value_${index}_${i}_${row}`}
+                                                                  id={`value_${index}_${i}_${row}`}>{transformedValue}</Chip>
+                                                        )
+                                                    }
+                                                </td>
+                                        }
+                                    </tr>
+                                )}
+                            </tbody>
                         )}
-                        </tbody>
-                    )}
                 </table>
             );
         }

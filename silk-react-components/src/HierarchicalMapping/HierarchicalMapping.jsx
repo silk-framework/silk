@@ -2,6 +2,7 @@ import React from 'react';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 import _ from 'lodash';
+import {URI} from 'ecc-utils';
 import TreeView from './Components/TreeView';
 import {
     Spinner,
@@ -55,11 +56,10 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         });
 
-
         //TODO: Use initialRule
         return {
             // currently selected rule id
-            currentRuleId: 'root',
+            currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
@@ -145,6 +145,21 @@ const HierarchicalMapping = React.createClass({
                 askForDiscard: newRuleId
             });
        }
+    },
+    componentDidUpdate(prevProps, prevState){
+
+        if(prevState.currentRuleId !== this.state.currentRuleId && !_.isEmpty(this.state.currentRuleId)){
+            const uriTemplate = new URI(window.location.href);
+
+            if(uriTemplate.segment(-2) !== 'rule'){
+                uriTemplate.segment('rule');
+                uriTemplate.segment('rule');
+            }
+
+            uriTemplate.segment(-1, this.state.currentRuleId);
+            history.pushState(null, '', uriTemplate.toString());
+        }
+
     },
     // show / hide navigation
     handleToggleNavigation() {
