@@ -1832,9 +1832,9 @@ dezalgo@^1.0.0:
     asap "^2.0.0"
     wrappy "1"
 
-dialog-polyfill@0.4.3:
-  version "0.4.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/dialog-polyfill/-/dialog-polyfill-0.4.3.tgz#1603ad97be5b6ba406a499a8a0c5bab994425704"
+dialog-polyfill@0.4.4:
+  version "0.4.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/dialog-polyfill/-/dialog-polyfill-0.4.4.tgz#924b5acbf7a587c50de84c174fd5d0f317efa881"
 
 diff@3.2.0:
   version "3.2.0"

@@ -160,6 +160,28 @@
     },
 
     /**
+     * Focuses on the first focusable element within the dialog. This will always blur the current
+     * focus, even if nothing within the dialog is found.
+     */
+    focus_: function() {
+      // Find element with `autofocus` attribute, or fall back to the first form/tabindex control.
+      var target = this.dialog_.querySelector('[autofocus]:not([disabled])');
+      if (!target) {
+        // Note that this is 'any focusable area'. This list is probably not exhaustive, but the
+        // alternative involves stepping through and trying to focus everything.
+        var opts = ['button', 'input', 'keygen', 'select', 'textarea'];
+        var query = opts.map(function(el) {
+          return el + ':not([disabled])';
+        });
+        // TODO(samthor): tabindex values that are not numeric are not focusable.
+        query.push('[tabindex]:not([disabled]):not([tabindex=""])');  // tabindex != "", not disabled
+        target = this.dialog_.querySelector(query.join(', '));
+      }
+      safeBlur(document.activeElement);
+      target && target.focus();
+    },
+
+    /**
      * Sets the zIndex for the backdrop and dialog.
      *
      * @param {number} backdropZ
@@ -171,10 +193,13 @@
     },
 
     /**
-     * Shows the dialog. This is idempotent and will always succeed.
+     * Shows the dialog. If the dialog is already open, this does nothing.
      */
     show: function() {
-      this.setOpen(true);
+      if (!this.dialog_.open) {
+        this.setOpen(true);
+        this.focus_();
+      }
     },
 
     /**
@@ -195,9 +220,11 @@
 
       // Optionally center vertically, relative to the current viewport.
       if (dialogPolyfill.needsCentering(this.dialog_)) {
+        console.info('repositioning what');
         dialogPolyfill.reposition(this.dialog_);
         this.replacedStyleTop_ = true;
       } else {
+        console.info('NOT repositioning');
         this.replacedStyleTop_ = false;
       }
 
@@ -206,18 +233,9 @@
       this.dialog_.parentNode.insertBefore(this.backdrop_,
           this.dialog_.nextSibling);
 
-      // Find element with `autofocus` attribute or first form control.
-      var target = this.dialog_.querySelector('[autofocus]:not([disabled])');
-      if (!target) {
-        // TODO: technically this is 'any focusable area'
-        var opts = ['button', 'input', 'keygen', 'select', 'textarea'];
-        var query = opts.map(function(el) {
-          return el + ':not([disabled])';
-        }).join(', ');
-        target = this.dialog_.querySelector(query);
-      }
-      safeBlur(document.activeElement);
-      target && target.focus();
+      this.dialog_.addEventListener('DOMNodeRemoved', function(ev) {
+        console.info('dialog itself removed', ev);
+      });
     },
 
     /**
@@ -263,8 +281,7 @@
       try {
         cssRules = styleSheet.cssRules;
       } catch (e) {}
-      if (!cssRules)
-        continue;
+      if (!cssRules) { continue; }
       for (var j = 0; j < cssRules.length; ++j) {
         var rule = cssRules[j];
         var selectedNodes = null;
@@ -272,12 +289,14 @@
         try {
           selectedNodes = document.querySelectorAll(rule.selectorText);
         } catch(e) {}
-        if (!selectedNodes || !inNodeList(selectedNodes, element))
+        if (!selectedNodes || !inNodeList(selectedNodes, element)) {
           continue;
+        }
         var cssTop = rule.style.getPropertyValue('top');
         var cssBottom = rule.style.getPropertyValue('bottom');
-        if ((cssTop && cssTop != 'auto') || (cssBottom && cssBottom != 'auto'))
+        if ((cssTop && cssTop != 'auto') || (cssBottom && cssBottom != 'auto')) {
           return true;
+        }
       }
     }
     return false;
@@ -314,12 +333,10 @@
   };
 
   /**
-   * @param {!Element} element to upgrade
+   * @param {!Element} element to upgrade, if necessary
    */
   dialogPolyfill.registerDialog = function(element) {
-    if (element.showModal) {
-      console.warn('Can\'t upgrade <dialog>: already supported', element);
-    } else {
+    if (!element.showModal) {
       dialogPolyfill.forceRegisterDialog(element);
     }
   };
@@ -427,6 +444,8 @@
     var dialog = /** @type {HTMLDialogElement} */ (event.target);
     if (!dialog.open) { return; }
 
+    console.info('dialog is removed', event);
+
     // Find a dialogPolyfillInfo which matches the removed <dialog>.
     this.pendingDialogStack.some(function(dpi) {
       if (dpi.dialog == dialog) {
@@ -456,7 +475,7 @@
   };
 
   /**
-   * @param {dialogPolyfillInfo} dpi
+   * @param {!dialogPolyfillInfo} dpi
    */
   dialogPolyfill.DialogManager.prototype.removeDialog = function(dpi) {
     var index = this.pendingDialogStack.indexOf(dpi);
@@ -501,12 +520,12 @@
   dialogPolyfill['forceRegisterDialog'] = dialogPolyfill.forceRegisterDialog;
   dialogPolyfill['registerDialog'] = dialogPolyfill.registerDialog;
 
-  if (typeof module === 'object' && typeof module['exports'] === 'object') {
-    // CommonJS support
-    module['exports'] = dialogPolyfill;
-  } else if (typeof define === 'function' && 'amd' in define) {
+  if (typeof define === 'function' && 'amd' in define) {
     // AMD support
     define(function() { return dialogPolyfill; });
+  } else if (typeof module === 'object' && typeof module['exports'] === 'object') {
+    // CommonJS support
+    module['exports'] = dialogPolyfill;
   } else {
     // all others
     window['dialogPolyfill'] = dialogPolyfill;
