@@ -610,7 +610,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
-        mappingRule = fromJson[RootMappingRule](mustBeDefined(value, RULES_PROPERTY)),
+        mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )

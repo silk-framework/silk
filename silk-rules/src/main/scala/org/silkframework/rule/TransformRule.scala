@@ -140,6 +140,8 @@ case class RootMappingRule(id: Identifier, override val rules: MappingRules, met
 
 object RootMappingRule {
 
+  def empty: RootMappingRule = RootMappingRule("root", MappingRules.empty)
+
   def apply(rules: MappingRules): RootMappingRule = RootMappingRule("root", rules)
 
   /**
