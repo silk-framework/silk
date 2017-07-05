@@ -230,7 +230,14 @@ const SuggestionOverview = React.createClass({
         );
 
         const actions = <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
-            {_.isEmpty(this.state.error)?<AffirmativeButton onClick={this.handleAddSuggestions} >Save</AffirmativeButton>:false}
+            {_.isEmpty(this.state.error)
+                ?<AffirmativeButton
+                    onClick={this.handleAddSuggestions}
+                    disabled={_.size(this.state.checked) === 0}
+                >
+                    Save
+                </AffirmativeButton>
+                :false}
 
             <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
