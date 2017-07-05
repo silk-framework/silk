@@ -11,9 +11,10 @@ default: help
 ## Build react components and copy it to silk-workbench-core
 build: install
 	yarn run deploy
+	rm -rf $(SILK_DIST_ROOT)
+	mkdir -p $(SILK_DIST_ROOT)
 	./node_modules/uglify-js/bin/uglifyjs --compress dead_code,sequences=false --beautify -- ./dist/main.js > $(SILK_DIST_ROOT)/main.js
 	cp ./dist/style.css $(SILK_DIST_ROOT)/style.css
-	mkdir -p $(SILK_DIST_ROOT)/fonts
 	cp -rf ./dist/fonts $(SILK_DIST_ROOT)
 
 ## Copy vendor libs to silk-workbench-core
