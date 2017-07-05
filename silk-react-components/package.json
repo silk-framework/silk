@@ -27,6 +27,8 @@
     "ecc-superagent": "^1.2.0",
     "ecc-utils": "^1.3.0",
     "jquery": "1.11.3",
+    "jsplumb": "2.1.8",
+    "jstree": "3.2.1",
     "lodash": "^4.17.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
