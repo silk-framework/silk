@@ -256,8 +256,8 @@ const MappingRuleOverview = React.createClass({
                             parentId={this.state.ruleData.id}
                             parent={{
                                 id: this.state.ruleData.id,
-                                property: this.state.ruleData.mappingTarget.uri,
-                                type: this.state.ruleData.rules.typeRules[0].typeUri,
+                                property: _.get(this, 'state.ruleData.mappingTarget.uri'),
+                                type: _.get(this, 'state.ruleData.rules.typeRules[0].typeUri'),
                             }}
                             edit={true}
                         />
