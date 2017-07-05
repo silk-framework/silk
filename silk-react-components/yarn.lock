@@ -3916,7 +3916,7 @@ map-stream@~0.1.0:
   version "0.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
 
-material-design-lite@^1.3.0:
+material-design-lite@1.3.0, material-design-lite@^1.3.0:
   version "1.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/material-design-lite/-/material-design-lite-1.3.0.tgz#d004ce3fee99a1eeb74a78b8a325134a5f1171d3"
 
