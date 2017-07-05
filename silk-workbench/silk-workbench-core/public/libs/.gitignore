@@ -1,0 +1,14 @@
+dialog-polyfill/tests
+dialog-polyfill/suite.js
+dialog-polyfill/test.html
+
+jquery/dist/*.min.*
+jquery/libs/
+jquery/src/
+jquery/AUTHORS.txt
+jquery/CONTRIBUTING.md
+
+.jscsrc
+.bowerrc
+.npmignore
+bower.json
