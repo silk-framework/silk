@@ -3916,13 +3916,19 @@ map-stream@~0.1.0:
   version "0.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
 
-material-design-lite@1.3.0, material-design-lite@^1.3.0:
+material-design-lite@1.3.0, material-design-lite@^1.1.3, material-design-lite@^1.3.0:
   version "1.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/material-design-lite/-/material-design-lite-1.3.0.tgz#d004ce3fee99a1eeb74a78b8a325134a5f1171d3"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.17"
   resolved "https://artifactory.eccenca.com/api/npm/npm/math-expression-evaluator/-/math-expression-evaluator-1.2.17.tgz#de819fdbcd84dccd8fae59c6aeb79615b9d266ac"
+
+mdl-selectfield@1.0.3:
+  version "1.0.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/mdl-selectfield/-/mdl-selectfield-1.0.3.tgz#63049b08ed1bf6ae07fe4c32a0545a15fc6a6753"
+  dependencies:
+    material-design-lite "^1.1.3"
 
 media-typer@0.3.0:
   version "0.3.0"
