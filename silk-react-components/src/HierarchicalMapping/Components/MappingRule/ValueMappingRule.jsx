@@ -15,7 +15,9 @@ import {
     SourcePath,
     ThingName,
     ThingDescription,
-    InfoBox
+    InfoBox,
+    PropertyTypeLabel,
+    PropertyTypeDescription,
 } from './SharedComponents';
 
 const RuleValueView = React.createClass({
@@ -68,9 +70,24 @@ const RuleValueView = React.createClass({
         event.stopPropagation();
         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
     },
+    getOperators(operator, accumulator) {
+        if (_.has(operator, 'function')) {
+            if (_.has(operator, 'inputs')){
+                _.forEach(operator.inputs, (input) => accumulator =_.concat(
+                    accumulator,
+                    this.getOperators(input,[])
+                ));
+            }
+            accumulator.push(operator.function);
+        }
+
+        return accumulator;
+    },
     // template rendering
     render () {
         const {edit} = this.state;
+        const paths = _.get(this, 'props.sourcePaths', []);
+        const operators = this.getOperators(this.props.operator, []);
 
         if (edit) {
             return <ValueMappingRuleForm
@@ -133,10 +150,10 @@ const RuleValueView = React.createClass({
                                             <dd>
                                                 <InfoBox>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                        {_.get(this.props, 'mappingTarget.valueType.nodeType', false)}
+                                                        <PropertyTypeLabel name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}/>
                                                     </div>
                                                     <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                        Any other information available here? (TODO)
+                                                        <PropertyTypeDescription name={_.get(this.props, 'mappingTarget.valueType.nodeType', false)}/>
                                                     </div>
                                                 </InfoBox>
                                             </dd>
@@ -176,9 +193,15 @@ const RuleValueView = React.createClass({
                                                 Value formula
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                Formula uses {_.get(this, 'props.sourcePaths', []).length} value paths <code>
-                                                    {_.get(this, 'props.sourcePaths', []).join(', ')}
-                                                </code> and # operator functions <code>[TODO]</code>. <Button
+                                                Formula uses {paths.length} value path{paths.length>1?'s':''}:
+                                                <code>
+                                                    {paths.join(', ')}
+                                                </code>
+                                                  and {operators.length} operator function{operators.length>1?'s':''}:
+                                                <code>
+                                                    {operators.join(', ')}
+                                                </code>.
+                                                <Button
                                                     iconName="edit"
                                                     className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                                     onClick={this.handleComplexEdit}

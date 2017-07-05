@@ -13,7 +13,7 @@ export const wasTouched = (initialValues, currentState) => {
 export const newValueIsIRI = ({label}) => {
 
     if (_.isString(label)) {
-        return (new URI(label)).is('resourceURI');
+        return (new URI(label.replace(/^<|>$/g, ''))).is('resourceURI');
     }
 
     return false;

@@ -141,6 +141,48 @@ const URIInfo = React.createClass({
     }
 });
 
+const PropertyTypeInfo = React.createClass({
+    getInitialState(){
+        console.log(this.props)
+        hierarchicalMappingChannel
+            .request(
+                {
+                    topic: 'autocomplete',
+                    data: {
+                        entity: 'propertyType',
+                        input: this.props.name,
+                        ruleId: null,
+                    }
+                }
+            ).subscribe(
+            (response) => {
+                this.setState({
+                    result: _.get(response, ['options', '0', this.props.option], this.props.name),
+                });
+            },
+            () => {
+                if (__DEBUG__) {
+                    console.warn(`No ${this.props.option} found for the property type ${this.props.name}`);
+                }
+                this.setState({
+                    result: this.props.name,
+                })
+            }
+        );
+
+        return {
+            name: this.props.name,
+            option: this.props.option,
+            result: false,
+        };
+
+    },
+    render() {
+        return <div>{this.state.result}</div>;
+    }
+});
+
+
 export const ThingName = ({id}) => {
     return <URIInfo uri={id} field="label"/>
 };
@@ -152,6 +194,14 @@ export const ThingDescription = ({id}) => {
         description={false}
     />
     return <URIInfo uri={id} field="description" fallback={fallbackInfo}/>
+};
+
+export const PropertyTypeLabel = ({name}) => {
+    return <PropertyTypeInfo name={name} option="label" />
+};
+
+export const PropertyTypeDescription = ({name}) => {
+    return <PropertyTypeInfo name={name} option="description" />
 };
 
 export const ThingIcon = ({type, status, message}) => {
