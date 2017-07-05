@@ -590,7 +590,7 @@ if (!__DEBUG__) {
 
             const {id, isObjectMapping = false} = data;
             const rule = findRule(_.cloneDeep(mockStore), id, isObjectMapping, []);
-            const result = _.isUndefined(rule) ? mockStore : rule;
+            const result = _.isNull(rule) ? mockStore : rule;
             replySubject.onNext({rule: result});
             replySubject.onCompleted();
 
