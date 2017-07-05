@@ -369,6 +369,16 @@
                     transform: translate(-1px, 10%);
                 }
             }
+
+            .ecc-silk-mapping__suggestitem-headline {
+                width: 66%;
+                max-width: 66%;
+            }
+
+            .ecc-silk-mapping__suggestitem-subline {
+                width: 33%;
+                max-width: 33%;
+            }
         }
     }
 

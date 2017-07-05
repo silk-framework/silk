@@ -48,9 +48,13 @@ const MappingRule = React.createClass({
     },
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
-        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded}) => {
+        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded, id}) => {
             // only trigger state / render change if necessary
-            if (expanded !== this.state.expanded && this.props.type !== 'object') {
+            if (
+                expanded !== this.state.expanded
+                && this.props.type !== 'object'
+                && (id === true || id === this.props.id)
+            ) {
                 this.setState({expanded});
             }
         });
