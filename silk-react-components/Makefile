@@ -4,7 +4,7 @@ SILK_LIB_ROOT=../silk-workbench/silk-workbench-core/public/libs
 SILK_DIST_ROOT=../silk-workbench/silk-workbench-core/public/libs/silk-react-components
 
 # List of vendor libs we maintain in the package.json
-VENDOR = dialog-polyfill
+VENDOR = dialog-polyfill jquery
 
 default: help
 
