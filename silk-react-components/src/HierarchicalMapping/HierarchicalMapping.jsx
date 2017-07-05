@@ -55,11 +55,10 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         });
 
-
         //TODO: Use initialRule
         return {
             // currently selected rule id
-            currentRuleId: 'root',
+            currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing

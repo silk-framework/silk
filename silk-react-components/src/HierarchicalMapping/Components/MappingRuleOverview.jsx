@@ -115,18 +115,27 @@ const MappingRuleOverview = React.createClass({
             loading: true,
         });
 
-        console.warn('DATA RELOAD')
+        console.warn('DATA RELOAD');
 
         hierarchicalMappingChannel.request(
             {
                 topic: 'rule.get',
                 data: {
                     id: this.props.currentRuleId,
+                    isObjectMapping: true,
                 }
             }
         )
             .subscribe(
                 ({rule}) => {
+
+                    if(rule.id !== this.props.currentRuleId){
+                        hierarchicalMappingChannel.subject('rulesView.toggle').onNext({
+                            expanded:true,
+                            id: this.props.currentRuleId,
+                        });
+                    }
+
                     this.setState({
                         loading: false,
                         ruleData: rule,
@@ -153,7 +162,10 @@ const MappingRuleOverview = React.createClass({
             })
         }
         else {
-            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({
+                expanded,
+                id: true,
+            });
         }
         hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         this.setState({
@@ -170,7 +182,7 @@ const MappingRuleOverview = React.createClass({
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({expanded}) {
         if (this.state.editing.length === 0 || expanded) {
-            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded});
+            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({expanded, id: true});
         }
         else {
             this.setState({
