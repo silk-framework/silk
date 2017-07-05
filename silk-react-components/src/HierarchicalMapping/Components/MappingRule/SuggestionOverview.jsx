@@ -4,6 +4,7 @@ import {
     Spinner,
     Error,
     Checkbox,
+    Info,
     Button,
     AffirmativeButton,
     DismissiveButton,
@@ -242,6 +243,10 @@ const SuggestionOverview = React.createClass({
             <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
 
+        const suggestionsEmptyInfo = _.size(this.state.data) === 0
+            ? <Info>No suggestions found for the current object mapping.</Info>
+            : false;
+
         if (this.state.loading) {
             return <Spinner/>;
         }
@@ -251,6 +256,7 @@ const SuggestionOverview = React.createClass({
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
+                        {suggestionsEmptyInfo}
                         {errorsList}
                     </ol>
                     {actions}
