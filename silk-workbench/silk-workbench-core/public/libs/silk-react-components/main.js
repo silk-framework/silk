@@ -7386,7 +7386,7 @@
         };
     }
     exports.__esModule = !0;
-    exports.InfoBox = exports.ParentElement = exports.FloatingListActions = exports.ThingIcon = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
+    exports.InfoBox = exports.ParentElement = exports.FloatingListActions = exports.ThingIcon = exports.PropertyTypeDescription = exports.PropertyTypeLabel = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
     var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _store = __webpack_require__(10), _store2 = _interopRequireDefault(_store), NO_TARGET_TYPE = _react2.default.createElement(_eccGuiElements.NotAvailable, null), NO_TARGET_PROPERTY = _react2.default.createElement(_eccGuiElements.NotAvailable, null), RuleTitle = exports.RuleTitle = function(_ref) {
         var rule = _ref.rule, uri = void 0;
         switch (rule.type) {
@@ -7489,7 +7489,37 @@
             } else noInfo = _react2.default.createElement(_eccGuiElements.NotAvailable, null);
             return _react2.default.createElement("span", null, noInfo);
         }
-    })), ThingName = exports.ThingName = function(_ref8) {
+    })), PropertyTypeInfo = _react2.default.createClass({
+        displayName: "PropertyTypeInfo",
+        getInitialState: function() {
+            var _this2 = this;
+            console.log(this.props);
+            _store2.default.request({
+                topic: "autocomplete",
+                data: {
+                    entity: "propertyType",
+                    input: this.props.name,
+                    ruleId: null
+                }
+            }).subscribe(function(response) {
+                _this2.setState({
+                    result: _lodash2.default.get(response, [ "options", "0", _this2.props.option ], _this2.props.name)
+                });
+            }, function() {
+                _this2.setState({
+                    result: _this2.props.name
+                });
+            });
+            return {
+                name: this.props.name,
+                option: this.props.option,
+                result: !1
+            };
+        },
+        render: function() {
+            return _react2.default.createElement("div", null, this.state.result);
+        }
+    }), ThingName = exports.ThingName = function(_ref8) {
         var id = _ref8.id;
         return _react2.default.createElement(URIInfo, {
             uri: id,
@@ -7507,8 +7537,20 @@
             field: "description",
             fallback: fallbackInfo
         });
-    }, exports.ThingIcon = function(_ref10) {
-        var type = _ref10.type, status = _ref10.status, message = _ref10.message, iconName = "help_outline", tooltip = "";
+    }, exports.PropertyTypeLabel = function(_ref10) {
+        var name = _ref10.name;
+        return _react2.default.createElement(PropertyTypeInfo, {
+            name: name,
+            option: "label"
+        });
+    }, exports.PropertyTypeDescription = function(_ref11) {
+        var name = _ref11.name;
+        return _react2.default.createElement(PropertyTypeInfo, {
+            name: name,
+            option: "description"
+        });
+    }, exports.ThingIcon = function(_ref12) {
+        var type = _ref12.type, status = _ref12.status, message = _ref12.message, iconName = "help_outline", tooltip = "";
         switch (type) {
           case "direct":
           case "complex":
@@ -7573,8 +7615,8 @@
                 onMouseOver: this.handleFAB
             }));
         }
-    }), exports.ParentElement = function(_ref11) {
-        var parent = _ref11.parent;
+    }), exports.ParentElement = function(_ref13) {
+        var parent = _ref13.parent;
         return _lodash2.default.get(parent, "type") ? _react2.default.createElement(ThingName, {
             id: parent.type
         }) : _react2.default.createElement("span", null, "parent element");
@@ -23190,15 +23232,14 @@
                 className: "ecc-silk-mapping__suggestitem-checkbox",
                 ripple: !0
             }), _react2.default.createElement("div", {
-                className: "mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content",
+                className: "mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable",
+                title: "Click to add the suggested value:\n\nClassName: " + suggestedClass + "\nPath: " + item.uri + "\nConfidence: " + item.confidence,
                 onClick: this.props.check.bind(null, suggestedClass, pos)
             }, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
             }, suggestedClass), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
-            }, item.uri), _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
-            }, item.confidence)));
+            }, item.uri)));
         }
     }));
     exports.default = SuggestionsView;
@@ -23261,9 +23302,19 @@
                 id: this.props.id
             });
         },
-        render: function() {
+        getOperators: function(operator, accumulator) {
             var _this2 = this;
-            return this.state.edit ? _react2.default.createElement(_ValueMappingRuleForm2.default, {
+            if (_lodash2.default.has(operator, "function")) {
+                _lodash2.default.has(operator, "inputs") && _lodash2.default.forEach(operator.inputs, function(input) {
+                    return accumulator = _lodash2.default.concat(accumulator, _this2.getOperators(input, []));
+                });
+                accumulator.push(operator.function);
+            }
+            return accumulator;
+        },
+        render: function() {
+            var _this3 = this, edit = this.state.edit, paths = _lodash2.default.get(this, "props.sourcePaths", []), operators = this.getOperators(this.props.operator, []);
+            return edit ? _react2.default.createElement(_ValueMappingRuleForm2.default, {
                 id: this.props.id,
                 parentId: this.props.parentId
             }) : _react2.default.createElement("div", {
@@ -23303,9 +23354,13 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Data type"), _react2.default.createElement("dd", null, _react2.default.createElement(_SharedComponents.InfoBox, null, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main"
-            }, _lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", !1)), _react2.default.createElement("div", {
+            }, _react2.default.createElement(_SharedComponents.PropertyTypeLabel, {
+                name: _lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", !1)
+            })), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub"
-            }, "Any other information available here? (TODO)"))))), !("direct" !== this.props.type || !_lodash2.default.get(this.props, "sourcePath", !1)) && _react2.default.createElement("div", {
+            }, _react2.default.createElement(_SharedComponents.PropertyTypeDescription, {
+                name: _lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", !1)
+            })))))), !("direct" !== this.props.type || !_lodash2.default.get(this.props, "sourcePath", !1)) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__sourcePath"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -23327,7 +23382,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Value formula"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, "Formula uses ", _lodash2.default.get(this, "props.sourcePaths", []).length, " value paths ", _react2.default.createElement("code", null, _lodash2.default.get(this, "props.sourcePaths", []).join(", ")), " and # operator functions ", _react2.default.createElement("code", null, "[TODO]"), ". ", _react2.default.createElement(_eccGuiElements.Button, {
+            }, "Formula uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ":", _react2.default.createElement("code", null, paths.join(", ")), "and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ":", _react2.default.createElement("code", null, operators.join(", ")), ".", _react2.default.createElement(_eccGuiElements.Button, {
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.handleComplexEdit,
@@ -23360,10 +23415,10 @@
                 className: "ecc-silk-mapping__ruleseditor__actionrow-remove",
                 onClick: function() {
                     return _store2.default.subject("removeClick").onNext({
-                        id: _this2.props.id,
-                        uri: _this2.props.mappingTarget.uri,
-                        type: _this2.props.type,
-                        parent: _this2.props.parentId
+                        id: _this3.props.id,
+                        uri: _this3.props.mappingTarget.uri,
+                        type: _this3.props.type,
+                        parent: _this3.props.parentId
                     });
                 },
                 disabled: !1
@@ -23549,7 +23604,11 @@
             }, "object" === createType ? _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 type: createType,
                 parentId: this.state.ruleData.id,
-                parent: _lodash2.default.last(this.state.ruleData.breadcrumbs),
+                parent: {
+                    id: this.state.ruleData.id,
+                    property: this.state.ruleData.mappingTarget.uri,
+                    type: this.state.ruleData.rules.typeRules[0].typeUri
+                },
                 edit: !0
             }) : _react2.default.createElement(_ValueMappingRuleForm2.default, {
                 type: createType,
