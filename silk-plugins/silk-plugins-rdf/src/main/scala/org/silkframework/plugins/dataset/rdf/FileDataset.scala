@@ -98,7 +98,8 @@ case class FileDataset(
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
       load()
-      SparqlTypesCollector(endpoint, limit)
+      val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
+      SparqlTypesCollector(endpoint, graphOpt, limit)
     }
 
     /**

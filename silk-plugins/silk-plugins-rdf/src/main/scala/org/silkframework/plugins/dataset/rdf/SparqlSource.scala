@@ -48,7 +48,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
   }
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    SparqlTypesCollector(sparqlEndpoint, limit)
+    SparqlTypesCollector(sparqlEndpoint, params.graph, limit)
   }
 
   override def toString = sparqlEndpoint.toString
