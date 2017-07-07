@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "ecc-gulp-tasks": "^3.7.0",
+    "ecc-license-checker": "^2.5.2",
     "gulp": "^3.9.1",
     "lorem-ipsum": "^1.0.4"
   }

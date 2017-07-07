@@ -8,6 +8,12 @@ VENDOR = dialog-polyfill jquery jsplumb jstree material-design-lite mdl-selectfi
 
 default: help
 
+# interactive license consolidation
+consolidate-licenses: install
+	./node_modules/.bin/ecc-license-checker report --output=.tmp/license-report-currently-installed.yml
+	./node_modules/.bin/ecc-license-checker consolidate --inputFile .tmp/license-report-currently-installed.yml --outputFile license-report.yml
+	rm -f .tmp/license-report-currently-installed.yml
+
 ## Build react components and copy it to silk-workbench-core
 build: install
 	yarn run deploy
