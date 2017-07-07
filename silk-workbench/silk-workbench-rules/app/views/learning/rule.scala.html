@@ -10,8 +10,8 @@
 
 @defining(3) { threshold =>
 
-  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/dist/js/jsPlumb-2.1.8.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
+  <script src="@CoreAssets.at("libs/jsplumb/dist/js/jsPlumb-2.1.8.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/editor.js")" type="text/javascript"></script>
 
   @if(population.isEmpty) {
     <div class="alert alert-info"><strong>No linkage rule learned yet.</strong></div>
