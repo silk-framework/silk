@@ -6858,7 +6858,7 @@
             payload.rules.propertyRules = [];
         }
         return payload;
-    }, vocabularyCache = {};
+    }, rootId = null, vocabularyCache = {};
     hierarchicalMappingChannel.subject("rules.generate").subscribe(function(_ref) {
         var data = _ref.data, replySubject = _ref.replySubject, correspondences = data.correspondences, parentRuleId = data.parentRuleId;
         silkStore.request({
@@ -6932,8 +6932,10 @@
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
         }).map(function(returned) {
+            var rules = returned.body;
+            _lodash2.default.isString(rootId) || (rootId = rules.id);
             return {
-                hierarchy: returned.body
+                hierarchy: rules
             };
         }).multicast(replySubject).connect();
     });
@@ -6955,7 +6957,9 @@
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
         }).map(function(returned) {
-            var rules = returned.body, searchId = id || rules.id, rule = findRule(_lodash2.default.cloneDeep(rules), searchId, isObjectMapping, []);
+            var rules = returned.body, searchId = id || rules.id;
+            _lodash2.default.isString(rootId) || (rootId = rules.id);
+            var rule = findRule(_lodash2.default.cloneDeep(rules), searchId, isObjectMapping, []);
             return {
                 rule: rule || rules
             };
@@ -7011,15 +7015,15 @@
         });
     };
     hierarchicalMappingChannel.subject("rule.createValueMapping").subscribe(function(_ref9) {
-        var data = _ref9.data, replySubject = _ref9.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : "root";
+        var data = _ref9.data, replySubject = _ref9.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.createObjectMapping").subscribe(function(_ref10) {
-        var data = _ref10.data, replySubject = _ref10.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : "root";
+        var data = _ref10.data, replySubject = _ref10.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref11) {
-        var data = _ref11.data, replySubject = _ref11.replySubject, payload = data, parent = data.parentId ? data.parentId : "root";
+        var data = _ref11.data, replySubject = _ref11.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref12) {
@@ -23646,7 +23650,9 @@
             };
         },
         componentDidMount: function() {
-            this.loadData();
+            this.loadData({
+                initialLoad: !0
+            });
             this.subscribe(_store2.default.subject("reload"), this.loadData);
             this.subscribe(_store2.default.subject("ruleId.create"), this.onRuleCreate);
             this.subscribe(_store2.default.subject("ruleView.unchanged"), this.handleRuleEditClose);
@@ -23679,7 +23685,7 @@
             prevProps.currentRuleId !== this.props.currentRuleId && this.loadData();
         },
         loadData: function() {
-            var _this = this;
+            var _this = this, params = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, _params$initialLoad = params.initialLoad, initialLoad = void 0 !== _params$initialLoad && _params$initialLoad;
             this.setState({
                 loading: !0
             });
@@ -23692,7 +23698,7 @@
                 }
             }).subscribe(function(_ref4) {
                 var rule = _ref4.rule;
-                rule.id !== _this.props.currentRuleId && _store2.default.subject("rulesView.toggle").onNext({
+                initialLoad && rule.id !== _this.props.currentRuleId && _store2.default.subject("rulesView.toggle").onNext({
                     expanded: !0,
                     id: _this.props.currentRuleId
                 });
