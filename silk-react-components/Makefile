@@ -27,6 +27,10 @@ build: install
 vendors: install
 	$(foreach var,$(VENDOR), PACKAGE=$(var) make copy-vendor;)
 
+## bablify
+bablify: install
+	bash ./bablify.sh
+
 install:
 	yarn
 

@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +13,11 @@
  */
 
 // -- init
-$(document).ready(function () {
-  reloadWorkspace();
-});
+$(document).ready(
+  function(){
+    reloadWorkspace();
+  }
+);
 
 function newProject() {
   showDialog(baseUrl + '/workspace/dialogs/newproject');
@@ -40,7 +40,7 @@ function importLinkSpec(project) {
 }
 
 function exportProject(project) {
-  window.location = baseUrl + '/workspace/projects/' + project + '/export';
+  window.location = baseUrl + '/workspace/projects/' + project + '/export'
 }
 
 function executeProject(project) {
@@ -56,17 +56,17 @@ function editResources(project) {
 }
 
 function reloadWorkspace() {
-  $.get(baseUrl + "/workspace/tree", function (data) {
+  $.get(baseUrl + "/workspace/tree", function(data) {
     $('#workspace_tree').html(data);
-  }).fail(function (request) {
+  }).fail(function(request) {
     alert("Error reloading workspace: " + request.responseText);
   });
 }
 
 function reloadWorkspaceInBackend() {
-  $.post(baseUrl + '/workspace/reload', function (data) {
+  $.post(baseUrl + '/workspace/reload', function(data) {
     reloadWorkspace();
-  }).fail(function (request) {
+  }).fail(function(request) {
     alert("Error reloading workspace: " + request.responseText);
   });
 }
@@ -75,22 +75,20 @@ function workspaceDialog(relativePath) {
   showDialog(baseUrl + '/' + relativePath);
 }
 
-function putTask(path, xml) {
-  var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
-    success: function success() {},
-    error: function error() {}
-  };
-
+function putTask(path, xml, callbacks={
+    success: function() {} ,
+    error: function() {}
+  }) {
   $.ajax({
     type: 'PUT',
     url: path,
     contentType: 'text/xml',
     processData: false,
     data: xml,
-    error: function error(request) {
+    error: function(request) {
       callbacks.error(JSON.parse(request.responseText).message);
     },
-    success: function success(request) {
+    success: function(request) {
       reloadWorkspace();
       callbacks.success();
     }
@@ -101,10 +99,10 @@ function deleteProject(project, task) {
   $.ajax({
     type: 'DELETE',
     url: baseUrl + '/workspace/projects/' + project,
-    success: function success(data) {
+    success: function(data) {
       reloadWorkspace();
     },
-    error: function error(request) {
+    error: function(request) {
       alert("Error deleting:" + request.responseText);
     }
   });
@@ -114,10 +112,10 @@ function deleteTask(project, task) {
   $.ajax({
     type: 'DELETE',
     url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
-    success: function success(data) {
+    success: function(data) {
       reloadWorkspace();
     },
-    error: function error(request) {
+    error: function(request) {
       alert("Error deleting:" + request.responseText);
     }
   });

@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * The Javascript for the status.scala.html template.
  */
@@ -14,16 +12,12 @@ function updateStatus(messages) {
   $("#error-tooltip").html("");
   $("#error-tooltip").append(printMessages(messages));
 
-  var errorCount = messages.filter(function (msg) {
-    return msg.type == "Error";
-  }).length;
-  var warningCount = messages.filter(function (msg) {
-    return msg.type == "Warning";
-  }).length;
+  var errorCount = messages.filter(function(msg){return msg.type == "Error"}).length;
+  var warningCount = messages.filter(function(msg){return msg.type == "Warning"}).length;
 
-  if (errorCount > 0) {
+  if(errorCount > 0) {
     showInvalidIcon(errorCount);
-  } else if (warningCount > 0) {
+  } else if(warningCount > 0) {
     showWarningIcon(warningCount);
   } else {
     showValidIcon();
@@ -55,7 +49,7 @@ function showPendingIcon() {
 function printMessages(array) {
   var result = "";
   var c = 1;
-  for (var i = 0; i < array.length; i++) {
+  for (var i = 0; i<array.length; i++) {
     result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i].message) + '</div>';
     if (array[i].id) highlightElement(array[i].id, encodeHtml(array[i].message));
     c++;

@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +25,7 @@ function initLinks(path, linkType) {
   this.path = path;
   this.linkType = linkType;
 
-  $(document).ready(function () {
+  $(document).ready(function() {
     page = 0;
     updateLinks(0);
   });
@@ -49,19 +47,19 @@ function updateFilter(filter) {
 }
 
 function updatePage(page) {
-  if (this.page != page) {
+  if(this.page != page) {
     this.page = page;
     updateLinks(0);
   }
 }
 
 function updateLinks(timeout) {
-  if (timeout === undefined) {
+  if(timeout === undefined) {
     timeout = 2000;
   }
   $('#pending').show();
   clearTimeout(fid);
-  if (timeout > 0) {
+  if(timeout > 0) {
     fid = setTimeout('reloadLinks()', timeout);
   } else {
     reloadLinks();
@@ -69,14 +67,12 @@ function updateLinks(timeout) {
 }
 
 function reloadLinks() {
-  $.get(path + '/' + linkType + '/' + sorting + '/filter:' + filter + '/' + page, function (data) {
+  $.get(path + '/' + linkType + '/' + sorting + '/filter:' + filter + '/' + page, function(data) {
     $('#links').html(data);
     initTrees();
     updateResultsWidth();
     $('#pending').hide();
-  }).fail(function (request) {
-    alert(request.responseText);
-  });
+  }).fail(function(request) { alert(request.responseText);  })
 }
 
 function handlePaginationClick(new_page_index, pagination_container) {
@@ -100,21 +96,22 @@ function initTrees() {
   $("li.lastExpandable").removeClass("lastExpandable").addClass("lastCollapsable");
   $("div.expandable-hitarea").removeClass("expandable-hitarea").addClass("collapsable-hitarea");
 
-  $(".confidencebar").each(function (index) {
+  $(".confidencebar").each(function(index) {
     var confidence = parseInt($(this).text());
 
     if (confidence >= 0) {
       $(this).progressbar({
-        value: confidence / 2
+        value: confidence/2
       });
       $(this).children(".ui-progressbar-value").addClass("confidence-green").css("margin-left", "50%");
     } else {
       $(this).progressbar({
-        value: -confidence / 2
+        value: -confidence/2
       });
-      var left = 48 + confidence / 2;
-      $(this).children(".ui-progressbar-value").addClass("confidence-red").css("margin-left", left + "%");
+      var left = 48 + confidence/2;
+      $(this).children(".ui-progressbar-value").addClass("confidence-red").css("margin-left", left+"%");
     }
+
   });
 }
 
@@ -138,24 +135,24 @@ function hide_all() {
 function updateResultsWidth() {
   var new_links_width = 326;
 
-  new_links_width = (contentWidth - 338) / 2;
-  $("#results, #tree-header, #tree-footer").width(contentWidth - 54);
+  new_links_width = (contentWidth-338)/2;
+  $("#results, #tree-header, #tree-footer").width(contentWidth-54);
   $(".link-source, .link-target").width(new_links_width);
-  $(".middle").width(contentWidth - 480);
-  $("#wrapper").width(contentWidth - 54);
+  $(".middle").width(contentWidth-480);
+  $("#wrapper").width(contentWidth-54);
 
-  $(".link-source > a, .link-target > a").each(function (index) {
+  $(".link-source > a, .link-target > a").each(function(index) {
     if ($(this).width() > new_links_width) {
-      $(this).css("float", "right");
+      $(this).css("float","right");
     } else {
-      $(this).css("float", "left");
+      $(this).css("float","left");
     }
   });
 }
 
-$(function () {
+$(function() {
 
-  $(document).on('click', ".link-header", function (e) {
+  $(document).on('click', ".link-header", function(e) {
     var link_id = $(this).parent().attr('id');
     if ($(e.target).is('a, img')) return;
     toggleLinkDetails(link_id);
@@ -167,12 +164,10 @@ function deleteLink(id, source, target) {
     type: 'DELETE',
     url: apiUrl + '?source=' + source + '&target=' + target,
     data: '',
-    success: function success(response) {
+    success: function(response) {
       $('#' + id).remove();
     },
-    error: function error(request) {
-      alert(request.responseText);
-    }
+    error: function(request) { alert(request.responseText); }
   });
 }
 
@@ -181,14 +176,12 @@ function resetLink(id, source, target) {
     type: 'DELETE',
     url: apiUrl + '?source=' + source + '&target=' + target,
     data: '',
-    success: function success(response) {
+    success: function(response) {
       $('#confirmedLink' + id).hide();
       $('#declinedLink' + id).hide();
       $('#undecidedLink' + id).show();
     },
-    error: function error(request) {
-      alert(request.responseText);
-    }
+    error: function(request) { alert(request.responseText); }
   });
 }
 
@@ -197,12 +190,12 @@ function addPositiveLink(id, source, target) {
     type: 'PUT',
     url: apiUrl + '?linkType=positive&source=' + source + '&target=' + target,
     data: '',
-    success: function success(response) {
+    success: function(response) {
       $('#confirmedLink' + id).show();
       $('#declinedLink' + id).hide();
       $('#undecidedLink' + id).hide();
     },
-    error: function error(request) {
+    error: function(request) {
       alert(request.responseText);
     }
   });
@@ -213,13 +206,11 @@ function addNegativeLink(id, source, target) {
     type: 'PUT',
     url: apiUrl + '?linkType=negative&source=' + source + '&target=' + target,
     data: '',
-    success: function success(response) {
+    success: function(response) {
       $('#confirmedLink' + id).hide();
       $('#declinedLink' + id).show();
       $('#undecidedLink' + id).hide();
     },
-    error: function error(request) {
-      alert(request.responseText);
-    }
+    error: function(request) { alert(request.responseText); }
   });
 }

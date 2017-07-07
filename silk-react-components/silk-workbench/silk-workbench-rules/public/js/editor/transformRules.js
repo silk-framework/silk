@@ -1,15 +1,13 @@
-"use strict";
-
 var currentRule;
 var confirmOnExit = false;
 var modificationTimer;
 var exampleCounter = 0;
 var maxPathNumber = 4;
 
-$(function () {
+$(function() {
   // Make rules sortable
   $("#ruleTable table").sortable({
-    items: "> tbody",
+    items: "> tbody" ,
     cancel: ".di-rule__expanded-example-values-container,.di-rule-details-container,input,select"
   });
   //$("#typeContainer").sortable();
@@ -19,19 +17,19 @@ $(function () {
     autoOpen: false,
     modal: true,
     buttons: {
-      Yes: function Yes() {
+      Yes: function() {
         currentRule.remove();
         modified();
         $(this).dialog("close");
       },
-      Cancel: function Cancel() {
+      Cancel: function() {
         $(this).dialog("close");
       }
     }
   });
 
   // Listen to modifications
-  $(document).on('input', "input", function () {
+  $(document).on('input', "input", function() {
     modified();
     if ($(this).hasClass("source")) {
       var ruleId = $(this).closest("tr").attr("id");
@@ -39,41 +37,46 @@ $(function () {
     }
   });
 
-  $("#ruleContainer").on("sortupdate", function (event, ui) {
-    modified();
-  });
+  $("#ruleContainer").on("sortupdate", function( event, ui ) { modified() } );
 
   var categoryDictionary = {
-    "MatchingCandidateCache": "Suggestions",
+    "MatchingCandidateCache": "Suggestions" ,
     "VocabularyCache": "Vocabulary Matches"
+  }
 
-    // define custom target property autocomplete widget:
-  };$.widget("custom.catcomplete", $.ui.autocomplete, {
-    _create: function _create() {
+  // define custom target property autocomplete widget:
+  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+    _create: function() {
       this._super();
-      this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
+      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
     },
-    _renderMenu: function _renderMenu(ul, items) {
+    _renderMenu: function( ul, items ) {
       var that = this,
-          currentCategory = "";
-      $.each(items, function (index, item) {
+        currentCategory = "";
+      $.each( items, function( index, item ) {
         var li;
-        if (item.category != currentCategory) {
-          ul.append("<li class='ui-autocomplete-category'>" + translateTerm(item.category, categoryDictionary) + "</li>");
+        if ( item.category != currentCategory ) {
+          ul.append( "<li class='ui-autocomplete-category'>" + translateTerm(item.category, categoryDictionary) + "</li>" );
           currentCategory = item.category;
         }
-        li = that._renderItemData(ul, item);
-        if (item.category) {
-          li.attr("aria-label", item.category + " : " + item.label);
+        li = that._renderItemData( ul, item );
+        if ( item.category ) {
+          li.attr( "aria-label", item.category + " : " + item.label );
         }
       });
     },
-    _renderItem: function _renderItem(ul, item) {
-      if (item.isCompletion) {
-        return $("<li>").append("<div><span class='ui-autocomplete-property-label'>" + item.label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>").appendTo(ul);
+    _renderItem: function( ul, item ) {
+      if ( item.isCompletion ) {
+        return $( "<li>" )
+          .append( "<div><span class='ui-autocomplete-property-label'>" + item.label + "</span><br><span class='ui-autocomplete-property-uri'>" + item.value + "</span></div>" )
+          .appendTo( ul );
       } else {
-        return $("<li class='ui-autocomplete-warning'>").append("<div>" + item.label + "</div>").prop("disabled", true).appendTo(ul);
+        return $("<li class='ui-autocomplete-warning'>").
+          append( "<div>" + item.label + "</div>").
+          prop("disabled", true).
+          appendTo( ul );
       }
+
     }
   });
 
@@ -85,13 +88,14 @@ $(function () {
   uriMappingExists() ? showURIMapping(true) : showURIMapping(false);
 
   // adjust long example values and paths on resize
-  $(window).resize(function () {
-    $.each($(".di-rule__expanded-example-values-container"), function (index, element) {
+  $(window).resize(function() {
+    $.each($(".di-rule__expanded-example-values-container"), function(index, element) {
       if (shouldResize(element)) {
         resizeValues(element);
       }
     });
   });
+
 });
 
 function translateTerm(term, dictionary) {
@@ -106,9 +110,7 @@ function modified() {
   confirmOnExit = true;
   showPendingIcon();
   clearTimeout(modificationTimer);
-  modificationTimer = setTimeout(function () {
-    save();
-  }, 2000);
+  modificationTimer = setTimeout(function() { save(); }, 2000);
 }
 
 function save() {
@@ -117,16 +119,10 @@ function save() {
   // Check if rule names are unique
   // TODO set id and implement highlightElement
   // TODO this is broken, the CSS selector doesn't match anything anymore
-  var names = $("#ruleContainer").find(".name").map(function () {
-    return $(this).val();
-  }).toArray();
-  var duplicateNames = $.grep(names, function (v, i) {
-    return $.inArray(v, names) != i;
-  });
-  if (duplicateNames.length > 0) {
-    var errors = duplicateNames.map(function (name) {
-      return { type: "Error", message: "The following name is not unique: " + name };
-    });
+  var names = $("#ruleContainer").find(".name").map(function() { return $(this).val() } ).toArray();
+  var duplicateNames = $.grep(names, function(v, i) { return $.inArray(v, names) != i });
+  if(duplicateNames.length > 0) {
+    var errors = duplicateNames.map(function(name) { return { type: "Error", message: "The following name is not unique: " + name }; } );
     updateStatus(errors);
     return;
   }
@@ -138,17 +134,17 @@ function save() {
     contentType: 'text/xml',
     processData: false,
     data: serializeRules(),
-    success: function success(response) {
+    success: function(response) {
       confirmOnExit = false;
       updateStatus([]);
-    },
-    error: function error(req) {
+    } ,
+    error: function(req) {
       console.log('Error committing rule: ' + req.responseText);
-      var errors = [{ type: "Error", message: req.responseText }];
+      var errors = [ { type: "Error", message: req.responseText } ];
       updateStatus(errors);
-    },
-    complete: function complete(e) {
-      $.each($("#ruleTable .di-rule__compact"), function (index, rule) {
+    } ,
+    complete: function(e) {
+      $.each($("#ruleTable .di-rule__compact"), function(index, rule) {
         var ruleId = $(rule).attr("id");
         if (shouldUpdateExamples(ruleId)) {
           loadExampleValues(ruleId);
@@ -162,7 +158,7 @@ function serializeRules() {
   var xmlDoc = $.parseXML('<TransformRules></TransformRules>');
 
   // Collect all rules
-  $("#ruleContainer .transformRule").each(function () {
+  $("#ruleContainer .transformRule").each(function() {
 
     // Read name
     var name = $(this).find(".rule-name").text();
@@ -170,13 +166,13 @@ function serializeRules() {
     var source = $(this).find(".source").val();
     var target = $(this).find(".target").val();
     var nodeType = $(this).find(".rule-target-type select").val();
-    if ($(this).hasClass("directMapping")) {
+    if($(this).hasClass("directMapping")) {
       serializeDirectMapping(xmlDoc, name, source, target, nodeType);
-    } else if ($(this).hasClass("uriMapping")) {
+    } else if($(this).hasClass("uriMapping")) {
       serializeUriMapping(xmlDoc, name, $(this).find(".pattern").val());
-    } else if ($(this).hasClass("objectMapping")) {
+    } else if($(this).hasClass("objectMapping")) {
       serializeObjectMapping(xmlDoc, name, $(this).find(".pattern").val(), target);
-    } else if ($(this).hasClass("typeMapping")) {
+    } else if($(this).hasClass("typeMapping")) {
       serializeTypeMapping(xmlDoc, name, $(this).find(".type").text());
     } else {
       var ruleXml = $.parseXML($(this).children('.ruleXML').text()).documentElement;
@@ -185,7 +181,7 @@ function serializeRules() {
   });
 
   // Push to back-end
-  var xmlString = new XMLSerializer().serializeToString(xmlDoc);
+  var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
   return xmlString;
 }
 
@@ -344,7 +340,7 @@ function serializeComplexRule(xmlDoc, ruleXml, name, target, nodeType) {
   // Add to document
   xmlDoc.importNode(ruleXml, true);
 
-  //  console.log(ruleXml);
+//  console.log(ruleXml);
   xmlDoc.documentElement.appendChild(ruleXml);
 }
 
@@ -391,7 +387,7 @@ function addRule(template) {
     typeTextfield.removeClass("is-dirty");
     var deleteButton = newRule.find("button");
     deleteButton.attr("onclick", "deleteRule('" + ruleId + "');");
-  } else if (template == "#uriMappingTemplate") {
+  } else if(template == "#uriMappingTemplate") {
     var newRule = $(template).children().clone();
     resetMDLTextfields(newRule);
     newRule.appendTo(".uri-ui--defined");
@@ -405,7 +401,7 @@ function addRule(template) {
     nameInput.text(newRuleName);
 
     var ruleRows = newRule.find("tr.rule-table-row");
-    $.each(ruleRows, function (index, row) {
+    $.each(ruleRows, function(index, row) {
       row = $(row);
       var ruleId = row.attr("id");
       if (ruleId) {
@@ -413,7 +409,7 @@ function addRule(template) {
         row.attr("id", ruleId);
         row.find("button.delete-button").attr("onclick", "deleteRule('" + ruleId + "');");
       }
-    });
+    })
 
     resetMDLTextfields(newRule);
 
@@ -438,7 +434,7 @@ function resetMDLTextfields(element) {
   // (otherwise componentHandler.upgradeAllRegistered() won't work)
 
   var textfields = element.find(".mdl-textfield");
-  $.each(textfields, function (index, value) {
+  $.each(textfields, function(index, value) {
     value.removeAttribute("data-upgraded");
     var classes = value.className;
     var new_classes = classes.replace(/is-upgraded/, '').replace(/is-dirty/, '');
@@ -458,10 +454,10 @@ function openRule(name) {
     contentType: 'text/xml',
     processData: false,
     data: serializeRules(),
-    success: function success(response) {
-      window.location.href = "./editor/" + name;
+    success: function(response) {
+      window.location.href = "./editor/" + name
     },
-    error: function error(req) {
+    error: function(req) {
       console.log('Error committing rule: ' + req.responseText);
       alert(req.responseText);
     }
@@ -472,9 +468,7 @@ function generateRuleName(prefix) {
   var count = 0;
   do {
     count = count + 1;
-    if ($("#ruleContainer").find(".rule-name").filter(function () {
-      return $(this).text() == prefix + count;
-    }).length == 0) {
+    if($("#ruleContainer").find(".rule-name").filter(function() { return $(this).text() == prefix + count } ).length == 0) {
       return prefix + count;
     }
   } while (count < 1000);
@@ -483,28 +477,26 @@ function generateRuleName(prefix) {
 function toggleRuleConfig() {
   var confContent = $("#ruleConfigContainer .mdl-card__supporting-text");
   var buttons = $("#ruleConfigContainer .mdl-card__title button");
-  confContent.toggle(50, function () {
-    buttons.toggle();
-  });
+  confContent.toggle(50, function() { buttons.toggle(); });
 }
 
 function toggleRule(rule) {
   var ruleId = rule.attr("id");
-  //  var expandedRule = $("#" + ruleId + "__expanded");
+//  var expandedRule = $("#" + ruleId + "__expanded");
   var expandedRule = $("#" + ruleId).siblings(".di-rule__expanded");
   var exampleValues = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-container");
   var buttons = $("#" + ruleId + " .rule-toggle button");
   buttons.toggle();
-  expandedRule.toggle(50, function () {
+  expandedRule.toggle(50, function() {
     if (shouldUpdateExamples(ruleId)) {
       loadExampleValues(ruleId);
     }
   });
-  if (shouldResize(exampleValues)) {
-    $.each(exampleValues, function (index, element) {
-      resizeValues(element);
-    });
-  }
+    if (shouldResize(exampleValues)) {
+      $.each(exampleValues, function(index, element) {
+        resizeValues(element);
+      });
+    }
 }
 
 function uriMappingExists() {
@@ -513,8 +505,7 @@ function uriMappingExists() {
 
 function checkForEmptyURIMapping() {
   var pattern = $("#uri-pattern").val();
-  if (pattern.match(/^\s*$/)) {
-    // if empty or only whitespace
+  if (pattern.match(/^\s*$/)) { // if empty or only whitespace
     $('#uri').remove();
     showURIMapping(false);
     modified();
@@ -533,66 +524,50 @@ function showURIMapping(defined) {
 
 function addTypeAutocomplete(typeInputs) {
   typeInputs.catcomplete({
-    source: apiUrl + "/targetPathCompletions",
-    minLength: 0,
-    select: function select(event, ui) {
-      window.setTimeout(function () {
-        $("#rule-type-textfield input").trigger("enter");
-      }, 5);
-    }
-  }).focus(function () {
-    $(this).catcomplete("search");
-  });
+    source: apiUrl + "/targetPathCompletions" ,
+    minLength: 0 ,
+    select: function(event, ui) {
+      window.setTimeout(function() { $("#rule-type-textfield input").trigger("enter"); }, 5);
+    } ,
+  }).focus(function() { $(this).catcomplete("search"); });
 }
 
 function addSourceAutocomplete(sourceInputs) {
   sourceInputs.autocomplete({
-    source: apiUrl + "/sourcePathCompletions",
-    minLength: 0,
-    position: { my: "left bottom", at: "left top", collision: "flip" },
-    close: function close(event, ui) {
-      modified();
-    }
-  }).focus(function () {
-    $(this).autocomplete("search");
-  });
+    source: apiUrl + "/sourcePathCompletions" ,
+    minLength: 0 ,
+    position: { my: "left bottom", at: "left top", collision: "flip" } ,
+    close: function(event, ui) { modified(); }
+  }).focus(function() { $(this).autocomplete("search"); });
 }
 
 function addTargetAutocomplete(targetInputs) {
-  targetInputs.each(function () {
+  targetInputs.each(function() {
     var sourceInput = $(this).closest("tr").find(".source");
     var patternInput = $(this).closest("tr").find(".pattern");
     $(this).catcomplete({
-      source: function source(request, response) {
-        if (sourceInput.length > 0) {
+      source: function( request, response ) {
+        if(sourceInput.length > 0) {
           // We got a mapping that specifies a source property
           request.sourcePath = sourceInput.val();
-        } else if (patternInput.length > 0) {
+        } else if(patternInput.length > 0) {
           // We got a mapping that specifies a URI pattern of the form http://example.org/{ID}
           // We try to take the first path inside the parentheses.
           // If this fails, the endpoint will still suggest properties from the vocabulary
           request.sourcePath = patternInput.val().split(/[\{\}]/)[1];
         }
 
-        $.getJSON(apiUrl + "/targetPathCompletions", request, function (data) {
-          response(data);
-        });
+        $.getJSON( apiUrl + "/targetPathCompletions", request, function(data) { response( data ) });
       },
       minLength: 0,
-      position: { my: "left bottom", at: "left top", collision: "flip" },
-      close: function close(event, ui) {
-        modified();
-      },
-      focus: function focus(event, ui) {
-        changePropertyDetails(ui.item.value, $(this));
-      }
-    }).focus(function () {
-      $(this).catcomplete("search");
-    });
+      position: { my: "left bottom", at: "left top", collision: "flip" } ,
+      close: function(event, ui) { modified(); } ,
+      focus: function(event, ui) { changePropertyDetails(ui.item.value, $(this));}
+    }).focus(function() { $(this).catcomplete("search"); });
 
     // Update the property details on every change
     changePropertyDetails($(this).val(), $(this));
-    $(this).keyup(function () {
+    $(this).keyup(function() {
       changePropertyDetails($(this).val(), $(this));
     });
   });
@@ -600,13 +575,22 @@ function addTargetAutocomplete(targetInputs) {
 
 function addTypeSelections(typeSelects) {
 
-  var types = [{ label: "Autodetect", value: "AutoDetectValueType", category: "" }, { label: "Resource", value: "UriValueType", category: "" }, { label: "Boolean", value: "BooleanValueType", category: "Literals" }, { label: "String", value: "StringValueType", category: "Literals" }, { label: "Integer", value: "IntegerValueType", category: "Literals (Numbers)" }, { label: "Long", value: "LongValueType", category: "Literals (Numbers)" }, { label: "Float", value: "FloatValueType", category: "Literals (Numbers)" }, { label: "Double", value: "DoubleValueType", category: "Literals (Numbers)" }];
+  var types = [
+    { label: "Autodetect", value: "AutoDetectValueType", category: "" } ,
+    { label: "Resource", value: "UriValueType", category: "" } ,
+    { label: "Boolean", value: "BooleanValueType", category: "Literals" } ,
+    { label: "String", value: "StringValueType", category: "Literals" } ,
+    { label: "Integer", value: "IntegerValueType", category: "Literals (Numbers)" } ,
+    { label: "Long", value: "LongValueType", category: "Literals (Numbers)" } ,
+    { label: "Float", value: "FloatValueType", category: "Literals (Numbers)" } ,
+    { label: "Double", value: "DoubleValueType", category: "Literals (Numbers)" } ,
+  ];
 
   // fill the select lists
   var currentCategory = "";
   var target = typeSelects;
-  $.each(types, function (index, value) {
-    if (value.category != currentCategory) {
+  $.each(types, function(index, value) {
+    if ( value.category != currentCategory ) {
       currentCategory = value.category;
       typeSelects.append("<optgroup label='" + currentCategory + "'/>");
       target = typeSelects.find("optgroup:last-child");
@@ -615,51 +599,48 @@ function addTypeSelections(typeSelects) {
   });
 
   // select correct element
-  $.each(typeSelects, function (index, value) {
+  $.each(typeSelects, function(index, value) {
     var targetType = $(value).data('originalTargetType');
     $(value).val(targetType);
   });
 
   // register changes
-  typeSelects.change(function () {
+  typeSelects.change(function() {
     modified();
   });
+
 }
 
 function changePropertyDetails(propertyName, element) {
   var details = element.closest(".complete-rule").find(".di-rule__expanded-property-details");
-  $.get(editorUrl + '/widgets/property', { property: propertyName }, function (data) {
-    details.html(data);
-  });
+  $.get(editorUrl + '/widgets/property', { property: propertyName }, function(data) { details.html(data); });
 }
 
-var setRuleChanged = function setRuleChanged(ruleId, changed) {
+var setRuleChanged = function(ruleId, changed) {
   $("#" + ruleId).closest("tbody").data("was-changed", changed);
-};
+}
 
-var shouldUpdateExamples = function shouldUpdateExamples(ruleId) {
+var shouldUpdateExamples = function(ruleId) {
   var changed = $("#" + ruleId).closest("tbody").data("was-changed");
   var visible = $("#" + ruleId + "__expanded").is(':visible');
-  return changed && visible;
-};
+  return (changed && visible);
+}
 
-var shouldResize = function shouldResize(element) {
+var shouldResize = function(element) {
   return $(element).is(":visible");
-};
+}
 
-var loadExampleValues = function loadExampleValues(ruleId) {
+var loadExampleValues = function(ruleId) {
   var ruleName = $("#" + ruleId).find(".rule-name").text();
   var peakApiUrl = apiUrl + "/peak/" + ruleName;
-  $.post(peakApiUrl, null, function (data, status) {
+  $.post(peakApiUrl, null, function(data, status) {
     fillExamplesTable(ruleId, data);
-  }, "json").fail(function () {
-    console.log("fail");
-  });
+  }, "json").fail(function() { console.log("fail")});
 
   $.ajax({
-    type: "POST",
-    url: peakApiUrl,
-    success: function success(data, status) {
+    type: "POST" ,
+    url: peakApiUrl ,
+    success: function(data, status) {
       if (data.status) {
         if (data.status.id === "success") {
           if (data.results && data.sourcePaths) {
@@ -670,7 +651,8 @@ var loadExampleValues = function loadExampleValues(ruleId) {
               showMessage(ruleId, "Response from " + peakApiUrl + " did not contain any results.", "info");
             }
           } else {
-            showMessage(ruleId, "Response from " + peakApiUrl + " is not well-formed: missing .results or .sourcePaths attributes.", "danger");
+            showMessage(ruleId, "Response from " + peakApiUrl +
+              " is not well-formed: missing .results or .sourcePaths attributes.", "danger");
           }
         } else {
           showMessage(ruleId, data.status.id + ": " + data.status.msg, "info");
@@ -678,19 +660,17 @@ var loadExampleValues = function loadExampleValues(ruleId) {
       } else {
         showMessage(ruleId, "Response from " + peakApiUrl + " is not well-formed: missing .status attribute.", "danger");
       }
-    },
-    error: function error(jqXHR, textStatus, _error) {
+    } ,
+    error: function(jqXHR, textStatus, error) {
       var message = jqXHR.responseJSON.message;
       console.log(jqXHR);
       showMessage(ruleId, message, "warning");
     }
   });
   setRuleChanged(ruleId, false);
-};
+}
 
-var showMessage = function showMessage(ruleId, message) {
-  var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "info";
-
+var showMessage = function(ruleId, message, type="info") {
   var alertPanel = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-errors");
   var alert = alertPanel.find(">:first-child");
   $(alert).removeClass("mdl-alert--success mdl-alert--info mdl-alert--warning mdl-alert--danger");
@@ -698,9 +678,9 @@ var showMessage = function showMessage(ruleId, message) {
   var alertContent = alert.find(">:first-child");;
   alertContent.text(message);
   showExamplesTable(ruleId, false);
-};
+}
 
-var fillExamplesTable = function fillExamplesTable(ruleId, data) {
+var fillExamplesTable = function(ruleId, data) {
 
   exampleCounter = 0;
   $("#valueTooltips").empty();
@@ -709,14 +689,14 @@ var fillExamplesTable = function fillExamplesTable(ruleId, data) {
   var tbody = ruleRow.find(".di-rule__expanded-example-values tbody");
   tbody.empty();
   var pathCount = data.sourcePaths.length;
-  data.results.forEach(function (result) {
-    result.sourceValues.forEach(function (sourceValues, pathIndex) {
+  data.results.forEach(function(result) {
+    result.sourceValues.forEach(function(sourceValues, pathIndex) {
       var pathRow = document.createElement("tr");
       var sourcePathCell = document.createElement("td");
       $(sourcePathCell).addClass("mdl-data-table__cell--non-numeric");
       var chipId = ruleId + "_ex_" + exampleCounter++;
       sourcePathCell.appendChild(createSourcePathElement(data.sourcePaths[pathIndex], {
-        pathIndex: pathIndex + 1,
+        pathIndex: pathIndex + 1 ,
         chipId: chipId
       }));
       $("#valueTooltips").append(createTooltip(data.sourcePaths[pathIndex], chipId, true));
@@ -726,10 +706,10 @@ var fillExamplesTable = function fillExamplesTable(ruleId, data) {
       var valueContainer = document.createElement("div");
       $(valueContainer).addClass("di-rule-chip-container di-rule-chip-container-values");
       sourceValueCell.appendChild(valueContainer);
-      sourceValues.forEach(function (sourceValue) {
+      sourceValues.forEach(function(sourceValue) {
         var chipId = ruleId + "_ex_" + exampleCounter++;
         valueContainer.appendChild(createValueElement(sourceValue, {
-          pathIndex: pathIndex + 1,
+          pathIndex: pathIndex + 1 ,
           chipId: chipId
         }));
         $("#valueTooltips").append(createTooltip(sourceValue, chipId, true));
@@ -744,16 +724,16 @@ var fillExamplesTable = function fillExamplesTable(ruleId, data) {
         var valueContainer = document.createElement("div");
         $(valueContainer).addClass("di-rule-chip-container di-rule-chip-container-values");
         transformedValueCell.appendChild(valueContainer);
-        result.transformedValues.forEach(function (transformedValue) {
+        result.transformedValues.forEach(function(transformedValue) {
           var chipId = ruleId + "_ex_" + exampleCounter++;
           valueContainer.appendChild(createValueElement(transformedValue, {
-            chipId: chipId,
+            chipId: chipId ,
             class: "di-rule-example-path-target"
           }));
           $("#valueTooltips").append(createTooltip(transformedValue, chipId, true));
         });
         pathRow.appendChild(transformedValueCell);
-      } else if (pathIndex == pathCount - 1) {
+      } else if (pathIndex == pathCount -1) {
         $(pathRow).addClass("di-rule-last-path");
       }
       tbody.append(pathRow);
@@ -761,11 +741,9 @@ var fillExamplesTable = function fillExamplesTable(ruleId, data) {
   });
   resizeValuesForRule(ruleId);
   componentHandler.upgradeDom();
-};
+}
 
-var createSourcePathElement = function createSourcePathElement(path) {
-  var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
+var createSourcePathElement = function(path, settings={}) {
   var container = document.createElement("div");
   $(container).addClass("di-rule-chip-container di-rule-chip-container-paths");
   var element = document.createElement("span");
@@ -781,15 +759,13 @@ var createSourcePathElement = function createSourcePathElement(path) {
   }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
-  text.appendChild(document.createTextNode(path));
+  text.appendChild( document.createTextNode(path) );
   element.appendChild(text);
   container.appendChild(element);
   return container;
-};
+}
 
-var createValueElement = function createValueElement(value) {
-  var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
+var createValueElement = function(value, settings={}) {
   var chip = document.createElement("span");
   $(chip).addClass("mdl-chip di-rule-example-value");
   var pathIndex = settings.pathIndex;
@@ -803,23 +779,24 @@ var createValueElement = function createValueElement(value) {
   }
   var text = document.createElement("span");
   $(text).addClass("mdl-chip__text");
-  text.appendChild(document.createTextNode(value));
+  text.appendChild( document.createTextNode(value) );
   chip.appendChild(text);
   return chip;
-};
+}
 
-var createTooltip = function createTooltip(text, forElement, hide) {
+var createTooltip = function(text, forElement, hide) {
   var tooltip = document.createElement("span");
   $(tooltip).addClass("mdl-tooltip mdl-tooltip--top mdl-tooltip--large");
   $(tooltip).attr("for", forElement);
-  tooltip.appendChild(document.createTextNode(text));
+  tooltip.appendChild( document.createTextNode(text) );
   if (hide) {
-    showTooltip(forElement, false);
+    showTooltip(forElement, false)
   }
   return tooltip;
-};
+}
 
-var showExamplesTable = function showExamplesTable(ruleId, show) {
+
+var showExamplesTable = function(ruleId, show) {
   var ruleRow = $("#" + ruleId).closest("tbody");
   var examplesTable = ruleRow.find(".di-rule__expanded-example-values");
   var alertPanel = ruleRow.find(".di-rule__expanded-example-values-errors");
@@ -831,21 +808,22 @@ var showExamplesTable = function showExamplesTable(ruleId, show) {
     examplesTable.hide();
     alertPanel.show();
   }
-};
 
-var resizeValuesForRule = function resizeValuesForRule(ruleId) {
+}
+
+var resizeValuesForRule = function(ruleId) {
   var exampleValues = $("#" + ruleId).closest("tbody").find(".di-rule__expanded-example-values-container");
   resizeValues(exampleValues);
-};
+}
 
-var resizeValues = function resizeValues(element) {
+var resizeValues = function(element) {
   var paddingLeft = 12;
   var paddingRight = 12;
-  $.each($(element).find(".di-rule-chip-container"), function (index, container) {
+  $.each($(element).find(".di-rule-chip-container"), function(index, container) {
     var containerWidth = $(container).width();
-    $.each($(container).find(".mdl-chip"), function (index2, chip) {
+    $.each($(container).find(".mdl-chip"), function(index2, chip) {
       var text = $(chip).find(">:first-child");
-      $(text).css({ "width": "" });
+      $(text).css({"width": ""})
       var chipWidth = $(chip).width();
       if (chipWidth + paddingLeft + paddingRight > containerWidth) {
         $(text).width(containerWidth - paddingLeft - paddingRight);
@@ -855,24 +833,22 @@ var resizeValues = function resizeValues(element) {
       }
     });
   });
-};
+}
 
-var showTooltip = function showTooltip(forElement, show) {
+var showTooltip = function(forElement, show) {
   var tooltip = $(".mdl-tooltip[for='" + forElement + "']");
   if (show) {
     tooltip.show();
   } else {
     tooltip.hide();
   }
-};
+}
 
-var mapToRange = function mapToRange(number, rangeMax) {
-  var rangeMin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-
+var mapToRange = function(number, rangeMax, rangeMin=1) {
   var trueMax = rangeMax - (rangeMin - 1);
   var mapped = number % trueMax;
   if (mapped == 0) {
     mapped = trueMax;
   }
   return mapped + (rangeMin - 1);
-};
+}

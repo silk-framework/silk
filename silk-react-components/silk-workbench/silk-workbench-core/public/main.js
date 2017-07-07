@@ -1,5 +1,3 @@
-'use strict';
-
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +18,17 @@
 
 var helpWidth = 170;
 var contentWidth;
-var contentWidthCallback = function contentWidthCallback() {};
+var contentWidthCallback = function() { };
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
 var dialogs = {};
 
-$(function () {
+$(function() {
 
   // Initialize window
   var id;
-  $(window).resize(function () {
+  $(window).resize(function() {
     clearTimeout(id);
     contentWidth = $(window).width() - helpWidth;
     id = setTimeout(contentWidthCallback, 100);
@@ -42,50 +40,47 @@ $(function () {
   primary_dialog = document.querySelector('#primary_dialog');
   if (primary_dialog) {
     dialogs['primary'] = primary_dialog;
-    if (!primary_dialog.showModal) {
+    if (! primary_dialog.showModal) {
       dialogPolyfill.registerDialog(primary_dialog);
     }
-    primary_dialog.querySelector('.close').addEventListener('click', function () {
+    primary_dialog.querySelector('.close').addEventListener('click', function() {
       primary_dialog.close();
     });
   }
   secondary_dialog = document.querySelector('#secondary_dialog');
   if (secondary_dialog) {
     dialogs['secondary'] = secondary_dialog;
-    if (!secondary_dialog.showModal) {
+    if (! secondary_dialog.showModal) {
       dialogPolyfill.registerDialog(secondary_dialog);
     }
-    secondary_dialog.querySelector('.close').addEventListener('click', function () {
+    secondary_dialog.querySelector('.close').addEventListener('click', function() {
       secondary_dialog.close();
     });
   }
 });
 
-var errorHandler = function errorHandler(request) {
-  if (request.responseText) {
+var errorHandler = function(request) {
+  if(request.responseText) {
     alert(request.responseText);
   } else {
-    alert(request.statusText);
+    alert(request.statusText)
   }
 };
 
 /**
  * Opens a dialog.
  */
-function showDialog(path) {
-  var dialog_key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "primary";
-  var payload = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
+function showDialog(path, dialog_key="primary", payload={}) {
   dialog = dialogs[dialog_key];
   $.data(dialog, "path", path);
-  $.get(path, payload, function (data) {
+  $.get(path, payload, function(data) {
     // inject dialog content into dialog container
     $(dialog).html(data);
     // enable MDL JS for dynamically added components
     componentHandler.upgradeAllRegistered();
-  }).success(function () {
+  }).success(function() {
     dialog.showModal();
-  }).fail(function (request) {
+  }).fail(function(request) {
     alert(request.responseText);
   });
 }
@@ -93,25 +88,19 @@ function showDialog(path) {
 /**
  * Reloads a dialog.
  */
-function reloadDialog() {
-  var dialog_key = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "primary";
-
+function reloadDialog(dialog_key="primary") {
   dialog = dialogs[dialog_key];
   var path = $.data(dialog, "path");
-  $.get(path, function (data) {
+  $.get(path, function(data) {
     $(dialog).html(data);
     componentHandler.upgradeAllRegistered();
-  }).fail(function (request) {
-    alert(request.responseText);
-  });
+  }).fail(function(request) { alert(request.responseText);  })
 }
 
 /**
  * Closes current dialog.
  */
-function closeDialog() {
-  var dialog_key = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "primary";
-
+function closeDialog(dialog_key="primary") {
   dialog = dialogs[dialog_key];
   dialog.close();
 }
@@ -121,16 +110,14 @@ function closeDialog() {
  */
 function showHelp() {
   updateHelpWidth(170);
-  $('#show-help').hide();$('#help').show('slide', { direction: 'right' }, 'slow');
+  $('#show-help').hide(); $('#help').show('slide', {direction:'right'}, 'slow');
 }
 
 /**
  * Hides the help sidebar.
  */
 function hideHelp() {
-  $('#help').hide('slide', { direction: 'right' }, 'slow', function () {
-    updateHelpWidth(16);$('#show-help').show();
-  });
+  $('#help').hide('slide', {direction:'right'}, 'slow', function() { updateHelpWidth(16); $('#show-help').show(); });
 }
 
 function updateHelpWidth(newWidth) {

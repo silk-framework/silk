@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Serializes the current linkage rule in the editor as XML.
  */
@@ -47,7 +45,7 @@ function serializeTransformRule() {
  */
 function serializeRule(tagName) {
   // Retrieve all connections
-  var connections = jsPlumb.getConnections({ scope: ['value', 'similarity'] }, true);
+  var connections = jsPlumb.getConnections({scope: ['value', 'similarity']}, true);
   // Find the root of the linkage rule
   var root = findRootOperator(connections);
 
@@ -69,15 +67,15 @@ function serializeRule(tagName) {
  *   - inputType: The input type, either source or target. Undefined if the given operator is not an input
  */
 function parseOperator(xmlDoc, elementId, connections) {
-  var elementIdName = "#" + elementId;
-  var elName = $(elementIdName).children(".name").text();
-  var elType = $(elementIdName).children(".type").text();
+  var elementIdName = "#"+elementId;
+  var elName = ($(elementIdName).children(".name").text());
+  var elType = ($(elementIdName).children(".type").text());
 
   // Create xml element
   var xml;
   if (elType == "Source" || elType == "Target") {
     xml = xmlDoc.createElement("Input");
-    var path = $(elementIdName + " > div.content > input").val();
+    var path = $(elementIdName+" > div.content > input").val();
     xml.setAttribute("path", path);
   } else if (elType == "Transform") {
     xml = xmlDoc.createElement("TransformInput");
@@ -107,26 +105,29 @@ function parseOperator(xmlDoc, elementId, connections) {
   }
 
   // Append children
-  if (elType == "Compare") {
-    // For comparisons, we need to append the children in the correct order
-    if (children[0].inputType == "Source") {
-      xml.appendChild(children[0].xml);
-      if (children.length > 1) xml.appendChild(children[1].xml);
-    } else {
-      if (children.length > 1) xml.appendChild(children[1].xml);
-      xml.appendChild(children[0].xml);
-    }
+  if(elType == "Compare") {
+   // For comparisons, we need to append the children in the correct order
+   if(children[0].inputType == "Source") {
+     xml.appendChild(children[0].xml);
+     if(children.length > 1)
+       xml.appendChild(children[1].xml);
+   } else {
+     if(children.length > 1)
+       xml.appendChild(children[1].xml);
+     xml.appendChild(children[0].xml);
+   }
   } else {
     for (var i in children) {
-      xml.appendChild(children[i].xml);
+      xml.appendChild(children[i].xml)
     }
   }
 
   // If this is a path, we are finished. Otherwise the parameters still need to be parsed.
-  if (elType == "Source" || elType == "Target") return { xml: xml, inputType: elType };
+  if(elType == "Source" || elType == "Target")
+    return { xml: xml, inputType: elType };
 
   // Parse parameters
-  var params = $(elementIdName + " div.content input");
+  var params = $(elementIdName+" div.content input");
 
   for (var l = 0; l < params.length; l++) {
     if ($(params[l]).attr("name") == "required") {
@@ -156,7 +157,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     }
   }
 
-  if (children.length > 0) {
+  if(children.length > 0) {
     return {
       xml: xml,
       inputType: children[0].inputType // For now we just select the type of the first child
@@ -204,7 +205,7 @@ function findRootOperator(connections) {
  * Generate XML string
  */
 function makeXMLString(xml) {
-  var xmlString = new XMLSerializer().serializeToString(xml);
+  var xmlString = (new XMLSerializer()).serializeToString(xml);
   console.log(xmlString);
   return xmlString;
 }

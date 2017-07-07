@@ -1,10 +1,8 @@
-'use strict';
-
 // filtering of operator list based on search term
 
-$('#operator_search_term').keyup(function () {
+$('#operator_search_term').keyup(function(){
   var searchTerm = $(this).val().toLowerCase();
-  if (searchTerm == "") {
+  if(searchTerm == "") {
     // show regular grouped view if search term empty
     $('#operators-grouped').show();
     $('#operators-search-result').hide();
@@ -16,14 +14,13 @@ $('#operator_search_term').keyup(function () {
     $('#no_match_alert').show();
     $('#operatorList').hide();
 
-    $('#operatorList .operator').each(function () {
+    $('#operatorList .operator').each(function() {
       var text = $(this).find('.operator-index').text().toLowerCase(); // the operator's index terms to match against
       if (text.indexOf(searchTerm) >= 0) {
         $(this).removeClass('search-invisible');
         $("#operators-search-result .operator p").unmark();
-        if (searchTerm.length > 1) {
-          // to improve performance, only highlight for searchTerms longer than 1
-          $("#operators-search-result .operator p").mark(searchTerm, { "exclude": [".search-invisible"] });
+        if (searchTerm.length > 1) { // to improve performance, only highlight for searchTerms longer than 1
+          $("#operators-search-result .operator p").mark(searchTerm, {"exclude": [ ".search-invisible" ] });
         }
 
         $('#no_match_alert').hide();

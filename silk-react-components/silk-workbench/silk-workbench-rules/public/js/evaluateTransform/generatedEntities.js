@@ -1,6 +1,4 @@
-"use strict";
-
-$(function () {
+$(function() {
   // Initialize the jsQuery treeview plugin
   $(".entity-tree").treeview();
   // fix '+' and '-' icons:

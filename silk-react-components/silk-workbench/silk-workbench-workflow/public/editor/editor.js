@@ -1,5 +1,3 @@
-"use strict";
-
 function WorkflowEditor() {
 
   this.styles = {};
@@ -13,7 +11,7 @@ function WorkflowEditor() {
   };
   this.styles.connectors.hover = {
     strokeStyle: "#216477"
-  };
+  }
 
   this.styles.endpoints.source = {
     anchor: "RightMiddle",
@@ -24,11 +22,11 @@ function WorkflowEditor() {
     },
     connectorStyle: this.styles.connectors.plain,
     connectorHoverStyle: this.styles.connectors.hover,
-    connectorOverlays: [["Arrow", { location: 1, width: 15, length: 15 }]],
-    connector: ["Flowchart", { stub: 10, cornerRadius: 5 }],
+    connectorOverlays: [ [ "Arrow", { location: 1, width: 15, length: 15 } ] ],
+    connector: [ "Flowchart", { stub: 10, cornerRadius: 5 } ],
     isSource: true,
     maxConnections: -1
-  };
+  }
   this.styles.endpoints.target = {
     anchor: "LeftMiddle",
     endpoint: "Dot",
@@ -39,7 +37,7 @@ function WorkflowEditor() {
     connectorStyle: this.styles.connectors.plain,
     isTarget: true,
     maxConnections: 1
-  };
+  }
   this.styles.endpoints.dynamic_target = {
     anchor: "LeftMiddle",
     endpoint: "Dot",
@@ -50,7 +48,8 @@ function WorkflowEditor() {
     connectorStyle: this.styles.connectors.plain,
     isTarget: true,
     maxConnections: 1
-  };
+  }
+
 
   this.handler = new DynamicEndpointHandler();
   this.handler.styles = this.styles.endpoints;
@@ -60,48 +59,49 @@ function WorkflowEditor() {
   // Set jsPlumb default values
   jsPlumb.setContainer("editorContent");
 
-  this.bindEvents = function () {
+  this.bindEvents = function() {
     // Make operators draggable
     $('.toolboxOperator').draggable({
-      init: function init() {
+      init: function() {
 
-        this.helper = function () {
+        this.helper = function() {
           var counter = 1;
           var box = $(this).children('.operator,.dataset').clone(false);
           // Generate a new id for the operator of the form operator_name
           var boxId = $(this).attr('id');
-          var taskId = boxId.substring(boxId.indexOf("_") + 1);
+          var taskId = boxId.substring(boxId.indexOf("_") + 1)
           var suffix = '';
           // Count up if element id already exists
-          if (counter > 1) {
+          if(counter > 1) {
             operatorId = taskId + counter;
           } else {
             operatorId = taskId;
           }
-          while ($('#' + operatorId).length > 0) {
+          while($('#' + operatorId).length > 0) {
             // Count up because an operator with this id already exists
             counter = counter + 1;
             operatorId = taskId + counter;
           }
 
-          if (counter > 1) {
+
+          if(counter > 1) {
             suffix = '' + counter;
           }
-          box.attr('taskid', taskId);
+          box.attr('taskid', taskId)
           box.attr('id', taskId + suffix);
           box.show();
           return box;
-        };
+        }
         return this;
       }
     }.init());
 
     // Handle dropped operators
     $("#editorContent").droppable({
-      drop: function drop(ev, ui) {
+      drop: function (ev, ui) {
 
         // Check if we still need to add endpoints to the dropped element
-        if (jsPlumb.getEndpoints(ui.helper) === undefined) {
+        if(jsPlumb.getEndpoints(ui.helper) === undefined) {
           var id = ui.helper.attr('id');
           // Hide operator in toolbox
           // if($(ui.helper).hasClass('dataset')) {
@@ -122,7 +122,7 @@ function WorkflowEditor() {
             _this.handler.addDynamicEndpoint(id, "dynamic_target");
             // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
           } else {
-            var endpoints = [];
+            var endpoints = []
             for (index = 0; index < inputCardinality; index++) {
               endpoints.push(jsPlumb.addEndpoint(id, _this.styles.endpoints.target));
             }
@@ -133,12 +133,13 @@ function WorkflowEditor() {
     });
 
     // Delete connections on clicking them
-    jsPlumb.bind("click", function (conn, originalEvent) {
+    jsPlumb.bind("click", function(conn, originalEvent) {
       jsPlumb.detach(conn);
     });
+
   };
 
-  this.deserializeWorkflow = function (xml) {
+  this.deserializeWorkflow = function(xml) {
     // Retrieve the xml root element
     var xmlRoot = xml.children('Workflow');
     // Find the editor contents to put the operators into
@@ -151,13 +152,13 @@ function WorkflowEditor() {
     deserializeWorkflowOperator('Dataset', 'dataset');
 
     function deserializeWorkflowOperator(elementName, childClass) {
-      xmlRoot.find(elementName).each(function () {
+      xmlRoot.find(elementName).each(function() {
         var xml = $(this);
         var taskId = xml.attr('task');
         var opId = xml.attr('id');
-        var outputPriority = xml.attr('outputPriority');
-        if (opId === undefined) {
-          opId = taskId;
+        var outputPriority = xml.attr('outputPriority')
+        if(opId === undefined) {
+          opId = taskId
         }
 
         var toolbox = $("#toolbox_" + taskId);
@@ -165,13 +166,13 @@ function WorkflowEditor() {
         //    toolbox.hide();
 
         var box = toolbox.children('.' + childClass).clone(false);
-        if (outputPriority) {
+        if(outputPriority) {
           box.attr('output_priority', outputPriority);
         }
         box.attr('taskid', taskId);
-        box.attr('id', opId);
+        box.attr('id', opId)
         box.show();
-        box.css({ top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute' });
+        box.css({top: xml.attr('posY') + 'px', left: xml.attr('posX') + 'px', position: 'absolute'});
         box.appendTo(editorContent);
 
         // Make operator draggable
@@ -199,15 +200,15 @@ function WorkflowEditor() {
     function connectEndpoints(elementName) {
       // Connect endpoints
       // Since operators are connected in both directions we only need to look at one direction, i.e. inputs.
-      xmlRoot.find(elementName).each(function () {
+      xmlRoot.find(elementName).each(function() {
         var xml = $(this);
 
         var taskId = xml.attr('id');
         // Connect inputs
         var inputCardinality = $("#" + taskId).data().inputCardinality;
-        $.each(xml.attr('inputs').split(','), function (index, value) {
-          if (value != "") {
-            jsPlumb.connect({ source: sourceEndpoints[value], target: targetEndpoints[taskId][index] });
+        $.each(xml.attr('inputs').split(','), function(index, value) {
+          if(value != "") {
+            jsPlumb.connect({source: sourceEndpoints[value], target: targetEndpoints[taskId][index]});
             if (inputCardinality == -1) {
               // these are dynamic enpoints, so we need to get the last one and push it on the stack of
               // endpoints for this taskId, to make it available in the next iteration of the loop
@@ -220,17 +221,18 @@ function WorkflowEditor() {
     }
   };
 
-  this.loadWorkflow = function () {
-    $.get(apiUrl, function (data) {
+  this.loadWorkflow = function() {
+    $.get(apiUrl, function(data) {
       _this.deserializeWorkflow($(data));
-    }).fail(function (msg) {
-      alert("Error loading workflow from backend: " + msg);
-    });
+    })
+    .fail(function(msg) {
+      alert( "Error loading workflow from backend: " + msg);
+    })
   };
 
-  this.removeElement = function (elementId) {
+  this.removeElement = function(elementId) {
     //We need to set a time-out here as a element should not remove its own parent in its event handler
-    setTimeout(function () {
+    setTimeout(function() {
       // Remove the elemenet from the workflow
       jsPlumb.removeAllEndpoints(elementId);
       $('#' + elementId).remove();
@@ -240,13 +242,17 @@ function WorkflowEditor() {
   };
 
   this.bindEvents();
+
 }
+
 
 $(function () {
 
-  jsPlumb.ready(function () {
+  jsPlumb.ready(function() {
     editor = new WorkflowEditor();
     // Load workflow from backend
     editor.loadWorkflow();
   });
+
 });
+

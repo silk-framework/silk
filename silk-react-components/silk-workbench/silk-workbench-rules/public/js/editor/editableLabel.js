@@ -1,5 +1,3 @@
-'use strict';
-
 var defaultText = 'operator_id';
 
 function endEdit(e) {
@@ -19,20 +17,20 @@ function endEdit(e) {
 }
 
 // end editing by loosing focus
-$(document).on('blur', 'input.edit_label', function (e) {
-    endEdit(e);
+$( document ).on('blur', 'input.edit_label', function(e){
+  endEdit(e);
 });
 
 // end editing by pressing return or escape
-$(document).on('keyup', 'input.edit_label', function (e) {
-    if (e.which == 13 || e.which == 27) {
-        // RETURN OR ESCAPE
-        endEdit(e);
-    }
+$( document ).on('keyup', 'input.edit_label', function(e) {
+      if (e.which == 13 || e.which == 27) {
+          // RETURN OR ESCAPE
+          endEdit(e);
+      }
 });
 
 // start editing
-$(document).on('click', 'label.edit_label', function (e) {
-    $(this).hide();
-    $(this).next().show().focus();
+$( document ).on('click', 'label.edit_label', function(e) {
+  $(this).hide();
+  $(this).next().show().focus();
 });

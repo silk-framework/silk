@@ -38,6 +38,7 @@
     "react-highlight-words": "^0.8.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "ecc-gulp-tasks": "^3.7.0",
     "ecc-license-checker": "^2.5.2",
     "gulp": "^3.9.1",
