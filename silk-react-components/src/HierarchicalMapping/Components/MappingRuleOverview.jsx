@@ -406,7 +406,7 @@ const MappingRuleOverview = React.createClass({
         const suggestions = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
             ? <SuggestionOverview
                 key={_.join(types, ',')}
-                ruleId={this.props.currentRuleId}
+                ruleId={_.isUndefined(this.props.currentRuleId)? this.props.currentRuleId : 'root'}
                 onClose={this.handleCloseSuggestions}
                 parent={{
                     id: this.state.ruleData.id,
