@@ -25,16 +25,11 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
 
   private implicit val logger = Logger.getLogger(getClass.getName)
 
-  def apply(endpoint: SparqlEndpoint, limit: Option[Int]): Traversable[(String, Double)] = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int]): Traversable[(String, Double)] = {
     Timer("Retrieving types in '" + endpoint + "'") {
-      val sparql = "SELECT ?t (count(?t) AS ?count) WHERE {\n" +
-        "?s a ?t\n" +
-        "}\n" +
-        "GROUP BY ?t\n" +
-        "ORDER BY DESC (?count)"
-
-      val results = endpoint.select(sparql, limit.getOrElse(defaultLimit)).bindings.toList
-      if (!results.isEmpty) {
+      val query = buildQuery(graph)
+      val results = endpoint.select(query, limit.getOrElse(defaultLimit)).bindings.toList
+      if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("t")) yield {
           (result("t").value, result("count").value.toDouble / maxCount)
@@ -43,5 +38,23 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
         Traversable.empty
       }
     }
+  }
+
+  private def buildQuery(graph: Option[String]): String = {
+    var sparql = "SELECT ?t (count(?t) AS ?count) WHERE {\n"
+
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql += "GRAPH <" + graphUri + "> {\n"
+
+    sparql += "?s a ?t\n"
+
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql += "}\n"
+
+    sparql += "}\n"
+    sparql += "GROUP BY ?t\n"
+    sparql += "ORDER BY DESC (?count)"
+
+    sparql
   }
 }

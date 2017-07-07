@@ -134,7 +134,7 @@ const URIInfo = React.createClass({
         } else if (field === 'label') {
             const lastHash = uri.lastIndexOf('#');
             const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
-            noInfo = uri.substring(lastSlash + 1).replace(/>$/, '');
+            noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, '');
         }
 
         return <span>{noInfo}</span>

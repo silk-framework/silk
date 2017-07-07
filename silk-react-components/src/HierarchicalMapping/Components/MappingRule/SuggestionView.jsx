@@ -42,7 +42,7 @@ const SuggestionsView = React.createClass({
 
             <div
                 className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable"
-                title={`Click to add the suggested value:\n\nClassName: ${suggestedClass}\nPath: ${item.uri}\nConfidence: ${item.confidence}`}
+                title={`Click to add the suggested value mapping:\n\nTarget property: ${suggestedClass}\nValue path: ${item.uri}\nConfidence: ${item.confidence}`}
                 onClick={this.props.check.bind(null, suggestedClass, pos)}
             >
                 <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{suggestedClass}</div>
