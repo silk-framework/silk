@@ -160,7 +160,7 @@ const prepareObjectMappingPayload = (data) => {
 
 if (!__DEBUG__) {
 
-    const rootId = 'root';
+    let rootId = null;
 
     const vocabularyCache = {};
 
@@ -249,8 +249,15 @@ if (!__DEBUG__) {
             silkStore
                 .request({topic: 'transform.task.rules.get', data: {...apiDetails}})
                 .map((returned) => {
+
+                    const rules = returned.body;
+
+                    if(!_.isString(rootId)){
+                        rootId = rules.id
+                    }
+
                     return {
-                        hierarchy: returned.body
+                        hierarchy: rules
                     };
                 })
                 .multicast(replySubject).connect();
@@ -296,6 +303,10 @@ if (!__DEBUG__) {
                     const rules = returned.body;
 
                     const searchId = id ? id : rules.id;
+
+                    if(!_.isString(rootId)){
+                        rootId = rules.id
+                    }
 
                     const rule = findRule(_.cloneDeep(rules), searchId, isObjectMapping, []);
 
