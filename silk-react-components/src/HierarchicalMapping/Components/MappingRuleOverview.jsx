@@ -405,6 +405,11 @@ const MappingRuleOverview = React.createClass({
                 key={_.join(types, ',')}
                 ruleId={this.props.currentRuleId}
                 onClose={this.handleCloseSuggestions}
+                parent={{
+                    id: this.state.ruleData.id,
+                    property: _.get(this, 'state.ruleData.mappingTarget.uri'),
+                    type: _.get(this, 'state.ruleData.rules.typeRules[0].typeUri'),
+                }}
                 targetClassUris={types}/> : false;
 
 

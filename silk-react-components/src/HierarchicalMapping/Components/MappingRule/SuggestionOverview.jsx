@@ -14,6 +14,7 @@ import {
 } from 'ecc-gui-elements';
 import SuggestionView from './SuggestionView';
 import hierarchicalMappingChannel from '../../store';
+import {ParentElement} from './SharedComponents';
 import _ from 'lodash';
 
 let pendingRules = {};
@@ -243,9 +244,13 @@ const SuggestionOverview = React.createClass({
             <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
 
-        const suggestionsEmptyInfo = _.size(this.state.data) === 0
-            ? <Info>No suggestions found for the current object mapping.</Info>
-            : false;
+        const suggestionsEmptyInfo = _.size(this.state.data) === 0 ? (
+                <div className="mdl-card__content">
+                    <Info vertSpacing border >
+                        No suggestions found for <ParentElement parent={this.props.parent}/>.
+                    </Info>
+                </div>
+            ) : false;
 
         if (this.state.loading) {
             return <Spinner/>;
