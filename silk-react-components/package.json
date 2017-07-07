@@ -30,6 +30,7 @@
     "jsplumb": "2.1.8",
     "jstree": "3.2.1",
     "lodash": "^4.17.4",
+    "mark.js": "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz",
     "material-design-lite": "1.3.0",
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",

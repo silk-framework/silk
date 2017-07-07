@@ -34,6 +34,11 @@ jstree/test
 jstree/src
 jstree/dist/themes/default-dark
 
+mark.js/*
+!mark.js/dist
+mark.js/dist/*
+!mark.js/dist/jquery.mark.js
+
 material-design-lite/*/
 
 mdl-selectfield/src
