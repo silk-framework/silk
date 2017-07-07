@@ -4,6 +4,7 @@ import {
     Spinner,
     Error,
     Checkbox,
+    Info,
     Button,
     AffirmativeButton,
     DismissiveButton,
@@ -13,6 +14,7 @@ import {
 } from 'ecc-gui-elements';
 import SuggestionView from './SuggestionView';
 import hierarchicalMappingChannel from '../../store';
+import {ParentElement} from './SharedComponents';
 import _ from 'lodash';
 
 let pendingRules = {};
@@ -230,10 +232,25 @@ const SuggestionOverview = React.createClass({
         );
 
         const actions = <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
-            {_.isEmpty(this.state.error)?<AffirmativeButton onClick={this.handleAddSuggestions} >Save</AffirmativeButton>:false}
+            {_.isEmpty(this.state.error)
+                ?<AffirmativeButton
+                    onClick={this.handleAddSuggestions}
+                    disabled={_.size(this.state.checked) === 0}
+                >
+                    Save
+                </AffirmativeButton>
+                :false}
 
             <DismissiveButton onClick={this.props.onClose} >Cancel</DismissiveButton>
         </div>
+
+        const suggestionsEmptyInfo = _.size(this.state.data) === 0 ? (
+                <div className="mdl-card__content">
+                    <Info vertSpacing border >
+                        No suggestions found for <ParentElement parent={this.props.parent}/>.
+                    </Info>
+                </div>
+            ) : false;
 
         if (this.state.loading) {
             return <Spinner/>;
@@ -244,6 +261,7 @@ const SuggestionOverview = React.createClass({
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
+                        {suggestionsEmptyInfo}
                         {errorsList}
                     </ol>
                     {actions}
