@@ -29,9 +29,9 @@
 
       $("#droppable input").prop("disabled", true);
 
-      const vertical_spacing = 50;
-      const horizontal_spacing = 60;
-      const padding_top = 10;
+      var vertical_spacing = 50;
+      var horizontal_spacing = 60;
+      var padding_top = 10;
 
       var connections = jsPlumb.getAllConnections();
       var graph = connections.reduce(
@@ -58,7 +58,7 @@
 
       columns = columns.reverse();
 
-      const max_column_height = maxHeight(columns);
+      var max_column_height = maxHeight(columns);
 
       $.each(columns, function(i, column) {
         total_height = get_total_height(column);
