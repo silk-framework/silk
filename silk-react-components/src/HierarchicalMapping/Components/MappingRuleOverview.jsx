@@ -74,7 +74,7 @@ const MappingRuleOverview = React.createClass({
         };
     },
     componentDidMount() {
-        this.loadData();
+        this.loadData({initialLoad: true});
         this.subscribe(hierarchicalMappingChannel.subject('reload'), this.loadData);
         this.subscribe(hierarchicalMappingChannel.subject('ruleId.create'), this.onRuleCreate);
         this.subscribe(hierarchicalMappingChannel.subject('ruleView.unchanged'), this.handleRuleEditClose);
@@ -110,7 +110,10 @@ const MappingRuleOverview = React.createClass({
             this.loadData();
         }
     },
-    loadData() {
+    loadData(params = {}) {
+
+        const {initialLoad = false} = params;
+
         this.setState({
             loading: true,
         });
@@ -129,7 +132,7 @@ const MappingRuleOverview = React.createClass({
             .subscribe(
                 ({rule}) => {
 
-                    if(rule.id !== this.props.currentRuleId){
+                    if(initialLoad && rule.id !== this.props.currentRuleId){
                         hierarchicalMappingChannel.subject('rulesView.toggle').onNext({
                             expanded:true,
                             id: this.props.currentRuleId,
