@@ -1123,6 +1123,31 @@ DataManager:
         - name: MIT
           url: >-
             https://raw.githubusercontent.com/jquery/jquery/1.11.3/MIT-LICENSE.txt
+    - name: jquery-treeview
+      version: 1.4.2
+      url: 'https://github.com/jzaefferer/jquery-treeview'
+      licenses:
+        - name: MIT
+          url: >-
+            https://raw.githubusercontent.com/jzaefferer/jquery-treeview/1.4.2/readme.md
+      downloadUrl: 'https://github.com/jzaefferer/jquery-treeview/archive/1.4.2.zip'
+    - name: jquery-ui
+      version: 1.11.4
+      url: 'https://jqueryui.com/'
+      spdx: MIT
+      licenses:
+        - name: MIT
+          url: >-
+            https://raw.githubusercontent.com/jquery/jquery-ui/1.11.4/LICENSE.txt
+      downloadUrl: 'https://github.com/jquery/jquery-ui/archive/1.11.4.zip'
+    - name: jquery_pagination
+      version: '2.1'
+      url: 'https://github.com/gbirke/jquery_pagination'
+      licenses:
+        - name: GPL-2.0
+          url: >-
+            https://raw.githubusercontent.com/gbirke/jquery_pagination/v2.1/README.rst
+      downloadUrl: 'https://github.com/gbirke/jquery_pagination/archive/v2.1.zip'
     - name: js-tokens
       version: 3.0.1
       url: 'https://github.com/lydell/js-tokens#readme'
