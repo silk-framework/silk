@@ -8,7 +8,7 @@ import {
     Spinner,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import {ThingName, ParentElement} from '../SharedComponents';
+import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers'
 import _ from 'lodash';

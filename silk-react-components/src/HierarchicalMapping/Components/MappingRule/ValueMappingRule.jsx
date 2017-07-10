@@ -193,11 +193,11 @@ const RuleValueView = React.createClass({
                                                 Value formula
                                             </dt>
                                             <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                Formula uses {paths.length} value path{paths.length>1?'s':''}:
+                                                Formula uses {paths.length} value path{paths.length>1?'s':''}:&nbsp;
                                                 <code>
                                                     {paths.join(', ')}
                                                 </code>
-                                                  and {operators.length} operator function{operators.length>1?'s':''}:
+                                                &nbsp;and {operators.length} operator function{operators.length>1?'s':''}:&nbsp;
                                                 <code>
                                                     {operators.join(', ')}
                                                 </code>.
