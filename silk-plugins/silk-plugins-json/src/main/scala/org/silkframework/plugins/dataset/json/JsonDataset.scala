@@ -8,7 +8,7 @@ import scala.io.Codec
 
 @Plugin(
   id = "json",
-  label = "JSON",
+  label = "JSON file",
   description =
 """Retrieves all entities from an JSON file."""
 )
