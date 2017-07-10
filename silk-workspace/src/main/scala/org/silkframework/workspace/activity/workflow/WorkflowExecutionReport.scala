@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.util.Identifier
 
-import scala.collection.immutable.ListMap
-
-case class WorkflowExecutionReport(taskReports: ListMap[String, ExecutionReport] = ListMap.empty) extends ExecutionReport {
+case class WorkflowExecutionReport(taskReports: Map[Identifier, ExecutionReport] = Map.empty) extends ExecutionReport {
 
   def withReport(taskId: String, executionReport: ExecutionReport): WorkflowExecutionReport = {
     copy(taskReports = taskReports + ((taskId, executionReport)))
   }
 
+  override def summary: Seq[(String, String)] = Seq.empty
 }

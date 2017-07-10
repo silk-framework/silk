@@ -63,7 +63,7 @@ lazy val learning = (project in file("silk-learning"))
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning)
+  .dependsOn(rules, learning, serializationJson)
   .aggregate(rules, learning)
   .settings(commonSettings: _*)
   .settings(
@@ -129,11 +129,11 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   )
 
 lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
-  .dependsOn(core)
+  .dependsOn(core, rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
   )
 
 lazy val plugins = (project in file("silk-plugins"))
@@ -151,7 +151,7 @@ lazy val plugins = (project in file("silk-plugins"))
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace)
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test")
   .aggregate(workspace)
   .settings(commonSettings: _*)
   .settings(
@@ -164,28 +164,28 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
   .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf)
-  .aggregate(workbenchCore, pluginsRdf)
+  .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace"
   )
 
-lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-workflow"))
-  .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace)
-  .aggregate(workbenchWorkspace)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Workbench Workflow"
-  )
-
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test")
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Rules"
+  )
+
+lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-workflow"))
+  .enablePlugins(PlayScala)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules)
+  .aggregate(workbenchRules)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Workbench Workflow"
   )
 
 lazy val workbench = (project in file("silk-workbench"))

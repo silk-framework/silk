@@ -1,269 +1,31 @@
-@import org.silkframework.entity.ForwardOperator
 @import plugins.Context
-@import org.silkframework.rule.{ComplexMapping, DirectMapping, ObjectMapping, TransformRule, TransformSpec, TypeMapping, UriMapping}
-@import org.silkframework.rule.input.PathInput
-@import org.silkframework.entity.Path
-@import org.silkframework.workspace.activity.transform.TransformPathsCache
-@import controllers.rules.routes.Assets
-@import org.silkframework.runtime.serialization.XmlSerialization
+@import org.silkframework.rule.{TransformSpec}
+@import controllers.core.routes.{Assets => CoreAssets}
+@import org.silkframework.rule.vocab.Vocabularies
 
-@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit session: play.api.mvc.Session)
 
 @header = {
-  <link type="text/css" href="@Assets.at("stylesheets/editor/transformRules.css")" rel="stylesheet" />
-  <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
-
-  <script type="text/javascript" src="@Assets.at("js/editor/transformRules.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
-  <script type="text/javascript">
-    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
-  </script>
-}
-
-@toolbar = {
-  <ul>
-    <!--
-        <li>
-          <button id="add-uri-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#uriMappingTemplate')">Add URI Mapping</button>
-        </li>
-        <li>
-          <button id="add-type-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#typeMappingTemplate')">Add Type Mapping</button>
-        </li>
-    -->
-    <li>
-      <button id="add-direct-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#directMappingTemplate')">Add Direct Mapping</button>
-    </li>
-    <li>
-      <button id="add-object-mapping-button" class="mdl-button mdl-js-button mdl-button--raised" onclick="addRule('#objectMappingTemplate')">Add Object Mapping</button>
-    </li>
-    <li>
-      @* widgets.taskActivityControl(context, context.task.activity[PathsCache].name) *@
-    </li>
-  </ul>
-
-  @status()
+  <script type="text/javascript" src="@CoreAssets.at("libs/silk-react-components/main.js")"></script>
 }
 
 @content = {
-  <div id="ruleContainer">
-    <div id="ruleConfigContainer" class="mdl-card mdl-shadow--2dp">
-      <div class="mdl-card__title di-vertical-align">
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();" style="display: none;">
-          <i class="material-icons">keyboard_arrow_right</i>
-        </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRuleConfig();">
-          <i class="material-icons">expand_more</i>
-        </button>
-        <h2 class="mdl-card__title-text">Configuration:&nbsp;<span class="di-highlight">@context.task.id</span></h2>
-      </div>
-      <div class="mdl-card__supporting-text">
-        <div class="mdl-grid">
-          <div class="mdl-cell mdl-cell--2-col di-vertical-align">
-            <span class="config-label">Entity Types</span>
-          </div>
-          <div class="mdl-cell mdl-cell--10-col">
-            <div id="typeUI">
-              <div id="typeContainer">
-                @for(rule <- context.task.data.rules) {
-                  @if(rule.typeString == "Type") {
-                    @renderTypeRule(rule.asInstanceOf[TypeMapping])
-                  }
-                }
-              </div>
-              <div class="mdl-textfield mdl-js-textfield" id="rule-type-textfield">
-                <input class="mdl-textfield__input" type="text">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="mdl-grid">
-          <div class="mdl-cell mdl-cell--2-col di-vertical-align">
-            <span class="config-label">URI Template</span>
-          </div>
-          <div class="mdl-cell mdl-cell--10-col">
-            <div class="uri-ui uri-ui--defined di-vertical-align">
-              @for(rule <- context.task.data.rules) {
-                @if(rule.typeString == "URI") {
-                  @renderUriRule(rule.asInstanceOf[UriMapping])
-                }
-              }
-            </div>
-            <div class="uri-ui uri-ui--replacement di-vertical-align">
-              <div>(default template)</div>
-              <button class="mdl-button mdl-js-button mdl-button--icon" onclick="addURIMapping()">
-                <i class="material-icons">edit</i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="ruleTable">
-      <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
-        <thead>
-          <tr>
-            <th class="mdl-data-table__cell--non-numeric rule-name">Name</th>
-            <th class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</th>
-            <th class="mdl-data-table__cell--non-numeric rule-type">Rule Type</th>
-            <th class="mdl-data-table__cell--non-numeric rule-source">Source</th>
-            <th class="mdl-data-table__cell--non-numeric rule-target">Target</th>
-            <th class="mdl-data-table__cell rule-actions">Actions</th>
-          </tr>
-        </thead>
-          @for(rule <- context.task.data.rules) {
-            @if(rule.typeString != "Type" && rule.typeString != "URI") {
-              @renderRule(rule)
-            }
-          }
-      </table>
-    </div>
-  </div>
-
-  <div id="uriMappingTemplate" class="rule-template">
-    @renderUriRule(UriMapping())
-  </div>
-
-  <div id="typeTemplate" class="rule-template type-template">
-    @renderTypeRule(TypeMapping())
-  </div>
-
-  <table id="directMappingTemplate" class="rule-template">
-      @renderRule(DirectMapping())
-  </table>
-
-  <table id="objectMappingTemplate" class="rule-template">
-      @renderRule(ObjectMapping())
-  </table>
+  <div id="react-hierarchicalMapping"></div>
 
   <script type="text/javascript">
-    $().ready( function() {
 
-      $("#rule-type-textfield input").bind("enter", function(e) {
-        addRule("#typeTemplate");
-      });
-      $("#rule-type-textfield input").keyup(function(e) {
-        if (e.keyCode == 13) {
-          $(this).trigger("enter");
+    HierarchicalMapping(
+        'react-hierarchicalMapping',
+        {
+            baseUrl: '@config.baseUrl',
+            project: '@context.project.name',
+            transformTask: '@context.task.id',
+            initialRule: '@rule'
         }
-      });
-      $("#rule-type-textfield input").autocomplete({
-        source: apiUrl + "/targetPathCompletions",
-        minLength: 0
-      }).focus(function() { $(this).autocomplete("search"); });
-    });
+    );
+
   </script>
 
 }
 
-@renderRule(rule: TransformRule) = {
-  <tbody class="complete-rule">
-    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}" class="transformRule @{rule.typeString.toLowerCase}Mapping di-rule__compact">
-      <td class="mdl-data-table__cell--non-numeric rule-name">@rule.name</td>
-      <td class="mdl-data-table__cell--non-numeric rule-toggle">
-        <button class="mdl-button mdl-js-button mdl-button--icon" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');">
-          <i class="material-icons">expand_less</i>
-        </button>
-        <button class="mdl-button mdl-js-button mdl-button--icon collapse-rule" onclick="toggleRule('@{rule.typeString.toLowerCase}-@{rule.name}');" style="display: none;">
-          <i class="material-icons">expand_more</i>
-        </button>
-      </td>
-      <td class="mdl-data-table__cell--non-numeric rule-type"><div class="rule-type-indicator"></div>@rule.typeString Mapping</td>
-      @{ rule match {
-      case r: DirectMapping => renderDirectRule(r)
-      case r: UriMapping => renderUriRule(r)
-      case r: ObjectMapping => renderObjectRule(r)
-      case r: ComplexMapping => renderComplexRule(r)
-      case _ =>
-      }}
-      <td class="mdl-data-table__cell rule-actions">
-        <div class="rule-action-buttons">
-          <button class="mdl-button mdl-js-button mdl-button--icon edit-button" onclick="openRule($(this).parent().parent().parent().find('.rule-name').text())">
-            <i class="material-icons">edit</i>
-          </button>
-          <button class="mdl-button mdl-js-button mdl-button--icon delete-button" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')">
-            <i class="material-icons">delete</i>
-          </button>
-        </div>
-      </td>
-      <script class="ruleXML" type="application/xml">
-        @XmlSerialization.toXml[TransformRule](rule)
-      </script>
-    </tr>
-    <tr id="@{rule.typeString.toLowerCase}-@{rule.name}__expanded" class="di-rule__expanded" style="display: none;">
-      <td class="mdl-data-table__cell--non-numeric rule-toggle">&nbsp;</td>
-      <td colspan="4" class="mdl-data-table__cell--non-numeric di-rule__expanded-content">
-        <div>
-          &hellip; additional information &hellip;
-        </div>
-      </td>
-      <!--<td class="mdl-data-table__cell--non-numeric">&nbsp;</td>-->
-    </tr>
-  </tbody>
-}
-
-@renderTypeRule(rule: TypeMapping) = {
-  <span id="@{rule.typeString.toLowerCase}-@{rule.name}" class="mdl-chip mdl-chip--deletable transformRule typeMapping">
-    <span class="rule-name">@rule.name</span>
-    <span class="mdl-chip__text type">@rule.typeUri.serialize(context.project.config.prefixes)</span>
-    <button class="mdl-chip__action" onclick="deleteRule('@{rule.typeString.toLowerCase}-@{rule.name}')"><i class="material-icons">cancel</i></button>
-  </span>
-}
-
-@renderDirectRule(rule: DirectMapping) = {
-  <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@rule.sourcePath.serializeSimplified(prefixes())">
-    </div>
-  </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
-    </div>
-  </td>
-}
-
-@renderUriRule(rule: UriMapping) = {
-  <div id="uri">
-    <div class="transformRule uriMapping">
-      <span class="rule-name">@rule.name</span>
-      <div class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
-      </div>
-    </div>
-    <button class="mdl-button mdl-js-button mdl-button--icon" onclick="deleteRule('uri')">
-      <i class="material-icons">delete</i>
-    </button>
-  </div>
-}
-
-@renderObjectRule(rule: ObjectMapping) = {
-  <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input pattern" type="text" id="@{rule.name}-pattern" value="@rule.pattern">
-    </div>
-  </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.targetProperty.serialize(prefixes())">
-    </div>
-  </td>
-}
-
-@renderComplexRule(rule: ComplexMapping) = {
-  <td class="mdl-data-table__cell--non-numeric rule-source">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input source" type="text" id="@{rule.name}-source" value="@renderRulePath(rule)" disabled>
-    </div>
-  </td>
-  <td class="mdl-data-table__cell--non-numeric rule-target">
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input target" type="text" id="@{rule.name}-target" value="@rule.target.map(_.serialize(prefixes())).getOrElse("")">
-    </div>
-  </td>
-}
-
-@renderRulePath(rule: ComplexMapping) = {@if(rule.paths.size == 1) {@rule.paths.head.serializeSimplified(prefixes())} else {(multiple)}}
-
-@prefixes() = @{ context.project.config.prefixes }
-
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context))(header)(null)(content)

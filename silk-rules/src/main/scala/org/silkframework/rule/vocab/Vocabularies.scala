@@ -12,6 +12,29 @@ case class Vocabularies(vocabularies: Seq[Vocabulary]) {
 
   def isEmpty: Boolean = vocabularies.isEmpty
 
+  /**
+    * Returns the first class with the given URI in any vocabulary.
+    */
+  def findClass(uri: String): Option[VocabularyClass] = {
+    vocabularies.flatMap(_.getClass(uri)).headOption
+  }
+
+  /**
+    * Returns the first property with the given URI in any vocabulary.
+    */
+  def findProperty(uri: String): Option[VocabularyProperty] = {
+    vocabularies.flatMap(_.getProperty(uri)).headOption
+  }
+
+  def forwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {
+    val searchFor = Some(classUri)
+    vocabularies.flatMap(_.properties.filter(_.domain == searchFor))
+  }
+
+  def backwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {
+    val searchFor = Some(classUri)
+    vocabularies.flatMap(_.properties.filter(_.range == searchFor))
+  }
 }
 
 object Vocabularies {

@@ -8,6 +8,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat}
 import org.silkframework.util.XMLUtils._
 
+import scala.util.control.NonFatal
 import scala.xml.XML
 
 /**
@@ -70,7 +71,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
       case ex: ResourceNotFoundException =>
         context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
         None
-      case ex: Exception =>
+      case NonFatal(ex) =>
         context.log.log(Level.WARNING, s"Loading cache from $resource failed", ex)
         None
     }
@@ -78,10 +79,10 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
 
   private def writeValue(context: ActivityContext[T]): Unit = {
     try {
-      resource.write(w => toXml[T](context.value()).write(w))
+      resource.write()(w => toXml[T](context.value()).write(w))
       context.log.info(s"Cache written to $resource.")
     } catch {
-      case ex: Exception =>
+      case NonFatal(ex) =>
         context.log.log(Level.WARNING, s"Could not write cache to $resource", ex)
     }
   }

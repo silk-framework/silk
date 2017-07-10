@@ -22,14 +22,14 @@ class TransformPathsCache(task: ProjectTask[TransformSpec]) extends Activity[Ent
     val transform = task.data
 
     //Create an entity description from the transformation task
-    val currentEntityDesc = transform.entitySchema
+    val currentEntityDesc = transform.inputSchema
 
     //Check if paths have not been loaded yet or if the restriction has been changed
-    if (context.value().paths.isEmpty || currentEntityDesc.typeUri != context.value().typeUri) {
+    if (context.value().typedPaths.isEmpty || currentEntityDesc.typeUri != context.value().typeUri) {
       // Retrieve the data sources
       val paths = retrievePathsOfInput(task.data.selection.inputId, Some(transform.selection), task, context)
       //Add the frequent paths to the entity description
-      context.value() = currentEntityDesc.copy(paths = (currentEntityDesc.paths ++ paths).distinct)
+      context.value() = currentEntityDesc.copy(typedPaths = (currentEntityDesc.typedPaths ++ paths).distinct)
     }
   }
 }

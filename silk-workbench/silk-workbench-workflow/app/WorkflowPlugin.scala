@@ -16,8 +16,10 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     if(context.task.data.isInstanceOf[Workflow]) {
       val p = context.project.name
       val t = context.task.id
-      if (config.workbench.tabs.editor)
-        tabs ::= Tab("Editor", s"workflow/$p/$t/editor")
+      if (config.workbench.tabs.editor) {
+        tabs ::= Tab("Editor", s"workflow/editor/$p/$t")
+        tabs ::= Tab("Report", s"workflow/report/$p/$t")
+      }
     }
     tabs.reverse
   }
@@ -40,11 +42,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
 
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
-      Some(s"workflow/$project/$task/editor")
-
-    /** The path to delete the task by sending a DELETE HTTP request. */
-    override def delete(project: String, task: String) =
-      Some(s"workflow/workflows/$project/$task")
+      Some(s"workflow/editor/$project/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(task: Any): Seq[(String, String)] = {

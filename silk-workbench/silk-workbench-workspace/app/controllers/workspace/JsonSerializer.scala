@@ -1,12 +1,15 @@
 package controllers.workspace
 
+import java.io.File
 import java.util.logging.LogRecord
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -46,7 +49,39 @@ object JsonSerializer {
   )
 
   def projectResources(project: Project) = {
-    JsArray(project.resources.list.map(JsString))
+    JsArray(resourcesArray(project.resources))
+  }
+
+  def resourcesArray(resources: ResourceManager, pathPrefix: String = ""): Seq[JsValue] = {
+    val directResources =
+      for(resourceName <- resources.list) yield
+        resourceProperties(resources.get(resourceName), pathPrefix)
+
+    val childResources =
+      for(resourceName <- resources.listChildren) yield
+        resourcesArray(resources.child(resourceName), pathPrefix + resourceName + File.separator)
+
+    directResources ++ childResources.flatten
+  }
+
+  def resourceProperties(resource: Resource, pathPrefix: String = "") = {
+    val sizeValue = resource.size match {
+      case Some(size) => JsNumber(BigDecimal.decimal(size))
+      case None => JsNull
+    }
+
+    val modificationValue = resource.modificationTime match {
+      case Some(time) => JsString(time.toString)
+      case None => JsNull
+    }
+
+    Json.obj(
+      "name" -> resource.name,
+      "relativePath" -> JsString(pathPrefix + resource.name),
+      "absolutePath" -> resource.path,
+      "size" -> sizeValue,
+      "modified" -> modificationValue
+    )
   }
 
   def projectActivities(project: Project) = JsArray(
@@ -90,10 +125,30 @@ object JsonSerializer {
     )
   }
 
-  def taskMetadata(task: Task[TaskSpec]) = {
-    JsObject(
-      ("id" -> JsString(task.id)) ::
-      ("referencedTasks" -> JsArray(task.referencedTasks.toSeq.map(JsString(_)))) :: Nil
+  def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
+    val inputSchemata = task.data.inputSchemataOpt match {
+      case Some(schemata) => JsArray(schemata.map(entitySchema))
+      case None => JsNull
+    }
+    val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+
+    val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
+    val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
+
+    Json.obj(
+      "id" -> JsString(task.id),
+      "inputSchemata" -> inputSchemata,
+      "outputSchema" -> outputSchema,
+      "referencedTasks" -> referencedTasks,
+      "dependentTasks" -> dependentTasks
+    )
+  }
+
+  def entitySchema(schema: EntitySchema) = {
+    // TODO: Check if this should serialize to a TypedPath instead
+    val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
+    Json.obj(
+      "paths" -> JsArray(paths)
     )
   }
 

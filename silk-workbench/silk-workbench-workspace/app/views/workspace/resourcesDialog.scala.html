@@ -6,7 +6,7 @@
 <div class="mdl-grid" style="width: 500px">
 
   <div id="resource-resources-box" class="mdl-cell mdl-cell--12-col">
-    @for((resource, index) <- resourceLoader.list.zipWithIndex) {
+    @for((resource, index) <- resourceLoader.listRecursive.zipWithIndex) {
     <div id="resource@index" class="resource-chip mdl-shadow--2dp">
       <span class="resource-chip-label">@resource</span>
       <!--
@@ -131,7 +131,7 @@
 
     // Downloads a resource
     function getResource(name) {
-      window.location = '@config.baseUrl/workspace/projects/@project/resources/' + name
+      window.location = '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F")
     }
 
     function deleteResource(name) {
@@ -145,7 +145,7 @@
 
       $.ajax({
         type: 'DELETE',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         success: function(data) {
           reloadDialog();
         },
@@ -165,7 +165,7 @@
       $('#dialog-progress-spinner').show();
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         xhr: function() {
           myXhr = $.ajaxSettings.xhr();
           return myXhr;
@@ -220,7 +220,7 @@
       var name = $("#output_resource_name").val();
       $.ajax({
         type: 'PUT',
-        url: '@config.baseUrl/workspace/projects/@project/resources/' + name,
+        url: '@config.baseUrl/workspace/projects/@project/resources/' + name.replace(/\//g,"%2F"),
         success: function() {
           reloadDialog();
         },

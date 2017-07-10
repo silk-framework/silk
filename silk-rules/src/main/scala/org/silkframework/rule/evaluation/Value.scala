@@ -20,16 +20,33 @@ sealed trait Value {
    * The intermediate values of the children operators of the corresponding input.
    */
   def children: Seq[Value]
+
+  /**
+    * Error that occurred for the values.
+    */
+  def error: Option[Throwable]
+
+  /**
+    * Returns a new instance of this value with a given error attached.
+    */
+  def withError(ex: Throwable): Value
 }
 
 /**
  * An intermediate value of a transformation evaluation.
  */
-case class TransformedValue(input: TransformInput, values: Seq[String], children: Seq[Value], error: Option[Throwable] = None) extends Value
+case class TransformedValue(input: TransformInput, values: Seq[String], children: Seq[Value], error: Option[Throwable] = None) extends Value {
+
+  def withError(ex: Throwable): Value = copy(error = Some(ex))
+
+}
 
 /**
  * An intermediate value of a path input evaluation.
  */
-case class InputValue(input: PathInput, values: Seq[String]) extends Value {
+case class InputValue(input: PathInput, values: Seq[String], error: Option[Throwable] = None) extends Value {
+
   def children = Seq.empty
+
+  def withError(ex: Throwable): Value = copy(error = Some(ex))
 }

@@ -19,6 +19,7 @@ function serializeWorkflow() {
   // Create xml document
   var xmlDoc = document.implementation.createDocument('', 'root', null);
   var xml = xmlDoc.createElement("Workflow");
+  xml.setAttribute("id", workflowId);
   // minPosition will be used to align the minimum x and y values to 0
   const minPosition = minPositionAllOperators();
   // Serialize all operators and datasets
@@ -27,7 +28,6 @@ function serializeWorkflow() {
 
   // Return xml string
   var xmlString = (new XMLSerializer()).serializeToString(xml);
-  xmlString = xmlString.replace(/&amp;/g, "&");
   return xmlString;
 }
 

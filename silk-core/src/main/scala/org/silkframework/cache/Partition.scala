@@ -14,7 +14,7 @@
 
 package org.silkframework.cache
 
-import java.io.{DataInput, DataOutput}
+import java.io._
 
 import org.silkframework.entity.{Entity, EntitySchema}
 
@@ -29,6 +29,13 @@ class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
       entities(i).serialize(stream)
       indices(i).serialize(stream)
     }
+  }
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case p: Partition =>
+      entities.sameElements(p.entities) && indices.sameElements(p.indices)
+    case _ =>
+      false
   }
 }
 

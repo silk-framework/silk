@@ -83,10 +83,13 @@ class CompatiblePathsGenerator(components: Components) {
     * Retrieves all paths except sameAs paths
     */
   private object PathsRetriever {
-    def apply(entities: ReferenceEntities) = {
+    def apply(entities: ReferenceEntities): DPair[Traversable[Path]] = {
       val pair = entities.positiveEntities.head
-      val allPaths = pair.map(e => Path(Nil) +: e.desc.paths)
-      allPaths.map(_.filterNot(_.toString.contains("sameAs"))).map(_.filterNot(_.toString.contains("abstract"))).map(_.filterNot(_.toString.contains("comment")))
+      val allPaths = pair.map(e => Path(Nil) +: e.desc.typedPaths.map(_.path))
+      allPaths.
+          map(_.filterNot(_.toString.contains("sameAs"))).
+          map(_.filterNot(_.toString.contains("abstract"))).
+          map(_.filterNot(_.toString.contains("comment")))
     }
   }
 

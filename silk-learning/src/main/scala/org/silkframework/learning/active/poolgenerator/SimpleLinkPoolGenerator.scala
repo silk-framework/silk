@@ -50,8 +50,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
     private var generateLinksActivity: ActivityControl[Linking] = _
 
     override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
-      val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(paths = paths.source.toIndexedSeq),
-        linkSpec.entityDescriptions.target.copy(paths = paths.target.toIndexedSeq))
+      val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(typedPaths = paths.source.toIndexedSeq.map(_.asStringTypedPath)),
+        linkSpec.entityDescriptions.target.copy(typedPaths = paths.target.toIndexedSeq.map(_.asStringTypedPath)))
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 

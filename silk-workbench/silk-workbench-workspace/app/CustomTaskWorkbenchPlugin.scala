@@ -35,10 +35,6 @@ case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
     override def open(project: String, task: String) =
       None
 
-    /** The path to delete the task by sending a DELETE HTTP request. */
-    override def delete(project: String, task: String) =
-      Some(s"workspace/projects/$project/customTasks/$task")
-
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any): Seq[(String, String)] = {
       val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTask])

@@ -1,11 +1,10 @@
 package controllers.workspace
 
-import java.io.{ByteArrayOutputStream, FileInputStream}
+import java.io.{ByteArrayOutputStream, File, FileInputStream}
 import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
-import models.JsonError
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -13,13 +12,14 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoun
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
-import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter}
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
+import org.silkframework.workspace._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsObject}
+import play.api.libs.json.{JsArray, JsBoolean, JsObject}
 import play.api.mvc._
-import org.silkframework.workspace.ProjectMarshallerRegistry
+
 import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -45,13 +45,30 @@ class WorkspaceApi extends Controller {
     if (User().workspace.projects.exists(_.name == project)) {
       Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
     } else {
-      val newProject = User().workspace.createProject(project)
+      val projectConfig = ProjectConfig(project)
+      projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
+      val newProject = User().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
     }
   }
 
   def deleteProject(project: String): Action[AnyContent] = Action {
     User().workspace.removeProject(project)
+    Ok
+  }
+
+  def cloneProject(oldProject: String, newProject: String) = Action {
+    val workspace = User().workspace
+    val project = workspace.project(oldProject)
+
+    val clonedProjectConfig = project.config.copy(id = newProject)
+    val clonedProjectUri = clonedProjectConfig.generateDefaultUri
+    val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
+    WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+    for(task <- project.allTasks) {
+      clonedProject.addAnyTask(task.id, task.data)
+    }
+
     Ok
   }
 
@@ -174,7 +191,7 @@ class WorkspaceApi extends Controller {
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
-    val silkConfig = SilkConfigExporter.build(project, task.task)
+    val silkConfig = SilkConfigExporter.build(project, task)
 
     Ok(XmlSerialization.toXml(silkConfig))
   }
@@ -194,6 +211,18 @@ class WorkspaceApi extends Controller {
     Ok(JsonSerializer.projectResources(project))
   }
 
+  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val resource = project.resources.getInPath(resourcePath, File.separatorChar)
+
+    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
+      case -1 => ""
+      case index => resourcePath.substring(0, index + 1)
+    }
+
+    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
+  }
+
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
@@ -211,7 +240,7 @@ class WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           val inputStream = new FileInputStream(file)
-          resource.write(inputStream)
+          resource.writeStream(inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -223,7 +252,7 @@ class WorkspaceApi extends Controller {
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
           val inputStream = urlResource.load
-          resource.write(inputStream)
+          resource.writeStream(inputStream)
           inputStream.close()
           Ok
         } catch {
@@ -231,11 +260,11 @@ class WorkspaceApi extends Controller {
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
-        resource.write(bytes)
+        resource.writeBytes(bytes)
         Ok
       case _ =>
         // Put empty resource
-        resource.write(Array[Byte]())
+        resource.writeBytes(Array[Byte]())
         Ok
     }
   }
@@ -248,9 +277,30 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
+  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    project.removeAnyTask(taskName, removeDependentTasks)
+
+    Ok
+  }
+
+  def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {
+    val project = User().workspace.project(projectName)
+    project.addAnyTask(newTask, project.anyTask(oldTask))
+    Ok
+  }
+
   def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     Ok(JsonSerializer.taskMetadata(task))
+  }
+
+  def cachesLoaded(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
+
+    Ok(JsBoolean(cachesLoaded))
   }
 }

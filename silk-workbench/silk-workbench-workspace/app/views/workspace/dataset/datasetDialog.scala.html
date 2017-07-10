@@ -7,13 +7,13 @@
     name = datasetName,
     plugins = Dataset.availablePlugins,
     currentObj = dataset,
-    resources = project.resources.list,
+    resources = project.resources.listRecursive,
     title = title,
     submitLabel = "Save",
     secondaryLabel = "Autoconfigure") {
 
     <script type="text/javascript">
-      function savePlugin(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
         var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
         for(var i in parameters) {
@@ -21,15 +21,8 @@
         }
         xml += '</Dataset>';
 
-        // Delete the old dataset in case its name changed
-        if(@dataset.nonEmpty) {
-          if(name != '@datasetName') {
-            deleteTask('@config.baseUrl/workspace/projects/@project.name/datasets/@datasetName');
-          }
-        }
-
         // Submit data source
-        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml);
+        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml, callbacks);
       }
 
       function autoConfigure(pluginId, name, parameters) {

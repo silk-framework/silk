@@ -4,45 +4,50 @@ import com.hp.hpl.jena.query.DatasetFactory
 import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
-import org.silkframework.rule.vocab.{Info, VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.vocab._
 
 class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
+  private val MOVIE = "Movie"
+  private val PERSON = "Person"
 
   behavior of "VocabularyLoader"
 
   val graphUri = "urn:example"
 
-  private val loader = load()
+  private lazy val loader = load("vocabulary.ttl")
 
-  val classes = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
-  val classMap = classes.map(c => (c.info.uri, c)).toMap
+  lazy val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
+  lazy val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
 
   it should "load classes" in {
-    classes.size shouldBe 2
-    classes(0) shouldBe VocabularyClass(Info(uri("Movie"), Some("Movie"), None))
-    classes(1) shouldBe VocabularyClass(Info(uri("Person"), Some("Person"), Some("A Person")))
+    classes.size shouldBe 3
+    classes(1) shouldBe VocabularyClass(GenericInfo(uri(MOVIE), Some(MOVIE), None), Seq())
+    classes(2) shouldBe VocabularyClass(GenericInfo(uri(PERSON), Some(PERSON), Some("A Person")), Seq())
+    classes.head shouldBe VocabularyClass(GenericInfo(uri("Employee"), Some("Angestellter"),Some("Angestellter einer Firma")), Seq(uri(PERSON)))
   }
 
   it should "load properties" in {
     val properties = loader.retrieveProperties(graphUri, classes).toSeq.sortBy(_.info.uri)
     properties.size shouldBe 2
-    properties(0) shouldBe
+    properties.head shouldBe
       VocabularyProperty(
-        info = Info(uri("hasDate"), Some("release date"), None),
-        domain = Some(classMap(uri("Movie"))),
-        range = None
+        info = GenericInfo(uri("hasDate"), Some("release date"), None),
+        domain = Some(classMap(uri(MOVIE))),
+        range = None,
+        propertyType = DatatypePropertyType
       )
     properties(1) shouldBe
       VocabularyProperty(
-        info = Info(uri("hasDirector"), Some("director"), Some("Director of a movie")),
-        domain = Some(classMap(uri("Movie"))),
-        range = Some(classMap(uri("Person")))
+        info = GenericInfo(uri("hasDirector"), Some("director"), Some("Director of a movie")),
+        domain = Some(classMap(uri(MOVIE))),
+        range = Some(classMap(uri(PERSON))),
+        propertyType = ObjectPropertyType
       )
   }
 
-  private def load(): VocabularyLoader = {
+  private def load(resource: String): VocabularyLoader = {
     // Load example into Jena model
-    val stream = getClass.getClassLoader.getResourceAsStream("org/silkframework/plugins/dataset/rdf/vocab/vocabulary.ttl")
+    val stream = getClass.getClassLoader.getResourceAsStream("org/silkframework/plugins/dataset/rdf/vocab/" + resource)
     val model = ModelFactory.createDefaultModel()
     model.read(stream, null, "TURTLE")
 

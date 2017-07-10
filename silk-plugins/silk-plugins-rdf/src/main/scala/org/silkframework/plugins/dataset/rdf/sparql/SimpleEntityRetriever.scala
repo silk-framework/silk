@@ -103,8 +103,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
   def retrieveEntity(entityUri: Uri, entitySchema: EntitySchema): Option[Entity] = {
     //Query only one path at once and combine the result into one
     val sparqlResults = {
-      for ((path, pathIndex) <- entitySchema.paths.zipWithIndex;
-           results <- retrievePaths(entitySchema, entityUri, Seq(path))) yield {
+      for ((path, pathIndex) <- entitySchema.typedPaths.zipWithIndex;
+           results <- retrievePaths(entitySchema, entityUri, Seq(path.path))) yield {
         results map {
           case (variable, node) => (varPrefix + pathIndex, node)
         }
@@ -143,7 +143,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
       var curSubject: Option[String] = subject.map(_.uri)
 
       //Collect values of the current subject
-      var values = Array.fill(entitySchema.paths.size)(Seq[String]())
+      var values = Array.fill(entitySchema.typedPaths.size)(Seq[String]())
 
       // Count retrieved entities
       var counter = 0
@@ -166,7 +166,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
             }
 
             curSubject = resultSubject
-            values = Array.fill(entitySchema.paths.size)(Seq[String]())
+            values = Array.fill(entitySchema.typedPaths.size)(Seq[String]())
           }
         }
 

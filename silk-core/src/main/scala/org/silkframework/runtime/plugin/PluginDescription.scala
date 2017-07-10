@@ -25,9 +25,19 @@ import scala.language.existentials
 import scala.util.control.NonFatal
 
 /**
- * Describes a plugin.
- */
-class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+  * Describes a plugin.
+  *
+  * @param id The id of this plugin.
+  * @param categories The categories to which this plugin belongs to.
+  * @param label A human-readable label.
+  * @param description A short (few sentence) description of this plugin.
+  * @param documentation Documentation for this plugin in Markdown.
+  * @param parameters The parameters of the plugin class.
+  * @param constructor The constructor for creating a new instance of this plugin.
+  * @tparam T The class that implements this plugin.
+  */
+class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String,
+                            val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
     * The plugin class.
@@ -100,6 +110,7 @@ object PluginDescription {
       label = annotation.label,
       categories = annotation.categories.toSet,
       description = annotation.description.stripMargin,
+      documentation = annotation.documentation,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -111,6 +122,7 @@ object PluginDescription {
       label = pluginClass.getSimpleName,
       categories = Set("Uncategorized"),
       description = "",
+      documentation = "",
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -133,13 +145,19 @@ object PluginDescription {
 
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
       val pluginParam = annotations.headOption
+
+      val label = pluginParam match {
+        case Some(p) if p.label().nonEmpty => p.label()
+        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+      }
+
       val (description, exampleValue) = pluginParam map { pluginParam =>
         val ex = pluginParam.example()
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, description, defaultValue, exampleValue)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue)
     }
   }
 

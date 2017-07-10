@@ -1,12 +1,14 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent.{Executors, ForkJoinPool, ForkJoinWorkerThread, ThreadFactory}
 
 import org.silkframework.util.StringUtils._
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
+import scala.math.max
 
 /**
  * An activity is a unit of work that can be executed in the background.
@@ -58,12 +60,12 @@ trait Activity[T] extends HasValue {
 object Activity {
 
   /**
-   * The execution context used to run activities.
-   * Per default uses a fixed thread pool with as many threads as cores on the machine.
+   * The fork join pool used to run activities.
    */
-  @volatile
-  var executionContext: ExecutionContext = {
-    ExecutionContext.fromExecutor(Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors(), ActivityThreadFactory))
+  val forkJoinPool: ForkJoinPool = {
+    val minimumNumberOfThreads = 4
+    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
+    new ForkJoinPool(threadCount, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
   }
 
   /**
@@ -95,32 +97,6 @@ object Activity {
       }
       override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
       override def reset() = currentActivity.foreach(_.reset())
-    }
-  }
-
-  /**
-    * Thread factory for creating activity threads.
-    * Based on the Java default thread factory, but with better thread naming.
-    */
-  private object ActivityThreadFactory extends ThreadFactory {
-
-    private val namePrefix = "silk-activity-thread-"
-
-    private val threadNumber: AtomicInteger = new AtomicInteger(1)
-
-    private val group: ThreadGroup = {
-      val s = System.getSecurityManager
-      if (s != null)
-        s.getThreadGroup
-      else
-        Thread.currentThread.getThreadGroup
-    }
-
-    def newThread(r: Runnable): Thread = {
-      val t: Thread = new Thread(group, r, namePrefix + threadNumber.getAndIncrement, 0)
-      if (t.isDaemon) t.setDaemon(false)
-      if (t.getPriority != Thread.NORM_PRIORITY) t.setPriority(Thread.NORM_PRIORITY)
-      t
     }
   }
 

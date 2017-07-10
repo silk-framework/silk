@@ -1,98 +1,81 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.EntitySchema
-import org.silkframework.rule.execution.ExecuteTransformResult.RuleError
-import org.silkframework.rule.{DatasetSelection, TransformRule}
+import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
+import org.silkframework.entity._
+import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule._
+import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: DataSource,
-                       selection: DatasetSelection,
-                       rules: Seq[TransformRule],
-                       outputs: Seq[EntitySink] = Seq.empty,
-                       errorOutputs: Seq[EntitySink]) extends Activity[ExecuteTransformResult] {
+class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq[EntitySink]) extends Activity[TransformReport] {
 
-  require(rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
+  require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  private val subjectRule = rules.find(_.target.isEmpty)
+  private val subjectRule = transform.rules.find(_.target.isEmpty)
 
-  private val propertyRules = rules.filter(_.target.isDefined)
+  private val propertyRules = transform.rules.filter(_.target.isDefined)
 
   @volatile
   private var isCanceled: Boolean = false
 
-  lazy val entitySchema: EntitySchema = {
-    EntitySchema(
-      typeUri = selection.typeUri,
-      paths = rules.flatMap(_.paths).distinct.toIndexedSeq,
-      filter = selection.restriction
-    )
+  override val initialValue = Some(TransformReport())
+
+  def run(context: ActivityContext[TransformReport]): Unit = {
+    isCanceled = false
+
+    // Clear outputs before writing
+    for (output <- outputs) {
+      output.clear()
+    }
+
+    transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
   }
 
-  override val initialValue = Some(ExecuteTransformResult())
-
-  def run(context: ActivityContext[ExecuteTransformResult]): Unit = {
-    isCanceled = false
-    // Retrieve entities
-    val entities = input.retrieve(entitySchema)
-
-    // Transform statistics
-    var entityCounter = 0L
-    var entityErrorCounter = 0L
-    var errorResults = ExecuteTransformResult.initial(propertyRules)
+  private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema,
+                                context: ActivityContext[TransformReport]): Unit = {
     try {
-      // Open outputs
-      val properties = propertyRules.map(_.target.get.uri)
-      for (output <- outputs) output.open(properties)
-      val inputProperties = entitySchema.paths.map( p =>
-        p.propertyUri.map(_.uri).getOrElse(p.toString)).toIndexedSeq
-      for (errorOutput <- errorOutputs) errorOutput.open(inputProperties)
+      for (output <- outputs) {
+        output.open(outputSchema.typeUri, outputSchema.typedPaths.map(_.property.get))
+      }
 
-      // Transform all entities and write to outputs
-      var count = 0
-      for (entity <- entities) {
-        entityCounter += 1
-        val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri)
-        var success = true
-        val values = propertyRules.map { r =>
-          try {
-            r(entity)
-          } catch {
-            case ex: Exception =>
-              success = false
-              val values = r.paths.map(entity.evaluate)
-              errorResults = errorResults.withError(r.name, RuleError(uri, values, ex))
-              Seq()
-          }
+      val entities = input.retrieve(inputSchema)
+
+      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+      for (entity <- transformedEntities) {
+        for (output <- outputs) {
+          output.writeEntity(entity.uri, entity.values)
         }
-        if(success) {
-          for (output <- outputs) {
-            output.writeEntity(uri, values)
-          }
-        } else {
-          entityErrorCounter += 1
-          for (errorOutput <- errorOutputs) {
-            errorOutput.writeEntity(uri, entity.values)
-          }
-        }
-        if (isCanceled)
+        if (isCanceled) {
           return
-        count += 1
-        if (count % 1000 == 0) {
-          context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
-          context.status.updateMessage(s"Executing ($count Entities)")
         }
       }
-      context.status.update(s"$count entities written to ${outputs.size} outputs", 1.0)
+
     } finally {
-      // Set final value
-      context.value.update(errorResults.copy(entityCounter, entityErrorCounter, errorResults.ruleResults))
-      // Close outputs
-      for (output <- outputs) output.close()
-      for (errorOutput <- errorOutputs) errorOutput.close()
+      for (output <- outputs) {
+        output.close()
+      }
+    }
+
+    for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
+      val childInputSchema =
+        EntitySchema(
+          typeUri = inputSchema.typeUri,
+          typedPaths = childRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+          subPath = relativePath
+        )
+      val childOutputSchema =
+        EntitySchema(
+          typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+          typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
+        )
+
+      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
+
+      transformEntities(childInputSchema, updatedChildRules, childOutputSchema, context)
     }
   }
 

@@ -33,14 +33,14 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
 
       entities.headOption match {
         case Some(entity) =>
-          import entity.values
+          val values = entity.values
           if(values.size <= pathIndex) {
             throw TaskException("No input path with index " + pathIndex + " found!")
           } else {
             values(pathIndex).headOption match {
               case Some(xmlValue) =>
                 val resource = InMemoryResourceManager().get("temp", mustExist = false)
-                resource.write(xmlValue.getBytes)
+                resource.writeBytes(xmlValue.getBytes)
                 val dataset = XmlDataset(resource, spec.basePath, entity.uri + spec.uriSuffixPattern)
                 val entities = dataset.source.retrieve(os)
                 GenericEntityTable(entities, os, task)

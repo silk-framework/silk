@@ -1,14 +1,16 @@
 @import views.editor.GenerateId
+@import org.silkframework.workspace.Project
 
 @(id: String,
   required: Boolean, weight: Int,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
-  x: Int, y: Int, display: Boolean)
+  x: Int, y: Int, display: Boolean,
+  project: Project)
 
-@operatorBox("Aggregate", id, plugin, parameterValues, x, y, display) {
+@operatorBox("Aggregate", id, plugin, parameterValues, x, y, display, project) {
 <div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_required" class="param_label">Required</label>
+  <label id="@{GenerateId(id, display)}_param_required" class="param_label" tabindex="-1">Required</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_required">
     If required is set, the parent aggregation should only generate a result if this
     operator yields a value.
@@ -16,7 +18,7 @@
   <input type="checkbox" name="required" @if(required) {checked="checked"}/>
 </div>
 <div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_weight" class="param_label">Weight</label>
+  <label id="@{GenerateId(id, display)}_param_weight" class="param_label" tabindex="-1">Weight</label>
   <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_weight">
     The weight parameter can be used by the parent aggregation when combining
     its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average

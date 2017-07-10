@@ -4,6 +4,7 @@
 @import org.silkframework.rule.similarity.DistanceMeasure
 @import controllers.workspace.routes
 @import controllers.rules.routes.Assets
+@import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.LinkSpec
 
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
@@ -14,7 +15,7 @@
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
   <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/jsPlumb-2.1.7.js")"></script>
+  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.8-min.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
   <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
@@ -121,9 +122,9 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory)
-        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory)
-        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory)
+        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
+        @operators("Comparators", "compare", DistanceMeasure.pluginsByCategory, context.project)
+        @operators("Aggregators", "aggregate", Aggregator.pluginsByCategory, context.project)
       </div>
     </div>
 
@@ -138,9 +139,9 @@
             getPropertyPaths("#paths_search", false);
           </script>
         </div>
-        @operatorsAll("Transformations", "transform", Transformer)
-        @operatorsAll("Comparators", "compare", DistanceMeasure)
-        @operatorsAll("Aggregators", "aggregate", Aggregator)
+        @operatorsAll("Transformations", "transform", Transformer, context.project)
+        @operatorsAll("Comparators", "compare", DistanceMeasure, context.project)
+        @operatorsAll("Aggregators", "aggregate", Aggregator, context.project)
       </div>
     </div>
   </div>
@@ -156,7 +157,7 @@
           case Some(op) => {
             @renderRule(
               rule = op,
-              prefixes = context.project.config.prefixes
+              project = context.project
             )
           }
           case None => {

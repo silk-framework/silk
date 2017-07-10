@@ -18,8 +18,9 @@ import java.io._
 import java.util.logging.Logger
 
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.resources.ResourceRepository
 
-class Workspace(val provider: WorkspaceProvider) {
+class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
@@ -40,20 +41,17 @@ class Workspace(val provider: WorkspaceProvider) {
     projects.find(_.name == name)
   }
 
-  def createProject(name: Identifier): Project = {
-    require(!cachedProjects.exists(_.name == name), "A project with the name '" + name + "' already exists")
+  def createProject(config: ProjectConfig): Project = {
+    require(!cachedProjects.exists(_.name == config.id), "A project with the name '" + config.id + "' already exists")
 
-    val projectConfig = {
-      val c = ProjectConfig(name)
-      c.copy(projectResourceUriOpt = Some(c.generateDefaultUri))
-    }
-    provider.putProject(projectConfig)
-    val newProject = new Project(projectConfig, provider)
+    provider.putProject(config)
+    val newProject = new Project(config, provider, repository.get(config.id))
     cachedProjects :+= newProject
     newProject
   }
 
   def removeProject(name: Identifier): Unit = {
+    project(name).activities.foreach(_.control.cancel())
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
@@ -67,7 +65,7 @@ class Workspace(val provider: WorkspaceProvider) {
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
-    marshaller.marshal(project(name).config, outputStream, provider)
+    marshaller.marshal(project(name).config, outputStream, provider, repository.get(name))
   }
 
   /**
@@ -84,23 +82,33 @@ class Workspace(val provider: WorkspaceProvider) {
       case Some(_) =>
         throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
       case None =>
-        marshaller.unmarshalAndImport(name, provider, inputStream)
+        marshaller.unmarshalAndImport(name, provider, repository.get(name), inputStream)
         reload()
     }
   }
 
+  /**
+    * Reloads this workspace.
+    */
   def reload() {
+    // Stop all activities
+    for{ project <- projects
+         activity <- project.activities } {
+      activity.control.cancel()
+    }
+    // Refresh workspace provider
     provider match {
       case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
       case _ => // Do nothing
     }
+    // Reload projects
     cachedProjects = loadProjects()
   }
 
   private def loadProjects(): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
       logger.info("Loading project: " + projectConfig.id)
-      new Project(projectConfig, provider)
+      new Project(projectConfig, provider, repository.get(projectConfig.id))
     }
   }
 }

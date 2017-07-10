@@ -1,15 +1,17 @@
 @import org.silkframework.workspace.Project
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
+@import org.silkframework.config.TaskSpec
 
 @import org.silkframework.workspace.ProjectTask
-@(project: Project, task: ProjectTask[_], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
-<div class="dataset" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}">
-  <div class="dataset-bottom"></div>
+<div class="dataset" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
+     data-input-cardinality="@inputCardinality()">
+<div class="dataset-bottom"></div>
   <div class="dataset-contents">
     <div class="dataset-buttons">
-      <img src="@Assets.at("img/delete.png")" style="float:right" onclick="removeElement($(this).parent().parent().parent().attr('id'))"/>
+      <img src="@Assets.at("img/delete.png")" style="float:right" onclick="editor.removeElement($(this).parent().parent().parent().attr('id'))"/>
       @for(path <- taskActions.open(project.name, task.id)) {
         <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
       }
@@ -18,3 +20,14 @@
   </div>
   <div class="dataset-top"></div>
 </div>
+
+@inputCardinality() = @{
+  task.data.inputSchemataOpt match {
+    case Some(inputs) => {
+      inputs.size
+    }
+    case None => {
+      -1
+    }
+  }
+}

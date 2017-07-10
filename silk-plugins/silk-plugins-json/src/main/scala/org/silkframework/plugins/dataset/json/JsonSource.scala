@@ -3,11 +3,11 @@ package org.silkframework.plugins.dataset.json
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.config.DefaultConfig
+import org.silkframework.dataset.{DataSource, PeakDataSource, PeakException}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
-import play.api.libs.json._
 
 import scala.io.Codec
 
@@ -19,7 +19,7 @@ import scala.io.Codec
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource {
+class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -29,7 +29,11 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
-    new Entities(selectedElements, entitySchema, Set.empty)
+    val subPath = entitySchema.subPath
+    val subPathElements = if(subPath.operators.nonEmpty) {
+      selectedElements.flatMap(_.select(subPath.operators))
+    } else { selectedElements }
+    new Entities(subPathElements, entitySchema, Set.empty)
   }
 
   private def basePathParts: Array[String] = {
@@ -66,23 +70,27 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
       for ((node, index) <- elements.zipWithIndex) {
         // Generate URI
         val uri =
-          if (uriPattern.isEmpty)
+          if (uriPattern.isEmpty) {
             index.toString
-          else
+          } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = Path.parse(m.group(1))
               val string = node.evaluate(path).mkString
               URLEncoder.encode(string, "UTF8")
             })
+          }
 
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.paths) yield node.evaluate(path)
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.path)
           f(new Entity(uri, values, entityDesc))
         }
       }
     }
   }
 
+  override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
+    peakWithMaximumFileSize(file, entitySchema, limit)
+  }
 }

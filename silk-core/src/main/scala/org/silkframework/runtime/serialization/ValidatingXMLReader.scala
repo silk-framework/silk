@@ -103,9 +103,7 @@ class ValidatingXMLReader(schemaPath: String) {
 
       //Return result
       if (validationErrors.isEmpty) {
-        val xml = rootElem.asInstanceOf[Elem]
-        checkUniqueIdentifiers(xml)
-        xml
+        rootElem.asInstanceOf[Elem]
       }
       else {
         throw new ValidationException(validationErrors.reverse)
@@ -134,19 +132,6 @@ class ValidatingXMLReader(schemaPath: String) {
       }
 
       super.startElement(uri, _localName, qname, attributes)
-    }
-
-    /**
-     * Checks if the document contains any duplicated identifiers.
-     */
-    private def checkUniqueIdentifiers(xml: Elem) {
-      val elements = (xml \\ "Aggregate") ++ (xml \\ "Compare") ++ (xml \\ "TransformInput") ++ (xml \\ "Input")
-      val ids = elements.map(_ \ "@id").map(_.text).filterNot(_.isEmpty)
-      if (ids.distinct.size < ids.size) {
-        val duplicatedIds = ids diff ids.distinct
-        val errors = duplicatedIds.map(id => ValidationError("Duplicated identifier", Some(Identifier(id))))
-        throw new ValidationException(errors)
-      }
     }
 
     /**

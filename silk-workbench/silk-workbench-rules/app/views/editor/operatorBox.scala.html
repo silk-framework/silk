@@ -1,12 +1,16 @@
 @import controllers.rules.routes.Assets
 @import views.editor.GenerateId
+@import org.silkframework.workspace.Project
+@import org.silkframework.runtime.plugin.Parameter
+@import org.silkframework.runtime.plugin.ParameterType._
 
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int,
-  display: Boolean)(additionalContent: Html)
+  display: Boolean,
+  project: Project)(additionalContent: Html)
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div" style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
   <div id="@GenerateId(id, display)_tooltip" for="@GenerateId(id, display)" class="mdl-tooltip operator-tooltip" style="display: none;">tooltip</div>
@@ -15,28 +19,18 @@
   <h5 class="handler">
     <label class="edit_label">@id</label>
     <input class="edit_label" type="text" value="@id" name="name" id="@id-name"/>
-    <!--<div class="clearfix"></div>-->
-    <!--<div style="width: 160px; white-space:nowrap; overflow:hidden; float: left;" title="">
-      @id-foo
-    </div>-->
     <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
     <img align="right" src="@Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
   </h5>
   <div class="content">
-    <!--
-    <div class="param_element">
-      <label class="param_label" for="@id-name">Name</label>
-      <input class="param_value" type="text" name="name" value="@id" id="@id-name"/>
-    </div>
-    -->
     @additionalContent
     @for((param, value) <- plugin.parameters zip parameterValues) {
       <div class="param_element plugin_param">
-        <label id="@{GenerateId(id, display)}_param_@{param.name}" class="param_label">@{param.name}</label>
+        <label id="@{GenerateId(id, display)}_param_@{param.name}" class="param_label" tabindex="-1">@{param.name}</label>
         <div class="mdl-tooltip" for="@{GenerateId(id, display)}_param_@{param.name}">
           @param.description
         </div>
-        <input class="param_value" type="text" name="@{param.name}" value="@value"/>
+        @parameter(param, value)
       </div>
     }
   </div>
@@ -44,3 +38,32 @@
     @plugin.label (@opType)
   </div>
 </div>
+
+@**
+* Creates a new field for a plugin paramter
+*@
+@parameter(param: Parameter, value: String) = @{
+  param.dataType match {
+    case UriType => stringParameter(param.name, project.config.prefixes.shorten(value))
+    case enum: EnumerationType => enumParameter(param.name, value, enum.enumerationValues)
+    case _ => stringParameter(param.name, value)
+  }
+}
+
+@stringParameter(name: String, value: String) = {
+  <input class="param_value" type="text" name="@{name}" value="@value"/>
+}
+
+@uriParameter(name: String, value: String) = {
+  <input class="param_value" type="text" name="@{name}" value="@value"/>
+}
+
+@enumParameter(name: String, value: String, enumerationValues: Seq[String]) = {
+  <select class="param_value" name="@{name}" >
+  @for(enumerationValue <- enumerationValues) {
+    <option @if(enumerationValue == value) { selected="selected" }>@enumerationValue</option>
+  }
+  </select>
+}
+
+

@@ -29,8 +29,8 @@ class ReferenceLinksManager extends Controller {
 
     // Checks if a pair of entities provides values for all paths in the current linkage rule
     def hasPaths(entities: DPair[Entity]): Boolean = {
-      linkSpec.entityDescriptions.source.paths.forall(entities.source.desc.paths.contains) &&
-      linkSpec.entityDescriptions.target.paths.forall(entities.target.desc.paths.contains)
+      linkSpec.entityDescriptions.source.typedPaths.forall(entities.source.desc.typedPaths.contains) &&
+      linkSpec.entityDescriptions.target.typedPaths.forall(entities.target.desc.typedPaths.contains)
     }
 
     val links = linkType match {

@@ -29,7 +29,7 @@
 
 @render(getPageLinks())
 @for(statistics <- linkingStatistics) {
-  @renderStatistics(statistics)
+  @linkingReport(statistics, links.size)
 }
 
 @render(pageLinks: Seq[EvalLink]) = {
@@ -183,7 +183,7 @@
       @project.config.prefixes.shorten(entity.uri)
     </span>
     <ul>
-      @for((path, index) <- entity.desc.paths.zipWithIndex) {
+      @for((path, index) <- entity.desc.typedPaths.map(_.path).zipWithIndex) {
         @renderValues(path, entity.evaluate(index), divClassPrefix)
       }
     </ul>
@@ -244,7 +244,7 @@
       </ul>
     </li>
   }
-  case InputValue(input, values) => {
+  case InputValue(input, values, error) => {
     <li>
       <span class="input">
         Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)
@@ -275,26 +275,4 @@
 
 @id(link: EvalLink, prefix: String = "") = @{
   prefix + link.hashCode
-}
-
-@renderStatistics(statistics: LinkingStatistics) = {
-  <div class="linkingStatistics">
-    <div class="linkingStatisticsHeader">
-      Linking Statistics
-    </div>
-    <table>
-      <tr>
-        <td>Number of source entities:</td>
-        <td>@statistics.entityCount.source</td>
-      </tr>
-      <tr>
-        <td>Number of target entities:</td>
-        <td>@statistics.entityCount.target</td>
-      </tr>
-      <tr>
-        <td>Number of links:</td>
-        <td>@links.size</td>
-      </tr>
-    </table>
-  </div>
 }

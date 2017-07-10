@@ -2,13 +2,9 @@ package org.silkframework.workspace
 
 import java.io.{InputStream, OutputStream}
 
-import org.silkframework.dataset.DatasetTask
-import org.silkframework.rule.LinkSpec
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.io.WorkspaceIO
-
-import scala.reflect.ClassTag
 
 /**
   * Created on 6/24/16.
@@ -37,7 +33,8 @@ trait ProjectMarshallingTrait {
     */
   def marshal(project: ProjectConfig,
               outputStream: OutputStream,
-              workspaceProvider: WorkspaceProvider): String
+              workspaceProvider: WorkspaceProvider,
+              resourceManager: ResourceManager): String
 
   /**
     * Unmarshals the project
@@ -48,6 +45,7 @@ trait ProjectMarshallingTrait {
     */
   def unmarshalAndImport(projectName: Identifier,
                          workspaceProvider: WorkspaceProvider,
+                         resourceManager: ResourceManager,
                          inputStream: InputStream): Unit
 
   /**
@@ -64,22 +62,26 @@ trait ProjectMarshallingTrait {
     */
   protected def importProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
-                              importFromWorkspace: WorkspaceProvider): Unit = {
+                              importFromWorkspace: WorkspaceProvider,
+                              resources: Option[ResourceManager],
+                              importResources: Option[ResourceManager]): Unit = {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().zipWithIndex) {
       val targetProject = if (index == 0) projectName else projectName + index
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, projectConfig)
+      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, resources, importResources, projectConfig)
     }
   }
 
   protected def exportProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
-                              exportToWorkspace: WorkspaceProvider): Unit = {
+                              exportToWorkspace: WorkspaceProvider,
+                              resources: Option[ResourceManager],
+                              exportToResources: Option[ResourceManager]): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
-    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, project)
+    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project)
   }
 }

@@ -16,18 +16,22 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.Task
+import org.silkframework.config.{MetaData, Task}
 import org.silkframework.entity.Link
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
 /**
- * A dataset of entities.
- */
-class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Option[Double] = None, val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
+  * A dataset of entities.
+  */
+class DatasetTask(val id: Identifier,
+                  val plugin: Dataset,
+                  val metaData: MetaData = MetaData.empty,
+                  val minConfidence: Option[Double] = None,
+                  val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
 
   private val log = Logger.getLogger(DatasetTask.getClass.getName)
 
@@ -37,16 +41,19 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
 
   lazy val linkSink: LinkSink = new LinkSinkWrapper
 
-  def clear(): Unit = plugin.clear()
-
-  override def equals(obj: scala.Any): Boolean = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case ds: DatasetTask =>
-      id == ds.id && plugin == ds.plugin &&
-      minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+      id == ds.id &&
+      plugin == ds.plugin &&
+      metaData == ds.metaData &&
+      minConfidence == ds.minConfidence &&
+      maxConfidence == ds.maxConfidence
+    case _ =>
+      false
   }
 
   override def toString = {
-    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+    s"DatasetTask(id=$id, plugin=${plugin.toString}, metaData=${metaData.toString})"
   }
 
   private class EntitySinkWrapper extends EntitySink {
@@ -58,15 +65,15 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
     private val writer = plugin.entitySink
 
     /**
-     * Initializes this writer.
-     */
-    override def open(properties: Seq[String]) {
+      * Initializes this writer.
+      */
+    override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
       if (isOpen) {
         writer.close()
         isOpen = false
       }
 
-      writer.open(properties)
+      writer.open(typeUri, properties)
       entityCount = 0
       isOpen = true
     }
@@ -78,13 +85,18 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
     }
 
     /**
-     * Closes this writer.
-     */
+      * Closes this writer.
+      */
     override def close() {
       if (writer != null) writer.close()
       isOpen = false
       log.info(s"Wrote $entityCount entities.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   private class LinkSinkWrapper extends LinkSink {
@@ -96,7 +108,7 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
     private val writer = plugin.linkSink
 
     override def init(): Unit = {
-      if(isOpen) {
+      if (isOpen) {
         writer.close()
         isOpen = false
       }
@@ -105,8 +117,8 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
     }
 
     /**
-     * Writes a new link to this writer.
-     */
+      * Writes a new link to this writer.
+      */
     override def writeLink(link: Link, predicateUri: String) {
       //require(isOpen, "Output must be opened before writing statements to it")
 
@@ -118,13 +130,18 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
     }
 
     /**
-     * Closes this writer.
-     */
+      * Closes this writer.
+      */
     override def close() {
       if (writer != null) writer.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   /** The task specification that holds the actual task specification. */
@@ -133,15 +150,15 @@ class DatasetTask(val id: Identifier, val plugin: Dataset, val minConfidence: Op
 
 object DatasetTask {
 
-  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data)
+  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data, task.metaData)
 
   def empty = {
-    new DatasetTask("empty", EmptyDataset)
+    new DatasetTask("empty", EmptyDataset,  MetaData.empty)
   }
 
   /**
-   * XML serialization format.
-   */
+    * XML serialization format.
+    */
   implicit object DatasetTaskFormat extends XmlFormat[DatasetTask] {
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetTask = {
@@ -149,12 +166,13 @@ object DatasetTask {
       implicit val resources = readContext.resources
 
       // Check if the data source still uses the old outdated XML format
-      if(node.label == "DataSource" || node.label == "Output") {
+      if (node.label == "DataSource" || node.label == "Output") {
         // Read old format
         val id = (node \ "@id").text
         new DatasetTask(
-          id = if(id.nonEmpty) id else Identifier.random,
+          id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((node \ "@type").text, readParams(node)),
+          metaData = MetaData.empty,
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -164,8 +182,9 @@ object DatasetTask {
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetTask(
-          id = if(id.nonEmpty) id else Identifier.random,
+          id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((sourceNode \ "@type").text, readParams(sourceNode)),
+          metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -183,11 +202,13 @@ object DatasetTask {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset id={value.id} type={pluginDesc.id} minConfidence={minConfidenceNode} maxConfidence={maxConfidenceNode}>
-            { params.map {
+            {params.map {
             case (name, v) => <Param name={name} value={v}/>
           }}
+            {XmlSerialization.toXml[MetaData](value.metaData)}
           </Dataset>
       }
     }
   }
+
 }

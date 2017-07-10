@@ -58,7 +58,8 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
       if (file.isDirectory) {
         file.listFiles.foreach(deleteRecursive)
       }
-      if (file.exists && !file.delete()) throw new IOException("Could not delete file " + file)
+      if (file.exists && !file.delete())
+        throw new IOException("Could not delete file " + file)
     }
     deleteRecursive(new File(baseDir + "/" + name))
   }

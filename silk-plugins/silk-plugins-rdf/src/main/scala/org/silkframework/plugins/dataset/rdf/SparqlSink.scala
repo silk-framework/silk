@@ -1,27 +1,21 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.ByteArrayOutputStream
-import java.net.URI
 import java.util.logging.Logger
 
-import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{TripleSink, EntitySink, LinkSink}
-import org.silkframework.entity.Link
+import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
+import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
-import org.silkframework.util.StringUtils
-import org.silkframework.util.StringUtils.DoubleLiteral
-
-import scala.util.Try
+import org.silkframework.util.Uri
 
 /**
  * A sink for writing to SPARQL/Update endpoints.
  */
 class SparqlSink(params: SparqlParams,
                  endpoint: SparqlEndpoint,
-                 formatterOpt: Option[RdfFormatter] = None,
+                 val formatterOpt: Option[RdfFormatter] = None,
                  /**Maximum number of statements per request. */
-                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink {
+                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -29,9 +23,9 @@ class SparqlSink(params: SparqlParams,
 
   private var statements = 0
 
-  private var properties = Seq[String]()
+  private var properties = Seq[TypedProperty]()
 
-  override def open(properties: Seq[String]) {
+  override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
   }
 
@@ -40,43 +34,23 @@ class SparqlSink(params: SparqlParams,
   override def writeLink(link: Link, predicateUri: String) {
     val (newStatements, statementCount) = formatLink(link, predicateUri)
     if(body.isEmpty) {
-      beginSparul(true)
+      beginSparul()
     } else if (statements + statementCount > statementsPerRequest) {
       endSparql()
-      beginSparul(false)
+      beginSparul()
     }
 
     body.append(newStatements)
     statements += statementCount
   }
 
-  /**
-   * Returns the RDF formatted link in N-Triples format and the number of triples.
-    *
-    * @param link
-   * @param predicateUri
-   * @return (serialized statements as N-Triples, triple count)
-   */
-  private def formatLink(link: Link,
-                         predicateUri: String): (String, Int) = {
-    formatterOpt match {
-      case Some(formatter) =>
-        val model = formatter.formatAsRDF(link, predicateUri)
-        val outputStream = new ByteArrayOutputStream()
-        RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
-        outputStream.flush()
-        outputStream.close()
-        val result = outputStream.toString("UTF-8")
-        (result, result.split("\n").length)
-      case None =>
-        val result = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
-        (result, 1)
-    }
-  }
-
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
-      writeStatement(subject, property, value)
+      if(property.isBackwardProperty) {
+        writeStatement(value, property.propertyUri, subject, property.valueType)
+      } else {
+        writeStatement(subject, property.propertyUri, value, property.valueType)
+      }
     }
   }
 
@@ -86,37 +60,37 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  def writeStatement(subject: String, property: String, value: String): Unit = {
+  override def clear(): Unit = {
+    params.graph match {
+      case Some(graph) =>
+        endpoint.update(s"DROP SILENT GRAPH <$graph>")
+      case None =>
+        endpoint.update(s"DROP SILENT DEFAULT")
+    }
+  }
+
+  def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
     if(body.isEmpty) {
-      beginSparul(true)
+      beginSparul()
     } else if (statements + 1 > statementsPerRequest) {
       endSparql()
-      beginSparul(false)
+      beginSparul()
     }
 
-    val stmtString: String = buildStatementString(subject, property, value)
+    val stmtString: String = buildStatementString(subject, property, value, valueType)
     body.append(stmtString)
     statements += 1
   }
 
-  def buildStatementString(subject: String, property: String, value: String): String = {
-    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value)
-  }
-
   /**
    * Begins a new SPARQL/Update request.
-   *
-   * @param newGraph Create a new (empty) graph?
    */
-  private def beginSparul(newGraph: Boolean) {
+  private def beginSparul() {
     body.clear()
     params.graph match {
       case None =>
         body.append("INSERT DATA { ")
       case Some(graph) =>
-        //if (newGraph) {
-        //  body.append("CREATE SILENT GRAPH {" + params.graph + "}")
-        //}
         body.append("INSERT DATA { GRAPH <" + graph + "> { ")
     }
     statements = 0
@@ -137,7 +111,7 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def writeTriple(subject: String, predicate: String, obj: String): Unit = {
-    writeStatement(subject, predicate, obj)
+  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType): Unit = {
+    writeStatement(subject, predicate, obj, valueType)
   }
 }

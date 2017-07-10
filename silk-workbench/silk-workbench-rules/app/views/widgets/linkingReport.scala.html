@@ -1,0 +1,23 @@
+@import org.silkframework.rule.execution.LinkingStatistics
+
+@(statistics: LinkingStatistics, linkCount: Int)
+
+<div class="linkingStatistics">
+  <div class="linkingStatisticsHeader">
+    Linking Statistics
+  </div>
+  <table>
+    <tr>
+      <td>Number of source entities:</td>
+      <td>@statistics.entityCount.source</td>
+    </tr>
+    <tr>
+      <td>Number of target entities:</td>
+      <td>@statistics.entityCount.target</td>
+    </tr>
+    <tr>
+      <td>Number of links:</td>
+      <td>@linkCount</td>
+    </tr>
+  </table>
+</div>

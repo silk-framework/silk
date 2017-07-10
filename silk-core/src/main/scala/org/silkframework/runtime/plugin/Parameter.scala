@@ -16,8 +16,19 @@ package org.silkframework.runtime.plugin
 
 import scala.language.existentials
 
+/**
+  * A plugin parameter.
+  *
+  * @param name The parameter name as used by the plugin class
+  * @param dataType The type of the parameter
+  * @param label A human-readable label of the parameter
+  * @param description A human-readable description of the parameter
+  * @param defaultValue The default value, if any
+  * @param exampleValue An example value for this parameter
+  */
 case class Parameter(name: String,
                      dataType: ParameterType[_],
+                     label: String,
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None) {
@@ -33,6 +44,18 @@ case class Parameter(name: String,
     * Retrieves the current value of this parameter as string.
     */
   def stringValue(obj: AnyRef): String = {
-    dataType.asInstanceOf[ParameterType[AnyRef]].toString(apply(obj))
+    formatValue(apply(obj))
+  }
+
+  def stringDefaultValue: Option[String] = {
+    for(value <- defaultValue) yield formatValue(value)
+  }
+
+  def stringExampleValue: Option[String] = {
+    for(value <- exampleValue) yield formatValue(value)
+  }
+
+  private def formatValue(value: AnyRef) = {
+    dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 }

@@ -1,11 +1,12 @@
 @()(implicit session: play.api.mvc.Session)
 
+@import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.workspace.routes.Assets
 
 @header = {
-  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/style.min.css")" type="text/css" />
   <link rel="stylesheet" href="@Assets.at("workspace.css")" type="text/css" />
-  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script src="@CoreAssets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
 }
 

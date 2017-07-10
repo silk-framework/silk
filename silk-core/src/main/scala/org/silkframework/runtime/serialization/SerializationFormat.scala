@@ -1,7 +1,5 @@
 package org.silkframework.runtime.serialization
 
-import javax.activation.MimeType
-
 import scala.reflect.ClassTag
 
 /**
@@ -31,20 +29,20 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] {
     */
   def mimeTypes: Set[String]
 
-  /**
-    * Deserializes a value.
-    */
   def read(value: U)(implicit readContext: ReadContext): T
 
-  /**
-    * Serializes a value.
-    */
   def write(value: T)(implicit writeContext: WriteContext[U]): U
 
   /**
     * Formats a value as string.
     */
   def toString(value: T, mimeType: String)(implicit writeContext: WriteContext[U]): String
+
+  /**
+    * Formats an iterable of values as string. The optional container name is used for formats where array like values
+    * must be named, e.g. XML. This needs to be a valid serialization in the respective data model.
+    */
+  def toString(value: Iterable[T], mimeType: String, containerName: Option[String] = None)(implicit writeContext: WriteContext[U]): String
 
   /**
     * Reads a value from a string.

@@ -35,7 +35,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     formattedLinkWriter = javaFile match {
       case Some(file) =>
         file.getParentFile.mkdirs()
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))
+        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
       case None =>
         new StringWriter()
     }
@@ -54,11 +54,18 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
         writer.flush()
         writer.close()
         if(writer.isInstanceOf[StringWriter]) {
-          resource.write(writer.asInstanceOf[StringWriter].toString)
+          resource.writeString(writer.asInstanceOf[StringWriter].toString, append = true)
         }
       case _ =>
         log.warning("Not initialized!")
         // Nothing to be done
     }
+  }
+
+  /**
+    * Makes sure that the next write will start from an empty dataset.
+    */
+  override def clear(): Unit = {
+    resource.delete()
   }
 }

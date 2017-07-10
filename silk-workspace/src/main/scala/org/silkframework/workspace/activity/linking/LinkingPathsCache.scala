@@ -15,9 +15,9 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
 
   private def linkSpec = task.data
 
-  override def name = s"Paths cache ${task.id}"
+  override def name: String = s"Paths cache ${task.id}"
 
-  override def initialValue = Some(DPair.fill(EntitySchema.empty))
+  override def initialValue: Option[DPair[EntitySchema]] = Some(DPair.fill(EntitySchema.empty))
 
   /**
    * Loads the most frequent property paths.
@@ -30,7 +30,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
 
     //Check if the restriction has been changed
     val update =
-      (context.value().source.paths.isEmpty && context.value().target.paths.isEmpty) ||
+      (context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty) ||
       (currentEntityDescs.source.typeUri != context.value().source.typeUri &&
        currentEntityDescs.target.typeUri != context.value().target.typeUri)
 
@@ -39,7 +39,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
       val updatedSchemata =
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
           val paths = retrievePaths(dataSelection)
-          entitySchema.copy(paths = (entitySchema.paths ++ paths).distinct)
+          entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths.map(_.asStringTypedPath)).distinct)
         }
       context.value.update(updatedSchemata)
     }
@@ -47,7 +47,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
 
   private def retrievePaths(datasetSelection: DatasetSelection) = {
     // Retrieve the data source
-    val source = task.dataSource(datasetSelection.inputId)
+    val source = task.dataSource(datasetSelection)
     // Retrieve most frequent paths
     source.retrievePaths(datasetSelection.typeUri, 1, Some(50))
   }

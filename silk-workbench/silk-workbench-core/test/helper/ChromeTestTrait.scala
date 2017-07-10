@@ -1,6 +1,7 @@
 package helper
 
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 
 import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.{TimeoutException, WebElement}
@@ -13,9 +14,12 @@ import scala.language.implicitConversions
 /**
   * Created on 7/20/16.
   */
-trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with ChromeFactory with MustMatchers { this: Suite =>
+trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with ChromeFactory with MustMatchers {
+  this: Suite =>
 
   final val DEFAULT_PAGE_LOAD_TIMEOUT: Long = 3000
+
+  val logger: Logger = Logger.getLogger(this.getClass.getName)
 
   implicit def fromElement2WebElement(elem: Element): WebElement = elem.underlying
 
@@ -43,7 +47,8 @@ trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with 
       Some(block)
     } catch {
       case e: TimeoutException =>
-      None
+        logger.info("Ignoring page load timeout")
+        None
     } finally {
       webDriver.manage().timeouts().pageLoadTimeout(-1, TimeUnit.MILLISECONDS)
     }
@@ -51,5 +56,9 @@ trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with 
 
   def elementExists(elementId: String): Unit = {
     id(elementId).findElement mustBe defined
+  }
+
+  def reloadPage(): Unit = {
+    executeScript("""window.location.reload(true);""")
   }
 }

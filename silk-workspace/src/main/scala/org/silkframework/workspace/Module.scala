@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{PlainTask, MetaData, TaskSpec}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -43,8 +43,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }
 
-  def taskType: String = {
-    implicitly[ClassTag[TaskData]].runtimeClass.getName
+  def taskType: Class[_] = {
+    implicitly[ClassTag[TaskData]].runtimeClass
   }
 
   /**
@@ -62,7 +62,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def task(name: Identifier): ProjectTask[TaskData] = {
     load()
-    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType))
+    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType.getName))
   }
 
   def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {
@@ -70,9 +70,9 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData) = {
-    val task = new ProjectTask(name, taskData, this)
-    provider.putTask(project.name, name, taskData)
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData): Unit = {
+    val task = new ProjectTask(name, taskData, metaData, this)
+    provider.putTask(project.name, task)
     task.init()
     cachedTasks += ((name, task))
   }
@@ -81,6 +81,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    * Removes a task from this module.
    */
   def remove(taskId: Identifier) {
+    // Cancel all activities
+    for {
+      task <- cachedTasks.get(taskId)
+      activity <- task.activities
+    } {
+      activity.control.cancel()
+    }
+    // Delete task
     provider.deleteTask(project.name, taskId)
     cachedTasks -= taskId
     logger.info(s"Removed task '$taskId' from project ${project.name}")
@@ -89,15 +97,15 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   private def load(): Unit = synchronized {
     if(cachedTasks == null) {
       try {
-        val tasks = provider.readTasks(project.name)
+        val tasks = provider.readTasks(project.name, project.resources)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
-          for ((name, data) <- tasks) yield (name, new ProjectTask(name, data, this))
+          for (task <- tasks) yield (task.id, new ProjectTask(task.id, task.data, task.metaData, this))
         }
       } catch {
         case NonFatal(ex) =>
           cachedTasks = TreeMap()(TaskOrdering)
-          error = Some(new ValidationException(s"Error loading tasks of type $taskType. Details: ${ex.getMessage}", ex))
-          logger.log(Level.WARNING, s"Error loading tasks of type $taskType", ex)
+          error = Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+          logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
       }
     }
   }

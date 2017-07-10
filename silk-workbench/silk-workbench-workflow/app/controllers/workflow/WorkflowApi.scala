@@ -2,28 +2,42 @@ package controllers.workflow
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.{DataSource, Dataset, SinkTrait}
-import org.silkframework.rule.execution.ExecuteTransformResult
-import org.silkframework.rule.execution.ExecuteTransformResult.RuleResult
+import org.silkframework.rule.execution.TransformReport
+import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, OldWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
+import org.silkframework.config.Task
 
 import scala.xml.Elem
 
 class WorkflowApi extends Controller {
 
-  def getWorkflow(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val workflow = project.task[Workflow](taskName)
+  def getWorkflows(projectName: String) = Action {
+    val project = fetchProject(projectName)
+    val workflowTasks = project.tasks[Workflow]
+    val workflowIdsJson = workflowTasks map { task =>
+      JsString(task.id.toString)
+    }
+    Ok(JsArray(workflowIdsJson))
+  }
 
-    Ok(workflow.data.toXML)
+  private def fetchProject(projectName: String) = User().workspace.project(projectName)
+
+  def getWorkflow(projectName: String, taskName: String) = Action {
+    val project = fetchProject(projectName)
+    val workflow = project.task[Workflow](taskName)
+    Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
   def putWorkflow(projectName: String, taskName: String) = Action { request =>
-    val project = User().workspace.project(projectName)
-    val workflow = Workflow.fromXML(request.body.asXml.get.head).copy(id = taskName)
+    val project = fetchProject(projectName)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok
@@ -35,7 +49,7 @@ class WorkflowApi extends Controller {
   }
 
   def executeWorkflow(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[OldWorkflowExecutor].control
     if (activity.status().isRunning)
@@ -47,15 +61,15 @@ class WorkflowApi extends Controller {
   }
 
   def status(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
+    val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[OldWorkflowExecutor].value
+    val report = workflow.activity[LocalWorkflowExecutor].value
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
 
     for {
-      (name, res: ExecuteTransformResult) <- report.taskReports
+      (name, res: TransformReport) <- report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
       lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"

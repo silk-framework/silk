@@ -1,6 +1,8 @@
 package org.silkframework.runtime.resource
 
 import java.io._
+import java.nio.file.Files
+import java.time.Instant
 
 /**
   * A resource on the file system.
@@ -15,6 +17,10 @@ class FileResource(val file: File) extends WritableResource {
 
   def exists = file.exists()
 
+  def size = Some(file.length)
+
+  def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
+
   override def load = {
     new BufferedInputStream(new FileInputStream(file))
   }
@@ -24,13 +30,18 @@ class FileResource(val file: File) extends WritableResource {
    * after it returns.
    * @param write A function that accepts an output stream and writes to it.
    */
-  override def write(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
     val baseDir = file.getParentFile
     if(!baseDir.exists && !baseDir.mkdirs())
       throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    val outputStream = new BufferedOutputStream(new FileOutputStream(file))
+    val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
     write(outputStream)
     outputStream.flush()
     outputStream.close()
   }
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = file.delete()
 }

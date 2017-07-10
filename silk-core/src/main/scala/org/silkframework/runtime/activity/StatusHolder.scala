@@ -2,6 +2,8 @@ package org.silkframework.runtime.activity
 
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.runtime.activity.Status.Canceling
+
 /**
  * Holds the current status of an activity.
  */
@@ -36,6 +38,11 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    * Retrieves the current status.
    */
   override def apply(): Status = status
+
+  /**
+    * True, if canceling has been requested.
+    */
+  def isCanceling: Boolean = status.isInstanceOf[Canceling]
 
   /**
    * Updates the current status.

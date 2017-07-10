@@ -20,9 +20,9 @@ trait ResourceManager extends ResourceLoader with ResourceWriter {
     *
     * @param path A path of the form child1/child2/file.ext
     */
-  def getInPath(path: String): WritableResource = {
+  def getInPath(path: String, sep: Char = '/'): WritableResource = {
     var loader: ResourceManager = this
-    val segments = path.split('/')
+    val segments = path.split(sep)
     for(segment <- segments.dropRight(1)) {
       loader = loader.child(segment)
     }

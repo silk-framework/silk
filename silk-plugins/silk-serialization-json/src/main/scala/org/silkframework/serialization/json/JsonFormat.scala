@@ -4,6 +4,7 @@ import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat
 import play.api.libs.json.{JsValue, Json}
 
 import scala.reflect.ClassTag
+import scala.xml.Node
 
 /**
   * JSON serialization format.
@@ -29,4 +30,16 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
     read(Json.parse(value))
   }
 
+  override def toString(values: Iterable[T], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[JsValue]): String = {
+    val sb = new StringBuilder()
+    sb.append(s"[")
+    for((v, idx) <- values.zipWithIndex) {
+      if(idx > 0) {
+        sb.append(",")
+      }
+      sb.append(toString(v, mimeType))
+    }
+    sb.append(s"]")
+    sb.toString()
+  }
 }

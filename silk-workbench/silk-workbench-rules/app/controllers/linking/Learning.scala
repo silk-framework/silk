@@ -3,7 +3,6 @@ package controllers.linking
 import java.util.logging.Logger
 
 import controllers.core.{Stream, Widgets}
-import models.JsonError
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
@@ -19,6 +18,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
+import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
@@ -75,7 +75,7 @@ class Learning extends Controller {
     def sortedPaths(sourceOrTarget: Boolean): Seq[Path] = {
       val rules = activeLearn.value().population.individuals.map(_.node.build)
       val allSourcePaths = rules.map(rule => collectPaths(rule, sourceOrTarget))
-      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).paths
+      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).typedPaths.map(_.path)
       val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_ == p))
       sortedSchemaPaths
     }
@@ -223,7 +223,7 @@ class Learning extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
+    val stream2 = Stream.status(task.activity[ActiveLearning].control.status, _.isInstanceOf[Finished])
     Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
   }
 

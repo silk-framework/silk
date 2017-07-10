@@ -97,11 +97,11 @@ Supported source formats:
 Supported output formats:
 
 - `N-Triples`
-- `Alignment`: Writes the links in the \[\[url:http://alignapi.gforge.inria.fr/format.html | OAEI Alignment Format\]\]. This includes not only the uris of the source and target entities, but also the confidence of each link.
+- `Alignment`: Writes the links in the [OAEI Alignment Format](http://alignapi.gforge.inria.fr/format.html). This includes not only the uris of the source and target entities, but also the confidence of each link.
 
 ## Transform Tasks
 
-A transfom task generates new entities based on an extisting entities by transforming selected values.
+A transfom task generates new entities based on existing entities by transforming selected values.
 
 ## Linking Tasks
 
@@ -124,4 +124,4 @@ The following properties can be edited:
 -   **Target restriction** Restricts target dataset using SPARQL clauses
 -   **Output** The data sink for writing generated links to
 
-Clicking on the <code>open</code> button opens the Linkage Rule Editor.
+Clicking on the _open_ button opens the Linkage Rule Editor.

@@ -55,13 +55,31 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       */
     override def exists: Boolean = primaryResource.exists || fallbackResource.exists
 
+    override def size = {
+      if(primaryResource.exists)
+        primaryResource.size
+      else if(fallbackResource.exists)
+        fallbackResource.size
+      else
+        None
+    }
+
+    override def modificationTime = {
+      if(primaryResource.exists)
+        primaryResource.modificationTime
+      else if(fallbackResource.exists)
+        fallbackResource.modificationTime
+      else
+        None
+    }
+
     /**
       * Preferred method for writing to a resource.
       *
       * @param write A function that accepts an output stream and writes to it.
       */
-    override def write(write: (OutputStream) => Unit): Unit = {
-      primaryResource.write(write)
+    override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+      primaryResource.write(append)(write)
     }
 
     /**
@@ -76,6 +94,11 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       else
         fallbackResource.load
     }
+
+    /**
+      * Deletes this resource.
+      */
+    override def delete(): Unit = primaryResource.delete()
   }
 
 }

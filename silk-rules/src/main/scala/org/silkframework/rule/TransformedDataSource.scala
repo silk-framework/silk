@@ -12,14 +12,14 @@ import scala.util.control.NonFatal
   * @param source The data source for retrieving the source entities.
   * @param transform The transformation
   */
-class TransformedDataSource(source: DataSource, transform: TransformSpec) extends DataSource {
+class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, transformRule: TransformRule) extends DataSource {
   /**
     * Retrieves known generated types in this source.
     *
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
   override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    for(TypeMapping(name, typeUri) <- transform.rules) yield {
+    for(TypeMapping(name, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
   }
@@ -32,7 +32,7 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    transform.rules.flatMap(_.target).map(Path(_)).distinct.toIndexedSeq
+    transformRule.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
   }
 
   /**
@@ -58,22 +58,17 @@ class TransformedDataSource(source: DataSource, transform: TransformSpec) extend
   }
 
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]) = {
-    val subjectRule = transform.rules.find(_.target.isEmpty)
+    val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
-      for(path <- entitySchema.paths) yield {
-        transform.rules.filter(_.target == path.propertyUri)
+      for(typedPath <- entitySchema.typedPaths) yield {
+        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.path))
       }
 
-    val sourceEntitySchema =
-      EntitySchema(
-        typeUri = transform.selection.typeUri,
-        paths = pathRules.flatten.flatMap(_.paths).distinct.toIndexedSeq,
-        filter = transform.selection.restriction
-      )
+    val allRules = (subjectRule ++ pathRules.flatten).toSeq
 
     val sourceEntities = entities match {
-      case Some(uris) => source.retrieveByUri(sourceEntitySchema, uris)
-      case None => source.retrieve(sourceEntitySchema, limit)
+      case Some(uris) => source.retrieveByUri(inputSchema, uris)
+      case None => source.retrieve(inputSchema, limit)
     }
 
     for(entity <- sourceEntities.view) yield {

@@ -42,7 +42,7 @@ var defaultRadius = 4;
 
 // Set jsPlumb default values
 jsPlumb.Defaults.Container = "droppable";
-jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000 };
+jsPlumb.Defaults.DragOptions = { cursor: 'pointer', zIndex:2000, stop: function() { saveInstance(); } };
 
 var valueConnectorStyle = {
   lineWidth: 4,
@@ -131,58 +131,50 @@ window.onbeforeunload = confirmExit;
 function initEditor()
 {
   jsPlumb.reset();
-  $("#droppable").droppable({
-    drop: function (ev, ui) {
+
+   var canvas = $("#droppable");
+
+
+  canvas.droppable({
+    drop: function (event, ui) {
+      var clone = ui.helper.clone(false);
+      var mousePosDraggable = getRelativeOffset(event, ui.helper);
+      var mousePosCanvas = getRelativeOffset(event, canvas);
+      mousePosCanvas = adjustOffset(mousePosCanvas, canvas);
+      var mousePosCombined = subtractOffsets(mousePosCanvas, mousePosDraggable);
+      clone.appendTo(canvas);
+      clone.css(mousePosCombined);
+      clone.css({
+        "z-index": "auto"
+      });
+
       var draggedClass = $(ui.draggable).attr("class");
-      var boxid = ui.helper.attr('id');
+      var idPrefix = clone.find(".handler label").text();
+      var boxId = generateNewElementId(idPrefix);
+      clone.attr("id", boxId);
 
-      // Check if we still need to add endpoints to the dropped element
-      if(jsPlumb.getEndpoints(ui.helper) === undefined) {
-        $.ui.ddmanager.current.cancelHelperRemoval = true;
-        ui.helper.appendTo(this);
+      // Set operator name to current id
+      $('#' + boxId + " .handler label").text(boxId);
 
-        // Set operator name to current id
-        $('#' + boxid + " .handler label").text(boxid);
+      addEndpoints(boxId, draggedClass);
 
-        // Make operator draggable
-        jsPlumb.draggable($('#' + boxid));
+      // Make operator draggable
+      jsPlumb.draggable(boxId);
+//      jsPlumb.draggable(boxId, {
+//        containment: "parent"
+//      });
 
-        if (draggedClass.search(/aggregator/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
-          jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-        }
-        else if (draggedClass.search(/comparator/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueTarget);
-          jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-        }
-        else if (draggedClass.search(/transform/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueSource);
-          jsPlumb.addEndpoint(boxid, endpointValueTarget);
-        }
-        else if (draggedClass.search(/source/) != -1 || draggedClass.search(/target/) != -1) {
-          jsPlumb.addEndpoint(boxid, endpointValueSource);
-        }
-        else {
-          alert("Invalid Element dropped: " + draggedClass);
-        }
+      clone.show();
 
-        // fix the position of the new added box
-        var offset = $('#' + boxid).offset();
-        var scrollleft = $("#droppable").scrollLeft();
-        var scrolltop = $("#droppable").scrollTop();
-        var top = offset.top-118+scrolltop+scrolltop;
-        var left = offset.left-504+scrollleft+scrollleft;
-        $('#' + boxid).attr("style", "left: " + left + "px; top: " + top +  "px; position: absolute;");
-        jsPlumb.repaint(boxid);
-        modifyLinkSpec();
-      }
+      modifyLinkSpec();
     }
   });
 
   if (inEditorEnv) {
     $('body').attr('onresize', 'updateWindowSize();');
   }
-  $('body').attr('onunload', 'jsPlumb.unload();');  // TODO: What is this supposed to do? "jsPlumb.unload is not a function"
+
+
 
   // Delete connections on clicking them
   jsPlumb.bind("click", function(conn, originalEvent) {
@@ -244,7 +236,47 @@ function initEditor()
     updateWindowSize();
     updateScore();
   }
+
 }
+
+/**
+ * Get the mouse position of an event relative to an element.
+ * Returns an offset.
+ */
+var getRelativeOffset = function(event, element) {
+  var relX = event.pageX - element.offset().left;
+  var relY = event.pageY - element.offset().top;
+  return {
+    left: relX,
+    top: relY
+  }
+}
+
+/**
+ * Subtracts offset2 from offset1 by subtracting their respective left and top attributes
+ */
+var subtractOffsets = function(offset1, offset2) {
+  return {
+    left: offset1.left - offset2.left ,
+    top: offset1.top - offset2.top
+  }
+}
+
+/**
+ * Adjusts an offset within an element by taking into account border width and
+ * scrolling position.
+ */
+var adjustOffset = function(offset, element) {
+  var borderLeft = parseInt(element.css("border-left-width"));
+  var borderTop = parseInt(element.css("border-top-width"));
+  var scrollTop = element.scrollTop();
+  var scrollLeft = element.scrollLeft();
+  return {
+    left: offset.left - borderLeft + scrollLeft,
+    top: offset.top - borderTop + scrollTop
+  }
+}
+
 
 function confirmExit() {
   if(confirmOnExit) {
@@ -370,15 +402,18 @@ function validateLinkSpec() {
       type: 'PUT',
       url: apiUrl + '/rule' + ruleIndex,
       contentType: 'text/xml',
+      accepts: {
+        json: 'application/json'
+      },
       processData: false,
       data: serializationFunction(),
       dataType: "json",
       success: function(response) {
-        updateEditorStatus(response.issues);
+        updateEditorStatus([]);
         updateScore();
         confirmOnExit = false;
       },
-      error: function(req) {
+      error: function(req, textStatus, errorThrown) {
         console.log('Error committing rule: ' + req.responseText);
         updateEditorStatus(req.responseJSON.issues);
       }
@@ -412,7 +447,7 @@ function highlightElement(elId, message) {
   $(".handler label").each(function() {
     if ($(this).text() == elId) {
       var elementToHighlight = $(this).parent().parent();
-      elementToHighlight.addClass('highlighted');
+      elementToHighlight.addClass('editor-highlighted');
       highlightId = elementToHighlight.attr('id');
       tooltipId = highlightId + "_tooltip";
       $('#' + tooltipId).text(encodeHtml(message));
@@ -425,7 +460,7 @@ function highlightElement(elId, message) {
 }
 
 function removeHighlighting() {
-  $("div .dragDiv").removeClass('highlighted').removeAttr('onmouseover');
+  $("div .dragDiv").removeClass('editor-highlighted').removeAttr('onmouseover');
   jsPlumb.repaintEverything();
   $(".operator-tooltip").hide();
 }
@@ -453,14 +488,13 @@ Array.max = function(array) {
 function removeElement(elementId) {
   //We need to set a time-out here as a element should not remove its own parent in its event handler
   setTimeout(function() {
-    jsPlumb.removeAllEndpoints(elementId);
-    $('#' + elementId).remove();
+    jsPlumb.remove(elementId);
     modifyLinkSpec();
   }, 100);
 }
 
 function updateWindowSize() {
-  var header_height = $("#app_header").height();
+  var header_height = $("header").height() + $("#toolbar").height() + $("#tab-bar").height();
   var window_width =  $(window).width();
   var window_height =  $(window).height();
   var content_padding = 35;
@@ -502,6 +536,10 @@ function redo() {
 }
 
 function loadInstance(index) {
+
+  // we need to reset jsPlumb to prevent mess-ups due to removing and deleting elements
+  initEditor();
+
   //console.log("loadInstance("+index+")");
   reverting = true;
   instanceIndex = index;
@@ -516,45 +554,29 @@ function loadInstance(index) {
   });
 
   for (var i = 0; i<elements.length; i++) {
-    var endpoint_right = null;
-    var endpoint_left = null;
     var box = elements[i][0].clone();
-    var boxid = box.attr('id');
-    var boxclass = box.attr('class');
+    var boxId = box.attr('id');
+    var boxClass = box.attr('class');
 
     $("#droppable").append(box);
 
-    if (boxclass.search(/aggregate/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointSimilarityTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-    }
-    else if (boxclass.search(/compare/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointSimilaritySource);
-    }
-    else if (boxclass.search(/transform/) != -1) {
-      endpoint_left = jsPlumb.addEndpoint(boxid, endpointValueTarget);
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
-    }
-    else if (boxclass.search(/source/) != -1 || boxclass.search(/target/) != -1) {
-      endpoint_right = jsPlumb.addEndpoint(boxid, endpointValueSource);
-    }
-    else {
-      alert("Invalid Element dropped: " + boxclass);
-    }
+    var boxEndpoints = addEndpoints(boxId, boxClass);
 
-    endpoints[boxid] = endpoint_left;
-    elements[i][2] = endpoint_right;
+    endpoints[boxId] = boxEndpoints.left;
+    elements[i][2] = boxEndpoints.right;
     jsPlumb.draggable(box);
+//    jsPlumb.draggable(box, {
+//      containment: "parent"
+//    });
   }
 
   for(var j = 0; j < elements.length; j++) {
-    var endp_left = elements[j][2];
-    var endp_right = endpoints[elements[j][1]];
-    if (endp_left && endp_right) {
+    var endpoint_left = elements[j][2];
+    var endpoint_right = endpoints[elements[j][1]];
+    if (endpoint_left && endpoint_right) {
       jsPlumb.connect({
-        sourceEndpoint: endp_left,
-        targetEndpoint: endp_right
+        sourceEndpoint: endpoint_left,
+        targetEndpoint: endpoint_right
       });
     }
   }
@@ -623,7 +645,7 @@ function getPropertyPaths(targetElement, groupPaths) {
     complete: function(response, status) {
       $(targetElement).html(response.responseText);
       if(status == "error") {
-        setTimeout('getPropertyPaths(' + targetElement + ', ' + groupPaths + ')', 2000);
+        setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
       } else {
         updateWindowSize();
       }
@@ -660,5 +682,31 @@ function updateScore() {
         setTimeout('updateScore()', 2000);
       }
     }
-  })
+  });
+}
+
+function addEndpoints(boxId, boxClass) {
+  var boxEndpoints = {};
+  // todo: instead of doing search() over the class string, maybe using something like $.hasClass would be more intuitive
+  if ((boxClass.search(/aggregator/) != -1) || (boxClass.search(/aggregate/) != -1)) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointSimilarityTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointSimilaritySource);
+  }
+  // todo: these classes should be named consistently, not sometimes "compareDiv", and sometimes "comparators"
+  else if ((boxClass.search(/comparator/) != -1) || (boxClass.search(/compare/) != -1)) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointSimilaritySource);
+  }
+  else if (boxClass.search(/transform/) != -1) {
+    boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
+  }
+  else if (boxClass.search(/source/) != -1 || boxClass.search(/target/) != -1) {
+    boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
+  }
+  else {
+    alert("Invalid Element dropped: " + boxClass);
+  }
+
+  return boxEndpoints;
 }

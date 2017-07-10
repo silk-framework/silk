@@ -24,6 +24,11 @@ sealed abstract class ParameterType[T: ClassTag] {
   private val dataType = implicitly[ClassTag[T]].runtimeClass
 
   /**
+    * User-readable name of this type.
+    */
+  def name: String
+
+  /**
     * User-readable description of this type to be displayed.
     */
   def description: String = ""
@@ -90,6 +95,8 @@ object ParameterType {
 
   object StringType extends ParameterType[String] {
 
+    override def name: String = "string"
+
     override def description: String = "A character string."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): String = {
@@ -99,6 +106,8 @@ object ParameterType {
   }
 
   object CharType extends ParameterType[Char] {
+
+    override def name: String = "char"
 
     override def description: String = "A single character."
 
@@ -115,6 +124,8 @@ object ParameterType {
 
   object IntType extends ParameterType[Int] {
 
+    override def name: String = "int"
+
     override def description: String = "An integer number."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
@@ -125,6 +136,8 @@ object ParameterType {
 
   object DoubleType extends ParameterType[Double] {
 
+    override def name: String = "double"
+
     override def description: String = "A floating-point number."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
@@ -134,6 +147,8 @@ object ParameterType {
   }
 
   object BooleanType extends ParameterType[Boolean] {
+
+    override def name: String = "boolean"
 
     override def description: String = "Either true or false."
 
@@ -148,6 +163,8 @@ object ParameterType {
   }
 
   object StringMapType extends ParameterType[Map[String, String]] {
+
+    override def name: String = "stringmap"
 
     private val utf8: String = "UTF8"
 
@@ -164,6 +181,8 @@ object ParameterType {
 
   object UriType extends ParameterType[Uri] {
 
+    override def name: String = "uri"
+
     override def description: String = "Either a full URI or a prefixed name."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
@@ -173,19 +192,23 @@ object ParameterType {
 
   object ResourceType extends ParameterType[Resource] {
 
+    override def name: String = "resource"
+
     override def description: String = "Either the name of a project resource or a full URI."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = true)
+        resourceLoader.get(str, mustExist = false)
       }
     }
 
   }
 
   object WritableResourceType extends ParameterType[WritableResource] {
+
+    override def name: String = "resource"
 
     override def description: String = "Either the name of a project resource or a full URI."
 
@@ -200,6 +223,8 @@ object ParameterType {
   }
 
   object TaskReferenceType extends ParameterType[TaskReference] {
+
+    override def name: String = "task"
 
     override def description: String = "The name of a task in the same project."
 
@@ -220,11 +245,15 @@ object ParameterType {
 
     private val valueList = enumConstants.map(_.name).mkString(", ")
 
+    override def name: String = "enumeration"
+
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
       enumConstants.find(_.name == str.trim)
           .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
+
+    def enumerationValues: Seq[String] = enumConstants.map(_.name())
   }
 }

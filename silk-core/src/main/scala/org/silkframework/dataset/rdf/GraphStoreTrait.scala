@@ -1,14 +1,26 @@
 package org.silkframework.dataset.rdf
 
-import java.io.OutputStream
-import java.net.{HttpURLConnection, URL}
+import java.io.{InputStream, OutputStream}
+import java.net.{HttpURLConnection, SocketTimeoutException, URL}
 import java.util.logging.Logger
 
+import org.silkframework.config.DefaultConfig
+
 /**
- * Created by andreas on 1/28/16.
+ * Graph Store API trait.
  */
 trait GraphStoreTrait {
   def graphStoreEndpoint(graph: String): String
+
+  def graphStoreHeaders(): Map[String, String] = Map.empty
+
+  def defaultTimeouts: GraphStoreDefaults = {
+    val cfg = DefaultConfig.instance()
+    val connectionTimeout = cfg.getInt("graphstore.default.connection.timeout.ms")
+    val readTimeout = cfg.getInt("graphstore.default.read.timeout.ms")
+    val maxRequestSize = cfg.getLong("graphstore.default.max.request.size")
+    GraphStoreDefaults(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout, maxRequestSize = maxRequestSize)
+  }
 
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
@@ -20,16 +32,43 @@ trait GraphStoreTrait {
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
-    val updateUrl = graphStoreEndpoint(graph)
-    val url = new URL(updateUrl)
-    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
-    connection.setRequestMethod("POST")
+    val connection: HttpURLConnection = initConnection(graph)
     connection.setDoInput(true)
     connection.setDoOutput(true)
-    chunkedStreamingMode foreach { connection.setChunkedStreamingMode(_) }
+    chunkedStreamingMode foreach { connection.setChunkedStreamingMode }
     connection.setUseCaches(false)
     connection.setRequestProperty("Content-Type", contentType)
     ConnectionClosingOutputStream(connection)
+  }
+
+  def deleteGraph(graph: String): Unit = {
+    val connection = initConnection(graph)
+    connection.setRequestMethod("DELETE")
+    if(connection.getResponseCode / 100 != 2) {
+      throw new RuntimeException(s"Could not delete graph $graph. Message: ${connection.getResponseMessage}")
+    }
+  }
+
+  private def initConnection(graph: String): HttpURLConnection = {
+    val graphStoreUrl = graphStoreEndpoint(graph)
+    val url = new URL(graphStoreUrl)
+    val connection = url.openConnection().asInstanceOf[HttpURLConnection]
+    connection.setRequestMethod("POST")
+    for ((header, headerValue) <- graphStoreHeaders()) {
+      connection.setRequestProperty(header, headerValue)
+    }
+    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection.setReadTimeout(defaultTimeouts.readTimeoutMs)
+    connection
+  }
+
+  def getDataFromGraph(graph: String,
+                       acceptType: String = "text/turtle; charset=utf-8"): InputStream = {
+    val connection: HttpURLConnection = initConnection(graph)
+    connection.setRequestMethod("GET")
+    connection.setDoInput(true)
+    connection.setRequestProperty("Accept", acceptType)
+    ConnectionClosingInputStream(connection)
   }
 }
 
@@ -58,8 +97,40 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
       } else {
         throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
       }
+    } catch {
+      case _: SocketTimeoutException =>
+        throw new RuntimeException("A read timeout has occurred during writing via the GraphStore protocol. " +
+            s"You might want to increase 'graphstore.default.read.timeout.ms' in the application config. " +
+            s"It is currently set to ${connection.getReadTimeout}ms.")
     } finally {
       connection.disconnect()
     }
   }
 }
+
+case class ConnectionClosingInputStream(connection: HttpURLConnection) extends InputStream {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  private lazy val inputStream: InputStream = {
+    connection.connect()
+    connection.getInputStream
+  }
+
+  override def read(): Int = inputStream.read()
+
+  override def close(): Unit = {
+    try {
+      inputStream.close()
+      val responseCode = connection.getResponseCode
+      if(responseCode / 100 == 2) {
+        log.fine("Successfully received data from input stream.")
+      } else {
+        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+      }
+    } finally {
+      connection.disconnect()
+    }
+  }
+}
+
+case class GraphStoreDefaults(connectionTimeoutIsMs: Int, readTimeoutMs: Int, maxRequestSize: Long)

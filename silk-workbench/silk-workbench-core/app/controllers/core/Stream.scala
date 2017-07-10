@@ -1,7 +1,9 @@
 package controllers.core
 
 import models._
+import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.runtime.activity.{ActivityControl, Observable, Status}
+import org.silkframework.workbench.utils.Listener
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 
 import scala.collection.mutable
@@ -22,15 +24,17 @@ object Stream {
     enumerator
   }
 
-  def status(statusObservable: Observable[Status]): Enumerator[Status] = {
+  def status(statusObservable: Observable[Status], filter: Status => Boolean = _ => true): Enumerator[Status] = {
     val (enumerator, channel) = Concurrent.broadcast[Status]
     val listener = new Listener[Status] {
       override def onUpdate(value: Status) {
-        channel.push(value)
+        if(filter(value)) {
+          channel.push(value)
+        }
       }
     }
     // Push initial value
-    channel.push(statusObservable())
+    listener(statusObservable())
     // Push updates
     statusObservable.onUpdate(listener)
     listeners.put(enumerator, listener)

@@ -1,22 +1,18 @@
 package org.silkframework.rule.execution.local
 
-import java.util.logging.Logger
-
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution}
+import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
-import org.silkframework.rule.execution._
-import org.silkframework.rule.TransformSpec
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.ActivityContext
 
-import scala.util.control.NonFatal
+import scala.collection.mutable
 
 /**
   * Created on 7/20/16.
   */
 class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalExecution] {
-  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[EntityTable],
@@ -25,32 +21,46 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
                        context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val input = inputs.head
     val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
-    val transformedEntities = mapEntities(task, input.entities)
-    assert(transformSpec.outputSchemaOpt.isDefined)
-    Some(GenericEntityTable(transformedEntities, transformSpec.outputSchemaOpt.get, PlainTask(task.id, transformSpec)))
-  }
+    val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
 
-  private def mapEntities(task: Task[TransformSpec], entities: Traversable[Entity]) = {
-    val transform = task.data
-    val subjectRule = transform.rules.find(_.target.isEmpty)
-    val propertyRules = transform.rules.filter(_.target.nonEmpty).toIndexedSeq
-    val outputSchema = transform.outputSchemaOpt.get
-    for(entity <- entities.view) yield {
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-      val values =
-        for(rule <- propertyRules) yield {
-          try {
-            rule(entity)
-          } catch {
-            case NonFatal(ex) =>
-              // TODO forward error
-              log.warning("Error during execution of transform rule " + rule.name.toString + " of transform task " + task.id.toString + ": " + ex.getMessage)
-              Seq.empty
-          }
-        }
-      new Entity(uri, values, outputSchema)
+    input match {
+      case mt: MultiEntityTable =>
+        val output = mutable.Buffer[EntityTable]()
+        val transformer = new EntityTransformer(task, (mt.asInstanceOf[EntityTable] +: mt.subTables).to[mutable.Buffer], output)
+        transformer.transformEntities(task.rules, task.outputSchema, context)
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+      case _ =>
+        val output = mutable.Buffer[EntityTable]()
+        val transformer = new EntityTransformer(task, mutable.Buffer(input), output)
+        transformer.transformEntities(task.rules, task.outputSchema, context)
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
     }
   }
+
+
+  private class EntityTransformer(task: Task[TransformSpec], inputTables: mutable.Buffer[EntityTable], outputTables: mutable.Buffer[EntityTable]) {
+
+    def transformEntities(rules: Seq[TransformRule], outputSchema: EntitySchema,
+                                  context: ActivityContext[ExecutionReport]): Unit = {
+
+      val entities = inputTables.remove(0).entities
+
+      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
+      outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
+
+      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
+        val childOutputSchema =
+          EntitySchema(
+            typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
+            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
+          )
+
+        val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
+
+        transformEntities(updatedChildRules, childOutputSchema, context)
+      }
+    }
+
+  }
+
 }
-
-

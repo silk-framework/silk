@@ -3,21 +3,23 @@
 @import org.silkframework.workspace.Workspace
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.TaskActivity
-
+@import controllers.core.routes.{Assets => CoreAssets}
 @import scala.runtime.BoxedUnit
 @import controllers.workspace.routes.ActivityApi
-@import controllers.workspace.routes.Workspace
+@import controllers.workspace.routes.WorkspaceController
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
+@import org.silkframework.workspace.activity.CachedActivity
+
 @**
  * Overview page of all activities and their status
  *@
 @()(implicit session: play.api.mvc.Session)
 
 @header = {
-  <link rel="stylesheet" href="@Assets.at("libs/jstree/style.min.css")" type="text/css" />
+  <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/style.min.css")" type="text/css" />
   <link rel="stylesheet" href="@Assets.at("workspace.css")" type="text/css" />
-  <script src="@Assets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
+  <script src="@CoreAssets.at("libs/jstree/jstree.min.js")" type="text/javascript"></script>
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $( window ).load(function () {
@@ -146,7 +148,7 @@
     </div>
     @if(activity.config.nonEmpty) {
       <div class="activity-button-edit">
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.projectActivityConfigDialog(project.name, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.name, activity.name).url')" />
       </div>
     }
   </li>
@@ -167,13 +169,18 @@
     </div>
     <div class="activity-button-edit">
       @if(activity.config.nonEmpty) {
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@Workspace.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
       }
     </div>
     <div class="activity-button-value">
       @if(activity.valueType != classOf[BoxedUnit]) {
         <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
       }
+    </div>
+    <div class="activity-button-reload">
+    @if(classOf[CachedActivity[_]].isAssignableFrom(activity.control.underlying.getClass)) {
+      <img title="Reload cache" width="16" height="16" src="@Assets.at("img/control-reload.png")" onclick="post('@ActivityApi.restartActivity(project.name, task.id, activity.name).url')" />
+    }
     </div>
   </li>
 }

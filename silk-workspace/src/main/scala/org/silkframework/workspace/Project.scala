@@ -34,11 +34,9 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: WorkspaceProvider) {
+class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: WorkspaceProvider, val resources: ResourceManager) {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
-
-  val resources: ResourceManager = provider.projectResources(initialConfig.id)
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
@@ -185,9 +183,23 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
     require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
-    module[T].add(name, taskData)
+    module[T].add(name, taskData, metaData)
+  }
+
+  /**
+    * Adds a new task of any type to this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
+    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
+      case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
   }
 
   /**
@@ -198,21 +210,52 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T) = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
     module[T].taskOption(name) match {
-      case Some(task) => task.update(taskData)
-      case None => addTask[T](name, taskData)
+      case Some(task) =>
+        task.update(taskData)
+        task.update(metaData)
+      case None => addTask[T](name, taskData, metaData)
     }
   }
 
   /**
-   * Removes a task.
+   * Removes a task of a specific type.
+   * Note that the named task will be deleted, even if it is referenced by another task.
    *
    * @param taskName The name of the task
    * @tparam T The task type
    */
   def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
     module[T].remove(taskName)
+  }
+
+  /**
+    * Removes a task of any type.
+    *
+    * @param taskName The name of the task
+    * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
+    * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
+    */
+  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
+    if(removeDependentTasks) {
+      // Remove all dependent tasks
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
+        removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      }
+    } else {
+      // Make sure that no other task depends on this task
+      for(task <- allTasks) {
+        if(task.data.referencedTasks.contains(taskName)) {
+          throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+        }
+      }
+    }
+
+    // Find the module which holds the named task and remove it
+    for(m <- modules.find(_.taskOption(taskName).isDefined)) {
+      m.remove(taskName)
+    }
   }
 
   /**
@@ -233,21 +276,21 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       case Some(m) => m.asInstanceOf[Module[T]]
       case None =>
         val className = implicitly[ClassTag[T]].runtimeClass.getName
-        throw new NoSuchElementException(s"No module for task type $className has been registered. ${modules.size} Registered task types: ${modules.map(_.taskType).mkString(";")}")
+        throw new NoSuchElementException(s"No module for task type $className has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag]() = {
+  def registerModule[T <: TaskSpec : ClassTag](): Unit = {
     modules = modules :+ new Module[T](provider, this)
   }
 
   /**
    * Registers a new executor for a specific task type.
    */
-  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]) = {
+  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]): Unit = {
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
   }

@@ -18,7 +18,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{DataSource, DatasetTask, LinkSink}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
@@ -52,32 +52,36 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 
     val sourcePaths = rule.operator match {
       case Some(operator) => collectPaths(sourceOrTarget = true)(operator)
-      case None => Set[Path]()
+      case None => Set[TypedPath]()
     }
 
     val targetPaths = rule.operator match {
       case Some(operator) => collectPaths(sourceOrTarget = false)(operator)
-      case None => Set[Path]()
+      case None => Set[TypedPath]()
     }
 
-    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, sourceRestriction)
-    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, targetRestriction)
+    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, sourceRestriction, Path.empty)
+    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, targetRestriction, Path.empty)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }
 
-  private def collectPaths(sourceOrTarget: Boolean)(operator: SimilarityOperator): Set[Path] = operator match {
+  private def collectPaths(sourceOrTarget: Boolean)(operator: SimilarityOperator): Set[TypedPath] = operator match {
     case aggregation: Aggregation => aggregation.operators.flatMap(collectPaths(sourceOrTarget)).toSet
     case comparison: Comparison => {
-      if(sourceOrTarget)
+      if(sourceOrTarget) {
         collectPathsFromInput(comparison.inputs.source)
-      else
+      } else {
         collectPathsFromInput(comparison.inputs.target)
+      }
     }
   }
 
-  private def collectPathsFromInput(param: Input): Set[Path] = param match {
-    case p: PathInput if p.path.operators.nonEmpty => Set(p.path)
+  private def collectPathsFromInput(param: Input): Set[TypedPath] = param match {
+    case p: PathInput if p.path.operators.nonEmpty =>
+      // FIXME: LinkSpecs do not support input type definitions, support other types than Strings?
+      val typedPath = TypedPath(p.path, StringValueType)
+      Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
     case _ => Set()
   }

@@ -1,8 +1,10 @@
+@import org.silkframework.runtime.plugin.PluginDescription
+@import org.silkframework.workspace.Project
+
 @(name: String,
   opType: String,
-  pluginsByCategory: Map[String, Seq[org.silkframework.runtime.plugin.PluginDescription[_]]])
-
-@import org.silkframework.runtime.plugin.PluginDescription
+  pluginsByCategory: Map[String, Seq[org.silkframework.runtime.plugin.PluginDescription[_]]],
+  project: Project)
 
 <script type="text/javascript">
 // Initialization
@@ -10,13 +12,17 @@ $(function() {
   // Make operators draggable
   $('.@name.toLowerCase').draggable({
     helper: function() {
-      var box = $(this).children('.@{opType}Div').clone(false);
-      var id = box.find(".handler label").text();
-      box.attr("id", generateNewElementId(id));
+      var box = $(this).children('.dragDiv');
       box.show();
       return box;
+    } ,
+    stop: function(event, ui) {
+      ui.helper.hide();
+      $.ui.ddmanager.current.cancelHelperRemoval = true;
     }
+    //containment: "#content"
   });
+
 
   // Hide all operators except the recommended ones
   @for(category <- pluginsByCategory.keys if category != "Recommended") {
@@ -75,9 +81,9 @@ $(function() {
 
 @operatorExpanded(plugin: PluginDescription[_]) = {
   @opType match {
-    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false) }
-    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
-    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false) }
+    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false, project) }
   }
 }
 

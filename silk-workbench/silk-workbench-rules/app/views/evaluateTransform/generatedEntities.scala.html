@@ -1,19 +1,19 @@
 @import org.silkframework.config.Prefixes
 @import org.silkframework.rule.evaluation.{DetailedEntity, Value, TransformedValue, InputValue}
+@import org.silkframework.entity.AutoDetectValueType
 @import controllers.rules.routes.Assets
 
 @(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
 
-@frame() {
+@frame {
   <link rel="stylesheet" href="@Assets.at("stylesheets/treeview/jquery.treeview.css")" type="text/css" />
   <link type="text/css" href="@Assets.at("stylesheets/evaluateTransform/generatedEntities.css")" rel="stylesheet" />
   <script src="@Assets.at("js/jquery.treeview.js")" type="text/javascript"></script>
   <script src="@Assets.at("js/evaluateTransform/generatedEntities.js")" type="text/javascript"></script>
 } {
-  <div class="wrapper">
     <div id="tree-header">
       <div class="left">
-        <div class="toggle-all" onclick="expand_all()">
+        <div id="expand-all-btn" class="toggle-all" onclick="expand_all()">
           <div class="plus" ></div>
           Expand All
         </div>
@@ -31,7 +31,6 @@
       }
     </div>
 
-  </div>
 }
 
 @renderHeader = {
@@ -45,13 +44,20 @@
 @renderEntity(entity: DetailedEntity, counter: Int) = {
   <div class="entity">
     <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
-      @entity.uri
+      @prefixes.shorten(entity.uri)
     </div>
     <div class="entity-details" style="display: none">
       <ul class="entity-tree">
         @for((value, rule) <- entity.values zip entity.rules) {
           <li>
-            <span class="property">@rule.target</span>
+            <span class="property">
+              @for(target <- rule.target) {
+                @target.propertyUri.serialize(prefixes)
+                @if(target.valueType != AutoDetectValueType) {
+                  (@target.valueType.label)
+                }
+              }
+            </span>
             <ul>
               @renderValue(value)
             </ul>
@@ -68,18 +74,33 @@
       <span class="input">
     Transform:@transform.transformer.plugin.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
+        @renderError(error)
       </span>
-      <ul>
-      @children.map(v => renderValue(v))
-      </ul>
+      @if(children.size > 0) {
+        <ul>
+        @children.map(v => renderValue(v))
+        </ul>
+      }
     </li>
   }
-  case InputValue(input, values) => {
+  case InputValue(input, values, error) => {
     <li>
       <span class="input">
     Input: @input.path.serializeSimplified(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
+        @renderError(error)
       </span>
     </li>
   }
 }}
+
+@renderError(error: Option[Throwable]) = {
+  @for(ex <- error) {
+    <span id="error-@error.hashCode()">
+      <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
+    </span>
+    <div class="mdl-tooltip mdl-tooltip--large mdl-tooltip--left" for="error-@error.hashCode()">
+      @ex.getMessage
+    </div>
+  }
+}

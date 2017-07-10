@@ -23,11 +23,12 @@ import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.{FallbackResourceManager, FileResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{FallbackResourceManager, FileResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
+import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
@@ -177,7 +178,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform(input, transform.selection, transform.rules, config.outputs.map(_.entitySink), Seq())).startBlocking() // TODO: Allow to set error output
+    Activity(new ExecuteTransform(input, transform.data, config.outputs.map(_.entitySink))).startBlocking() // TODO: Allow to set error output
   }
 
   /**
@@ -188,22 +189,17 @@ object Silk {
     */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
-    val workspaceProvider = new InMemoryWorkspaceProvider() {
-      /**
-        * Read and write resources from/to the current directory.
-        */
-      override def projectResources(name: Identifier): ResourceManager = {
-        FileResourceManager(new File("."))
-      }
-    }
+    val projectId = Identifier("project")
+    val workspaceProvider = InMemoryWorkspaceProvider()
+    val resourceRepository = FileRepository(".")
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
-    marshaller.unmarshalAndImport("project", workspaceProvider, new FileInputStream(projectFile))
+    marshaller.unmarshalAndImport(projectId, workspaceProvider, resourceRepository.get(projectId), new FileInputStream(projectFile))
 
     // Create a workspace from the import and get task
-    val workspace = new Workspace(workspaceProvider)
-    val project = workspace.project("project")
+    val workspace = new Workspace(workspaceProvider, resourceRepository)
+    val project = workspace.project(projectId)
     val task = project.task[Workflow](taskName)
 
     // Execute task

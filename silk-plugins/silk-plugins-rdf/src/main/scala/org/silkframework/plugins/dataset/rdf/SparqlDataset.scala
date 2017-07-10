@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
-import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
+import org.silkframework.dataset.rdf.{ClearableDatasetGraphTrait, EntityRetrieverStrategy, RdfDataset, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
-@Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
+@Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
-  @Param("The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
+  @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
   endpointURI: String,
   @Param("Login required for authentication")
   login: String = null,
@@ -30,7 +30,10 @@ case class SparqlDataset(
   @Param("The strategy use for retrieving entities: simple: Retrieve all entities using a single query; subQuery: Use a single query, but wrap it for improving the performance on Virtuoso; parallel: Use a separate Query for each entity property.")
   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
   @Param("Include useOrderBy in queries to enforce correct order of values.")
-  useOrderBy: Boolean = true) extends RdfDataset with TripleSinkDataset {
+  useOrderBy: Boolean = true,
+  @Param(label = "Clear graph before workflow execution",
+    value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
+  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset with ClearableDatasetGraphTrait {
 
   private val params =
     SparqlParams(
@@ -49,8 +52,7 @@ case class SparqlDataset(
     )
 
   override val sparqlEndpoint = {
-    //new JenaRemoteEndpoint(endpointURI)
-    new RemoteSparqlEndpoint(params)
+    RemoteSparqlEndpoint(params)
   }
 
   override val source = new SparqlSource(params, sparqlEndpoint)
@@ -59,10 +61,10 @@ case class SparqlDataset(
 
   override val entitySink = new SparqlSink(params, sparqlEndpoint)
 
-  override def clear() = {
-    for(graph <- params.graph)
-      sparqlEndpoint.update(s"DROP SILENT GRAPH <$graph>")
-  }
-
   override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint)
+
+  /**
+    * The graph of the dataset that will be cleared when calling clearGraph.
+    */
+  override def graphToClear: String = graph
 }

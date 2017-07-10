@@ -1,0 +1,29 @@
+@(project: String)
+
+@widgets.dialog(title = "Clone Project " + project, submitLabel = "Clone") {
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="project_name" name="project_name"/>
+    <label class="mdl-textfield__label" for="project_name">New Name</label>
+  </div>
+
+  <script>//<![CDATA[
+    function submit() {
+      console.log("submit()");
+      var name = $("input[name='project_name']").val();
+
+      $.ajax({
+        type: 'POST',
+        url: '@config.baseUrl/workspace/projects/@project/clone?newProject=' + name,
+        data: "",
+        success: function(data) {
+          closeDialog();
+          reloadWorkspace();
+        },
+        error: function(request) {
+          alert(request.responseText);
+        }
+      });
+    }
+  //]]>
+  </script>
+}
