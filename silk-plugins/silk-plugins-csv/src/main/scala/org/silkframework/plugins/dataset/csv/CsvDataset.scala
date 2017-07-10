@@ -8,7 +8,7 @@ import scala.io.Codec
 
 @Plugin(
   id = "csv",
-  label = "CSV file",
+  label = "CSV",
   description =
       """Retrieves all entities from a csv file."""
 )

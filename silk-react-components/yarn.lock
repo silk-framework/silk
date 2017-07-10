@@ -251,6 +251,27 @@ aws4@^1.2.1:
   version "1.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
+babel-cli@^6.24.1:
+  version "6.24.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/babel-cli/-/babel-cli-6.24.1.tgz#207cd705bba61489b2ea41b5312341cf6aca2283"
+  dependencies:
+    babel-core "^6.24.1"
+    babel-polyfill "^6.23.0"
+    babel-register "^6.24.1"
+    babel-runtime "^6.22.0"
+    commander "^2.8.1"
+    convert-source-map "^1.1.0"
+    fs-readdir-recursive "^1.0.0"
+    glob "^7.0.0"
+    lodash "^4.2.0"
+    output-file-sync "^1.1.0"
+    path-is-absolute "^1.0.0"
+    slash "^1.0.0"
+    source-map "^0.5.0"
+    v8flags "^2.0.10"
+  optionalDependencies:
+    chokidar "^1.6.1"
+
 babel-code-frame@^6.16.0, babel-code-frame@^6.22.0:
   version "6.22.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/babel-code-frame/-/babel-code-frame-6.22.0.tgz#027620bee567a88c32561574e7fd0801d33118e4"
@@ -1254,7 +1275,7 @@ chalk@~0.5.1:
     strip-ansi "^0.3.0"
     supports-color "^0.2.0"
 
-chokidar@^1.4.3:
+chokidar@^1.4.3, chokidar@^1.6.1:
   version "1.7.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/chokidar/-/chokidar-1.7.0.tgz#798e689778151c8076b4b360e5edd28cda2bb468"
   dependencies:
@@ -1461,7 +1482,7 @@ commander@2.8.x:
   dependencies:
     graceful-readlink ">= 1.0.0"
 
-commander@2.9.0, commander@2.9.x:
+commander@2.9.0, commander@2.9.x, commander@^2.8.1:
   version "2.9.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/commander/-/commander-2.9.0.tgz#9c99094176e12240cb22d6c5146098400fe0f7d4"
   dependencies:
@@ -1831,6 +1852,10 @@ dezalgo@^1.0.0:
   dependencies:
     asap "^2.0.0"
     wrappy "1"
+
+dialog-polyfill@0.4.4:
+  version "0.4.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/dialog-polyfill/-/dialog-polyfill-0.4.4.tgz#924b5acbf7a587c50de84c174fd5d0f317efa881"
 
 diff@3.2.0:
   version "3.2.0"
@@ -2623,6 +2648,10 @@ fs-extra@^2.1.2:
     graceful-fs "^4.1.2"
     jsonfile "^2.1.0"
 
+fs-readdir-recursive@^1.0.0:
+  version "1.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/fs-readdir-recursive/-/fs-readdir-recursive-1.0.0.tgz#8cd1745c8b4f8a29c8caec392476921ba195f560"
+
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
@@ -2857,7 +2886,7 @@ graceful-fs@^3.0.0:
   dependencies:
     natives "^1.1.0"
 
-graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
+graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
   version "4.1.11"
   resolved "https://artifactory.eccenca.com/api/npm/npm/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
@@ -3485,6 +3514,10 @@ jodid25519@^1.0.0:
   dependencies:
     jsbn "~0.1.0"
 
+jquery@1.11.3, jquery@>=1.9.1:
+  version "1.11.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jquery/-/jquery-1.11.3.tgz#dd8b74278b27102d29df63eae28308a8cfa1b583"
+
 js-base64@^2.1.8, js-base64@^2.1.9:
   version "2.1.9"
   resolved "https://artifactory.eccenca.com/api/npm/npm/js-base64/-/js-base64-2.1.9.tgz#f0e80ae039a4bd654b5f281fc93f04a914a7fcce"
@@ -3569,6 +3602,10 @@ jsonpointer@^4.0.0:
   version "4.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsonpointer/-/jsonpointer-4.0.1.tgz#4fd92cb34e0e9db3c89c8622ecf51f9b978c6cb9"
 
+jsplumb@2.1.8:
+  version "2.1.8"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jsplumb/-/jsplumb-2.1.8.tgz#1081a52a039991b49b203a28e6e15e12cee3bee5"
+
 jsprim@^1.2.2:
   version "1.4.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsprim/-/jsprim-1.4.0.tgz#a3b87e40298d8c380552d8cc7628a0bb95a22918"
@@ -3577,6 +3614,12 @@ jsprim@^1.2.2:
     extsprintf "1.0.2"
     json-schema "0.2.3"
     verror "1.3.6"
+
+jstree@3.2.1:
+  version "3.2.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jstree/-/jstree-3.2.1.tgz#00466d7dde76ef7440ed5411eea64af062ff0154"
+  dependencies:
+    jquery ">=1.9.1"
 
 jsx-ast-utils@^1.3.4:
   version "1.4.1"
@@ -3898,13 +3941,23 @@ map-stream@~0.1.0:
   version "0.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
 
-material-design-lite@^1.3.0:
+"mark.js@https://github.com/julmot/mark.js/archive/7.0.0.tar.gz":
+  version "7.0.0"
+  resolved "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz#5d01960ca50df257d693fdb4e67f3b37e765ba82"
+
+material-design-lite@1.3.0, material-design-lite@^1.1.3, material-design-lite@^1.3.0:
   version "1.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/material-design-lite/-/material-design-lite-1.3.0.tgz#d004ce3fee99a1eeb74a78b8a325134a5f1171d3"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.17"
   resolved "https://artifactory.eccenca.com/api/npm/npm/math-expression-evaluator/-/math-expression-evaluator-1.2.17.tgz#de819fdbcd84dccd8fae59c6aeb79615b9d266ac"
+
+mdl-selectfield@1.0.3:
+  version "1.0.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/mdl-selectfield/-/mdl-selectfield-1.0.3.tgz#63049b08ed1bf6ae07fe4c32a0545a15fc6a6753"
+  dependencies:
+    material-design-lite "^1.1.3"
 
 media-typer@0.3.0:
   version "0.3.0"
@@ -4394,6 +4447,14 @@ osenv@0, osenv@^0.1.4:
   dependencies:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
+
+output-file-sync@^1.1.0:
+  version "1.1.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/output-file-sync/-/output-file-sync-1.1.2.tgz#d0a33eefe61a205facb90092e826598d5245ce76"
+  dependencies:
+    graceful-fs "^4.1.4"
+    mkdirp "^0.5.1"
+    object-assign "^4.1.0"
 
 pako@~0.2.0:
   version "0.2.9"
@@ -5989,7 +6050,7 @@ uuid@^3.0.0, uuid@^3.0.1:
   version "3.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/uuid/-/uuid-3.0.1.tgz#6544bba2dfda8c1cf17e629a3a305e2bb1fee6c1"
 
-v8flags@^2.0.2:
+v8flags@^2.0.10, v8flags@^2.0.2:
   version "2.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/v8flags/-/v8flags-2.1.1.tgz#aab1a1fa30d45f88dd321148875ac02c0b55e5b4"
   dependencies:
