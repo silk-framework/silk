@@ -100,7 +100,7 @@ class AutoCompletionApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyPropertyCompletions(task)
-    completions += prefixCompletions(project.config.prefixes)
+    // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filter(term, maxResults).toJson)
   }
@@ -117,7 +117,7 @@ class AutoCompletionApi extends Controller {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyTypeCompletions(task)
-    completions += prefixCompletions(project.config.prefixes)
+    // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filter(term, maxResults).toJson)
   }
