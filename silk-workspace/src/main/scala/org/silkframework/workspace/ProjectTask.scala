@@ -92,10 +92,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: MetaData): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
     // Update data
     currentData = newData
-    currentMetaData = newMetaData
+    for(md <- newMetaData) {
+      currentMetaData = md
+    }
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
