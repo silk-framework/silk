@@ -92,23 +92,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: MetaData): Unit = synchronized {
     // Update data
     currentData = newData
-    // (Re)Schedule write
-    for (writer <- scheduledWriter) {
-      writer.cancel(false)
-    }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
-    log.info("Updated task '" + id + "'")
-  }
-
-  /**
-    * Updates the meta data of this task.
-    */
-  def update(metaData: MetaData): Unit = synchronized {
-    // Update data
-    currentMetaData = metaData
+    currentMetaData = newMetaData
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
@@ -122,7 +109,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush(): Unit = {
+  def flush(): Unit = synchronized {
     // Cancel any scheduled writer
     for (writer <- scheduledWriter) {
       writer.cancel(false)

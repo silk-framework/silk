@@ -24,6 +24,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
+  @volatile
   private var cachedProjects = loadProjects()
 
   def projects: Seq[Project] = cachedProjects
@@ -106,7 +107,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     */
   def reload() {
     // Write all data
-    //FIXME broke some tests flush()
+    flush()
     // Stop all activities
     for{ project <- projects
          activity <- project.activities } {
