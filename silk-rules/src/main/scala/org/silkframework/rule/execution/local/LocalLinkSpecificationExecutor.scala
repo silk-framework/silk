@@ -29,7 +29,8 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
   private def entitySource(input: EntityTable, typeUri: Uri): EntitySource = {
     input match {
       case mt: MultiEntityTable if typeUri.uri.nonEmpty =>
-        mt.subTables.find(_.entitySchema.typeUri == typeUri) match {
+        val allTables = mt +: mt.subTables
+        allTables.find(_.entitySchema.typeUri == typeUri) match {
           case Some(table) =>
             new EntitySource(table)
           case None =>
