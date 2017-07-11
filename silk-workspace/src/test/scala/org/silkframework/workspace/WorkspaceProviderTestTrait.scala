@@ -306,7 +306,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   }
 
   it should "delete linking tasks" in {
-    workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
+    workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[LinkSpec](PROJECT_NAME, LINKING_TASK_ID)
