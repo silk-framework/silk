@@ -175,8 +175,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        activity.control.cancel()
-        activity.control.start()
+        if(!activity.control.status().isRunning)
+          activity.control.start()
       }
     }
   }
