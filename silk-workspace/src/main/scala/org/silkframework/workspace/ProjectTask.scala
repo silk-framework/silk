@@ -118,6 +118,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
+    * Flushes this project task. i.e., the data of this task is written to the workspace provider immediately.
+    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
+    * This method forces the writing and returns after all data has been written.
+    */
+  def flush(): Unit = {
+    // Cancel any scheduled writer
+    for (writer <- scheduledWriter) {
+      writer.cancel(false)
+    }
+    // Write now
+    Writer.run()
+  }
+
+  /**
     * All activities that belong to this task.
     */
   def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
@@ -186,7 +200,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
-  private val writeInterval = 0
+  private val writeInterval = 3
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 }
