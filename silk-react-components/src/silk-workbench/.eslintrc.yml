@@ -1,0 +1,18 @@
+globals:
+  $: true
+  jsPlumb: true
+rules:
+  # Variables should be camel case, due to the many occurences of variable names with underscore, we only warn for now
+  camelcase: 1
+  # Variable names should have no leading _, we do not care about that however
+  no-underscore-dangle: 0
+  # These rules are regarding var -> let/const, we should remove them once we want to migrate completely
+  no-var: 0
+  vars-on-top: 1
+  # Disallow usage of functions before they are defined /shrug, warning should be enough
+  no-use-before-define: 1
+  # Convert callback functions to arrow functions
+  prefer-arrow-callback: 0
+  # Temporary to enable easier fixing
+  no-undef: 0
+  no-unused-vars: 0

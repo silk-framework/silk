@@ -18,110 +18,121 @@
 
 var helpWidth = 170;
 var contentWidth;
-var contentWidthCallback = function() { };
+var contentWidthCallback = function() {};
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
 var dialogs = {};
 
 $(function() {
-
-  // Initialize window
-  var id;
-  $(window).resize(function() {
-    clearTimeout(id);
-    contentWidth = $(window).width() - helpWidth;
-    id = setTimeout(contentWidthCallback, 100);
-  });
-  contentWidth = $(window).width() - 190;
-  contentWidthCallback();
-
-  // Initialize dialog
-  primary_dialog = document.querySelector('#primary_dialog');
-  if (primary_dialog) {
-    dialogs['primary'] = primary_dialog;
-    if (! primary_dialog.showModal) {
-      dialogPolyfill.registerDialog(primary_dialog);
-    }
-    primary_dialog.querySelector('.close').addEventListener('click', function() {
-      primary_dialog.close();
+    // Initialize window
+    var id;
+    $(window).resize(function() {
+        clearTimeout(id);
+        contentWidth = $(window).width() - helpWidth;
+        id = setTimeout(contentWidthCallback, 100);
     });
-  }
-  secondary_dialog = document.querySelector('#secondary_dialog');
-  if (secondary_dialog) {
-    dialogs['secondary'] = secondary_dialog;
-    if (! secondary_dialog.showModal) {
-      dialogPolyfill.registerDialog(secondary_dialog);
+    contentWidth = $(window).width() - 190;
+    contentWidthCallback();
+
+    // Initialize dialog
+    primary_dialog = document.querySelector('#primary_dialog');
+    if (primary_dialog) {
+        dialogs.primary = primary_dialog;
+        if (!primary_dialog.showModal) {
+            dialogPolyfill.registerDialog(primary_dialog);
+        }
+        primary_dialog
+            .querySelector('.close')
+            .addEventListener('click', function() {
+                primary_dialog.close();
+            });
     }
-    secondary_dialog.querySelector('.close').addEventListener('click', function() {
-      secondary_dialog.close();
-    });
-  }
+    secondary_dialog = document.querySelector('#secondary_dialog');
+    if (secondary_dialog) {
+        dialogs.secondary = secondary_dialog;
+        if (!secondary_dialog.showModal) {
+            dialogPolyfill.registerDialog(secondary_dialog);
+        }
+        secondary_dialog
+            .querySelector('.close')
+            .addEventListener('click', function() {
+                secondary_dialog.close();
+            });
+    }
 });
 
 var errorHandler = function(request) {
-  if(request.responseText) {
-    alert(request.responseText);
-  } else {
-    alert(request.statusText)
-  }
+    if (request.responseText) {
+        alert(request.responseText);
+    } else {
+        alert(request.statusText);
+    }
 };
 
 /**
  * Opens a dialog.
  */
-function showDialog(path, dialog_key="primary", payload={}) {
-  dialog = dialogs[dialog_key];
-  $.data(dialog, "path", path);
-  $.get(path, payload, function(data) {
-    // inject dialog content into dialog container
-    $(dialog).html(data);
-    // enable MDL JS for dynamically added components
-    componentHandler.upgradeAllRegistered();
-  }).success(function() {
-    dialog.showModal();
-  }).fail(function(request) {
-    alert(request.responseText);
-  });
+function showDialog(path, dialog_key = 'primary', payload = {}) {
+    dialog = dialogs[dialog_key];
+    $.data(dialog, 'path', path);
+    $.get(path, payload, function(data) {
+        // inject dialog content into dialog container
+        $(dialog).html(data);
+        // enable MDL JS for dynamically added components
+        componentHandler.upgradeAllRegistered();
+    })
+        .success(function() {
+            dialog.showModal();
+        })
+        .fail(function(request) {
+            alert(request.responseText);
+        });
 }
 
 /**
  * Reloads a dialog.
  */
-function reloadDialog(dialog_key="primary") {
-  dialog = dialogs[dialog_key];
-  var path = $.data(dialog, "path");
-  $.get(path, function(data) {
-    $(dialog).html(data);
-    componentHandler.upgradeAllRegistered();
-  }).fail(function(request) { alert(request.responseText);  })
+function reloadDialog(dialog_key = 'primary') {
+    dialog = dialogs[dialog_key];
+    var path = $.data(dialog, 'path');
+    $.get(path, function(data) {
+        $(dialog).html(data);
+        componentHandler.upgradeAllRegistered();
+    }).fail(function(request) {
+        alert(request.responseText);
+    });
 }
 
 /**
  * Closes current dialog.
  */
-function closeDialog(dialog_key="primary") {
-  dialog = dialogs[dialog_key];
-  dialog.close();
+function closeDialog(dialog_key = 'primary') {
+    dialog = dialogs[dialog_key];
+    dialog.close();
 }
 
 /**
  * Shows the help sidebar.
  */
 function showHelp() {
-  updateHelpWidth(170);
-  $('#show-help').hide(); $('#help').show('slide', {direction:'right'}, 'slow');
+    updateHelpWidth(170);
+    $('#show-help').hide();
+    $('#help').show('slide', {direction: 'right'}, 'slow');
 }
 
 /**
  * Hides the help sidebar.
  */
 function hideHelp() {
-  $('#help').hide('slide', {direction:'right'}, 'slow', function() { updateHelpWidth(16); $('#show-help').show(); });
+    $('#help').hide('slide', {direction: 'right'}, 'slow', function() {
+        updateHelpWidth(16);
+        $('#show-help').show();
+    });
 }
 
 function updateHelpWidth(newWidth) {
-  helpWidth = newWidth;
-  contentWidth = $(window).width() - helpWidth;
-  contentWidthCallback();
+    helpWidth = newWidth;
+    contentWidth = $(window).width() - helpWidth;
+    contentWidthCallback();
 }
