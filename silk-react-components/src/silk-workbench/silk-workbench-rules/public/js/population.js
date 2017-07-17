@@ -64,7 +64,7 @@ function initTrees() {
         .addClass('collapsable-hitarea');
 
     $('.confidencebar').each(function(index) {
-        var confidence = parseInt($(this).text());
+        var confidence = parseInt($(this).text(), 10);
 
         if (confidence >= 0) {
             $(this).progressbar({

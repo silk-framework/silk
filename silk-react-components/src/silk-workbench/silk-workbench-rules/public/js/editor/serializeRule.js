@@ -7,7 +7,7 @@ function serializeLinkageRule() {
     // Add filter
     var filter = xml.ownerDocument.createElement('Filter');
     var filterLimit = $('#linklimit').find(':selected').text();
-    if (filterLimit != 'unlimited') {
+    if (filterLimit !== 'unlimited') {
         filter.setAttribute('limit', filterLimit);
     }
     xml.appendChild(filter);
@@ -55,7 +55,7 @@ function serializeRule(tagName) {
     // Serialize rule
     var xmlDoc = document.implementation.createDocument('', 'root', null);
     var xml = xmlDoc.createElement(tagName);
-    if (root != null) {
+    if (root !== null) {
         xml.appendChild(parseOperator(xmlDoc, root, connections).xml);
     }
 
@@ -76,17 +76,18 @@ function parseOperator(xmlDoc, elementId, connections) {
 
     // Create xml element
     var xml;
-    if (elType == 'Source' || elType == 'Target') {
+    var i;
+    if (elType === 'Source' || elType === 'Target') {
         xml = xmlDoc.createElement('Input');
         var path = $(`${elementIdName} > div.content > input`).val();
         xml.setAttribute('path', path);
-    } else if (elType == 'Transform') {
+    } else if (elType === 'Transform') {
         xml = xmlDoc.createElement('TransformInput');
         xml.setAttribute('function', elName);
-    } else if (elType == 'Aggregate') {
+    } else if (elType === 'Aggregate') {
         xml = xmlDoc.createElement('Aggregate');
         xml.setAttribute('type', elName);
-    } else if (elType == 'Compare') {
+    } else if (elType === 'Compare') {
         xml = xmlDoc.createElement('Compare');
         xml.setAttribute('metric', elName);
     } else {
@@ -99,18 +100,18 @@ function parseOperator(xmlDoc, elementId, connections) {
 
     // Parse children
     var children = [];
-    for (var i = 0; i < connections.length; i++) {
+    for (i = 0; i < connections.length; i++) {
         var source = connections[i].sourceId;
         var target = connections[i].targetId;
-        if (target == elementId) {
+        if (target === elementId) {
             children.push(parseOperator(xmlDoc, source, connections));
         }
     }
 
     // Append children
-    if (elType == 'Compare') {
+    if (elType === 'Compare') {
         // For comparisons, we need to append the children in the correct order
-        if (children[0].inputType == 'Source') {
+        if (children[0].inputType === 'Source') {
             xml.appendChild(children[0].xml);
             if (children.length > 1) xml.appendChild(children[1].xml);
         } else {
@@ -118,38 +119,40 @@ function parseOperator(xmlDoc, elementId, connections) {
             xml.appendChild(children[0].xml);
         }
     } else {
-        for (var i in children) {
-            xml.appendChild(children[i].xml);
-        }
+        children.forEach(child => {
+            xml.appendChild(child.xml);
+        });
     }
 
     // If this is a path, we are finished. Otherwise the parameters still need to be parsed.
-    if (elType == 'Source' || elType == 'Target')
+    if (elType === 'Source' || elType === 'Target')
         return {xml, inputType: elType};
 
     // Parse parameters
     var params = $(`${elementIdName} div.content input`);
 
+    var xml_param;
+
     for (var l = 0; l < params.length; l++) {
-        if ($(params[l]).attr('name') == 'required') {
+        if ($(params[l]).attr('name') === 'required') {
             if ($(params[l]).is(':checked')) {
                 xml.setAttribute('required', 'true');
             } else {
                 xml.setAttribute('required', 'false');
             }
-        } else if ($(params[l]).attr('name') == 'threshold') {
+        } else if ($(params[l]).attr('name') === 'threshold') {
             xml.setAttribute('threshold', $(params[l]).val());
-        } else if ($(params[l]).attr('name') == 'weight') {
+        } else if ($(params[l]).attr('name') === 'weight') {
             xml.setAttribute('weight', $(params[l]).val());
-        } else if (elType == 'Compare') {
-            if ($(params[l]).val() != '') {
-                var xml_param = xmlDoc.createElement('Param');
+        } else if (elType === 'Compare') {
+            if ($(params[l]).val() !== '') {
+                xml_param = xmlDoc.createElement('Param');
                 xml_param.setAttribute('name', $(params[l]).attr('name'));
                 xml_param.setAttribute('value', $(params[l]).val());
                 xml.appendChild(xml_param);
             }
         } else {
-            var xml_param = xmlDoc.createElement('Param');
+            xml_param = xmlDoc.createElement('Param');
             xml_param.setAttribute('name', $(params[l]).attr('name'));
             xml_param.setAttribute('value', $(params[l]).val());
             xml.appendChild(xml_param);
@@ -190,11 +193,12 @@ function findRootOperator(connections) {
 
     // Find root operator
     var root = null;
-    for (var key in sources) {
+
+    sources.forEach((value, key) => {
         if (!targets[key]) {
             root = key;
         }
-    }
+    });
 
     return root;
 }

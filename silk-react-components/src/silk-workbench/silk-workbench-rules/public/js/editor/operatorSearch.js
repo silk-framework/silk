@@ -2,7 +2,7 @@
 
 $('#operator_search_term').keyup(function() {
     var searchTerm = $(this).val().toLowerCase();
-    if (searchTerm == '') {
+    if (searchTerm === '') {
         // show regular grouped view if search term empty
         $('#operators-grouped').show();
         $('#operators-search-result').hide();

@@ -19,26 +19,28 @@ var sourcecounter = 0;
 var elementcounter = 0;
 var numberElements = 0;
 
-var transformations = new Object();
-var comparators = new Object();
-var aggregators = new Object();
+var transformations = {};
+var comparators = {};
+var aggregators = {};
 
-var sources = new Array();
-var targets = new Array();
-var boxes = new Array();
+var sources = [];
+var targets = [];
+var boxes = [];
 
 var cycleFound = false;
 
 var modificationTimer;
 var reverting = false;
 
-var instanceStack = new Array();
+var instanceStack = [];
 var instanceIndex = -1;
 var instanceSaved = false;
 
 var confirmOnExit = false;
 
 var defaultRadius = 4;
+
+var errorObj;
 
 // Set jsPlumb default values
 jsPlumb.Defaults.Container = 'droppable';
@@ -286,8 +288,8 @@ var subtractOffsets = function(offset1, offset2) {
  * scrolling position.
  */
 var adjustOffset = function(offset, element) {
-    var borderLeft = parseInt(element.css('border-left-width'));
-    var borderTop = parseInt(element.css('border-top-width'));
+    var borderLeft = parseInt(element.css('border-left-width'), 10);
+    var borderTop = parseInt(element.css('border-top-width'), 10);
     var scrollTop = element.scrollTop();
     var scrollLeft = element.scrollLeft();
     return {
@@ -296,6 +298,7 @@ var adjustOffset = function(offset, element) {
     };
 };
 
+// eslint-disable-next-line
 function confirmExit() {
     if (confirmOnExit) {
         return 'The current linkage rule is invalid. Leaving the editor will revert to the last valid linkage rule.';
@@ -308,9 +311,10 @@ function generateNewElementId(currentId) {
     do {
         nameExists = false;
         counter += 1;
-        id = `#${currentId}${counter}`;
-        alternativeId = `#operator_${currentId}${counter}`;
-        if ($(id).length > 0 || $(alternativeId).length > 0) {
+        if (
+            $(`#${currentId}${counter}`).length > 0 ||
+            $(`#operator_${currentId}${counter}`).length > 0
+        ) {
             nameExists = true;
         }
     } while (nameExists);
@@ -318,13 +322,12 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-    var elName = $(`#${elId} .handler label`).text();
-    return elName;
+    return $(`#${elId} .handler label`).text();
 }
 
 function validateLinkSpec() {
-    var errors = new Array();
-    var root_elements = new Array();
+    var errors = [];
+    var root_elements = [];
     var totalNumberElements = 0;
     removeHighlighting();
     if (!reverting) {
@@ -336,18 +339,18 @@ function validateLinkSpec() {
     // Is allowed in transformation rule editor
     //  if ($("#droppable > div.dragDiv").length === 1) {
     //    var elId = $("#droppable > div.dragDiv").attr('id');
-    //    errorObj = new Object();
+    //    errorObj = {};
     //    errorObj.id = elId;
     //    errorObj.message = "Error: Unconnected element '" + getCurrentElementName(elId) + "'.";
     //    errors.push(errorObj);
     //  }
 
     $('#droppable > div.dragDiv').each(function() {
-        totalNumberElements++;
+        totalNumberElements += 1;
         var elId = $(this).attr('id');
         var elName = getCurrentElementName(elId);
         if (elName.search(/[^a-zA-Z0-9_-]+/) !== -1) {
-            errorObj = new Object();
+            errorObj = {};
             errorObj.type = 'Error';
             errorObj.id = elName;
             errorObj.message = `Error in element with id '${elName}': An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '${elName}'.`;
@@ -358,15 +361,15 @@ function validateLinkSpec() {
             {scope: ['value', 'similarity'], source: elId},
             true,
         );
-        if (target === undefined || target.length == 0) {
+        if (target === undefined || target.length === 0) {
             root_elements.push(elId);
         }
     });
 
-    if (errors.length == 0) {
+    if (errors.length === 0) {
         // multiple root elements
         if (root_elements.length > 1) {
-            errorObj = new Object();
+            errorObj = {};
             errorObj.type = 'Error';
             var elements = '';
             for (var i = 0; i < root_elements.length; i++) {
@@ -388,8 +391,8 @@ function validateLinkSpec() {
             errors.push(errorObj);
 
             // no root elements
-        } else if (root_elements.length == 0 && totalNumberElements > 0) {
-            errorObj = new Object();
+        } else if (root_elements.length === 0 && totalNumberElements > 0) {
+            errorObj = {};
             errorObj.type = 'Error';
             errorObj.message = 'Error: No root element found.';
             errors.push(errorObj);
@@ -398,7 +401,7 @@ function validateLinkSpec() {
         } else {
             cycleCheck(root_elements[0]);
             if (cycleFound) {
-                errorObj = new Object();
+                errorObj = {};
                 errorObj.type = 'Error';
                 errorObj.message =
                     'Error: A cycle was found in the linkage rule.';
@@ -408,7 +411,7 @@ function validateLinkSpec() {
 
         // forest found
         if (numberElements > 1 && totalNumberElements > numberElements) {
-            errorObj = new Object();
+            errorObj = {};
             errorObj.type = 'Error';
             errorObj.message = 'Error: Multiple linkage rules found.';
             errors.push(errorObj);
@@ -468,19 +471,19 @@ function highlightElements(messages) {
     for (var i = 0; i < messages.length; i++) {
         if (messages[i].id)
             highlightElement(messages[i].id, encodeHtml(messages[i].message));
-        c++;
+        c += 1;
     }
 }
 
 function highlightElement(elId, message) {
     $('.handler label').each(function() {
-        if ($(this).text() == elId) {
+        if ($(this).text() === elId) {
             var elementToHighlight = $(this).parent().parent();
             elementToHighlight.addClass('editor-highlighted');
-            highlightId = elementToHighlight.attr('id');
-            tooltipId = `${highlightId}_tooltip`;
-            $(`#${tooltipId}`).text(encodeHtml(message));
-            $(`#${tooltipId}`).show();
+            var highlightId = elementToHighlight.attr('id');
+            var tooltip = $(`#${highlightId}_tooltip`);
+            tooltip.text(encodeHtml(message));
+            tooltip.show();
             // elementToHighlight.prepend('<div class="mdl-tooltip" for="' + elId + '">encodeHtml(message)</div>');
             jsPlumb.repaint(elementToHighlight);
             // componentHandler.upgradeAllRegistered();
@@ -497,19 +500,19 @@ function removeHighlighting() {
 }
 
 function cycleCheck(elId) {
-    numberElements++;
-    if ($(`#${elId}`).attr('visited') == '1') {
+    numberElements += 1;
+    if ($(`#${elId}`).attr('visited') === '1') {
         cycleFound = true;
     } else {
         $(`#${elId}`).attr('visited', '1');
-        var sources = jsPlumb.getConnections({target: elId});
-        if (sources[jsPlumb.getDefaultScope()] !== undefined) {
+        var currSources = jsPlumb.getConnections({target: elId});
+        if (currSources[jsPlumb.getDefaultScope()] !== undefined) {
             for (
                 var i = 0;
-                i < sources[jsPlumb.getDefaultScope()].length;
+                i < currSources[jsPlumb.getDefaultScope()].length;
                 i++
             ) {
-                var source = sources[jsPlumb.getDefaultScope()][i].sourceId;
+                var source = currSources[jsPlumb.getDefaultScope()][i].sourceId;
                 cycleCheck(source);
             }
         }
@@ -553,8 +556,11 @@ function updateWindowSize() {
             draggables_padding_height +
             draggables_border_height;
         var palette_blocks = $('.palette-block');
-        var palette_block_margin = parseInt(palette_blocks.css('margin-top'));
-        palette_block_height =
+        var palette_block_margin = parseInt(
+            palette_blocks.css('margin-top'),
+            10,
+        );
+        var palette_block_height =
             (height - height_diff) / palette_blocks.length -
             palette_block_margin;
         palette_blocks.height(palette_block_height);
@@ -627,11 +633,11 @@ function loadInstance(index) {
 
 function saveInstance() {
     // console.log("saveInstance");
-    var elements = new Array();
-    var targets = new Array();
+    var elements = [];
+    var targetConnections = [];
     var i = 0;
     $('#droppable').find('> div.dragDiv').each(function() {
-        elements[i] = new Array();
+        elements[i] = [];
         var box = $(this).clone();
         var id = box.attr('id');
         elements[i][0] = box;
@@ -639,15 +645,17 @@ function saveInstance() {
             {scope: ['value', 'similarity'], source: id},
             true,
         );
-        targets = conns;
-        if (targets !== undefined && targets.length > 0) {
-            var target = targets[0].target;
+        targetConnections = conns;
+        if (targetConnections !== undefined && targetConnections.length > 0) {
+            var target = targetConnections[0].target;
             elements[i][1] = target.id;
         }
-        i++;
+        i += 1;
     });
 
-    instanceStack[++instanceIndex] = elements;
+    instanceIndex += 1;
+
+    instanceStack[instanceIndex] = elements;
     instanceStack.splice(instanceIndex + 1);
     updateRevertButtons();
     //    if (!instanceSaved) {
@@ -679,7 +687,8 @@ function encodeHtml(value) {
 /**
  * Replaces targetElement with the list of paths.
  * @targetElement jQuery selector to define the target element
- * @groupPath boolean - true if we want the grouped list, false if we want an ungrouped list (for the keyword search results)
+ * @groupPath boolean - true if we want the grouped list, false if we want an ungrouped list (for the keyword search
+ *     results)
  */
 function getPropertyPaths(targetElement, groupPaths) {
     $.ajax({
@@ -688,7 +697,7 @@ function getPropertyPaths(targetElement, groupPaths) {
         data: {groupPaths},
         complete(response, status) {
             $(targetElement).html(response.responseText);
-            if (status == 'error') {
+            if (status === 'error') {
                 setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
             } else {
                 updateWindowSize();
@@ -724,8 +733,8 @@ function updateScore() {
         url: `${editorUrl}/widgets/score`,
         complete(response, status) {
             $('#score-widget').html(response.responseText);
-            if (status == 'error') {
-                setTimeout('updateScore()', 2000);
+            if (status === 'error') {
+                setTimeout(updateScore, 2000);
             }
         },
     });
@@ -733,10 +742,11 @@ function updateScore() {
 
 function addEndpoints(boxId, boxClass) {
     var boxEndpoints = {};
-    // todo: instead of doing search() over the class string, maybe using something like $.hasClass would be more intuitive
+    // todo: instead of doing search() over the class string, maybe using something like $.hasClass would be more
+    // intuitive
     if (
-        boxClass.search(/aggregator/) != -1 ||
-        boxClass.search(/aggregate/) != -1
+        boxClass.search(/aggregator/) !== -1 ||
+        boxClass.search(/aggregate/) !== -1
     ) {
         boxEndpoints.left = jsPlumb.addEndpoint(
             boxId,
@@ -747,8 +757,8 @@ function addEndpoints(boxId, boxClass) {
             endpointSimilaritySource,
         );
     } else if (
-        boxClass.search(/comparator/) != -1 ||
-        boxClass.search(/compare/) != -1
+        boxClass.search(/comparator/) !== -1 ||
+        boxClass.search(/compare/) !== -1
     ) {
         // todo: these classes should be named consistently, not sometimes "compareDiv", and sometimes "comparators"
         boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
@@ -756,12 +766,12 @@ function addEndpoints(boxId, boxClass) {
             boxId,
             endpointSimilaritySource,
         );
-    } else if (boxClass.search(/transform/) != -1) {
+    } else if (boxClass.search(/transform/) !== -1) {
         boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
         boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
     } else if (
-        boxClass.search(/source/) != -1 ||
-        boxClass.search(/target/) != -1
+        boxClass.search(/source/) !== -1 ||
+        boxClass.search(/target/) !== -1
     ) {
         boxEndpoints.right = jsPlumb.addEndpoint(boxId, endpointValueSource);
     } else {

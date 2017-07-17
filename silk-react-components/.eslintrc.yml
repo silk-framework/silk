@@ -29,3 +29,4 @@ rules:
       bracketSpacing: false
       jsxBracketSameLine: true
       tabWidth: 4
+  no-plusplus: ["error", { "allowForLoopAfterthoughts": true }]

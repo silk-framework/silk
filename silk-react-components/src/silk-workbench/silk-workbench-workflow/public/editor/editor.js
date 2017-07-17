@@ -117,7 +117,7 @@ function WorkflowEditor() {
                     // Add endpoints
                     jsPlumb.addEndpoint(id, _this.styles.endpoints.source);
                     var inputCardinality = ui.helper.data().inputCardinality;
-                    if (inputCardinality == -1) {
+                    if (inputCardinality === -1) {
                         _this.handler.addDynamicEndpoint(id, 'dynamic_target');
                         // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                     } else {
@@ -156,10 +156,10 @@ function WorkflowEditor() {
 
         function deserializeWorkflowOperator(elementName, childClass) {
             xmlRoot.find(elementName).each(function() {
-                var xml = $(this);
-                var taskId = xml.attr('task');
-                var opId = xml.attr('id');
-                var outputPriority = xml.attr('outputPriority');
+                var currXML = $(this);
+                var taskId = currXML.attr('task');
+                var opId = currXML.attr('id');
+                var outputPriority = currXML.attr('outputPriority');
                 if (opId === undefined) {
                     opId = taskId;
                 }
@@ -176,8 +176,8 @@ function WorkflowEditor() {
                 box.attr('id', opId);
                 box.show();
                 box.css({
-                    top: `${xml.attr('posY')}px`,
-                    left: `${xml.attr('posX')}px`,
+                    top: `${currXML.attr('posY')}px`,
+                    left: `${currXML.attr('posX')}px`,
                     position: 'absolute',
                 });
                 box.appendTo(editorContent);
@@ -192,7 +192,7 @@ function WorkflowEditor() {
                 );
                 var inputCardinality = $(box).data().inputCardinality;
                 targetEndpoints[opId] = [];
-                if (inputCardinality == -1) {
+                if (inputCardinality === -1) {
                     targetEndpoints[opId].push(
                         _this.handler.addDynamicEndpoint(box, 'dynamic_target'),
                     );
@@ -218,18 +218,21 @@ function WorkflowEditor() {
             // Connect endpoints
             // Since operators are connected in both directions we only need to look at one direction, i.e. inputs.
             xmlRoot.find(elementName).each(function() {
-                var xml = $(this);
+                var currXML = $(this);
 
-                var taskId = xml.attr('id');
+                var taskId = currXML.attr('id');
                 // Connect inputs
                 var inputCardinality = $(`#${taskId}`).data().inputCardinality;
-                $.each(xml.attr('inputs').split(','), function(index, value) {
-                    if (value != '') {
+                $.each(currXML.attr('inputs').split(','), function(
+                    index,
+                    value,
+                ) {
+                    if (value !== '') {
                         jsPlumb.connect({
                             source: sourceEndpoints[value],
                             target: targetEndpoints[taskId][index],
                         });
-                        if (inputCardinality == -1) {
+                        if (inputCardinality === -1) {
                             // these are dynamic enpoints, so we need to get the last one and push it on the stack of
                             // endpoints for this taskId, to make it available in the next iteration of the loop
                             var openEndpoint = _this.handler.getOpenDynamicEndpoint(

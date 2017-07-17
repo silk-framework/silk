@@ -47,20 +47,17 @@ function updateFilter(filter) {
 }
 
 function updatePage(page) {
-    if (this.page != page) {
+    if (this.page !== page) {
         this.page = page;
         updateLinks(0);
     }
 }
 
-function updateLinks(timeout) {
-    if (timeout === undefined) {
-        timeout = 2000;
-    }
+function updateLinks(timeout = 2000) {
     $('#pending').show();
     clearTimeout(fid);
     if (timeout > 0) {
-        fid = setTimeout('reloadLinks()', timeout);
+        fid = setTimeout(reloadLinks, timeout);
     } else {
         reloadLinks();
     }
@@ -105,7 +102,7 @@ function initTrees() {
         .addClass('collapsable-hitarea');
 
     $('.confidencebar').each(function(index) {
-        var confidence = parseInt($(this).text());
+        var confidence = parseInt($(this).text(), 10);
 
         if (confidence >= 0) {
             $(this).progressbar({
