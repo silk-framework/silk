@@ -4,20 +4,22 @@
 
 import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
-import {Button, ContextMenu, MenuItem, ConfirmationDialog, Spinner, DisruptiveButton, DismissiveButton} from 'ecc-gui-elements';
+import {
+    Button,
+    ContextMenu,
+    MenuItem,
+    ConfirmationDialog,
+    Spinner,
+    DisruptiveButton,
+    DismissiveButton,
+} from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import _ from 'lodash';
-import {
-    RuleTypes,
-    SourcePath,
-    ThingName,
-    ThingIcon,
-} from './SharedComponents';
+import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
 
 const MappingRule = React.createClass({
-
     mixins: [UseMessageBus],
 
     // define property types
@@ -27,14 +29,13 @@ const MappingRule = React.createClass({
         type: React.PropTypes.string, // mapping type
         typeRules: React.PropTypes.array,
         mappingTarget: React.PropTypes.object,
-        //sourcePath: React.PropTypes.string, // it can be array or single string ...
+        // sourcePath: React.PropTypes.string, // it can be array or single string ...
         targetProperty: React.PropTypes.string,
         pattern: React.PropTypes.string,
         uriRule: React.PropTypes.object,
         parentId: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
-
     },
 
     // initilize state
@@ -48,19 +49,31 @@ const MappingRule = React.createClass({
     },
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
-        this.subscribe(hierarchicalMappingChannel.subject('rulesView.toggle'), ({expanded, id}) => {
-            // only trigger state / render change if necessary
-            if (
-                expanded !== this.state.expanded
-                && this.props.type !== 'object'
-                && (id === true || id === this.props.id)
-            ) {
-                this.setState({expanded});
-            }
-        });
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.change'), this.onOpenEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.close'), this.onCloseEdit);
-        this.subscribe(hierarchicalMappingChannel.subject('ruleView.discardAll'), this.discardAll);
+        this.subscribe(
+            hierarchicalMappingChannel.subject('rulesView.toggle'),
+            ({expanded, id}) => {
+                // only trigger state / render change if necessary
+                if (
+                    expanded !== this.state.expanded &&
+                    this.props.type !== 'object' &&
+                    (id === true || id === this.props.id)
+                ) {
+                    this.setState({expanded});
+                }
+            },
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject('ruleView.change'),
+            this.onOpenEdit,
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject('ruleView.close'),
+            this.onCloseEdit,
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject('ruleView.discardAll'),
+            this.discardAll,
+        );
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -78,7 +91,9 @@ const MappingRule = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleNavigate() {
-        hierarchicalMappingChannel.subject('ruleId.change').onNext({newRuleId: this.props.id, parent: this.props.parentId});
+        hierarchicalMappingChannel
+            .subject('ruleId.change')
+            .onNext({newRuleId: this.props.id, parent: this.props.parentId});
     },
     // show / hide additional row details
     handleToggleExpand() {
@@ -86,33 +101,35 @@ const MappingRule = React.createClass({
             this.setState({
                 askForDiscard: true,
             });
-        }
-        else this.setState({expanded: !this.state.expanded});
+        } else this.setState({expanded: !this.state.expanded});
     },
     discardAll() {
         this.setState({
             editing: false,
         });
     },
-    handleDiscardChanges(){
+    handleDiscardChanges() {
         this.setState({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id: this.props.id});
+        hierarchicalMappingChannel
+            .subject('ruleView.unchanged')
+            .onNext({id: this.props.id});
     },
     handleCancelDiscard() {
         this.setState({
             askForDiscard: false,
-        })
+        });
     },
 
-    handleMoveElement(id, pos, parentId, event){
+    handleMoveElement(id, pos, parentId, event) {
         this.setState({
             loading: true,
         });
         event.stopPropagation();
-        hierarchicalMappingChannel.request({topic: 'rule.orderRule', data: {id, pos, parentId}})
+        hierarchicalMappingChannel
+            .request({topic: 'rule.orderRule', data: {id, pos, parentId}})
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
@@ -120,16 +137,16 @@ const MappingRule = React.createClass({
                         loading: false,
                     });
                 },
-                (err) => {
+                err => {
                     // FIXME: let know the user what have happened!
                     this.setState({
                         loading: false,
                     });
-                }
+                },
             );
     },
     // template rendering
-    render () {
+    render() {
         const {
             id,
             type,
@@ -142,27 +159,29 @@ const MappingRule = React.createClass({
             count,
         } = this.props;
 
-        const loading = this.state.loading ? <Spinner/> : false;
+        const loading = this.state.loading ? <Spinner /> : false;
         const discardView = this.state.askForDiscard
             ? <ConfirmationDialog
-                active={true}
-                modal={true}
-                title="Discard changes?"
-                confirmButton={
-                    <DisruptiveButton disabled={false} onClick={this.handleDiscardChanges}>
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelDiscard}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                <p>You currently have unsaved changes.</p>
-            </ConfirmationDialog>
+                  active
+                  modal
+                  title="Discard changes?"
+                  confirmButton={
+                      <DisruptiveButton
+                          disabled={false}
+                          onClick={this.handleDiscardChanges}>
+                          Discard
+                      </DisruptiveButton>
+                  }
+                  cancelButton={
+                      <DismissiveButton onClick={this.handleCancelDiscard}>
+                          Cancel
+                      </DismissiveButton>
+                  }>
+                  <p>You currently have unsaved changes.</p>
+              </ConfirmationDialog>
             : false;
 
-        const mainAction = (event) => {
+        const mainAction = event => {
             if (type === 'object') {
                 this.handleNavigate();
             } else {
@@ -172,17 +191,26 @@ const MappingRule = React.createClass({
         };
         const action = (
             <Button
-                iconName={type === 'object' ? 'arrow_nextpage' : (this.state.expanded ? 'expand_less' : 'expand_more')}
+                iconName={
+                    type === 'object'
+                        ? 'arrow_nextpage'
+                        : this.state.expanded ? 'expand_less' : 'expand_more'
+                }
                 tooltip={type === 'object' ? 'Navigate to' : undefined}
                 onClick={mainAction}
             />
         );
 
         // TODO: enable real API structure
-        const errorInfo = (_.get(this.props, 'status[0].type', false) == 'error') ? _.get(this.props, 'status[0].message', false) : false;
+        const errorInfo =
+            _.get(this.props, 'status[0].type', false) == 'error'
+                ? _.get(this.props, 'status[0].message', false)
+                : false;
 
         const shortView = [
-            <div key={'hl1'} className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
+            <div
+                key={'hl1'}
+                className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
                 <ThingIcon
                     type={type}
                     status={_.get(this.props, 'status[0].type', false)}
@@ -195,100 +223,113 @@ const MappingRule = React.createClass({
                     {type} mapping
                 </div>,
             */
-            <div key={'sl2'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
-                <span className="hide-in-table">from</span> <SourcePath
-                    rule={
-                        {
-                            type,
-                            sourcePath: sourcePath || sourcePaths,
-                        }
-                    }
+            <div
+                key={'sl2'}
+                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
+                <span className="hide-in-table">from</span>{' '}
+                <SourcePath
+                    rule={{
+                        type,
+                        sourcePath: sourcePath || sourcePaths,
+                    }}
                 />
             </div>,
-            <div key={'sl3'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
-                <span className="hide-in-table">DataType:</span> <RuleTypes
-                    rule={
-                        {
-                            type,
-                            mappingTarget,
-                            rules,
-                        }
-                    }
+            <div
+                key={'sl3'}
+                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
+                <span className="hide-in-table">DataType:</span>{' '}
+                <RuleTypes
+                    rule={{
+                        type,
+                        mappingTarget,
+                        rules,
+                    }}
                 />
             </div>,
         ];
 
-        const expandedView = this.state.expanded ? (
-            (type === 'object' || type === 'root') ? (
-                <RuleObjectEdit
+        const expandedView = this.state.expanded
+            ? type === 'object' || type === 'root'
+              ? <RuleObjectEdit
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
                     parentId={parentId}
                     edit={false}
                 />
-            ) : (
-                <RuleValueEdit
+              : <RuleValueEdit
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}
                     parentId={parentId}
                     edit={false}
                 />
-            )
-        ) : false;
+            : false;
 
-        const reorderHandleButton = !this.state.expanded && __DEBUG__ ? (
-            <div
-                className="ecc-silk-mapping__ruleitem-reorderhandler"
-            >
-                <ContextMenu
-                    iconName="reorder"
-                    align='left'
-                    valign='top'
-                >
-                    <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, 0, parentId)}
-                    >
-                        Move to top
-                    </MenuItem>
-                    <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, Math.max(0, pos -1), parentId)}
-                    >
-                        Move up
-                    </MenuItem>
-                    <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, Math.min(pos + 1, count-1), parentId)}
-                    >
-                        Move down
-                    </MenuItem>
-                    <MenuItem
-                        onClick={this.handleMoveElement.bind(null, id, count - 1, parentId)}
-                    >
-                        Move to bottom
-                    </MenuItem>
-                </ContextMenu>
-            </div>
-        ) : false;
+        const reorderHandleButton =
+            !this.state.expanded && __DEBUG__
+                ? <div className="ecc-silk-mapping__ruleitem-reorderhandler">
+                      <ContextMenu iconName="reorder" align="left" valign="top">
+                          <MenuItem
+                              onClick={this.handleMoveElement.bind(
+                                  null,
+                                  id,
+                                  0,
+                                  parentId,
+                              )}>
+                              Move to top
+                          </MenuItem>
+                          <MenuItem
+                              onClick={this.handleMoveElement.bind(
+                                  null,
+                                  id,
+                                  Math.max(0, pos - 1),
+                                  parentId,
+                              )}>
+                              Move up
+                          </MenuItem>
+                          <MenuItem
+                              onClick={this.handleMoveElement.bind(
+                                  null,
+                                  id,
+                                  Math.min(pos + 1, count - 1),
+                                  parentId,
+                              )}>
+                              Move down
+                          </MenuItem>
+                          <MenuItem
+                              onClick={this.handleMoveElement.bind(
+                                  null,
+                                  id,
+                                  count - 1,
+                                  parentId,
+                              )}>
+                              Move to bottom
+                          </MenuItem>
+                      </ContextMenu>
+                  </div>
+                : false;
 
         return (
-            <li className={
-                    "ecc-silk-mapping__ruleitem mdl-list__item " +
-                    (type === 'object' ? 'ecc-silk-mapping__ruleitem--object' : 'ecc-silk-mapping__ruleitem--literal') +
-                    (this.state.expanded ? ' ecc-silk-mapping__ruleitem--expanded' : ' ecc-silk-mapping__ruleitem--summary') +
-                    (errorInfo ? ' ecc-silk-mapping__ruleitem--defect' : '')
-                }
-            >
+            <li
+                className={`ecc-silk-mapping__ruleitem mdl-list__item ${type ===
+                'object'
+                    ? 'ecc-silk-mapping__ruleitem--object'
+                    : 'ecc-silk-mapping__ruleitem--literal'}${this.state
+                    .expanded
+                    ? ' ecc-silk-mapping__ruleitem--expanded'
+                    : ' ecc-silk-mapping__ruleitem--summary'}${errorInfo
+                    ? ' ecc-silk-mapping__ruleitem--defect'
+                    : ''}`}>
                 {discardView}
                 {loading}
                 {reorderHandleButton}
                 <div
-                    className={
-                        'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content' +
-                        (this.state.expanded ? '' : ' clickable')
-                    }
-                    onClick={this.state.expanded ? null : mainAction}
-                >
+                    className={`mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content${this
+                        .state.expanded
+                        ? ''
+                        : ' clickable'}`}
+                    onClick={this.state.expanded ? null : mainAction}>
                     {this.state.expanded ? expandedView : shortView}
                 </div>
                 <div className="mdl-list__item-secondary-content" key="action">

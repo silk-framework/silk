@@ -1,0 +1,31 @@
+extends:
+  - airbnb
+  - plugin:react/recommended
+  - prettier
+  - prettier/react
+plugins:
+  - react
+  - jsx-a11y
+  - import
+  - prettier
+env:
+  browser: true
+  es6: true
+  node: true
+parser: babel-eslint
+globals:
+  __DEBUG__: true
+  __WEBPACK__: true
+  __VERSION__: true
+parserOptions:
+   ecmaFeatures:
+     # enable JSX support
+       jsx: true
+rules:
+  prettier/prettier:
+    - error
+    - singleQuote: true
+      trailingComma: all
+      bracketSpacing: false
+      jsxBracketSameLine: true
+      tabWidth: 4

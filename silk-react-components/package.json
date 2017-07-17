@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint 'src/**/*'",
-    "lintfix": "eslint 'src/**/*' --fix",
+    "eslint-check": "eslint --print-config .eslintrc.yml && eslint --print-config .eslintrc.yml | eslint-config-prettier-check",
+    "lint": "eslint 'src/**/*.{js,jsx}'",
+    "lint-fix": "eslint 'src/**/*.{js,jsx}' --fix",
     "start": "gulp",
     "build": "gulp build",
     "deploy": "gulp deploy"
@@ -39,9 +40,18 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
     "ecc-gulp-tasks": "^3.7.0",
     "ecc-license-checker": "^2.5.2",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.2",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-prettier": "^2.1.2",
+    "eslint-plugin-react": "^7.1.0",
     "gulp": "^3.9.1",
-    "lorem-ipsum": "^1.0.4"
+    "lorem-ipsum": "^1.0.4",
+    "prettier": "^1.5.3"
   }
 }
