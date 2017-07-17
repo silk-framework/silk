@@ -1,8 +1,10 @@
 'use strict';
 
-/**
- * The Javascript for the status.scala.html template.
- */
+/* global highlightElement:true */
+
+if (!highlightElement) {
+    throw new Error('status.js must be imported after editor.js');
+}
 
 /**
  * Displays messages.
@@ -15,10 +17,10 @@ function updateStatus(messages) {
     $('#error-tooltip').append(printMessages(messages));
 
     var errorCount = messages.filter(function (msg) {
-        return msg.type == 'Error';
+        return msg.type === 'Error';
     }).length;
     var warningCount = messages.filter(function (msg) {
-        return msg.type == 'Warning';
+        return msg.type === 'Warning';
     }).length;
 
     if (errorCount > 0) {
@@ -58,7 +60,7 @@ function printMessages(array) {
     for (var i = 0; i < array.length; i++) {
         result = result + '<div class="msg">' + c + '. ' + encodeHtml(array[i].message) + '</div>';
         if (array[i].id) highlightElement(array[i].id, encodeHtml(array[i].message));
-        c++;
+        c += 1;
     }
     return result;
 }

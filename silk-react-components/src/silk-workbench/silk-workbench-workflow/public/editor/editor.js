@@ -72,11 +72,8 @@ function WorkflowEditor() {
                         var taskId = boxId.substring(boxId.indexOf('_') + 1);
                         var suffix = '';
                         // Count up if element id already exists
-                        if (counter > 1) {
-                            operatorId = taskId + counter;
-                        } else {
-                            operatorId = taskId;
-                        }
+                        var operatorId =
+                            counter > 1 ? taskId + counter : taskId;
                         while ($(`#${operatorId}`).length > 0) {
                             // Count up because an operator with this id already exists
                             counter += 1;
@@ -122,7 +119,7 @@ function WorkflowEditor() {
                         // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                     } else {
                         var endpoints = [];
-                        for (index = 0; index < inputCardinality; index++) {
+                        for (var index = 0; index < inputCardinality; index++) {
                             endpoints.push(
                                 jsPlumb.addEndpoint(
                                     id,
@@ -198,7 +195,7 @@ function WorkflowEditor() {
                     );
                     // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                 } else {
-                    for (index = 0; index < inputCardinality; index++) {
+                    for (var index = 0; index < inputCardinality; index++) {
                         targetEndpoints[opId].push(
                             jsPlumb.addEndpoint(
                                 box,

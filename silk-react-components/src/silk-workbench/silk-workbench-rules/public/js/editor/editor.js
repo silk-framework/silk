@@ -12,20 +12,15 @@
  * limitations under the License.
  */
 
-var aggregatecounter = 0;
-var transformcounter = 0;
-var comparecounter = 0;
-var sourcecounter = 0;
-var elementcounter = 0;
+/* global inEditorEnv:true */
+// TODO: check why inEditorEnv is needed, what it does
+/* global ruleIndex:true,serializationFunction:true,editorUrl  */
+// The above rules depend on linkingEditor vs transformEditor
+// serializationFunction depends on which serializationRule is actually set
+/* global showPendingIcon:true,updateStatus:true  */
+// TODO: showPendingIcon comes from status.js, check why we do not merge the two
+
 var numberElements = 0;
-
-var transformations = {};
-var comparators = {};
-var aggregators = {};
-
-var sources = [];
-var targets = [];
-var boxes = [];
 
 var cycleFound = false;
 

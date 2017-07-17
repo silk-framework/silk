@@ -1,3 +1,9 @@
+/* global modifyLinkSpec:true */
+
+if (!modifyLinkSpec) {
+    throw new Error('editableLabel.js depends on editor.js, please import it');
+}
+
 var defaultText = 'operator_id';
 
 function endEdit(e) {

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/* eslint-disable no-shadow */
+// TODO: Fix, check if this even works with this.path !?
+
 var path;
 var linkType;
 var sorting = 'unsorted';
@@ -49,20 +52,19 @@ function updateFilter(filter) {
 }
 
 function updatePage(page) {
-    if (this.page != page) {
+    if (this.page !== page) {
         this.page = page;
         updateLinks(0);
     }
 }
 
-function updateLinks(timeout) {
-    if (timeout === undefined) {
-        timeout = 2000;
-    }
+function updateLinks() {
+    var timeout = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 2000;
+
     $('#pending').show();
     clearTimeout(fid);
     if (timeout > 0) {
-        fid = setTimeout('reloadLinks()', timeout);
+        fid = setTimeout(reloadLinks, timeout);
     } else {
         reloadLinks();
     }
@@ -101,7 +103,7 @@ function initTrees() {
     $('div.expandable-hitarea').removeClass('expandable-hitarea').addClass('collapsable-hitarea');
 
     $('.confidencebar').each(function (index) {
-        var confidence = parseInt($(this).text());
+        var confidence = parseInt($(this).text(), 10);
 
         if (confidence >= 0) {
             $(this).progressbar({

@@ -1,6 +1,8 @@
-/**
- * The Javascript for the status.scala.html template.
- */
+/* global highlightElement:true */
+
+if (!highlightElement) {
+    throw new Error('status.js must be imported after editor.js');
+}
 
 /**
  * Displays messages.

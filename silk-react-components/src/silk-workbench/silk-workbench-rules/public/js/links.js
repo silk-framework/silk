@@ -12,6 +12,9 @@
  * limitations under the License.
  */
 
+/* eslint-disable no-shadow */
+// TODO: Fix, check if this even works with this.path !?
+
 var path;
 var linkType;
 var sorting = 'unsorted';

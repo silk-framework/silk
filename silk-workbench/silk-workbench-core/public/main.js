@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* global dialogPolyfill:true, dialog:true, componentHandler: true */
+
 /**
  * Global JavaScript functions.
  */
