@@ -44,7 +44,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def select(sparql: String, limit: Int): SilkResultSet = {
+  override def select(sparql: String, limit: Int): SilkResultSet = synchronized {
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
     // Execute query
@@ -61,7 +61,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes a construct query.
     */
-  override def construct(query: String): String = {
+  override def construct(query: String): String = synchronized {
     val qe = createQueryExecution(query)
     try {
       val resultModel = qe.execConstruct()
@@ -77,7 +77,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes an update query.
     */
-  override def update(query: String): Unit = {
+  override def update(query: String): Unit = synchronized {
     createUpdateExecution(query).execute()
   }
 

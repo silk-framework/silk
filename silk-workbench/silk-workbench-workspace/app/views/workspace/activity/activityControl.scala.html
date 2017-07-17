@@ -4,12 +4,14 @@
 
 @(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
 
-<div id="@id(project, task.getOrElse(""), activity)" class="activity-control">
+<div id="@id("progress_")" class="activity-control">
 
   @if(showProgressBar) {
-    <div class="activity-progress">
+    <div id="@id("progressbar_")" class="activity-progress">
       <div class="activity-progress-text"></div>
       <img class="activity-progress-help" src="@Assets.at("img/help.png")"/>
+    </div>
+    <div class="mdl-tooltip" for="@id("progressbar_")">
     </div>
   }
 
@@ -47,6 +49,7 @@
     // Get control node
     var control = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
     var progressbar = control.children(".activity-progress");
+    var tooltip = control.children(".mdl-tooltip");
 
     // Initialize progress bar
     if(progressbar.find(".ui-progressbar-value").length == 0) {
@@ -59,7 +62,7 @@
     var progressbarHelp = progressbar.find(".activity-progress-help");
 
     // Update values
-    progressbar.attr('title', status.message);
+    tooltip.text(status.message);
     if(status.failed) {
       progressbar.progressbar("option", {value: 100});
       progressbarValue.css({
@@ -130,6 +133,6 @@
 
 <div id="activity_control_wrapper" style="display: none"/>
 
-@id(project: String, task: String, activity: String) = @{
-  "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
+@id(prefix: String) = @{
+  prefix + project + "_" + task.getOrElse("") + "_" + helper.urlEncode(activity)
 }

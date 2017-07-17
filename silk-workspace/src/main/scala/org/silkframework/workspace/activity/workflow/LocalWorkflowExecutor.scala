@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
@@ -142,7 +142,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ex: WorkflowException =>
         throw ex
       case NonFatal(ex) =>
-        log.warning("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId)
+        log.log(Level.WARNING, "Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId, ex)
         throw WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
           ". Cause: " + ex.getMessage, Some(ex))
     }

@@ -92,9 +92,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
     // Update data
     currentData = newData
+    for(md <- newMetaData) {
+      currentMetaData = md
+    }
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
@@ -104,17 +107,17 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
-    * Updates the meta data of this task.
+    * Flushes this project task. i.e., the data of this task is written to the workspace provider immediately.
+    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
+    * This method forces the writing and returns after all data has been written.
     */
-  def update(metaData: MetaData): Unit = synchronized {
-    // Update data
-    currentMetaData = metaData
-    // (Re)Schedule write
+  def flush(): Unit = synchronized {
+    // Cancel any scheduled writer
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
-    log.info("Updated task '" + id + "'")
+    // Write now
+    Writer.run()
   }
 
   /**
@@ -172,8 +175,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        activity.control.cancel()
-        activity.control.start()
+        if(!activity.control.status().isRunning)
+          activity.control.start()
       }
     }
   }
@@ -186,7 +189,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
-  private val writeInterval = 5
+  private val writeInterval = 3
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 }

@@ -24,6 +24,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   private val logger = Logger.getLogger(classOf[Workspace].getName)
 
+  @volatile
   private var cachedProjects = loadProjects()
 
   def projects: Seq[Project] = cachedProjects
@@ -88,9 +89,25 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   /**
+    * Flushes this workspace. i.e., all task data is written to the workspace provider immediately.
+    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
+    * This method forces the writing and returns after all data has been written.
+    */
+  def flush(): Unit = {
+    for {
+      project <- projects
+      task <- project.allTasks
+    } {
+      task.flush()
+    }
+  }
+
+  /**
     * Reloads this workspace.
     */
   def reload() {
+    // Write all data
+    flush()
     // Stop all activities
     for{ project <- projects
          activity <- project.activities } {

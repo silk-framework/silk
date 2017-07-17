@@ -5,7 +5,7 @@ import org.silkframework.dataset.rdf.{ClearableDatasetGraphTrait, EntityRetrieve
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
-@Plugin(id = "sparqlEndpoint", label = "SPARQL Endpoint", description = "Dataset which retrieves all entities from a SPARQL endpoint")
+@Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
   @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
   endpointURI: String,

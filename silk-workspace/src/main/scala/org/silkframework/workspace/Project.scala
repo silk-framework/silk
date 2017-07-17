@@ -213,9 +213,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
     module[T].taskOption(name) match {
       case Some(task) =>
-        task.update(taskData)
-        task.update(metaData)
-      case None => addTask[T](name, taskData, metaData)
+        task.update(taskData, Some(metaData))
+      case None =>
+        addTask[T](name, taskData, metaData)
     }
   }
 

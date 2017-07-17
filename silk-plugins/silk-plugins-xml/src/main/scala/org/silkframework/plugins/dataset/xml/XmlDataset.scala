@@ -6,7 +6,7 @@ import org.silkframework.runtime.resource.{WritableResource, Resource}
 
 @Plugin(
   id = "xml",
-  label = "XML",
+  label = "XML file",
   description =
 """Retrieves all entities from an xml file.""",
   documentation =

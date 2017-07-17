@@ -7,7 +7,7 @@ import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "alignment",
-  label = "Alignment",
+  label = "Alignment file",
   description =
     """ Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
 )
