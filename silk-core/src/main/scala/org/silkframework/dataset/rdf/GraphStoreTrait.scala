@@ -1,7 +1,7 @@
 package org.silkframework.dataset.rdf
 
 import java.io.{InputStream, OutputStream}
-import java.net.{HttpURLConnection, SocketTimeoutException, URL}
+import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
@@ -31,8 +31,9 @@ trait GraphStoreTrait {
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
-                      chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
-    val connection: HttpURLConnection = initConnection(graph)
+                      chunkedStreamingMode: Option[Int] = Some(1000),
+                      comment: Option[String] = None): OutputStream = {
+    val connection: HttpURLConnection = initConnection(graph, comment)
     connection.setDoInput(true)
     connection.setDoOutput(true)
     chunkedStreamingMode foreach { connection.setChunkedStreamingMode }
@@ -49,8 +50,11 @@ trait GraphStoreTrait {
     }
   }
 
-  private def initConnection(graph: String): HttpURLConnection = {
-    val graphStoreUrl = graphStoreEndpoint(graph)
+  private def initConnection(graph: String, comment: Option[String] = None): HttpURLConnection = {
+    var graphStoreUrl = graphStoreEndpoint(graph)
+    for(c <- comment) {
+      graphStoreUrl += "&comment=" + URLEncoder.encode(c, "UTF8")
+    }
     val url = new URL(graphStoreUrl)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
