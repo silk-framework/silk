@@ -20,7 +20,7 @@ case class RdfInMemoryDataset(data: String,
                               format: String,
                               @Param(label = "Clear graph before workflow execution",
                                 value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-                              clearBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
+                              clearBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
 
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)
@@ -35,12 +35,12 @@ case class RdfInMemoryDataset(data: String,
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override val entitySink: EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override val entitySink: EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
 
-  override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
 }

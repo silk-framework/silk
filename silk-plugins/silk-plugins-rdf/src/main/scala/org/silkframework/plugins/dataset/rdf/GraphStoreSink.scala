@@ -18,7 +18,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           graphUri: String,
                           formatterOpt: Option[RdfFormatter],
                           comment: Option[String],
-                          clearGraph: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          dropGraphOnClear: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+
   private var properties = Seq[TypedProperty]()
   private var output: Option[BufferedOutputStream] = None
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
@@ -90,7 +91,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def clear(): Unit = {
-    if(clearGraph) {
+    if(dropGraphOnClear) {
       graphStore.deleteGraph(graphUri)
     }
   }

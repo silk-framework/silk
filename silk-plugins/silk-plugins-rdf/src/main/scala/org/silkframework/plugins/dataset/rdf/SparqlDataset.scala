@@ -33,7 +33,7 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
+  clearGraphBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(
@@ -57,9 +57,9 @@ case class SparqlDataset(
 
   override val source = new SparqlSource(params, sparqlEndpoint)
 
-  override val linkSink = new SparqlSink(params, sparqlEndpoint)
+  override val linkSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override val entitySink = new SparqlSink(params, sparqlEndpoint)
+  override val entitySink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint)
+  override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }

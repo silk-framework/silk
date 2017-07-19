@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
 @Plugin(id = "inMemory", label = "in-memory", description = "A Dataset that holds all data in-memory.")
 case class InMemoryDataset(@Param(label = "Clear graph before workflow execution",
                                   value = "If set to true this will clear this dataset before it is used in a workflow execution.")
-                           clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
+                           clearGraphBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
 
   private val model = ModelFactory.createDefaultModel()
 
@@ -23,12 +23,12 @@ case class InMemoryDataset(@Param(label = "Clear graph before workflow execution
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override val entitySink: EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override val entitySink: EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
+  override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }
