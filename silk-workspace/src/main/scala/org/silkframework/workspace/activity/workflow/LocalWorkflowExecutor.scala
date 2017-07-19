@@ -4,7 +4,6 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.ClearableDatasetGraphTrait
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
@@ -66,14 +65,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     // Clear all internal datasets and input datasets that are configured so
     for (datasetTask <- workflow.outputDatasets(project)) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      usedDatasetTask.data match {
-        case cdd: ClearableDatasetGraphTrait =>
-          if(cdd.clearGraphBeforeExecution) {
-            cdd.clearGraph()
-          }
-        case idd: Dataset =>
-          idd.entitySink.clear()
-      }
+      usedDatasetTask.data.entitySink.clear()
     }
   }
 

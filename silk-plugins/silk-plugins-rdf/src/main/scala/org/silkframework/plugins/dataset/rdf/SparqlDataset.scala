@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
-import org.silkframework.dataset.rdf.{ClearableDatasetGraphTrait, EntityRetrieverStrategy, RdfDataset, SparqlParams}
+import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
@@ -33,7 +33,7 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset with ClearableDatasetGraphTrait {
+  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(
@@ -62,9 +62,4 @@ case class SparqlDataset(
   override val entitySink = new SparqlSink(params, sparqlEndpoint)
 
   override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint)
-
-  /**
-    * The graph of the dataset that will be cleared when calling clearGraph.
-    */
-  override def graphToClear: String = graph
 }

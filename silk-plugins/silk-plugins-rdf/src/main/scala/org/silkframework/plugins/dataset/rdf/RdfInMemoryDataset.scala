@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import java.io.StringReader
 
 import com.hp.hpl.jena.rdf.model.ModelFactory
-import org.silkframework.dataset.rdf.{ClearableDatasetGraphTrait, RdfDataset, SparqlEndpoint, SparqlParams}
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.plugin.{Param, Plugin}
@@ -20,7 +20,7 @@ case class RdfInMemoryDataset(data: String,
                               format: String,
                               @Param(label = "Clear graph before workflow execution",
                                 value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-                              clearBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset with ClearableDatasetGraphTrait {
+                              clearBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
 
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)
@@ -43,8 +43,4 @@ case class RdfInMemoryDataset(data: String,
   override val linkSink: LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
 
   override def tripleSink: TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint)
-
-  override def graphToClear: String = "ignored"
-
-  override def clearGraphBeforeExecution: Boolean = clearBeforeExecution
 }
