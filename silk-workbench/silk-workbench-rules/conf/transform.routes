@@ -32,10 +32,10 @@ PUT           /tasks/:project/:task/rule/:rule                                  
 DELETE        /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.deleteRule(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/rule/:rule/rules                               controllers.transform.TransformTaskApi.appendRule(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/rule/:rule/rules/reorder                       controllers.transform.TransformTaskApi.reorderRules(project: String, task: String, rule: String)
-
 POST          /tasks/:project/:task/reloadCache                                    controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
-POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.TransformTaskApi.peakIntoTransformRule(project: String, task: String, rule: String)
+
+POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String)
 
 GET           /tasks/:project/:task/rule/:rule/completions/sourcePaths             controllers.transform.AutoCompletionApi.sourcePaths(project: String, task: String, rule: String, term ?= "", maxResults: Int ?= 30)
 GET           /tasks/:project/:task/rule/:rule/completions/targetTypes             controllers.transform.AutoCompletionApi.targetTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)

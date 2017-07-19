@@ -12,10 +12,10 @@ import org.silkframework.util.Uri
 /**
   *
   */
-class TransformExampleApiTest extends FlatSpec with MustMatchers {
+class PeakTransformApiTest extends FlatSpec with MustMatchers {
   behavior of "TransformTask API"
 
-  val transformTaskApi = new TransformTaskApi()
+  val transformTaskApi = new PeakTransformApi()
 
   implicit val schema = EntitySchema(Uri("type"), IndexedSeq(Path("a").asStringTypedPath, Path("b").asStringTypedPath))
 
