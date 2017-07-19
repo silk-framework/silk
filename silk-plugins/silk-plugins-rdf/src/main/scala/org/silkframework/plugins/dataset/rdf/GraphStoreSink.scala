@@ -17,7 +17,8 @@ import org.silkframework.util.Uri
 case class GraphStoreSink(graphStore: GraphStoreTrait,
                           graphUri: String,
                           formatterOpt: Option[RdfFormatter],
-                          comment: Option[String]) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          comment: Option[String],
+                          clearGraph: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
   private var properties = Seq[TypedProperty]()
   private var output: Option[BufferedOutputStream] = None
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
@@ -89,7 +90,9 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def clear(): Unit = {
-    graphStore.deleteGraph(graphUri)
+    if(clearGraph) {
+      graphStore.deleteGraph(graphUri)
+    }
   }
 
   override def close(): Unit = {
