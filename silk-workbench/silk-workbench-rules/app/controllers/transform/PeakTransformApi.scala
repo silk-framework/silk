@@ -39,15 +39,15 @@ class PeakTransformApi extends Controller {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val (entityDescription, rule) = transformSpec.oneRuleEntitySchemaById(ruleName) match {
+            val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName) match {
               case Success(tuple) =>
                 tuple
               case Failure(ex) =>
                 throw ex
             }
             try {
-              val exampleEntities = peakDataSource.peak(entityDescription, maxTryEntities)
-              generateMappingPreviewResponse(rule, exampleEntities, limit)
+              val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
+              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
             } catch {
               case pe: PeakException =>
                 Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +

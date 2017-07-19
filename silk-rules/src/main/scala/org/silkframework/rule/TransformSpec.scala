@@ -121,43 +121,18 @@ case class TransformSpec(selection: DatasetSelection,
   }
 
   /** Return an entity schema for one specific rule of the transform specification */
-  def oneRuleEntitySchema(rule: TransformRule,
-                          subPath: Path,
-                          typeUri: Option[String] = None,
-                          restriction: Restriction = Restriction.empty): EntitySchema = {
-    entitySchema(rule.paths.distinct, subPath, typeUri, restriction)
-  }
-
-  def entitySchema(paths: Seq[Path],
-                   subPath: Path,
-                   typeUri: Option[String] = None,
-                   restriction: Restriction = Restriction.empty): EntitySchema = {
-    EntitySchema(
-      typeUri = Uri(typeUri.getOrElse("")),
-      typedPaths = paths.map(_.asStringTypedPath).toIndexedSeq,
-      filter = restriction,
-      subPath = subPath
-    )
-  }
-
-  /** Return an entity schema for one specific rule of the transform specification */
   def oneRuleEntitySchemaById(ruleId: String,
                               typeUri: Option[String] = None,
-                              restriction: Restriction = Restriction.empty): Try[(EntitySchema, TransformRule)] = {
+                              restriction: Restriction = Restriction.empty): Try[RuleSchemata] = {
     Try {
-      nestedRuleAndSourcePath(ruleId) match {
-        case Some((rule, subPathOps)) =>
-          (oneRuleEntitySchema(rule, Path(subPathOps), typeUri, restriction), rule)
+      ruleSchemata.find(_.transformRule.id == ruleId) match {
+        case Some(ruleSchemata) =>
+          ruleSchemata
         case None =>
-          val ruleIds = validRuleNames(mappingRule).sorted.mkString(", ")
+          val ruleIds = ruleSchemata.map(_.transformRule.id).sorted.mkString(", ")
           throw new NotFoundException(s"No rule with ID '$ruleId' found! Value rule IDs: $ruleIds")
       }
     }
-  }
-
-  def validRuleNames(mappingRule: TransformRule): List[String] = {
-    val childRuleNames = mappingRule.rules.map(validRuleNames).foldLeft(List.empty[String])((l, ruleNames) => ruleNames ::: l)
-    mappingRule.id :: childRuleNames
   }
 
   case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema)
