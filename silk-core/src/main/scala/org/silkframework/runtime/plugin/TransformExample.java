@@ -1,4 +1,4 @@
-package org.silkframework.rule.input;
+package org.silkframework.runtime.plugin;
 
 import java.lang.annotation.*;
 

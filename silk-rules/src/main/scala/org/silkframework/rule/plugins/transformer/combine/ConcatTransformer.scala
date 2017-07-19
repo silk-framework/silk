@@ -14,8 +14,8 @@
 
 package org.silkframework.rule.plugins.transformer.combine
 
-import org.silkframework.rule.input.{TransformExample, TransformExamples, Transformer}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "concat",

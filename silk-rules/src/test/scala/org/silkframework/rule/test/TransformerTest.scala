@@ -1,8 +1,8 @@
 package org.silkframework.rule.test
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.input.{TransformExample, Transformer}
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.{PluginDescription, TransformExample}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.StringUtils.DoubleLiteral
 
