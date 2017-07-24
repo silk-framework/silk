@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+/* global contentWidth:true */
+
 /* eslint-disable no-shadow */
 // TODO: Fix, check if this even works with this.path !?
+console.warn(undefined);
 
 var path;
 var linkType;
@@ -26,6 +29,10 @@ var page;
 var fid;
 contentWidthCallback = updateResultsWidth;
 
+/* exported initLinks
+silk-workbench/silk-workbench-rules/app/views/generateLinks/generateLinks.scala.html
+silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
+ */
 function initLinks(path, linkType) {
     this.path = path;
     this.linkType = linkType;
@@ -36,16 +43,26 @@ function initLinks(path, linkType) {
     });
 }
 
+/* exported updateLinkType
+silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
+ */
 function updateLinkType(linkType) {
     this.linkType = linkType;
     updateLinks(0);
 }
 
+/* exported updateSorting
+silk-workbench/silk-workbench-rules/app/views/widgets/linksTable.scala.html
+ */
 function updateSorting(sorting) {
     this.sorting = sorting;
     updateLinks(1000);
 }
 
+/* exported updateFilter
+silk-workbench/silk-workbench-rules/app/views/generateLinks/generateLinks.scala.html
+silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
+ */
 function updateFilter(filter) {
     this.filter = filter;
     updateLinks(1000);
@@ -81,11 +98,14 @@ function reloadLinks() {
     });
 }
 
-function handlePaginationClick(new_page_index, pagination_container) {
+function handlePaginationClick(new_page_index) {
     updatePage(new_page_index);
     return false;
 }
 
+/* exported initPagination
+silk-workbench/silk-workbench-rules/app/views/widgets/linksTable.scala.html
+ */
 function initPagination(number_results) {
     $('.navigation').pagination(number_results, {
         items_per_page: 100,
@@ -102,7 +122,7 @@ function initTrees() {
     $('li.lastExpandable').removeClass('lastExpandable').addClass('lastCollapsable');
     $('div.expandable-hitarea').removeClass('expandable-hitarea').addClass('collapsable-hitarea');
 
-    $('.confidencebar').each(function (index) {
+    $('.confidencebar').each(function () {
         var confidence = parseInt($(this).text(), 10);
 
         if (confidence >= 0) {
@@ -130,6 +150,10 @@ function toggleLinkDetails(linkid) {
     }
 }
 
+/* exported expand_all hide_all
+silk-workbench/silk-workbench-rules/app/views/generateLinks/generateLinks.scala.html
+silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
+ */
 function expand_all() {
     $('.link-details').show();
 }
@@ -146,7 +170,7 @@ function updateResultsWidth() {
     $('.middle').width(contentWidth - 480);
     $('#wrapper').width(contentWidth - 54);
 
-    $('.link-source > a, .link-target > a').each(function (index) {
+    $('.link-source > a, .link-target > a').each(function () {
         if ($(this).width() > new_links_width) {
             $(this).css('float', 'right');
         } else {
@@ -163,12 +187,15 @@ $(function () {
     });
 });
 
+/* exported deleteLink
+silk-workbench/silk-workbench-rules/app/views/widgets/linkButtons.scala.html
+ */
 function deleteLink(id, source, target) {
     $.ajax({
         type: 'DELETE',
         url: apiUrl + '?source=' + source + '&target=' + target,
         data: '',
-        success: function success(response) {
+        success: function success() {
             $('#' + id).remove();
         },
         error: function error(request) {
@@ -177,12 +204,15 @@ function deleteLink(id, source, target) {
     });
 }
 
+/* exported resetLink
+silk-workbench/silk-workbench-rules/app/views/widgets/linkButtons.scala.html
+ */
 function resetLink(id, source, target) {
     $.ajax({
         type: 'DELETE',
         url: apiUrl + '?source=' + source + '&target=' + target,
         data: '',
-        success: function success(response) {
+        success: function success() {
             $('#confirmedLink' + id).hide();
             $('#declinedLink' + id).hide();
             $('#undecidedLink' + id).show();
@@ -193,12 +223,15 @@ function resetLink(id, source, target) {
     });
 }
 
+/* exported addPositiveLink
+silk-workbench/silk-workbench-rules/app/views/widgets/linkButtons.scala.html
+ */
 function addPositiveLink(id, source, target) {
     $.ajax({
         type: 'PUT',
         url: apiUrl + '?linkType=positive&source=' + source + '&target=' + target,
         data: '',
-        success: function success(response) {
+        success: function success() {
             $('#confirmedLink' + id).show();
             $('#declinedLink' + id).hide();
             $('#undecidedLink' + id).hide();
@@ -209,12 +242,15 @@ function addPositiveLink(id, source, target) {
     });
 }
 
+/* exported addNegativeLink
+silk-workbench/silk-workbench-rules/app/views/widgets/linkButtons.scala.html
+ */
 function addNegativeLink(id, source, target) {
     $.ajax({
         type: 'PUT',
         url: apiUrl + '?linkType=negative&source=' + source + '&target=' + target,
         data: '',
-        success: function success(response) {
+        success: function success() {
             $('#confirmedLink' + id).hide();
             $('#declinedLink' + id).show();
             $('#undecidedLink' + id).hide();

@@ -31,6 +31,9 @@ var reverting = false;
 
 var instanceStack = [];
 var instanceIndex = -1;
+
+// TODO: Potentially unused
+// eslint-disable-next-line
 var instanceSaved = false;
 
 var confirmOnExit = false;
@@ -177,25 +180,25 @@ function initEditor() {
     }
 
     // Delete connections on clicking them
-    jsPlumb.bind('click', function (conn, originalEvent) {
+    jsPlumb.bind('click', function (conn) {
         jsPlumb.detach(conn);
     });
 
     // Update whenever a new connection has been established
-    jsPlumb.bind('connection', function (info) {
+    jsPlumb.bind('connection', function () {
         modifyLinkSpec();
     });
 
     // Update whenever a connection has been removed
-    jsPlumb.bind('connectionDetached', function (info) {
+    jsPlumb.bind('connectionDetached', function () {
         modifyLinkSpec();
     });
 
     // Update whenever a parameter has been changed
-    $(document).on('change', "input[type!='text']", function (info) {
+    $(document).on('change', "input[type!='text']", function () {
         modifyLinkSpec();
     });
-    $(document).on('keyup', "input[type='text'].param_value", function (info) {
+    $(document).on('keyup', "input[type='text'].param_value", function () {
         modifyLinkSpec();
     });
 
@@ -403,12 +406,12 @@ function validateLinkSpec() {
             processData: false,
             data: serializationFunction(),
             dataType: 'json',
-            success: function success(response) {
+            success: function success() {
                 updateEditorStatus([]);
                 updateScore();
                 confirmOnExit = false;
             },
-            error: function error(req, textStatus, errorThrown) {
+            error: function error(req) {
                 console.log('Error committing rule: ' + req.responseText);
                 updateEditorStatus(req.responseJSON.issues);
             }
@@ -433,10 +436,10 @@ function updateEditorStatus(messages) {
 }
 
 function highlightElements(messages) {
-    var c = 1;
     for (var i = 0; i < messages.length; i++) {
-        if (messages[i].id) highlightElement(messages[i].id, encodeHtml(messages[i].message));
-        c += 1;
+        if (messages[i].id) {
+            highlightElement(messages[i].id, encodeHtml(messages[i].message));
+        }
     }
 }
 
@@ -482,6 +485,9 @@ Array.max = function (array) {
     return Math.max.apply(Math, array);
 };
 
+/* exported removeElement
+silk-workbench/silk-workbench-rules/app/views/editor/operatorBox.scala.html
+ */
 function removeElement(elementId) {
     // We need to set a time-out here as a element should not remove its own parent in its event handler
     setTimeout(function () {
@@ -525,6 +531,10 @@ function updateWindowSize() {
     }
 }
 
+/* exported undo, redo, reloadPropertyPaths
+silk-workbench/silk-workbench-rules/app/views/editor/linkingEditor.scala.html
+silk-workbench/silk-workbench-rules/app/views/editor/transformEditor.scala.html
+ */
 function undo() {
     if (instanceIndex > 0) loadInstance(instanceIndex - 1);
 }

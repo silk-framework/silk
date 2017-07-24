@@ -20,6 +20,10 @@
  * Global JavaScript functions.
  */
 
+/* exported contentWidth
+silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/links.js
+silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/population.js
+*/
 var helpWidth = 170;
 var contentWidth;
 var contentWidthCallback = function contentWidthCallback() {};
@@ -62,6 +66,9 @@ $(function () {
     }
 });
 
+/* exported errorHandler
+silk-workbench/silk-workbench-rules/app/views/learning/activeLearn.scala.html
+ */
 var errorHandler = function errorHandler(request) {
     if (request.responseText) {
         alert(request.responseText);
@@ -69,6 +76,42 @@ var errorHandler = function errorHandler(request) {
         alert(request.statusText);
     }
 };
+
+/* exported showDialog, reloadDialog, closeDialog
+Open/Reload Dialog:
+silk-react-components/src/silk-workbench/silk-workbench-workspace/public/workspace.js
+silk-workbench/silk-workbench-core/app/views/main.scala.html
+silk-workbench/silk-workbench-rules/app/views/learning/activeLearn.scala.html
+silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/activities.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/activity/activityControl.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeResourceDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/resourcesDialog.scala.html
+Close Dialog:
+silk-workbench/silk-workbench-core/app/views/aboutDialog.scala.html
+silk-workbench/silk-workbench-core/app/views/widgets/pluginDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/dialogs/deleteRuleDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/dialogs/linkingTaskDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/learning/activeLearnDetails.scala.html
+silk-workbench/silk-workbench-rules/app/views/learning/resetDialog.scala.html
+silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/activity/projectActivityConfigDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/activity/taskActivityConfigDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/cloneProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/cloneTaskDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/executeProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/importLinkSpecDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/importProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/newProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/prefixDialog_improved.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/prefixDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeResourceDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeTaskDialog.scala.html
+ */
 
 /**
  * Opens a dialog.
@@ -116,6 +159,9 @@ function closeDialog() {
     dialog = dialogs[dialog_key];
     dialog.close();
 }
+
+// TODO Apparently unused?
+/* exported showHelp, hideHelp */
 
 /**
  * Shows the help sidebar.

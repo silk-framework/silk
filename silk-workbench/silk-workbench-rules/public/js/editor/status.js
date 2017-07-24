@@ -3,8 +3,12 @@
 /* global highlightElement:true */
 
 if (!highlightElement) {
-    throw new Error('status.js must be imported after editor.js');
+    throw new Error('status.js must be imported as well as editor.js');
 }
+
+/* exported updateStatus showPendingIcon
+silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/editor/editor.js
+*/
 
 /**
  * Displays messages.
@@ -49,6 +53,9 @@ function showWarningIcon(numberMessages) {
     $('#warning').css('display', 'block');
 }
 
+/* exported updateStatus
+silk-workbench/silk-workbench-rules/app/views/editor/status.scala.html
+ */
 function showPendingIcon() {
     $('#exclamation, #warning, #tick').css('display', 'none');
     $('#pending').css('display', 'block');

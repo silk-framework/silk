@@ -9,6 +9,9 @@ $(function () {
     $('div.expandable-hitarea').removeClass('expandable-hitarea').addClass('collapsable-hitarea');
 });
 
+/* exported expand_all hide_all
+silk-workbench/silk-workbench-rules/app/views/evaluateTransform/generatedEntities.scala.html
+ */
 function expand_all() {
     $('.entity-details').show();
 }

@@ -15,9 +15,14 @@
  */
 
 var currentPath = '';
+// TODO: current_page unused?
+// eslint-disable-next-line
 var current_page = 1;
 contentWidthCallback = updateResultsWidth;
 
+/* exported initPopulation
+silk-workbench/silk-workbench-rules/app/views/learning/population.scala.html
+ */
 function initPopulation(path) {
     currentPath = path;
     initPagination('20');
@@ -33,7 +38,7 @@ function updatePopulation(page) {
     });
 }
 
-function handlePaginationClick(new_page_index, pagination_container) {
+function handlePaginationClick(new_page_index) {
     updatePopulation(new_page_index);
     current_page = new_page_index;
     return false;
@@ -58,7 +63,7 @@ function initTrees() {
     $('li.lastExpandable').removeClass('lastExpandable').addClass('lastCollapsable');
     $('div.expandable-hitarea').removeClass('expandable-hitarea').addClass('collapsable-hitarea');
 
-    $('.confidencebar').each(function (index) {
+    $('.confidencebar').each(function () {
         var confidence = parseInt($(this).text(), 10);
 
         if (confidence >= 0) {
@@ -86,6 +91,9 @@ function toggleLinkDetails(linkid) {
     }
 }
 
+/* exported expand_all hide_all
+silk-workbench/silk-workbench-rules/app/views/learning/population.scala.html
+ */
 function expand_all() {
     $('.individual-details').show();
 }

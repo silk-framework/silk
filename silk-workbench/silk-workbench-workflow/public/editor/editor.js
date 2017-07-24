@@ -126,7 +126,7 @@ function WorkflowEditor() {
         });
 
         // Delete connections on clicking them
-        jsPlumb.bind('click', function (conn, originalEvent) {
+        jsPlumb.bind('click', function (conn) {
             jsPlumb.detach(conn);
         });
     };

@@ -1,5 +1,8 @@
 'use strict';
 
+/* exported serializeLinkageRule
+silk-workbench/silk-workbench-rules/app/views/editor/linkingEditor.scala.html
+ */
 /**
  * Serializes the current linkage rule in the editor as XML.
  */
@@ -20,6 +23,9 @@ function serializeLinkageRule() {
     return makeXMLString(xml);
 }
 
+/* exported serializeTransformRule
+silk-workbench/silk-workbench-rules/app/views/editor/transformEditor.scala.html
+ */
 /**
  * Serializes the current transformation rule in the editor as XML.
  */

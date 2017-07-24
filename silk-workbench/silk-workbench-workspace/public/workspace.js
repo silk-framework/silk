@@ -19,42 +19,79 @@ $(document).ready(function () {
     reloadWorkspace();
 });
 
+/* exported newProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
+*/
 function newProject() {
     showDialog(baseUrl + '/workspace/dialogs/newproject');
 }
 
+/* exported importProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
+*/
 function importProject() {
     showDialog(baseUrl + '/workspace/dialogs/importproject');
 }
 
+/* exported cloneProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function cloneProject(project) {
     showDialog(baseUrl + '/workspace/dialogs/cloneProject?project=' + project);
 }
 
+/* exported cloneTask
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function cloneTask(project, task) {
     showDialog(baseUrl + '/workspace/dialogs/cloneTask?project=' + project + '&task=' + task);
 }
 
+/* exported importLinkSpec
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function importLinkSpec(project) {
     showDialog(baseUrl + '/workspace/dialogs/importlinkspec/' + project);
 }
 
+/* exported exportProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function exportProject(project) {
     window.location = baseUrl + '/workspace/projects/' + project + '/export';
 }
 
+/* exported executeProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function executeProject(project) {
     showDialog(baseUrl + '/workspace/dialogs/executeProject/' + project);
 }
 
+/* exported editPrefixes
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function editPrefixes(project) {
     showDialog(baseUrl + '/workspace/dialogs/prefixes/' + project);
 }
 
+/* exported editResources
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+*/
 function editResources(project) {
     showDialog(baseUrl + '/workspace/dialogs/resources/' + project);
 }
 
+/* exported reloadWorkspace
+silk-workbench/silk-workbench-workspace/app/views/workspace/cloneProjectDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/cloneTaskDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/importLinkSpecDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/importProjectDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/dialogs/linkingTaskDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/newProjectDialog.scala.html
+silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.scala.html
+silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
+*/
 function reloadWorkspace() {
     $.get(baseUrl + '/workspace/tree', function (data) {
         $('#workspace_tree').html(data);
@@ -63,18 +100,28 @@ function reloadWorkspace() {
     });
 }
 
+/* exported reloadWorkspaceInBackend
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
+ */
 function reloadWorkspaceInBackend() {
-    $.post(baseUrl + '/workspace/reload', function (data) {
+    $.post(baseUrl + '/workspace/reload', function () {
         reloadWorkspace();
     }).fail(function (request) {
         alert('Error reloading workspace: ' + request.responseText);
     });
 }
 
+/* exported workspaceDialog
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+ */
 function workspaceDialog(relativePath) {
     showDialog(baseUrl + '/' + relativePath);
 }
 
+/* exported putTask
+silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
+silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
+ */
 function putTask(path, xml) {
     var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
         success: function success() {},
@@ -90,18 +137,21 @@ function putTask(path, xml) {
         error: function error(request) {
             callbacks.error(JSON.parse(request.responseText).message);
         },
-        success: function success(request) {
+        success: function success() {
             reloadWorkspace();
             callbacks.success();
         }
     });
 }
 
-function deleteProject(project, task) {
+/* exported deleteProject
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeProjectDialog.scala.html
+ */
+function deleteProject(project) {
     $.ajax({
         type: 'DELETE',
         url: baseUrl + '/workspace/projects/' + project,
-        success: function success(data) {
+        success: function success() {
             reloadWorkspace();
         },
         error: function error(request) {
@@ -110,11 +160,14 @@ function deleteProject(project, task) {
     });
 }
 
+/* exported deleteTask
+silk-workbench/silk-workbench-workspace/app/views/workspace/removeTaskDialog.scala.html
+ */
 function deleteTask(project, task) {
     $.ajax({
         type: 'DELETE',
         url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
-        success: function success(data) {
+        success: function success() {
             reloadWorkspace();
         },
         error: function error(request) {
@@ -123,14 +176,23 @@ function deleteTask(project, task) {
     });
 }
 
-function deleteProjectConfirm(project, task) {
+/* exported deleteProjectConfirm
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+ */
+function deleteProjectConfirm(project) {
     showDialog(baseUrl + '/workspace/dialogs/removeproject/' + project);
 }
 
+/* exported deleteTaskConfirm
+silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
+ */
 function deleteTaskConfirm(project, task) {
     showDialog(baseUrl + '/workspace/dialogs/removetask/' + project + '/' + task);
 }
 
+/* exported deleteResourceConfirm
+silk-workbench/silk-workbench-workspace/app/views/workspace/resourcesDialog.scala.html
+ */
 function deleteResourceConfirm(name, path) {
     showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + '?path=' + encodeURIComponent(path), 'secondary');
 }
