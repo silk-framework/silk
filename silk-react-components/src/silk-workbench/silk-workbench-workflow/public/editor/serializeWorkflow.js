@@ -1,4 +1,7 @@
 // Commit workflow xml to backend
+/* exported commitWorkflow
+silk-workbench/silk-workbench-workflow/app/views/workflow/editor/editor.scala.html
+ */
 function commitWorkflow() {
     $.ajax({
         type: 'PUT',
@@ -6,7 +9,7 @@ function commitWorkflow() {
         contentType: 'text/xml',
         processData: false,
         data: serializeWorkflow(),
-        success(response) {},
+        success() {},
         error(req) {
             alert(`Error committing workflow to backend: ${req.responseText}`);
         },
@@ -29,24 +32,23 @@ function serializeWorkflow() {
     });
 
     // Return xml string
-    var xmlString = new XMLSerializer().serializeToString(xml);
-    return xmlString;
+    return new XMLSerializer().serializeToString(xml);
 }
 
 // The minimum x and y value of all workflow operators
 function minPositionAllOperators() {
-    const xValues = $('#editorContent')
-        .find('.operator, .dataset')
-        .map(function() {
-            var position = $(this).position();
-            return position.left;
-        });
-    const yValues = $('#editorContent')
-        .find('.operator, .dataset')
-        .map(function() {
-            var position = $(this).position();
-            return position.top;
-        });
+    const nodes = $('#editorContent').find('.operator, .dataset');
+
+    const xValues = nodes.map(function() {
+        var position = $(this).position();
+        return position.left;
+    });
+
+    const yValues = nodes.map(function() {
+        var position = $(this).position();
+        return position.top;
+    });
+
     xValues.push(0);
     yValues.push(0);
     const minX = Math.min.apply(null, xValues);

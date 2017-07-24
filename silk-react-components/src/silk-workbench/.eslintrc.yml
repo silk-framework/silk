@@ -8,6 +8,11 @@ globals:
   showDialog: true
   contentWidthCallback: true
   contentWidth: true
+env:
+  node: false
+  commonjs: false
+parserOptions:
+  sourceType: script
 rules:
   # Variables should be camel case, due to the many occurences of variable names with underscore, we only warn for now
   camelcase: 1
@@ -20,5 +25,3 @@ rules:
   no-use-before-define: 1
   # Convert callback functions to arrow functions
   prefer-arrow-callback: 0
-  # Temporary to enable easier fixing
-  no-unused-vars: 0
