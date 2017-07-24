@@ -14,8 +14,11 @@ consolidate-licenses: install
 	./node_modules/.bin/ecc-license-checker consolidate --inputFile .tmp/license-report-currently-installed.yml --outputFile license-report.yml
 	rm -f .tmp/license-report-currently-installed.yml
 
+## build-react, vendors and bablify
+build: build-react vendors bablify
+
 ## Build react components and copy it to silk-workbench-core
-build: install
+build-react: install
 	yarn run deploy
 	rm -rf $(SILK_DIST_ROOT)
 	mkdir -p $(SILK_DIST_ROOT)
@@ -27,7 +30,7 @@ build: install
 vendors: install
 	$(foreach var,$(VENDOR), PACKAGE=$(var) make copy-vendor;)
 
-## bablify
+## run scripts through babel
 bablify: install
 	bash ./bablify.sh
 
