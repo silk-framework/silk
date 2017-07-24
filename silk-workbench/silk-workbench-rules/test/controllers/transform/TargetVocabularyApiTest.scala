@@ -59,6 +59,37 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
       """
   }
 
+  "retrieve information about a URI that could be a type or a property and actually is a type" in {
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabulary/typeOrProperty?uri=foaf:Person")
+    response mustMatchJson
+      """
+        {
+          "genericInfo" : {
+            "uri" : "foaf:Person",
+            "label" : "Person",
+            "description" : "A person."
+          },
+          "parentClasses" : [ "http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing", "foaf:Agent" ]
+        }
+      """
+  }
+
+  "retrieve information about a URI that could be a type or a property and actually is a property" in {
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/targetVocabulary/typeOrProperty?uri=foaf:name")
+    response mustMatchJson
+      """
+        {
+          "genericInfo" : {
+            "uri" : "foaf:name",
+            "label" : "name",
+            "description" : "A name for some thing."
+          },
+          "domain" : "owl:Thing",
+          "range" : "rdfs:Literal"
+        }
+      """
+  }
+
   private def setup() = {
     createProject(project)
     addProjectPrefixes(project, Map("foaf" -> "http://xmlns.com/foaf/0.1/"))

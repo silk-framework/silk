@@ -15,7 +15,8 @@ class SparqlSink(params: SparqlParams,
                  endpoint: SparqlEndpoint,
                  val formatterOpt: Option[RdfFormatter] = None,
                  /**Maximum number of statements per request. */
-                 statementsPerRequest: Int = 200) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                 statementsPerRequest: Int = 200,
+                 dropGraphOnClear: Boolean = true) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
 
@@ -61,11 +62,13 @@ class SparqlSink(params: SparqlParams,
   }
 
   override def clear(): Unit = {
-    params.graph match {
-      case Some(graph) =>
-        endpoint.update(s"DROP SILENT GRAPH <$graph>")
-      case None =>
-        endpoint.update(s"DROP SILENT DEFAULT")
+    if(dropGraphOnClear) {
+      params.graph match {
+        case Some(graph) =>
+          endpoint.update(s"DROP SILENT GRAPH <$graph>")
+        case None =>
+          endpoint.update(s"DROP SILENT DEFAULT")
+      }
     }
   }
 

@@ -1,8 +1,8 @@
 package org.silkframework.rule.test
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.input.{TransformExample, Transformer}
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.{PluginDescription, TransformExample, TransformExampleValue}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -22,7 +22,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
 
   /** All available transform tests. */
   private lazy val transformTests: Seq[TransformTest] = {
-    val transformExamples = pluginClass.getAnnotationsByType(classOf[TransformExample])
+    val transformExamples = TransformExampleValue.retrieve(pluginClass)
     for(example <- transformExamples) yield {
       new TransformTest(example)
     }
@@ -35,25 +35,21 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   // Forward one transformer for general plugin testing.
   override protected lazy val pluginObject: AnyRef = transformTests.head.transformer
 
-  private class TransformTest(example: TransformExample) {
-    private val parameters = retrieveParameters(example)
-    private val inputValues = Seq(example.input1(), example.input2(), example.input3(), example.input4(), example.input5()).map(_.toList).filter(_.nonEmpty)
-    private val expectedOutput = example.output().toList
-
-    val transformer: T = pluginDesc(parameters)(Prefixes.empty)
+  private class TransformTest(example: TransformExampleValue) {
+    val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)
 
     private val generatedOutput =
       try {
-        transformer(inputValues)
+        transformer(example.input)
       } catch {
         case NonFatal(ex) =>
           List()
       }
 
     def addTest(): Unit = {
-      it should s"return ${format(expectedOutput)} for parameters ${format(parameters)} and input values ${format(inputValues.map(format))}" in {
-        generatedOutput should have size expectedOutput.size
-        for ((value, expected) <- generatedOutput zip expectedOutput) {
+      it should s"return ${format(example.input)} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
+        generatedOutput should have size example.output.size
+        for ((value, expected) <- generatedOutput zip example.output) {
           (value, expected) match {
             case (DoubleLiteral(doubleValue), DoubleLiteral(doubleExpected)) =>
               doubleValue shouldEqual doubleExpected +- epsilon
@@ -66,11 +62,6 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
 
     private def format(traversable: Traversable[_]): String = {
       traversable.mkString("[", ", ", "]")
-    }
-
-    private def retrieveParameters(transformExample: TransformExample): Map[String, String] = {
-      assert(transformExample.parameters().length % 2 == 0, "TransformExample.parameters must have an even number of values")
-      transformExample.parameters().grouped(2).map(group => (group(0), group(1))).toMap
     }
   }
 

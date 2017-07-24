@@ -407,7 +407,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): UriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      UriMapping(name, pattern, metaData(value))
+      UriMapping(name, pattern, metaData(value))(readContext.prefixes)
     }
 
     /**
@@ -474,7 +474,7 @@ object JsonSerializers {
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
       val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      ObjectMapping(name, sourcePath, mappingTarget, children, metaData(value))
+      ObjectMapping(name, sourcePath, mappingTarget, children, metaData(value))(readContext.prefixes)
     }
 
     /**
@@ -527,7 +527,7 @@ object JsonSerializers {
         target = mappingTarget,
         metaData(jsValue)
       )
-      TransformRule.simplify(complex)
+      TransformRule.simplify(complex)(readContext.prefixes)
     }
 
     /**
