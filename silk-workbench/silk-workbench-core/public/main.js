@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* global dialogPolyfill:true, dialog:true, componentHandler: true */
+/* global dialogPolyfill:true, componentHandler: true */
 
 /**
  * Global JavaScript functions.
@@ -31,6 +31,8 @@ var contentWidthCallback = function contentWidthCallback() {};
 var primary_dialog;
 var secondary_dialog;
 var dialogs = {};
+
+var dialog = void 0;
 
 $(function () {
     // Initialize window
