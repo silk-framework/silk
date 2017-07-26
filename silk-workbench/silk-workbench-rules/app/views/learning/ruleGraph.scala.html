@@ -10,47 +10,61 @@
 @(rule: org.silkframework.rule.LinkageRule,
   context: Context[LinkSpec])
 
+@defining("droppable-" + java.util.UUID.randomUUID.toString()) { uniqueId =>
 
 <div class="droppable_outer">
 
-
-
-  <div id="droppable">
-    @for(op <- rule.operator) {
+  <div id="@uniqueId" class="droppable-canvas">
+      @for(op <- rule.operator) {
       @renderRule(
       rule = op,
       project = context.project
       )
-    }
+      }
   </div>
 
   <script type="text/javascript">
-    $( document ).ready(function() {
+    'use strict';
 
-      $("#droppable input").prop("disabled", true);
+    jsPlumb.bind("ready", function() {
 
-      var vertical_spacing = 50;
+
+      jsPlumb.setSuspendEvents(true);
+      jsPlumb.setSuspendDrawing(true);
+
+      jsPlumb.reset();
+      jsPlumb.setContainer("@uniqueId");
+
+      connectOperators();
+
+      $("#@uniqueId").find("input").prop("disabled", true);
+
       var horizontal_spacing = 60;
       var padding_top = 10;
 
       var connections = jsPlumb.getAllConnections();
       var graph = connections.reduce(
         function(map, obj) {
-          var parents = map[obj.targetId] || [] ;
+          var parents = map[obj.targetId] || [];
           parents.push(obj.sourceId);
-          map[obj.targetId] = parents ;
-          return map ; } ,
+          map[obj.targetId] = parents;
+          return map;
+        },
         {}
       );
-      var sources = $.unique($.map(graph, function(target, source) { return source; }));
-      var targets = $.unique($.map(graph, function(target, source) { return target; }));
+      var sources = $.unique($.map(graph, function(target, source) {
+        return source;
+      }));
+      var targets = $.unique($.map(graph, function(target, source) {
+        return target;
+      }));
 
       var root_nodes = [];
       $.each(sources, function(index, element) {
-        if ($.inArray(element, targets) == -1) root_nodes.push(element);
+        if ($.inArray(element, targets) === -1) root_nodes.push(element);
       });
 
-      columns = [];
+      var columns = [];
       $.each(root_nodes, function(index, node) {
         index = 0;
         fillColumns(columns, index, node);
@@ -61,19 +75,21 @@
       var max_column_height = maxHeight(columns);
 
       $.each(columns, function(i, column) {
-        total_height = get_total_height(column);
-        spacing_top = (max_column_height - total_height) / 2 + padding_top;
-        var y = spacing_top;
+        var total_height = get_total_height(column);
+        var spacing_top = (max_column_height - total_height) / 2 + padding_top;
         $.each(column, function(i, element_id) {
           var element = $('#' + element_id);
-          element.css('top', y);
-          y = y + element.height() + horizontal_spacing;
+          element.css('top', spacing_top);
+          spacing_top = spacing_top + element.height() + horizontal_spacing;
         });
       });
 
-      jsPlumb.repaintEverything();
 
       make_uneditable();
+
+      jsPlumb.setSuspendDrawing(false, true);
+      jsPlumb.setSuspendEvents(false);
+
 
       function fillColumns(columns, column_index, element) {
         if (columns.length <= column_index) {
@@ -90,7 +106,7 @@
       function maxHeight(columns) {
         var max = 0;
         $.each(columns, function(i, column) {
-          total_height = get_total_height(column);
+          var total_height = get_total_height(column);
           if (total_height > max) max = total_height;
         });
         return max;
@@ -105,7 +121,7 @@
 
       function get_heights(column) {
         return $.map(column, function(element_id, i) {
-            return $('#' + element_id).height();
+          return $('#' + element_id).height();
         });
       }
 
@@ -142,4 +158,6 @@
 
     });
   </script>
+
 </div>
+}

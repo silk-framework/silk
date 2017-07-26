@@ -10,7 +10,7 @@
   width: 100%;
 }
 
-#droppable {
+.droppable-canvas {
   height: 300px;
   padding: 0px;
   margin: 0px;
@@ -39,7 +39,7 @@ label:hover {
   display: none;
 }
 
-#droppable input {
+.droppable-canvas input {
   border: none;
   background-color: transparent;
 }

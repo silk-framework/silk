@@ -135,19 +135,24 @@ document.onselectstart = function () {
 // Warn the user when he leaves the editor that any unsaved modifications are lost.
 window.onbeforeunload = confirmExit;
 
+var $canvas = null;
+
 function initEditor() {
+    var canvasId = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'droppable';
+
     jsPlumb.reset();
 
-    var canvas = $('#droppable');
+    $canvas = $('#' + canvasId);
+    jsPlumb.setContainer(canvasId);
 
-    canvas.droppable({
+    $canvas.droppable({
         drop: function drop(event, ui) {
             var clone = ui.helper.clone(false);
             var mousePosDraggable = getRelativeOffset(event, ui.helper);
-            var mousePosCanvas = getRelativeOffset(event, canvas);
-            mousePosCanvas = adjustOffset(mousePosCanvas, canvas);
+            var mousePosCanvas = getRelativeOffset(event, $canvas);
+            mousePosCanvas = adjustOffset(mousePosCanvas, $canvas);
             var mousePosCombined = subtractOffsets(mousePosCanvas, mousePosDraggable);
-            clone.appendTo(canvas);
+            clone.appendTo($canvas);
             clone.css(mousePosCombined);
             clone.css({
                 'z-index': 'auto'
@@ -313,17 +318,7 @@ function validateLinkSpec() {
     }
     reverting = false;
 
-    // if only one element exists
-    // Is allowed in transformation rule editor
-    //  if ($("#droppable > div.dragDiv").length === 1) {
-    //    var elId = $("#droppable > div.dragDiv").attr('id');
-    //    errorObj = {};
-    //    errorObj.id = elId;
-    //    errorObj.message = "Error: Unconnected element '" + getCurrentElementName(elId) + "'.";
-    //    errors.push(errorObj);
-    //  }
-
-    $('#droppable > div.dragDiv').each(function () {
+    $canvas.find('> div.dragDiv').each(function () {
         totalNumberElements += 1;
         var elId = $(this).attr('id');
         var elName = getCurrentElementName(elId);
@@ -386,7 +381,7 @@ function validateLinkSpec() {
             errors.push(errorObj);
         }
 
-        $('#droppable > div.dragDiv').removeAttr('visited');
+        $canvas.find('> div.dragDiv').removeAttr('visited');
         cycleFound = false;
         numberElements = 0;
     }
@@ -420,6 +415,10 @@ function validateLinkSpec() {
 }
 
 function modifyLinkSpec() {
+    // This function does not need to be executed if not in editing mode
+    if (!inEditorEnv) {
+        return;
+    }
     confirmOnExit = true;
     showPendingIcon();
     clearTimeout(modificationTimer);
@@ -503,12 +502,13 @@ function updateWindowSize() {
     var content_padding = 35;
     if (window_width > 1100) {
         $('.wrapperEditor').width(window_width - 10);
-        $('#droppable').width(window_width - 295);
+        $canvas.width(window_width - 295);
     }
     if (window_height > 600) {
         // resize height of drawing canvas
         var height = window_height - header_height - content_padding;
-        $('.droppable_outer, #droppable').height(height);
+        $('.droppable_outer').height(height);
+        $canvas.height(height);
         $('.draggables').height(height);
 
         // resize palette blocks
@@ -554,7 +554,7 @@ function loadInstance(index) {
     var endpoints = [];
 
     jsPlumb.detachEveryConnection();
-    $('#droppable').find('> div.dragDiv').each(function () {
+    $canvas.find('> div.dragDiv').each(function () {
         jsPlumb.removeAllEndpoints($(this).attr('id'));
         $(this).remove();
     });
@@ -564,7 +564,7 @@ function loadInstance(index) {
         var boxId = box.attr('id');
         var boxClass = box.attr('class');
 
-        $('#droppable').append(box);
+        $canvas.append(box);
 
         var boxEndpoints = addEndpoints(boxId, boxClass);
 
@@ -595,7 +595,7 @@ function saveInstance() {
     var elements = [];
     var targetConnections = [];
     var i = 0;
-    $('#droppable').find('> div.dragDiv').each(function () {
+    $canvas.find('> div.dragDiv').each(function () {
         elements[i] = [];
         var box = $(this).clone();
         var id = box.attr('id');

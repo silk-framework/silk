@@ -96,29 +96,39 @@
 }
 
 @connectOperators(op: Operator) = {
-  <script type="text/javascript">
-    // Initialization
-    jsPlumb.bind("ready", function() {
+<script type="text/javascript">
+
+  function connectOperators(){
+
+  @connectOperator(op)
+
+
+  }
+
+  // Initialization
+  jsPlumb.bind("ready", function() {
+    if(inEditorEnv){
+
       initEditor();
 
       var dropArea = $('#droppable');
       jsPlumb.draggable(dropArea.find('.dragDiv'));
-      //jsPlumb.draggable(dropArea.find('.dragDiv'), {
-      //  containment: "parent"
-      //}); //TODO move
-
       jsPlumb.setSuspendEvents(true);
       jsPlumb.setSuspendDrawing(true);
 
-      @connectOperator(op)
+      connectOperators();
 
       jsPlumb.setSuspendDrawing(false, true);
       jsPlumb.setSuspendEvents(false);
 
       saveInstance();
-    });
 
-  </script>
+    } else {
+      console.log('Not in editorEnv, will not initialize')
+    }
+  });
+
+</script>
 }
 
 @connectOperator(op: Operator) = {
