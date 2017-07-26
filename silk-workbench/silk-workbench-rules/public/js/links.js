@@ -17,8 +17,6 @@
 /* global contentWidth:true */
 
 /* eslint-disable no-shadow */
-// TODO: Fix, check if this even works with this.path !?
-console.warn(undefined);
 
 var path;
 var linkType;
@@ -33,9 +31,9 @@ contentWidthCallback = updateResultsWidth;
 silk-workbench/silk-workbench-rules/app/views/generateLinks/generateLinks.scala.html
 silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
  */
-function initLinks(path, linkType) {
-    this.path = path;
-    this.linkType = linkType;
+function initLinks(newPath, newLinkType) {
+    path = newPath;
+    linkType = newLinkType;
 
     $(document).ready(function () {
         page = 0;
@@ -46,16 +44,16 @@ function initLinks(path, linkType) {
 /* exported updateLinkType
 silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
  */
-function updateLinkType(linkType) {
-    this.linkType = linkType;
+function updateLinkType(newLinkType) {
+    linkType = newLinkType;
     updateLinks(0);
 }
 
 /* exported updateSorting
 silk-workbench/silk-workbench-rules/app/views/widgets/linksTable.scala.html
  */
-function updateSorting(sorting) {
-    this.sorting = sorting;
+function updateSorting(newSorting) {
+    sorting = newSorting;
     updateLinks(1000);
 }
 
@@ -63,14 +61,14 @@ function updateSorting(sorting) {
 silk-workbench/silk-workbench-rules/app/views/generateLinks/generateLinks.scala.html
 silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
  */
-function updateFilter(filter) {
-    this.filter = filter;
+function updateFilter(newFilter) {
+    filter = newFilter;
     updateLinks(1000);
 }
 
-function updatePage(page) {
-    if (this.page !== page) {
-        this.page = page;
+function updatePage(newPage) {
+    if (page !== newPage) {
+        page = newPage;
         updateLinks(0);
     }
 }
