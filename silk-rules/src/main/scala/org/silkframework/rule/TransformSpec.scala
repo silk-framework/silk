@@ -3,6 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
+import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
@@ -65,23 +66,10 @@ case class TransformSpec(selection: DatasetSelection,
   private def collectSchemata(rule: TransformRule, subPath: Path): Seq[RuleSchemata] = {
     var schemata = Seq[RuleSchemata]()
 
-    val inputSchema = EntitySchema(
-      typeUri = selection.typeUri,
-      typedPaths = rule.rules.allRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
-      filter = selection.restriction,
-      subPath = subPath
-    )
+    // Add rule schemata for this rule
+    schemata :+= RuleSchemata.create(rule, selection, subPath)
 
-    val outputSchema = EntitySchema(
-      typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
-      typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
-        val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
-        TypedPath(Path(List(path)), mt.valueType)
-      }.distinct.toIndexedSeq
-    )
-
-    schemata :+= RuleSchemata(rule, inputSchema, outputSchema)
-
+    // Add rule schemata of all child rules
     val objectMappings = rule.rules.allRules.collect { case m: ObjectMapping => m }
     for (objectMapping <- objectMappings) {
       schemata ++= collectSchemata(objectMapping, subPath ++ objectMapping.sourcePath)
@@ -126,16 +114,14 @@ case class TransformSpec(selection: DatasetSelection,
                               restriction: Restriction = Restriction.empty): Try[RuleSchemata] = {
     Try {
       ruleSchemata.find(_.transformRule.id == ruleId) match {
-        case Some(ruleSchemata) =>
-          ruleSchemata
+        case Some(rule) =>
+          rule
         case None =>
           val ruleIds = ruleSchemata.map(_.transformRule.id).sorted.mkString(", ")
           throw new NotFoundException(s"No rule with ID '$ruleId' found! Value rule IDs: $ruleIds")
       }
     }
   }
-
-  case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema)
 }
 
 /**
@@ -144,6 +130,32 @@ case class TransformSpec(selection: DatasetSelection,
 object TransformSpec {
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
+
+  /**
+    * Holds a transform rule along with its input and output schema.
+    */
+  case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema)
+
+  object RuleSchemata {
+    def create(rule: TransformRule, selection: DatasetSelection, subPath: Path): RuleSchemata = {
+      val inputSchema = EntitySchema(
+        typeUri = selection.typeUri,
+        typedPaths = rule.rules.allRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+        filter = selection.restriction,
+        subPath = subPath
+      )
+
+      val outputSchema = EntitySchema(
+        typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
+        typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
+          val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
+          TypedPath(Path(List(path)), mt.valueType)
+        }.distinct.toIndexedSeq
+      )
+
+      RuleSchemata(rule, inputSchema, outputSchema)
+    }
+  }
 
   implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
     /**
