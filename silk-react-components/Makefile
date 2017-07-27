@@ -29,6 +29,7 @@ build-react: install
 ## Copy vendor libs to silk-workbench-core
 vendors: install
 	$(foreach var,$(VENDOR), PACKAGE=$(var) make copy-vendor;)
+	git clean ../silk-workbench/silk-workbench-core/public/libs -xdf
 
 ## run scripts through babel
 bablify: install

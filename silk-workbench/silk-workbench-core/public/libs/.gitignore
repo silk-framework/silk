@@ -16,6 +16,7 @@ dialog-polyfill/suite.js
 dialog-polyfill/test.html
 
 jquery/dist/
+!jquery/dist/jquery.js
 jquery/libs/
 jquery/src/
 jquery/AUTHORS.txt
