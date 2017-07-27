@@ -1,0 +1,6 @@
+parserOptions:
+  ecmaVersion: 5
+env:
+  browser: true
+rules:
+  no-undef: error

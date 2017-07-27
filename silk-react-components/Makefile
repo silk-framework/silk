@@ -35,6 +35,9 @@ vendors: install
 bablify: install
 	bash ./bablify.sh
 
+check-es5: install
+	./node_modules/.bin/eslint '../silk-workbench/**/*.js' --ignore-pattern '**/target/**' --config ./es5check.yml
+
 install:
 	yarn
 
