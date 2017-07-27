@@ -19,8 +19,8 @@
  */
 
 /* exported contentWidth
-silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/links.js
-silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/population.js
+silk-react-components/silk-workbench/silk-workbench-rules/public/js/links.js
+silk-react-components/silk-workbench/silk-workbench-rules/public/js/population.js
 */
 var helpWidth = 170;
 var contentWidth;
@@ -83,7 +83,7 @@ var errorHandler = function(request) {
 
 /* exported showDialog, reloadDialog, closeDialog
 Open/Reload Dialog:
-silk-react-components/src/silk-workbench/silk-workbench-workspace/public/workspace.js
+silk-react-components/silk-workbench/silk-workbench-workspace/public/workspace.js
 silk-workbench/silk-workbench-core/app/views/main.scala.html
 silk-workbench/silk-workbench-rules/app/views/learning/activeLearn.scala.html
 silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html

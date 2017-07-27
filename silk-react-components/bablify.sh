@@ -1,5 +1,4 @@
-for file in $(find src/silk-workbench -name '*.js'); do
-
+for file in $(find silk-workbench -name '*.js'); do
   target=$(echo $file | sed -E 's#^.+?/silk-workbench/#silk-workbench/#g')
 
   mkdir -p ../$(dirname $target)

@@ -7,7 +7,7 @@ if (!highlightElement) {
 }
 
 /* exported updateStatus showPendingIcon
-silk-react-components/src/silk-workbench/silk-workbench-rules/public/js/editor/editor.js
+silk-react-components/silk-workbench/silk-workbench-rules/public/js/editor/editor.js
 */
 
 /**
