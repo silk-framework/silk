@@ -4,7 +4,7 @@ SILK_LIB_ROOT=../silk-workbench/silk-workbench-core/public/libs
 SILK_DIST_ROOT=../silk-workbench/silk-workbench-core/public/libs/silk-react-components
 
 # List of vendor libs we maintain in the package.json
-VENDOR = dialog-polyfill jquery jsplumb jstree mark.js material-design-lite mdl-selectfield
+LIST_OF_VENDORS = dialog-polyfill jquery jsplumb jstree mark.js material-design-lite mdl-selectfield
 
 default: help
 
@@ -28,13 +28,16 @@ build-react: install
 
 ## Copy vendor libs to silk-workbench-core
 vendors: install
-	$(foreach var,$(VENDOR), PACKAGE=$(var) make copy-vendor;)
-	git clean ../silk-workbench/silk-workbench-core/public/libs -xdf
+	@echo "Managing external libraries: ${LIST_OF_VENDORS}"
+	$(foreach var,$(LIST_OF_VENDORS), PACKAGE=$(var) make copy-vendor;)
+	git clean ../silk-workbench/silk-workbench-core/public/libs -Xf
+	@echo "Finished copying external libraries: ${LIST_OF_VENDORS}"
 
 ## run scripts through babel
 bablify: install
 	bash ./bablify.sh
 
+## check that all silk assets are es5 compatible
 check-es5: install
 	./node_modules/.bin/eslint '../silk-workbench/**/*.js' --ignore-pattern '**/target/**' --config ./silk-workbench/es5check.yml
 

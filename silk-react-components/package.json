@@ -1,7 +1,7 @@
 {
   "name": "silk-react-components",
-  "version": "0.0.1",
-  "description": "silk react components",
+  "version": "1.0.0",
+  "description": "JavaScript & React components of the silk project.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
