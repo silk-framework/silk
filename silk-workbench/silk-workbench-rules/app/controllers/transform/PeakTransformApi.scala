@@ -5,8 +5,14 @@ import org.silkframework.dataset.{Dataset, PeakDataSource, PeakException}
 import org.silkframework.entity.{Entity, Path, PathOperator}
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc._
 import controllers.util.ProjectUtils._
+import controllers.util.SerializationUtils._
+import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.Project
+
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -25,42 +31,67 @@ class PeakTransformApi extends Controller {
   final val MAX_TRY_ENTITIES_DEFAULT: Int = MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS + TRANSFORMATION_PREVIEW_LIMIT + MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS
   final val NOT_SUPPORTED_STATUS_MSG = "not supported"
 
-  /** Get sample source and transformed values */
+  /**
+    * Get sample source and transformed values for a named rule.
+    */
   def peak(projectName: String,
            taskName: String,
-           ruleName: String): Action[AnyContent] = Action { request =>
-    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
-    val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
+           ruleName: String): Action[AnyContent] = Action { implicit request =>
+
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
-    val inputTask = transformSpec.selection.inputId
+    val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
+    val inputTaskId = transformSpec.selection.inputId
+
+    peakRule(project, inputTaskId, ruleSchemata)
+  }
+
+  /**
+    * Get sample source and transformed values for a provided rule definition.
+    */
+  def peakChildRule(projectName: String,
+                    taskName: String,
+                    ruleName: String): Action[AnyContent] = Action { implicit request =>
+
+    val (project, task) = projectAndTask(projectName, taskName)
+    val transformSpec = task.data
+    val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
+    val inputTaskId = transformSpec.selection.inputId
+    implicit val readContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+
+    deserializeCompileTime[TransformRule]() { rule =>
+      val ruleSchemata = RuleSchemata.create(rule, transformSpec.selection, parentRule.inputSchema.subPath)
+      peakRule(project, inputTaskId, ruleSchemata)
+    }
+  }
+
+  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata)
+                      (implicit request: Request[AnyContent]): Result = {
+
+    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
+    val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     implicit val prefixes = project.config.prefixes
-    project.anyTask(inputTask).data match {
+
+    project.anyTask(inputTaskId).data match {
       case dataset: Dataset =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
-            val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName) match {
-              case Success(tuple) =>
-                tuple
-              case Failure(ex) =>
-                throw ex
-            }
             try {
               val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
               generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
             } catch {
               case pe: PeakException =>
-                Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +
+                Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
                   " of type " + dataset.plugin.label +
                   " raised following issue:" + pe.msg))))
             }
           case _ =>
-            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTask.toString +
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
               " of type " + dataset.plugin.label +
               " does not support transformation preview!"))))
         }
       case _: TransformSpec =>
-        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTask.toString +
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
     }
   }

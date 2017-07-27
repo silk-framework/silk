@@ -36,6 +36,7 @@ POST          /tasks/:project/:task/reloadCache                                 
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
 
 POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/peak/:rule/childRule                           controllers.transform.PeakTransformApi.peakChildRule(project: String, task: String, rule: String)
 
 GET           /tasks/:project/:task/rule/:rule/completions/sourcePaths             controllers.transform.AutoCompletionApi.sourcePaths(project: String, task: String, rule: String, term ?= "", maxResults: Int ?= 30)
 GET           /tasks/:project/:task/rule/:rule/completions/targetTypes             controllers.transform.AutoCompletionApi.targetTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
