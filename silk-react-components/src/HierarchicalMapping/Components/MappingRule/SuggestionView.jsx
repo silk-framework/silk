@@ -12,44 +12,43 @@ import {
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
 
-
 const SuggestionsView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
     // FIXME: check propTypes
-    propTypes: {
-
-    },
-    componentDidMount() {
-
-    },
+    propTypes: {},
+    componentDidMount() {},
     getInitialState() {
-        return {
-        };
+        return {};
     },
     // template rendering
-    render () {
+    render() {
         const {suggestedClass, pos, item, checked} = this.props;
 
-        return <li
-            className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
-            <Checkbox
-                onChange={this.props.check.bind(null, suggestedClass, pos)}
-                checked={checked}
-                className='ecc-silk-mapping__suggestitem-checkbox'
-                ripple={true}/>
+        return (
+            <li className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
+                <Checkbox
+                    onChange={this.props.check.bind(null, suggestedClass, pos)}
+                    checked={checked}
+                    className="ecc-silk-mapping__suggestitem-checkbox"
+                    ripple
+                />
 
-            <div
-                className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable"
-                title={`Click to add the suggested value mapping:\n\nTarget property: ${suggestedClass}\nValue path: ${item.uri}\nConfidence: ${item.confidence}`}
-                onClick={this.props.check.bind(null, suggestedClass, pos)}
-            >
-                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">{suggestedClass}</div>
-                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">{item.uri}</div>
-            </div>
-        </li>
-    }
+                <div
+                    className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content clickable"
+                    title={`Click to add the suggested value mapping:\n\nTarget property: ${suggestedClass}\nValue path: ${item.uri}\nConfidence: ${item.confidence}`}
+                    onClick={this.props.check.bind(null, suggestedClass, pos)}>
+                    <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
+                        {suggestedClass}
+                    </div>
+                    <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
+                        {item.uri}
+                    </div>
+                </div>
+            </li>
+        );
+    },
 });
 
 export default SuggestionsView;

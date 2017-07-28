@@ -5,7 +5,7 @@ module.exports = {
         common: {
             context: path.resolve(__dirname),
             entry: {
-                main: './src/index.js',
+                main: './src/index.jsx',
             },
             output: {
                 publicPath: '',

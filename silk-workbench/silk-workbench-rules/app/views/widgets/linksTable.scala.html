@@ -33,7 +33,9 @@
 }
 
 @render(pageLinks: Seq[EvalLink]) = {
-  <script>$(document).ready(function() { initPagination(@links.size) })</script>
+  <script type="text/javascript">
+    $(document).ready(function() { initPagination(@links.size) })
+  </script>
 
   <div style="clear: both"></div>
 

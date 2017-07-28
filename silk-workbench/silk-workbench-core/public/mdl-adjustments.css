@@ -90,7 +90,7 @@
 * Linking Rule Editor Canvas
 */
 
-#droppable h5 {
+.droppable-canvas h5 {
   margin: 0px;
 }
 

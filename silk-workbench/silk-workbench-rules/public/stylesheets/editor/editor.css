@@ -49,7 +49,7 @@ body{
 	float: left;
 }
 
-#droppable {
+.droppable-canvas {
   width: auto;
   height: 800px;
   padding: 5px;
