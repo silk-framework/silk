@@ -112,15 +112,15 @@ class PeakTransformApi extends Controller {
                                             (implicit prefixes: Prefixes) = {
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
     if (sourceAndTargetResults.nonEmpty) {
-      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("success", ""))))
     } else if (errorCounter > 0) {
-      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
           s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
             "First exception: " + errorMessage))))
     } else {
-      Ok(Json.toJson(PeakResults(Some(rule.paths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))
     }
   }

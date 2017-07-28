@@ -25,7 +25,7 @@ private class TransformReportBuilder(rules: Seq[TransformRule]) {
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
-        val values = rule.paths.map(entity.evaluate)
+        val values = rule.sourcePaths.map(entity.evaluate)
         currentRuleResult.withError(RuleError(entity.uri, values, ex))
       } else {
         currentRuleResult.withError()

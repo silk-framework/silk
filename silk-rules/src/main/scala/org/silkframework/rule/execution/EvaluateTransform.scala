@@ -29,7 +29,7 @@ class EvaluateTransform(source: DataSource,
     val entityDesc =
       EntitySchema(
         typeUri = dataSelection.typeUri,
-        typedPaths = rules.flatMap(_.paths).map(_.asStringTypedPath).toIndexedSeq,
+        typedPaths = rules.flatMap(_.sourcePaths).map(_.asStringTypedPath).toIndexedSeq,
         filter = dataSelection.restriction
       )
     val entities = source.retrieve(entityDesc)
