@@ -30,7 +30,7 @@ build-react: install
 vendors: install
 	@echo "Managing external libraries: ${LIST_OF_VENDORS}"
 	$(foreach var,$(LIST_OF_VENDORS), PACKAGE=$(var) make copy-vendor;)
-	git clean ../silk-workbench/silk-workbench-core/public/libs -Xf
+	git clean ../silk-workbench/silk-workbench-core/public/libs -Xfd
 	@echo "Finished copying external libraries: ${LIST_OF_VENDORS}"
 
 ## run scripts through babel
