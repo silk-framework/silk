@@ -233,18 +233,10 @@ if (!__DEBUG__) {
             } else {
                 silkStore
                     .request({
-                        topic: 'transform.task.targetVocabulary.type',
+                        topic: 'transform.task.targetVocabulary.typeOrProperty',
                         data: {...apiDetails, uri},
                     })
-                    .catch(() =>
-                        silkStore
-                            .request({
-                                topic:
-                                    'transform.task.targetVocabulary.property',
-                                data: {...apiDetails, uri},
-                            })
-                            .catch(() => Rx.Observable.just({})),
-                    )
+                    .catch(() => Rx.Observable.just({}))
                     .map(returned => {
                         const info = _.get(
                             returned,

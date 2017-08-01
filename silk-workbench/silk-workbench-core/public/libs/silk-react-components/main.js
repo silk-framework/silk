@@ -6887,19 +6887,12 @@
             });
             replySubject.onCompleted();
         } else silkStore.request({
-            topic: "transform.task.targetVocabulary.type",
+            topic: "transform.task.targetVocabulary.typeOrProperty",
             data: (0, _extends3.default)({}, apiDetails, {
                 uri: uri
             })
         }).catch(function() {
-            return silkStore.request({
-                topic: "transform.task.targetVocabulary.property",
-                data: (0, _extends3.default)({}, apiDetails, {
-                    uri: uri
-                })
-            }).catch(function() {
-                return _eccMessagebus.Rx.Observable.just({});
-            });
+            return _eccMessagebus.Rx.Observable.just({});
         }).map(function(returned) {
             var info = _lodash2.default.get(returned, [ "body", "genericInfo", field ], null);
             _lodash2.default.set(vocabularyCache, path, info);
@@ -24269,6 +24262,12 @@
     silkStore.subject("transform.task.targetVocabulary.property").subscribe(function(_ref13) {
         var data = _ref13.data, replySubject = _ref13.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, uri = data.uri;
         _eccSuperagent2.default.get(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/targetVocabulary/property").accept("application/json").query({
+            uri: uri
+        }).observe().multicast(replySubject).connect();
+    });
+    silkStore.subject("transform.task.targetVocabulary.typeOrProperty").subscribe(function(_ref14) {
+        var data = _ref14.data, replySubject = _ref14.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, uri = data.uri;
+        _eccSuperagent2.default.get(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/targetVocabulary/typeOrProperty").accept("application/json").query({
             uri: uri
         }).observe().multicast(replySubject).connect();
     });
