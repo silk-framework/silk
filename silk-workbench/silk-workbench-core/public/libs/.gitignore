@@ -43,3 +43,6 @@ mark.js/dist/*
 material-design-lite/*/
 
 mdl-selectfield/src
+
+twbs-pagination/tests/
+twbs-pagination/examples/
