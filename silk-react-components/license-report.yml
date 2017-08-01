@@ -1140,14 +1140,6 @@ DataManager:
           url: >-
             https://raw.githubusercontent.com/jquery/jquery-ui/1.11.4/LICENSE.txt
       downloadUrl: 'https://github.com/jquery/jquery-ui/archive/1.11.4.zip'
-    - name: jquery_pagination
-      version: '2.1'
-      url: 'https://github.com/gbirke/jquery_pagination'
-      licenses:
-        - name: GPL-2.0
-          url: >-
-            https://raw.githubusercontent.com/gbirke/jquery_pagination/v2.1/README.rst
-      downloadUrl: 'https://github.com/gbirke/jquery_pagination/archive/v2.1.zip'
     - name: js-tokens
       version: 3.0.1
       url: 'https://github.com/lydell/js-tokens#readme'

@@ -19,11 +19,3 @@ silk-js-components:
         - name: MIT
           url: https://raw.githubusercontent.com/jzaefferer/jquery-treeview/1.4.2/readme.md
       downloadUrl: https://github.com/jzaefferer/jquery-treeview/archive/1.4.2.zip
-    # Not imported using npm, cause it's got no package.json
-    - name: jquery_pagination
-      version: '2.1'
-      url: https://github.com/gbirke/jquery_pagination
-      licenses:
-        - name: GPL-2.0
-          url: https://raw.githubusercontent.com/gbirke/jquery_pagination/v2.1/README.rst
-      downloadUrl: https://github.com/gbirke/jquery_pagination/archive/v2.1.zip
