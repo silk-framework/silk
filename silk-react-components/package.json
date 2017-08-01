@@ -36,7 +36,8 @@
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "react-highlight-words": "^0.8.0"
+    "react-highlight-words": "^0.8.0",
+    "twbs-pagination": "^1.4.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

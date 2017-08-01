@@ -13605,3 +13605,18 @@ h6 {
 
 .clickable {
   cursor: pointer; }
+
+.navigation ul, .navigation li {
+  list-style-type: none; }
+
+.navigation ul {
+  display: flex;
+  float: left;
+  margin: 0;
+  padding: 0; }
+
+.navigation .page-item.first, .navigation .page-item.prev, .navigation .page-item.next, .navigation .page-item.last {
+  margin-right: 0.5rem; }
+
+.navigation .page-item.next, .navigation .page-item.first {
+  margin-left: 0.5rem; }

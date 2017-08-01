@@ -96,8 +96,9 @@ function reloadLinks() {
     });
 }
 
-function handlePaginationClick(new_page_index) {
-    updatePage(new_page_index);
+function handlePaginationClick(event, new_page_index) {
+    // first page should be 0 not 1
+    updatePage(new_page_index - 1);
     return false;
 }
 
@@ -105,10 +106,17 @@ function handlePaginationClick(new_page_index) {
 silk-workbench/silk-workbench-rules/app/views/widgets/linksTable.scala.html
  */
 function initPagination(number_results) {
-    $('.navigation').pagination(number_results, {
-        items_per_page: 100,
-        current_page: page,
-        callback: handlePaginationClick
+    // TODO: remove old code
+    /*$('.navigation').pagination(number_results, {
+     items_per_page: 100,
+     current_page: page,
+     callback: handlePaginationClick
+     });*/
+    $('.navigation').twbsPagination({
+        // rounds up number of needed pages
+        totalPages: Math.ceil(number_results / 100) === 0 ? 1 : Math.ceil(number_results / 100),
+        visiblePages: 7,
+        onPageClick: handlePaginationClick
     });
 }
 

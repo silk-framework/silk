@@ -3,3 +3,25 @@
 
 // include enhancements for silk mapping editor
 @import '../HierarchicalMapping/HierarchicalMapping';
+
+.navigation {
+  ul, li {
+    list-style-type: none;
+  }
+
+  ul {
+    display: flex;
+    float: left;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-item.first, .page-item.prev, .page-item.next, .page-item.last {
+    margin-right: 0.5rem;
+  }
+
+  .page-item.next, .page-item.first {
+    margin-left: 0.5rem;
+  }
+
+}
