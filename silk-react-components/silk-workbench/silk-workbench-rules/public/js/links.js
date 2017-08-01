@@ -104,17 +104,22 @@ function handlePaginationClick(event, new_page_index) {
 silk-workbench/silk-workbench-rules/app/views/widgets/linksTable.scala.html
  */
 function initPagination(number_results) {
-    // TODO: remove old code
-    /*$('.navigation').pagination(number_results, {
-     items_per_page: 100,
-     current_page: page,
-     callback: handlePaginationClick
-     });*/
-    $('.navigation').twbsPagination({
+    const $navigation = $('.navigation');
+    $navigation.twbsPagination('destroy');
+    $navigation.twbsPagination({
         // rounds up number of needed pages
-        totalPages: Math.ceil(number_results / 100) === 0 ? 1 : Math.ceil(number_results / 100),
+        totalPages:
+            Math.ceil(number_results / 100) === 0
+                ? 1
+                : Math.ceil(number_results / 100),
         visiblePages: 7,
-        onPageClick: handlePaginationClick
+        onPageClick: handlePaginationClick,
+        nextClass: 'mdl-button mdl-button--pagination next',
+        prevClass: 'mdl-button mdl-button--pagination prev',
+        lastClass: 'mdl-button mdl-button--pagination last',
+        firstClass: 'mdl-button mdl-button--pagination first',
+        pageClass: 'mdl-button mdl-button--pagination',
+        activeClass: 'mdl-button--active',
     });
 }
 

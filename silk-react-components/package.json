@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "eslint-check": "eslint --print-config .eslintrc.yml && eslint --print-config .eslintrc.yml | eslint-config-prettier-check",
-    "lint": "eslint 'src/**/*.{js,jsx}'",
-    "lint-fix": "eslint 'src/**/*.{js,jsx}' --fix",
+    "lint": "eslint '{src,silk-workbench}/**/*.{js,jsx}' --fix",
     "start": "gulp",
     "build": "gulp build",
     "deploy": "gulp deploy"

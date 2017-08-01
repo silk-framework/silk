@@ -1,27 +1,29 @@
 // include basic environment
 @import '~ecc-gui-elements/src/configuration.default';
-
+@import '~material-design-lite/src/_variables.scss';
 // include enhancements for silk mapping editor
 @import '../HierarchicalMapping/HierarchicalMapping';
 
-.navigation {
-  ul, li {
-    list-style-type: none;
-  }
+ul.navigation {
+  display: flex;
+  float: left;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 
-  ul {
-    display: flex;
-    float: left;
-    margin: 0;
-    padding: 0;
-  }
+  .mdl-button {
 
-  .page-item.first, .page-item.prev, .page-item.next, .page-item.last {
-    margin-right: 0.5rem;
-  }
+    &.mdl-button--pagination {
+      min-width: unset;
+      list-style-type: none;
 
-  .page-item.next, .page-item.first {
-    margin-left: 0.5rem;
+    }
+
+    &.mdl-button--active {
+      background-color: $button-hover-color;
+    }
+
+
   }
 
 }

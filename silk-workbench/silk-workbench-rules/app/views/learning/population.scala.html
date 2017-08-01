@@ -22,7 +22,7 @@
 @toolbar = {
   <ul>
     <li>
-      <button onclick="window.location = '@config.baseUrl/linking/@context.project.name/@context.task.id/learn'" >Back</button>
+      <button onclick="window.location = '@config.baseUrl/linking/@context.project.name/@context.task.id/activeLearn'" >Back</button>
     </li>
   </ul>
 }
@@ -35,7 +35,7 @@
         <div class="toggle-all"><div class="minus"></div><a href="#" onclick="hide_all();">Collapse All</a></div>
       </div>
       <div class="middle">
-        <div class="navigation"></div>
+        <ul class="navigation"></ul>
       </div>
     </div>
 
@@ -49,7 +49,7 @@
     <div style="clear:both;"></div>
 
     <div id="tree-footer">
-      <div class="navigation"></div>
+      <ul class="navigation"></ul>
     </div>
 
     <div style="clear: both"></div>

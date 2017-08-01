@@ -443,7 +443,7 @@ function validateLinkSpec() {
 
 function modifyLinkSpec() {
     // This function does not need to be executed if not in editing mode
-    if(!inEditorEnv){
+    if (!inEditorEnv) {
         return;
     }
     confirmOnExit = true;
