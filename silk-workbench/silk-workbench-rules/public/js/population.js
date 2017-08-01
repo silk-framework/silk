@@ -14,45 +14,19 @@
  * limitations under the License.
  */
 
-var currentPath = '';
-// TODO: current_page unused?
-// eslint-disable-next-line
-var current_page = 1;
 contentWidthCallback = updateResultsWidth;
 
 /* exported initPopulation
 silk-workbench/silk-workbench-rules/app/views/learning/population.scala.html
  */
 function initPopulation(path) {
-    currentPath = path;
-    initPagination('20');
-}
-
-function updatePopulation(page) {
-    $.get(currentPath + '/' + page, function (data) {
+    $.get(path + '/0', function (data) {
         $('#populationView').html(data);
         initTrees();
         updateResultsWidth();
     }).fail(function (request) {
         alert(request.responseText);
     });
-}
-
-function handlePaginationClick(new_page_index) {
-    updatePopulation(new_page_index);
-    current_page = new_page_index;
-    return false;
-}
-
-function initPagination(number_results) {
-    $('.navigation').pagination(number_results, {
-        items_per_page: 20,
-        callback: handlePaginationClick
-    });
-    var navi_width = 94 + number_results / 20 * 34;
-    if (number_results < 21) navi_width = 124;
-    if (number_results > 1100) navi_width = 525;
-    $('.navigation').css('width', navi_width + 'px').css('float', 'none').css('margin', '0 auto');
 }
 
 function initTrees() {
