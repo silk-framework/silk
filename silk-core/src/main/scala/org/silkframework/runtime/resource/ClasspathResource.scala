@@ -1,23 +1,29 @@
 package org.silkframework.runtime.resource
 
+import java.io.InputStream
+import java.time.Instant
+
 /**
   * A resource in the classpath.
   *
   * @param path The path of the resource, e.g., "org/silkframework/resource.txt"
   */
-class ClasspathResource(val path: String) extends Resource {
+case class ClasspathResource(path: String) extends Resource {
 
   val name: String = path.split(',').last
 
-  def exists = {
-    getClass.getClassLoader.getResourceAsStream(path) != null
+  def exists: Boolean = {
+    Option(getClass.getClassLoader.getResourceAsStream(path)).isDefined
   }
 
-  def size = None
+  def size: Option[Long] = {
+    val length = loadAsBytes.length
+    Some(length)
+  }
 
-  def modificationTime = None
+  def modificationTime: Option[Instant] = None
 
-  override def load = {
+  override def load: InputStream = {
     getClass.getClassLoader.getResourceAsStream(path)
   }
 }

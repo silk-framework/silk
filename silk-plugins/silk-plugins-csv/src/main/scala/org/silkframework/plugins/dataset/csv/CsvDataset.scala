@@ -8,7 +8,7 @@ import scala.io.Codec
 
 @Plugin(
   id = "csv",
-  label = "CSV",
+  label = "CSV file",
   description =
       """Retrieves all entities from a csv file."""
 )
@@ -35,7 +35,7 @@ case class CsvDataset
   @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
     linesToSkip: Int = 0,
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
-    maxCharsPerColumn: Int = 4096,
+    maxCharsPerColumn: Int = 128000,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
     ignoreBadLines: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
 
@@ -63,8 +63,6 @@ case class CsvDataset
   override def linkSink: LinkSink = new CsvLinkSink(file, settings)
 
   override def entitySink: EntitySink = new CsvEntitySink(file, settings)
-
-  override def clear(): Unit = {}
 
   /**
     * returns an auto-configured version of this plugin

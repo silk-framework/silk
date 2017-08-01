@@ -3,6 +3,7 @@
 @import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.entity.ValueType
+@import org.silkframework.runtime.serialization.XmlSerialization.toXml
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
@@ -14,28 +15,32 @@
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
-  <script type="text/javascript" src="@Assets.at("js/excanvas.js")"></script>
-  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.7.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/editor.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/status.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/serializeRule.js")"></script>
-  <script type="text/javascript" src="@Assets.at("js/editor/editableLabel.js")"></script>
+  <script src="@CoreAssets.at("libs/jsplumb/dist/js/jsPlumb-2.1.8.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/editor.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/status.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/serializeRule.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/editableLabel.js")" type="text/javascript"></script>
 
   <script type="text/javascript">
     var inEditorEnv = true;
     var projectName = '@context.project.name';
     var taskName = '@context.task.id';
-    var ruleIndex = '/@context.task.data.rules.indexOf(rule)';
+    var ruleIndex = '/@rule.id.toString';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
     var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
     var serializationFunction = serializeTransformRule;
+  </script>
+
+  @** As the editor does not manage the meta data, we just hold it and attach it to updated rules. **@
+  <script id="rule-metadata" type="text/xml">
+    @toXml(rule.metaData)
   </script>
 }
 
 @toolbar = {
   <ul>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="../editor">
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="../editor/rule/@rule.id">
         <i class="material-icons">arrow_back</i>
       </a>
     </li>
@@ -69,7 +74,7 @@
     <li>
       <label>Name:</label>
       <div id="input_rulename" class="mdl-textfield mdl-js-textfield">
-        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.name" />
+        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.id" />
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_rulename">
         The name of this transformation rule.
@@ -117,7 +122,7 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory)
+        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
       </div>
     </div>
   </div>
@@ -126,10 +131,10 @@
 
     <div class="droppable_outer">
 
-      <div id="droppable" class="mdl-shadow--2dp">
+      <div id="droppable" class="droppable-canvas mdl-shadow--2dp">
         @renderRule(
           rule = rule.operator,
-          prefixes = context.project.config.prefixes
+          project = context.project
         )
       </div>
 

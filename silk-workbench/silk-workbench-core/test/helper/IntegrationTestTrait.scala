@@ -1,18 +1,19 @@
 package helper
 
-import java.io.File
+import java.io._
 import java.net.{BindException, InetSocketAddress, URLDecoder}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
-import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.RdfNode
+import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.silkframework.workspace.{User, Workspace, WorkspaceProvider}
+import org.silkframework.workspace.resources.FileRepository
+import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.libs.ws.{WS, WSResponse}
 
 import scala.collection.immutable.SortedMap
@@ -20,22 +21,45 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
   * Created on 3/17/16.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { this: Suite =>
+trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
+  this: Suite =>
+
+  final val APPLICATION_JSON: String = "application/json"
+  final val APPLICATION_XML: String = "application/xml"
+  final val CONTENT_TYPE: String = "content-type"
+  final val ACCEPT: String = "accept"
+
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
   final val START_PORT = 10600
+  private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
+  tmpDir.delete()
+  tmpDir.mkdirs()
+
+  /** The workspace provider that is used for holding the test workspace. */
+  def workspaceProvider: String = "inMemoryRdfWorkspace"
+
+  def deleteRecursively(f: File): Unit = {
+    if (f.isDirectory) {
+      for (c <- f.listFiles())
+        deleteRecursively(c)
+    }
+    if (!f.delete()) {
+      throw new FileNotFoundException("Failed to delete file: " + f)
+    }
+  }
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
-  override def beforeAll(): Unit = {
+  override protected def beforeAll(): Unit = {
     implicit val resourceManager = InMemoryResourceManager()
     implicit val prefixes = Prefixes.empty
-    val provider = PluginRegistry.create[WorkspaceProvider]("inMemoryRdfWorkspace", Map.empty)
-    val replacementWorkspace = new Workspace(provider, InMemoryResourceRepository())
+    val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
+    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceUser = new User {
       /**
         * The current workspace of this user.
@@ -46,8 +70,9 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     User.userManager = () => rdfWorkspaceUser
   }
 
-  override def afterAll(): Unit = {
+  override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
+    deleteRecursively(tmpDir)
   }
 
   def init(): Unit = {
@@ -71,12 +96,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     *
     * @param projectId
     */
-  def addProjectPrefixes(projectId: String): WSResponse = {
+  def addProjectPrefixes(projectId: String, extraPrefixes: Map[String, String] = Map.empty): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
     val response = request.put(Map(
       "rdf" -> Seq("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
       "rdfs" -> Seq("http://www.w3.org/2000/01/rdf-schema#"),
       "owl" -> Seq("http://www.w3.org/2002/07/owl#"),
+      "source" -> Seq("https://ns.eccenca.com/source/"),
       "loan" -> Seq("http://eccenca.com/ds/loans/"),
       "stat" -> Seq("http://eccenca.com/ds/unemployment/"),
       // TODO Currently the default mapping generator maps all properties to this namespace
@@ -84,7 +110,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
       "loans" -> Seq("http://eccenca.com/ds/loans/"),
       "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
-    ))
+    ) ++ extraPrefixes.mapValues(Seq(_)))
     checkResponse(response)
   }
 
@@ -132,6 +158,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     checkResponse(response).body
   }
 
+  def executeTaskActivity(projectId: String, taskId: String, activityId: String, parameters: Map[String, String]): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/startBlocking")
+    val response = request.post(parameters map { case (k, v) => (k, Seq(v)) })
+    checkResponse(response)
+  }
+
   /**
     * Creates a CSV dataset from a file resources.
     *
@@ -141,13 +173,52 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
     *                  the header line.
     */
-  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String, uriPrefix: String): WSResponse = {
+  def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
+                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>
+        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  def createRdfDumpDataset(projectId: String, datasetId: String, fileResourceId: String, format: String = "N-Triples", graph: String = ""): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="file">
+        <Param name="file" value={fileResourceId}/>
+        <Param name="format" value={format}/>
+        <Param name="graph" value={graph}/>
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  def createSparkViewDataset(projectId: String, datasetId: String, viewName: String): WSResponse = {
+    val datasetConfig =
+      <Dataset id={datasetId} type="sparkView">
+        <Param name="viewName" value={viewName}/>
+      </Dataset>
+    createDataset(projectId, datasetId, datasetConfig)
+  }
+
+  /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
+    * is RDF-enabled and implements the [[GraphStoreTrait]]. */
+  def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
+    User.userManager.apply().workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
+        val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
+        graphStore.postDataToGraph(graph, contentType)
+      case e: Any =>
+        fail(s"Not a RDF-enabled GraphStore supporting workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
+  def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
+    val out = loadRdfIntoGraph(graph, contentType)
+    val outWriter = new BufferedOutputStream(out)
+    outWriter.write(rdfString.getBytes())
+    outWriter.flush()
+    outWriter.close()
   }
 
   def createXmlDataset(projectId: String, datasetId: String, fileResourceId: String): WSResponse = {
@@ -205,6 +276,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
+  }
+
+  def peakIntoDatasetTransformation(projectId: String, transformationId: String, ruleId: String): String = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformationId/peak/$ruleId")
+    val response = request.post("")
+    val result = checkResponse(response)
+    result.body
   }
 
   /**
@@ -346,13 +424,23 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
     val response = Await.result(futureResponse, 100.seconds)
-    assert(response.status.toString.head + "00" == responseCodePrefix + "00", s"Status text: ${response.statusText}. Response Body: ${response.body}")
+    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
     response
   }
 
-  def getTransformationTaskRules(project: String, taskName: String): String = {
+  def checkResponseCode(futureResponse: Future[WSResponse],
+                        responseCode: Int = 200): WSResponse = {
+    val response = Await.result(futureResponse, 100.seconds)
+    assert(response.status == responseCode, s"Expected $responseCode response code. " +
+        s"Found: status text: ${response.statusText}. Response Body: ${response.body}")
+    response
+  }
+
+  def getTransformationTaskRules(project: String, taskName: String, accept: String = "application/json"): String = {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
-    val response = request.get()
+    val response = request.
+        withHeaders("accept" -> accept).
+        get()
     val r = checkResponse(response)
     r.body
   }
@@ -363,7 +451,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   }
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {
-    val workflowConfig = workflow.toXML
+    val workflowConfig = XmlSerialization.toXml[Task[Workflow]](PlainTask(workflowId, workflow))
     val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId")
     val response = request.put(workflowConfig)
     checkResponse(response)
@@ -403,7 +491,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll { th
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
   def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
     val server: HttpServer = createHttpServer
-    for(responseContent <- servedContent) {
+    for (responseContent <- servedContent) {
       val handler = new HttpHandler {
         override def handle(httpExchange: HttpExchange): Unit = {
           val response = responseContent.content

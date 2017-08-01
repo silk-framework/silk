@@ -1,0 +1,18 @@
+@(project: String)
+
+@widgets.dialog(title = "Delete Project", submitLabel = "Yes, delete it") {
+
+<p>
+  Delete project: <span class="delete-dialog-resource">@project</span>
+</p>
+
+  <script type="text/javascript">//<![CDATA[
+
+    function submit() {
+      deleteProject('@project');
+      closeDialog();
+    }
+
+  //]]>
+  </script>
+}

@@ -16,10 +16,10 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.Task
-import org.silkframework.entity.{Link, ValueType}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
-import org.silkframework.util.Identifier
+import org.silkframework.config.{MetaData, Task}
+import org.silkframework.entity.Link
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
@@ -29,6 +29,7 @@ import scala.xml.{Node, Text}
   */
 class DatasetTask(val id: Identifier,
                   val plugin: Dataset,
+                  val metaData: MetaData = MetaData.empty,
                   val minConfidence: Option[Double] = None,
                   val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
 
@@ -40,16 +41,19 @@ class DatasetTask(val id: Identifier,
 
   lazy val linkSink: LinkSink = new LinkSinkWrapper
 
-  def clear(): Unit = plugin.clear()
-
   override def equals(obj: Any): Boolean = obj match {
     case ds: DatasetTask =>
-      id == ds.id && plugin == ds.plugin &&
-          minConfidence == ds.minConfidence && maxConfidence == ds.maxConfidence
+      id == ds.id &&
+      plugin == ds.plugin &&
+      metaData == ds.metaData &&
+      minConfidence == ds.minConfidence &&
+      maxConfidence == ds.maxConfidence
+    case _ =>
+      false
   }
 
   override def toString = {
-    s"DatasetTask(id=$id, plugin=${plugin.toString})"
+    s"DatasetTask(id=$id, plugin=${plugin.toString}, metaData=${metaData.toString})"
   }
 
   private class EntitySinkWrapper extends EntitySink {
@@ -63,13 +67,13 @@ class DatasetTask(val id: Identifier,
     /**
       * Initializes this writer.
       */
-    override def open(properties: Seq[TypedProperty]) {
+    override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
       if (isOpen) {
         writer.close()
         isOpen = false
       }
 
-      writer.open(properties)
+      writer.open(typeUri, properties)
       entityCount = 0
       isOpen = true
     }
@@ -88,6 +92,11 @@ class DatasetTask(val id: Identifier,
       isOpen = false
       log.info(s"Wrote $entityCount entities.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   private class LinkSinkWrapper extends LinkSink {
@@ -128,6 +137,11 @@ class DatasetTask(val id: Identifier,
       isOpen = false
       log.info(s"Wrote $linkCount links.")
     }
+
+    /**
+      * Makes sure that the next write will start from an empty dataset.
+      */
+    override def clear(): Unit = writer.clear()
   }
 
   /** The task specification that holds the actual task specification. */
@@ -136,10 +150,10 @@ class DatasetTask(val id: Identifier,
 
 object DatasetTask {
 
-  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data)
+  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data, task.metaData)
 
   def empty = {
-    new DatasetTask("empty", EmptyDataset)
+    new DatasetTask("empty", EmptyDataset,  MetaData.empty)
   }
 
   /**
@@ -158,6 +172,7 @@ object DatasetTask {
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((node \ "@type").text, readParams(node)),
+          metaData = MetaData.empty,
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -169,6 +184,7 @@ object DatasetTask {
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((sourceNode \ "@type").text, readParams(sourceNode)),
+          metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
@@ -189,6 +205,7 @@ object DatasetTask {
             {params.map {
             case (name, v) => <Param name={name} value={v}/>
           }}
+            {XmlSerialization.toXml[MetaData](value.metaData)}
           </Dataset>
       }
     }

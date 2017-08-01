@@ -46,6 +46,15 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           case _ =>
             throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
         }
+      case multi: MultiEntitySchema =>
+        MultiEntityTable(
+          entities = dataset.source.retrieve(entitySchema = schema),
+          entitySchema = schema,
+          subTables =
+            for(subSchema <- multi.subSchemata) yield
+              GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
+          task = dataset
+        )
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
@@ -58,6 +67,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         writeLinks(dataset, links, linkType)
       case TripleEntityTable(entities, _) =>
         writeTriples(dataset, entities)
+      case tables: MultiEntityTable =>
+        writeMultiTables(dataset, tables)
       case et: EntityTable =>
         writeEntities(dataset, et)
     }
@@ -68,7 +79,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     val sink = dataset.entitySink
-    sink.openWithTypedPath(entityTable.entitySchema.typedPaths)
+    sink.openWithTypedPath(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
@@ -127,6 +138,15 @@ object LocalDatasetExecutor {
     }
     sink.close()
   }
+
+  private def writeMultiTables(dataset: Dataset, tables: MultiEntityTable): Unit = {
+    writeEntities(dataset, tables)
+    for(table <- tables.subTables) {
+      writeEntities(dataset, table)
+    }
+  }
+
+}
 
   def convertToValueType(encodedType: String): ValueType = {
     encodedType.take(2) match {

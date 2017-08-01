@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.{DataSource, TripleSink, TripleSinkDataset}
+import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
@@ -15,7 +15,7 @@ import org.silkframework.util.Uri
 
 @Plugin(
   id = "file",
-  label = "RDF dump",
+  label = "RDF file",
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.
 The dataset is loaded in-memory and thus the size is restricted by the available memory.
@@ -71,9 +71,7 @@ case class FileDataset(
 
   override def entitySink = new FormattedEntitySink(file, formatter)
 
-  override def clear(): Unit = { }
-
-  object FileSource extends DataSource {
+  object FileSource extends DataSource with PeakDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -84,11 +82,12 @@ case class FileDataset(
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-      load()
-      if(entities.isEmpty)
+      if(entities.isEmpty) {
         Seq.empty
-      else
+      } else {
+        load()
         EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+      }
     }
 
     override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
@@ -99,7 +98,8 @@ case class FileDataset(
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
       load()
-      SparqlTypesCollector(endpoint, limit)
+      val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
+      SparqlTypesCollector(endpoint, graphOpt, limit)
     }
 
     /**

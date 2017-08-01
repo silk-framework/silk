@@ -34,8 +34,6 @@ case class CacheDataset(dir: String) extends Dataset {
 
   override def linkSink = ???
 
-  override def clear: Unit = { }
-
   object CacheSource extends DataSource {
     def retrieve(entityDesc: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))

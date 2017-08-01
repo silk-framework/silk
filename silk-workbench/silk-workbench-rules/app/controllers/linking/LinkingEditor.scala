@@ -27,17 +27,17 @@ class LinkingEditor extends Controller {
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
-      ServiceUnavailable(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg))
+      ServiceUnavailable(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg, project = project))
     } else if(pathsCache.status().failed) {
-      Ok(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths."))
+      Ok(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths.", project = project))
     } else {
 
       val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
       val paths = entityDescs.map(_.typedPaths.map(_.path.serialize(prefixes)))
       if (groupPaths) {
-        Ok(views.html.editor.paths(sourceNames, paths, onlySource = false))
+        Ok(views.html.editor.paths(sourceNames, paths, onlySource = false, project = project))
       } else {
-        Ok(views.html.editor.pathsList(sourceNames, paths, onlySource = false))
+        Ok(views.html.editor.pathsList(sourceNames, paths, onlySource = false, project = project))
       }
     }
   }

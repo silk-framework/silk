@@ -28,8 +28,16 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.importProjectDialog())
   }
 
-  def removeTaskDialog(name: String, path: String): Action[AnyContent] = Action {
-    Ok(views.html.workspace.removeTaskDialog(name, path))
+  def removeProjectDialog(project: String): Action[AnyContent] = Action {
+    Ok(views.html.workspace.removeProjectDialog(project))
+  }
+
+  def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val dependentTasks = task.findDependentTasks(false).map(_.id.toString)
+
+    Ok(views.html.workspace.removeTaskDialog(projectName, taskName, dependentTasks))
   }
 
   def removeResourceDialog(name: String, path: String): Action[AnyContent] = Action {

@@ -1,10 +1,9 @@
 package org.silkframework.workspace.activity.workflow
 
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.ClearableDatasetGraphTrait
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
@@ -64,20 +63,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def clearOutputDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
     // Clear all internal datasets and input datasets that are configured so
-    for (datasetTask <- workflow.outputDatasets(project)
-         if datasetTask.data.isInstanceOf[InternalDatasetTrait] ||
-             datasetTask.data.isInstanceOf[ClearableDatasetGraphTrait]) {
+    for (datasetTask <- workflow.outputDatasets(project)) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      usedDatasetTask.data match {
-        case idd: InternalDatasetTrait =>
-          idd.clear()
-        case cdd: ClearableDatasetGraphTrait =>
-          if(cdd.clearGraphBeforeExecution) {
-            cdd.clearGraph()
-          }
-        case other: Dataset =>
-          log.warning("Unhandled input dataset type: " + other.getClass.getName)
-      }
+      usedDatasetTask.data.entitySink.clear()
     }
   }
 
@@ -146,7 +134,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ex: WorkflowException =>
         throw ex
       case NonFatal(ex) =>
-        log.warning("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId)
+        log.log(Level.WARNING, "Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId, ex)
         throw WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
           ". Cause: " + ex.getMessage, Some(ex))
     }

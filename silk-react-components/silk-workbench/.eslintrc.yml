@@ -1,0 +1,27 @@
+globals:
+  $: true
+  jsPlumb: true
+  DynamicEndpointHandler: true
+  # DI global variables
+  baseUrl: true # Set in various templates
+   # Set in main.js
+  showDialog: true
+  contentWidthCallback: true
+  contentWidth: true
+env:
+  node: false
+  commonjs: false
+parserOptions:
+  sourceType: script
+rules:
+  # Variables should be camel case, due to the many occurences of variable names with underscore, we only warn for now
+  camelcase: 1
+  # Variable names should have no leading _, we do not care about that however
+  no-underscore-dangle: 0
+  # These rules are regarding var -> let/const, we should remove them once we want to migrate completely
+  no-var: 0
+  vars-on-top: 1
+  # Disallow usage of functions before they are defined /shrug, warning should be enough
+  no-use-before-define: 1
+  # Convert callback functions to arrow functions
+  prefer-arrow-callback: 0

@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "concat",
@@ -23,10 +23,36 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Concatenate",
   description = "Concatenates strings from two inputs."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    output = Array()
+  ),
+  new TransformExample(
+    input1 = Array("a"),
+    output = Array("a")
+  ),
+  new TransformExample(
+    input1 = Array("a"),
+    input2 = Array("b"),
+    output = Array("ab")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array("Last"),
+    output = Array("First-Last")
+  )
+))
 case class ConcatTransformer(glue: String = "") extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
+    if(values.isEmpty) {
+      Seq.empty
+    } else if(values.size == 1) {
+      values.head
+    } else {
+      for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
+    }
   }
 
   private def cartesianProduct(strings: Seq[Seq[String]]): Seq[List[String]] = {

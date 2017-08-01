@@ -33,7 +33,9 @@
 }
 
 @render(pageLinks: Seq[EvalLink]) = {
-  <script>$(document).ready(function() { initPagination(@links.size) })</script>
+  <script type="text/javascript">
+    $(document).ready(function() { initPagination(@links.size) })
+  </script>
 
   <div style="clear: both"></div>
 
@@ -244,7 +246,7 @@
       </ul>
     </li>
   }
-  case InputValue(input, values) => {
+  case InputValue(input, values, error) => {
     <li>
       <span class="input">
         Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)

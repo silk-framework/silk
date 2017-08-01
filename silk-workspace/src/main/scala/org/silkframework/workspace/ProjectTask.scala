@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -35,12 +35,16 @@ import scala.util.control.NonFatal
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    initialData: TaskType,
+                                                   initialMetaData: MetaData,
                                                    module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
   @volatile
   private var currentData: TaskType = initialData
+
+  @volatile
+  private var currentMetaData: MetaData = initialMetaData
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -67,17 +71,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * The project this task belongs to.
     */
-  def project = module.project
+  def project: Project = module.project
 
   /**
     * Retrieves the current data of this task.
     */
-  def data = currentData
+  override def data: TaskType = currentData
 
-  def task: Task[TaskType] = PlainTask(id, currentData)
+  /**
+    * Retrieves the current meta data of this task.
+    */
+  override def metaData = currentMetaData
 
-  def init() = {
-    // Start autorun activities
+  def init(): Unit = {
+    // Start auto-run activities
     for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
   }
@@ -85,15 +92,32 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType) = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
     // Update data
     currentData = newData
+    for(md <- newMetaData) {
+      currentMetaData = md
+    }
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
+  }
+
+  /**
+    * Flushes this project task. i.e., the data of this task is written to the workspace provider immediately.
+    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
+    * This method forces the writing and returns after all data has been written.
+    */
+  def flush(): Unit = synchronized {
+    // Cancel any scheduled writer
+    for (writer <- scheduledWriter) {
+      writer.cancel(false)
+    }
+    // Write now
+    Writer.run()
   }
 
   /**
@@ -109,7 +133,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def activity[T <: HasValue : ClassTag]: TaskActivity[TaskType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
-    val act = taskActivityMap.getOrElse(requestedClass, throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+    val act = taskActivityMap.getOrElse(requestedClass,
+      throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
         s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
     act.asInstanceOf[TaskActivity[TaskType, T]]
   }
@@ -146,22 +171,25 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private object Writer extends Runnable {
     override def run(): Unit = {
       // Write task
-      module.provider.putTask(project.name, id, data)
+      module.provider.putTask(project.name, ProjectTask.this)
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        activity.control.cancel()
-        activity.control.start()
+        if(!activity.control.status().isRunning)
+          activity.control.start()
       }
     }
   }
 
+  override def toString: String = {
+    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+  }
 }
 
 object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
-  private val writeInterval = 5
+  private val writeInterval = 3
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 }

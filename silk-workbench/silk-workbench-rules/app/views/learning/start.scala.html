@@ -27,18 +27,10 @@
   </script>
 }
 
-@toolbar = {
-<!--
-<ul>
-  <li>
-    <button class="mdl-button mdl-js-button mdl-button&#45;&#45;raised" onclick="window.location = 'activeLearnTest'">Test</button>
-  </li>
-</ul>
--->
-}
+@toolbar = {}
 
 @content = {
-  @if(context.task.data.referenceLinks.isDefined) {
+  @if(false) { @* disabled, because supervised learning UI is broken and we focus on active learning for now context.task.data.referenceLinks.isDefined) {*@
     <span>
       There are already @context.task.data.referenceLinks.positive.size positive and @context.task.data.referenceLinks.positive.size negative reference links.
       Start learning a linkage rules from existing reference links: 

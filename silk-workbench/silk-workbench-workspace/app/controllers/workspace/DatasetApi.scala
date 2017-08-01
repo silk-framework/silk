@@ -7,6 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
@@ -22,7 +23,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    serialize(new DatasetTask(task.id, task.data))
+    serializeCompileTime(new DatasetTask(task.id, task.data))
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
@@ -32,16 +33,18 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serialize(new DatasetTask(task.id, autoConfDataset))
+        serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
       case _ =>
         NotImplemented(JsonError("The dataset type does not support auto-configuration."))
     }
   }
 
   def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
-    implicit val project = User().workspace.project(projectName)
+    val project = User().workspace.project(projectName)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+
     try {
-      deserialize() { dataset: DatasetTask =>
+      deserializeCompileTime() { dataset: DatasetTask =>
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>

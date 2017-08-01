@@ -129,11 +129,11 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   )
 
 lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
-  .dependsOn(core)
+  .dependsOn(core, rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.3.10"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
   )
 
 lazy val plugins = (project in file("silk-plugins"))
@@ -172,7 +172,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test")
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

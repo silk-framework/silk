@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
@@ -13,11 +13,12 @@ import org.silkframework.util.Uri
 import scala.xml.XML
 
 class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
+  private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = XML.load(file.load)
@@ -40,7 +41,10 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val nodes = loadXmlNodes(entitySchema.typeUri.uri)
-    new Entities(nodes, entitySchema)
+    val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
+      nodes.flatMap(_.evaluatePath(entitySchema.subPath))
+    } else { nodes }
+    new Entities(subTypeEntities, entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
@@ -90,6 +94,10 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
 
   override def convertToIdPath(path: Path): Option[Path] = {
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  }
+
+  override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
+    peakWithMaximumFileSize(file, entitySchema, limit)
   }
 }
 

@@ -47,6 +47,16 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case _ => None
   }
 
+  /**
+    * Tests if this path is empty, i.e, has not operators.
+    */
+  def isEmpty: Boolean = operators.isEmpty
+
+  /**
+    * Concatenates this path with another path.
+    */
+  def ++(path: Path): Path = Path(operators ::: path.operators)
+
   override def toString: String = serializedFull
 
   /**
@@ -74,6 +84,8 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
 
 object Path {
   private var pathCache = Map[String, WeakReference[Path]]()
+
+  def empty = new Path(List.empty)
 
   /**
     * Creates a new path.

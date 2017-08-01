@@ -7,10 +7,14 @@
 </p>
 <p>This action cannot be undone!</p>
 
-<script>//<![CDATA[
+  <script type="text/javascript">//<![CDATA[
 
     function submit() {
-      $('#@ruleName').remove();
+      var ruleElement = $('#@ruleName');
+      if (!ruleElement.hasClass("typeMapping")) {
+        ruleElement = ruleElement.parent();
+      }
+      ruleElement.remove();
       if ('@ruleName' == 'uri') {
         showURIMapping(false);
       }

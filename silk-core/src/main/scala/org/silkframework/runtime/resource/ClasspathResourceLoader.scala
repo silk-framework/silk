@@ -20,8 +20,9 @@ case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
    */
   override def get(name: String, mustExist: Boolean): Resource = {
     val path = if(basePath.isEmpty) name else basePath + "/" + name
-    if(mustExist && getClass.getClassLoader.getResource(path) == null)
+    if(mustExist && getClass.getClassLoader.getResource(path) == null) {
       throw new ResourceNotFoundException(s"Resource $name not found in classpath $basePath")
+    }
     new ClasspathResource(path)
   }
 

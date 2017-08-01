@@ -55,7 +55,7 @@
                     class="mdl-button mdl-js-button mdl-button--icon">
               <i class="material-icons">more_vert</i>
             </button>
-            <script  type="text/javascript">
+            <script type="text/javascript">
                function app_logout() {
                   f=document.getElementById('logout_form');
                   if(f) {
@@ -78,9 +78,11 @@
       </header>
       }
       @tabbar(context, selectedTab)
-      <div id="toolbar" class="clearfix">
+      @if(toolbar != null) {
+        <div id="toolbar" class="clearfix">
         @toolbar
-      </div>
+        </div>
+      }
       <main class="mdl-layout__content">
         <div id="content" class="mdl-tabs__panel is-active">
           @content

@@ -46,16 +46,40 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     */
   def select(path: Seq[String]): Seq[JsonTraverser] = {
     value match {
-      case obj: JsObject if path.nonEmpty =>
+      case _: JsObject if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
       case array: JsArray if array.value.nonEmpty =>
         array.value.flatMap(value => keepParent(value).select(path))
-      case array: JsArray =>
+      case _: JsArray =>
         Seq()
-      case other: JsValue if path.isEmpty =>
+      case _: JsValue if path.isEmpty =>
         Seq(this)
-      case other: JsValue if path.nonEmpty =>
+      case _: JsValue if path.nonEmpty =>
         Seq()
+    }
+  }
+
+  def select(path: List[PathOperator]): Seq[JsonTraverser] = {
+    value match {
+      case _: JsObject if path.nonEmpty =>
+        selectOnObject(path)
+      case array: JsArray if array.value.nonEmpty =>
+        array.value.flatMap(value => keepParent(value).select(path))
+      case _: JsValue if path.isEmpty =>
+        Seq(this)
+      case _ =>
+        Seq()
+    }
+  }
+
+  private def selectOnObject(path: List[PathOperator]) = {
+    path.head match {
+      case ForwardOperator(prop) =>
+        children(prop).flatMap(value => value.select(path.tail))
+      case BackwardOperator(_) =>
+        parentOpt.toSeq.map(_.traverser)
+      case _ =>
+        Seq.empty
     }
   }
 

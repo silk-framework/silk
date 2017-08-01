@@ -8,7 +8,7 @@ import org.silkframework.util.Identifier
 /**
   * Holds the state of the transform execution.
   *
-  * @param entityCounter The number of entities that have been transformed.
+  * @param entityCounter The number of entities that have been transformed, including erroneous entities.
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */

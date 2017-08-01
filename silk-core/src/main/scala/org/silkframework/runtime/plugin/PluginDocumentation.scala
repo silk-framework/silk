@@ -59,8 +59,8 @@ object PluginDocumentation {
       sb ++= table.toMarkdown + "\n"
     else
       sb ++= "This plugin does not require any parameters.\n"
-    sb ++= plugin.documentation + "\n"
     sb ++= "The identifier for this plugin is: `" + plugin.id + "`.\n\n"
+    sb ++= plugin.documentation + "\n"
   }
 
   def formatDefaultValue(value: Option[AnyRef]): String = {

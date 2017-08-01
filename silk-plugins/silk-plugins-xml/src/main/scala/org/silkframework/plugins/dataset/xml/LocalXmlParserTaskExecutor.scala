@@ -40,7 +40,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
             values(pathIndex).headOption match {
               case Some(xmlValue) =>
                 val resource = InMemoryResourceManager().get("temp", mustExist = false)
-                resource.write(xmlValue.getBytes)
+                resource.writeBytes(xmlValue.getBytes)
                 val dataset = XmlDataset(resource, spec.basePath, entity.uri + spec.uriSuffixPattern)
                 val entities = dataset.source.retrieve(os)
                 GenericEntityTable(entities, os, task)

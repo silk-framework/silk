@@ -3,8 +3,9 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
+import org.silkframework.util.Uri
 
 /**
   * Tests for XmlSource
@@ -100,6 +101,19 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
     doNotMatchPath("/Person/Properties/Property/Value", "/**/NotThere/Value")
     doNotMatchPath("/Person/Properties/Property/Value", "/Company/**")
     doNotMatchPath("/Person/Properties/Property/Value", "/Person/NotThere/**")
+  }
+
+  it should "return peak result" in {
+    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/Person/Properties/Property/Value").asStringTypedPath)), 3).toSeq
+    result.size mustBe 1
+    result.head.values mustBe IndexedSeq(Seq("V1", "V2", "V3"))
+  }
+
+  it should "return peak results with sub path set" in {
+    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/Value").asStringTypedPath),
+      subPath = Path.parse("/Person/Properties/Property")), 3).toSeq
+    result.size mustBe 3
+    result.map(_.values) mustBe Seq(IndexedSeq(Seq("V1")), IndexedSeq(Seq("V2")), IndexedSeq(Seq("V3")))
   }
 
   private def matchPath(sourcePath: String,

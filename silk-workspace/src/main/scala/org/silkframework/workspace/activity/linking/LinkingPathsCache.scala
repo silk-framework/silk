@@ -47,7 +47,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
 
   private def retrievePaths(datasetSelection: DatasetSelection) = {
     // Retrieve the data source
-    val source = task.dataSource(datasetSelection.inputId)
+    val source = task.dataSource(datasetSelection)
     // Retrieve most frequent paths
     source.retrievePaths(datasetSelection.typeUri, 1, Some(50))
   }

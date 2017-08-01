@@ -1,8 +1,10 @@
+@import org.silkframework.runtime.plugin.PluginDescription
+@import org.silkframework.workspace.Project
+
 @(name: String,
 opType: String,
-pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
-
-@import org.silkframework.runtime.plugin.PluginDescription
+pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_],
+project: Project)
 
 @for(plugin <- pluginGroup.availablePlugins) {
   <div class="operator plugin">
@@ -22,9 +24,9 @@ pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_])
 
 @operatorExpanded(plugin: PluginDescription[_]) = {
   @opType match {
-    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false) }
-    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false) }
-    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false) }
+    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false, project) }
   }
 }
 

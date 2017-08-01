@@ -18,11 +18,6 @@ final class VariableDataset extends Dataset {
   override def source: DataSource = EmptyDataset.source// TODO: error()
 
   /**
-    * Makes sure that the next write will start from an empty dataset.
-    */
-  override def clear(): Unit = error()
-
-  /**
     * Returns a entity sink for writing entities to the data set.
     */
   override def entitySink: EntitySink = error()

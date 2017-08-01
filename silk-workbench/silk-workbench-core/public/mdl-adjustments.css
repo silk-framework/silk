@@ -1,22 +1,10 @@
 /*
-* Material Design Icon Font
-*/
-
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: url('libs/md-iconfont/MaterialIcons-Regular.eot'); /* For IE6-8 */
-  src: local('Material Icons'),
-       local('MaterialIcons-Regular'),
-       url('libs/md-iconfont/MaterialIcons-Regular.woff2') format('woff2'),
-       url('libs/md-iconfont/MaterialIcons-Regular.woff') format('woff'),
-       url('libs/md-iconfont/MaterialIcons-Regular.ttf') format('truetype');
-}
-
-/*
 * Generic Stuff
 */
+
+.mdl-layout__header-row {
+    padding: 0 1rem 0 1rem;
+}
 
 .button-set .mdl-button {
   margin-right: 5px;
@@ -102,7 +90,7 @@
 * Linking Rule Editor Canvas
 */
 
-#droppable h5 {
+.droppable-canvas h5 {
   margin: 0px;
 }
 

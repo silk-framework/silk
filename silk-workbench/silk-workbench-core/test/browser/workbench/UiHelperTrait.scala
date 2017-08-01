@@ -25,17 +25,18 @@ trait UiHelperTrait extends { this: OneBrowserPerSuite =>
   def eventuallyIsDisplayed(query: Query): Unit = {
     eventuallyIsTrue {
       query.element.isDisplayed
-    }
+    }(errorMessage = "Element corresponding to query " + query.toString + "is never displayed.")
   }
 
-  def eventuallyIsTrue(block: => Boolean): Unit = {
+  def eventuallyIsTrue(block: => Boolean)(errorMessage: String = ""): Unit = {
     eventually {
       if(!block) {
-        throw new RuntimeException("Condition is not yet true.")
+        throw new RuntimeException("Condition is not yet true. " + errorMessage)
       }
     }
   }
 
+  @deprecated("use singleSel() or multiSel() from org.scalatest.selenium.WebBrowser instead", since = "v3.3.2")
   def select(selectElementId: String, value: String): Unit = {
     executeScript(s"$$('#$selectElementId').val('$value')")
   }

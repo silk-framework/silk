@@ -16,8 +16,19 @@ object Serialization {
     formatTypes.map(_.apply())
   }
 
-  def hasSerialization(valueType: Class[_], mimeType: String): Boolean = {
-    serializationFormats.exists(f => f.valueType == valueType && f.mimeTypes.contains(mimeType))
+  def hasSerialization(classToSerialize: Class[_],
+                       mimeType: String): Boolean = {
+    serializationFormat(classToSerialize, mimeType).isDefined
+  }
+
+  def serializationFormat(classToSerialize: Class[_],
+                          mimeType: String): Option[SerializationFormat[Any, Any]] = {
+    serializationFormats.find(f => f.valueType == classToSerialize && f.mimeTypes.contains(mimeType))
+  }
+
+  def hasSerialization[T: ClassTag](mimeType: String): Boolean = {
+    val valueType = implicitly[ClassTag[T]].runtimeClass
+    serializationFormats.exists(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*"))
   }
 
   def formatForType[T: ClassTag, U: ClassTag]: SerializationFormat[T, U] = {
@@ -36,7 +47,7 @@ object Serialization {
   }
 
   def formatForMime(valueType: Class[_], mimeType: String): SerializationFormat[Any, Any] = {
-    serializationFormats.find(f => f.valueType == valueType && f.mimeTypes.contains(mimeType)) match {
+    serializationFormats.find(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*")) match {
       case Some(format) =>
         format
       case None =>

@@ -14,8 +14,9 @@
 
 package org.silkframework.rule.plugins.transformer.numeric
 
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.rule.input.{Transformer}
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
@@ -30,24 +31,67 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   label = "Numeric Operation",
   description =
     """ | Applies a numeric operation to the values of multiple input operators.
-        | Each input operator is expected to provide one numeric value.
-        | If an input operator provides multiple values, all of its values are summed up before the operation.
-        | Accepts one paramter:
+        | The operator is applied to all input values.
+        | Accepts one parameter:
         |   operator: One of '+', '-', '*', '/'"""
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1"),
+    input2 = Array("1"),
+    output = Array("2")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "-"),
+    input1 = Array("1"),
+    input2 = Array("1"),
+    output = Array("0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("5"),
+    input2 = Array("6"),
+    output = Array("30")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "/"),
+    input1 = Array("5"),
+    input2 = Array("2"),
+    output = Array("2.5")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1"),
+    input2 = Array("no number"),
+    output = Array()
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("1"),
+    input2 = Array(),
+    output = Array("1")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1", "1"),
+    input2 = Array("1"),
+    output = Array("3")
+  )
+))
 case class NumOperationTransformer(operator: String) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val operands = values.map(_.map(parse).sum)
+    val operands = values.flatMap(_.map(parse))
     Seq(operands.reduce(operation).toString)
   }
 
   def parse(value: String): Double = {
     value match {
       case DoubleLiteral(d) => d
-      case str => 0.0
+      case _ => throw new ValidationException(s"Input value $value must be a number.")
     }
   }
 

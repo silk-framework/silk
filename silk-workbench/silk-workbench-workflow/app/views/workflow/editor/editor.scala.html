@@ -11,13 +11,14 @@
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
 
-  <script type="text/javascript" src="@CoreAssets.at("libs/jsplumb/jsPlumb-2.1.8-min.js")"></script>
-  <script type="text/javascript" src="@CoreAssets.at("libs/dynep/dynep.js")"></script>
-  <script type="text/javascript" src="@Assets.at("editor/editor.js")"></script>
-  <script type="text/javascript" src="@Assets.at("editor/serializeWorkflow.js")"></script>
+  <script src="@CoreAssets.at("libs/jsplumb/dist/js/jsPlumb-2.1.8.js")" type="text/javascript"></script>
+  <script src="@CoreAssets.at("libs/dynep/dynep.js")" type="text/javascript"></script>
+  <script src="@Assets.at("editor/editor.js")" type="text/javascript"></script>
+  <script src="@Assets.at("editor/serializeWorkflow.js")" type="text/javascript"></script>
 
   <script type="text/javascript">
     var apiUrl = '@config.baseUrl/workflow/workflows/@context.project.name/@context.task.id';
+    var workflowId = '@context.task.id';
     var editor = null;
   </script>
 }

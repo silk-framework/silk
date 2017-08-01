@@ -41,7 +41,7 @@ class DefaultConfig extends Config {
         val eldsHomeEnv = System.getenv("ELDS_HOME")
         // Since elds.home is defined, the config should exist in the location given in elds.home or ELDS_HOME
         val configFile = if (new File(eldsHome + "/etc/dataintegration/dataintegration.conf").exists) {
-          log.info(s"Configuration file found at $eldsHome:/etc/dataintegration/dataintegration.conf")
+          log.info(s"Configuration file found at $eldsHome/etc/dataintegration/dataintegration.conf")
           new File(eldsHome + "/etc/dataintegration/dataintegration.conf")
         }
         else if (eldsHomeEnv!=null && new File(eldsHomeEnv + "/etc/dataintegration/dataintegration.conf").exists){
