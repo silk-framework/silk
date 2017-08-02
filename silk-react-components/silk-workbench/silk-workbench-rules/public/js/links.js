@@ -113,6 +113,7 @@ function initPagination(number_results) {
                 ? 1
                 : Math.ceil(number_results / 100),
         visiblePages: 7,
+        startPage: page + 1,
         onPageClick: handlePaginationClick,
         nextClass: 'mdl-button mdl-button--pagination next',
         prevClass: 'mdl-button mdl-button--pagination prev',
