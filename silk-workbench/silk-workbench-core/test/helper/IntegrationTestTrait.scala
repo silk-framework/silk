@@ -14,7 +14,9 @@ import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
+import play.api.Application
 import play.api.libs.ws.{WS, WSResponse}
+import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
@@ -43,6 +45,14 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"
+
+  /** Routes used for testing. If None, the default routes will be used.*/
+  protected def routes: Option[String] = None
+
+  override implicit lazy val app: Application = {
+    var routerConf = routes.map(r => "application.router" -> r).toMap
+    FakeApplication(additionalConfiguration = routerConf)
+  }
 
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {

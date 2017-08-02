@@ -25,6 +25,8 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   override def propertyMap = Map("vocabulary.manager.plugin" -> Some("rdfFiles"))
 
+  protected override def routes = Some("test.Routes")
+
   def jsonGetRequest(url: String): JsValue = {
     var request = WS.url(url)
     request = request.withHeaders("Accept" -> "application/json")

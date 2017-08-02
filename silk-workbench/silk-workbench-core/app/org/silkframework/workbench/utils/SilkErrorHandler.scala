@@ -9,7 +9,7 @@ import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
 import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Status}
 import play.api.mvc.{AcceptExtractors, RequestHeader, Result, Results}
 import play.api.routing.Router
-import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulException}
+import play.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
@@ -73,6 +73,16 @@ class SilkErrorHandler (env: Environment,
     */
   override protected def onForbidden(request: RequestHeader, message: String): Future[Result] = {
     Future.successful(Forbidden(views.html.clientError(message)(request.session)))
+  }
+
+  /**
+    * Invoked when a handler or resource is not found.
+    *
+    * @param request The request that no handler was found to handle.
+    * @param message A message.
+    */
+  override protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
+    Future.successful(NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, Some(router.get))))
   }
 
   /**
