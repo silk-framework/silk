@@ -6,7 +6,7 @@ import org.silkframework.runtime.resource.{WritableResource, Resource}
 
 @Plugin(
   id = "xml",
-  label = "XML",
+  label = "XML file",
   description =
 """Retrieves all entities from an xml file.""",
   documentation =
@@ -52,7 +52,7 @@ Path examples:
 case class XmlDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: Resource,
-  @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
+  @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "") extends Dataset {

@@ -1,0 +1,21 @@
+silk-js-components:
+  description: javascript components of silk
+  language: javascript
+  dependencies:
+    # Not imported using npm, cause it's got no good build
+    - name: jquery-ui
+      version: '1.11.4'
+      url: https://jqueryui.com/
+      spdx: MIT
+      licenses:
+        - name: MIT
+          url: https://raw.githubusercontent.com/jquery/jquery-ui/1.11.4/LICENSE.txt
+      downloadUrl: https://github.com/jquery/jquery-ui/archive/1.11.4.zip
+    # Not imported using npm, cause it's got no package.json
+    - name: jquery-treeview
+      version: '1.4.2'
+      url: https://github.com/jzaefferer/jquery-treeview
+      licenses:
+        - name: MIT
+          url: https://raw.githubusercontent.com/jzaefferer/jquery-treeview/1.4.2/readme.md
+      downloadUrl: https://github.com/jzaefferer/jquery-treeview/archive/1.4.2.zip

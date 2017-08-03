@@ -5,6 +5,7 @@ import java.io.StringWriter
 import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, Path}

@@ -16,7 +16,10 @@ import org.silkframework.util.Uri
   */
 case class GraphStoreSink(graphStore: GraphStoreTrait,
                           graphUri: String,
-                          formatterOpt: Option[RdfFormatter]) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          formatterOpt: Option[RdfFormatter],
+                          comment: Option[String],
+                          dropGraphOnClear: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+
   private var properties = Seq[TypedProperty]()
   private var output: Option[BufferedOutputStream] = None
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
@@ -55,7 +58,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
 
   private def initOutputStream: Option[BufferedOutputStream] = {
     // Always use N-Triples because of stream-ability
-    val out = graphStore.postDataToGraph(graphUri)
+    val out = graphStore.postDataToGraph(graphUri, comment = comment)
     val bufferedOut = new BufferedOutputStream(out)
     Some(bufferedOut)
   }
@@ -88,7 +91,9 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def clear(): Unit = {
-    graphStore.deleteGraph(graphUri)
+    if(dropGraphOnClear) {
+      graphStore.deleteGraph(graphUri)
+    }
   }
 
   override def close(): Unit = {

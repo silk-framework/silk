@@ -10,6 +10,7 @@ import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
+import org.silkframework.workbench.utils.JsonError
 import play.api.libs.json.{JsArray, JsValue, Json, Writes}
 
 /**
@@ -27,7 +28,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabType) =>
         serializeCompileTime(vocabType)
       case None =>
-        NotFound(s"Type $typeUri could not be found in any of the target vocabularies.")
+        NotFound(JsonError(s"Type $typeUri could not be found in any of the target vocabularies."))
     }
   }
 
@@ -41,7 +42,27 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabProperty) =>
         serializeCompileTime(vocabProperty)
       case None =>
-        NotFound(s"Property $propertyUri could not be found in any of the target vocabularies.")
+        NotFound(JsonError(s"Property $propertyUri could not be found in any of the target vocabularies."))
+    }
+  }
+
+  /**
+    * Returns metadata for a vocabulary class or property.
+    */
+  def getTypeOrPropertyInfo(projectName: String, transformTaskName: String, uri: String): Action[AnyContent] = Action { implicit request =>
+    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
+    val vocabularies = task.activity[VocabularyCache].value
+    val fullUri = Uri.parse(uri, project.config.prefixes)
+
+    (vocabularies.findClass(fullUri.uri), vocabularies.findProperty(fullUri.uri)) match {
+      case (Some(vocabType), None) =>
+        serializeCompileTime(vocabType)
+      case (None, Some(vocabProperty)) =>
+        serializeCompileTime(vocabProperty)
+      case (None, None) =>
+        NotFound(JsonError(s"Property or Class $uri could not be found in any of the target vocabularies."))
+      case (Some(_), Some(_)) =>
+        InternalServerError(JsonError(s"For $uri both a class and a property can be found in the target vocabularies."))
     }
   }
 

@@ -110,7 +110,7 @@ object PluginDescription {
       label = annotation.label,
       categories = annotation.categories.toSet,
       description = annotation.description.stripMargin,
-      documentation = annotation.documentation,
+      documentation = addTransformDocumentation(annotation.documentation, pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -122,10 +122,26 @@ object PluginDescription {
       label = pluginClass.getSimpleName,
       categories = Set("Uncategorized"),
       description = "",
-      documentation = "",
+      documentation = addTransformDocumentation("", pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
+  }
+
+  private def addTransformDocumentation(documentation: String, pluginClass: Class[_]) = {
+    val sb = new StringBuilder(documentation)
+
+    val transformExamples = TransformExampleValue.retrieve(pluginClass)
+    if(transformExamples.nonEmpty) {
+      sb ++= "**Example Values**"
+      sb ++= "\n\n"
+      for(example <- transformExamples) {
+        sb ++= example.formatted
+        sb ++= "\n\n"
+      }
+    }
+
+    sb.toString
   }
 
   private def getConstructor[T](pluginClass: Class[T]): Constructor[T] = {

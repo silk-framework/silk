@@ -40,7 +40,8 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
 
   override def postDataToGraph(graph: String,
                                contentType: String = "application/n-triples",
-                               chunkedStreamingMode: Option[Int] = Some(1000)): OutputStream = {
+                               chunkedStreamingMode: Option[Int] = Some(1000),
+                               comment: Option[String] = None): OutputStream = {
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))
     JenaDatasetWritingOutputStream(dataset, lang, graph)

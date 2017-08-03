@@ -1,0 +1,5 @@
+# defined in /silk-workbench-workflow/app/views/workflow/editor/editor.scala.html
+globals:
+  workflowId: true
+  apiUrl: true
+  editor: true

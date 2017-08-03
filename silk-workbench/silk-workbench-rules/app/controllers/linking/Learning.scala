@@ -43,11 +43,6 @@ class Learning extends Controller {
     Ok(views.html.learning.activeLearn(context))
   }
 
-  def activeLearnTest(project: String, task: String) = Action { implicit request =>
-    val context = Context.get[LinkSpec](project, task, request.path)
-    Ok(views.html.learning.activeLearnTest(context))
-  }
-
   def activeLearnDetails(project: String, task: String) = Action { request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     val activeLearnState = context.task.activity[ActiveLearning].value

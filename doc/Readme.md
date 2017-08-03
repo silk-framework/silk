@@ -1,7 +1,8 @@
 # Silk Documentation
 
 - [Overview of the Silk Workbench](Workbench.md)
-- [Linking with the Silk Workbench](Linking.md)
+  - [Linking with the Silk Workbench](Linking.md)
+  - [REST API](RestInterface.md)
 - [Linkage Rules](LinkageRules.md)
 - [The Silk Link Specification Language](LinkSpecificationLanguage.md)
 - [Available Plugins](Plugins.md)

@@ -81,7 +81,7 @@
   height: 9px;
   margin-right: 4px;
   margin-top: 3px;
-  background-image: url('../treeview/images/plus.gif');
+  background-image: url('../plus.gif');
 }
 
 .minus {
@@ -90,7 +90,7 @@
   height: 9px;
   margin-right: 4px;
   margin-top: 3px;
-  background-image: url('../treeview/images/minus.gif');
+  background-image: url('../minus.gif');
 }
 
 .treeview ul {

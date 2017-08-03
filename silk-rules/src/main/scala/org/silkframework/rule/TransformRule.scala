@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.config.MetaData.MetaDataFormat
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
@@ -199,7 +199,8 @@ case class DirectMapping(id: Identifier = "sourcePath",
   * @param id      The name of this mapping
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
-case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty) extends TransformRule {
+case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty)
+                     (implicit prefixes: Prefixes = Prefixes.empty) extends TransformRule {
 
   override val operator: Input = UriPattern.parse(pattern)
 
@@ -252,7 +253,7 @@ case class ObjectMapping(id: Identifier = "mapping",
                          sourcePath: Path = Path(Nil),
                          target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
                          override val rules: MappingRules,
-                         metaData: MetaData = MetaData.empty) extends ContainerTransformationRule {
+                         metaData: MetaData = MetaData.empty)(implicit prefixes: Prefixes = Prefixes.empty) extends ContainerTransformationRule {
 
   override val typeString = "Object"
 
@@ -319,7 +320,7 @@ object TransformRule {
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
         metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
-      )
+      )(readContext.prefixes)
     }
 
     private def readTransformRule(node: Node)(implicit readContext: ReadContext): TransformRule = {
@@ -344,7 +345,7 @@ object TransformRule {
           target = target,
           metaData = metaData
         )
-      simplify(complex)
+      simplify(complex)(readContext.prefixes)
     }
 
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
@@ -368,7 +369,7 @@ object TransformRule {
   /**
     * Tries to express a complex mapping as a basic mapping, such as a direct mapping.
     */
-  def simplify(complexMapping: ComplexMapping): TransformRule = complexMapping match {
+  def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
       DirectMapping(id, path, target, metaData)
@@ -398,7 +399,7 @@ object TransformRule {
   */
 private object UriPattern {
 
-  def parse(pattern: String): Input = {
+  def parse(pattern: String)(implicit prefixes: Prefixes): Input = {
     // FIXME we should write a real parser for this
     val inputs = {
       if(pattern == "{}") {

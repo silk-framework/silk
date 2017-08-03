@@ -22,7 +22,7 @@ import scala.xml.Node
 /**
  * Holds namespace prefixes.
  */
-class Prefixes(val prefixMap: Map[String, String]) {
+class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
 
   override def toString = "Prefixes(" + prefixMap.toString + ")"
 

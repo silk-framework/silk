@@ -24,13 +24,13 @@ case class JenaModelDataset(model: Model) extends RdfDataset {
     * Returns a link sink for writing entity links to the data set.
     */
   override def linkSink: LinkSink = {
-    new SparqlSink(sparqlParams, sparqlEndpoint)
+    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)
   }
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
   override def entitySink: EntitySink = {
-    new SparqlSink(sparqlParams, sparqlEndpoint)
+    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)
   }
 }

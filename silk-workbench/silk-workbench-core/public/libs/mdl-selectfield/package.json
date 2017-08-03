@@ -1,0 +1,36 @@
+{
+  "name": "mdl-selectfield",
+  "version": "1.0.3",
+  "description": "mdl-selectfield for material-design-lite",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mebibou/mdl-selectfield.git"
+  },
+  "keywords": [
+    "material",
+    "design",
+    "styleguide",
+    "style",
+    "guide",
+    "mdl",
+    "select"
+  ],
+  "author": "Guillaume Royer <guillaumeroyer.mail@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mebibou/mdl-selectfield/issues"
+  },
+  "homepage": "https://github.com/mebibou/mdl-selectfield",
+  "devDependencies": {
+    "bower": "^1.5.2",
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.0.4",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglifyjs": "^0.6.2"
+  },
+  "dependencies": {
+    "material-design-lite": "^1.1.3"
+  }
+}

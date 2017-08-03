@@ -1,3 +1,7 @@
+'use strict';
+
+/* exported DynamicEndpointHandler */
+
 /**
 * Constructor for the DynamicEndpointHandler class.
 * @class
@@ -8,134 +12,134 @@
 *   is removed. This means there is always one open, unconnected endpoint.</p>
 */
 function DynamicEndpointHandler() {
-  
-  /**
-  * @property {jsPlumbInstance} jsPlumbInstance - The object on which all jsPlumb 
-  *   functions are called. 
-  *   Default is the 
-  *   <a href="https://jsplumbtoolkit.com/community/apidocs/classes/jsPlumb.html">
-  *   jsPlumb</a> convenience class.
-  */
-  this.jsPlumbInstance = jsPlumb;
+    /**
+    * @property {jsPlumbInstance} jsPlumbInstance - The object on which all jsPlumb 
+    *   functions are called. 
+    *   Default is the 
+    *   <a href="https://jsplumbtoolkit.com/community/apidocs/classes/jsPlumb.html">
+    *   jsPlumb</a> convenience class.
+    */
+    this.jsPlumbInstance = jsPlumb;
 
+    var defaultStyle = this.jsPlumbInstance.Defaults.EndpointStyle;
+    defaultStyle.isTarget = true;
+    defaultStyle.isSource = false;
+    defaultStyle.maxConnections = 1;
 
-  var defaultStyle = this.jsPlumbInstance.Defaults.EndpointStyle;
-  defaultStyle.isTarget = true;
-  defaultStyle.isSource = false;
-  defaultStyle.maxConnections = 1;
+    this.styles = {};
+    this.styles.default = defaultStyle;
 
-  this.styles = {}
-  this.styles.default = defaultStyle;
+    var connectionMovedToSameEndpoint = false;
+    var _this = this;
 
-  var connectionMovedToSameEndpoint = false;
-  var _this = this;
+    /**
+    * Add a new dynamic endpoint to the DOM element with <code>elementId</code>.
+    * @param elementId - The element to add the endpoint to.
+    * @param type - The endpoint style. If <code>null</code>, the handler's <code>endpointStyle</code> will be used.
+    */
+    this.addDynamicEndpoint = function (elementId) {
+        var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'default';
 
-  /**
-  * Add a new dynamic endpoint to the DOM element with <code>elementId</code>.
-  * @param elementId - The element to add the endpoint to.
-  * @param style - The endpoint style. If <code>null</code>, the handler's
-  *   <code>endpointStyle</code> will be used.
-  */
-  this.addDynamicEndpoint = function (elementId, type="default") {
-    style = this.styles[type];
-    var newEndpoint = this.jsPlumbInstance.addEndpoint(elementId, style);
-    newEndpoint.dynamic = true;
-    newEndpoint.dynepType = type;
+        var style = this.styles[type];
+        var newEndpoint = this.jsPlumbInstance.addEndpoint(elementId, style);
+        newEndpoint.dynamic = true;
+        newEndpoint.dynepType = type;
 
-    this.repaintDynamicEndpoints(elementId);
-    return newEndpoint;
-  }
+        this.repaintDynamicEndpoints(elementId);
+        return newEndpoint;
+    };
 
-  /**
-  * Remove <code>endpoint</code> from the DOM element with <code>elementId</code>.
-  * @param elementId - The element to from which to remove the endpoint.
-  * @param endpoint - The endpoint to remove.
-  */
-  this.removeDynamicEndpoint = function(elementId, endpoint) {
-    this.jsPlumbInstance.deleteEndpoint(endpoint);
-    this.repaintDynamicEndpoints(elementId);
-  }
+    /**
+    * Remove <code>endpoint</code> from the DOM element with <code>elementId</code>.
+    * @param elementId - The element to from which to remove the endpoint.
+    * @param endpoint - The endpoint to remove.
+    */
+    this.removeDynamicEndpoint = function (elementId, endpoint) {
+        this.jsPlumbInstance.deleteEndpoint(endpoint);
+        this.repaintDynamicEndpoints(elementId);
+    };
 
-  /**
-  * Repaint the endpoints of DOM element with <code>elementId</code> after
-  *   adding or removing an endpoint.
-  * @param elementId The element on which to repaint endpoints.
-  */
-  this.repaintDynamicEndpoints = function(elementId) {
-    var endpoints = this.getDynamicEndpoints(elementId);
-    this.repaintEndpoints(elementId, endpoints);
-  }
+    /**
+    * Repaint the endpoints of DOM element with <code>elementId</code> after
+    *   adding or removing an endpoint.
+    * @param elementId The element on which to repaint endpoints.
+    */
+    this.repaintDynamicEndpoints = function (elementId) {
+        var endpoints = this.getDynamicEndpoints(elementId);
+        this.repaintEndpoints(elementId, endpoints);
+    };
 
-  this.repaintEndpoints = function(elementId, endpoints) {
-    var endpointCount = endpoints.length;
-    $.each(endpoints, function(index, value) {
-      var position = 1 / (endpointCount + 1) * (index + 1) ;
-      value.anchor.x = 0;
-      value.anchor.y = position;
-    });
+    this.repaintEndpoints = function (elementId, endpoints) {
+        var endpointCount = endpoints.length;
 
-    this.jsPlumbInstance.repaint(elementId);
-  }
+        // eslint-disable-next-line
+        $.each(endpoints, function (index, value) {
+            var position = 1 / (endpointCount + 1) * (index + 1);
+            value.anchor.x = 0;
+            value.anchor.y = position;
+        });
 
-  this.getDynamicEndpoints = function(elementId) {
-    var allEndpoints = this.jsPlumbInstance.getEndpoints(elementId);
-    if (allEndpoints) {
-      var dynamicEndpoints = $.grep(allEndpoints, function(endpoint, index) {
-        return endpoint.dynamic;
-      });
-      return dynamicEndpoints;
-    } else {
-      return undefined;
-    }
-  }
+        this.jsPlumbInstance.repaint(elementId);
+    };
 
-  this.getOpenDynamicEndpoint = function(elementId) {
-    var endpoints = this.getDynamicEndpoints(elementId);
-    return endpoints[endpoints.length - 1];
-  }
-
-  this.bindEvents = function() {
-    this.jsPlumbInstance.bind("connection", function(info) {
-      if (!connectionMovedToSameEndpoint) {
-        if (info.targetEndpoint.dynamic) {
-          _this.addDynamicEndpoint(info.targetId, info.targetEndpoint.dynepType);
+    this.getDynamicEndpoints = function (elementId) {
+        var allEndpoints = this.jsPlumbInstance.getEndpoints(elementId);
+        if (allEndpoints) {
+            var dynamicEndpoints = $.grep(allEndpoints, function (endpoint) {
+                return endpoint.dynamic;
+            });
+            return dynamicEndpoints;
         }
-      } else {
-        connectionMovedToSameEndpoint = false;
-      }
-    });
+        return undefined;
+    };
 
-    this.jsPlumbInstance.bind("connectionDetached", function(info) {
-      var targetEndpoint = info.targetEndpoint;
-      if (targetEndpoint.dynamic) {
-        setTimeout(function() {
-          // We need a little delay before removing the endpoint, as this will
-          // also remove any attached connections. If the detachment was already
-          // started elsewhere, we may get dangling pointers.
-          _this.removeDynamicEndpoint(info.targetId, targetEndpoint);
-        }, 10);
-      }
-    });
+    this.getOpenDynamicEndpoint = function (elementId) {
+        var endpoints = this.getDynamicEndpoints(elementId);
+        return endpoints[endpoints.length - 1];
+    };
 
-    this.jsPlumbInstance.bind("connectionMoved", function(info) {
-      if (info.originalTargetEndpoint != info.newTargetEndpoint) {
-        connectionMovedToSameEndpoint = false;
-        var originalTargetEndpoint = info.originalTargetEndpoint;
-        if (originalTargetEndpoint.dynamic) {
-          _this.removeDynamicEndpoint(info.originalTargetId, originalTargetEndpoint);
-        }
-      } else {
-        connectionMovedToSameEndpoint = true;
-      }
-    });
+    this.bindEvents = function () {
+        this.jsPlumbInstance.bind('connection', function (info) {
+            if (!connectionMovedToSameEndpoint) {
+                if (info.targetEndpoint.dynamic) {
+                    _this.addDynamicEndpoint(info.targetId, info.targetEndpoint.dynepType);
+                }
+            } else {
+                connectionMovedToSameEndpoint = false;
+            }
+        });
 
-    this.jsPlumbInstance.bind("connectionAborted", function(connection, originalEvent) {
-      console.log("connection aborted ...");
-    });
-  }
+        this.jsPlumbInstance.bind('connectionDetached', function (info) {
+            var targetEndpoint = info.targetEndpoint;
+            if (targetEndpoint.dynamic) {
+                setTimeout(function () {
+                    // We need a little delay before removing the endpoint, as this will
+                    // also remove any attached connections. If the detachment was already
+                    // started elsewhere, we may get dangling pointers.
+                    _this.removeDynamicEndpoint(info.targetId, targetEndpoint);
+                }, 10);
+            }
+        });
 
-  this.bindEvents();
+        this.jsPlumbInstance.bind('connectionMoved', function (info) {
+            // TODO: Check if info.originalTargetEndpoint, !== info.newTargetEndpoint
+            console.warn(info.originalTargetEndpoint, info.newTargetEndpoint);
+            // eslint-disable-next-line
+            if (info.originalTargetEndpoint != info.newTargetEndpoint) {
+                connectionMovedToSameEndpoint = false;
+                var originalTargetEndpoint = info.originalTargetEndpoint;
+                if (originalTargetEndpoint.dynamic) {
+                    _this.removeDynamicEndpoint(info.originalTargetId, originalTargetEndpoint);
+                }
+            } else {
+                connectionMovedToSameEndpoint = true;
+            }
+        });
 
+        this.jsPlumbInstance.bind('connectionAborted', function () {
+            console.log('connection aborted ...');
+        });
+    };
+
+    this.bindEvents();
 }
-
-

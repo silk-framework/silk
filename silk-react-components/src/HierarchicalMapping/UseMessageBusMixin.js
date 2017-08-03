@@ -1,28 +1,41 @@
 import _ from 'lodash';
 
 const UseMessageBus = {
-    //FIXME: Replace by general logging component once available
+    // FIXME: Replace by general logging component once available
     useMessageBusLog(action, subject, ...args) {
         // Remove logging in production mode
         if (__DEBUG__) {
-
-            const channel = this.messageBusID || this.context.privateMessageBusID || subject.defaultChannel || 'unknown';
+            const channel =
+                this.messageBusID ||
+                this.context.privateMessageBusID ||
+                subject.defaultChannel ||
+                'unknown';
             const subjName = subject.subject || subject.name;
 
             switch (action) {
-            case 'onNext':
-                console.log(`UseMessageBus: ${this.constructor.displayName} sent on ${channel}:${subjName}`, ...args);
-                break;
-            case 'subscribe':
-                console.log(`UseMessageBus: ${this.constructor.displayName} subscribed on ${channel}:${subjName}`);
-                break;
+                case 'onNext':
+                    console.log(
+                        `UseMessageBus: ${this.constructor
+                            .displayName} sent on ${channel}:${subjName}`,
+                        ...args,
+                    );
+                    break;
+                case 'subscribe':
+                    console.log(
+                        `UseMessageBus: ${this.constructor
+                            .displayName} subscribed on ${channel}:${subjName}`,
+                    );
+                    break;
+                default:
+                    throw new Error(`UseMessageBus ${action} not defined`);
             }
         }
     },
     // retrieve subject if created by ecc-messagebus.createChannels
     getSubject(subject) {
         if (_.isFunction(subject.getSubject)) {
-            const channel = this.messageBusID || this.context.privateMessageBusID;
+            const channel =
+                this.messageBusID || this.context.privateMessageBusID;
             return subject.getSubject(channel);
         }
         return subject;
@@ -57,6 +70,5 @@ const UseMessageBus = {
         }
     },
 };
-
 
 export default UseMessageBus;
