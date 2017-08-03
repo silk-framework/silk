@@ -447,7 +447,7 @@ if (!__DEBUG__) {
             const payload = data;
             const parent = data.parentId ? data.parentId : rootId;
 
-            editMappingRule(payload, data.id, parent)
+            editMappingRule(payload, false, parent)
                 .multicast(replySubject)
                 .connect();
         });

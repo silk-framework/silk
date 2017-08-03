@@ -241,13 +241,16 @@ const SuggestionOverview = React.createClass({
             <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
                 {_.isEmpty(this.state.error)
                     ? <AffirmativeButton
+                          className="ecc-hm-suggestions-save"
                           onClick={this.handleAddSuggestions}
                           disabled={_.size(this.state.checked) === 0}>
                           Save
                       </AffirmativeButton>
                     : false}
 
-                <DismissiveButton onClick={this.props.onClose}>
+                <DismissiveButton 
+                  onClick={this.props.onClose}
+                  className="ecc-hm-suggestions-cancel">
                     Cancel
                 </DismissiveButton>
             </div>
