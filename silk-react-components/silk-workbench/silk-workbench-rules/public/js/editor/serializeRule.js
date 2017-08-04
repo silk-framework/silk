@@ -188,8 +188,8 @@ function findRootOperator(connections) {
     }
 
     // Collect connection sources and targets
-    var sources = [];
-    var targets = [];
+    var sources = {};
+    var targets = {};
     for (var i = 0; i < connections.length; i++) {
         var source = connections[i].sourceId;
         var target = connections[i].targetId;
@@ -200,11 +200,11 @@ function findRootOperator(connections) {
     // Find root operator
     var root = null;
 
-    sources.forEach((value, key) => {
+    for (var key in sources) {
         if (!targets[key]) {
             root = key;
         }
-    });
+    }
 
     return root;
 }
