@@ -87,7 +87,7 @@
           type: 'PUT',
           url: '@config.baseUrl/linking/tasks/@project/@task/rule',
           data: '@Html(StringEscapeUtils.escapeEcmaScript(XmlSerialization.toXml(individual.node.build).toString))',
-          contentType: 'text/xml',
+          contentType: 'text/xml;charset=UTF-8',
           processData: false,
           success: function(response) {
             window.location = '../editor';

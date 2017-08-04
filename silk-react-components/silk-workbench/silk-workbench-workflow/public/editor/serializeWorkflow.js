@@ -6,7 +6,7 @@ function commitWorkflow() {
     $.ajax({
         type: 'PUT',
         url: apiUrl,
-        contentType: 'text/xml',
+        contentType: 'text/xml;charset=UTF-8',
         processData: false,
         data: serializeWorkflow(),
         success() {},
