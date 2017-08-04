@@ -64,7 +64,7 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       val childInputSchema =
         EntitySchema(
           typeUri = inputSchema.typeUri,
-          typedPaths = childRules.flatMap(_.paths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+          typedPaths = childRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
           subPath = relativePath
         )
       val childOutputSchema =

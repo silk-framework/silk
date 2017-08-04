@@ -23,7 +23,7 @@ class TransformEditor extends Controller {
     transformSpec.nestedRuleAndSourcePath(rule) match {
       case Some((r, _)) => Ok(views.html.editor.transformEditor(context, r))
       case None =>
-        val validRuleNames = transformSpec.validRuleNames(transformSpec.mappingRule).mkString(", ")
+        val validRuleNames = transformSpec.ruleSchemata.map(_.transformRule.id).mkString(", ")
         NotFound(s"No rule named '$rule' found!. Available rules: $validRuleNames")
     }
   }

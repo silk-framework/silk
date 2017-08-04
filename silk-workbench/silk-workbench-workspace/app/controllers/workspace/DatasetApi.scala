@@ -203,7 +203,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     for (transformation <- transformationTasks) yield {
       val typeUri = transformation.selection.typeUri
       // TODO: Filter by mapping type, e.g. no URI mapping?
-      val paths = transformation.rules.flatMap(_.paths).distinct
+      val paths = transformation.rules.flatMap(_.sourcePaths).distinct
       CoveragePathInput(typeUri.uri, paths)
     }
   }

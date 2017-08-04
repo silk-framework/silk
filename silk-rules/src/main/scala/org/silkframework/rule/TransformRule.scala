@@ -65,9 +65,9 @@ sealed trait TransformRule extends Operator {
   }
 
   /**
-    * Collects all paths in this rule.
+    * Collects all input paths in this rule.
     */
-  def paths: Seq[Path] = {
+  def sourcePaths: Seq[Path] = {
     def collectPaths(param: Input): Seq[Path] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case p: PathInput => Seq(p.path)
@@ -92,28 +92,14 @@ sealed trait TransformRule extends Operator {
       throw new IllegalArgumentException(s"$this cannot have any children")
     }
   }
-
-  /**
-    * Returns a list of unique input paths used in this transform rule
-    */
-  def sourcePaths(): Seq[Path] = {
-    sourcePathRecursive(operator)
-  }
-
-  private def sourcePathRecursive(input: Input): Seq[Path] = {
-    input match {
-      case TransformInput(_, _, inputs) =>
-        inputs.flatMap(sourcePathRecursive)
-      case PathInput(_, path) =>
-        Seq(path)
-    }
-  }
 }
 
 // Trait of classes that can have child rules
-trait ContainerTransformationRule extends TransformRule
+trait ContainerTransformRule extends TransformRule
 
-case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends ContainerTransformationRule {
+trait ValueTransformRule extends TransformRule
+
+case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
 
   /**
     * The children operators.
@@ -184,7 +170,7 @@ object RootMappingRule {
 case class DirectMapping(id: Identifier = "sourcePath",
                          sourcePath: Path = Path(Nil),
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
-                         metaData: MetaData = MetaData.empty) extends TransformRule {
+                         metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
   override val operator = PathInput(id, sourcePath)
 
@@ -200,7 +186,7 @@ case class DirectMapping(id: Identifier = "sourcePath",
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
 case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty)
-                     (implicit prefixes: Prefixes = Prefixes.empty) extends TransformRule {
+                     (implicit prefixes: Prefixes = Prefixes.empty) extends ValueTransformRule {
 
   override val operator: Input = UriPattern.parse(pattern)
 
@@ -215,7 +201,7 @@ case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.
   * @param id      The name of this mapping
   * @param typeUri The type URI.
   */
-case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing", metaData: MetaData = MetaData.empty) extends TransformRule {
+case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing", metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
@@ -232,7 +218,7 @@ case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.or
   * @param operator The input operator tree
   * @param target   The target property URI
   */
-case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: Option[MappingTarget] = None, metaData: MetaData = MetaData.empty) extends TransformRule {
+case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: Option[MappingTarget] = None, metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
   override val typeString = "Complex"
 
@@ -253,7 +239,7 @@ case class ObjectMapping(id: Identifier = "mapping",
                          sourcePath: Path = Path(Nil),
                          target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
                          override val rules: MappingRules,
-                         metaData: MetaData = MetaData.empty)(implicit prefixes: Prefixes = Prefixes.empty) extends ContainerTransformationRule {
+                         metaData: MetaData = MetaData.empty)(implicit prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
 
   override val typeString = "Object"
 
