@@ -92,7 +92,7 @@ const SuggestionOverview = React.createClass({
                 topic: 'rules.generate',
                 data: {
                     correspondences,
-                    parentRuleId: this.props.ruleId,
+                    parentRuleId: _.get(this.props, 'ruleId', "root"),
                 },
             })
             .subscribe(
