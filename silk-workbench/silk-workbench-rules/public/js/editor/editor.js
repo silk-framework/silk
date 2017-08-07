@@ -394,7 +394,7 @@ function validateLinkSpec() {
         $.ajax({
             type: 'PUT',
             url: apiUrl + '/rule' + ruleIndex,
-            contentType: 'text/xml',
+            contentType: 'text/xml;charset=UTF-8',
             accepts: {
                 json: 'application/json'
             },

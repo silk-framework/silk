@@ -131,7 +131,7 @@ function putTask(path, xml) {
     $.ajax({
         type: 'PUT',
         url: path,
-        contentType: 'text/xml',
+        contentType: 'text/xml;charset=UTF-8',
         processData: false,
         data: xml,
         error: function error(request) {

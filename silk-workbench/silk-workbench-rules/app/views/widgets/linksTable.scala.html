@@ -34,7 +34,9 @@
 
 @render(pageLinks: Seq[EvalLink]) = {
   <script type="text/javascript">
-    $(document).ready(function() { initPagination(@links.size) })
+    $(document).ready(function() {
+      initPagination(@links.size)
+    })
   </script>
 
   <div style="clear: both"></div>
@@ -92,7 +94,7 @@
   <div style="clear:both;"></div>
 
   <div id="tree-footer">
-    <div class="navigation"></div>
+    <ul class="navigation"></ul>
   </div>
 
   <div style="clear: both"></div>

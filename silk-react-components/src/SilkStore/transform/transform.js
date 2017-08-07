@@ -273,3 +273,21 @@ silkStore
             .multicast(replySubject)
             .connect();
     });
+
+silkStore
+    .subject('transform.task.targetVocabulary.typeOrProperty')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask, uri} = data;
+
+        superagent
+            .get(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/typeOrProperty`,
+            )
+            .accept('application/json')
+            .query({
+                uri,
+            })
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });

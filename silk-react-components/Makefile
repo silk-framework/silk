@@ -4,7 +4,7 @@ SILK_LIB_ROOT=../silk-workbench/silk-workbench-core/public/libs
 SILK_DIST_ROOT=../silk-workbench/silk-workbench-core/public/libs/silk-react-components
 
 # List of vendor libs we maintain in the package.json
-LIST_OF_VENDORS = dialog-polyfill jquery jsplumb jstree mark.js material-design-lite mdl-selectfield
+LIST_OF_VENDORS = dialog-polyfill jquery jsplumb jstree mark.js material-design-lite mdl-selectfield twbs-pagination
 
 default: help
 

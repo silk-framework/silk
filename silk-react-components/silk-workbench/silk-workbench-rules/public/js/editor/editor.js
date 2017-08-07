@@ -421,7 +421,7 @@ function validateLinkSpec() {
         $.ajax({
             type: 'PUT',
             url: `${apiUrl}/rule${ruleIndex}`,
-            contentType: 'text/xml',
+            contentType: 'text/xml;charset=UTF-8',
             accepts: {
                 json: 'application/json',
             },
@@ -443,7 +443,7 @@ function validateLinkSpec() {
 
 function modifyLinkSpec() {
     // This function does not need to be executed if not in editing mode
-    if(!inEditorEnv){
+    if (!inEditorEnv) {
         return;
     }
     confirmOnExit = true;

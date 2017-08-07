@@ -22,7 +22,7 @@ import scala.language.implicitConversions
  * An identifier.
  * May only contain the following characters: (a - z, A - Z, 0 - 9, _, -)
  */
-class Identifier(private val name: String) extends Serializable {
+class Identifier(private val name: String) extends Serializable with Ordered[Identifier] {
   require(!name.isEmpty, "Identifier must not be empty.")
   require(name.forall(Identifier.isAllowed),
     "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
@@ -37,6 +37,10 @@ class Identifier(private val name: String) extends Serializable {
   }
 
   override def hashCode = name.hashCode
+
+  override def compare(that: Identifier): Int = {
+    name.compare(that.name)
+  }
 
   def +(other: Any): Identifier = new Identifier(name + other.toString)
 }
