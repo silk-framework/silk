@@ -15,6 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
+import org.silkframework.util.Uri
 
 import scala.util.matching.Regex
 
@@ -46,9 +47,10 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
 }
 
 object SparqlRestriction {
-  def empty = new SparqlRestriction("a", "", "")
 
-  def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty) = {
+  def empty: SparqlRestriction = new SparqlRestriction("a", "", "")
+
+  def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty): SparqlRestriction = {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
@@ -67,5 +69,13 @@ object SparqlRestriction {
     }
 
     new SparqlRestriction(variable, restrictionsFull, restrictionsQualified)
+  }
+
+  def forType(typeUri: Uri): SparqlRestriction = {
+    if(typeUri.uri.isEmpty) {
+      empty
+    } else {
+      fromSparql("a", s"?a a <$typeUri>.")
+    }
   }
 }

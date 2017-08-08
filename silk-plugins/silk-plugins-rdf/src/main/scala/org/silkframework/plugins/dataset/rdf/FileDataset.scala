@@ -92,7 +92,7 @@ case class FileDataset(
 
     override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
       load()
-      val restrictions = SparqlRestriction.fromSparql("a", s"?a a <$t>.")
+      val restrictions = SparqlRestriction.forType(t)
       SparqlAggregatePathsCollector(endpoint, restrictions, limit)
     }
 

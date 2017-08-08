@@ -33,7 +33,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
   }
 
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    val restrictions = SparqlRestriction.fromSparql("a", s"?a a <$t>.")
+    val restrictions = SparqlRestriction.forType(t)
 
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = sparqlEndpoint.withSparqlParams(params.copy(retryCount = 3, retryPause = 1000))
