@@ -4353,9 +4353,6 @@
         var installedModules = {};
         __webpack_require__.m = modules;
         __webpack_require__.c = installedModules;
-        __webpack_require__.i = function(value) {
-            return value;
-        };
         __webpack_require__.d = function(exports, name, getter) {
             __webpack_require__.o(exports, name) || Object.defineProperty(exports, name, {
                 configurable: !1,
@@ -4376,7 +4373,7 @@
             return Object.prototype.hasOwnProperty.call(object, property);
         };
         __webpack_require__.p = "";
-        return __webpack_require__(__webpack_require__.s = 33);
+        return __webpack_require__(__webpack_require__.s = 14);
     }([ function(module, exports) {
         module.exports = __webpack_require__(0);
     }, function(module, exports) {
@@ -4391,8 +4388,8 @@
             };
         }
         exports.__esModule = !0;
-        var _getPrototypeOf = __webpack_require__(47), _lodash = (_interopRequireDefault(_getPrototypeOf), 
-        __webpack_require__(5)), _lodash2 = _interopRequireDefault(_lodash), PerformanceMixin = {
+        var _getPrototypeOf = __webpack_require__(18), _lodash = (_interopRequireDefault(_getPrototypeOf), 
+        __webpack_require__(4)), _lodash2 = _interopRequireDefault(_lodash), PerformanceMixin = {
             shouldComponentUpdate: function(nextProps, nextState) {
                 return !1 === _lodash2.default.isEqual(nextState, this.state) || !1 === _lodash2.default.isEqual(nextProps, this.props);
             }
@@ -4400,9 +4397,9 @@
         exports.default = PerformanceMixin;
         module.exports = exports.default;
     }, function(module, exports) {
-        module.exports = __webpack_require__(7);
-    }, function(module, exports) {
         module.exports = __webpack_require__(5);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(7);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         function _interopRequireDefault(obj) {
@@ -4411,7 +4408,7 @@
             };
         }
         exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(52), _Button2 = _interopRequireDefault(_Button), _FABButton = __webpack_require__(54), _FABButton2 = _interopRequireDefault(_FABButton), _Tooltip = __webpack_require__(13), _Tooltip2 = _interopRequireDefault(_Tooltip), _Icon = __webpack_require__(9), _Icon2 = _interopRequireDefault(_Icon), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Button = _react2.default.createClass({
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(19), _Button2 = _interopRequireDefault(_Button), _FABButton = __webpack_require__(20), _FABButton2 = _interopRequireDefault(_FABButton), _Tooltip = __webpack_require__(9), _Tooltip2 = _interopRequireDefault(_Tooltip), _Icon = __webpack_require__(10), _Icon2 = _interopRequireDefault(_Icon), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Button = _react2.default.createClass({
             displayName: "Button",
             mixins: [ _PerformanceMixin2.default ],
             propTypes: {
@@ -4487,7 +4484,7 @@
             };
         }
         exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), Alert = _react2.default.createClass({
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), Alert = _react2.default.createClass({
             displayName: "Alert",
             propTypes: {
                 children: _react2.default.PropTypes.node.isRequired,
@@ -4536,7 +4533,7 @@
             };
         }
         exports.__esModule = !0;
-        var _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _Error = __webpack_require__(34), _Error2 = _interopRequireDefault(_Error), _Info = __webpack_require__(35), _Info2 = _interopRequireDefault(_Info), _Success = __webpack_require__(36), _Success2 = _interopRequireDefault(_Success), _Warning = __webpack_require__(37), _Warning2 = _interopRequireDefault(_Warning);
+        var _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _Error = __webpack_require__(22), _Error2 = _interopRequireDefault(_Error), _Info = __webpack_require__(23), _Info2 = _interopRequireDefault(_Info), _Success = __webpack_require__(24), _Success2 = _interopRequireDefault(_Success), _Warning = __webpack_require__(25), _Warning2 = _interopRequireDefault(_Warning);
         exports.default = {
             Alert: _Alert2.default,
             Error: _Error2.default,
@@ -4545,6 +4542,8 @@
             Warning: _Warning2.default
         };
         module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(317);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         function _interopRequireDefault(obj) {
@@ -4553,7 +4552,7 @@
             };
         }
         exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Tooltip = __webpack_require__(13), _Tooltip2 = _interopRequireDefault(_Tooltip), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Icon = _react2.default.createClass({
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Tooltip = __webpack_require__(9), _Tooltip2 = _interopRequireDefault(_Tooltip), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Icon = _react2.default.createClass({
             displayName: "Icon",
             mixins: [ _PerformanceMixin2.default ],
             propTypes: {
@@ -4594,7 +4593,7 @@
                 access_forbidden: "No write access"
             },
             render: function() {
-                var _props = this.props, className = _props.className, otherProps = _props.otherProps, ligaturcodes = __webpack_require__(45), name = this.props.name, tooltip = this.props.tooltip;
+                var _props = this.props, className = _props.className, otherProps = _props.otherProps, ligaturcodes = __webpack_require__(21), name = this.props.name, tooltip = this.props.tooltip;
                 tooltip || !1 === tooltip || void 0 === this.canonicalTooltips[name] || (tooltip = this.canonicalTooltips[name]);
                 void 0 !== this.canonicalIcons[name] && (name = this.canonicalIcons[name]);
                 void 0 !== ligaturcodes[name] && (name = ligaturcodes[name]);
@@ -4622,7 +4621,91 @@
             };
         }
         exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Select = __webpack_require__(68), _Select2 = _interopRequireDefault(_Select), _Creatable = __webpack_require__(67), _Creatable2 = _interopRequireDefault(_Creatable), _Async = __webpack_require__(65), _Async2 = _interopRequireDefault(_Async), _AsyncCreatable = __webpack_require__(66), _AsyncCreatable2 = _interopRequireDefault(_AsyncCreatable), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), stringCompare = function(value) {
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), BaseDialog = _react2.default.createClass({
+            displayName: "BaseDialog",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                active: _react2.default.PropTypes.bool.isRequired,
+                className: _react2.default.PropTypes.string,
+                modal: _react2.default.PropTypes.bool,
+                size: _react2.default.PropTypes.string,
+                buttonRow: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.element).isRequired,
+                title: _react2.default.PropTypes.node,
+                titleCancelButton: _react2.default.PropTypes.func
+            },
+            render: function() {
+                var _props = this.props, active = _props.active, className = _props.className, modal = _props.modal, size = _props.size, buttonRow = _props.buttonRow, title = _props.title, titleCancelButton = _props.titleCancelButton, otherProps = (0, 
+                _objectWithoutProperties3.default)(_props, [ "active", "className", "modal", "size", "buttonRow", "title", "titleCancelButton" ]);
+                if (!0 !== active) return !1;
+                var classes = (0, _classnames2.default)("mdl-dialog mdl-shadow--16dp", {
+                    "is-activated": !0 === active,
+                    "mdl-dialog--modal": !0 === modal,
+                    "mdl-dialog--mini": "mini" === size,
+                    "mdl-dialog--large": "large" === size
+                }, className), modalbg = !1;
+                !0 === modal && (modalbg = _react2.default.createElement("div", {
+                    className: "mdl-dialog__modalbackground"
+                }));
+                var cancelButton = !!titleCancelButton && _react2.default.createElement(_Button2.default, {
+                    className: "mdl-dialog__title__close-button",
+                    tooltip: "Close",
+                    iconName: "hide",
+                    onClick: titleCancelButton
+                }), dialogTitle = !!title && _react2.default.createElement("div", {
+                    className: "mdl-dialog__title"
+                }, _react2.default.createElement("strong", {
+                    className: "mdl-dialog__title-text"
+                }, title), cancelButton), content = !1;
+                this.props.children && (content = _react2.default.createElement("div", {
+                    className: "mdl-dialog__content"
+                }, this.props.children));
+                var buttonLayout = {
+                    accent: !0,
+                    colored: !1,
+                    fabSize: ""
+                }, rowActions = buttonRow.reverse().map(function(button, idx) {
+                    return _react2.default.createElement("span", {
+                        className: "mdl-dialog__actions__" + idx + "-button",
+                        key: "Button_" + idx
+                    }, _react2.default.cloneElement(button, buttonLayout));
+                }), actions = _react2.default.createElement("div", {
+                    className: "mdl-dialog__actions"
+                }, rowActions), containerClass = "";
+                !0 === active && (containerClass = "mdl-dialog__container");
+                return _react2.default.createElement("div", {
+                    className: containerClass
+                }, modalbg, _react2.default.createElement("div", (0, _extends3.default)({
+                    className: classes
+                }, otherProps), dialogTitle, content, actions));
+            }
+        });
+        exports.default = BaseDialog;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        exports.__esModule = !0;
+        var _lodash = __webpack_require__(4), _lodash2 = function(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }(_lodash), extendedOnChangeBoolean = function(onChangeFn, event) {
+            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
+                event: event,
+                value: event.target.checked,
+                rawValue: event.target.value
+            });
+        };
+        exports.default = extendedOnChangeBoolean;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Select = __webpack_require__(44), _Select2 = _interopRequireDefault(_Select), _Creatable = __webpack_require__(45), _Creatable2 = _interopRequireDefault(_Creatable), _Async = __webpack_require__(46), _Async2 = _interopRequireDefault(_Async), _AsyncCreatable = __webpack_require__(47), _AsyncCreatable2 = _interopRequireDefault(_AsyncCreatable), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), stringCompare = function(value) {
             return _lodash2.default.toLower(_lodash2.default.toString(value));
         }, SelectBox = _react2.default.createClass({
             displayName: "SelectBox",
@@ -4736,726 +4819,8 @@
             };
         }
         exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), BaseDialog = _react2.default.createClass({
-            displayName: "BaseDialog",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                active: _react2.default.PropTypes.bool.isRequired,
-                className: _react2.default.PropTypes.string,
-                modal: _react2.default.PropTypes.bool,
-                size: _react2.default.PropTypes.string,
-                buttonRow: _react2.default.PropTypes.arrayOf(_react2.default.PropTypes.element).isRequired,
-                title: _react2.default.PropTypes.node,
-                titleCancelButton: _react2.default.PropTypes.func
-            },
-            render: function() {
-                var _props = this.props, active = _props.active, className = _props.className, modal = _props.modal, size = _props.size, buttonRow = _props.buttonRow, title = _props.title, titleCancelButton = _props.titleCancelButton, otherProps = (0, 
-                _objectWithoutProperties3.default)(_props, [ "active", "className", "modal", "size", "buttonRow", "title", "titleCancelButton" ]);
-                if (!0 !== active) return !1;
-                var classes = (0, _classnames2.default)("mdl-dialog mdl-shadow--16dp", {
-                    "is-activated": !0 === active,
-                    "mdl-dialog--modal": !0 === modal,
-                    "mdl-dialog--mini": "mini" === size,
-                    "mdl-dialog--large": "large" === size
-                }, className), modalbg = !1;
-                !0 === modal && (modalbg = _react2.default.createElement("div", {
-                    className: "mdl-dialog__modalbackground"
-                }));
-                var cancelButton = !!titleCancelButton && _react2.default.createElement(_Button2.default, {
-                    className: "mdl-dialog__title__close-button",
-                    tooltip: "Close",
-                    iconName: "hide",
-                    onClick: titleCancelButton
-                }), dialogTitle = !!title && _react2.default.createElement("div", {
-                    className: "mdl-dialog__title"
-                }, _react2.default.createElement("strong", {
-                    className: "mdl-dialog__title-text"
-                }, title), cancelButton), content = !1;
-                this.props.children && (content = _react2.default.createElement("div", {
-                    className: "mdl-dialog__content"
-                }, this.props.children));
-                var buttonLayout = {
-                    accent: !0,
-                    colored: !1,
-                    fabSize: ""
-                }, rowActions = buttonRow.reverse().map(function(button, idx) {
-                    return _react2.default.createElement("span", {
-                        className: "mdl-dialog__actions__" + idx + "-button",
-                        key: "Button_" + idx
-                    }, _react2.default.cloneElement(button, buttonLayout));
-                }), actions = _react2.default.createElement("div", {
-                    className: "mdl-dialog__actions"
-                }, rowActions), containerClass = "";
-                !0 === active && (containerClass = "mdl-dialog__container");
-                return _react2.default.createElement("div", {
-                    className: containerClass
-                }, modalbg, _react2.default.createElement("div", (0, _extends3.default)({
-                    className: classes
-                }, otherProps), dialogTitle, content, actions));
-            }
-        });
-        exports.default = BaseDialog;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        exports.__esModule = !0;
-        var _lodash = __webpack_require__(5), _lodash2 = function(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }(_lodash), extendedOnChangeBoolean = function(onChangeFn, event) {
-            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
-                event: event,
-                value: event.target.checked,
-                rawValue: event.target.value
-            });
-        };
-        exports.default = extendedOnChangeBoolean;
-        module.exports = exports.default;
-    }, function(module, exports) {
-        module.exports = __webpack_require__(317);
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _AffirmativeButton = __webpack_require__(38), _AffirmativeButton2 = _interopRequireDefault(_AffirmativeButton), _DismissiveButton = __webpack_require__(39), _DismissiveButton2 = _interopRequireDefault(_DismissiveButton), _DisruptiveButton = __webpack_require__(40), _DisruptiveButton2 = _interopRequireDefault(_DisruptiveButton);
-        exports.default = {
-            Button: _Button2.default,
-            AffirmativeButton: _AffirmativeButton2.default,
-            DismissiveButton: _DismissiveButton2.default,
-            DisruptiveButton: _DisruptiveButton2.default
-        };
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Checkbox = __webpack_require__(53), _Checkbox2 = _interopRequireDefault(_Checkbox), _extendedOnChangeBoolean = __webpack_require__(12), _extendedOnChangeBoolean2 = _interopRequireDefault(_extendedOnChangeBoolean), Checkbox = function(props) {
-            var label = props.label, children = props.children, _props$ripple = props.ripple, ripple = void 0 !== _props$ripple && _props$ripple, checked = props.checked, onChange = props.onChange, otherProperties = (0, 
-            _objectWithoutProperties3.default)(props, [ "label", "children", "ripple", "checked", "onChange" ]), checkboxlabel = label || "";
-            !checkboxlabel && children && (checkboxlabel = children);
-            return _react2.default.createElement(_Checkbox2.default, (0, _extends3.default)({
-                checked: !!checked,
-                label: checkboxlabel,
-                ripple: ripple,
-                value: "test",
-                onChange: _extendedOnChangeBoolean2.default.bind(null, onChange)
-            }, otherProperties));
-        };
-        Checkbox.propTypes = {
-            checked: _react2.default.PropTypes.bool.isRequired,
-            onChange: _react2.default.PropTypes.func.isRequired
-        };
-        exports.default = Checkbox;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        exports.Chip = exports.ChipVisual = void 0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _basicClassCreator = __webpack_require__(64), _basicClassCreator2 = _interopRequireDefault(_basicClassCreator), _lodash = __webpack_require__(5), ChipVisual = (_interopRequireDefault(_lodash), 
-        exports.ChipVisual = function(props) {
-            var _props$image = props.image, image = void 0 !== _props$image && _props$image, _props$label = props.label, label = void 0 !== _props$label && _props$label, _props$className = props.className, className = void 0 === _props$className ? "" : _props$className, _props$bgColor = props.bgColor, bgColor = void 0 !== _props$bgColor && _props$bgColor, _props$textColor = props.textColor, textColor = void 0 !== _props$textColor && _props$textColor, _props$children = props.children, children = void 0 !== _props$children && _props$children;
-            if (image) return _react2.default.createElement(ChipContact, {
-                style: {
-                    background: 'url("' + image + '") 0 0 / cover'
-                }
-            });
-            var classColors = {};
-            classColors["mdl-color--" + bgColor] = bgColor;
-            classColors["mdl-color-text--" + textColor] = textColor;
-            return _react2.default.createElement(ChipContact, {
-                className: (0, _classnames2.default)(classColors, className)
-            }, label || children);
-        }), propTypes = {
-            className: _react.PropTypes.string,
-            onClick: _react.PropTypes.func,
-            onClose: _react.PropTypes.func
-        }, ChipContact = (0, _basicClassCreator2.default)("ChipContact", "mdl-chip__contact", "span"), ChipText = (0, 
-        _basicClassCreator2.default)("ChipText", "mdl-chip__text", "span"), Chip = function(props) {
-            var className = props.className, onClick = props.onClick, onClose = props.onClose, children = (props.style, 
-            props.children), otherProps = (0, _objectWithoutProperties3.default)(props, [ "className", "onClick", "onClose", "style", "children" ]), childrenArray = _react2.default.Children.toArray(children), contactIndex = childrenArray.findIndex(function(c) {
-                return c.type === ChipContact || c.type === ChipVisual;
-            }), chipContent = [];
-            contactIndex >= 0 ? chipContent.push(childrenArray[contactIndex], _react2.default.createElement(ChipText, {
-                key: "text"
-            }, childrenArray.slice(0, contactIndex).concat(childrenArray.slice(contactIndex + 1)))) : chipContent.push(_react2.default.createElement(ChipText, {
-                key: "text"
-            }, children));
-            var elt = onClick ? "button" : "span";
-            return _react2.default.createElement(elt, (0, _extends3.default)({
-                className: (0, _classnames2.default)("mdl-chip", {
-                    "mdl-chip--contact": contactIndex > -1,
-                    "mdl-chip--deletable": !!onClose
-                }, className),
-                type: onClick ? "button" : null,
-                onClick: onClick
-            }, otherProps), chipContent);
-        };
-        exports.Chip = Chip;
-        Chip.propTypes = propTypes;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _assign = __webpack_require__(46), _assign2 = _interopRequireDefault(_assign), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _Menu = __webpack_require__(55), _Menu2 = _interopRequireDefault(_Menu), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _classnames = __webpack_require__(4), _PerformanceMixin = (_interopRequireDefault(_classnames), 
-        __webpack_require__(3)), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), ContextMenu = _react2.default.createClass({
-            displayName: "ContextMenu",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                align: _react2.default.PropTypes.string,
-                valign: _react2.default.PropTypes.string,
-                className: _react2.default.PropTypes.string,
-                ripple: _react2.default.PropTypes.bool,
-                target: _react2.default.PropTypes.string,
-                tooltip: _react2.default.PropTypes.string
-            },
-            getDefaultProps: function() {
-                return {
-                    align: "right",
-                    valign: "bottom",
-                    ripple: !1,
-                    tooltip: "open menu"
-                };
-            },
-            render: function() {
-                var _props = this.props, children = _props.children, iconName = _props.iconName, target = (_props.tooltip, 
-                _props.target), otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children", "iconName", "tooltip", "target" ]), menuItemsCopy = Array.isArray(children) ? children : [ children ], menuId = target || _lodash2.default.uniqueId("app-contextmenu-"), menuItems = _lodash2.default.map(menuItemsCopy, function(obj, idx) {
-                    if (obj) {
-                        if (_lodash2.default.has(obj, "props.className") && obj.key) return obj;
-                        var objExtension = {};
-                        !_lodash2.default.has(obj, "props.className") && _lodash2.default.has(obj, "props.children") && (objExtension.className = "item-" + _lodash2.default.kebabCase(obj.props.children));
-                        obj.key || (objExtension.key = "MenuItem." + idx);
-                        return (0, _assign2.default)({}, obj, objExtension.key ? {
-                            key: objExtension.key
-                        } : {
-                            key: obj.key
-                        }, objExtension.className ? {
-                            props: (0, _assign2.default)({}, obj.props, {
-                                className: objExtension.className
-                            })
-                        } : {
-                            props: obj.props
-                        });
-                    }
-                }), menulist = menuItems.length > 0 && _react2.default.createElement(_Menu2.default, (0, 
-                _extends3.default)({
-                    target: menuId
-                }, otherProps), menuItems);
-                return !!menulist && _react2.default.createElement("div", {
-                    className: "contextmenu-container"
-                }, _react2.default.createElement(_Button2.default, {
-                    iconName: iconName || "menu_more",
-                    id: menuId,
-                    tooltip: !1
-                }), menulist);
-            }
-        });
-        exports.default = {
-            ContextMenu: ContextMenu,
-            MenuItem: _Menu.MenuItem
-        };
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _BaseDialog = __webpack_require__(11), _BaseDialog2 = _interopRequireDefault(_BaseDialog), _ConfirmationDialog = __webpack_require__(41), _ConfirmationDialog2 = _interopRequireDefault(_ConfirmationDialog);
-        exports.default = {
-            BaseDialog: _BaseDialog2.default,
-            ConfirmationDialog: _ConfirmationDialog2.default
-        };
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Button = _react2.default.createClass({
-            displayName: "Button",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                className: _react2.default.PropTypes.string,
-                description: _react2.default.PropTypes.string,
-                inline: _react2.default.PropTypes.bool,
-                label: _react2.default.PropTypes.string
-            },
-            render: function() {
-                var _props = this.props, className = _props.className, description = _props.description, inline = _props.inline, label = _props.label, classes = ((0, 
-                _objectWithoutProperties3.default)(_props, [ "className", "description", "inline", "label" ]), 
-                (0, _classnames2.default)({
-                    "ecc-gui-elements__notavailable": !0,
-                    "ecc-gui-elements__notavailable--inline": inline
-                }, className));
-                return _react2.default.createElement("span", {
-                    className: classes
-                }, _react2.default.createElement("span", {
-                    className: "ecc-gui-elements__notavailable-label",
-                    title: description || (label ? "" : "not available")
-                }, label || "n/a"));
-            }
-        });
-        exports.default = Button;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        exports.__esModule = !0;
-        var _react = __webpack_require__(0), _react2 = function(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }(_react), Nothing = _react2.default.createClass({
-            displayName: "Nothing",
-            render: function() {
-                return !1;
-            }
-        });
-        exports.default = Nothing;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _SelectBox = __webpack_require__(10), _SelectBox2 = _interopRequireDefault(_SelectBox), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), calculatePagination = function(_ref) {
-            var limit = _ref.limit, offset = _ref.offset, totalResults = _ref.totalResults, onLastPage = offset + limit >= totalResults;
-            return {
-                limit: limit,
-                offset: offset,
-                totalResults: totalResults,
-                onFirstPage: 0 === offset,
-                onLastPage: onLastPage,
-                currentPage: _lodash2.default.floor(offset / limit),
-                totalPages: _lodash2.default.ceil(totalResults / limit),
-                lastItemOnPage: onLastPage ? totalResults : offset + limit
-            };
-        }, Pagination = _react2.default.createClass({
-            displayName: "Pagination",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                offset: _react2.default.PropTypes.number.isRequired,
-                limit: _react2.default.PropTypes.number.isRequired,
-                totalResults: _react2.default.PropTypes.number.isRequired,
-                onChange: _react2.default.PropTypes.func.isRequired,
-                offsetAsPage: _react2.default.PropTypes.bool,
-                isTopPagination: _react2.default.PropTypes.bool,
-                newLimitText: _react2.default.PropTypes.string,
-                limitRange: _react2.default.PropTypes.array
-            },
-            getDefaultProps: function() {
-                return {
-                    offsetAsPage: !1,
-                    limitRange: [ 5, 10, 25, 50, 100, 200 ]
-                };
-            },
-            onClickFirst: function() {
-                var _props = this.props, limit = _props.limit, totalResults = _props.totalResults;
-                this.props.onChange(calculatePagination({
-                    limit: limit,
-                    offset: 0,
-                    totalResults: totalResults
-                }));
-            },
-            onClickBack: function() {
-                var _props2 = this.props, limit = _props2.limit, totalResults = _props2.totalResults, offset = _props2.offset;
-                this.props.onChange(calculatePagination({
-                    limit: limit,
-                    offset: offset < limit ? 0 : offset - limit,
-                    totalResults: totalResults
-                }));
-            },
-            onClickForward: function() {
-                var _props3 = this.props, limit = _props3.limit, totalResults = _props3.totalResults, offset = _props3.offset;
-                this.props.onChange(calculatePagination({
-                    limit: limit,
-                    offset: offset + limit,
-                    totalResults: totalResults
-                }));
-            },
-            onClickLast: function() {
-                var _props4 = this.props, limit = _props4.limit, totalResults = _props4.totalResults;
-                this.props.onChange(calculatePagination({
-                    limit: limit,
-                    offset: (_lodash2.default.ceil(totalResults / limit) - 1) * limit,
-                    totalResults: totalResults
-                }));
-            },
-            onNewLimit: function(limit) {
-                var _props5 = this.props, offset = _props5.offset, totalResults = _props5.totalResults;
-                this.props.onChange(calculatePagination({
-                    limit: limit,
-                    offset: _lodash2.default.floor(offset / limit) * limit,
-                    totalResults: totalResults
-                }));
-            },
-            render: function() {
-                var _props6 = this.props, offsetAsPage = _props6.offsetAsPage, offset = _props6.offset, limit = _props6.limit, totalResults = _props6.totalResults, newLimitText = _props6.newLimitText, _props6$isTopPaginati = _props6.isTopPagination, isTopPagination = void 0 !== _props6$isTopPaginati && _props6$isTopPaginati, limitRange = _lodash2.default.chain(this.props.limitRange).push(limit).filter(_lodash2.default.isNumber).sortBy().sortedUniq().value(), _calculatePagination = calculatePagination(this.props), currentPage = _calculatePagination.currentPage, totalPages = _calculatePagination.totalPages, lastItemOnPage = _calculatePagination.lastItemOnPage, onLastPage = _calculatePagination.onLastPage, onFirstPage = _calculatePagination.onFirstPage, pageInfo = "";
-                if (offsetAsPage) pageInfo = currentPage + 1 + " of " + totalPages; else {
-                    pageInfo = (offset + 1 === lastItemOnPage ? lastItemOnPage : offset + 1 + " - " + lastItemOnPage) + " of " + totalResults;
-                }
-                var pageInformation = _react2.default.createElement("span", {
-                    className: "ecc-gui-elements__pagination-pageInfo"
-                }, pageInfo);
-                return _react2.default.createElement("div", {
-                    className: "ecc-gui-elements__pagination"
-                }, newLimitText && !_lodash2.default.isEmpty(limitRange) ? _react2.default.createElement("div", {
-                    className: "ecc-gui-elements__pagination-limit"
-                }, _react2.default.createElement("span", {
-                    className: "ecc-gui-elements__pagination-limit_text"
-                }, newLimitText), _react2.default.createElement("div", {
-                    className: "ecc-gui-elements__pagination-limit_size"
-                }, _react2.default.createElement(_SelectBox2.default, {
-                    value: limit,
-                    options: limitRange,
-                    clearable: !1,
-                    searchable: !1,
-                    onChange: this.onNewLimit,
-                    optionsOnTop: !0 !== isTopPagination
-                }))) : "", _react2.default.createElement("div", {
-                    className: "ecc-gui-elements__pagination-actions"
-                }, _react2.default.createElement(_Button2.default, {
-                    className: "ecc-gui-elements__pagination-actions__first-page-button",
-                    onClick: this.onClickFirst,
-                    disabled: onFirstPage,
-                    iconName: "arrow_firstpage"
-                }), _react2.default.createElement(_Button2.default, {
-                    className: "ecc-gui-elements__pagination-actions__prev-page-button",
-                    onClick: this.onClickBack,
-                    disabled: onFirstPage,
-                    iconName: "arrow_prevpage"
-                }), pageInformation, _react2.default.createElement(_Button2.default, {
-                    className: "ecc-gui-elements__pagination-actions__next-page-button",
-                    onClick: this.onClickForward,
-                    disabled: onLastPage,
-                    iconName: "arrow_nextpage"
-                }), _react2.default.createElement(_Button2.default, {
-                    className: "ecc-gui-elements__pagination-actions__last-page-button",
-                    onClick: this.onClickLast,
-                    disabled: onLastPage,
-                    iconName: "arrow_lastpage"
-                })));
-            }
-        });
-        exports.default = Pagination;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _ProgressBar = __webpack_require__(56), _ProgressBar2 = _interopRequireDefault(_ProgressBar), Progressbar = _react2.default.createClass({
-            displayName: "Progressbar",
-            propTypes: {
-                appearGlobal: _react2.default.PropTypes.bool,
-                appearLocal: _react2.default.PropTypes.bool,
-                className: _react2.default.PropTypes.string
-            },
-            getDefaultProps: function() {
-                return {
-                    appearGlobal: !1,
-                    appearLocal: !1
-                };
-            },
-            render: function() {
-                var _props = this.props, className = _props.className, appearGlobal = _props.appearGlobal, appearLocal = _props.appearLocal, otherProps = (0, 
-                _objectWithoutProperties3.default)(_props, [ "className", "appearGlobal", "appearLocal" ]), classes = (0, 
-                _classnames2.default)({
-                    "mdl-progress--global": !0 === appearGlobal,
-                    "mdl-progress--local": !0 === appearLocal
-                }, className);
-                return _react2.default.createElement(_ProgressBar2.default, (0, _extends3.default)({
-                    className: classes
-                }, otherProps));
-            }
-        });
-        exports.default = Progressbar;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _RadioButton = __webpack_require__(42), _RadioButton2 = _interopRequireDefault(_RadioButton), _RadioGroup = __webpack_require__(43), _RadioGroup2 = _interopRequireDefault(_RadioGroup);
-        exports.default = {
-            Radio: _RadioButton2.default,
-            RadioGroup: _RadioGroup2.default
-        };
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Spinner = __webpack_require__(59), _Spinner2 = _interopRequireDefault(_Spinner), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Spinner = _react2.default.createClass({
-            displayName: "Spinner",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                appearGlobal: _react2.default.PropTypes.bool,
-                appearInline: _react2.default.PropTypes.bool,
-                appearLocal: _react2.default.PropTypes.bool,
-                className: _react2.default.PropTypes.string
-            },
-            getDefaultProps: function() {
-                return {
-                    appearGlobal: !0,
-                    appearInline: !1,
-                    appearLocal: !1
-                };
-            },
-            render: function() {
-                var _props = this.props, className = _props.className, appearGlobal = _props.appearGlobal, appearInline = _props.appearInline, appearLocal = _props.appearLocal, otherProps = (0, 
-                _objectWithoutProperties3.default)(_props, [ "className", "appearGlobal", "appearInline", "appearLocal" ]), classes = (0, 
-                _classnames2.default)({
-                    "mdl-spinner--global": !0 === appearGlobal && !1 === appearInline && !1 === appearLocal,
-                    "mdl-spinner--inline": !0 === appearInline,
-                    "mdl-spinner--local": !0 === appearLocal
-                }, className);
-                return _react2.default.createElement(_Spinner2.default, (0, _extends3.default)({
-                    singleColor: !0,
-                    className: classes
-                }, otherProps));
-            }
-        });
-        exports.default = Spinner;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Switch = __webpack_require__(60), _Switch2 = _interopRequireDefault(_Switch), _extendedOnChangeBoolean = __webpack_require__(12), _extendedOnChangeBoolean2 = _interopRequireDefault(_extendedOnChangeBoolean), Switch = function(props) {
-            var label = props.label, children = props.children, checked = props.checked, _props$ripple = props.ripple, ripple = void 0 !== _props$ripple && _props$ripple, onChange = props.onChange, otherProperties = (0, 
-            _objectWithoutProperties3.default)(props, [ "label", "children", "checked", "ripple", "onChange" ]), checkboxlabel = label || !1;
-            !checkboxlabel && children && (checkboxlabel = children);
-            return _react2.default.createElement(_Switch2.default, (0, _extends3.default)({
-                checked: !!checked,
-                ripple: ripple,
-                onChange: _extendedOnChangeBoolean2.default.bind(null, onChange)
-            }, otherProperties), checkboxlabel);
-        };
-        Switch.propTypes = {
-            checked: _react2.default.PropTypes.bool.isRequired,
-            onChange: _react2.default.PropTypes.func.isRequired
-        };
-        exports.default = Switch;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Tabs = __webpack_require__(62), _Tabs2 = _interopRequireDefault(_Tabs), _Tab = __webpack_require__(61), _Tab2 = _interopRequireDefault(_Tab), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _Alert = __webpack_require__(8), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), clearTabTitles = function(tabs) {
-            return _lodash2.default.forEach(tabs, function(it) {
-                return it.tabTitle = _lodash2.default.has(it, "tabTitle.props.message") ? it.tabTitle.props.message : it.tabTitle;
-            });
-        }, Tabs = _react2.default.createClass({
-            displayName: "Tabs",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                prefixTabNames: _react2.default.PropTypes.string,
-                activeTab: _react2.default.PropTypes.string,
-                tabs: _react2.default.PropTypes.array,
-                onTabClick: _react2.default.PropTypes.func
-            },
-            getDefaultProps: function() {
-                return {
-                    prefixTabNames: "tabBar"
-                };
-            },
-            getInitialState: function() {
-                return _lodash2.default.defaults({
-                    tabs: clearTabTitles(_lodash2.default.reject(this.props.tabs, function(_ref) {
-                        var tabContent = _ref.tabContent;
-                        return _lodash2.default.isEmpty(tabContent);
-                    }))
-                }, this.props);
-            },
-            componentWillReceiveProps: function(props) {
-                var newProps = _lodash2.default.cloneDeep(props);
-                newProps.tabs = clearTabTitles(_lodash2.default.reject(props.tabs, function(_ref2) {
-                    var tabContent = _ref2.tabContent;
-                    return _lodash2.default.isEmpty(tabContent);
-                }));
-                this.setState(newProps);
-            },
-            handleSelect: function(tabSelect) {
-                tabSelect = this.state.tabs[tabSelect].tabTitle;
-                if (!_lodash2.default.isEqual(tabSelect, this.state.activeTab)) {
-                    this.setState({
-                        activeTab: tabSelect
-                    });
-                    _lodash2.default.isFunction(this.state.onTabClick) && this.state.onTabClick(tabSelect);
-                }
-            },
-            render: function() {
-                var _this = this, content = !1;
-                if (_lodash2.default.isEmpty(this.state.tabs)) content = _react2.default.createElement(_Alert.Info, null, "No tab content"); else {
-                    var activeTab = _lodash2.default.findIndex(this.state.tabs, {
-                        tabTitle: this.state.activeTab
-                    });
-                    activeTab = -1 === activeTab ? 0 : activeTab;
-                    var tabPanel = _lodash2.default.map(this.state.tabs, function(it) {
-                        return _react2.default.createElement(_Tab2.default, {
-                            className: _this.state.prefixTabNames + "-header-" + _lodash2.default.kebabCase(it.tabTitle),
-                            key: _lodash2.default.kebabCase(it.tabTitle)
-                        }, it.tabTitle);
-                    }), tabContent = this.state.tabs[activeTab].tabContent;
-                    content = _react2.default.createElement("div", {
-                        className: "mdl-tabs"
-                    }, _react2.default.createElement(_Tabs2.default, {
-                        activeTab: activeTab,
-                        onChange: this.handleSelect
-                    }, tabPanel), _react2.default.createElement("section", {
-                        className: "mdl-tabs__panel"
-                    }, tabContent));
-                }
-                return _react2.default.createElement("div", {
-                    className: "ecc-tab-container"
-                }, content);
-            }
-        });
-        exports.default = Tabs;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(4), _classnames2 = _interopRequireDefault(_classnames), _Textfield = __webpack_require__(63), _Textfield2 = _interopRequireDefault(_Textfield), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _uniqueId = __webpack_require__(44), _uniqueId2 = _interopRequireDefault(_uniqueId), extendedOnChange = function(onChangeFn, event) {
-            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
-                event: event,
-                value: event.target.value,
-                rawValue: event.target.value
-            });
-        }, TextField = function(props) {
-            var className = props.className, _props$label = props.label, label = void 0 === _props$label ? "" : _props$label, _props$multiline = props.multiline, multiline = void 0 !== _props$multiline && _props$multiline, onChange = props.onChange, _props$stretch = props.stretch, stretch = void 0 === _props$stretch || _props$stretch, _props$value = props.value, value = void 0 === _props$value ? "" : _props$value, otherProps = (0, 
-            _objectWithoutProperties3.default)(props, [ "className", "label", "multiline", "onChange", "stretch", "value" ]), classes = (0, 
-            _classnames2.default)(className, {
-                "mdl-textfield--full-width": !0 === stretch
-            });
-            return _react2.default.createElement(_Textfield2.default, (0, _extends3.default)({
-                className: classes,
-                floatingLabel: !0,
-                value: value,
-                label: label,
-                onChange: extendedOnChange.bind(null, onChange),
-                rows: !0 === multiline ? 3 : 0
-            }, otherProps));
-        };
-        exports.default = (0, _uniqueId2.default)(TextField, {
-            prefix: "textField",
-            targetProp: "id"
-        });
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        exports.__esModule = !0;
-        var _react = __webpack_require__(0), _react2 = function(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }(_react), Version = _react2.default.createClass({
-            displayName: "Version",
-            propTypes: {
-                version: _react2.default.PropTypes.string.isRequired
-            },
-            getInitialState: function() {
-                return this.props;
-            },
-            render: function() {
-                return _react2.default.createElement("span", {
-                    className: "version-info",
-                    style: {
-                        marginLeft: "5px",
-                        marginRight: "5px"
-                    }
-                }, this.state.version);
-            }
-        });
-        exports.default = Version;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        exports.__esModule = !0;
-        var _reactDom = __webpack_require__(51), _lodash = __webpack_require__(5), _lodash2 = function(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }(_lodash), MaterialMixin = {
-            componentDidMount: function() {
-                window.componentHandler.upgradeDom();
-            },
-            componentWillUnmount: function() {
-                var comp = (0, _reactDom.findDOMNode)(this);
-                _lodash2.default.isNull(comp) || window.componentHandler.downgradeElements(comp);
-            },
-            componentDidUpdate: function() {
-                var comp = (0, _reactDom.findDOMNode)(this);
-                _lodash2.default.isNull(comp) || window.componentHandler.upgradeElements(comp);
-            }
-        };
-        exports.default = MaterialMixin;
-        module.exports = exports.default;
-    }, function(module, exports) {
-        module.exports = __webpack_require__(304);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(307);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(308);
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        __webpack_require__(30);
-        var _MaterialMixin = __webpack_require__(29), _MaterialMixin2 = _interopRequireDefault(_MaterialMixin), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _Alert = __webpack_require__(8), _Button = __webpack_require__(14), _Dialog = __webpack_require__(18), _Checkbox = __webpack_require__(15), _Checkbox2 = _interopRequireDefault(_Checkbox), _Chip = __webpack_require__(16), _Content = __webpack_require__(31), _Content2 = _interopRequireDefault(_Content), _ContextMenu = __webpack_require__(17), _Icon = __webpack_require__(9), _Icon2 = _interopRequireDefault(_Icon), _Layout = __webpack_require__(32), _Layout2 = _interopRequireDefault(_Layout), _Nothing = __webpack_require__(20), _Nothing2 = _interopRequireDefault(_Nothing), _NotAvailable = __webpack_require__(19), _NotAvailable2 = _interopRequireDefault(_NotAvailable), _Pagination = __webpack_require__(21), _Pagination2 = _interopRequireDefault(_Pagination), _Progressbar = __webpack_require__(22), _Progressbar2 = _interopRequireDefault(_Progressbar), _Radio = __webpack_require__(23), _SelectBox = __webpack_require__(10), _SelectBox2 = _interopRequireDefault(_SelectBox), _Spinner = __webpack_require__(24), _Spinner2 = _interopRequireDefault(_Spinner), _Switch = __webpack_require__(25), _Switch2 = _interopRequireDefault(_Switch), _Tabs = __webpack_require__(26), _Tabs2 = _interopRequireDefault(_Tabs), _TextField = __webpack_require__(27), _TextField2 = _interopRequireDefault(_TextField), _Version = __webpack_require__(28), _Version2 = _interopRequireDefault(_Version);
+        __webpack_require__(15);
+        var _MaterialMixin = __webpack_require__(16), _MaterialMixin2 = _interopRequireDefault(_MaterialMixin), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _Alert = __webpack_require__(8), _Button = __webpack_require__(26), _Dialog = __webpack_require__(30), _Checkbox = __webpack_require__(32), _Checkbox2 = _interopRequireDefault(_Checkbox), _Chip = __webpack_require__(34), _Content = __webpack_require__(36), _Content2 = _interopRequireDefault(_Content), _ContextMenu = __webpack_require__(37), _Icon = __webpack_require__(10), _Icon2 = _interopRequireDefault(_Icon), _Layout = __webpack_require__(40), _Layout2 = _interopRequireDefault(_Layout), _Nothing = __webpack_require__(41), _Nothing2 = _interopRequireDefault(_Nothing), _NotAvailable = __webpack_require__(42), _NotAvailable2 = _interopRequireDefault(_NotAvailable), _Pagination = __webpack_require__(43), _Pagination2 = _interopRequireDefault(_Pagination), _Progressbar = __webpack_require__(48), _Progressbar2 = _interopRequireDefault(_Progressbar), _Radio = __webpack_require__(50), _SelectBox = __webpack_require__(13), _SelectBox2 = _interopRequireDefault(_SelectBox), _Spinner = __webpack_require__(55), _Spinner2 = _interopRequireDefault(_Spinner), _Switch = __webpack_require__(57), _Switch2 = _interopRequireDefault(_Switch), _Tabs = __webpack_require__(59), _Tabs2 = _interopRequireDefault(_Tabs), _TextField = __webpack_require__(62), _TextField2 = _interopRequireDefault(_TextField), _Version = __webpack_require__(68), _Version2 = _interopRequireDefault(_Version);
         exports.default = {
             MaterialMixin: _MaterialMixin2.default,
             PerformanceMixin: _PerformanceMixin2.default,
@@ -5492,267 +4857,38 @@
             TextField: _TextField2.default
         };
         module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(304);
     }, function(module, exports, __webpack_require__) {
         "use strict";
-        function _interopRequireDefault(obj) {
+        exports.__esModule = !0;
+        var _reactDom = __webpack_require__(17), _lodash = __webpack_require__(4), _lodash2 = function(obj) {
             return obj && obj.__esModule ? obj : {
                 default: obj
             };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Error = _react2.default.createClass({
-            displayName: "Error",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                children: _react2.default.PropTypes.node.isRequired
+        }(_lodash), MaterialMixin = {
+            componentDidMount: function() {
+                window.componentHandler.upgradeDom();
             },
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
-                    type: "error"
-                }, otherProps), children);
-            }
-        });
-        exports.default = Error;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Info = _react2.default.createClass({
-            displayName: "Info",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                children: _react2.default.PropTypes.node.isRequired
+            componentWillUnmount: function() {
+                var comp = (0, _reactDom.findDOMNode)(this);
+                _lodash2.default.isNull(comp) || window.componentHandler.downgradeElements(comp);
             },
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
-                    type: "info"
-                }, otherProps), children);
+            componentDidUpdate: function() {
+                var comp = (0, _reactDom.findDOMNode)(this);
+                _lodash2.default.isNull(comp) || window.componentHandler.upgradeElements(comp);
             }
-        });
-        exports.default = Info;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Success = _react2.default.createClass({
-            displayName: "Success",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                children: _react2.default.PropTypes.node.isRequired
-            },
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
-                    type: "success"
-                }, otherProps), children);
-            }
-        });
-        exports.default = Success;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Warning = _react2.default.createClass({
-            displayName: "Warning",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                children: _react2.default.PropTypes.node.isRequired
-            },
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
-                    type: "warning"
-                }, otherProps), children);
-            }
-        });
-        exports.default = Warning;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), AffirmativeButton = _react2.default.createClass({
-            displayName: "AffirmativeButton",
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
-                    affirmative: !0
-                }), children);
-            }
-        });
-        exports.default = AffirmativeButton;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), DismissiveButton = _react2.default.createClass({
-            displayName: "DismissiveButton",
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
-                    dismissive: !0
-                }), children);
-            }
-        });
-        exports.default = DismissiveButton;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), DisruptiveButton = _react2.default.createClass({
-            displayName: "DisruptiveButton",
-            render: function() {
-                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
-                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
-                    disruptive: !0
-                }), children);
-            }
-        });
-        exports.default = DisruptiveButton;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _BaseDialog = __webpack_require__(11), _BaseDialog2 = _interopRequireDefault(_BaseDialog), ConfirmationDialog = _react2.default.createClass({
-            displayName: "ConfirmationDialog",
-            mixins: [ _PerformanceMixin2.default ],
-            propTypes: {
-                active: _react2.default.PropTypes.bool.isRequired,
-                className: _react2.default.PropTypes.string,
-                modal: _react2.default.PropTypes.bool,
-                size: _react2.default.PropTypes.string,
-                cancelButton: _react2.default.PropTypes.element.isRequired,
-                confirmButton: _react2.default.PropTypes.element.isRequired,
-                title: _react2.default.PropTypes.node
-            },
-            render: function() {
-                return !0 === this.props.active && _react2.default.createElement(_BaseDialog2.default, {
-                    active: this.props.active,
-                    className: this.props.className,
-                    modal: this.props.modal,
-                    size: this.props.size,
-                    title: this.props.title,
-                    buttonRow: [ this.props.cancelButton, this.props.confirmButton ]
-                }, this.props.children);
-            }
-        });
-        exports.default = ConfirmationDialog;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Radio = __webpack_require__(57), _Radio2 = _interopRequireDefault(_Radio), Radio = function(props) {
-            var children = props.children, label = props.label, ripple = props.ripple, otherProps = (0, 
-            _objectWithoutProperties3.default)(props, [ "children", "label", "ripple" ]), radio_label = !1;
-            label && !children && (radio_label = label);
-            !label && children && (radio_label = children);
-            label && children && (radio_label = _react2.default.createElement("div", {
-                title: label
-            }, children));
-            return _react2.default.createElement(_Radio2.default, (0, _extends3.default)({
-                ripple: ripple || !1
-            }, otherProps), radio_label || _react2.default.createElement("span", null, " "));
         };
-        exports.default = Radio;
+        exports.default = MaterialMixin;
         module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _RadioGroup = __webpack_require__(58), _RadioGroup2 = _interopRequireDefault(_RadioGroup), extendedOnChange = function(onChangeFn, event) {
-            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
-                event: event,
-                value: event.target.value,
-                rawValue: event.target.value
-            });
-        }, RadioGroup = function(props) {
-            var onChange = props.onChange, container = props.container, childContainer = props.childContainer, otherProps = (0, 
-            _objectWithoutProperties3.default)(props, [ "onChange", "container", "childContainer" ]);
-            return _react2.default.createElement("div", {
-                className: "mdl-radio-group"
-            }, _react2.default.createElement(_RadioGroup2.default, (0, _extends3.default)({
-                onChange: extendedOnChange.bind(null, onChange),
-                container: childContainer || container ? container : "ul",
-                childContainer: childContainer || container ? childContainer : "li"
-            }, otherProps)));
-        };
-        exports.default = RadioGroup;
-        module.exports = exports.default;
-    }, function(module, exports, __webpack_require__) {
-        "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
-        exports.__esModule = !0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _classCallCheck2 = __webpack_require__(48), _classCallCheck3 = _interopRequireDefault(_classCallCheck2), _possibleConstructorReturn2 = __webpack_require__(50), _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2), _inherits2 = __webpack_require__(49), _inherits3 = _interopRequireDefault(_inherits2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(5), _lodash2 = _interopRequireDefault(_lodash), uniqueId = function(WrappedComponent, _ref) {
-            var _ref$prefix = _ref.prefix, prefix = void 0 === _ref$prefix ? "" : _ref$prefix, _ref$targetProp = _ref.targetProp, targetProp = void 0 === _ref$targetProp ? "id" : _ref$targetProp;
-            return function(_React$Component) {
-                function uniqueIdComponent() {
-                    var _temp, _this, _ret;
-                    (0, _classCallCheck3.default)(this, uniqueIdComponent);
-                    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) args[_key] = arguments[_key];
-                    return _ret = (_temp = _this = (0, _possibleConstructorReturn3.default)(this, _React$Component.call.apply(_React$Component, [ this ].concat(args))), 
-                    _this.id = {}, _temp), (0, _possibleConstructorReturn3.default)(_this, _ret);
-                }
-                (0, _inherits3.default)(uniqueIdComponent, _React$Component);
-                uniqueIdComponent.prototype.componentWillMount = function() {
-                    _lodash2.default.set(this.id, targetProp, _lodash2.default.uniqueId(prefix));
-                };
-                uniqueIdComponent.prototype.render = function() {
-                    return _react2.default.createElement(WrappedComponent, (0, _extends3.default)({}, this.props, this.id));
-                };
-                return uniqueIdComponent;
-            }(_react2.default.Component);
-        };
-        exports.default = uniqueId;
-        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(15);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(178);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(143);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(306);
     }, function(module, exports) {
         module.exports = {
             "3d_rotation": "e84d",
@@ -6688,52 +5824,913 @@
             zoom_out: "e900",
             zoom_out_map: "e56b"
         };
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Error = _react2.default.createClass({
+            displayName: "Error",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                children: _react2.default.PropTypes.node.isRequired
+            },
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
+                    type: "error"
+                }, otherProps), children);
+            }
+        });
+        exports.default = Error;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Info = _react2.default.createClass({
+            displayName: "Info",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                children: _react2.default.PropTypes.node.isRequired
+            },
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
+                    type: "info"
+                }, otherProps), children);
+            }
+        });
+        exports.default = Info;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Success = _react2.default.createClass({
+            displayName: "Success",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                children: _react2.default.PropTypes.node.isRequired
+            },
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
+                    type: "success"
+                }, otherProps), children);
+            }
+        });
+        exports.default = Success;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Alert = __webpack_require__(7), _Alert2 = _interopRequireDefault(_Alert), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Warning = _react2.default.createClass({
+            displayName: "Warning",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                children: _react2.default.PropTypes.node.isRequired
+            },
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Alert2.default, (0, _extends3.default)({
+                    type: "warning"
+                }, otherProps), children);
+            }
+        });
+        exports.default = Warning;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _AffirmativeButton = __webpack_require__(27), _AffirmativeButton2 = _interopRequireDefault(_AffirmativeButton), _DismissiveButton = __webpack_require__(28), _DismissiveButton2 = _interopRequireDefault(_DismissiveButton), _DisruptiveButton = __webpack_require__(29), _DisruptiveButton2 = _interopRequireDefault(_DisruptiveButton);
+        exports.default = {
+            Button: _Button2.default,
+            AffirmativeButton: _AffirmativeButton2.default,
+            DismissiveButton: _DismissiveButton2.default,
+            DisruptiveButton: _DisruptiveButton2.default
+        };
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), AffirmativeButton = _react2.default.createClass({
+            displayName: "AffirmativeButton",
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
+                    affirmative: !0
+                }), children);
+            }
+        });
+        exports.default = AffirmativeButton;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), DismissiveButton = _react2.default.createClass({
+            displayName: "DismissiveButton",
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
+                    dismissive: !0
+                }), children);
+            }
+        });
+        exports.default = DismissiveButton;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), DisruptiveButton = _react2.default.createClass({
+            displayName: "DisruptiveButton",
+            render: function() {
+                var _props = this.props, children = _props.children, otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children" ]);
+                return _react2.default.createElement(_Button2.default, (0, _extends3.default)({}, otherProps, {
+                    disruptive: !0
+                }), children);
+            }
+        });
+        exports.default = DisruptiveButton;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _BaseDialog = __webpack_require__(11), _BaseDialog2 = _interopRequireDefault(_BaseDialog), _ConfirmationDialog = __webpack_require__(31), _ConfirmationDialog2 = _interopRequireDefault(_ConfirmationDialog);
+        exports.default = {
+            BaseDialog: _BaseDialog2.default,
+            ConfirmationDialog: _ConfirmationDialog2.default
+        };
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), _BaseDialog = __webpack_require__(11), _BaseDialog2 = _interopRequireDefault(_BaseDialog), ConfirmationDialog = _react2.default.createClass({
+            displayName: "ConfirmationDialog",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                active: _react2.default.PropTypes.bool.isRequired,
+                className: _react2.default.PropTypes.string,
+                modal: _react2.default.PropTypes.bool,
+                size: _react2.default.PropTypes.string,
+                cancelButton: _react2.default.PropTypes.element.isRequired,
+                confirmButton: _react2.default.PropTypes.element.isRequired,
+                title: _react2.default.PropTypes.node
+            },
+            render: function() {
+                return !0 === this.props.active && _react2.default.createElement(_BaseDialog2.default, {
+                    active: this.props.active,
+                    className: this.props.className,
+                    modal: this.props.modal,
+                    size: this.props.size,
+                    title: this.props.title,
+                    buttonRow: [ this.props.cancelButton, this.props.confirmButton ]
+                }, this.props.children);
+            }
+        });
+        exports.default = ConfirmationDialog;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Checkbox = __webpack_require__(33), _Checkbox2 = _interopRequireDefault(_Checkbox), _extendedOnChangeBoolean = __webpack_require__(12), _extendedOnChangeBoolean2 = _interopRequireDefault(_extendedOnChangeBoolean), Checkbox = function(props) {
+            var label = props.label, children = props.children, _props$ripple = props.ripple, ripple = void 0 !== _props$ripple && _props$ripple, checked = props.checked, onChange = props.onChange, otherProperties = (0, 
+            _objectWithoutProperties3.default)(props, [ "label", "children", "ripple", "checked", "onChange" ]), checkboxlabel = label || "";
+            !checkboxlabel && children && (checkboxlabel = children);
+            return _react2.default.createElement(_Checkbox2.default, (0, _extends3.default)({
+                checked: !!checked,
+                label: checkboxlabel,
+                ripple: ripple,
+                value: "test",
+                onChange: _extendedOnChangeBoolean2.default.bind(null, onChange)
+            }, otherProperties));
+        };
+        Checkbox.propTypes = {
+            checked: _react2.default.PropTypes.bool.isRequired,
+            onChange: _react2.default.PropTypes.func.isRequired
+        };
+        exports.default = Checkbox;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(305);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        exports.Chip = exports.ChipVisual = void 0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _basicClassCreator = __webpack_require__(35), _basicClassCreator2 = _interopRequireDefault(_basicClassCreator), _lodash = __webpack_require__(4), ChipVisual = (_interopRequireDefault(_lodash), 
+        exports.ChipVisual = function(props) {
+            var _props$image = props.image, image = void 0 !== _props$image && _props$image, _props$label = props.label, label = void 0 !== _props$label && _props$label, _props$className = props.className, className = void 0 === _props$className ? "" : _props$className, _props$bgColor = props.bgColor, bgColor = void 0 !== _props$bgColor && _props$bgColor, _props$textColor = props.textColor, textColor = void 0 !== _props$textColor && _props$textColor, _props$children = props.children, children = void 0 !== _props$children && _props$children;
+            if (image) return _react2.default.createElement(ChipContact, {
+                style: {
+                    background: 'url("' + image + '") 0 0 / cover'
+                }
+            });
+            var classColors = {};
+            classColors["mdl-color--" + bgColor] = bgColor;
+            classColors["mdl-color-text--" + textColor] = textColor;
+            return _react2.default.createElement(ChipContact, {
+                className: (0, _classnames2.default)(classColors, className)
+            }, label || children);
+        }), propTypes = {
+            className: _react.PropTypes.string,
+            onClick: _react.PropTypes.func,
+            onClose: _react.PropTypes.func
+        }, ChipContact = (0, _basicClassCreator2.default)("ChipContact", "mdl-chip__contact", "span"), ChipText = (0, 
+        _basicClassCreator2.default)("ChipText", "mdl-chip__text", "span"), Chip = function(props) {
+            var className = props.className, onClick = props.onClick, onClose = props.onClose, children = (props.style, 
+            props.children), otherProps = (0, _objectWithoutProperties3.default)(props, [ "className", "onClick", "onClose", "style", "children" ]), childrenArray = _react2.default.Children.toArray(children), contactIndex = childrenArray.findIndex(function(c) {
+                return c.type === ChipContact || c.type === ChipVisual;
+            }), chipContent = [];
+            contactIndex >= 0 ? chipContent.push(childrenArray[contactIndex], _react2.default.createElement(ChipText, {
+                key: "text"
+            }, childrenArray.slice(0, contactIndex).concat(childrenArray.slice(contactIndex + 1)))) : chipContent.push(_react2.default.createElement(ChipText, {
+                key: "text"
+            }, children));
+            var elt = onClick ? "button" : "span";
+            return _react2.default.createElement(elt, (0, _extends3.default)({
+                className: (0, _classnames2.default)("mdl-chip", {
+                    "mdl-chip--contact": contactIndex > -1,
+                    "mdl-chip--deletable": !!onClose
+                }, className),
+                type: onClick ? "button" : null,
+                onClick: onClick
+            }, otherProps), chipContent);
+        };
+        exports.Chip = Chip;
+        Chip.propTypes = propTypes;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(147);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(307);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _assign = __webpack_require__(38), _assign2 = _interopRequireDefault(_assign), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _Menu = __webpack_require__(39), _Menu2 = _interopRequireDefault(_Menu), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _classnames = __webpack_require__(5), _PerformanceMixin = (_interopRequireDefault(_classnames), 
+        __webpack_require__(3)), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), ContextMenu = _react2.default.createClass({
+            displayName: "ContextMenu",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                align: _react2.default.PropTypes.string,
+                valign: _react2.default.PropTypes.string,
+                className: _react2.default.PropTypes.string,
+                ripple: _react2.default.PropTypes.bool,
+                target: _react2.default.PropTypes.string,
+                tooltip: _react2.default.PropTypes.string
+            },
+            getDefaultProps: function() {
+                return {
+                    align: "right",
+                    valign: "bottom",
+                    ripple: !1,
+                    tooltip: "open menu"
+                };
+            },
+            render: function() {
+                var _props = this.props, children = _props.children, iconName = _props.iconName, target = (_props.tooltip, 
+                _props.target), otherProps = (0, _objectWithoutProperties3.default)(_props, [ "children", "iconName", "tooltip", "target" ]), menuItemsCopy = Array.isArray(children) ? children : [ children ], menuId = target || _lodash2.default.uniqueId("app-contextmenu-"), menuItems = _lodash2.default.map(menuItemsCopy, function(obj, idx) {
+                    if (obj) {
+                        if (_lodash2.default.has(obj, "props.className") && obj.key) return obj;
+                        var objExtension = {};
+                        !_lodash2.default.has(obj, "props.className") && _lodash2.default.has(obj, "props.children") && (objExtension.className = "item-" + _lodash2.default.kebabCase(obj.props.children));
+                        obj.key || (objExtension.key = "MenuItem." + idx);
+                        return (0, _assign2.default)({}, obj, objExtension.key ? {
+                            key: objExtension.key
+                        } : {
+                            key: obj.key
+                        }, objExtension.className ? {
+                            props: (0, _assign2.default)({}, obj.props, {
+                                className: objExtension.className
+                            })
+                        } : {
+                            props: obj.props
+                        });
+                    }
+                }), menulist = menuItems.length > 0 && _react2.default.createElement(_Menu2.default, (0, 
+                _extends3.default)({
+                    target: menuId
+                }, otherProps), menuItems);
+                return !!menulist && _react2.default.createElement("div", {
+                    className: "contextmenu-container"
+                }, _react2.default.createElement(_Button2.default, {
+                    iconName: iconName || "menu_more",
+                    id: menuId,
+                    tooltip: !1
+                }), menulist);
+            }
+        });
+        exports.default = {
+            ContextMenu: ContextMenu,
+            MenuItem: _Menu.MenuItem
+        };
+        module.exports = exports.default;
     }, function(module, exports) {
         module.exports = __webpack_require__(101);
     }, function(module, exports) {
-        module.exports = __webpack_require__(178);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(182);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(183);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(184);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(15);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(143);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(305);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(306);
-    }, function(module, exports) {
         module.exports = __webpack_require__(309);
     }, function(module, exports) {
-        module.exports = __webpack_require__(310);
+        module.exports = __webpack_require__(308);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        exports.__esModule = !0;
+        var _react = __webpack_require__(0), _react2 = function(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }(_react), Nothing = _react2.default.createClass({
+            displayName: "Nothing",
+            render: function() {
+                return !1;
+            }
+        });
+        exports.default = Nothing;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Button = _react2.default.createClass({
+            displayName: "Button",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                className: _react2.default.PropTypes.string,
+                description: _react2.default.PropTypes.string,
+                inline: _react2.default.PropTypes.bool,
+                label: _react2.default.PropTypes.string
+            },
+            render: function() {
+                var _props = this.props, className = _props.className, description = _props.description, inline = _props.inline, label = _props.label, classes = ((0, 
+                _objectWithoutProperties3.default)(_props, [ "className", "description", "inline", "label" ]), 
+                (0, _classnames2.default)({
+                    "ecc-gui-elements__notavailable": !0,
+                    "ecc-gui-elements__notavailable--inline": inline
+                }, className));
+                return _react2.default.createElement("span", {
+                    className: classes
+                }, _react2.default.createElement("span", {
+                    className: "ecc-gui-elements__notavailable-label",
+                    title: description || (label ? "" : "not available")
+                }, label || "n/a"));
+            }
+        });
+        exports.default = Button;
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _Button = __webpack_require__(6), _Button2 = _interopRequireDefault(_Button), _SelectBox = __webpack_require__(13), _SelectBox2 = _interopRequireDefault(_SelectBox), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), calculatePagination = function(_ref) {
+            var limit = _ref.limit, offset = _ref.offset, totalResults = _ref.totalResults, onLastPage = offset + limit >= totalResults;
+            return {
+                limit: limit,
+                offset: offset,
+                totalResults: totalResults,
+                onFirstPage: 0 === offset,
+                onLastPage: onLastPage,
+                currentPage: _lodash2.default.floor(offset / limit),
+                totalPages: _lodash2.default.ceil(totalResults / limit),
+                lastItemOnPage: onLastPage ? totalResults : offset + limit
+            };
+        }, Pagination = _react2.default.createClass({
+            displayName: "Pagination",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                offset: _react2.default.PropTypes.number.isRequired,
+                limit: _react2.default.PropTypes.number.isRequired,
+                totalResults: _react2.default.PropTypes.number.isRequired,
+                onChange: _react2.default.PropTypes.func.isRequired,
+                offsetAsPage: _react2.default.PropTypes.bool,
+                isTopPagination: _react2.default.PropTypes.bool,
+                newLimitText: _react2.default.PropTypes.string,
+                limitRange: _react2.default.PropTypes.array
+            },
+            getDefaultProps: function() {
+                return {
+                    offsetAsPage: !1,
+                    limitRange: [ 5, 10, 25, 50, 100, 200 ]
+                };
+            },
+            onClickFirst: function() {
+                var _props = this.props, limit = _props.limit, totalResults = _props.totalResults;
+                this.props.onChange(calculatePagination({
+                    limit: limit,
+                    offset: 0,
+                    totalResults: totalResults
+                }));
+            },
+            onClickBack: function() {
+                var _props2 = this.props, limit = _props2.limit, totalResults = _props2.totalResults, offset = _props2.offset;
+                this.props.onChange(calculatePagination({
+                    limit: limit,
+                    offset: offset < limit ? 0 : offset - limit,
+                    totalResults: totalResults
+                }));
+            },
+            onClickForward: function() {
+                var _props3 = this.props, limit = _props3.limit, totalResults = _props3.totalResults, offset = _props3.offset;
+                this.props.onChange(calculatePagination({
+                    limit: limit,
+                    offset: offset + limit,
+                    totalResults: totalResults
+                }));
+            },
+            onClickLast: function() {
+                var _props4 = this.props, limit = _props4.limit, totalResults = _props4.totalResults;
+                this.props.onChange(calculatePagination({
+                    limit: limit,
+                    offset: (_lodash2.default.ceil(totalResults / limit) - 1) * limit,
+                    totalResults: totalResults
+                }));
+            },
+            onNewLimit: function(limit) {
+                var _props5 = this.props, offset = _props5.offset, totalResults = _props5.totalResults;
+                this.props.onChange(calculatePagination({
+                    limit: limit,
+                    offset: _lodash2.default.floor(offset / limit) * limit,
+                    totalResults: totalResults
+                }));
+            },
+            render: function() {
+                var _props6 = this.props, offsetAsPage = _props6.offsetAsPage, offset = _props6.offset, limit = _props6.limit, totalResults = _props6.totalResults, newLimitText = _props6.newLimitText, _props6$isTopPaginati = _props6.isTopPagination, isTopPagination = void 0 !== _props6$isTopPaginati && _props6$isTopPaginati, limitRange = _lodash2.default.chain(this.props.limitRange).push(limit).filter(_lodash2.default.isNumber).sortBy().sortedUniq().value(), _calculatePagination = calculatePagination(this.props), currentPage = _calculatePagination.currentPage, totalPages = _calculatePagination.totalPages, lastItemOnPage = _calculatePagination.lastItemOnPage, onLastPage = _calculatePagination.onLastPage, onFirstPage = _calculatePagination.onFirstPage, pageInfo = "";
+                if (offsetAsPage) pageInfo = currentPage + 1 + " of " + totalPages; else {
+                    pageInfo = (offset + 1 === lastItemOnPage ? lastItemOnPage : offset + 1 + " - " + lastItemOnPage) + " of " + totalResults;
+                }
+                var pageInformation = _react2.default.createElement("span", {
+                    className: "ecc-gui-elements__pagination-pageInfo"
+                }, pageInfo);
+                return _react2.default.createElement("div", {
+                    className: "ecc-gui-elements__pagination"
+                }, newLimitText && !_lodash2.default.isEmpty(limitRange) ? _react2.default.createElement("div", {
+                    className: "ecc-gui-elements__pagination-limit"
+                }, _react2.default.createElement("span", {
+                    className: "ecc-gui-elements__pagination-limit_text"
+                }, newLimitText), _react2.default.createElement("div", {
+                    className: "ecc-gui-elements__pagination-limit_size"
+                }, _react2.default.createElement(_SelectBox2.default, {
+                    value: limit,
+                    options: limitRange,
+                    clearable: !1,
+                    searchable: !1,
+                    onChange: this.onNewLimit,
+                    optionsOnTop: !0 !== isTopPagination
+                }))) : "", _react2.default.createElement("div", {
+                    className: "ecc-gui-elements__pagination-actions"
+                }, _react2.default.createElement(_Button2.default, {
+                    className: "ecc-gui-elements__pagination-actions__first-page-button",
+                    onClick: this.onClickFirst,
+                    disabled: onFirstPage,
+                    iconName: "arrow_firstpage"
+                }), _react2.default.createElement(_Button2.default, {
+                    className: "ecc-gui-elements__pagination-actions__prev-page-button",
+                    onClick: this.onClickBack,
+                    disabled: onFirstPage,
+                    iconName: "arrow_prevpage"
+                }), pageInformation, _react2.default.createElement(_Button2.default, {
+                    className: "ecc-gui-elements__pagination-actions__next-page-button",
+                    onClick: this.onClickForward,
+                    disabled: onLastPage,
+                    iconName: "arrow_nextpage"
+                }), _react2.default.createElement(_Button2.default, {
+                    className: "ecc-gui-elements__pagination-actions__last-page-button",
+                    onClick: this.onClickLast,
+                    disabled: onLastPage,
+                    iconName: "arrow_lastpage"
+                })));
+            }
+        });
+        exports.default = Pagination;
+        module.exports = exports.default;
     }, function(module, exports) {
-        module.exports = __webpack_require__(144);
+        module.exports = __webpack_require__(57);
     }, function(module, exports) {
-        module.exports = __webpack_require__(311);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(312);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(313);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(145);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(315);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(316);
-    }, function(module, exports) {
-        module.exports = __webpack_require__(147);
+        module.exports = __webpack_require__(150);
     }, function(module, exports) {
         module.exports = __webpack_require__(148);
     }, function(module, exports) {
         module.exports = __webpack_require__(149);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _ProgressBar = __webpack_require__(49), _ProgressBar2 = _interopRequireDefault(_ProgressBar), Progressbar = _react2.default.createClass({
+            displayName: "Progressbar",
+            propTypes: {
+                appearGlobal: _react2.default.PropTypes.bool,
+                appearLocal: _react2.default.PropTypes.bool,
+                className: _react2.default.PropTypes.string
+            },
+            getDefaultProps: function() {
+                return {
+                    appearGlobal: !1,
+                    appearLocal: !1
+                };
+            },
+            render: function() {
+                var _props = this.props, className = _props.className, appearGlobal = _props.appearGlobal, appearLocal = _props.appearLocal, otherProps = (0, 
+                _objectWithoutProperties3.default)(_props, [ "className", "appearGlobal", "appearLocal" ]), classes = (0, 
+                _classnames2.default)({
+                    "mdl-progress--global": !0 === appearGlobal,
+                    "mdl-progress--local": !0 === appearLocal
+                }, className);
+                return _react2.default.createElement(_ProgressBar2.default, (0, _extends3.default)({
+                    className: classes
+                }, otherProps));
+            }
+        });
+        exports.default = Progressbar;
+        module.exports = exports.default;
     }, function(module, exports) {
-        module.exports = __webpack_require__(150);
+        module.exports = __webpack_require__(310);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _RadioButton = __webpack_require__(51), _RadioButton2 = _interopRequireDefault(_RadioButton), _RadioGroup = __webpack_require__(53), _RadioGroup2 = _interopRequireDefault(_RadioGroup);
+        exports.default = {
+            Radio: _RadioButton2.default,
+            RadioGroup: _RadioGroup2.default
+        };
+        module.exports = exports.default;
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Radio = __webpack_require__(52), _Radio2 = _interopRequireDefault(_Radio), Radio = function(props) {
+            var children = props.children, label = props.label, ripple = props.ripple, otherProps = (0, 
+            _objectWithoutProperties3.default)(props, [ "children", "label", "ripple" ]), radio_label = !1;
+            label && !children && (radio_label = label);
+            !label && children && (radio_label = children);
+            label && children && (radio_label = _react2.default.createElement("div", {
+                title: label
+            }, children));
+            return _react2.default.createElement(_Radio2.default, (0, _extends3.default)({
+                ripple: ripple || !1
+            }, otherProps), radio_label || _react2.default.createElement("span", null, " "));
+        };
+        exports.default = Radio;
+        module.exports = exports.default;
     }, function(module, exports) {
-        module.exports = __webpack_require__(57);
+        module.exports = __webpack_require__(144);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _RadioGroup = __webpack_require__(54), _RadioGroup2 = _interopRequireDefault(_RadioGroup), extendedOnChange = function(onChangeFn, event) {
+            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
+                event: event,
+                value: event.target.value,
+                rawValue: event.target.value
+            });
+        }, RadioGroup = function(props) {
+            var onChange = props.onChange, container = props.container, childContainer = props.childContainer, otherProps = (0, 
+            _objectWithoutProperties3.default)(props, [ "onChange", "container", "childContainer" ]);
+            return _react2.default.createElement("div", {
+                className: "mdl-radio-group"
+            }, _react2.default.createElement(_RadioGroup2.default, (0, _extends3.default)({
+                onChange: extendedOnChange.bind(null, onChange),
+                container: childContainer || container ? container : "ul",
+                childContainer: childContainer || container ? childContainer : "li"
+            }, otherProps)));
+        };
+        exports.default = RadioGroup;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(311);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Spinner = __webpack_require__(56), _Spinner2 = _interopRequireDefault(_Spinner), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), Spinner = _react2.default.createClass({
+            displayName: "Spinner",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                appearGlobal: _react2.default.PropTypes.bool,
+                appearInline: _react2.default.PropTypes.bool,
+                appearLocal: _react2.default.PropTypes.bool,
+                className: _react2.default.PropTypes.string
+            },
+            getDefaultProps: function() {
+                return {
+                    appearGlobal: !0,
+                    appearInline: !1,
+                    appearLocal: !1
+                };
+            },
+            render: function() {
+                var _props = this.props, className = _props.className, appearGlobal = _props.appearGlobal, appearInline = _props.appearInline, appearLocal = _props.appearLocal, otherProps = (0, 
+                _objectWithoutProperties3.default)(_props, [ "className", "appearGlobal", "appearInline", "appearLocal" ]), classes = (0, 
+                _classnames2.default)({
+                    "mdl-spinner--global": !0 === appearGlobal && !1 === appearInline && !1 === appearLocal,
+                    "mdl-spinner--inline": !0 === appearInline,
+                    "mdl-spinner--local": !0 === appearLocal
+                }, className);
+                return _react2.default.createElement(_Spinner2.default, (0, _extends3.default)({
+                    singleColor: !0,
+                    className: classes
+                }, otherProps));
+            }
+        });
+        exports.default = Spinner;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(312);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Switch = __webpack_require__(58), _Switch2 = _interopRequireDefault(_Switch), _extendedOnChangeBoolean = __webpack_require__(12), _extendedOnChangeBoolean2 = _interopRequireDefault(_extendedOnChangeBoolean), Switch = function(props) {
+            var label = props.label, children = props.children, checked = props.checked, _props$ripple = props.ripple, ripple = void 0 !== _props$ripple && _props$ripple, onChange = props.onChange, otherProperties = (0, 
+            _objectWithoutProperties3.default)(props, [ "label", "children", "checked", "ripple", "onChange" ]), checkboxlabel = label || !1;
+            !checkboxlabel && children && (checkboxlabel = children);
+            return _react2.default.createElement(_Switch2.default, (0, _extends3.default)({
+                checked: !!checked,
+                ripple: ripple,
+                onChange: _extendedOnChangeBoolean2.default.bind(null, onChange)
+            }, otherProperties), checkboxlabel);
+        };
+        Switch.propTypes = {
+            checked: _react2.default.PropTypes.bool.isRequired,
+            onChange: _react2.default.PropTypes.func.isRequired
+        };
+        exports.default = Switch;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(313);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _Tabs = __webpack_require__(60), _Tabs2 = _interopRequireDefault(_Tabs), _Tab = __webpack_require__(61), _Tab2 = _interopRequireDefault(_Tab), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _Alert = __webpack_require__(8), _PerformanceMixin = __webpack_require__(3), _PerformanceMixin2 = _interopRequireDefault(_PerformanceMixin), clearTabTitles = function(tabs) {
+            return _lodash2.default.forEach(tabs, function(it) {
+                return it.tabTitle = _lodash2.default.has(it, "tabTitle.props.message") ? it.tabTitle.props.message : it.tabTitle;
+            });
+        }, Tabs = _react2.default.createClass({
+            displayName: "Tabs",
+            mixins: [ _PerformanceMixin2.default ],
+            propTypes: {
+                prefixTabNames: _react2.default.PropTypes.string,
+                activeTab: _react2.default.PropTypes.string,
+                tabs: _react2.default.PropTypes.array,
+                onTabClick: _react2.default.PropTypes.func
+            },
+            getDefaultProps: function() {
+                return {
+                    prefixTabNames: "tabBar"
+                };
+            },
+            getInitialState: function() {
+                return _lodash2.default.defaults({
+                    tabs: clearTabTitles(_lodash2.default.reject(this.props.tabs, function(_ref) {
+                        var tabContent = _ref.tabContent;
+                        return _lodash2.default.isEmpty(tabContent);
+                    }))
+                }, this.props);
+            },
+            componentWillReceiveProps: function(props) {
+                var newProps = _lodash2.default.cloneDeep(props);
+                newProps.tabs = clearTabTitles(_lodash2.default.reject(props.tabs, function(_ref2) {
+                    var tabContent = _ref2.tabContent;
+                    return _lodash2.default.isEmpty(tabContent);
+                }));
+                this.setState(newProps);
+            },
+            handleSelect: function(tabSelect) {
+                tabSelect = this.state.tabs[tabSelect].tabTitle;
+                if (!_lodash2.default.isEqual(tabSelect, this.state.activeTab)) {
+                    this.setState({
+                        activeTab: tabSelect
+                    });
+                    _lodash2.default.isFunction(this.state.onTabClick) && this.state.onTabClick(tabSelect);
+                }
+            },
+            render: function() {
+                var _this = this, content = !1;
+                if (_lodash2.default.isEmpty(this.state.tabs)) content = _react2.default.createElement(_Alert.Info, null, "No tab content"); else {
+                    var activeTab = _lodash2.default.findIndex(this.state.tabs, {
+                        tabTitle: this.state.activeTab
+                    });
+                    activeTab = -1 === activeTab ? 0 : activeTab;
+                    var tabPanel = _lodash2.default.map(this.state.tabs, function(it) {
+                        return _react2.default.createElement(_Tab2.default, {
+                            className: _this.state.prefixTabNames + "-header-" + _lodash2.default.kebabCase(it.tabTitle),
+                            key: _lodash2.default.kebabCase(it.tabTitle)
+                        }, it.tabTitle);
+                    }), tabContent = this.state.tabs[activeTab].tabContent;
+                    content = _react2.default.createElement("div", {
+                        className: "mdl-tabs"
+                    }, _react2.default.createElement(_Tabs2.default, {
+                        activeTab: activeTab,
+                        onChange: this.handleSelect
+                    }, tabPanel), _react2.default.createElement("section", {
+                        className: "mdl-tabs__panel"
+                    }, tabContent));
+                }
+                return _react2.default.createElement("div", {
+                    className: "ecc-tab-container"
+                }, content);
+            }
+        });
+        exports.default = Tabs;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(315);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(145);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _Textfield = __webpack_require__(63), _Textfield2 = _interopRequireDefault(_Textfield), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), _uniqueId = __webpack_require__(64), _uniqueId2 = _interopRequireDefault(_uniqueId), extendedOnChange = function(onChangeFn, event) {
+            _lodash2.default.isFunction(onChangeFn) && onChangeFn({
+                event: event,
+                value: event.target.value,
+                rawValue: event.target.value
+            });
+        }, TextField = function(props) {
+            var className = props.className, _props$label = props.label, label = void 0 === _props$label ? "" : _props$label, _props$multiline = props.multiline, multiline = void 0 !== _props$multiline && _props$multiline, onChange = props.onChange, _props$stretch = props.stretch, stretch = void 0 === _props$stretch || _props$stretch, _props$value = props.value, value = void 0 === _props$value ? "" : _props$value, otherProps = (0, 
+            _objectWithoutProperties3.default)(props, [ "className", "label", "multiline", "onChange", "stretch", "value" ]), classes = (0, 
+            _classnames2.default)(className, {
+                "mdl-textfield--full-width": !0 === stretch
+            });
+            return _react2.default.createElement(_Textfield2.default, (0, _extends3.default)({
+                className: classes,
+                floatingLabel: !0,
+                value: value,
+                label: label,
+                onChange: extendedOnChange.bind(null, onChange),
+                rows: !0 === multiline ? 3 : 0
+            }, otherProps));
+        };
+        exports.default = (0, _uniqueId2.default)(TextField, {
+            prefix: "textField",
+            targetProp: "id"
+        });
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(316);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        exports.__esModule = !0;
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _classCallCheck2 = __webpack_require__(65), _classCallCheck3 = _interopRequireDefault(_classCallCheck2), _possibleConstructorReturn2 = __webpack_require__(66), _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2), _inherits2 = __webpack_require__(67), _inherits3 = _interopRequireDefault(_inherits2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), uniqueId = function(WrappedComponent, _ref) {
+            var _ref$prefix = _ref.prefix, prefix = void 0 === _ref$prefix ? "" : _ref$prefix, _ref$targetProp = _ref.targetProp, targetProp = void 0 === _ref$targetProp ? "id" : _ref$targetProp;
+            return function(_React$Component) {
+                function uniqueIdComponent() {
+                    var _temp, _this, _ret;
+                    (0, _classCallCheck3.default)(this, uniqueIdComponent);
+                    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) args[_key] = arguments[_key];
+                    return _ret = (_temp = _this = (0, _possibleConstructorReturn3.default)(this, _React$Component.call.apply(_React$Component, [ this ].concat(args))), 
+                    _this.id = {}, _temp), (0, _possibleConstructorReturn3.default)(_this, _ret);
+                }
+                (0, _inherits3.default)(uniqueIdComponent, _React$Component);
+                uniqueIdComponent.prototype.componentWillMount = function() {
+                    _lodash2.default.set(this.id, targetProp, _lodash2.default.uniqueId(prefix));
+                };
+                uniqueIdComponent.prototype.render = function() {
+                    return _react2.default.createElement(WrappedComponent, (0, _extends3.default)({}, this.props, this.id));
+                };
+                return uniqueIdComponent;
+            }(_react2.default.Component);
+        };
+        exports.default = uniqueId;
+        module.exports = exports.default;
+    }, function(module, exports) {
+        module.exports = __webpack_require__(182);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(184);
+    }, function(module, exports) {
+        module.exports = __webpack_require__(183);
+    }, function(module, exports, __webpack_require__) {
+        "use strict";
+        exports.__esModule = !0;
+        var _react = __webpack_require__(0), _react2 = function(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }(_react), Version = _react2.default.createClass({
+            displayName: "Version",
+            propTypes: {
+                version: _react2.default.PropTypes.string.isRequired
+            },
+            getInitialState: function() {
+                return this.props;
+            },
+            render: function() {
+                return _react2.default.createElement("span", {
+                    className: "version-info",
+                    style: {
+                        marginLeft: "5px",
+                        marginRight: "5px"
+                    }
+                }, this.state.version);
+            }
+        });
+        exports.default = Version;
+        module.exports = exports.default;
     } ]);
 }, function(module, exports, __webpack_require__) {
     "use strict";
@@ -7022,7 +7019,7 @@
     });
     hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref11) {
         var data = _ref11.data, replySubject = _ref11.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
-        editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
+        editMappingRule(payload, !1, parent).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref12) {
         var data = _ref12.data, replySubject = _ref12.replySubject, id = data.id;
@@ -23238,7 +23235,7 @@
                 topic: "rules.generate",
                 data: {
                     correspondences: correspondences,
-                    parentRuleId: this.props.ruleId
+                    parentRuleId: _lodash2.default.get(this.props, "ruleId", "root")
                 }
             }).subscribe(function(response) {
                 _this2.setState({
@@ -23352,10 +23349,12 @@
             }), actions = _react2.default.createElement("div", {
                 className: "mdl-card__actions mdl-card__actions--fixed mdl-card--border"
             }, !!_lodash2.default.isEmpty(this.state.error) && _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
+                className: "ecc-hm-suggestions-save",
                 onClick: this.handleAddSuggestions,
                 disabled: 0 === _lodash2.default.size(this.state.checked)
             }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
-                onClick: this.props.onClose
+                onClick: this.props.onClose,
+                className: "ecc-hm-suggestions-cancel"
             }, "Cancel")), suggestionsEmptyInfo = 0 === _lodash2.default.size(this.state.data) && _react2.default.createElement("div", {
                 className: "mdl-card__content"
             }, _react2.default.createElement(_eccGuiElements.Info, {
@@ -23878,7 +23877,7 @@
                 return v.typeUri.replace("<", "").replace(">", "");
             }) : [], suggestions = !(createRuleForm || !this.state.showSuggestions || !_lodash2.default.has(this.state, "ruleData.rules.typeRules")) && _react2.default.createElement(_SuggestionOverview2.default, {
                 key: _lodash2.default.join(types, ","),
-                ruleId: this.props.currentRuleId,
+                ruleId: _lodash2.default.isUndefined(this.props.currentRuleId) ? "root" : this.props.currentRuleId,
                 onClose: this.handleCloseSuggestions,
                 parent: {
                     id: this.state.ruleData.id,
