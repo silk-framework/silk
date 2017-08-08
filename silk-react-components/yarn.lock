@@ -1968,9 +1968,9 @@ duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-ecc-gui-elements@^2.15.2:
-  version "2.15.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.15.2.tgz#e414e581db59a7a0ea8c55c272ce65c7f4d61356"
+ecc-gui-elements@^2.15.3:
+  version "2.15.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.15.3.tgz#06175ef787f6dff2ade261b56114e90d3af30a81"
   dependencies:
     classnames "^2.2.5"
     lodash "^4.16.4"
