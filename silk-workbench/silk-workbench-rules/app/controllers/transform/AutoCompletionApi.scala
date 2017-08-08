@@ -62,7 +62,7 @@ class AutoCompletionApi extends Controller {
       } else {
         path.operators.drop(simpleSourcePath.size)
       }
-      completion.copy(value = Path(truncatedOps).serializeSimplified)
+      completion.copy(value = Path(truncatedOps).serialize)
     }
   }
 
@@ -144,7 +144,7 @@ class AutoCompletionApi extends Controller {
   private def pathsCacheCompletions(task: ProjectTask[TransformSpec]): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = task.activity[TransformPathsCache].value.typedPaths
-      val serializedPaths = paths.map(_.path.serializeSimplified(task.project.config.prefixes)).sorted
+      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,
