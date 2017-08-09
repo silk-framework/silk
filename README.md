@@ -1,4 +1,6 @@
 # Silk Link Discovery Framework
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsilk-framework%2Fsilk.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsilk-framework%2Fsilk?ref=badge_shield)
+
 
 Silk is an open source framework for integrating heterogeneous data sources. The primary uses cases of Silk include:
 
@@ -39,3 +41,7 @@ Downloading and installing sbt is not necessary as it is available from this dir
 - Execute: `sbt "project singlemachine" assembly`
 - The package should be available in the folder `silk-tools/silk-singlemachine/target/scala-{version}`.
 - The generated jar can be executed with: `java -DconfigFile=<Silk-LSL file> [-DlinkSpec=<Interlink ID>] [-Dthreads=<threads>]  [-DlogQueries=(true/false)] [-Dreload=(true/false)] -jar silk.jar`
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsilk-framework%2Fsilk.svg?type=large)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsilk-framework%2Fsilk?ref=badge_large)
