@@ -20,10 +20,9 @@ class CsvWriterTest extends FlatSpec with Matchers {
       )
 
     val expected =
-      """FirstName,LastName
-        |John,Doe
-        |Max,Ford
-        |""".stripMargin
+      "FirstName,LastName\n" +
+      "John,Doe\n" +
+      "Max,Ford\n"
 
     result shouldBe expected
   }
@@ -38,10 +37,9 @@ class CsvWriterTest extends FlatSpec with Matchers {
       )
 
     val expected =
-      s"""FirstName${sep}LastName
-         |John${sep}Doe
-         |Max${sep}Ford
-         |""".stripMargin
+      s"FirstName${sep}LastName\n" +
+      s"John${sep}Doe\n" +
+      s"Max${sep}Ford\n"
 
     result shouldBe expected
   }
@@ -55,9 +53,8 @@ class CsvWriterTest extends FlatSpec with Matchers {
       )
 
     val expected =
-      """FirstName,LastName
-        |"John,Max",Doe
-        |""".stripMargin
+      "FirstName,LastName\n" +
+       "\"John,Max\",Doe\n"
 
     result shouldBe expected
   }
