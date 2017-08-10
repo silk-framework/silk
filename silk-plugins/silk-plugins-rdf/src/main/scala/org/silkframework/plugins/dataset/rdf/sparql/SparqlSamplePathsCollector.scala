@@ -39,40 +39,43 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path] = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
-        getAllEntities(endpoint)
+        getEntities(endpoint, graph, SparqlRestriction.fromSparql("a", "?a ?p ?o"))
       else
-        getEntities(endpoint, restrictions)
+        getEntities(endpoint, graph, restrictions)
     }
 
-    getEntitiesPaths(endpoint, sampleEntities, restrictions.variable, limit.getOrElse(100))
+    getEntitiesPaths(endpoint, graph, sampleEntities, restrictions.variable, limit.getOrElse(100))
   }
 
-  private def getAllEntities(endpoint: SparqlEndpoint): Traversable[String] = {
-    val sparql = "SELECT ?s WHERE { ?s ?p ?o }"
+  private def getEntities(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction): Traversable[String] = {
+    val sparql = new StringBuilder()
+    sparql ++= "SELECT ?" + restrictions.variable + " WHERE { "
 
-    val results = endpoint.select(sparql, maxEntities)
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql ++= "GRAPH <" + graphUri + "> {\n"
 
-    results.bindings.map(_("s").value)
-  }
+    sparql ++= restrictions.toSparql
 
-  private def getEntities(endpoint: SparqlEndpoint, restrictions: SparqlRestriction): Traversable[String] = {
-    val sparql = "SELECT ?" + restrictions.variable + " WHERE { " + restrictions.toSparql + " }"
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql ++= "}\n"
 
-    val results = endpoint.select(sparql, maxEntities)
+    sparql ++= " }"
+
+    val results = endpoint.select(sparql.toString(), maxEntities)
 
     results.bindings.map(_(restrictions.variable).value)
   }
 
-  private def getEntitiesPaths(endpoint: SparqlEndpoint, entities: Traversable[String], variable: String, limit: Int): Seq[Path] = {
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int): Seq[Path] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
     val entityArray = entities.toArray
 
     //Get all properties
-    val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, entity, variable, limit))
+    val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, graph, entity, variable, limit))
 
     //Compute the frequency of each property
     val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / entityArray.size).toList
@@ -86,14 +89,22 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     relevantProperties
   }
 
-  private def getEntityProperties(endpoint: SparqlEndpoint, entityUri: String, variable: String, limit: Int): Traversable[Path] = {
-    var sparql = ""
-    sparql += "SELECT DISTINCT ?p \n"
-    sparql += "WHERE {\n"
-    sparql += " <" + entityUri + "> ?p ?o\n"
-    sparql += "}"
+  private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int): Traversable[Path] = {
+    val sparql = new StringBuilder()
+    sparql ++= "SELECT DISTINCT ?p \n"
+    sparql ++= "WHERE {\n"
 
-    for (result <- endpoint.select(sparql, limit).bindings; binding <- result.values) yield
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql ++= "GRAPH <" + graphUri + "> {\n"
+
+    sparql ++= " <" + entityUri + "> ?p ?o\n"
+
+    for (graphUri <- graph if !graphUri.isEmpty)
+      sparql ++= "}\n"
+
+    sparql ++= "}"
+
+    for (result <- endpoint.select(sparql.toString(), limit).bindings; binding <- result.values) yield
       Path(ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
   }
 }

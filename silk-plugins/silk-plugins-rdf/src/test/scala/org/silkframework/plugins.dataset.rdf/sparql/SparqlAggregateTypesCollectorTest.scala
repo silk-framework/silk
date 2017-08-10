@@ -28,13 +28,13 @@ class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers {
 
   behavior of "SparqlAggregateTypesCollector"
 
-  it should "return all found types from DBpedia" in {
+  it should "return all found types from DBpedia excerpt" in {
     val typesWithFrequency = SparqlAggregateTypesCollector(endpoint, Some(graphDBpedia), None)
     val types = typesWithFrequency.map(_._1).toSet
     types shouldBe Set("http://dbpedia.org/ontology/City", "http://dbpedia.org/ontology/Person", "http://dbpedia.org/ontology/Place")
   }
 
-  it should "return all found types from schema.org" in {
+  it should "return all found types from schema.org excerpt" in {
     val typesWithFrequency = SparqlAggregateTypesCollector(endpoint, Some(graphSchemaOrg), None)
     val types = typesWithFrequency.map(_._1).toSet
     types shouldBe Set("http://schema.org/City")
