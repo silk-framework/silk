@@ -1439,6 +1439,7 @@ DataManager:
     - name: mark.js
       version: 7.0.0
       url: 'https://markjs.io/'
+      downloadUrl: https://github.com/julmot/mark.js/archive/{version}.tar.gz
       spdx: MIT
       licenseFile: >-
         ---
