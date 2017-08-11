@@ -23,7 +23,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[Dataset], schema: EntitySchema): EntityTable = {
+  override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): EntityTable = {
     schema match {
       case TripleEntitySchema.schema =>
         dataset.data match {
@@ -65,7 +65,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  override protected def write(data: EntityTable, dataset: Task[Dataset]): Unit = {
+  override protected def write(data: EntityTable, dataset: Task[Dataset], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
         writeLinks(dataset, links, linkType)

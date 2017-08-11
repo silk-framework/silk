@@ -13,9 +13,9 @@ import org.silkframework.runtime.activity.ActivityContext
   */
 trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends Executor[DatasetType, ExecType] {
 
-  protected def read(dataset: Task[DatasetType], schema: EntitySchema): ExecType#DataType
+  protected def read(dataset: Task[DatasetType], schema: EntitySchema, execution: ExecType): ExecType#DataType
 
-  protected def write(data: ExecType#DataType, dataset: Task[DatasetType]): Unit
+  protected def write(data: ExecType#DataType, dataset: Task[DatasetType], execution: ExecType): Unit
 
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
@@ -30,10 +30,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
                              execution: ExecType, context: ActivityContext[ExecutionReport]): Option[ExecType#DataType] = {
 
     for (input <- inputs) {
-      write(input, task)
+      write(input, task, execution)
     }
     outputSchema map {
-      read(task, _)
+      read(task, _, execution)
     }
   }
 }
