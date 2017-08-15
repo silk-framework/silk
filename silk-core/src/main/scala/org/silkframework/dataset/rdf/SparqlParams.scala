@@ -21,7 +21,7 @@ case class SparqlParams(uri: String = "", user: String = null, password: String 
    * The login as option pair of user and password.
    */
   val login = {
-    if (user != null) {
+    if (user != null && user != "") {
       require(password != null, "No password provided for login '" + user + "'. Please set the 'password' parameter.")
       Some((user, password))
     } else {
