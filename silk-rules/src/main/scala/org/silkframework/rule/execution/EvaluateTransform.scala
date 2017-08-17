@@ -32,7 +32,7 @@ class EvaluateTransform(source: DataSource,
         typedPaths = rules.flatMap(_.sourcePaths).map(_.asStringTypedPath).toIndexedSeq,
         filter = dataSelection.restriction
       )
-    val entities = source.retrieve(entityDesc)
+    val entities = source.retrieve(entityDesc, Some(maxEntities))
 
     // Read all entities
     for(entity <- entities) {
