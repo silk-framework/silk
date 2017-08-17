@@ -63,22 +63,7 @@ object DatasetSelection {
     val variable = (node \ "@var").text
     restrictionText = restrictionText.replace("?" + variable, "?a")
 
-    var typeUri = (node \ "@typeUri").text
-
-    // If the type Uri is not defined, try to parse if from the SPARQL restriction
-    if(typeUri.isEmpty) {
-      try {
-        val sourceRestriction = new SparqlRestrictionParser().apply(restrictionText)
-        sourceRestriction.operator match {
-          case Some(Restriction.Condition(path, uri)) if path.propertyUri.contains(Uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")) =>
-            restrictionText = ""
-            typeUri = uri
-          case _ =>
-        }
-      } catch {
-        case _: ValidationException =>
-      }
-    }
+    val typeUri = (node \ "@typeUri").text
 
     DatasetSelection(
       inputId = (node \ "@dataSource").text,
