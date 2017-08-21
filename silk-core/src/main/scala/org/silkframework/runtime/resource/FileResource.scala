@@ -9,7 +9,7 @@ import java.time.Instant
   *
   * @param file The file
   */
-class FileResource(val file: File) extends WritableResource {
+case class FileResource(file: File) extends WritableResource {
 
   val name = file.getName
 

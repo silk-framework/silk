@@ -52,7 +52,7 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
     if(logStatus) {
       newStatus match {
         case s: Status.Running => log.log(progressLogLevel, s.toString)
-        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.toString)
+        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.toString, s.exception.get)
         case s => log.log(statusLogLevel, s.toString)
       }
     }

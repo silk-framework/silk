@@ -50,6 +50,8 @@ case class FileDataset(
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
   }
 
+  private val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
+
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createMem()
@@ -93,12 +95,11 @@ case class FileDataset(
     override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
       load()
       val restrictions = SparqlRestriction.forType(t)
-      SparqlAggregatePathsCollector(endpoint, restrictions, limit)
+      SparqlAggregatePathsCollector(endpoint, graphOpt, restrictions, limit)
     }
 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
       load()
-      val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
       SparqlTypesCollector(endpoint, graphOpt, limit)
     }
 

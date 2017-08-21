@@ -8,6 +8,7 @@ import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
@@ -124,12 +125,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = ""): Action[AnyContent] = Action { request =>
     val context = Context.get[Dataset](project, task, request.path)
-    val prefixes = context.project.config.prefixes
+    implicit val prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value.types
-    val typesResolved = typesFull.map(prefixes.shorten)
-    val allTypes = (typesResolved ++ typesFull).distinct
-    val filteredTypes = allTypes.filter(_.contains(search))
+    val typesResolved = typesFull.map(t => new Uri(t).serialize)
+    val filteredTypes = typesResolved.filter(_.contains(search))
 
     Ok(JsArray(filteredTypes.map(JsString)))
   }

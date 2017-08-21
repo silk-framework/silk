@@ -37,25 +37,34 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   /**
    * Retrieves a list of properties which are defined on most entities.
    */
-  def apply(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Option[Int]): IndexedSeq[Path] = {
-    val forwardPaths = getForwardPaths(endpoint, restrictions, limit.getOrElse(100))
-    val backwardPaths = getBackwardPaths(endpoint, restrictions, 10)
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): IndexedSeq[Path] = {
+    val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(100))
+    val backwardPaths = getBackwardPaths(endpoint, graph, restrictions, 10)
 
     (forwardPaths ++ backwardPaths).toIndexedSeq.sortBy(-_._2).map(_._1)
   }
 
-  private def getForwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
+  private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
     Timer("Retrieving forward pathes for '" + restrictions + "'") {
       val variable = restrictions.variable
 
-      val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
-        restrictions.toSparql + "\n" +
-        "?" + variable + " ?p ?o\n" +
-        "}\n" +
-        "GROUP BY ?p\n" +
-        "ORDER BY DESC (?count)"
+      var sparql = new StringBuilder()
+      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n"
 
-      val results = endpoint.select(sparql, limit).bindings.toList
+      for (graphUri <- graph if !graphUri.isEmpty)
+        sparql ++= "GRAPH <" + graphUri + "> {\n"
+
+      sparql ++= restrictions.toSparql + "\n"
+      sparql ++= "?" + variable + " ?p ?o\n"
+
+      for (graphUri <- graph if !graphUri.isEmpty)
+        sparql ++= "}\n"
+
+      sparql ++= "}\n"
+      sparql ++= "GROUP BY ?p\n"
+      sparql ++= "ORDER BY DESC (?count)"
+
+      val results = endpoint.select(sparql.toString(), limit).bindings.toList
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
@@ -68,19 +77,28 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
     }
   }
 
-  private def getBackwardPaths(endpoint: SparqlEndpoint, restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
+  private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
     Timer("Retrieving backward pathes for '" + restrictions + "'") {
       val variable = restrictions.variable
 
-      val sparql = "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n" +
-        restrictions.toSparql + "\n" +
-        "?s ?p ?" + variable + "\n" +
-        "}\n" +
-        "GROUP BY ?p\n" +
-        "ORDER BY DESC (?count)"
+      var sparql = new StringBuilder()
+      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n"
 
-      val results = endpoint.select(sparql, limit).bindings.toList
-      if (!results.isEmpty) {
+      for (graphUri <- graph if !graphUri.isEmpty)
+        sparql ++= "GRAPH <" + graphUri + "> {\n"
+
+      sparql ++= restrictions.toSparql + "\n"
+      sparql ++= "?s ?p ?" + variable + "\n"
+
+      for (graphUri <- graph if !graphUri.isEmpty)
+        sparql ++= "}\n"
+
+      sparql ++= "}\n"
+      sparql ++= "GROUP BY ?p\n"
+      sparql ++= "ORDER BY DESC (?count)"
+
+      val results = endpoint.select(sparql.toString(), limit).bindings.toList
+      if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
           (Path(BackwardOperator(Uri.fromURI(result("p").value)) :: Nil),

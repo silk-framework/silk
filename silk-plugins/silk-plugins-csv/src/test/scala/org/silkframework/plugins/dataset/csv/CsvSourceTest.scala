@@ -101,9 +101,9 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val entities = source.retrieve(EntitySchema(Uri(""), paths)).toSeq
     entities.size shouldBe 3
     val multilineEntity = entities.drop(1).head
-    val expectedValue = """Markus from
-                          |the other company,
-                          |who does not like pizza""".stripMargin
+    val expectedValue = "Markus from\n" +
+                        "the other company,\n" +
+                        "who does not like pizza"
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
   }
 

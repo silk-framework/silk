@@ -15,14 +15,20 @@
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
-        var xml = '<Dataset id=\'' + name + '\' type=\'' + pluginId + '\'>';
+        var xmlDoc = document.implementation.createDocument('', 'root', null);
+        var xml = xmlDoc.createElement("Dataset");
+        xml.setAttribute("id", name);
+        xml.setAttribute("type", pluginId);
         for(var i in parameters) {
-          xml += '  <Param name=\'' + parameters[i].name + '\' value=\'' + parameters[i].value + '\' />';
+          var param = xmlDoc.createElement("Param");
+          param.setAttribute('name', parameters[i].name);
+          param.setAttribute('value', parameters[i].value);
+          xml.appendChild(param)
         }
-        xml += '</Dataset>';
+        var xmlString = new XMLSerializer().serializeToString(xml);
 
         // Submit data source
-        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xml, callbacks);
+        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xmlString, callbacks);
       }
 
       function autoConfigure(pluginId, name, parameters) {

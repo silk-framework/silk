@@ -8,7 +8,7 @@ import com.hp.hpl.jena.rdf.model.{AnonId, ModelFactory}
 import com.hp.hpl.jena.vocabulary.XSD
 import org.apache.jena.riot.RDFDataMgr
 import org.silkframework.entity._
-import org.silkframework.util.StringUtils
+import org.silkframework.util.{StringUtils, Uri}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 import scala.collection.JavaConverters._
@@ -41,7 +41,7 @@ object RdfFormatUtil {
   private def autoDetectValueType(value: String): Node = {
     value match {
       // Check if value is an URI
-      case v: String if value.startsWith("http") && Try(URI.create(value)).isSuccess =>
+      case v: String if (value.startsWith("http") || value.startsWith("urn")) && new Uri(v).isValidUri =>
         NodeFactory.createURI(v)
       // Check if value is a number
       case StringUtils.integerNumber() =>

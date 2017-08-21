@@ -39,7 +39,7 @@ object MappingTarget {
       val uri = (value \ "@uri").text.trim
       val isBackwardProperty = (value \ "@isBackwardProperty").headOption.exists(_.text == "true")
       val valueTypeNode = (value \ "ValueType").head
-      MappingTarget(Uri.parse(uri, readContext.prefixes), fromXml[ValueType](valueTypeNode), isBackwardProperty = isBackwardProperty)
+      MappingTarget(Uri(uri), fromXml[ValueType](valueTypeNode), isBackwardProperty = isBackwardProperty)
     }
 
     /**
