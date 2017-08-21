@@ -90,4 +90,19 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
     format("5432554325432542235", LongValueType) mustBe
         s"""$S_P "5432554325432542235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
   }
+
+  it should "serialize triples with AutoDetectValueType as Integer if the value is a whole number" in {
+    format("1024", AutoDetectValueType) mustBe
+      s"""$S_P "1024"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
+  }
+
+  it should "serialize triples with AutoDetectValueType as URI if the value is a valid URI" in {
+    format("http://example.org/resource", AutoDetectValueType) mustBe
+      s"""$S_P <http://example.org/resource> .$NL"""
+  }
+
+  it should "serialize triples with AutoDetectValueType as String if the value is an invalid URI" in {
+    format("http:/example.org/resource", AutoDetectValueType) mustBe
+      s"""$S_P "http:/example.org/resource" .$NL"""
+  }
 }
