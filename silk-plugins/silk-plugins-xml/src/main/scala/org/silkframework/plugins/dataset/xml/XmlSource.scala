@@ -72,7 +72,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri =
           if (uriPattern.isEmpty) {
-            traverser.node.label + index
+            "urn:instance:" + entityDesc.typeUri + "/" + traverser.node.label + index
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val pattern = m.group(1)
