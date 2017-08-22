@@ -159,7 +159,7 @@ const MappingRuleOverviewHeader = React.createClass({
         return (
             <div className="ecc-silk-mapping__ruleshead">
                 {discardView}
-                <Card shadow={0}>
+                <Card>
                     <CardTitle>
                         <div className="mdl-card__title-back">
                             {backButton}

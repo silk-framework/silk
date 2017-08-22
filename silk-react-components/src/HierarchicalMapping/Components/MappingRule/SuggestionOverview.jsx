@@ -279,7 +279,6 @@ const SuggestionOverview = React.createClass({
         return (
             <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
                 <Card
-                    shadow={0}
                     fixedActions={true}
                 >
                     {suggestionsHeader}

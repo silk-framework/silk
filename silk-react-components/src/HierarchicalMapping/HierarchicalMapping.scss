@@ -176,9 +176,6 @@
 
     .mdl-card__title {
         align-items: flex-start;
-        position: sticky;
-        top: 0;
-        z-index: 10;
         background-color: $card-background-color;
     }
 
@@ -211,23 +208,7 @@
 
         .mdl-card__title-text-main {
             font-weight: 500;
-            //font-size: 1.25rem;
         }
-
-        .mdl-card__title-text-sub {
-            //font-size: 1.25rem;
-        }
-    }
-
-    .mdl-card__content {
-        max-height: calc(99vh - 36px - 2*8px - 2*16px - 3*16px - 150px;);
-        overflow: overlay;
-        margin: 0;
-        padding: 0 1rem;
-    }
-
-    .mdl-card__actions {
-        border-bottom: 1px solid $card-border-color;
     }
 }
 
