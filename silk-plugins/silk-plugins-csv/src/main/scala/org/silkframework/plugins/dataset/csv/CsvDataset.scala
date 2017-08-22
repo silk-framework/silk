@@ -18,9 +18,9 @@ case class CsvDataset
     file: WritableResource,
   @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
     properties: String = "",
-  @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. '\\t' for specifying tab-separated values, is also supported.")
+  @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. \"\\t\" for specifying tab-separated values, is also supported.")
     separator: String = ",",
-  @Param("The character that is used to separate the parts of array values.")
+  @Param("The character that is used to separate the parts of array values. Write \"\\t\" to specify the tab character.")
     arraySeparator: String = "",
   @Param("Character used to quote values.")
     quote: String = "\"",
