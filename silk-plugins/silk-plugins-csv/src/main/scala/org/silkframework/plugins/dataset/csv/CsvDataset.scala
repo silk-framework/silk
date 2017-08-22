@@ -46,6 +46,7 @@ case class CsvDataset
 
   private val arraySeparatorChar =
     if (arraySeparator.isEmpty) None
+    else if(arraySeparator == "\\t") Some('\t')
     else if (arraySeparator.length == 1) Some(arraySeparator.head)
     else throw new IllegalArgumentException(s"Invalid array separator character: '$arraySeparator'. Must be a single character.")
 
