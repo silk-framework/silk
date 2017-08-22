@@ -5,6 +5,10 @@ import {
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
     Info,
 } from 'ecc-gui-elements';
 import ExampleView from './ExampleView';
@@ -113,9 +117,9 @@ const RuleValueView = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__rulesviewer">
-                <div className="mdl-card mdl-card--stretch">
-                    <div
-                        className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
+                <Card shadow={0}>
+                    <CardTitle
+                        className="ecc-silk-mapping__rulesviewer__title clickable"
                         onClick={this.props.handleToggleExpand}>
                         <div className="mdl-card__title-text">
                             <ThingName
@@ -126,8 +130,8 @@ const RuleValueView = React.createClass({
                                 )}
                             />
                         </div>
-                    </div>
-                    <div className="mdl-card__content">
+                    </CardTitle>
+                    <CardContent>
                         {_.get(this.props, 'mappingTarget.uri', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__targetProperty">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -271,8 +275,8 @@ const RuleValueView = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                    </div>
-                    <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                             onClick={this.handleEdit}>
@@ -292,8 +296,8 @@ const RuleValueView = React.createClass({
                             disabled={false}>
                             Remove
                         </DisruptiveButton>
-                    </div>
-                </div>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

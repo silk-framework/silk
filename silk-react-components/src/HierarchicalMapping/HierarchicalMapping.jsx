@@ -1,13 +1,15 @@
 import React from 'react';
 import _ from 'lodash';
 import {
-    Spinner,
-    ConfirmationDialog,
+    Button,
     DismissiveButton,
     DisruptiveButton,
-    Button,
+    Card,
+    CardTitle,
     ContextMenu,
     MenuItem,
+    ConfirmationDialog,
+    Spinner,
 } from 'ecc-gui-elements';
 import {URI} from 'ecc-utils';
 
@@ -283,8 +285,8 @@ const HierarchicalMapping = React.createClass({
 
         return (
             <div className="ecc-silk-mapping">
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
-                    <div className="ecc-silk-mapping__header mdl-card__title">
+                <Card>
+                    <CardTitle className="ecc-silk-mapping__header" border={false}>
                         {debugOptions}
                         {deleteView}
                         {discardView}
@@ -296,7 +298,7 @@ const HierarchicalMapping = React.createClass({
                                     : 'Show tree navigation'}
                             </MenuItem>
                         </ContextMenu>
-                    </div>
+                    </CardTitle>
                     <div className="ecc-silk-mapping__content">
                         {treeView}
                         {
@@ -305,7 +307,7 @@ const HierarchicalMapping = React.createClass({
                             />
                         }
                     </div>
-                </div>
+                </Card>
             </div>
         );
     },

@@ -1,12 +1,16 @@
 import React from 'react';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {
+    AffirmativeButton,
+    DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
     Radio,
     RadioGroup,
     TextField,
-    AffirmativeButton,
     Spinner,
-    DismissiveButton,
 } from 'ecc-gui-elements';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
@@ -188,9 +192,9 @@ const ObjectMappingRuleForm = React.createClass({
         const title =
             // TODO: add source path if: parent, not edit, not root element
             !id
-                ? <div className="mdl-card__title mdl-card--border">
+                ? <CardTitle>
                       Add object mapping
-                  </div>
+                  </CardTitle>
                 : false;
 
         let targetPropertyInput = false;
@@ -278,65 +282,62 @@ const ObjectMappingRuleForm = React.createClass({
         }
 
         return (
-            <div>
-                <div className="ecc-silk-mapping__ruleseditor">
-                    <div
-                        className={`mdl-card mdl-card--stretch${!id
-                            ? ' mdl-shadow--2dp'
-                            : ''}`}>
-                        {title}
-                        <div className="mdl-card__content">
-                            {errorMessage}
-                            {targetPropertyInput}
-                            {entityRelationInput}
-                            <AutoComplete
-                                placeholder={'Target entity type'}
-                                className={
-                                    'ecc-silk-mapping__ruleseditor__targetEntityType'
-                                }
-                                entity="targetEntityType"
-                                isValidNewOption={newValueIsIRI}
-                                ruleId={
-                                    type === 'root'
-                                        ? this.props.id
-                                        : this.props.parentId
-                                }
-                                value={this.state.targetEntityType}
-                                multi // allow multi selection
-                                creatable
-                                onChange={this.handleChangeSelectBox.bind(
-                                    null,
-                                    'targetEntityType',
-                                )}
-                            />
-                            {sourcePropertyInput}
-                            {patternInput}
-                            <TextField
-                                multiline
-                                label="Description"
-                                className="ecc-silk-mapping__ruleseditor__comment"
-                                value={this.state.comment}
-                                onChange={this.handleChangeTextfield.bind(
-                                    null,
-                                    'comment',
-                                )}
-                            />
-                        </div>
-                        <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
-                            <AffirmativeButton
-                                className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                                onClick={this.handleConfirm}
-                                disabled={!allowConfirm || !this.state.changed}>
-                                Save
-                            </AffirmativeButton>
-                            <DismissiveButton
-                                className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                                onClick={this.handleClose}>
-                                Cancel
-                            </DismissiveButton>
-                        </div>
-                    </div>
-                </div>
+            <div className="ecc-silk-mapping__ruleseditor">
+                <Card
+                    shadow={!id ? 1 : 0}
+                >
+                    {title}
+                    <CardContent>
+                        {errorMessage}
+                        {targetPropertyInput}
+                        {entityRelationInput}
+                        <AutoComplete
+                            placeholder={'Target entity type'}
+                            className={
+                                'ecc-silk-mapping__ruleseditor__targetEntityType'
+                            }
+                            entity="targetEntityType"
+                            isValidNewOption={newValueIsIRI}
+                            ruleId={
+                                type === 'root'
+                                    ? this.props.id
+                                    : this.props.parentId
+                            }
+                            value={this.state.targetEntityType}
+                            multi // allow multi selection
+                            creatable
+                            onChange={this.handleChangeSelectBox.bind(
+                                null,
+                                'targetEntityType',
+                            )}
+                        />
+                        {sourcePropertyInput}
+                        {patternInput}
+                        <TextField
+                            multiline
+                            label="Description"
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            value={this.state.comment}
+                            onChange={this.handleChangeTextfield.bind(
+                                null,
+                                'comment',
+                            )}
+                        />
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                        <AffirmativeButton
+                            className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                            onClick={this.handleConfirm}
+                            disabled={!allowConfirm || !this.state.changed}>
+                            Save
+                        </AffirmativeButton>
+                        <DismissiveButton
+                            className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
+                            onClick={this.handleClose}>
+                            Cancel
+                        </DismissiveButton>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

@@ -1,9 +1,13 @@
 import React from 'react';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {
-    TextField,
     AffirmativeButton,
     DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
+    TextField,
     Spinner,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../../store';
@@ -165,9 +169,9 @@ const ValueMappingRuleForm = React.createClass({
         const allowConfirm = this.state.targetProperty;
 
         const title = !id
-            ? <div className="mdl-card__title mdl-card--border">
+            ? <CardTitle>
                   Add value mapping
-              </div>
+              </CardTitle>
             : false;
 
         // TODO: Unfold complex mapping
@@ -201,12 +205,11 @@ const ValueMappingRuleForm = React.createClass({
         // TODO: Where to get the list of target property types?
         return (
             <div className="ecc-silk-mapping__ruleseditor">
-                <div
-                    className={`mdl-card mdl-card--stretch${!id
-                        ? ' mdl-shadow--2dp'
-                        : ''}`}>
+                <Card
+                    shadow={!id ? 1 : 0}
+                >
                     {title}
-                    <div className="mdl-card__content">
+                    <CardContent>
                         {errorMessage}
                         <AutoComplete
                             placeholder={'Target property'}
@@ -244,8 +247,8 @@ const ValueMappingRuleForm = React.createClass({
                                 'comment',
                             )}
                         />
-                    </div>
-                    <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             onClick={this.handleConfirm}
@@ -257,8 +260,8 @@ const ValueMappingRuleForm = React.createClass({
                             onClick={this.handleClose}>
                             Cancel
                         </DismissiveButton>
-                    </div>
-                </div>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

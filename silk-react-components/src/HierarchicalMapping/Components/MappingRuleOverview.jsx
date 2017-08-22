@@ -12,17 +12,21 @@ import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
 import MappingRule from './MappingRule/MappingRule';
 import SuggestionOverview from './MappingRule/SuggestionOverview';
 import {
-    Spinner,
-    Info,
-    Icon,
+    Button,
+    DisruptiveButton,
+    DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardMenu,
+    FloatingActionList,
     ContextMenu,
     MenuItem,
     ConfirmationDialog,
-    DisruptiveButton,
-    DismissiveButton,
-    Button,
+    Icon,
+    Info,
+    Spinner,
 } from 'ecc-gui-elements';
-import {FloatingListActions} from './MappingRule/SharedComponents';
 
 const MappingRuleOverview = React.createClass({
     mixins: [UseMessageBus],
@@ -302,11 +306,13 @@ const MappingRuleOverview = React.createClass({
         let mappingRulesList = false;
 
         if (!createRuleForm) {
-            mappingRulesListHead = (
-                <div className="mdl-card__title mdl-card--border">
+            mappingRulesListHead = [
+                <CardTitle>
                     <div className="mdl-card__title-text">
                         Mapping rules {`(${childRules.length})`}
                     </div>
+                </CardTitle>,
+                <CardMenu>
                     <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
                         <MenuItem
                             className="ecc-silk-mapping__ruleslistmenu__item-add-value"
@@ -342,18 +348,18 @@ const MappingRuleOverview = React.createClass({
                             Reduce all
                         </MenuItem>
                     </ContextMenu>
-                </div>
-            );
+                </CardMenu>
+            ];
 
             mappingRulesList = _.isEmpty(childRules)
-                ? <div className="mdl-card__content">
+                ? <CardContent>
                       <Info vertSpacing border>
                           No existing mapping rules.
                       </Info>
                       {/* TODO: we should provide options like adding rules or suggestions here,
                              even a help text would be a good support for the user.
                              */}
-                  </div>
+                  </CardContent>
                 : <ol className="mdl-list">
                       {_.map(childRules, (rule, idx) =>
                           <MappingRule
@@ -370,35 +376,35 @@ const MappingRuleOverview = React.createClass({
         const rulesList =
             !createRuleForm && !suggestions
                 ? <div className="ecc-silk-mapping__ruleslist">
-                      <div className="mdl-card mdl-card--stretch">
+                      <Card shadow={0}>
                           {mappingRulesListHead}
                           {mappingRulesList}
-                          <div className="mdl-card__actions--fixed">
-                              <FloatingListActions
-                                  iconName="add"
-                                  actions={[
-                                      {
-                                          icon: 'insert_drive_file',
-                                          label: 'Add value mapping',
-                                          handler: () => {
-                                              this.handleCreate({
-                                                  type: 'direct',
-                                              });
-                                          },
+                          <FloatingActionList
+                              fabSize="large"
+                              fixed={true}
+                              iconName="add"
+                              actions={[
+                                  {
+                                      icon: 'insert_drive_file',
+                                      label: 'Add value mapping',
+                                      handler: () => {
+                                          this.handleCreate({
+                                              type: 'direct',
+                                          });
                                       },
-                                      {
-                                          icon: 'folder',
-                                          label: 'Add object mapping',
-                                          handler: () => {
-                                              this.handleCreate({
-                                                  type: 'object',
-                                              });
-                                          },
+                                  },
+                                  {
+                                      icon: 'folder',
+                                      label: 'Add object mapping',
+                                      handler: () => {
+                                          this.handleCreate({
+                                              type: 'object',
+                                          });
                                       },
-                                  ]}
-                              />
-                          </div>
-                      </div>
+                                  },
+                              ]}
+                          />
+                      </Card>
                   </div>
                 : false;
 

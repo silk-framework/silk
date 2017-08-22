@@ -9,6 +9,8 @@ import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
 import {
     Button,
+    Card,
+    CardTitle,
     Chip,
     ConfirmationDialog,
     DisruptiveButton,
@@ -157,8 +159,8 @@ const MappingRuleOverviewHeader = React.createClass({
         return (
             <div className="ecc-silk-mapping__ruleshead">
                 {discardView}
-                <div className="mdl-card mdl-card--stretch">
-                    <div className="mdl-card__title mdl-card--border">
+                <Card shadow={0}>
+                    <CardTitle>
                         <div className="mdl-card__title-back">
                             {backButton}
                         </div>
@@ -185,9 +187,9 @@ const MappingRuleOverviewHeader = React.createClass({
                                 }}
                             />
                         </div>
-                    </div>
+                    </CardTitle>
                     {content}
-                </div>
+                </Card>
             </div>
         );
     },

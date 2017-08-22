@@ -1,16 +1,21 @@
 import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
 import {
-    Spinner,
-    Error,
-    Checkbox,
-    Info,
     Button,
     AffirmativeButton,
     DismissiveButton,
+    Card,
+    CardTitle,
+    CardMenu,
+    CardContent,
+    CardActions,
+    Checkbox,
+    Chip,
+    Error,
+    Info,
     ContextMenu,
     MenuItem,
-    Chip,
+    Spinner,
 } from 'ecc-gui-elements';
 import SuggestionView from './SuggestionView';
 import hierarchicalMappingChannel from '../../store';
@@ -177,21 +182,23 @@ const SuggestionOverview = React.createClass({
     render() {
         const suggestionsMenu = !_.isEmpty(this.state.error)
             ? false
-            : <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
-                  <MenuItem
-                      className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                      onClick={this.checkAll}>
-                      Select all
-                  </MenuItem>
-                  <MenuItem
-                      className="ecc-silk-mapping__ruleslistmenu__item-select-none"
-                      onClick={this.checkNone}>
-                      Select none
-                  </MenuItem>
-              </ContextMenu>;
+            : <CardMenu>
+                <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-all"
+                        onClick={this.checkAll}>
+                        Select all
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-none"
+                        onClick={this.checkNone}>
+                        Select none
+                    </MenuItem>
+                </ContextMenu>
+            </CardMenu>;
 
         const suggestionsHeader = (
-            <div className="mdl-card__title mdl-card--border">
+            <CardTitle>
                 <div className="mdl-card__title-text">
                     {_.isEmpty(this.state.error)
                         ? `Add suggested mapping rules`
@@ -200,7 +207,7 @@ const SuggestionOverview = React.createClass({
                           )} errors saving suggestions`}
                 </div>
                 {suggestionsMenu}
-            </div>
+            </CardTitle>
         );
 
         const suggestionsList = !_.isEmpty(this.state.error)
@@ -238,7 +245,7 @@ const SuggestionOverview = React.createClass({
               );
 
         const actions = (
-            <div className="mdl-card__actions mdl-card__actions--fixed mdl-card--border">
+            <CardActions fixed={true}>
                 {_.isEmpty(this.state.error)
                     ? <AffirmativeButton
                           className="ecc-hm-suggestions-save"
@@ -248,22 +255,22 @@ const SuggestionOverview = React.createClass({
                       </AffirmativeButton>
                     : false}
 
-                <DismissiveButton 
+                <DismissiveButton
                   onClick={this.props.onClose}
                   className="ecc-hm-suggestions-cancel">
                     Cancel
                 </DismissiveButton>
-            </div>
+            </CardActions>
         );
 
         const suggestionsEmptyInfo =
             _.size(this.state.data) === 0
-                ? <div className="mdl-card__content">
+                ? <CardContent>
                       <Info vertSpacing border>
                           No suggestions found for{' '}
                           <ParentElement parent={this.props.parent} />.
                       </Info>
-                  </div>
+                  </CardContent>
                 : false;
 
         if (this.state.loading) {
@@ -271,7 +278,10 @@ const SuggestionOverview = React.createClass({
         }
         return (
             <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
-                <div className="mdl-card mdl-card--stretch">
+                <Card
+                    shadow={0}
+                    fixedActions={true}
+                >
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}
@@ -279,7 +289,7 @@ const SuggestionOverview = React.createClass({
                         {errorsList}
                     </ol>
                     {actions}
-                </div>
+                </Card>
             </div>
         );
     },

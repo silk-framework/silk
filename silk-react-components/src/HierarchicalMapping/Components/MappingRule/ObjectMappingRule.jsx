@@ -2,12 +2,14 @@ import React from 'react';
 import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    Radio,
-    RadioGroup,
     AffirmativeButton,
     DismissiveButton,
     DisruptiveButton,
+    CardContent,
+    CardActions,
     Info,
+    Radio,
+    RadioGroup,
 } from 'ecc-gui-elements';
 import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
@@ -173,7 +175,7 @@ const RuleObjectView = React.createClass({
         return (
             <div>
                 <div className="ecc-silk-mapping__rulesviewer">
-                    <div className="mdl-card__content">
+                    <CardContent>
                         {targetProperty}
                         {entityRelation}
                         {_.get(this.props, 'rules.typeRules[0].typeUri', false)
@@ -283,15 +285,15 @@ const RuleObjectView = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                    </div>
-                    <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
                         <Button
                             className="ecc-silk-mapping__rulesviewer__actionrow-edit"
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
                         {deleteButton}
-                    </div>
+                    </CardActions>
                 </div>
             </div>
         );
