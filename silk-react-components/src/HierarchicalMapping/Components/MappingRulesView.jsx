@@ -8,9 +8,9 @@ import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
+import MappingRulesObject from './MappingRulesObject';
 import MappingRule from './MappingRule/MappingRule';
-import SuggestionOverview from './MappingRule/SuggestionOverview';
+import SuggestionsList from './SuggestionsList';
 import {
     Button,
     DisruptiveButton,
@@ -28,7 +28,7 @@ import {
     Spinner,
 } from 'ecc-gui-elements';
 
-const MappingRuleOverview = React.createClass({
+const MappingRulesView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -162,7 +162,7 @@ const MappingRuleOverview = React.createClass({
                     });
                 },
                 err => {
-                    console.warn('err MappingRuleOverview: rule.get');
+                    console.warn('err MappingRulesView: rule.get');
                     this.setState({loading: false});
                 },
             );
@@ -306,50 +306,50 @@ const MappingRuleOverview = React.createClass({
         let mappingRulesList = false;
 
         if (!createRuleForm) {
-            mappingRulesListHead = [
+            mappingRulesListHead = (
                 <CardTitle>
                     <div className="mdl-card__title-text">
                         Mapping rules {`(${childRules.length})`}
                     </div>
-                </CardTitle>,
-                <CardMenu>
-                    <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-add-value"
-                            onClick={() => {
-                                this.handleCreate({type: 'direct'});
-                            }}>
-                            Add value mapping
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-add-object"
-                            onClick={() => {
-                                this.handleCreate({type: 'object'});
-                            }}>
-                            Add object mapping
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-                            onClick={this.handleShowSuggestions}>
-                            Suggest mappings
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-expand"
-                            onClick={() => {
-                                this.handleToggleRuleDetails({expanded: true});
-                            }}>
-                            Expand all
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-reduce"
-                            onClick={() => {
-                                this.handleToggleRuleDetails({expanded: false});
-                            }}>
-                            Reduce all
-                        </MenuItem>
-                    </ContextMenu>
-                </CardMenu>
-            ];
+                    <CardMenu>
+                        <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-add-value"
+                                onClick={() => {
+                                    this.handleCreate({type: 'direct'});
+                                }}>
+                                Add value mapping
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-add-object"
+                                onClick={() => {
+                                    this.handleCreate({type: 'object'});
+                                }}>
+                                Add object mapping
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                                onClick={this.handleShowSuggestions}>
+                                Suggest mappings
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                                onClick={() => {
+                                    this.handleToggleRuleDetails({expanded: true});
+                                }}>
+                                Expand all
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                                onClick={() => {
+                                    this.handleToggleRuleDetails({expanded: false});
+                                }}>
+                                Reduce all
+                            </MenuItem>
+                        </ContextMenu>
+                    </CardMenu>
+                </CardTitle>
+            );
 
             mappingRulesList = _.isEmpty(childRules)
                 ? <CardContent>
@@ -421,7 +421,7 @@ const MappingRuleOverview = React.createClass({
             !createRuleForm &&
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules')
-                ? <SuggestionOverview
+                ? <SuggestionsList
                       key={_.join(types, ',')}
                       ruleId={_.isUndefined(this.props.currentRuleId) ? 'root' : this.props.currentRuleId}
                       onClose={this.handleCloseSuggestions}
@@ -444,7 +444,7 @@ const MappingRuleOverview = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <MappingRuleOverviewHeader
+                <MappingRulesObject
                     rule={this.state.ruleData}
                     key={id}
                 />
@@ -455,4 +455,4 @@ const MappingRuleOverview = React.createClass({
     },
 });
 
-export default MappingRuleOverview;
+export default MappingRulesView;

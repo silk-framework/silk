@@ -157,7 +157,7 @@ const MappingRuleOverviewHeader = React.createClass({
         }
 
         return (
-            <div className="ecc-silk-mapping__ruleshead">
+            <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
                 <Card>
                     <CardTitle>

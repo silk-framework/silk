@@ -1,5 +1,5 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
+import UseMessageBus from '../UseMessageBusMixin';
 import {
     Button,
     AffirmativeButton,
@@ -17,14 +17,14 @@ import {
     MenuItem,
     Spinner,
 } from 'ecc-gui-elements';
-import SuggestionView from './SuggestionView';
-import hierarchicalMappingChannel from '../../store';
-import {ParentElement} from './SharedComponents';
+import SuggestionsRule from './SuggestionsRule';
+import hierarchicalMappingChannel from '../store';
+import {ParentElement} from './MappingRule/SharedComponents';
 import _ from 'lodash';
 
 let pendingRules = {};
 let wrongRules = {};
-const SuggestionOverview = React.createClass({
+const SuggestionsList = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -214,7 +214,7 @@ const SuggestionOverview = React.createClass({
             ? false
             : _.map(this.state.data, (value, suggestedClass) =>
                   _.map(value, (item, pos) =>
-                      <SuggestionView
+                      <SuggestionsRule
                           item={item}
                           pos={pos}
                           suggestedClass={suggestedClass}
@@ -294,4 +294,4 @@ const SuggestionOverview = React.createClass({
     },
 });
 
-export default SuggestionOverview;
+export default SuggestionsList;

@@ -1,5 +1,5 @@
 /*
- * Tree View On The Left
+ * Navigation tree over full hierarchical depth of mappings
  */
 
 import React from 'react';
@@ -10,7 +10,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 
-const TreeView = React.createClass({
+const MappingTree = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -222,4 +222,4 @@ const TreeView = React.createClass({
     },
 });
 
-export default TreeView;
+export default MappingTree;

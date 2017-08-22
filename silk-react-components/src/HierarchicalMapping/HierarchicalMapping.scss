@@ -168,9 +168,14 @@
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 50%;
+
+  .mdl-card__title {
+      z-index: 2; // TODO: only if sticky, need to be moved to gui elements
+      background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
+  }
 }
 
-.ecc-silk-mapping__ruleshead {
+.ecc-silk-mapping__rulesobject {
     position: relative;
     margin-bottom: 1rem;
 
@@ -215,7 +220,7 @@
 .ecc-silk-mapping__ruleslist {
 
     .ecc-floatingactionlist__wrapper--fixed {
-        z-index: 1; // TODO: need to be moved to gui elements
+        z-index: 2; // TODO: need to be moved to gui elements
     }
 
     .mdl-card__title-text {

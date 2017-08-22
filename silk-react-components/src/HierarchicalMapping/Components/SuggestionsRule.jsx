@@ -1,5 +1,5 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
+import UseMessageBus from '../UseMessageBusMixin';
 import {
     Spinner,
     Error,
@@ -9,10 +9,10 @@ import {
     MenuItem,
     Chip,
 } from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
 
-const SuggestionsView = React.createClass({
+const SuggestionsRule = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -51,4 +51,4 @@ const SuggestionsView = React.createClass({
     },
 });
 
-export default SuggestionsView;
+export default SuggestionsRule;
