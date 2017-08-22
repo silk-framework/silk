@@ -66,6 +66,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
     )) shouldBe Some(DetectedSeparator('\t', 3, 0))
   }
 
+  it should "detect hash separator" in {
+    val hash = "#"
+    detect(Seq(
+      s"""f1${hash}f2${hash}f3""",
+      s"""1${hash}"test"${hash}3""",
+      s"""1${hash}"test, with, commas, in, literal"${hash}3"""
+    )) shouldBe Some(DetectedSeparator('#', 3, 0))
+  }
+
   it should "detect lines to skip" in {
     val tab = "\t"
     val validLines = for (i <- 1 to 100) yield {

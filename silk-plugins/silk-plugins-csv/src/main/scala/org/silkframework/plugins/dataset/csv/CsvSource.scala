@@ -334,7 +334,7 @@ class CsvSource(file: Resource,
 }
 
 object SeparatorDetector {
-  private val separatorList = Seq(',', '\t', ';', '|', '^')
+  private val separatorList = Seq(',', '\t', ';', '|', '^', '#')
   final val maxColumnsToParseForDetection = 32000
   final val maxCharsPerColumnForDetection = 64000
 
