@@ -17,23 +17,16 @@ import {
 import RuleObjectEdit from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
+import Navigation from '../Mixins/Navigation';
 
-const MappingRuleOverviewHeader = React.createClass({
-    mixins: [UseMessageBus],
+const MappingRulesObject = React.createClass({
+    mixins: [UseMessageBus, Navigation],
     getInitialState() {
         return {
             expanded: false,
             editing: false,
             askForDiscard: false,
         };
-    },
-    // jumps to selected rule as new center of view
-    handleNavigate(id, event) {
-        hierarchicalMappingChannel
-            .subject('ruleId.change')
-            .onNext({newRuleId: id, parent: this.props.rule.id});
-
-        event.stopPropagation();
     },
     componentDidMount() {
         this.subscribe(
@@ -195,4 +188,4 @@ const MappingRuleOverviewHeader = React.createClass({
     },
 });
 
-export default MappingRuleOverviewHeader;
+export default MappingRulesObject;
