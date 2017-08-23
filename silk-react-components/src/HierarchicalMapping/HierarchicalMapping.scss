@@ -164,30 +164,24 @@
 }
 
 .ecc-silk-mapping__rules {
-  flex-basis: 75%;
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 50%;
-
-  .mdl-card__title {
-      z-index: 2; // TODO: only if sticky, need to be moved to gui elements
-      background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
-  }
-}
-
-.ecc-silk-mapping__rulesobject {
-    position: relative;
-    margin-bottom: 1rem;
+    flex-basis: 75%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 50%;
 
     .mdl-card__title {
-        align-items: flex-start;
-        background-color: $card-background-color;
+        z-index: 2; // TODO: only if sticky, need to be moved to gui elements
+        background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
+    }
+
+    .mdl-card__menu {
+        // z-index: 2; // TODO: only if sticky, need to be moved to gui elements
     }
 
     .mdl-card__title-back {
         position: relative;
         left: -0.5rem;
-        top: -0.25rem;
+        //top: -0.25rem;
     }
 
     .mdl-card__title-text {
@@ -196,24 +190,50 @@
         display: flex;
         flex-direction: column;
         @include typo-subhead();
+    }
 
-        .mdl-card__title-text-sup {
-            @include typo-caption();
+    .mdl-card__title-text-sup,
+    .mdl-card__title-text-breadcrumbs {
+        @include typo-caption();
 
-            .mdl-chip {
-                height: auto;
-                line-height: 2;
-                font-size: 1em;
-            }
-
-            .mdl-chip__text {
-                font-size: 1em;
-            }
+        .mdl-chip {
+            height: auto;
+            line-height: 2;
+            font-size: 1em;
         }
+
+        .mdl-chip__text {
+            font-size: 1em;
+        }
+    }
+
+    .mdl-card__title-text-main {
+        font-weight: 500;
+    }
+}
+
+.ecc-silk-mapping__navheader {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-bottom: $ecc-size-blockelement-margin-vertical;
+
+    .mdl-card__title-text {
+        flex-direction: row;
 
         .mdl-card__title-text-main {
-            font-weight: 500;
+            margin: 0 0.25rem;
         }
+    }
+
+}
+
+.ecc-silk-mapping__rulesobject {
+    position: relative;
+    margin-bottom: $ecc-size-blockelement-margin-vertical;
+
+    .mdl-card__title {
+        align-items: flex-start;
     }
 }
 

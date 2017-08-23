@@ -20,9 +20,10 @@ import {
 } from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
+import MappingRulesHeader from './MappingRulesHeader';
+import MappingRulesObject from './MappingRulesObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRulesObject from './MappingRulesObject';
 import MappingRule from './MappingRule/MappingRule';
 import SuggestionsList from './SuggestionsList';
 
@@ -452,7 +453,8 @@ const MappingRulesView = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <MappingRulesObject rule={this.state.ruleData} key={id} />
+                <MappingRulesHeader rule={this.state.ruleData} key={'navhead_' + id} />
+                <MappingRulesObject rule={this.state.ruleData} key={'objhead_' + id} />
                 {suggestions || rulesList}
                 {createRuleForm}
             </div>
