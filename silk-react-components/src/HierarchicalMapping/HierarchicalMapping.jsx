@@ -31,27 +31,27 @@ const HierarchicalMapping = React.createClass({
         // listen to rule id changes
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
-            this.onRuleNavigation,
+            this.onRuleNavigation
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('removeClick'),
-            this.handleClickRemove,
+            this.handleClickRemove
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.onOpenEdit,
+            this.onOpenEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     // initilize state
@@ -90,7 +90,7 @@ const HierarchicalMapping = React.createClass({
             this.setState({
                 editingElements: _.filter(
                     this.state.editingElements,
-                    e => e !== id,
+                    e => e !== id
                 ),
             });
         }
@@ -135,7 +135,7 @@ const HierarchicalMapping = React.createClass({
                         elementToDelete: false,
                         loading: false,
                     });
-                },
+                }
             );
     },
     handleCancelRemove() {

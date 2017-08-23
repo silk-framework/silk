@@ -69,7 +69,7 @@ const SuggestionOverview = React.createClass({
                 err => {
                     console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     componentDidMount() {
@@ -92,7 +92,7 @@ const SuggestionOverview = React.createClass({
                 topic: 'rules.generate',
                 data: {
                     correspondences,
-                    parentRuleId: _.get(this.props, 'ruleId', "root"),
+                    parentRuleId: _.get(this.props, 'ruleId', 'root'),
                 },
             })
             .subscribe(
@@ -101,7 +101,7 @@ const SuggestionOverview = React.createClass({
                     _.map(response.rules, (rule, k) => {
                         this.saveRule(
                             {...rule, parentId: this.props.ruleId},
-                            k,
+                            k
                         );
                     });
                     hierarchicalMappingChannel.subject('reload').onNext(true);
@@ -109,7 +109,7 @@ const SuggestionOverview = React.createClass({
                 err => {
                     console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     saveRule(rule, pos) {
@@ -131,7 +131,7 @@ const SuggestionOverview = React.createClass({
                     };
                     this.onSafeDone(pos);
                 },
-                () => {},
+                () => {}
             );
     },
     onSafeDone(pos) {
@@ -196,7 +196,7 @@ const SuggestionOverview = React.createClass({
                     {_.isEmpty(this.state.error)
                         ? `Add suggested mapping rules`
                         : `${_.size(
-                              this.state.error,
+                              this.state.error
                           )} errors saving suggestions`}
                 </div>
                 {suggestionsMenu}
@@ -213,8 +213,8 @@ const SuggestionOverview = React.createClass({
                           suggestedClass={suggestedClass}
                           check={this.check}
                           checked={this.isChecked(suggestedClass, pos)}
-                      />,
-                  ),
+                      />
+                  )
               );
 
         const errorsList = _.isEmpty(this.state.error)
@@ -234,7 +234,7 @@ const SuggestionOverview = React.createClass({
                               </Error>
                           </div>
                       </div>
-                  </li>,
+                  </li>
               );
 
         const actions = (
@@ -248,9 +248,9 @@ const SuggestionOverview = React.createClass({
                       </AffirmativeButton>
                     : false}
 
-                <DismissiveButton 
-                  onClick={this.props.onClose}
-                  className="ecc-hm-suggestions-cancel">
+                <DismissiveButton
+                    onClick={this.props.onClose}
+                    className="ecc-hm-suggestions-cancel">
                     Cancel
                 </DismissiveButton>
             </div>

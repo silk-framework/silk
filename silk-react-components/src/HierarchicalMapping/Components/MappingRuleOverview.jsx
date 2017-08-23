@@ -73,27 +73,27 @@ const MappingRuleOverview = React.createClass({
         this.loadData({initialLoad: true});
         this.subscribe(
             hierarchicalMappingChannel.subject('reload'),
-            this.loadData,
+            this.loadData
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.create'),
-            this.onRuleCreate,
+            this.onRuleCreate
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.handleRuleEditClose,
+            this.handleRuleEditClose
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleRuleEditClose,
+            this.handleRuleEditClose
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.handleRuleEditOpen,
+            this.handleRuleEditOpen
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     discardAll() {
@@ -160,7 +160,7 @@ const MappingRuleOverview = React.createClass({
                 err => {
                     console.warn('err MappingRuleOverview: rule.get');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     handleDiscardChanges(event) {
@@ -169,7 +169,7 @@ const MappingRuleOverview = React.createClass({
         const suggestions = _.get(
             this.state.askForDiscard,
             'suggestions',
-            false,
+            false
         );
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
@@ -277,11 +277,11 @@ const MappingRuleOverview = React.createClass({
                                 id: this.state.ruleData.id,
                                 property: _.get(
                                     this,
-                                    'state.ruleData.mappingTarget.uri',
+                                    'state.ruleData.mappingTarget.uri'
                                 ),
                                 type: _.get(
                                     this,
-                                    'state.ruleData.rules.typeRules[0].typeUri',
+                                    'state.ruleData.rules.typeRules[0].typeUri'
                                 ),
                             }}
                             edit
@@ -362,7 +362,7 @@ const MappingRuleOverview = React.createClass({
                               count={childRules.length}
                               key={`MappingRule_${rule.id}`}
                               {...rule}
-                          />,
+                          />
                       )}
                   </ol>;
         }
@@ -407,7 +407,7 @@ const MappingRuleOverview = React.createClass({
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules')
                 ? _.map(this.state.ruleData.rules.typeRules, v =>
-                      v.typeUri.replace('<', '').replace('>', ''),
+                      v.typeUri.replace('<', '').replace('>', '')
                   )
                 : [];
 
@@ -417,17 +417,21 @@ const MappingRuleOverview = React.createClass({
             _.has(this.state, 'ruleData.rules.typeRules')
                 ? <SuggestionOverview
                       key={_.join(types, ',')}
-                      ruleId={_.isUndefined(this.props.currentRuleId) ? 'root' : this.props.currentRuleId}
+                      ruleId={
+                          _.isUndefined(this.props.currentRuleId)
+                              ? 'root'
+                              : this.props.currentRuleId
+                      }
                       onClose={this.handleCloseSuggestions}
                       parent={{
                           id: this.state.ruleData.id,
                           property: _.get(
                               this,
-                              'state.ruleData.mappingTarget.uri',
+                              'state.ruleData.mappingTarget.uri'
                           ),
                           type: _.get(
                               this,
-                              'state.ruleData.rules.typeRules[0].typeUri',
+                              'state.ruleData.rules.typeRules[0].typeUri'
                           ),
                       }}
                       targetClassUris={types}

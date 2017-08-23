@@ -37,7 +37,7 @@ const ExampleView = React.createClass({
                             },
                         },
                     });
-                },
+                }
             );
     },
     getInitialState() {
@@ -141,7 +141,7 @@ const ExampleView = React.createClass({
                                                 <Chip
                                                     key={`${index}_${sourcePath}_${i}_${valueIndex}`}>
                                                     {value}
-                                                </Chip>,
+                                                </Chip>
                                         )}
                                     </td>
                                     {i > 0
@@ -159,12 +159,12 @@ const ExampleView = React.createClass({
                                                           key={`value_${index}_${i}_${row}`}
                                                           id={`value_${index}_${i}_${row}`}>
                                                           {transformedValue}
-                                                      </Chip>,
+                                                      </Chip>
                                               )}
                                           </td>}
-                                </tr>,
+                                </tr>
                         )}
-                    </tbody>,
+                    </tbody>
                 )}
             </table>
         );

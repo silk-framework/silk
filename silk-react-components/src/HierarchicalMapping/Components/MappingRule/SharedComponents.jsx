@@ -32,7 +32,7 @@ export const RuleTypes = ({rule}) => {
                 ? NO_TARGET_TYPE
                 : types
                       .map(({typeUri}) =>
-                          <ThingName id={typeUri} key={typeUri} />,
+                          <ThingName id={typeUri} key={typeUri} />
                       )
                       .reduce((prev, curr) => [prev, ', ', curr]);
             return (
@@ -47,7 +47,7 @@ export const RuleTypes = ({rule}) => {
                     {_.get(
                         rule,
                         'mappingTarget.valueType.nodeType',
-                        NO_TARGET_TYPE,
+                        NO_TARGET_TYPE
                     )}
                 </span>
             );
@@ -117,13 +117,13 @@ const URIInfo = React.createClass({
                 () => {
                     if (__DEBUG__) {
                         console.warn(
-                            `Could not get any info for ${uri}@${field}`,
+                            `Could not get any info for ${uri}@${field}`
                         );
                     }
                     this.setState({
                         info: false,
                     });
-                },
+                }
             );
     },
     render() {
@@ -177,7 +177,7 @@ const PropertyTypeInfo = React.createClass({
                         result: _.get(
                             response,
                             ['options', '0', this.props.option],
-                            this.props.name,
+                            this.props.name
                         ),
                     });
                 },
@@ -186,13 +186,13 @@ const PropertyTypeInfo = React.createClass({
                         console.warn(
                             `No ${this.props
                                 .option} found for the property type ${this
-                                .props.name}`,
+                                .props.name}`
                         );
                     }
                     this.setState({
                         result: this.props.name,
                     });
-                },
+                }
             );
 
         return {
@@ -308,7 +308,7 @@ export const FloatingListActions = React.createClass({
                                           : false}
                                       {action.label}
                                   </button>
-                              </li>,
+                              </li>
                           )}
                       </ul>
                     : false}

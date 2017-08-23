@@ -40,7 +40,7 @@ const RuleValueView = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleCloseEdit,
+            this.handleCloseEdit
         );
     },
     getInitialState() {
@@ -49,7 +49,7 @@ const RuleValueView = React.createClass({
                 topic: 'rule.getEditorHref',
                 data: {id: this.props.id},
             }),
-            ({href}) => this.setState({href}),
+            ({href}) => this.setState({href})
         );
 
         return {
@@ -61,7 +61,7 @@ const RuleValueView = React.createClass({
         if (__DEBUG__) {
             event.stopPropagation();
             alert(
-                'Normally this would open the complex editor (aka jsplumb view)',
+                'Normally this would open the complex editor (aka jsplumb view)'
             );
             return false;
         }
@@ -87,8 +87,8 @@ const RuleValueView = React.createClass({
                     input =>
                         (accumulator = _.concat(
                             accumulator,
-                            this.getOperators(input, []),
-                        )),
+                            this.getOperators(input, [])
+                        ))
                 );
             }
             accumulator.push(operator.function);
@@ -122,7 +122,7 @@ const RuleValueView = React.createClass({
                                 id={_.get(
                                     this.props,
                                     'mappingTarget.uri',
-                                    false,
+                                    false
                                 )}
                             />
                         </div>
@@ -141,7 +141,7 @@ const RuleValueView = React.createClass({
                                                       id={_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   />
                                               </div>
@@ -150,7 +150,7 @@ const RuleValueView = React.createClass({
                                                       {_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   </code>
                                               </div>
@@ -159,7 +159,7 @@ const RuleValueView = React.createClass({
                                                       id={_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   />
                                               </div>
@@ -171,7 +171,7 @@ const RuleValueView = React.createClass({
                         {_.get(
                             this.props,
                             'mappingTarget.valueType.nodeType',
-                            false,
+                            false
                         )
                             ? <div className="ecc-silk-mapping__rulesviewer__propertyType">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -185,7 +185,7 @@ const RuleValueView = React.createClass({
                                                       name={_.get(
                                                           this.props,
                                                           'mappingTarget.valueType.nodeType',
-                                                          false,
+                                                          false
                                                       )}
                                                   />
                                               </div>
@@ -194,7 +194,7 @@ const RuleValueView = React.createClass({
                                                       name={_.get(
                                                           this.props,
                                                           'mappingTarget.valueType.nodeType',
-                                                          false,
+                                                          false
                                                       )}
                                                   />
                                               </div>

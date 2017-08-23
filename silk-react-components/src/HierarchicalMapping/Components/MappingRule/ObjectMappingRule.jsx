@@ -39,7 +39,7 @@ const RuleObjectView = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleCloseEdit,
+            this.handleCloseEdit
         );
     },
     getInitialState() {
@@ -89,7 +89,7 @@ const RuleObjectView = React.createClass({
                                         id={_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     />
                                 </div>
@@ -98,7 +98,7 @@ const RuleObjectView = React.createClass({
                                         {_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     </code>
                                 </div>
@@ -107,7 +107,7 @@ const RuleObjectView = React.createClass({
                                         id={_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     />
                                 </div>
@@ -123,7 +123,7 @@ const RuleObjectView = React.createClass({
                         _.get(
                             this.props,
                             'mappingTarget.isBackwardProperty',
-                            false,
+                            false
                         )
                             ? 'to'
                             : 'from'
@@ -209,7 +209,7 @@ const RuleObjectView = React.createClass({
                                                           />
                                                       </div>
                                                   </InfoBox>
-                                              </dd>,
+                                              </dd>
                                       )}
                                   </dl>
                               </div>
@@ -245,7 +245,7 @@ const RuleObjectView = React.createClass({
                                                   {_.get(
                                                       this.props,
                                                       'rules.uriRule.pattern',
-                                                      '',
+                                                      ''
                                                   )}
                                               </code>
                                           </dd>
@@ -277,7 +277,7 @@ const RuleObjectView = React.createClass({
                                           {_.get(
                                               this.props,
                                               'metadata.description',
-                                              '',
+                                              ''
                                           )}
                                       </dd>
                                   </dl>

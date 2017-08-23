@@ -10,7 +10,7 @@ const hierarchicalMapping = (containerId, apiSettings) => {
     console.warn(containerId, apiSettings);
     ReactDOM.render(
         <HierarchicalMappingComponent {...apiSettings} />,
-        document.getElementById(containerId),
+        document.getElementById(containerId)
     );
 };
 

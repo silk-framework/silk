@@ -46,12 +46,12 @@ const ObjectMappingRuleForm = React.createClass({
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
-                                undefined,
+                                undefined
                             ),
                             sourceProperty: _.get(
                                 rule,
                                 'sourcePath',
-                                undefined,
+                                undefined
                             ),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetEntityType: _.chain(rule)
@@ -61,7 +61,7 @@ const ObjectMappingRuleForm = React.createClass({
                             entityConnection: _.get(
                                 rule,
                                 'mappingTarget.isBackwardProperty',
-                                false,
+                                false
                             )
                                 ? 'to'
                                 : 'from',
@@ -81,7 +81,7 @@ const ObjectMappingRuleForm = React.createClass({
                             loading: false,
                             initialValues: {},
                         });
-                    },
+                    }
                 );
         } else {
             hierarchicalMappingChannel
@@ -125,7 +125,7 @@ const ObjectMappingRuleForm = React.createClass({
                         error: err,
                         loading: false,
                     });
-                },
+                }
             );
     },
     handleChangeSelectBox(state, value) {
@@ -210,7 +210,7 @@ const ObjectMappingRuleForm = React.createClass({
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'targetProperty',
+                        'targetProperty'
                     )}
                 />
             );
@@ -218,7 +218,7 @@ const ObjectMappingRuleForm = React.createClass({
                 <RadioGroup
                     onChange={this.handleChangeRadio.bind(
                         null,
-                        'entityConnection',
+                        'entityConnection'
                     )}
                     value={
                         !_.isEmpty(this.state.entityConnection)
@@ -258,7 +258,7 @@ const ObjectMappingRuleForm = React.createClass({
                     ruleId={this.props.parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'sourceProperty',
+                        'sourceProperty'
                     )}
                 />
             );
@@ -306,7 +306,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 creatable
                                 onChange={this.handleChangeSelectBox.bind(
                                     null,
-                                    'targetEntityType',
+                                    'targetEntityType'
                                 )}
                             />
                             {sourcePropertyInput}
@@ -318,7 +318,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 value={this.state.comment}
                                 onChange={this.handleChangeTextfield.bind(
                                     null,
-                                    'comment',
+                                    'comment'
                                 )}
                             />
                         </div>

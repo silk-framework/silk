@@ -45,12 +45,12 @@ const ValueMappingRuleForm = React.createClass({
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
-                                '',
+                                ''
                             ),
                             propertyType: _.get(
                                 rule,
                                 'mappingTarget.valueType.nodeType',
-                                'AutoDetectValueType',
+                                'AutoDetectValueType'
                             ),
                             sourceProperty: rule.sourcePath,
                         };
@@ -64,7 +64,7 @@ const ValueMappingRuleForm = React.createClass({
                     err => {
                         console.warn('err MappingRuleOverview: rule.get');
                         this.setState({loading: false});
-                    },
+                    }
                 );
         } else {
             hierarchicalMappingChannel
@@ -109,7 +109,7 @@ const ValueMappingRuleForm = React.createClass({
                         error: err,
                         loading: false,
                     });
-                },
+                }
             );
     },
     // remove rule
@@ -184,7 +184,7 @@ const ValueMappingRuleForm = React.createClass({
                     ruleId={this.props.parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'sourceProperty',
+                        'sourceProperty'
                     )}
                 />
             );
@@ -218,7 +218,7 @@ const ValueMappingRuleForm = React.createClass({
                             ruleId={this.props.parentId}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
-                                'targetProperty',
+                                'targetProperty'
                             )}
                         />
                         <AutoComplete
@@ -230,7 +230,7 @@ const ValueMappingRuleForm = React.createClass({
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
-                                'propertyType',
+                                'propertyType'
                             )}
                         />
                         {sourcePropertyInput}
@@ -241,7 +241,7 @@ const ValueMappingRuleForm = React.createClass({
                             value={this.state.comment}
                             onChange={this.handleChangeTextfield.bind(
                                 null,
-                                'comment',
+                                'comment'
                             )}
                         />
                     </div>

@@ -53,7 +53,7 @@ function serializeRule(tagName) {
     // Retrieve all connections
     var connections = jsPlumb.getConnections(
         {scope: ['value', 'similarity']},
-        true,
+        true
     );
     // Find the root of the linkage rule
     var root = findRootOperator(connections);
