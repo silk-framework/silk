@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
     ContextMenu,
@@ -13,10 +12,11 @@ import {
     DisruptiveButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import _ from 'lodash';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
 
 const MappingRule = React.createClass({
@@ -60,19 +60,19 @@ const MappingRule = React.createClass({
                 ) {
                     this.setState({expanded});
                 }
-            },
+            }
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.onOpenEdit,
+            this.onOpenEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     onOpenEdit(obj) {
@@ -142,7 +142,7 @@ const MappingRule = React.createClass({
                     this.setState({
                         loading: false,
                     });
-                },
+                }
             );
     },
     // template rendering
@@ -203,7 +203,7 @@ const MappingRule = React.createClass({
 
         // TODO: enable real API structure
         const errorInfo =
-            _.get(this.props, 'status[0].type', false) == 'error'
+            _.get(this.props, 'status[0].type', false) === 'error'
                 ? _.get(this.props, 'status[0].message', false)
                 : false;
 
@@ -275,7 +275,7 @@ const MappingRule = React.createClass({
                                   null,
                                   id,
                                   0,
-                                  parentId,
+                                  parentId
                               )}>
                               Move to top
                           </MenuItem>
@@ -284,7 +284,7 @@ const MappingRule = React.createClass({
                                   null,
                                   id,
                                   Math.max(0, pos - 1),
-                                  parentId,
+                                  parentId
                               )}>
                               Move up
                           </MenuItem>
@@ -293,7 +293,7 @@ const MappingRule = React.createClass({
                                   null,
                                   id,
                                   Math.min(pos + 1, count - 1),
-                                  parentId,
+                                  parentId
                               )}>
                               Move down
                           </MenuItem>
@@ -302,7 +302,7 @@ const MappingRule = React.createClass({
                                   null,
                                   id,
                                   count - 1,
-                                  parentId,
+                                  parentId
                               )}>
                               Move to bottom
                           </MenuItem>

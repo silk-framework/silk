@@ -83,7 +83,7 @@ function updateLinks(timeout = 2000) {
 
 function reloadLinks() {
     $.get(`${path}/${linkType}/${sorting}/filter:${filter}/${page}`, function(
-        data,
+        data
     ) {
         $('#links').html(data);
         initTrees();

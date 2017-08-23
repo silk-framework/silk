@@ -1,16 +1,15 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
+    DisruptiveButton,
+    CardContent,
+    CardActions,
     Radio,
     RadioGroup,
-    AffirmativeButton,
-    DismissiveButton,
-    DisruptiveButton,
-    Info,
 } from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
+import hierarchicalMappingChannel from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 
@@ -39,7 +38,7 @@ const RuleObjectView = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleCloseEdit,
+            this.handleCloseEdit
         );
     },
     getInitialState() {
@@ -89,7 +88,7 @@ const RuleObjectView = React.createClass({
                                         id={_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     />
                                 </div>
@@ -98,7 +97,7 @@ const RuleObjectView = React.createClass({
                                         {_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     </code>
                                 </div>
@@ -107,7 +106,7 @@ const RuleObjectView = React.createClass({
                                         id={_.get(
                                             this.props,
                                             'mappingTarget.uri',
-                                            undefined,
+                                            undefined
                                         )}
                                     />
                                 </div>
@@ -123,7 +122,7 @@ const RuleObjectView = React.createClass({
                         _.get(
                             this.props,
                             'mappingTarget.isBackwardProperty',
-                            false,
+                            false
                         )
                             ? 'to'
                             : 'from'
@@ -173,7 +172,7 @@ const RuleObjectView = React.createClass({
         return (
             <div>
                 <div className="ecc-silk-mapping__rulesviewer">
-                    <div className="mdl-card__content">
+                    <CardContent>
                         {targetProperty}
                         {entityRelation}
                         {_.get(this.props, 'rules.typeRules[0].typeUri', false)
@@ -209,7 +208,7 @@ const RuleObjectView = React.createClass({
                                                           />
                                                       </div>
                                                   </InfoBox>
-                                              </dd>,
+                                              </dd>
                                       )}
                                   </dl>
                               </div>
@@ -245,7 +244,7 @@ const RuleObjectView = React.createClass({
                                                   {_.get(
                                                       this.props,
                                                       'rules.uriRule.pattern',
-                                                      '',
+                                                      ''
                                                   )}
                                               </code>
                                           </dd>
@@ -277,21 +276,21 @@ const RuleObjectView = React.createClass({
                                           {_.get(
                                               this.props,
                                               'metadata.description',
-                                              '',
+                                              ''
                                           )}
                                       </dd>
                                   </dl>
                               </div>
                             : false}
-                    </div>
-                    <div className="ecc-silk-mapping__rulesviewer__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
                         <Button
                             className="ecc-silk-mapping__rulesviewer__actionrow-edit"
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
                         {deleteButton}
-                    </div>
+                    </CardActions>
                 </div>
             </div>
         );

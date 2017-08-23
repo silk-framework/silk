@@ -1,17 +1,21 @@
 import React from 'react';
-import UseMessageBus from '../../../UseMessageBusMixin';
 import {
+    AffirmativeButton,
+    DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
     Radio,
     RadioGroup,
     TextField,
-    AffirmativeButton,
     Spinner,
-    DismissiveButton,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
@@ -46,12 +50,12 @@ const ObjectMappingRuleForm = React.createClass({
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
-                                undefined,
+                                undefined
                             ),
                             sourceProperty: _.get(
                                 rule,
                                 'sourcePath',
-                                undefined,
+                                undefined
                             ),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetEntityType: _.chain(rule)
@@ -61,7 +65,7 @@ const ObjectMappingRuleForm = React.createClass({
                             entityConnection: _.get(
                                 rule,
                                 'mappingTarget.isBackwardProperty',
-                                false,
+                                false
                             )
                                 ? 'to'
                                 : 'from',
@@ -81,7 +85,7 @@ const ObjectMappingRuleForm = React.createClass({
                             loading: false,
                             initialValues: {},
                         });
-                    },
+                    }
                 );
         } else {
             hierarchicalMappingChannel
@@ -125,7 +129,7 @@ const ObjectMappingRuleForm = React.createClass({
                         error: err,
                         loading: false,
                     });
-                },
+                }
             );
     },
     handleChangeSelectBox(state, value) {
@@ -187,11 +191,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
-            !id
-                ? <div className="mdl-card__title mdl-card--border">
-                      Add object mapping
-                  </div>
-                : false;
+            !id ? <CardTitle>Add object mapping</CardTitle> : false;
 
         let targetPropertyInput = false;
         let entityRelationInput = false;
@@ -210,7 +210,7 @@ const ObjectMappingRuleForm = React.createClass({
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'targetProperty',
+                        'targetProperty'
                     )}
                 />
             );
@@ -218,7 +218,7 @@ const ObjectMappingRuleForm = React.createClass({
                 <RadioGroup
                     onChange={this.handleChangeRadio.bind(
                         null,
-                        'entityConnection',
+                        'entityConnection'
                     )}
                     value={
                         !_.isEmpty(this.state.entityConnection)
@@ -258,7 +258,7 @@ const ObjectMappingRuleForm = React.createClass({
                     ruleId={this.props.parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'sourceProperty',
+                        'sourceProperty'
                     )}
                 />
             );
@@ -278,65 +278,60 @@ const ObjectMappingRuleForm = React.createClass({
         }
 
         return (
-            <div>
-                <div className="ecc-silk-mapping__ruleseditor">
-                    <div
-                        className={`mdl-card mdl-card--stretch${!id
-                            ? ' mdl-shadow--2dp'
-                            : ''}`}>
-                        {title}
-                        <div className="mdl-card__content">
-                            {errorMessage}
-                            {targetPropertyInput}
-                            {entityRelationInput}
-                            <AutoComplete
-                                placeholder={'Target entity type'}
-                                className={
-                                    'ecc-silk-mapping__ruleseditor__targetEntityType'
-                                }
-                                entity="targetEntityType"
-                                isValidNewOption={newValueIsIRI}
-                                ruleId={
-                                    type === 'root'
-                                        ? this.props.id
-                                        : this.props.parentId
-                                }
-                                value={this.state.targetEntityType}
-                                multi // allow multi selection
-                                creatable
-                                onChange={this.handleChangeSelectBox.bind(
-                                    null,
-                                    'targetEntityType',
-                                )}
-                            />
-                            {sourcePropertyInput}
-                            {patternInput}
-                            <TextField
-                                multiline
-                                label="Description"
-                                className="ecc-silk-mapping__ruleseditor__comment"
-                                value={this.state.comment}
-                                onChange={this.handleChangeTextfield.bind(
-                                    null,
-                                    'comment',
-                                )}
-                            />
-                        </div>
-                        <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
-                            <AffirmativeButton
-                                className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                                onClick={this.handleConfirm}
-                                disabled={!allowConfirm || !this.state.changed}>
-                                Save
-                            </AffirmativeButton>
-                            <DismissiveButton
-                                className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                                onClick={this.handleClose}>
-                                Cancel
-                            </DismissiveButton>
-                        </div>
-                    </div>
-                </div>
+            <div className="ecc-silk-mapping__ruleseditor">
+                <Card shadow={!id ? 1 : 0}>
+                    {title}
+                    <CardContent>
+                        {errorMessage}
+                        {targetPropertyInput}
+                        {entityRelationInput}
+                        <AutoComplete
+                            placeholder={'Target entity type'}
+                            className={
+                                'ecc-silk-mapping__ruleseditor__targetEntityType'
+                            }
+                            entity="targetEntityType"
+                            isValidNewOption={newValueIsIRI}
+                            ruleId={
+                                type === 'root'
+                                    ? this.props.id
+                                    : this.props.parentId
+                            }
+                            value={this.state.targetEntityType}
+                            multi // allow multi selection
+                            creatable
+                            onChange={this.handleChangeSelectBox.bind(
+                                null,
+                                'targetEntityType'
+                            )}
+                        />
+                        {sourcePropertyInput}
+                        {patternInput}
+                        <TextField
+                            multiline
+                            label="Description"
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            value={this.state.comment}
+                            onChange={this.handleChangeTextfield.bind(
+                                null,
+                                'comment'
+                            )}
+                        />
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                        <AffirmativeButton
+                            className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                            onClick={this.handleConfirm}
+                            disabled={!allowConfirm || !this.state.changed}>
+                            Save
+                        </AffirmativeButton>
+                        <DismissiveButton
+                            className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
+                            onClick={this.handleClose}>
+                            Cancel
+                        </DismissiveButton>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

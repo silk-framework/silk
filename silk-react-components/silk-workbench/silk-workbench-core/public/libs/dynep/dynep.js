@@ -100,7 +100,7 @@ function DynamicEndpointHandler() {
                 if (info.targetEndpoint.dynamic) {
                     _this.addDynamicEndpoint(
                         info.targetId,
-                        info.targetEndpoint.dynepType,
+                        info.targetEndpoint.dynepType
                     );
                 }
             } else {
@@ -130,7 +130,7 @@ function DynamicEndpointHandler() {
                 if (originalTargetEndpoint.dynamic) {
                     _this.removeDynamicEndpoint(
                         info.originalTargetId,
-                        originalTargetEndpoint,
+                        originalTargetEndpoint
                     );
                 }
             } else {

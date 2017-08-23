@@ -3,28 +3,30 @@
  */
 
 import React from 'react';
-import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
-import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
-import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRuleOverviewHeader from './MappingRuleOverviewHeader';
-import MappingRule from './MappingRule/MappingRule';
-import SuggestionOverview from './MappingRule/SuggestionOverview';
 import {
-    Spinner,
-    Info,
-    Icon,
+    DisruptiveButton,
+    DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardMenu,
+    FloatingActionList,
     ContextMenu,
     MenuItem,
     ConfirmationDialog,
-    DisruptiveButton,
-    DismissiveButton,
-    Button,
+    Info,
+    Spinner,
 } from 'ecc-gui-elements';
-import {FloatingListActions} from './MappingRule/SharedComponents';
+import UseMessageBus from '../UseMessageBusMixin';
+import hierarchicalMappingChannel from '../store';
+import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
+import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
+import MappingRulesObject from './MappingRulesObject';
+import MappingRule from './MappingRule/MappingRule';
+import SuggestionsList from './SuggestionsList';
 
-const MappingRuleOverview = React.createClass({
+const MappingRulesView = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -73,27 +75,27 @@ const MappingRuleOverview = React.createClass({
         this.loadData({initialLoad: true});
         this.subscribe(
             hierarchicalMappingChannel.subject('reload'),
-            this.loadData,
+            this.loadData
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.create'),
-            this.onRuleCreate,
+            this.onRuleCreate
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.handleRuleEditClose,
+            this.handleRuleEditClose
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleRuleEditClose,
+            this.handleRuleEditClose
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.handleRuleEditOpen,
+            this.handleRuleEditOpen
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     discardAll() {
@@ -131,7 +133,9 @@ const MappingRuleOverview = React.createClass({
             loading: true,
         });
 
-        console.warn('DATA RELOAD');
+        if (__DEBUG__) {
+            console.warn('DATA RELOAD');
+        }
 
         hierarchicalMappingChannel
             .request({
@@ -158,9 +162,9 @@ const MappingRuleOverview = React.createClass({
                     });
                 },
                 err => {
-                    console.warn('err MappingRuleOverview: rule.get');
+                    console.warn('err MappingRulesView: rule.get');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     handleDiscardChanges(event) {
@@ -169,7 +173,7 @@ const MappingRuleOverview = React.createClass({
         const suggestions = _.get(
             this.state.askForDiscard,
             'suggestions',
-            false,
+            false
         );
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
@@ -277,11 +281,11 @@ const MappingRuleOverview = React.createClass({
                                 id: this.state.ruleData.id,
                                 property: _.get(
                                     this,
-                                    'state.ruleData.mappingTarget.uri',
+                                    'state.ruleData.mappingTarget.uri'
                                 ),
                                 type: _.get(
                                     this,
-                                    'state.ruleData.rules.typeRules[0].typeUri',
+                                    'state.ruleData.rules.typeRules[0].typeUri'
                                 ),
                             }}
                             edit
@@ -303,57 +307,63 @@ const MappingRuleOverview = React.createClass({
 
         if (!createRuleForm) {
             mappingRulesListHead = (
-                <div className="mdl-card__title mdl-card--border">
+                <CardTitle>
                     <div className="mdl-card__title-text">
                         Mapping rules {`(${childRules.length})`}
                     </div>
-                    <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-add-value"
-                            onClick={() => {
-                                this.handleCreate({type: 'direct'});
-                            }}>
-                            Add value mapping
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-add-object"
-                            onClick={() => {
-                                this.handleCreate({type: 'object'});
-                            }}>
-                            Add object mapping
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-                            onClick={this.handleShowSuggestions}>
-                            Suggest mappings
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-expand"
-                            onClick={() => {
-                                this.handleToggleRuleDetails({expanded: true});
-                            }}>
-                            Expand all
-                        </MenuItem>
-                        <MenuItem
-                            className="ecc-silk-mapping__ruleslistmenu__item-reduce"
-                            onClick={() => {
-                                this.handleToggleRuleDetails({expanded: false});
-                            }}>
-                            Reduce all
-                        </MenuItem>
-                    </ContextMenu>
-                </div>
+                    <CardMenu>
+                        <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-add-value"
+                                onClick={() => {
+                                    this.handleCreate({type: 'direct'});
+                                }}>
+                                Add value mapping
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-add-object"
+                                onClick={() => {
+                                    this.handleCreate({type: 'object'});
+                                }}>
+                                Add object mapping
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                                onClick={this.handleShowSuggestions}>
+                                Suggest mappings
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                                onClick={() => {
+                                    this.handleToggleRuleDetails({
+                                        expanded: true,
+                                    });
+                                }}>
+                                Expand all
+                            </MenuItem>
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                                onClick={() => {
+                                    this.handleToggleRuleDetails({
+                                        expanded: false,
+                                    });
+                                }}>
+                                Reduce all
+                            </MenuItem>
+                        </ContextMenu>
+                    </CardMenu>
+                </CardTitle>
             );
 
             mappingRulesList = _.isEmpty(childRules)
-                ? <div className="mdl-card__content">
+                ? <CardContent>
                       <Info vertSpacing border>
                           No existing mapping rules.
                       </Info>
                       {/* TODO: we should provide options like adding rules or suggestions here,
                              even a help text would be a good support for the user.
                              */}
-                  </div>
+                  </CardContent>
                 : <ol className="mdl-list">
                       {_.map(childRules, (rule, idx) =>
                           <MappingRule
@@ -362,7 +372,7 @@ const MappingRuleOverview = React.createClass({
                               count={childRules.length}
                               key={`MappingRule_${rule.id}`}
                               {...rule}
-                          />,
+                          />
                       )}
                   </ol>;
         }
@@ -370,35 +380,35 @@ const MappingRuleOverview = React.createClass({
         const rulesList =
             !createRuleForm && !suggestions
                 ? <div className="ecc-silk-mapping__ruleslist">
-                      <div className="mdl-card mdl-card--stretch">
+                      <Card>
                           {mappingRulesListHead}
                           {mappingRulesList}
-                          <div className="mdl-card__actions--fixed">
-                              <FloatingListActions
-                                  iconName="add"
-                                  actions={[
-                                      {
-                                          icon: 'insert_drive_file',
-                                          label: 'Add value mapping',
-                                          handler: () => {
-                                              this.handleCreate({
-                                                  type: 'direct',
-                                              });
-                                          },
+                          <FloatingActionList
+                              fabSize="large"
+                              fixed
+                              iconName="add"
+                              actions={[
+                                  {
+                                      icon: 'insert_drive_file',
+                                      label: 'Add value mapping',
+                                      handler: () => {
+                                          this.handleCreate({
+                                              type: 'direct',
+                                          });
                                       },
-                                      {
-                                          icon: 'folder',
-                                          label: 'Add object mapping',
-                                          handler: () => {
-                                              this.handleCreate({
-                                                  type: 'object',
-                                              });
-                                          },
+                                  },
+                                  {
+                                      icon: 'folder',
+                                      label: 'Add object mapping',
+                                      handler: () => {
+                                          this.handleCreate({
+                                              type: 'object',
+                                          });
                                       },
-                                  ]}
-                              />
-                          </div>
-                      </div>
+                                  },
+                              ]}
+                          />
+                      </Card>
                   </div>
                 : false;
 
@@ -407,7 +417,7 @@ const MappingRuleOverview = React.createClass({
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules')
                 ? _.map(this.state.ruleData.rules.typeRules, v =>
-                      v.typeUri.replace('<', '').replace('>', ''),
+                      v.typeUri.replace('<', '').replace('>', '')
                   )
                 : [];
 
@@ -415,19 +425,23 @@ const MappingRuleOverview = React.createClass({
             !createRuleForm &&
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules')
-                ? <SuggestionOverview
+                ? <SuggestionsList
                       key={_.join(types, ',')}
-                      ruleId={_.isUndefined(this.props.currentRuleId) ? 'root' : this.props.currentRuleId}
+                      ruleId={
+                          _.isUndefined(this.props.currentRuleId)
+                              ? 'root'
+                              : this.props.currentRuleId
+                      }
                       onClose={this.handleCloseSuggestions}
                       parent={{
                           id: this.state.ruleData.id,
                           property: _.get(
                               this,
-                              'state.ruleData.mappingTarget.uri',
+                              'state.ruleData.mappingTarget.uri'
                           ),
                           type: _.get(
                               this,
-                              'state.ruleData.rules.typeRules[0].typeUri',
+                              'state.ruleData.rules.typeRules[0].typeUri'
                           ),
                       }}
                       targetClassUris={types}
@@ -438,17 +452,12 @@ const MappingRuleOverview = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <div className="mdl-shadow--2dp">
-                    <MappingRuleOverviewHeader
-                        rule={this.state.ruleData}
-                        key={id}
-                    />
-                    {suggestions || rulesList}
-                </div>
+                <MappingRulesObject rule={this.state.ruleData} key={id} />
+                {suggestions || rulesList}
                 {createRuleForm}
             </div>
         );
     },
 });
 
-export default MappingRuleOverview;
+export default MappingRulesView;

@@ -1,18 +1,18 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    AffirmativeButton,
-    DismissiveButton,
     DisruptiveButton,
-    Info,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
 import ExampleView from './ExampleView';
 import hierarchicalMappingChannel from '../../store';
-import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
 import {
-    SourcePath,
     ThingName,
     ThingDescription,
     InfoBox,
@@ -40,7 +40,7 @@ const RuleValueView = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.handleCloseEdit,
+            this.handleCloseEdit
         );
     },
     getInitialState() {
@@ -49,7 +49,7 @@ const RuleValueView = React.createClass({
                 topic: 'rule.getEditorHref',
                 data: {id: this.props.id},
             }),
-            ({href}) => this.setState({href}),
+            ({href}) => this.setState({href})
         );
 
         return {
@@ -61,7 +61,7 @@ const RuleValueView = React.createClass({
         if (__DEBUG__) {
             event.stopPropagation();
             alert(
-                'Normally this would open the complex editor (aka jsplumb view)',
+                'Normally this would open the complex editor (aka jsplumb view)'
             );
             return false;
         }
@@ -87,8 +87,8 @@ const RuleValueView = React.createClass({
                     input =>
                         (accumulator = _.concat(
                             accumulator,
-                            this.getOperators(input, []),
-                        )),
+                            this.getOperators(input, [])
+                        ))
                 );
             }
             accumulator.push(operator.function);
@@ -113,21 +113,21 @@ const RuleValueView = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__rulesviewer">
-                <div className="mdl-card mdl-card--stretch">
-                    <div
-                        className="ecc-silk-mapping__rulesviewer__title mdl-card__title mdl-card--border clickable"
+                <Card shadow={0}>
+                    <CardTitle
+                        className="ecc-silk-mapping__rulesviewer__title clickable"
                         onClick={this.props.handleToggleExpand}>
                         <div className="mdl-card__title-text">
                             <ThingName
                                 id={_.get(
                                     this.props,
                                     'mappingTarget.uri',
-                                    false,
+                                    false
                                 )}
                             />
                         </div>
-                    </div>
-                    <div className="mdl-card__content">
+                    </CardTitle>
+                    <CardContent>
                         {_.get(this.props, 'mappingTarget.uri', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__targetProperty">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -141,7 +141,7 @@ const RuleValueView = React.createClass({
                                                       id={_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   />
                                               </div>
@@ -150,7 +150,7 @@ const RuleValueView = React.createClass({
                                                       {_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   </code>
                                               </div>
@@ -159,7 +159,7 @@ const RuleValueView = React.createClass({
                                                       id={_.get(
                                                           this.props,
                                                           'mappingTarget.uri',
-                                                          undefined,
+                                                          undefined
                                                       )}
                                                   />
                                               </div>
@@ -171,7 +171,7 @@ const RuleValueView = React.createClass({
                         {_.get(
                             this.props,
                             'mappingTarget.valueType.nodeType',
-                            false,
+                            false
                         )
                             ? <div className="ecc-silk-mapping__rulesviewer__propertyType">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -185,7 +185,7 @@ const RuleValueView = React.createClass({
                                                       name={_.get(
                                                           this.props,
                                                           'mappingTarget.valueType.nodeType',
-                                                          false,
+                                                          false
                                                       )}
                                                   />
                                               </div>
@@ -194,7 +194,7 @@ const RuleValueView = React.createClass({
                                                       name={_.get(
                                                           this.props,
                                                           'mappingTarget.valueType.nodeType',
-                                                          false,
+                                                          false
                                                       )}
                                                   />
                                               </div>
@@ -271,8 +271,8 @@ const RuleValueView = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                    </div>
-                    <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                             onClick={this.handleEdit}>
@@ -292,8 +292,8 @@ const RuleValueView = React.createClass({
                             disabled={false}>
                             Remove
                         </DisruptiveButton>
-                    </div>
-                </div>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

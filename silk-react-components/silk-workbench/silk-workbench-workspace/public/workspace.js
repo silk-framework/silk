@@ -43,7 +43,7 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.
 */
 function cloneTask(project, task) {
     showDialog(
-        `${baseUrl}/workspace/dialogs/cloneTask?project=${project}&task=${task}`,
+        `${baseUrl}/workspace/dialogs/cloneTask?project=${project}&task=${task}`
     );
 }
 
@@ -128,7 +128,7 @@ function putTask(
     callbacks = {
         success() {},
         error() {},
-    },
+    }
 ) {
     $.ajax({
         type: 'PUT',
@@ -198,8 +198,8 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/resourcesDialog.scal
 function deleteResourceConfirm(name, path) {
     showDialog(
         `${baseUrl}/workspace/dialogs/removeresource/${name}?path=${encodeURIComponent(
-            path,
+            path
         )}`,
-        'secondary',
+        'secondary'
     );
 }
