@@ -105,11 +105,15 @@ DataManager:
 
         SOFTWARE.
     - name: babel-polyfill
-      version: 6.23.0
+      version: 6.26.0
       url: 'https://babeljs.io/'
       spdx: MIT
     - name: babel-runtime
       version: 6.23.0
+      url: 'https://github.com/babel/babel/tree/master/packages/babel-runtime'
+      spdx: MIT
+    - name: babel-runtime
+      version: 6.26.0
       url: 'https://github.com/babel/babel/tree/master/packages/babel-runtime'
       spdx: MIT
     - name: buffer-shims
@@ -448,6 +452,56 @@ DataManager:
         IN
 
         THE SOFTWARE.
+    - name: core-js
+      version: 2.5.0
+      url: 'https://github.com/zloirock/core-js#readme'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        Copyright (c) 2014-2016 Denis Pushkarev
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in
+
+        all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN
+
+        THE SOFTWARE.
     - name: core-util-is
       version: 1.0.2
       url: 'https://github.com/isaacs/core-util-is#readme'
@@ -556,7 +610,7 @@ DataManager:
 
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     - name: debug
-      version: 2.6.6
+      version: 2.6.8
       url: 'https://github.com/visionmedia/debug#readme'
       spdx: MIT
       licenseFile: >+
@@ -1439,8 +1493,8 @@ DataManager:
     - name: mark.js
       version: 7.0.0
       url: 'https://markjs.io/'
-      downloadUrl: https://github.com/julmot/mark.js/archive/{version}.tar.gz
       spdx: MIT
+      downloadUrl: 'https://github.com/julmot/mark.js/archive/{version}.tar.gz'
       licenseFile: >-
         ---
 
@@ -1952,7 +2006,7 @@ DataManager:
         TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     - name: ms
-      version: 0.7.3
+      version: 2.0.0
       url: 'https://github.com/zeit/ms#readme'
       spdx: MIT
       licenseFile: >
@@ -2449,7 +2503,7 @@ DataManager:
 
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     - name: react-highlight-words
-      version: 0.8.0
+      version: 0.8.1
       url: 'https://github.com/bvaughn/react-highlight-words#readme'
       spdx: MIT
       licenseFile: >+
@@ -2774,6 +2828,11 @@ DataManager:
       url: >-
         https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime
       spdx: MIT
+    - name: regenerator-runtime
+      version: 0.11.0
+      url: >-
+        https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime
+      spdx: MIT
     - name: roboto
       version: '2.136'
       url: 'https://github.com/google/roboto'
@@ -3049,6 +3108,37 @@ DataManager:
       version: 0.3.0
       url: 'https://github.com/yamalight/superagent-rx#readme'
       spdx: MIT
+    - name: twbs-pagination
+      version: 1.4.1
+      url: 'https://github.com/esimakin/twbs-pagination'
+      spdx: Apache-2.0
+      licenseFile: >
+        ---
+
+        Copyright 2014-2015 &copy; Eugene Simakin
+
+
+        Licensed under the Apache License, Version 2.0 (the "License"); 
+
+        you may not use this file except in compliance with the License. 
+
+        You may obtain a copy of the License at
+
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+
+        Unless required by applicable law or agreed to in writing, 
+
+        software distributed under the License is distributed on an "AS IS"
+        BASIS, 
+
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+        implied. 
+
+        See the License for the specific language governing permissions and 
+
+        limitations under the License.
     - name: ua-parser-js
       version: 0.7.12
       url: 'http://github.com/faisalman/ua-parser-js'
@@ -3057,7 +3147,7 @@ DataManager:
           url: >-
             https://raw.githubusercontent.com/faisalman/ua-parser-js/0.7.11/readme.md
     - name: urijs
-      version: 1.18.10
+      version: 1.18.12
       url: 'http://medialize.github.io/URI.js/'
       spdx: MIT
       licenseFile: >-
@@ -3140,7 +3230,7 @@ DataManager:
         FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
         OTHER DEALINGS IN THE SOFTWARE.
     - name: uuid
-      version: 3.0.1
+      version: 3.1.0
       url: 'https://github.com/kelektiv/node-uuid#readme'
       spdx: MIT
       licenseFile: >
