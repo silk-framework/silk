@@ -64,7 +64,7 @@ function printMessages(array) {
     var c = 1;
     for (var i = 0; i < array.length; i++) {
         result = `${result}<div class="msg">${c}. ${encodeHtml(
-            array[i].message,
+            array[i].message
         )}</div>`;
         if (array[i].id)
             highlightElement(array[i].id, encodeHtml(array[i].message));

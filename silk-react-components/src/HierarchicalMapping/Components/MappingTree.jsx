@@ -22,11 +22,11 @@ const MappingTree = React.createClass({
     getInitialState() {
         this.subscribe(
             hierarchicalMappingChannel.subject('reload'),
-            this.loadData,
+            this.loadData
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
-            this.expandElement,
+            this.expandElement
         );
         return {
             loading: true,
@@ -70,7 +70,7 @@ const MappingTree = React.createClass({
             err => {
                 console.warn('err MappingTree: hierarchy.get', err);
                 this.setState({loading: false});
-            },
+            }
         );
     },
     // select clicked id
@@ -197,7 +197,7 @@ const MappingTree = React.createClass({
                               {_.map(childs, child =>
                                   <li key={child.id}>
                                       {navigationList({parent: child})}
-                                  </li>,
+                                  </li>
                               )}
                           </ul>
                         : false}

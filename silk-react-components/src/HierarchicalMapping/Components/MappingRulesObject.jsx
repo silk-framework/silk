@@ -38,15 +38,15 @@ const MappingRuleOverviewHeader = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.onOpenEdit,
+            this.onOpenEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     onOpenEdit(obj) {

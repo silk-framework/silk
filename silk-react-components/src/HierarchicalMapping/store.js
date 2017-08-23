@@ -68,9 +68,9 @@ const datatypes = _.map(
     datatype => ({
         ...datatype,
         $search: _.deburr(
-            `${datatype.value}|${datatype.label}|${datatype.description}`,
+            `${datatype.value}|${datatype.label}|${datatype.description}`
         ).toLocaleLowerCase(),
-    }),
+    })
 );
 
 function filterPropertyType(input, replySubject) {
@@ -78,7 +78,7 @@ function filterPropertyType(input, replySubject) {
 
     replySubject.onNext({
         options: _.filter(datatypes, datatype =>
-            _.includes(datatype.$search, search),
+            _.includes(datatype.$search, search)
         ),
     });
     replySubject.onCompleted();
@@ -241,7 +241,7 @@ if (!__DEBUG__) {
                         const info = _.get(
                             returned,
                             ['body', 'genericInfo', field],
-                            null,
+                            null
                         );
 
                         _.set(vocabularyCache, path, info);
@@ -354,7 +354,7 @@ if (!__DEBUG__) {
                         _.cloneDeep(rules),
                         searchId,
                         isObjectMapping,
-                        [],
+                        []
                     );
 
                     return {rule: rule || rules};
@@ -477,7 +477,7 @@ if (!__DEBUG__) {
                     err => {
                         // TODO: Beautify
                         console.warn(`Error deleting rule in ${id}`, err);
-                    },
+                    }
                 );
         });
 } else {
@@ -508,7 +508,7 @@ if (!__DEBUG__) {
                     metadata: {
                         description: _.includes(
                             correspondence.sourcePath,
-                            'error',
+                            'error'
                         )
                             ? 'error'
                             : '',
@@ -635,7 +635,7 @@ if (!__DEBUG__) {
                     ({value, label, description}) =>
                         _.includes(value.toLocaleLowerCase(), search) ||
                         _.includes(label.toLocaleLowerCase(), search) ||
-                        _.includes(description.toLocaleLowerCase(), search),
+                        _.includes(description.toLocaleLowerCase(), search)
                 ),
             });
 
@@ -684,7 +684,7 @@ if (!__DEBUG__) {
                 _.cloneDeep(mockStore),
                 id,
                 isObjectMapping,
-                [],
+                []
             );
             const result = _.isNull(rule) ? mockStore : rule;
             replySubject.onNext({rule: result});
@@ -803,7 +803,7 @@ if (!__DEBUG__) {
         } else if (_.has(store, 'rules.propertyRules')) {
             store.rules.propertyRules = _.filter(
                 store.rules.propertyRules,
-                v => removeRule(v, id) !== null,
+                v => removeRule(v, id) !== null
             );
         }
         return store;
@@ -823,13 +823,13 @@ if (!__DEBUG__) {
         if (_.has(store, 'rules.propertyRules')) {
             const match = _.remove(
                 store.rules.propertyRules,
-                children => children.id === id,
+                children => children.id === id
             );
 
             if (_.isEmpty(match)) {
                 store.rules.propertyRules = _.map(
                     store.rules.propertyRules,
-                    child => orderRule(child, id, pos),
+                    child => orderRule(child, id, pos)
                 );
             } else {
                 const spliceAt = _.max([
@@ -878,7 +878,7 @@ if (!__DEBUG__) {
                     break;
                 default:
                     console.warn(
-                        `No info for field ${field} available in mockStore`,
+                        `No info for field ${field} available in mockStore`
                     );
             }
 

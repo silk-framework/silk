@@ -17,13 +17,13 @@ const UseMessageBus = {
                     console.log(
                         `UseMessageBus: ${this.constructor
                             .displayName} sent on ${channel}:${subjName}`,
-                        ...args,
+                        ...args
                     );
                     break;
                 case 'subscribe':
                     console.log(
                         `UseMessageBus: ${this.constructor
-                            .displayName} subscribed on ${channel}:${subjName}`,
+                            .displayName} subscribed on ${channel}:${subjName}`
                     );
                     break;
                 default:

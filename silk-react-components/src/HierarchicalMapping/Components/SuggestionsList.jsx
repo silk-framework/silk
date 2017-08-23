@@ -71,7 +71,7 @@ const SuggestionsList = React.createClass({
                 err => {
                     console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     componentDidMount() {
@@ -103,7 +103,7 @@ const SuggestionsList = React.createClass({
                     _.map(response.rules, (rule, k) => {
                         this.saveRule(
                             {...rule, parentId: this.props.ruleId},
-                            k,
+                            k
                         );
                     });
                     hierarchicalMappingChannel.subject('reload').onNext(true);
@@ -111,7 +111,7 @@ const SuggestionsList = React.createClass({
                 err => {
                     console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
-                },
+                }
             );
     },
     saveRule(rule, pos) {
@@ -133,7 +133,7 @@ const SuggestionsList = React.createClass({
                     };
                     this.onSafeDone(pos);
                 },
-                () => {},
+                () => {}
             );
     },
     onSafeDone(pos) {
@@ -200,7 +200,7 @@ const SuggestionsList = React.createClass({
                     {_.isEmpty(this.state.error)
                         ? `Add suggested mapping rules`
                         : `${_.size(
-                              this.state.error,
+                              this.state.error
                           )} errors saving suggestions`}
                 </div>
                 {suggestionsMenu}
@@ -217,8 +217,8 @@ const SuggestionsList = React.createClass({
                           suggestedClass={suggestedClass}
                           check={this.check}
                           checked={this.isChecked(suggestedClass, pos)}
-                      />,
-                  ),
+                      />
+                  )
               );
 
         const errorsList = _.isEmpty(this.state.error)
@@ -238,7 +238,7 @@ const SuggestionsList = React.createClass({
                               </Error>
                           </div>
                       </div>
-                  </li>,
+                  </li>
               );
 
         const actions = (
