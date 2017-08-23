@@ -20,13 +20,17 @@ globals:
 parserOptions:
    ecmaFeatures:
      # enable JSX support
-       jsx: true
+      jsx: true
 rules:
   prettier/prettier:
     - error
     - singleQuote: true
-      trailingComma: all
+      trailingComma: es5
       bracketSpacing: false
       jsxBracketSameLine: true
       tabWidth: 4
+      printWidth: 80
+      semi: true
   no-plusplus: ["error", { "allowForLoopAfterthoughts": true }]
+  no-use-before-define: ["warn"]
+  no-warning-comments: ["warn", { "terms": ["todo", "fixme", "xxx", "to do", "fix me"] }]
