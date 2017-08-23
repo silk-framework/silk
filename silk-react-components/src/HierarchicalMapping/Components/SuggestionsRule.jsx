@@ -1,16 +1,8 @@
 import React from 'react';
+import {Checkbox} from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import {
-    Spinner,
-    Error,
-    Checkbox,
-    Button,
-    ContextMenu,
-    MenuItem,
-    Chip,
-} from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../store';
-import _ from 'lodash';
+// import hierarchicalMappingChannel from '../store';
+// import _ from 'lodash';
 
 const SuggestionsRule = React.createClass({
     mixins: [UseMessageBus],

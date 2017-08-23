@@ -1,5 +1,4 @@
 import React from 'react';
-import UseMessageBus from '../../../UseMessageBusMixin';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -10,9 +9,10 @@ import {
     TextField,
     Spinner,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
@@ -168,11 +168,7 @@ const ValueMappingRuleForm = React.createClass({
 
         const allowConfirm = this.state.targetProperty;
 
-        const title = !id
-            ? <CardTitle>
-                  Add value mapping
-              </CardTitle>
-            : false;
+        const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
@@ -205,9 +201,7 @@ const ValueMappingRuleForm = React.createClass({
         // TODO: Where to get the list of target property types?
         return (
             <div className="ecc-silk-mapping__ruleseditor">
-                <Card
-                    shadow={!id ? 1 : 0}
-                >
+                <Card shadow={!id ? 1 : 0}>
                     {title}
                     <CardContent>
                         {errorMessage}

@@ -1,22 +1,18 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    AffirmativeButton,
-    DismissiveButton,
     DisruptiveButton,
     Card,
     CardTitle,
     CardContent,
     CardActions,
-    Info,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
 import ExampleView from './ExampleView';
 import hierarchicalMappingChannel from '../../store';
-import _ from 'lodash';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
 import {
-    SourcePath,
     ThingName,
     ThingDescription,
     InfoBox,

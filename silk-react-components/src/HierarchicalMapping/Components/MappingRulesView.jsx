@@ -3,16 +3,8 @@
  */
 
 import React from 'react';
-import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../store';
 import _ from 'lodash';
-import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
-import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRulesObject from './MappingRulesObject';
-import MappingRule from './MappingRule/MappingRule';
-import SuggestionsList from './SuggestionsList';
 import {
-    Button,
     DisruptiveButton,
     DismissiveButton,
     Card,
@@ -23,10 +15,16 @@ import {
     ContextMenu,
     MenuItem,
     ConfirmationDialog,
-    Icon,
     Info,
     Spinner,
 } from 'ecc-gui-elements';
+import UseMessageBus from '../UseMessageBusMixin';
+import hierarchicalMappingChannel from '../store';
+import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
+import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
+import MappingRulesObject from './MappingRulesObject';
+import MappingRule from './MappingRule/MappingRule';
+import SuggestionsList from './SuggestionsList';
 
 const MappingRulesView = React.createClass({
     mixins: [UseMessageBus],
@@ -337,14 +335,18 @@ const MappingRulesView = React.createClass({
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-expand"
                                 onClick={() => {
-                                    this.handleToggleRuleDetails({expanded: true});
+                                    this.handleToggleRuleDetails({
+                                        expanded: true,
+                                    });
                                 }}>
                                 Expand all
                             </MenuItem>
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-reduce"
                                 onClick={() => {
-                                    this.handleToggleRuleDetails({expanded: false});
+                                    this.handleToggleRuleDetails({
+                                        expanded: false,
+                                    });
                                 }}>
                                 Reduce all
                             </MenuItem>
@@ -383,7 +385,7 @@ const MappingRulesView = React.createClass({
                           {mappingRulesList}
                           <FloatingActionList
                               fabSize="large"
-                              fixed={true}
+                              fixed
                               iconName="add"
                               actions={[
                                   {
@@ -425,7 +427,11 @@ const MappingRulesView = React.createClass({
             _.has(this.state, 'ruleData.rules.typeRules')
                 ? <SuggestionsList
                       key={_.join(types, ',')}
-                      ruleId={_.isUndefined(this.props.currentRuleId) ? 'root' : this.props.currentRuleId}
+                      ruleId={
+                          _.isUndefined(this.props.currentRuleId)
+                              ? 'root'
+                              : this.props.currentRuleId
+                      }
                       onClose={this.handleCloseSuggestions}
                       parent={{
                           id: this.state.ruleData.id,
@@ -446,10 +452,7 @@ const MappingRulesView = React.createClass({
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <MappingRulesObject
-                    rule={this.state.ruleData}
-                    key={id}
-                />
+                <MappingRulesObject rule={this.state.ruleData} key={id} />
                 {suggestions || rulesList}
                 {createRuleForm}
             </div>

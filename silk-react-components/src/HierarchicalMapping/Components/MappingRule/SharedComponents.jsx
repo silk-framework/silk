@@ -164,7 +164,7 @@ const PropertyTypeInfo = React.createClass({
         if (__DEBUG__) {
             console.log(this.props);
         }
-        
+
         hierarchicalMappingChannel
             .request({
                 topic: 'autocomplete',

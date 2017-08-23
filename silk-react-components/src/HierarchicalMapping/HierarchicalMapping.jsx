@@ -286,7 +286,9 @@ const HierarchicalMapping = React.createClass({
         return (
             <section className="ecc-silk-mapping">
                 <Card>
-                    <CardTitle className="ecc-silk-mapping__header" border={false}>
+                    <CardTitle
+                        className="ecc-silk-mapping__header"
+                        border={false}>
                         {debugOptions}
                         {deleteView}
                         {discardView}

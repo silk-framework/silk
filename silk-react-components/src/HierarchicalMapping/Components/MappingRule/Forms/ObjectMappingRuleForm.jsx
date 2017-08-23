@@ -1,5 +1,4 @@
 import React from 'react';
-import UseMessageBus from '../../../UseMessageBusMixin';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -12,10 +11,11 @@ import {
     TextField,
     Spinner,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
@@ -191,11 +191,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
-            !id
-                ? <CardTitle>
-                      Add object mapping
-                  </CardTitle>
-                : false;
+            !id ? <CardTitle>Add object mapping</CardTitle> : false;
 
         let targetPropertyInput = false;
         let entityRelationInput = false;
@@ -283,9 +279,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__ruleseditor">
-                <Card
-                    shadow={!id ? 1 : 0}
-                >
+                <Card shadow={!id ? 1 : 0}>
                     {title}
                     <CardContent>
                         {errorMessage}

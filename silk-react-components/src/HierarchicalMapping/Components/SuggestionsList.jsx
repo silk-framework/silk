@@ -1,7 +1,5 @@
 import React from 'react';
-import UseMessageBus from '../UseMessageBusMixin';
 import {
-    Button,
     AffirmativeButton,
     DismissiveButton,
     Card,
@@ -9,18 +7,17 @@ import {
     CardMenu,
     CardContent,
     CardActions,
-    Checkbox,
-    Chip,
     Error,
     Info,
     ContextMenu,
     MenuItem,
     Spinner,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
-import _ from 'lodash';
 
 let pendingRules = {};
 let wrongRules = {};
@@ -97,7 +94,7 @@ const SuggestionsList = React.createClass({
                 topic: 'rules.generate',
                 data: {
                     correspondences,
-                    parentRuleId: _.get(this.props, 'ruleId', "root"),
+                    parentRuleId: _.get(this.props, 'ruleId', 'root'),
                 },
             })
             .subscribe(
@@ -183,19 +180,19 @@ const SuggestionsList = React.createClass({
         const suggestionsMenu = !_.isEmpty(this.state.error)
             ? false
             : <CardMenu>
-                <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                        onClick={this.checkAll}>
-                        Select all
-                    </MenuItem>
-                    <MenuItem
-                        className="ecc-silk-mapping__ruleslistmenu__item-select-none"
-                        onClick={this.checkNone}>
-                        Select none
-                    </MenuItem>
-                </ContextMenu>
-            </CardMenu>;
+                  <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                      <MenuItem
+                          className="ecc-silk-mapping__ruleslistmenu__item-select-all"
+                          onClick={this.checkAll}>
+                          Select all
+                      </MenuItem>
+                      <MenuItem
+                          className="ecc-silk-mapping__ruleslistmenu__item-select-none"
+                          onClick={this.checkNone}>
+                          Select none
+                      </MenuItem>
+                  </ContextMenu>
+              </CardMenu>;
 
         const suggestionsHeader = (
             <CardTitle>
@@ -245,7 +242,7 @@ const SuggestionsList = React.createClass({
               );
 
         const actions = (
-            <CardActions fixed={true}>
+            <CardActions fixed>
                 {_.isEmpty(this.state.error)
                     ? <AffirmativeButton
                           className="ecc-hm-suggestions-save"
@@ -256,8 +253,8 @@ const SuggestionsList = React.createClass({
                     : false}
 
                 <DismissiveButton
-                  onClick={this.props.onClose}
-                  className="ecc-hm-suggestions-cancel">
+                    onClick={this.props.onClose}
+                    className="ecc-hm-suggestions-cancel">
                     Cancel
                 </DismissiveButton>
             </CardActions>
@@ -278,9 +275,7 @@ const SuggestionsList = React.createClass({
         }
         return (
             <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
-                <Card
-                    fixedActions={true}
-                >
+                <Card fixedActions>
                     {suggestionsHeader}
                     <ol className="mdl-list">
                         {suggestionsList}

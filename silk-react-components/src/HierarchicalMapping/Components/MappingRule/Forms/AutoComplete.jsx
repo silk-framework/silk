@@ -1,12 +1,8 @@
 import React from 'react';
-
 import _ from 'lodash';
-
-import hierarchicalMappingChannel from '../../../store';
-
 import Highlighter from 'react-highlight-words';
-
 import {SelectBox, Nothing} from 'ecc-gui-elements';
+import hierarchicalMappingChannel from '../../../store';
 
 const Highlight = props => {
     const {textToHighlight, searchWord} = props;

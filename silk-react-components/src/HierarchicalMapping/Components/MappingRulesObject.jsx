@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-    RuleTitle,
-    RuleTypes,
-    ParentElement,
-} from './MappingRule/SharedComponents';
-import RuleObjectEdit from './MappingRule/ObjectMappingRule';
 import _ from 'lodash';
-import hierarchicalMappingChannel from '../store';
 import {
     Button,
     Card,
@@ -16,6 +9,13 @@ import {
     DisruptiveButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
+import {
+    RuleTitle,
+    RuleTypes,
+    ParentElement,
+} from './MappingRule/SharedComponents';
+import RuleObjectEdit from './MappingRule/ObjectMappingRule';
+import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 
 const MappingRuleOverviewHeader = React.createClass({

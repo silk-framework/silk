@@ -1,18 +1,15 @@
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
-    AffirmativeButton,
-    DismissiveButton,
     DisruptiveButton,
     CardContent,
     CardActions,
-    Info,
     Radio,
     RadioGroup,
 } from 'ecc-gui-elements';
-import hierarchicalMappingChannel from '../../store';
 import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
+import hierarchicalMappingChannel from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 

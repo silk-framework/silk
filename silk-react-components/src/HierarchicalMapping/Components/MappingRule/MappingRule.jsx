@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import UseMessageBus from '../../UseMessageBusMixin';
 import {
     Button,
     ContextMenu,
@@ -13,10 +12,11 @@ import {
     DisruptiveButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import _ from 'lodash';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
 
 const MappingRule = React.createClass({
@@ -203,7 +203,7 @@ const MappingRule = React.createClass({
 
         // TODO: enable real API structure
         const errorInfo =
-            _.get(this.props, 'status[0].type', false) == 'error'
+            _.get(this.props, 'status[0].type', false) === 'error'
                 ? _.get(this.props, 'status[0].message', false)
                 : false;
 
