@@ -18,8 +18,8 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "babel-polyfill": "^6.23.0",
-    "babel-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-runtime": "^6.26.0",
     "create-react-class": "^15.6.0",
     "dialog-polyfill": "0.4.4",
     "ecc-gui-elements": "^2.17.1",
@@ -35,11 +35,11 @@
     "mdl-selectfield": "^1.0.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "react-highlight-words": "^0.8.0",
+    "react-highlight-words": "^0.8.1",
     "twbs-pagination": "^1.4.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
+    "babel-cli": "^6.26.0",
     "babel-eslint": "^7.2.3",
     "ecc-gulp-tasks": "^3.10.0",
     "ecc-license-checker": "^2.5.2",
