@@ -49,7 +49,9 @@ const MappingTree = React.createClass({
         }
     },
     loadData() {
-        console.warn('TREE RELOAD');
+        if (__DEBUG__) {
+            console.warn('TREE RELOAD');
+        }
 
         // get navigation tree data
         hierarchicalMappingChannel.request({topic: 'hierarchy.get'}).subscribe(
@@ -66,7 +68,7 @@ const MappingTree = React.createClass({
                 });
             },
             err => {
-                console.warn('err TreeView: hierarchy.get', err);
+                console.warn('err MappingTree: hierarchy.get', err);
                 this.setState({loading: false});
             },
         );

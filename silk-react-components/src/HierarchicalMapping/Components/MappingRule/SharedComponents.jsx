@@ -161,7 +161,10 @@ const URIInfo = React.createClass({
 
 const PropertyTypeInfo = React.createClass({
     getInitialState() {
-        console.log(this.props);
+        if (__DEBUG__) {
+            console.log(this.props);
+        }
+        
         hierarchicalMappingChannel
             .request({
                 topic: 'autocomplete',

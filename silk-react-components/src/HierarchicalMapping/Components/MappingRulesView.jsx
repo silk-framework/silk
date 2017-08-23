@@ -135,7 +135,9 @@ const MappingRulesView = React.createClass({
             loading: true,
         });
 
-        console.warn('DATA RELOAD');
+        if (__DEBUG__) {
+            console.warn('DATA RELOAD');
+        }
 
         hierarchicalMappingChannel
             .request({

@@ -384,7 +384,9 @@ if (!__DEBUG__) {
                     channel += 'sourcePaths';
                     break;
                 default:
-                    console.error(`No autocomplete defined for ${entity}`);
+                    if (__DEBUG__) {
+                        console.error(`No autocomplete defined for ${entity}`);
+                    }
             }
 
             silkStore
