@@ -6,25 +6,24 @@ const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
 import hierarchicalMappingChannel from '../../store';
 
-export const RuleTitle = ({rule}) => {
+export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
 
     switch (rule.type) {
         case 'root':
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
-            return uri ? <ThingName id={uri} /> : NO_TARGET_TYPE;
+            return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_TYPE;
         case 'direct':
         case 'object':
             uri = _.get(rule, 'mappingTarget.uri', false);
-            return uri ? <ThingName id={uri} /> : NO_TARGET_PROPERTY;
+            return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_PROPERTY;
         case 'complex':
             // TODO: Complex Mappings need better titles
-            return 'Complex Mapping';
-            return <span>Complex Mapping</span>;
+            return <span {...otherProps}>Complex Mapping</span>;
     }
 };
 
-export const RuleTypes = ({rule}) => {
+export const RuleTypes = ({rule, ...otherProps}) => {
     switch (rule.type) {
         case 'object':
             let types = _.get(rule, 'rules.typeRules', []);
@@ -36,14 +35,14 @@ export const RuleTypes = ({rule}) => {
                       )
                       .reduce((prev, curr) => [prev, ', ', curr]);
             return (
-                <span>
+                <span {...otherProps}>
                     {types}
                 </span>
             );
         case 'direct':
         case 'complex':
             return (
-                <span>
+                <span {...otherProps}>
                     {_.get(
                         rule,
                         'mappingTarget.valueType.nodeType',
@@ -137,7 +136,7 @@ const URIInfo = React.createClass({
             );
         }
 
-        const {uri, fallback, field} = this.props;
+        const {uri, fallback, field, ...otherProps} = this.props;
 
         let noInfo = false;
 
@@ -152,7 +151,7 @@ const URIInfo = React.createClass({
         }
 
         return (
-            <span>
+            <span {...otherProps}>
                 {noInfo}
             </span>
         );
@@ -213,7 +212,7 @@ const PropertyTypeInfo = React.createClass({
     },
 });
 
-export const ThingName = ({id}) => <URIInfo uri={id} field="label" />;
+export const ThingName = ({id, ...otherProps}) => <URIInfo uri={id} {...otherProps} field="label" />;
 
 export const ThingDescription = ({id}) => {
     const fallbackInfo = (
@@ -258,10 +257,10 @@ export const ThingIcon = ({type, status, message}) => {
     );
 };
 
-export const ParentElement = ({parent}) =>
+export const ParentElement = ({parent, ...otherProps}) =>
     _.get(parent, 'type')
-        ? <ThingName id={parent.type} />
-        : <span>parent element</span>;
+        ? <ThingName id={parent.type} {...otherProps} />
+    : <span {...otherProps}>parent element</span>;
 
 export const InfoBox = React.createClass({
     getInitialState() {

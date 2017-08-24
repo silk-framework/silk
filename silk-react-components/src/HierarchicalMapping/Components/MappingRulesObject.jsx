@@ -4,7 +4,6 @@ import {
     Button,
     Card,
     CardTitle,
-    Chip,
     ConfirmationDialog,
     DisruptiveButton,
     DismissiveButton,
@@ -115,27 +114,6 @@ const MappingRulesObject = React.createClass({
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
 
-        let parentTitle = false;
-        let backButton = false;
-
-        if (_.has(parent, 'id')) {
-            parentTitle = (
-                <div className="mdl-card__title-text-sup">
-                    <Chip onClick={this.handleNavigate.bind(null, parent.id)}>
-                        <ParentElement parent={parent} />
-                    </Chip>
-                </div>
-            );
-
-            backButton = (
-                <Button
-                    iconName={'chevron_left'}
-                    tooltip="Navigate back to parent"
-                    onClick={this.handleNavigate.bind(null, parent.id)}
-                />
-            );
-        }
-
         let content = false;
 
         if (this.state.expanded) {
@@ -153,20 +131,15 @@ const MappingRulesObject = React.createClass({
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
                 <Card>
-                    <CardTitle>
-                        <div className="mdl-card__title-back">
-                            {backButton}
-                        </div>
-                        <div
-                            className="mdl-card__title-text clickable"
-                            onClick={this.handleToggleExpand}>
-                            {parentTitle}
-                            <div className="mdl-card__title-text-main">
-                                <RuleTitle rule={this.props.rule} />
-                            </div>
-                            <div className="mdl-card__title-text-sub">
-                                <RuleTypes rule={this.props.rule} />
-                            </div>
+                    <CardTitle className="clickable" onClick={this.handleToggleExpand}>
+                        <div className="mdl-card__title-text">
+                            {
+                                _.has(parent, 'id') ?
+                                <ParentElement parent={parent} className="ecc-silk-mapping__rulesobject__title-parent" />
+                                : false
+                            }
+                            <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
+                            <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-type" />
                         </div>
                         <div className="mdl-card__title-action">
                             <Button

@@ -178,24 +178,7 @@
         // z-index: 2; // TODO: only if sticky, need to be moved to gui elements
     }
 
-    .mdl-card__title-back {
-        position: relative;
-        left: -0.5rem;
-        //top: -0.25rem;
-    }
-
-    .mdl-card__title-text {
-        flex-grow: 1;
-        align-self: center;
-        display: flex;
-        flex-direction: column;
-        @include typo-subhead();
-    }
-
-    .mdl-card__title-text-sup,
-    .mdl-card__title-text-breadcrumbs {
-        @include typo-caption();
-
+    .mdl-card__title {
         .mdl-chip {
             height: auto;
             line-height: 2;
@@ -207,8 +190,17 @@
         }
     }
 
-    .mdl-card__title-text-main {
-        font-weight: 500;
+    .mdl-card__title-back {
+        position: relative;
+        left: -0.5rem;
+        //top: -0.25rem;
+    }
+
+    .mdl-card__title-text {
+        flex-grow: 1;
+        align-self: center;
+        display: flex;
+        //@include typo-subhead();
     }
 }
 
@@ -218,14 +210,14 @@
     z-index: 10;
     margin-bottom: $ecc-size-blockelement-margin-vertical;
 
-    .mdl-card__title-text {
-        flex-direction: row;
-
-        .mdl-card__title-text-main {
-            margin: 0 0.25rem;
-        }
+    .mdl-card__title-text-breadcrumbs {
+        @include typo-caption();
     }
 
+    .mdl-card__title-text-main {
+        font-weight: 500;
+        margin: 0 0.25rem;
+    }
 }
 
 .ecc-silk-mapping__rulesobject {
@@ -234,6 +226,21 @@
 
     .mdl-card__title {
         align-items: flex-start;
+    }
+
+    .mdl-card__title-text {
+        @include typo-body-1();
+
+        & > * {
+            margin-left: 0.25rem;
+        }
+    }
+
+    .ecc-silk-mapping__rulesobject__title-parent {
+        font-weight: lighter;
+    }
+    .ecc-silk-mapping__rulesobject__title-property {
+        font-weight: bolder;
     }
 }
 
