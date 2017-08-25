@@ -29,6 +29,15 @@ const MappingsObject = React.createClass({
     },
     componentDidMount() {
         this.subscribe(
+            hierarchicalMappingChannel.subject('rulesView.toggle'),
+            ({expanded, id}) => {
+                // only trigger state / render change if necessary
+                if (id === true && expanded !== this.state.expanded) {
+                    this.setState({expanded});
+                }
+            }
+        );
+        this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
             this.onOpenEdit
         );
