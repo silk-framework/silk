@@ -86,7 +86,7 @@ const MappingsList = React.createClass({
                         },
                     },
                     {
-                        icon: 'folder',
+                        icon: 'lightbulb_outline',
                         label: 'Suggest mappings',
                         handler: this.handleShowSuggestions,
                     },
