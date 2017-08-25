@@ -13,7 +13,7 @@ import {
     RuleTypes,
     ParentElement,
 } from './MappingRule/SharedComponents';
-import RuleObjectEdit from './MappingRule/ObjectMappingRule';
+import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
@@ -127,7 +127,7 @@ const MappingsObject = React.createClass({
 
         if (this.state.expanded) {
             content = (
-                <RuleObjectEdit
+                <ObjectRule
                     {...this.props.rule}
                     parentId={_.get(parent, 'id', '')}
                     parent={parent}
