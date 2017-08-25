@@ -18,7 +18,7 @@ import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
 
-const MappingRulesObject = React.createClass({
+const MappingsObject = React.createClass({
     mixins: [UseMessageBus, Navigation],
     getInitialState() {
         return {
@@ -161,4 +161,4 @@ const MappingRulesObject = React.createClass({
     },
 });
 
-export default MappingRulesObject;
+export default MappingsObject;

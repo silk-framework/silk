@@ -22,7 +22,7 @@ import {
     ParentElement,
 } from './MappingRule/SharedComponents';
 
-const MappingRulesHeader = React.createClass({
+const MappingsHeader = React.createClass({
     mixins: [Navigation],
 
     // define property types
@@ -87,23 +87,40 @@ const MappingRulesHeader = React.createClass({
         const navMenu = <div className="mdl-card__title-action">
             <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
                 <MenuItem
-                    className="ecc-silk-mapping__navheader-menu__item-add-value">
+                    className="ecc-silk-mapping__ruleslistmenu__item-add-value"
+                    onClick={() => {
+                        this.handleCreate({type: 'direct'});
+                    }}>
                     Add value mapping
                 </MenuItem>
                 <MenuItem
-                    className="ecc-silk-mapping__navheader-menu__item-add-object">
+                    className="ecc-silk-mapping__ruleslistmenu__item-add-object"
+                    onClick={() => {
+                        this.handleCreate({type: 'object'});
+                    }}>
                     Add object mapping
                 </MenuItem>
                 <MenuItem
-                    className="ecc-silk-mapping__navheader-menu__item-autosuggest">
+                    className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
+                    onClick={this.handleShowSuggestions}>
                     Suggest mappings
                 </MenuItem>
                 <MenuItem
-                    className="ecc-silk-mapping__navheader-menu__item-expand">
+                    className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                    onClick={() => {
+                        this.handleToggleRuleDetails({
+                            expanded: true,
+                        });
+                    }}>
                     Expand all
                 </MenuItem>
                 <MenuItem
-                    className="ecc-silk-mapping__navheader-menu__item-reduce">
+                    className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                    onClick={() => {
+                        this.handleToggleRuleDetails({
+                            expanded: false,
+                        });
+                    }}>
                     Reduce all
                 </MenuItem>
             </ContextMenu>
@@ -124,4 +141,4 @@ const MappingRulesHeader = React.createClass({
     },
 });
 
-export default MappingRulesHeader;
+export default MappingsHeader;

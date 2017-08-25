@@ -11,6 +11,20 @@ const Navigation = {
 
         event.stopPropagation();
     },
+
+    handleCreate(infoCreation) {
+        hierarchicalMappingChannel.subject('mapping.create').onNext(infoCreation);
+    },
+
+    handleShowSuggestions(event) {
+        event.persist();
+        hierarchicalMappingChannel.subject('mapping.showSuggestions').onNext(event);
+    },
+
+    handleToggleRuleDetails(stateExpand) {
+        hierarchicalMappingChannel.subject('list.toggleDetails').onNext(stateExpand);
+    }
+
 }
 
 export default Navigation;
