@@ -3905,9 +3905,9 @@ jsonpointer@^4.0.0:
   version "4.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsonpointer/-/jsonpointer-4.0.1.tgz#4fd92cb34e0e9db3c89c8622ecf51f9b978c6cb9"
 
-jsplumb@2.1.8:
-  version "2.1.8"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/jsplumb/-/jsplumb-2.1.8.tgz#1081a52a039991b49b203a28e6e15e12cee3bee5"
+jsplumb@2.5.0:
+  version "2.5.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jsplumb/-/jsplumb-2.5.0.tgz#e602c168428a718898afa2a69bc96695d9618e24"
 
 jsprim@^1.2.2:
   version "1.4.1"

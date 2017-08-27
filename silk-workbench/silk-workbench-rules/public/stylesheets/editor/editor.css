@@ -110,11 +110,8 @@ body{
   color: #1484d4;
 }
 
-.jsplumb-endpoint {
+.jtk-endpoint {
   z-index: 2;
-}
-
-.jsplumb-endpoint {
   cursor: pointer;
 }
 

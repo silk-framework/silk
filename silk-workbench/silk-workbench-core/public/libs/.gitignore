@@ -22,13 +22,7 @@ jquery/src/
 jquery/AUTHORS.txt
 jquery/CONTRIBUTING.md
 
-jsplumb/*
-!jsplumb/*LICENSE.txt
-!jsplumb/dist
-jsplumb/dist/*
-!jsplumb/dist/js
-jsplumb/dist/js/*
-!jsplumb/dist/js/jsPlumb-2.1.8.js
+jsplumb/dist/css/
 
 jstree/demo
 jstree/test

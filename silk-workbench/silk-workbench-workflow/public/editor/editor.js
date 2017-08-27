@@ -6,19 +6,19 @@ function WorkflowEditor() {
     this.styles.endpoints = {};
 
     this.styles.connectors.plain = {
-        lineWidth: 4,
-        strokeStyle: '#61B7CF',
+        strokeWidth: 4,
+        stroke: '#61B7CF',
         joinstyle: 'round'
     };
     this.styles.connectors.hover = {
-        strokeStyle: '#216477'
+        stroke: '#216477'
     };
 
     this.styles.endpoints.source = {
         anchor: 'RightMiddle',
         endpoint: 'Dot',
         paintStyle: {
-            fillStyle: '#3187CF',
+            fill: '#3187CF',
             radius: 4
         },
         connectorStyle: this.styles.connectors.plain,
@@ -32,7 +32,7 @@ function WorkflowEditor() {
         anchor: 'LeftMiddle',
         endpoint: 'Dot',
         paintStyle: {
-            fillStyle: '#3187CF',
+            fill: '#3187CF',
             radius: 4
         },
         connectorStyle: this.styles.connectors.plain,
@@ -43,7 +43,7 @@ function WorkflowEditor() {
         anchor: 'LeftMiddle',
         endpoint: 'Dot',
         paintStyle: {
-            fillStyle: '#3187CF',
+            fill: '#3187CF',
             radius: 4
         },
         connectorStyle: this.styles.connectors.plain,
@@ -94,7 +94,7 @@ function WorkflowEditor() {
         $('#editorContent').droppable({
             drop: function drop(ev, ui) {
                 // Check if we still need to add endpoints to the dropped element
-                if (jsPlumb.getEndpoints(ui.helper) === undefined) {
+                if (jsPlumb.getEndpoints(ui.helper).length === 0) {
                     var id = ui.helper.attr('id');
                     // Hide operator in toolbox
                     // if($(ui.helper).hasClass('dataset')) {

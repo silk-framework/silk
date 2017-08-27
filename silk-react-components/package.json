@@ -28,7 +28,7 @@
     "ecc-superagent": "^1.2.0",
     "ecc-utils": "^1.4.0",
     "jquery": "1.11.3",
-    "jsplumb": "2.1.8",
+    "jsplumb": "2.5.0",
     "jstree": "3.2.1",
     "lodash": "^4.17.4",
     "mark.js": "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz",
