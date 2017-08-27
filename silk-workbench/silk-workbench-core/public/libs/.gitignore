@@ -28,6 +28,10 @@ jstree/test
 jstree/src
 jstree/dist/themes/default-dark
 
+lodash/fp/
+lodash/*.js
+!lodash/lodash.js
+
 mark.js/*
 !mark.js/dist
 mark.js/dist/*

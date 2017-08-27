@@ -21,6 +21,7 @@ These external libraries are managed via npm in the [silk-react-components](../.
 - jquery
 - jsplumb
 - jstree
+- lodash
 - mark.js
 - material-design-lite
 - mdl-selectfield
