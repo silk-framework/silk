@@ -18,8 +18,6 @@ if (__DEBUG__) {
     hierarchicalMapping('react');
 }
 
-// TODO: @mhaschke, only import what we need?
-require('ecc-gui-elements/src/main.scss');
 require('./style/style.scss');
 
 window.HierarchicalMapping = hierarchicalMapping;

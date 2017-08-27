@@ -26,13 +26,12 @@
 
     <!-- MDL inclusions: -->
     <link type="text/css" href="@Assets.at("libs/silk-react-components/style.css")" rel="stylesheet" />
+
     @if(config.workbench.mdlStyle.isDefined) {
       @* This indicates that Silk is running in a modified version which can supply an alternative version of MDL. *@
       <link type="text/css" href="@config.baseUrl/core/mdlStyle" rel="stylesheet" />
-    } else {
-      @* This indicates plain Silk, which means we need to load default colored MDL and some extension styles separately. *@
-      <link type="text/css" href="@Assets.at("libs/material-design-lite/material.css")" rel="stylesheet" />
     }
+
     <link type="text/css" href="@Assets.at("mdl-adjustments.css")" rel="stylesheet" />
     <link type="text/css" href="@Assets.at("libs/mdl-selectfield/dist/mdl-selectfield.css")" rel="stylesheet" />
     <link type="text/css" href="@Assets.at("libs/dialog-polyfill/dialog-polyfill.css")" rel="stylesheet" />

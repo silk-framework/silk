@@ -8,7 +8,7 @@
 !*/package.json
 */gruntfile.js
 */gulpfile*
-*/README.md
+*/*.md
 */**/*.min.*
 
 dialog-polyfill/tests
@@ -20,7 +20,6 @@ jquery/dist/
 jquery/libs/
 jquery/src/
 jquery/AUTHORS.txt
-jquery/CONTRIBUTING.md
 
 jsplumb/dist/css/
 

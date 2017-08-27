@@ -25,6 +25,9 @@ module.exports = {
         },
         debug: {},
         application: {
+            externals:{
+                '@eccenca/material-design-lite': 'window.componentHandler',
+            },
             minify: false,
             output: {
                 path: path.resolve(__dirname, 'dist'),

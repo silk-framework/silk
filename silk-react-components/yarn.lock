@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@eccenca/material-design-lite@^1.3.0-beta3":
+  version "1.3.0-beta5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@eccenca/material-design-lite/-/material-design-lite-1.3.0-beta5.tgz#70c0d0f49a4e10883c365706faff7bdadada67fb"
+
 abbrev@1, abbrev@1.0.x:
   version "1.0.9"
   resolved "https://artifactory.eccenca.com/api/npm/npm/abbrev/-/abbrev-1.0.9.tgz#91b4792588a7738c25f35dd6f63752a2f8776135"
@@ -2042,13 +2046,13 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@^2.17.1:
-  version "2.17.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.17.1.tgz#cd41c342353f15cac94ec0aa246118383241bedd"
+ecc-gui-elements@^2.18.0-beta0:
+  version "2.18.0-beta0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.18.0-beta0.tgz#5d23d571066c259a86c1c9055a39d661c73fde73"
   dependencies:
+    "@eccenca/material-design-lite" "^1.3.0-beta3"
     classnames "^2.2.5"
     lodash "^4.16.4"
-    material-design-lite "^1.3.0"
     react-mdl "^1.10.3"
     react-select "^1.0.0-rc.5"
     sassyjson "^1.1.8"
@@ -4355,7 +4359,7 @@ map-stream@~0.1.0:
   version "7.0.0"
   resolved "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz#5d01960ca50df257d693fdb4e67f3b37e765ba82"
 
-material-design-lite@1.3.0, material-design-lite@^1.1.3, material-design-lite@^1.3.0:
+material-design-lite@^1.1.3:
   version "1.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/material-design-lite/-/material-design-lite-1.3.0.tgz#d004ce3fee99a1eeb74a78b8a325134a5f1171d3"
 

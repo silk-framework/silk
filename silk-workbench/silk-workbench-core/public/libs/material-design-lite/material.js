@@ -1,6 +1,8 @@
 ;(function() {
 "use strict";
 
+if (typeof window === 'undefined') return;
+
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -192,7 +194,7 @@ componentHandler = (function() {
 
       var elements = document.querySelectorAll('.' + optCssClass);
       for (var n = 0; n < elements.length; n++) {
-        upgradeElementInternal(elements[n], jsClass);
+        setTimeout(upgradeElementInternal.bind(null, elements[n], jsClass), 0);
       }
     }
   }
@@ -280,7 +282,7 @@ componentHandler = (function() {
     for (var i = 0, n = elements.length, element; i < n; i++) {
       element = elements[i];
       if (element instanceof HTMLElement) {
-        upgradeElementInternal(element);
+        setTimeout(upgradeElementInternal.bind(null, element), 0);
         if (element.children.length > 0) {
           upgradeElementsInternal(element.children);
         }
@@ -492,7 +494,6 @@ window.addEventListener('load', function() {
       'querySelector' in document &&
       'addEventListener' in window && Array.prototype.forEach) {
     document.documentElement.classList.add('mdl-js');
-    componentHandler.upgradeAllRegistered();
   } else {
     /**
      * Dummy function to avoid JS errors.
@@ -3157,6 +3158,7 @@ componentHandler.register({
    */
 var MaterialLayout = function MaterialLayout(element) {
     this.element_ = element;
+    this.innerContainer_ = element.querySelector('.' + this.CssClasses_.INNER_CONTAINER);
     // Initialize instance.
     this.init();
 };
@@ -3207,7 +3209,7 @@ MaterialLayout.prototype.Mode_ = {
    * @private
    */
 MaterialLayout.prototype.CssClasses_ = {
-    CONTAINER: 'mdl-layout__container',
+    INNER_CONTAINER: 'mdl-layout__inner-container',
     HEADER: 'mdl-layout__header',
     DRAWER: 'mdl-layout__drawer',
     CONTENT: 'mdl-layout__content',
@@ -3359,7 +3361,7 @@ MaterialLayout.prototype.resetPanelState_ = function (panels) {
   * @public
   */
 MaterialLayout.prototype.toggleDrawer = function () {
-    var drawerButton = this.element_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
+    var drawerButton = this.innerContainer_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
     this.drawer_.classList.toggle(this.CssClasses_.IS_DRAWER_OPEN);
     this.obfuscator_.classList.toggle(this.CssClasses_.IS_DRAWER_OPEN);
     // Set accessibility properties.
@@ -3377,16 +3379,11 @@ MaterialLayout.prototype['toggleDrawer'] = MaterialLayout.prototype.toggleDrawer
    */
 MaterialLayout.prototype.init = function () {
     if (this.element_) {
-        var container = document.createElement('div');
-        container.classList.add(this.CssClasses_.CONTAINER);
         var focusedElement = this.element_.querySelector(':focus');
-        this.element_.parentElement.insertBefore(container, this.element_);
-        this.element_.parentElement.removeChild(this.element_);
-        container.appendChild(this.element_);
         if (focusedElement) {
             focusedElement.focus();
         }
-        var directChildren = this.element_.childNodes;
+        var directChildren = this.innerContainer_.childNodes;
         var numChildren = directChildren.length;
         for (var c = 0; c < numChildren; c++) {
             var child = directChildren[c];
@@ -3404,9 +3401,9 @@ MaterialLayout.prototype.init = function () {
             if (e.persisted) {
                 // when page is loaded from back/forward cache
                 // trigger repaint to let layout scroll in safari
-                this.element_.style.overflowY = 'hidden';
+                this.innerContainer_.style.overflowY = 'hidden';
                 requestAnimationFrame(function () {
-                    this.element_.style.overflowY = '';
+                    this.innerContainer_.style.overflowY = '';
                 }.bind(this));
             }
         }.bind(this), false);
@@ -3423,7 +3420,7 @@ MaterialLayout.prototype.init = function () {
                 this.header_.addEventListener('click', this.headerClickHandler_.bind(this));
             } else if (this.header_.classList.contains(this.CssClasses_.HEADER_SCROLL)) {
                 mode = this.Mode_.SCROLL;
-                container.classList.add(this.CssClasses_.HAS_SCROLLING_HEADER);
+                this.element_.classList.add(this.CssClasses_.HAS_SCROLLING_HEADER);
             }
             if (mode === this.Mode_.STANDARD) {
                 this.header_.classList.add(this.CssClasses_.CASTING_SHADOW);
@@ -3445,7 +3442,7 @@ MaterialLayout.prototype.init = function () {
         }
         // Add drawer toggling button to our layout, if we have an openable drawer.
         if (this.drawer_) {
-            var drawerButton = this.element_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
+            var drawerButton = this.innerContainer_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
             if (!drawerButton) {
                 drawerButton = document.createElement('div');
                 drawerButton.setAttribute('aria-expanded', 'false');
@@ -3475,11 +3472,11 @@ MaterialLayout.prototype.init = function () {
             if (this.element_.classList.contains(this.CssClasses_.FIXED_HEADER)) {
                 this.header_.insertBefore(drawerButton, this.header_.firstChild);
             } else {
-                this.element_.insertBefore(drawerButton, this.content_);
+                this.innerContainer_.insertBefore(drawerButton, this.content_);
             }
             var obfuscator = document.createElement('div');
             obfuscator.classList.add(this.CssClasses_.OBFUSCATOR);
-            this.element_.appendChild(obfuscator);
+            this.innerContainer_.appendChild(obfuscator);
             obfuscator.addEventListener('click', this.drawerToggleHandler_.bind(this));
             this.obfuscator_ = obfuscator;
             this.drawer_.addEventListener('keydown', this.keyboardEventHandler_.bind(this));
@@ -3576,12 +3573,8 @@ function MaterialLayoutTab(tab, tabs, panels, layout) {
      * Auxiliary method to programmatically select a tab in the UI.
      */
     function selectTab() {
-        var href = tab.href.split('#')[1];
-        var panel = layout.content_.querySelector('#' + href);
         layout.resetTabState_(tabs);
-        layout.resetPanelState_(panels);
         tab.classList.add(layout.CssClasses_.IS_ACTIVE);
-        panel.classList.add(layout.CssClasses_.IS_ACTIVE);
     }
     if (layout.tabBar_.classList.contains(layout.CssClasses_.JS_RIPPLE_EFFECT)) {
         var rippleContainer = document.createElement('span');

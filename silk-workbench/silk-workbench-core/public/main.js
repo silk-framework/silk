@@ -35,6 +35,10 @@ var dialogs = {};
 var dialog = void 0;
 
 $(function () {
+
+    // Make sure that mdl components are registered the right way
+    componentHandler.upgradeDom();
+
     // Initialize window
     var id;
     $(window).resize(function () {
