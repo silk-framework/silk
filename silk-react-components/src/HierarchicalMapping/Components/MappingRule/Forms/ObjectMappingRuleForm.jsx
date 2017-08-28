@@ -80,7 +80,6 @@ const ObjectMappingRuleForm = React.createClass({
                         });
                     },
                     err => {
-                        console.warn('err MappingRuleOverview: rule.get');
                         this.setState({
                             loading: false,
                             initialValues: {},

@@ -68,7 +68,6 @@ const MappingTree = React.createClass({
                 });
             },
             err => {
-                console.warn('err MappingTree: hierarchy.get', err);
                 this.setState({loading: false});
             }
         );

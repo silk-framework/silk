@@ -69,7 +69,6 @@ const SuggestionsList = React.createClass({
                     });
                 },
                 err => {
-                    console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
                 }
             );
@@ -109,7 +108,6 @@ const SuggestionsList = React.createClass({
                     hierarchicalMappingChannel.subject('reload').onNext(true);
                 },
                 err => {
-                    console.warn('err MappingRuleOverview: rule.suggestions');
                     this.setState({loading: false});
                 }
             );

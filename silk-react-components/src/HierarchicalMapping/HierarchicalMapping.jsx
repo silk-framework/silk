@@ -132,7 +132,6 @@ const HierarchicalMapping = React.createClass({
                 },
                 err => {
                     // FIXME: let know the user what have happened!
-                    console.warn(`Error happened`, err);
                     this.setState({
                         elementToDelete: false,
                         loading: false,

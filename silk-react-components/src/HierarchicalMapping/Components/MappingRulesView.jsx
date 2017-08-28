@@ -162,7 +162,6 @@ const MappingRulesView = React.createClass({
                     });
                 },
                 err => {
-                    console.warn('err MappingRulesView: rule.get');
                     this.setState({loading: false});
                 }
             );
