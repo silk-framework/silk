@@ -43,9 +43,10 @@ const AutoComplete = React.createClass({
         }
 
         // only show value entry if it is not same as label
-        let optionValue = false;
-        if (value !== label) {
-            optionValue = (
+        const optionValue = (value === label) ?
+            (
+                false
+            ) : (
                 <code key="autoCompleteValue" className="Select-option__value">
                     <Highlight
                         textToHighlight={value}
@@ -53,7 +54,6 @@ const AutoComplete = React.createClass({
                     />
                 </code>
             );
-        }
 
         return [
             <strong key="autoCompleteLabel" className="Select-option__label">

@@ -7288,9 +7288,7 @@
             replySubject.onNext();
             replySubject.onCompleted();
             hierarchicalMappingChannel.subject("reload").onNext(!0);
-        }, function(err) {
-            console.warn("Error deleting rule in " + id, err);
-        });
+        }, function(err) {});
     });
     exports.default = hierarchicalMappingChannel;
     module.exports = exports.default;
@@ -22414,7 +22412,6 @@
                     initialValues: initialValues
                 }, initialValues));
             }, function(err) {
-                console.warn("err MappingRuleOverview: rule.get");
                 _this.setState({
                     loading: !1,
                     initialValues: {}
@@ -22637,14 +22634,11 @@
             return {};
         },
         optionRender: function(option) {
-            var label = option.label, value = option.value, description = option.description, $userCreated = option.$userCreated;
-            console.warn("debug options", option.value, option.label);
-            if ($userCreated) return _react2.default.createElement("strong", {
+            var label = option.label, value = option.value, description = option.description;
+            if (option.$userCreated) return _react2.default.createElement("strong", {
                 className: "Select-option__label"
             }, label);
-            var optionValue = !1;
-            console.warn("debug matching", value !== label);
-            optionValue = _react2.default.createElement("code", {
+            var optionValue = value !== label && _react2.default.createElement("code", {
                 key: "autoCompleteValue",
                 className: "Select-option__value"
             }, _react2.default.createElement(Highlight, {
@@ -22749,7 +22743,6 @@
                     initialValues: initialValues
                 }));
             }, function(err) {
-                console.warn("err MappingRuleOverview: rule.get");
                 _this.setState({
                     loading: !1
                 });
@@ -23165,7 +23158,6 @@
     }
     var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _reactDom = __webpack_require__(15), _reactDom2 = _interopRequireDefault(_reactDom), _HierarchicalMapping = __webpack_require__(256), _HierarchicalMapping2 = _interopRequireDefault(_HierarchicalMapping), _silkStore = __webpack_require__(338), hierarchicalMapping = (_interopRequireDefault(_silkStore), 
     function(containerId, apiSettings) {
-        console.warn(containerId, apiSettings);
         _reactDom2.default.render(_react2.default.createElement(_HierarchicalMapping2.default, apiSettings), document.getElementById(containerId));
     });
     __webpack_require__(350);
@@ -27255,7 +27247,6 @@
                     loading: !1
                 });
             }, function(err) {
-                console.warn("Error happened", err);
                 _this.setState({
                     elementToDelete: !1,
                     loading: !1
@@ -32789,7 +32780,6 @@
                     _ref3[topLevelId] = !0, _ref3) : _this.state.expanded
                 });
             }, function(err) {
-                console.warn("err MappingTree: hierarchy.get", err);
                 _this.setState({
                     loading: !1
                 });
@@ -32986,7 +32976,6 @@
                     ruleData: rule
                 });
             }, function(err) {
-                console.warn("err MappingRulesView: rule.get");
                 _this.setState({
                     loading: !1
                 });
@@ -34390,7 +34379,6 @@
                     data: response.suggestions
                 });
             }, function(err) {
-                console.warn("err MappingRuleOverview: rule.suggestions");
                 _this.setState({
                     loading: !1
                 });
@@ -34430,7 +34418,6 @@
                 });
                 _store2.default.subject("reload").onNext(!0);
             }, function(err) {
-                console.warn("err MappingRuleOverview: rule.suggestions");
                 _this2.setState({
                     loading: !1
                 });
