@@ -7,10 +7,9 @@ import HierarchicalMappingComponent from './HierarchicalMapping/HierarchicalMapp
 import SilkStore from './SilkStore/silkStore';
 
 const hierarchicalMapping = (containerId, apiSettings) => {
-    console.warn(containerId, apiSettings);
     ReactDOM.render(
         <HierarchicalMappingComponent {...apiSettings} />,
-        document.getElementById(containerId),
+        document.getElementById(containerId)
     );
 };
 

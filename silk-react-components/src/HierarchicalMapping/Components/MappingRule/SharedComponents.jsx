@@ -32,7 +32,7 @@ export const RuleTypes = ({rule}) => {
                 ? NO_TARGET_TYPE
                 : types
                       .map(({typeUri}) =>
-                          <ThingName id={typeUri} key={typeUri} />,
+                          <ThingName id={typeUri} key={typeUri} />
                       )
                       .reduce((prev, curr) => [prev, ', ', curr]);
             return (
@@ -47,7 +47,7 @@ export const RuleTypes = ({rule}) => {
                     {_.get(
                         rule,
                         'mappingTarget.valueType.nodeType',
-                        NO_TARGET_TYPE,
+                        NO_TARGET_TYPE
                     )}
                 </span>
             );
@@ -117,13 +117,13 @@ const URIInfo = React.createClass({
                 () => {
                     if (__DEBUG__) {
                         console.warn(
-                            `Could not get any info for ${uri}@${field}`,
+                            `Could not get any info for ${uri}@${field}`
                         );
                     }
                     this.setState({
                         info: false,
                     });
-                },
+                }
             );
     },
     render() {
@@ -161,7 +161,10 @@ const URIInfo = React.createClass({
 
 const PropertyTypeInfo = React.createClass({
     getInitialState() {
-        console.log(this.props);
+        if (__DEBUG__) {
+            console.log(this.props);
+        }
+
         hierarchicalMappingChannel
             .request({
                 topic: 'autocomplete',
@@ -177,7 +180,7 @@ const PropertyTypeInfo = React.createClass({
                         result: _.get(
                             response,
                             ['options', '0', this.props.option],
-                            this.props.name,
+                            this.props.name
                         ),
                     });
                 },
@@ -186,13 +189,13 @@ const PropertyTypeInfo = React.createClass({
                         console.warn(
                             `No ${this.props
                                 .option} found for the property type ${this
-                                .props.name}`,
+                                .props.name}`
                         );
                     }
                     this.setState({
                         result: this.props.name,
                     });
-                },
+                }
             );
 
         return {
@@ -254,74 +257,6 @@ export const ThingIcon = ({type, status, message}) => {
         />
     );
 };
-
-export const FloatingListActions = React.createClass({
-    propTypes: {
-        actions: React.PropTypes.array.isRequired,
-        iconName: React.PropTypes.string.isRequired,
-    },
-
-    getInitialState() {
-        return {
-            activeFAB: false,
-        };
-    },
-
-    handleFAB(event) {
-        event.stopPropagation();
-        this.setState({
-            activeFAB: !this.state.activeFAB,
-        });
-    },
-
-    render() {
-        const {iconName, actions} = this.props;
-
-        if (!actions || actions.length < 1) {
-            return false;
-        }
-
-        return (
-            <div className="ecc-silk-mapping__ruleslist-floatingactions">
-                <Button
-                    className={`ecc-silk-mapping__ruleslist-floatingactions--trigger${this
-                        .state.activeFAB
-                        ? ' is-active'
-                        : ''}`}
-                    iconName="add"
-                    fabSize="large"
-                    colored
-                    tooltip={actions.length > 1 ? false : actions[0].label}
-                    onClick={
-                        actions.length > 1 ? this.handleFAB : actions[0].handler
-                    }
-                />
-                {actions.length > 1
-                    ? <ul className="ecc-silk-mapping__ruleslist-floatingactions--list mdl-menu mdl-shadow--2dp">
-                          {_.map(actions, (action, idx) =>
-                              <li key={`FloatingAction_${idx}`}>
-                                  <button
-                                      className="mdl-menu__item"
-                                      onClick={action.handler}>
-                                      {action.icon
-                                          ? <Icon name={action.icon} />
-                                          : false}
-                                      {action.label}
-                                  </button>
-                              </li>,
-                          )}
-                      </ul>
-                    : false}
-                {actions.length > 1 && this.state.activeFAB
-                    ? <div
-                          className="ecc-silk-mapping__ruleslist-floatingactions--list-backdrop"
-                          onMouseOver={this.handleFAB}
-                      />
-                    : false}
-            </div>
-        );
-    },
-});
 
 export const ParentElement = ({parent}) =>
     _.get(parent, 'type')

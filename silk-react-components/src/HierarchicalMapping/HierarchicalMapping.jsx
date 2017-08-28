@@ -1,21 +1,23 @@
 import React from 'react';
 import _ from 'lodash';
 import {
-    Spinner,
-    ConfirmationDialog,
+    Button,
     DismissiveButton,
     DisruptiveButton,
-    Button,
+    Card,
+    CardTitle,
     ContextMenu,
     MenuItem,
+    ConfirmationDialog,
+    Spinner,
 } from 'ecc-gui-elements';
 import {URI} from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
-import TreeView from './Components/TreeView';
 
-import MappingRuleOverview from './Components/MappingRuleOverview';
+import MappingTree from './Components/MappingTree';
+import MappingRulesView from './Components/MappingRulesView';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -31,27 +33,27 @@ const HierarchicalMapping = React.createClass({
         // listen to rule id changes
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
-            this.onRuleNavigation,
+            this.onRuleNavigation
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('removeClick'),
-            this.handleClickRemove,
+            this.handleClickRemove
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.onOpenEdit,
+            this.onOpenEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     // initilize state
@@ -90,7 +92,7 @@ const HierarchicalMapping = React.createClass({
             this.setState({
                 editingElements: _.filter(
                     this.state.editingElements,
-                    e => e !== id,
+                    e => e !== id
                 ),
             });
         }
@@ -130,12 +132,11 @@ const HierarchicalMapping = React.createClass({
                 },
                 err => {
                     // FIXME: let know the user what have happened!
-                    console.warn(`Error happened`, err);
                     this.setState({
                         elementToDelete: false,
                         loading: false,
                     });
-                },
+                }
             );
     },
     handleCancelRemove() {
@@ -202,8 +203,8 @@ const HierarchicalMapping = React.createClass({
     },
     // template rendering
     render() {
-        const treeView = this.state.showNavigation
-            ? <TreeView currentRuleId={this.state.currentRuleId} />
+        const navigationTree = this.state.showNavigation
+            ? <MappingTree currentRuleId={this.state.currentRuleId} />
             : false;
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
@@ -282,9 +283,11 @@ const HierarchicalMapping = React.createClass({
             : false;
 
         return (
-            <div className="ecc-silk-mapping">
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
-                    <div className="ecc-silk-mapping__header mdl-card__title">
+            <section className="ecc-silk-mapping">
+                <Card>
+                    <CardTitle
+                        className="ecc-silk-mapping__header"
+                        border={false}>
                         {debugOptions}
                         {deleteView}
                         {discardView}
@@ -296,17 +299,17 @@ const HierarchicalMapping = React.createClass({
                                     : 'Show tree navigation'}
                             </MenuItem>
                         </ContextMenu>
-                    </div>
+                    </CardTitle>
                     <div className="ecc-silk-mapping__content">
-                        {treeView}
+                        {navigationTree}
                         {
-                            <MappingRuleOverview
+                            <MappingRulesView
                                 currentRuleId={this.state.currentRuleId}
                             />
                         }
                     </div>
-                </div>
-            </div>
+                </Card>
+            </section>
         );
     },
 });

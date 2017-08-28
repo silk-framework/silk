@@ -90,7 +90,7 @@ function WorkflowEditor() {
                     };
                     return this;
                 },
-            }.init(),
+            }.init()
         );
 
         // Handle dropped operators
@@ -123,8 +123,8 @@ function WorkflowEditor() {
                             endpoints.push(
                                 jsPlumb.addEndpoint(
                                     id,
-                                    _this.styles.endpoints.target,
-                                ),
+                                    _this.styles.endpoints.target
+                                )
                             );
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
@@ -185,13 +185,13 @@ function WorkflowEditor() {
                 // Add endpoints
                 sourceEndpoints[opId] = jsPlumb.addEndpoint(
                     box,
-                    _this.styles.endpoints.source,
+                    _this.styles.endpoints.source
                 );
                 var inputCardinality = $(box).data().inputCardinality;
                 targetEndpoints[opId] = [];
                 if (inputCardinality === -1) {
                     targetEndpoints[opId].push(
-                        _this.handler.addDynamicEndpoint(box, 'dynamic_target'),
+                        _this.handler.addDynamicEndpoint(box, 'dynamic_target')
                     );
                     // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                 } else {
@@ -199,8 +199,8 @@ function WorkflowEditor() {
                         targetEndpoints[opId].push(
                             jsPlumb.addEndpoint(
                                 box,
-                                _this.styles.endpoints.target,
-                            ),
+                                _this.styles.endpoints.target
+                            )
                         );
                     }
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
@@ -222,7 +222,7 @@ function WorkflowEditor() {
                 var inputCardinality = $(`#${taskId}`).data().inputCardinality;
                 $.each(currXML.attr('inputs').split(','), function(
                     index,
-                    value,
+                    value
                 ) {
                     if (value !== '') {
                         jsPlumb.connect({
@@ -233,7 +233,7 @@ function WorkflowEditor() {
                             // these are dynamic enpoints, so we need to get the last one and push it on the stack of
                             // endpoints for this taskId, to make it available in the next iteration of the loop
                             var openEndpoint = _this.handler.getOpenDynamicEndpoint(
-                                taskId,
+                                taskId
                             );
                             targetEndpoints[taskId].push(openEndpoint);
                         }

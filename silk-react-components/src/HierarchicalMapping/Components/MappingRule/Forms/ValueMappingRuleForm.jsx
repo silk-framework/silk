@@ -1,14 +1,18 @@
 import React from 'react';
-import UseMessageBus from '../../../UseMessageBusMixin';
 import {
-    TextField,
     AffirmativeButton,
     DismissiveButton,
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
+    TextField,
     Spinner,
 } from 'ecc-gui-elements';
+import _ from 'lodash';
+import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import _ from 'lodash';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
@@ -45,12 +49,12 @@ const ValueMappingRuleForm = React.createClass({
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
-                                '',
+                                ''
                             ),
                             propertyType: _.get(
                                 rule,
                                 'mappingTarget.valueType.nodeType',
-                                'AutoDetectValueType',
+                                'AutoDetectValueType'
                             ),
                             sourceProperty: rule.sourcePath,
                         };
@@ -62,9 +66,8 @@ const ValueMappingRuleForm = React.createClass({
                         });
                     },
                     err => {
-                        console.warn('err MappingRuleOverview: rule.get');
                         this.setState({loading: false});
-                    },
+                    }
                 );
         } else {
             hierarchicalMappingChannel
@@ -109,7 +112,7 @@ const ValueMappingRuleForm = React.createClass({
                         error: err,
                         loading: false,
                     });
-                },
+                }
             );
     },
     // remove rule
@@ -164,11 +167,7 @@ const ValueMappingRuleForm = React.createClass({
 
         const allowConfirm = this.state.targetProperty;
 
-        const title = !id
-            ? <div className="mdl-card__title mdl-card--border">
-                  Add value mapping
-              </div>
-            : false;
+        const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
@@ -184,7 +183,7 @@ const ValueMappingRuleForm = React.createClass({
                     ruleId={this.props.parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
-                        'sourceProperty',
+                        'sourceProperty'
                     )}
                 />
             );
@@ -201,12 +200,9 @@ const ValueMappingRuleForm = React.createClass({
         // TODO: Where to get the list of target property types?
         return (
             <div className="ecc-silk-mapping__ruleseditor">
-                <div
-                    className={`mdl-card mdl-card--stretch${!id
-                        ? ' mdl-shadow--2dp'
-                        : ''}`}>
+                <Card shadow={!id ? 1 : 0}>
                     {title}
-                    <div className="mdl-card__content">
+                    <CardContent>
                         {errorMessage}
                         <AutoComplete
                             placeholder={'Target property'}
@@ -218,7 +214,7 @@ const ValueMappingRuleForm = React.createClass({
                             ruleId={this.props.parentId}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
-                                'targetProperty',
+                                'targetProperty'
                             )}
                         />
                         <AutoComplete
@@ -230,7 +226,7 @@ const ValueMappingRuleForm = React.createClass({
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
-                                'propertyType',
+                                'propertyType'
                             )}
                         />
                         {sourcePropertyInput}
@@ -241,11 +237,11 @@ const ValueMappingRuleForm = React.createClass({
                             value={this.state.comment}
                             onChange={this.handleChangeTextfield.bind(
                                 null,
-                                'comment',
+                                'comment'
                             )}
                         />
-                    </div>
-                    <div className="ecc-silk-mapping__ruleseditor__actionrow mdl-card__actions mdl-card--border">
+                    </CardContent>
+                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             onClick={this.handleConfirm}
@@ -257,8 +253,8 @@ const ValueMappingRuleForm = React.createClass({
                             onClick={this.handleClose}>
                             Cancel
                         </DismissiveButton>
-                    </div>
-                </div>
+                    </CardActions>
+                </Card>
             </div>
         );
     },

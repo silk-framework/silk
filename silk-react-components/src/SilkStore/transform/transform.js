@@ -43,7 +43,7 @@ silkStore
 
         superagent
             .post(
-                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentRuleId}`,
+                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentRuleId}`
             )
             .accept('application/json')
             .send({
@@ -99,7 +99,7 @@ silkStore
 
         superagent
             .put(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}`
             )
             .accept('application/json')
             .type('application/json')
@@ -116,7 +116,7 @@ silkStore
 
         superagent
             .del(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}`
             )
             .accept('application/json')
             .observe()
@@ -131,7 +131,7 @@ silkStore
 
         superagent
             .post(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}`
             )
             .accept('application/json')
             .observe()
@@ -146,7 +146,7 @@ silkStore
 
         superagent
             .post(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/rules`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/rules`
             )
             .accept('application/json')
             .type('application/json')
@@ -173,7 +173,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/sourcePaths`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/sourcePaths`
             )
             .query({
                 term,
@@ -199,7 +199,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetProperties`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetProperties`
             )
             .query({
                 term,
@@ -225,7 +225,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetTypes`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetTypes`
             )
             .query({
                 term,
@@ -245,7 +245,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/type`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/type`
             )
             .accept('application/json')
             .query({
@@ -263,7 +263,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/property`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/property`
             )
             .accept('application/json')
             .query({
@@ -281,7 +281,7 @@ silkStore
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/typeOrProperty`,
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/targetVocabulary/typeOrProperty`
             )
             .accept('application/json')
             .query({

@@ -168,17 +168,19 @@
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 50%;
+
+  .mdl-card__title {
+      z-index: 2; // TODO: only if sticky, need to be moved to gui elements
+      background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
+  }
 }
 
-.ecc-silk-mapping__ruleshead {
+.ecc-silk-mapping__rulesobject {
     position: relative;
     margin-bottom: 1rem;
 
     .mdl-card__title {
         align-items: flex-start;
-        position: sticky;
-        top: 0;
-        z-index: 10;
         background-color: $card-background-color;
     }
 
@@ -211,27 +213,15 @@
 
         .mdl-card__title-text-main {
             font-weight: 500;
-            //font-size: 1.25rem;
         }
-
-        .mdl-card__title-text-sub {
-            //font-size: 1.25rem;
-        }
-    }
-
-    .mdl-card__content {
-        max-height: calc(99vh - 36px - 2*8px - 2*16px - 3*16px - 150px;);
-        overflow: overlay;
-        margin: 0;
-        padding: 0 1rem;
-    }
-
-    .mdl-card__actions {
-        border-bottom: 1px solid $card-border-color;
     }
 }
 
 .ecc-silk-mapping__ruleslist {
+
+    .ecc-floatingactionlist__wrapper--fixed {
+        z-index: 2; // TODO: need to be moved to gui elements
+    }
 
     .mdl-card__title-text {
         flex-grow: 1;
@@ -420,92 +410,6 @@
             transform: translate(-1px, 25%);
         }
     }
-
-    .mdl-card__actions--fixed {
-        position: sticky;
-        bottom: 0;
-    }
-
-    & > .mdl-card > .mdl-card__actions {
-        background-color: rgba(to_color($card-background-color), 0.90);
-        z-index: 1;
-    }
-
-}
-
-.ecc-silk-mapping__ruleslist-floatingactions {
-    position: absolute;
-    bottom: 3rem;
-    right: calc(2rem + 32px);
-
-    .mdl-button--fab {
-        // TODO: large fab is broken, need to be fixed in gui elements
-        width: 56px;
-        height: 56px;
-    }
-
-}
-
-.ecc-silk-mapping__ruleslist-floatingactions--trigger {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    z-index: 1;
-    transition: opacity .2s, width .2s, height .2s, border-radius .2s;
-
-    &.is-active {
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 0;
-    }
-}
-
-.ecc-silk-mapping__ruleslist-floatingactions--list {
-    position: relative;
-    bottom: 3px;
-    right: 3px;
-    top: auto;
-    left: auto;
-    height: auto;
-    overflow: hidden;
-    width: 50px;
-    min-width: 0;
-    max-height: 50px;
-    padding: 0;
-    opacity: 0;
-    border-radius: 50%;
-    z-index: 0;
-    transition: opacity .2s, width .2s, max-height .2s, border-radius .2s;
-
-    .mdl-menu__item {
-        opacity: 1;
-    }
-
-    .material-icons {
-        vertical-align: middle;
-        margin-right: 0.5em
-    }
-
-    .ecc-silk-mapping__ruleslist-floatingactions--trigger.is-active + & {
-        bottom: 0;
-        right: 0;
-        width: 20em;
-        max-height: 20em;
-        background-color: white;
-        opacity: 1;
-        border-radius: 0;
-        z-index: 2;
-    }
-}
-
-.ecc-silk-mapping__ruleslist-floatingactions--list-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
 }
 
 .ecc-silk-mapping__rulesviewer,

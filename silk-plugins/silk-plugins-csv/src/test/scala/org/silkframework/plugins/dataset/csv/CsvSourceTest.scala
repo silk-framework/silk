@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{InputStream, OutputStream, StringReader}
-import java.time.Instant
+import java.io.StringReader
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.{EntitySchema, Path}
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource, Resource, WritableResource}
+import org.silkframework.dataset.DataSource
+import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
@@ -25,6 +25,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
   val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
   val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
+  val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
+  val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -64,6 +66,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
     )) shouldBe Some(DetectedSeparator('\t', 3, 0))
   }
 
+  it should "detect hash separator" in {
+    val hash = "#"
+    detect(Seq(
+      s"""f1${hash}f2${hash}f3""",
+      s"""1${hash}"test"${hash}3""",
+      s"""1${hash}"test, with, commas, in, literal"${hash}3"""
+    )) shouldBe Some(DetectedSeparator('#', 3, 0))
+  }
+
   it should "detect lines to skip" in {
     val tab = "\t"
     val validLines = for (i <- 1 to 100) yield {
@@ -93,18 +104,40 @@ class CsvSourceTest extends FlatSpec with Matchers {
     )) shouldBe None
   }
 
+  it should "interpret escaped separators" in {
+    val source = tabSeparated.source
+    val entities: Seq[Entity] = getEntities(source)
+    entities.size shouldBe 2
+    entities.map(_.values.flatten.head) shouldBe Seq("value1", "abc")
+    tabSeparated.autoConfigured.separator shouldBe "\\t"
+  }
+
+  it should "accept tab as array separator char" in {
+    for(source <- Seq(tabArraySeparated.source, tabArraySeparated.copy(arraySeparator = "\\t").source)) {
+      val entities: Seq[Entity] = getEntities(source)
+      entities.size shouldBe 2
+      entities.head.values shouldBe IndexedSeq(Seq("val1a", "val1b"), Seq("val2a", "val2b"))
+      tabSeparated.autoConfigured.separator shouldBe "\\t"
+    }
+  }
+
   "CsvDataset" should "detect separator on multi line instances and read entities accordingly" in {
     val autoConfigured = datasetHard.autoConfigured
     autoConfigured.separator shouldBe ","
     val source = autoConfigured.source
-    val paths = source.retrievePaths(Uri("")).toIndexedSeq.map(_.asStringTypedPath)
-    val entities = source.retrieve(EntitySchema(Uri(""), paths)).toSeq
+    val entities: Seq[Entity] = getEntities(source)
     entities.size shouldBe 3
     val multilineEntity = entities.drop(1).head
     val expectedValue = "Markus from\n" +
                         "the other company,\n" +
                         "who does not like pizza"
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
+  }
+
+  private def getEntities(dataSource: DataSource): Seq[Entity] = {
+    val paths = dataSource.retrievePaths(Uri("")).toIndexedSeq.map(_.asStringTypedPath)
+    val entities = dataSource.retrieve(EntitySchema(Uri(""), paths)).toSeq
+    entities
   }
 
   it should "not fail when auto-configuring on empty CSV files" in {

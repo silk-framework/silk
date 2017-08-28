@@ -1,5 +1,5 @@
 /*
- * Tree View On The Left
+ * Navigation tree over full hierarchical depth of mappings
  */
 
 import React from 'react';
@@ -10,7 +10,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 
-const TreeView = React.createClass({
+const MappingTree = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -22,11 +22,11 @@ const TreeView = React.createClass({
     getInitialState() {
         this.subscribe(
             hierarchicalMappingChannel.subject('reload'),
-            this.loadData,
+            this.loadData
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
-            this.expandElement,
+            this.expandElement
         );
         return {
             loading: true,
@@ -49,7 +49,9 @@ const TreeView = React.createClass({
         }
     },
     loadData() {
-        console.warn('TREE RELOAD');
+        if (__DEBUG__) {
+            console.warn('TREE RELOAD');
+        }
 
         // get navigation tree data
         hierarchicalMappingChannel.request({topic: 'hierarchy.get'}).subscribe(
@@ -66,9 +68,8 @@ const TreeView = React.createClass({
                 });
             },
             err => {
-                console.warn('err TreeView: hierarchy.get', err);
                 this.setState({loading: false});
-            },
+            }
         );
     },
     // select clicked id
@@ -195,7 +196,7 @@ const TreeView = React.createClass({
                               {_.map(childs, child =>
                                   <li key={child.id}>
                                       {navigationList({parent: child})}
-                                  </li>,
+                                  </li>
                               )}
                           </ul>
                         : false}
@@ -222,4 +223,4 @@ const TreeView = React.createClass({
     },
 });
 
-export default TreeView;
+export default MappingTree;

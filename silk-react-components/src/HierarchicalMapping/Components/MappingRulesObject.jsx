@@ -1,19 +1,21 @@
 import React from 'react';
+import _ from 'lodash';
+import {
+    Button,
+    Card,
+    CardTitle,
+    Chip,
+    ConfirmationDialog,
+    DisruptiveButton,
+    DismissiveButton,
+} from 'ecc-gui-elements';
 import {
     RuleTitle,
     RuleTypes,
     ParentElement,
 } from './MappingRule/SharedComponents';
 import RuleObjectEdit from './MappingRule/ObjectMappingRule';
-import _ from 'lodash';
 import hierarchicalMappingChannel from '../store';
-import {
-    Button,
-    Chip,
-    ConfirmationDialog,
-    DisruptiveButton,
-    DismissiveButton,
-} from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 
 const MappingRuleOverviewHeader = React.createClass({
@@ -36,15 +38,15 @@ const MappingRuleOverviewHeader = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
-            this.onOpenEdit,
+            this.onOpenEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.unchanged'),
-            this.onCloseEdit,
+            this.onCloseEdit
         );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
-            this.discardAll,
+            this.discardAll
         );
     },
     onOpenEdit(obj) {
@@ -155,10 +157,10 @@ const MappingRuleOverviewHeader = React.createClass({
         }
 
         return (
-            <div className="ecc-silk-mapping__ruleshead">
+            <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
-                <div className="mdl-card mdl-card--stretch">
-                    <div className="mdl-card__title mdl-card--border">
+                <Card>
+                    <CardTitle>
                         <div className="mdl-card__title-back">
                             {backButton}
                         </div>
@@ -185,9 +187,9 @@ const MappingRuleOverviewHeader = React.createClass({
                                 }}
                             />
                         </div>
-                    </div>
+                    </CardTitle>
                     {content}
-                </div>
+                </Card>
             </div>
         );
     },

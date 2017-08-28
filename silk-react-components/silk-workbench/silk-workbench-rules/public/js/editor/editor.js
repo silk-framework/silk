@@ -149,7 +149,7 @@ function initEditor(canvasId = 'droppable') {
             mousePosCanvas = adjustOffset(mousePosCanvas, $canvas);
             var mousePosCombined = subtractOffsets(
                 mousePosCanvas,
-                mousePosDraggable,
+                mousePosDraggable
             );
             clone.appendTo($canvas);
             clone.css(mousePosCombined);
@@ -226,7 +226,7 @@ function initEditor(canvasId = 'droppable') {
     });
 
     $(
-        document,
+        document
     ).on(
         'click',
         "div.sourcePath > h5 > div[class!='active'], div.targetPath > h5 > div[class!='active']",
@@ -236,11 +236,11 @@ function initEditor(canvasId = 'droppable') {
             if (thisPath !== undefined) thisPath = encodeHtml(thisPath);
             $(this).addClass('active');
             $(this).html(
-                `<input class="new-path" type="text" value="${thisPath}" />`,
+                `<input class="new-path" type="text" value="${thisPath}" />`
             );
             $(this).parent().css('height', '19px');
             $(this).children().focus();
-        },
+        }
     );
 
     $(document).on('blur', '.new-path', function() {
@@ -350,7 +350,7 @@ function validateLinkSpec() {
         // count root elements
         var target = jsPlumb.getConnections(
             {scope: ['value', 'similarity'], source: elId},
-            true,
+            true
         );
         if (target === undefined || target.length === 0) {
             root_elements.push(elId);
@@ -365,7 +365,7 @@ function validateLinkSpec() {
             var elements = '';
             for (var i = 0; i < root_elements.length; i++) {
                 var currentElementName = getCurrentElementName(
-                    root_elements[i],
+                    root_elements[i]
                 );
                 elements += `'${currentElementName}'`;
                 if (i < root_elements.length - 1) {
@@ -375,7 +375,7 @@ function validateLinkSpec() {
                 }
                 highlightElement(
                     currentElementName,
-                    'Error: Multiple root elements found.',
+                    'Error: Multiple root elements found.'
                 );
             }
             errorObj.message = `Error: Multiple root elements found: ${elements}`;
@@ -556,7 +556,7 @@ function updateWindowSize() {
         var palette_blocks = $('.palette-block');
         var palette_block_margin = parseInt(
             palette_blocks.css('margin-top'),
-            10,
+            10
         );
         var palette_block_height =
             (height - height_diff) / palette_blocks.length -
@@ -645,7 +645,7 @@ function saveInstance() {
         elements[i][0] = box;
         var conns = jsPlumb.getConnections(
             {scope: ['value', 'similarity'], source: id},
-            true,
+            true
         );
         targetConnections = conns;
         if (targetConnections !== undefined && targetConnections.length > 0) {
@@ -710,7 +710,7 @@ function getPropertyPaths(targetElement, groupPaths) {
 
 function reloadPropertyPaths() {
     var answer = confirm(
-        'Reloading the cache may take a long time. Do you want to proceed?',
+        'Reloading the cache may take a long time. Do you want to proceed?'
     );
     if (answer) {
         reloadCache();
@@ -752,11 +752,11 @@ function addEndpoints(boxId, boxClass) {
     ) {
         boxEndpoints.left = jsPlumb.addEndpoint(
             boxId,
-            endpointSimilarityTarget,
+            endpointSimilarityTarget
         );
         boxEndpoints.right = jsPlumb.addEndpoint(
             boxId,
-            endpointSimilaritySource,
+            endpointSimilaritySource
         );
     } else if (
         boxClass.search(/comparator/) !== -1 ||
@@ -766,7 +766,7 @@ function addEndpoints(boxId, boxClass) {
         boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
         boxEndpoints.right = jsPlumb.addEndpoint(
             boxId,
-            endpointSimilaritySource,
+            endpointSimilaritySource
         );
     } else if (boxClass.search(/transform/) !== -1) {
         boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
