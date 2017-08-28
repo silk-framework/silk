@@ -21,7 +21,12 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
   "export the entire workspace" in {
     val exportedWorkspace = exportWorkspace()
-    exportedWorkspace.size > 100
+
+    clearWorkspace()
+    User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
+
+    importWorkspace(exportedWorkspace)
+    User().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
   private def importWorkspace(workspaceBytes: Array[Byte]): Unit = {
@@ -35,6 +40,13 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val response = request.get()
     val result = checkResponse(response)
     result.bodyAsBytes
+  }
+
+  private def clearWorkspace(): Unit = {
+    val workspace = User().workspace
+    for(project <- workspace.projects) {
+      workspace.removeProject(project.config.id)
+    }
   }
 
 }
