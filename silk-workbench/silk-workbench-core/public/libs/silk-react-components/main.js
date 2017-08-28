@@ -22637,22 +22637,27 @@
             return {};
         },
         optionRender: function(option) {
-            var label = option.label, value = option.value, description = option.description;
-            return option.$userCreated ? _react2.default.createElement("strong", {
+            var label = option.label, value = option.value, description = option.description, $userCreated = option.$userCreated;
+            console.warn("debug options", option.value, option.label);
+            if ($userCreated) return _react2.default.createElement("strong", {
                 className: "Select-option__label"
-            }, label) : [ _react2.default.createElement("strong", {
-                key: "autoCompleteLabel",
-                className: "Select-option__label"
-            }, _react2.default.createElement(Highlight, {
-                textToHighlight: label,
-                searchWord: this._inputValue
-            })), _react2.default.createElement("code", {
+            }, label);
+            var optionValue = !1;
+            console.warn("debug matching", value !== label);
+            optionValue = _react2.default.createElement("code", {
                 key: "autoCompleteValue",
                 className: "Select-option__value"
             }, _react2.default.createElement(Highlight, {
                 textToHighlight: value,
                 searchWord: this._inputValue
-            })), _react2.default.createElement("span", {
+            }));
+            return [ _react2.default.createElement("strong", {
+                key: "autoCompleteLabel",
+                className: "Select-option__label"
+            }, _react2.default.createElement(Highlight, {
+                textToHighlight: label,
+                searchWord: this._inputValue
+            })), optionValue, _react2.default.createElement("span", {
                 key: "autoCompleteDescription",
                 className: "Select-option__description"
             }, _react2.default.createElement(Highlight, {
