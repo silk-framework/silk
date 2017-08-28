@@ -4,7 +4,7 @@ import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.User
-import play.api.libs.ws.{FileBody, InMemoryBody, WS}
+import play.api.libs.ws.WS
 
 class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
