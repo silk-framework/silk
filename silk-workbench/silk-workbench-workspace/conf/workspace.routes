@@ -64,17 +64,19 @@ DELETE        /projects/:project/customTasks/:name                              
 
 # Reload Workspace
 POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
+POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
+GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
+GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
 
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
 GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)
 PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
-POST          /projects/:project/import                                         controllers.workspace.WorkspaceApi.importProject(project: String)
-POST          /projects/:project/import/:importPlugin                           controllers.workspace.WorkspaceApi.importProjectViaPlugin(project: String, importPlugin: String)
-GET           /projects/:project/export                                         controllers.workspace.WorkspaceApi.exportProject(project: String)
-GET           /projects/:project/export/:exportPlugin                           controllers.workspace.WorkspaceApi.exportProjectViaPlugin(project: String, exportPlugin: String)
-GET           /projects/:project/marshallingPlugins                             controllers.workspace.WorkspaceApi.availableProjectMarshallingPlugins(project: String)
+POST          /projects/:project/import                                         controllers.workspace.ProjectMarshalingApi.importProject(project: String)
+POST          /projects/:project/import/:importPlugin                           controllers.workspace.ProjectMarshalingApi.importProjectViaPlugin(project: String, importPlugin: String)
+GET           /projects/:project/export                                         controllers.workspace.ProjectMarshalingApi.exportProject(project: String)
+GET           /projects/:project/export/:exportPlugin                           controllers.workspace.ProjectMarshalingApi.exportProjectViaPlugin(project: String, exportPlugin: String)
 POST          /projects/:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)

@@ -5,6 +5,7 @@ import java.io.{InputStream, OutputStream}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 
 /**
   * Created on 6/24/16.
@@ -31,10 +32,10 @@ trait ProjectMarshallingTrait {
     * @param workspaceProvider The workspace provider the project is coming from.
     * @return
     */
-  def marshal(project: ProjectConfig,
-              outputStream: OutputStream,
-              workspaceProvider: WorkspaceProvider,
-              resourceManager: ResourceManager): String
+  def marshalProject(project: ProjectConfig,
+                     outputStream: OutputStream,
+                     workspaceProvider: WorkspaceProvider,
+                     resourceManager: ResourceManager): String
 
   /**
     * Unmarshals the project
@@ -43,9 +44,32 @@ trait ProjectMarshallingTrait {
     * @param workspaceProvider The workspace provider the project should be imported into.
     * @param inputStream       The marshaled project data from an [[InputStream]].
     */
-  def unmarshalAndImport(projectName: Identifier,
-                         workspaceProvider: WorkspaceProvider,
-                         resourceManager: ResourceManager,
+  def unmarshalProject(projectName: Identifier,
+                       workspaceProvider: WorkspaceProvider,
+                       resourceManager: ResourceManager,
+                       inputStream: InputStream): Unit
+
+  /**
+    * Marshals the entire workspace.
+    *
+    * @param outputStream      The output stream the marshaled project data should be written to.
+    * @param workspaceProvider The workspace provider the projects are coming from.
+    * @return
+    */
+  def marshalWorkspace(outputStream: OutputStream,
+                       workspaceProvider: WorkspaceProvider,
+                       resourceRepository: ResourceRepository): String
+
+
+  /**
+    * Unmarshals and imports the entire workspace.
+    *
+    * @param workspaceProvider The workspace provider the projects should be imported into.
+    * @param inputStream       The marshaled project data from an [[InputStream]].
+    * @return
+    */
+  def unmarshalWorkspace(workspaceProvider: WorkspaceProvider,
+                         resourceRepository: ResourceRepository,
                          inputStream: InputStream): Unit
 
   /**

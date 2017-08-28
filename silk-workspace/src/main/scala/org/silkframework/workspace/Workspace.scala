@@ -66,7 +66,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
-    marshaller.marshal(project(name).config, outputStream, provider, repository.get(name))
+    marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
   }
 
   /**
@@ -83,7 +83,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
       case None =>
-        marshaller.unmarshalAndImport(name, provider, repository.get(name), inputStream)
+        marshaller.unmarshalProject(name, provider, repository.get(name), inputStream)
         reload()
     }
   }
