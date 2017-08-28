@@ -54,6 +54,22 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     project.id.toString + ".zip"
   }
 
+  /**
+    * Unmarshals the project
+    *
+    * @param projectName
+    * @param workspaceProvider The workspace provider the project should be imported into.
+    * @param inputStream       The marshaled project data from an [[InputStream]].
+    */
+  override def unmarshalProject(projectName: Identifier,
+                                workspaceProvider: WorkspaceProvider,
+                                resourceManager: ResourceManager,
+                                inputStream: InputStream): Unit = {
+    val xmlWorkspaceProvider = createWorkspaceFromInputStream(Some(projectName), inputStream)
+    val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
+    importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
+  }
+
   override def marshalWorkspace(outputStream: OutputStream,
                                 workspaceProvider: WorkspaceProvider,
                                 resourceRepository: ResourceRepository): String = {
@@ -82,27 +98,12 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceRepository: ResourceRepository,
                                   inputStream: InputStream): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(None, inputStream)
+    val projects = xmlWorkspaceProvider.readProjects()
 
-    for(project <- xmlWorkspaceProvider.readProjects()) {
+    for(project <- projects) {
       val projectResources = getProjectResources(xmlWorkspaceProvider, project.id)
       importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceRepository.get(project.id)))
     }
-  }
-
-  /**
-    * Unmarshals the project
-    *
-    * @param projectName
-    * @param workspaceProvider The workspace provider the project should be imported into.
-    * @param inputStream       The marshaled project data from an [[InputStream]].
-    */
-  override def unmarshalProject(projectName: Identifier,
-                                workspaceProvider: WorkspaceProvider,
-                                resourceManager: ResourceManager,
-                                inputStream: InputStream): Unit = {
-    val xmlWorkspaceProvider = createWorkspaceFromInputStream(Some(projectName), inputStream)
-    val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
-    importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
   }
 
   private def createWorkspaceFromInputStream(projectName: Option[Identifier],

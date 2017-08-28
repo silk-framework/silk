@@ -90,7 +90,7 @@ trait ProjectMarshallingTrait {
                               resources: Option[ResourceManager],
                               importResources: Option[ResourceManager]): Unit = {
     // Create new empty project
-    for ((project, index) <- importFromWorkspace.readProjects().zipWithIndex) {
+    for ((project, index) <- importFromWorkspace.readProjects().filter(_.id == projectName).zipWithIndex) {
       val targetProject = if (index == 0) projectName else projectName + index
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
