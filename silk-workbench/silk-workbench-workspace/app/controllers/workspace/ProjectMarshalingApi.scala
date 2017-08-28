@@ -72,6 +72,7 @@ class ProjectMarshalingApi extends Controller {
   }
 
   def importWorkspaceViaPlugin(marshallerId: String): Action[AnyContent] = Action { implicit request =>
+    User().workspace.clear()
     withMarshaller(marshallerId) { marshaller =>
       withBodyAsStream { inputStream =>
         val workspace = User().workspace

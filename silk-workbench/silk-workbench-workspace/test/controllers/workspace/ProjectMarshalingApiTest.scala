@@ -21,11 +21,9 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
   "export the entire workspace" in {
     val exportedWorkspace = exportWorkspace()
-
     clearWorkspace()
-    User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
-
     importWorkspace(exportedWorkspace)
+
     User().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
@@ -43,10 +41,8 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def clearWorkspace(): Unit = {
-    val workspace = User().workspace
-    for(project <- workspace.projects) {
-      workspace.removeProject(project.config.id)
-    }
+    User().workspace.clear()
+    User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
   }
 
 }
