@@ -29,4 +29,10 @@ trait WorkspaceActivity {
     */
   def status: Status
 
+  /**
+    * Holds the timestamp when the activity has been started.
+    * Is None if the activity is not running at the moment.
+    */
+  def startTime: Option[Long] = None
+
 }

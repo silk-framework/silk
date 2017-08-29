@@ -20,6 +20,8 @@ class ProjectActivity(override val project: Project, initialFactory: ProjectActi
 
   override def status = currentControl.status()
 
+  override def startTime: Option[Long] = currentControl.startTime
+
   def control = currentControl
 
   def factory = currentFactory
