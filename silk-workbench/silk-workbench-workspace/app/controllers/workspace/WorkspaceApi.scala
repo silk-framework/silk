@@ -25,8 +25,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class WorkspaceApi extends Controller {
 
-  import ProjectMarshallerRegistry._
-
   def reload: Action[AnyContent] = Action {
     User().workspace.reload()
     Ok
@@ -70,84 +68,6 @@ class WorkspaceApi extends Controller {
     }
 
     Ok
-  }
-
-  def importProject(project: String): Action[AnyContent] = Action { implicit request =>
-    for (data <- request.body.asMultipartFormData;
-         file <- data.files) {
-      // Read the project from the received file
-      val inputStream = new FileInputStream(file.ref.file)
-      try {
-        val marshaller = marshallerForFile(file.filename)
-        val workspace = User().workspace
-        workspace.importProject(project, inputStream, marshaller)
-      } finally {
-        inputStream.close()
-      }
-    }
-    Ok
-  }
-
-  /**
-    * importProject variant with explicit marshaller parameter
-    *
-    * @param project
-    * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
-    * @return
-    */
-  def importProjectViaPlugin(project: String, marshallerId: String): Action[AnyContent] = Action { implicit request =>
-    val marshallerOpt = marshallerById(marshallerId)
-    marshallerOpt match {
-      case Some(marshaller) =>
-        for (data <- request.body.asMultipartFormData;
-             file <- data.files) {
-          // Read the project from the received file
-          val inputStream = new FileInputStream(file.ref.file)
-          try {
-            val workspace = User().workspace
-            workspace.importProject(project, inputStream, marshaller)
-          } finally {
-            inputStream.close()
-          }
-        }
-        Ok
-      case _ =>
-        BadRequest("No plugin '" + marshallerId + "' found for importing project.")
-    }
-  }
-
-  def exportProject(projectName: String): Action[AnyContent] = Action {
-    val marshaller = marshallerById("xmlZip").get
-    // Export the project into a byte array
-    val outputStream = new ByteArrayOutputStream()
-    val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
-    val bytes = outputStream.toByteArray
-    outputStream.close()
-
-    Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
-  }
-
-  def availableProjectMarshallingPlugins(p: String): Action[AnyContent] = Action {
-    val marshaller = marshallingPlugins
-    Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
-  }
-
-  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
-    val marshallerOpt = marshallerById(marshallerPluginId)
-    marshallerOpt match {
-      case Some(marshaller) =>
-        // Export the project into a byte array
-        val outputStream = new ByteArrayOutputStream()
-        val fileName = User().workspace.exportProject(projectName, outputStream, marshaller)
-        val bytes = outputStream.toByteArray
-        outputStream.close()
-
-        Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
-      case _ =>
-        BadRequest("No plugin '" + marshallerPluginId + "' found for exporting project.")
-    }
-
   }
 
   def executeProject(projectName: String): Action[AnyContent] = Action {
