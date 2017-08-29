@@ -556,7 +556,7 @@ object JsonSerializers {
           TYPE -> JsString("complex"),
           ID -> JsString(rule.id),
           "operator" -> toJson(rule.operator),
-          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serializeSimplified(writeContext.prefixes)).map(JsString)),
+          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serialize(writeContext.prefixes)).map(JsString)),
           METADATA -> toJson(rule.metaData)
         ) ++
             rule.target.map("mappingTarget" -> toJson(_))
