@@ -313,34 +313,48 @@ const MappingRule = React.createClass({
 
         return (
             <li
-                className={'mdl-list__item'}
+                className={
+                    className(
+                        'ecc-silk-mapping__ruleitem',
+                        {
+                            'ecc-silk-mapping__ruleitem--object': type === 'object',
+                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
+                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                        }
+                    )
+                }
             >
                 {discardView}
                 {loading}
-                {reorderHandleButton}
-                <div
-                    className={
+                <div className={
                         className(
-                            'ecc-silk-mapping__ruleitem',
+                            'ecc-silk-mapping__ruleitem-summary',
                             {
-                                'ecc-silk-mapping__ruleitem--object': type === 'object',
-                                'ecc-silk-mapping__ruleitem--literal': type !== 'object',
-                                'ecc-silk-mapping__ruleitem--expanded': this.state.expanded,
-                                'ecc-silk-mapping__ruleitem--summary': !this.state.expanded,
-                                'ecc-silk-mapping__ruleitem--defect': errorInfo,
-                                'clickable': !this.state.expanded,
+                                'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
                             }
                         )
                     }
-                    onClick={this.state.expanded ? null : mainAction}
                 >
-                    <div className={'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content'}>
-                        {this.state.expanded ? expandedView : shortView}
-                    </div>
-                    <div className="mdl-list__item-secondary-content" key="action">
-                        {action}
+                    {reorderHandleButton}
+                    <div
+                        className={'mdl-list__item clickable'}
+                        onClick={mainAction}
+                    >
+                        <div className={'mdl-list__item-primary-content'}>
+                            {shortView}
+                        </div>
+                        <div className="mdl-list__item-secondary-content" key="action">
+                            {action}
+                        </div>
                     </div>
                 </div>
+                {
+                    this.state.expanded ?
+                    <div className="ecc-silk-mapping__ruleitem-expanded">
+                        {expandedView}
+                    </div> :
+                    false
+                }
             </li>
         );
     },

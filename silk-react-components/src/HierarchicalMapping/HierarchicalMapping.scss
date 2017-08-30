@@ -260,16 +260,7 @@
     }
 
     .mdl-list__item {
-        display: block;
-        position: relative;
-        padding: 0;
-        overflow: visible;
-        border-bottom: $data-table-dividers;
-
-        &:last-child {
-            border-bottom: none;
-        }
-
+        color: inherit;
     }
 
     .ecc-silk-mapping__ruleitem--literal {
@@ -285,31 +276,18 @@
     }
 
     .ecc-silk-mapping__ruleitem {
-        //width: 100%;
-        //min-height: 48px;
-        padding: $ecc-size-blockelement-margin-vertical $ecc-size-blockelement-margin-horizontal;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        box-sizing: border-box;
+        @include typo-body-1();
+        max-width: 100%;
+        position: relative;
+        border-bottom: $data-table-dividers;
 
-        overflow: visible;
-        @include material-animation-default(0.28s);
-        transition-property: background-color;
-
-        &:hover {
-            background-color: $data-table-hover-color;
+        &:last-child {
+            border-bottom: none;
         }
+
     }
 
-    .ecc-silk-mapping__ruleitem--expanded {
-        padding-left: 0;
-        border-left: $data-table-dividers;
-        border-right: $data-table-dividers;
-
-        &:hover {
-            background-color: transparent;
-        }
+    .ecc-silk-mapping__ruleitem-expanded {
     }
 
     .ecc-silk-mapping__ruleitem--defect {
@@ -326,17 +304,17 @@
     }
 
     .ecc-silk-mapping__ruleitem-icon {
-        font-size: 1.25em;
-        vertical-align: text-bottom;
+        font-size: 1.39em;
+        vertical-align: bottom;
         margin-right: 0.1em;
     }
 
     .ecc-silk-mapping__ruleitem-content {
-        @include typo-body-1();
-        max-width: 100%;
     }
 
     .ecc-silk-mapping__ruleitem-headline {
+        font-size: $data-table-font-size;
+        line-height: 1.39;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -344,10 +322,12 @@
     }
 
     .ecc-silk-mapping__ruleitem-subline {
+        font-size: $input-text-floating-label-fontsize;
+        line-height: 1.39;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        @include typo-caption();
+        //@include typo-caption();
     }
 
 
@@ -358,10 +338,34 @@
         width: 0;
     }
 
-    .ecc-silk-mapping__ruleitem--summary {
+    .ecc-silk-mapping__ruleitem-summary {
+
+        @include material-animation-default(0.28s);
+        transition-property: background-color;
+
+        &:hover {
+            background-color: $data-table-hover-color;
+        }
+
+        &.ecc-silk-mapping__ruleitem-summary--expanded {
+            background-color: transparent;
+
+            .mdl-list__item-primary-content {
+                opacity: 0.39;
+            }
+        }
+
+        .mdl-list__item {
+            padding: $ecc-size-blockelement-margin-vertical $ecc-size-blockelement-margin-horizontal;
+            overflow: visible;
+        }
+
+        .mdl-list__item-primary-content {
+            //flex-direction: column;
+        }
 
         @media (min-width: $grid-desktop-breakpoint) {
-            .ecc-silk-mapping__ruleitem-content {
+            .mdl-list__item-primary-content {
                 display: flex;
                 flex-direction: row;
                 flex-wrap: nowrap;
@@ -395,7 +399,7 @@
 
             .ecc-silk-mapping__ruleitem-reorderhandler {
                 .material-icons {
-                    transform: translate(-1px, 10%);
+
                 }
             }
 
@@ -418,10 +422,9 @@
         left: $ecc-size-blockelement-margin-horizontal / 2;
         bottom: $ecc-size-blockelement-margin-vertical / 2;
         border: $data-table-dividers;
-        //align-self: stretch;
         background-color: to_color($color-white);
 
-        & + .ecc-silk-mapping__ruleitem {
+        & + .mdl-list__item {
             padding-left: 2 * $ecc-size-blockelement-margin-horizontal;
         }
 
@@ -461,7 +464,7 @@
 .ecc-silk-mapping__ruleseditor {
 
     .ecc-silk-mapping__ruleslist & {
-        margin: -1rem 0;
+        //margin: -1rem 0;
     }
 
     .mdl-card__content {

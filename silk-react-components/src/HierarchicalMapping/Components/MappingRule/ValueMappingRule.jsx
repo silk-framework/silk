@@ -114,19 +114,6 @@ const RuleValueView = React.createClass({
         return (
             <div className="ecc-silk-mapping__rulesviewer">
                 <Card shadow={0}>
-                    <CardTitle
-                        className="ecc-silk-mapping__rulesviewer__title clickable"
-                        onClick={this.props.handleToggleExpand}>
-                        <div className="mdl-card__title-text">
-                            <ThingName
-                                id={_.get(
-                                    this.props,
-                                    'mappingTarget.uri',
-                                    false
-                                )}
-                            />
-                        </div>
-                    </CardTitle>
                     <CardContent>
                         {_.get(this.props, 'mappingTarget.uri', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__targetProperty">
