@@ -16,8 +16,8 @@ import {URI} from 'ecc-utils';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 
-import MappingTree from './Components/MappingTree';
-import MappingRulesView from './Components/MappingRulesView';
+import MappingsTree from './Components/MappingsTree';
+import MappingsWorkview from './Components/MappingsWorkview';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -204,7 +204,7 @@ const HierarchicalMapping = React.createClass({
     // template rendering
     render() {
         const navigationTree = this.state.showNavigation
-            ? <MappingTree currentRuleId={this.state.currentRuleId} />
+            ? <MappingsTree currentRuleId={this.state.currentRuleId} />
             : false;
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
@@ -303,7 +303,7 @@ const HierarchicalMapping = React.createClass({
                     <div className="ecc-silk-mapping__content">
                         {navigationTree}
                         {
-                            <MappingRulesView
+                            <MappingsWorkview
                                 currentRuleId={this.state.currentRuleId}
                             />
                         }

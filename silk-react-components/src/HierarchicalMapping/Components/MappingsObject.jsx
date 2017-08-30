@@ -4,7 +4,6 @@ import {
     Button,
     Card,
     CardTitle,
-    Chip,
     ConfirmationDialog,
     DisruptiveButton,
     DismissiveButton,
@@ -14,12 +13,13 @@ import {
     RuleTypes,
     ParentElement,
 } from './MappingRule/SharedComponents';
-import RuleObjectEdit from './MappingRule/ObjectMappingRule';
+import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
+import Navigation from '../Mixins/Navigation';
 
-const MappingRuleOverviewHeader = React.createClass({
-    mixins: [UseMessageBus],
+const MappingsObject = React.createClass({
+    mixins: [UseMessageBus, Navigation],
     getInitialState() {
         return {
             expanded: false,
@@ -27,15 +27,16 @@ const MappingRuleOverviewHeader = React.createClass({
             askForDiscard: false,
         };
     },
-    // jumps to selected rule as new center of view
-    handleNavigate(id, event) {
-        hierarchicalMappingChannel
-            .subject('ruleId.change')
-            .onNext({newRuleId: id, parent: this.props.rule.id});
-
-        event.stopPropagation();
-    },
     componentDidMount() {
+        this.subscribe(
+            hierarchicalMappingChannel.subject('rulesView.toggle'),
+            ({expanded, id}) => {
+                // only trigger state / render change if necessary
+                if (id === true && expanded !== this.state.expanded) {
+                    this.setState({expanded});
+                }
+            }
+        );
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.change'),
             this.onOpenEdit
@@ -122,32 +123,11 @@ const MappingRuleOverviewHeader = React.createClass({
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
 
-        let parentTitle = false;
-        let backButton = false;
-
-        if (_.has(parent, 'id')) {
-            parentTitle = (
-                <div className="mdl-card__title-text-sup">
-                    <Chip onClick={this.handleNavigate.bind(null, parent.id)}>
-                        <ParentElement parent={parent} />
-                    </Chip>
-                </div>
-            );
-
-            backButton = (
-                <Button
-                    iconName={'chevron_left'}
-                    tooltip="Navigate back to parent"
-                    onClick={this.handleNavigate.bind(null, parent.id)}
-                />
-            );
-        }
-
         let content = false;
 
         if (this.state.expanded) {
             content = (
-                <RuleObjectEdit
+                <ObjectRule
                     {...this.props.rule}
                     parentId={_.get(parent, 'id', '')}
                     parent={parent}
@@ -160,20 +140,15 @@ const MappingRuleOverviewHeader = React.createClass({
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
                 <Card>
-                    <CardTitle>
-                        <div className="mdl-card__title-back">
-                            {backButton}
-                        </div>
-                        <div
-                            className="mdl-card__title-text clickable"
-                            onClick={this.handleToggleExpand}>
-                            {parentTitle}
-                            <div className="mdl-card__title-text-main">
-                                <RuleTitle rule={this.props.rule} />
-                            </div>
-                            <div className="mdl-card__title-text-sub">
-                                <RuleTypes rule={this.props.rule} />
-                            </div>
+                    <CardTitle className="clickable" onClick={this.handleToggleExpand}>
+                        <div className="mdl-card__title-text">
+                            {
+                                _.has(parent, 'id') ?
+                                <ParentElement parent={parent} className="ecc-silk-mapping__rulesobject__title-parent" />
+                                : false
+                            }
+                            <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
+                            <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-type" />
                         </div>
                         <div className="mdl-card__title-action">
                             <Button
@@ -195,4 +170,4 @@ const MappingRuleOverviewHeader = React.createClass({
     },
 });
 
-export default MappingRuleOverviewHeader;
+export default MappingsObject;

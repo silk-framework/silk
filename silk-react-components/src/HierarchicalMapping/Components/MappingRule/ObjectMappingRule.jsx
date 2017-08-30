@@ -21,7 +21,7 @@ import {
     InfoBox,
 } from './SharedComponents';
 
-const RuleObjectView = React.createClass({
+const ObjectRule = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -30,7 +30,6 @@ const RuleObjectView = React.createClass({
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
         parentId: React.PropTypes.string.isRequired,
-        parentName: React.PropTypes.string.isRequired,
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
         edit: React.PropTypes.bool.isRequired,
@@ -297,4 +296,4 @@ const RuleObjectView = React.createClass({
     },
 });
 
-export default RuleObjectView;
+export default ObjectRule;

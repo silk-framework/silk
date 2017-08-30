@@ -50,7 +50,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   protected def routes: Option[String] = None
 
   override implicit lazy val app: Application = {
-    var routerConf = routes.map(r => "application.router" -> r).toMap
+    var routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
   }
 

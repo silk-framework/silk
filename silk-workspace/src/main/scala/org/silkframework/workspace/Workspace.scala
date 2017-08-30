@@ -66,7 +66,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
-    marshaller.marshal(project(name).config, outputStream, provider, repository.get(name))
+    marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
   }
 
   /**
@@ -83,7 +83,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
       case None =>
-        marshaller.unmarshalAndImport(name, provider, repository.get(name), inputStream)
+        marshaller.unmarshalProject(name, provider, repository.get(name), inputStream)
         reload()
     }
   }
@@ -105,7 +105,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Reloads this workspace.
     */
-  def reload() {
+  def reload(): Unit = {
     // Write all data
     flush()
     // Stop all activities
@@ -120,6 +120,15 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
     // Reload projects
     cachedProjects = loadProjects()
+  }
+
+  /**
+    * Removes all projects from this workspace.
+    */
+  def clear(): Unit = {
+    for(project <- projects) {
+      removeProject(project.config.id)
+    }
   }
 
   private def loadProjects(): Seq[Project] = {

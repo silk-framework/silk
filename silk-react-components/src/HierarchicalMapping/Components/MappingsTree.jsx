@@ -10,7 +10,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 
-const MappingTree = React.createClass({
+const MappingsTree = React.createClass({
     mixins: [UseMessageBus],
 
     // define property types
@@ -68,6 +68,7 @@ const MappingTree = React.createClass({
                 });
             },
             err => {
+                console.warn('err MappingsTree: hierarchy.get', err);
                 this.setState({loading: false});
             }
         );
@@ -223,4 +224,4 @@ const MappingTree = React.createClass({
     },
 });
 
-export default MappingTree;
+export default MappingsTree;
