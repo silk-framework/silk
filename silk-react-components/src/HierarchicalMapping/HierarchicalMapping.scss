@@ -240,9 +240,22 @@
         flex-grow: 1;
     }
 
+    .mdl-card__actions {
+        background-color: transparent;
+    }
+
     .mdl-list {
         margin: 0;
         padding: 0;
+
+        & > li:nth-child(odd):not(.ecc-silk-mapping__ruleitem--defect) {
+            background-color: rgba(to_color($data-table-hover-color), 0.39);
+        }
+
+        .mdl-card,
+        .mdl-data-table {
+            background-color: transparent;
+        }
     }
 
 }
@@ -603,7 +616,7 @@
         padding: 0.5em 1em;
         white-space: normal;
         height: auto;
-        border-bottom-color: #ddd;
+        border-bottom-color: rgba(to_color($data-table-divider-color), 0.06); //#ddd;
 
         &:first-of-type,
         &:last-of-type {
@@ -623,7 +636,7 @@
 
     tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
     tr:last-of-type td {
-        border-bottom-color: #bbb;
+        border-bottom-color: to_color($data-table-divider-color);
     }
 
     thead {
