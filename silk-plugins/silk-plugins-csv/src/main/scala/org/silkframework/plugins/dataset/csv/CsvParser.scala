@@ -26,7 +26,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
       parserSettings.getFormat.setComment(c)
     case None =>
       // We need to explicitly disable the comment char, as it defaults to '#'
-      parserSettings.getFormat.setComment('\0')
+      parserSettings.getFormat.setComment('\u0000')
   }
 
   private val parser = new UniCsvParser(parserSettings)
