@@ -5,7 +5,7 @@ import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
 
@@ -36,7 +36,7 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       reader.nextTag()
-      val paths = Path.empty +: collectPaths(reader, Path.empty)
+      val paths = Path.empty +: collectPaths(reader, Path.empty, onlyLeafNodes = false)
       for (path <- paths) yield {
         (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
       }
@@ -49,8 +49,8 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
     val inputStream = file.load
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
-      reader.nextTag()
-      collectPaths(reader, Path.empty).toIndexedSeq
+      goToPath(reader, Path.parse(t.uri))
+      collectPaths(reader, Path.empty, onlyLeafNodes = true).toIndexedSeq
 
     } finally {
       inputStream.close()
@@ -58,10 +58,23 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
   }
 
   private def goToPath(reader: XMLStreamReader, path: Path): Unit = {
+    assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
+    var remainingOperators = path.operators
+    while(reader.hasNext && remainingOperators.nonEmpty) {
+      reader.next()
+      val tagName = remainingOperators.head.asInstanceOf[ForwardOperator].property.uri
+      if(reader.isStartElement && reader.getLocalName == tagName) {
+        remainingOperators = remainingOperators.drop(1)
+      }
+    }
+
+    if(remainingOperators.nonEmpty) {
+      throw new Exception(s"No elements at path $path.")
+    }
   }
 
-  private def collectPaths(reader: XMLStreamReader, path: Path): Seq[Path] = {
+  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
     nextTag(reader)
 
@@ -74,7 +87,12 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
         for(attributeIndex <- 0 until reader.getAttributeCount) yield {
           tagPath ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
         }
-      val newPaths = (tagPath +: attributePaths) ++ collectPaths(reader, tagPath)
+      val childPaths = collectPaths(reader, tagPath, onlyLeafNodes)
+
+      var newPaths = attributePaths ++ childPaths
+      if(!(onlyLeafNodes && childPaths.nonEmpty)) {
+        newPaths = tagPath +: newPaths
+      }
 
       if(!startElements.contains(reader.getLocalName)) {
         paths ++= newPaths
