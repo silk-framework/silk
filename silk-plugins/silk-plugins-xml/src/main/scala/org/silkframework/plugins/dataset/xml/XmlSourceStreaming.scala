@@ -108,6 +108,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
   }
 
+  /**
+    * Moves the parser to a given path.
+    * On return, the parser will be positioned on the first start element with the given path.
+    */
   private def goToPath(reader: XMLStreamReader, path: Path): Unit = {
     assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
@@ -125,6 +129,11 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     }
   }
 
+  /**
+    * Moves the parser to the next element with the provided name on the same hierarchy level.
+    * @return True, if another element was found. The parser will be positioned on the start element.
+    *         False, if the end of the file has been reached.
+    */
   private def goToNextEntity(reader: XMLStreamReader, name: String): Boolean = {
     var backwardPath = Seq[String]()
 
@@ -144,6 +153,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     false
   }
 
+  /**
+    * Collects all paths inside the current element.
+    * The parser must be positioned on the start element when calling this method.
+    */
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
     nextTag(reader)
