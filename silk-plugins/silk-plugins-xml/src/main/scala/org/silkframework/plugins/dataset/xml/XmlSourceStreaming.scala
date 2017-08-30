@@ -87,13 +87,7 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
 
             f(new Entity(uri, values, entitySchema))
 
-            // Move to next element
-            do {
-              if (reader.hasNext) {
-                reader.next()
-              }
-            } while (reader.hasNext && !(reader.isStartElement || reader.isEndElement))
-
+            goToNextEntity(reader, node.label)
           } while (reader.isStartElement)
         } finally {
           inputStream.close()
@@ -131,6 +125,25 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     }
   }
 
+  private def goToNextEntity(reader: XMLStreamReader, name: String): Boolean = {
+    var backwardPath = Seq[String]()
+
+    while(reader.hasNext) {
+      reader.next()
+      if(reader.isStartElement && backwardPath.isEmpty && reader.getLocalName == name) {
+        return true
+      } else if(reader.isStartElement && backwardPath.nonEmpty && backwardPath.head == reader.getLocalName) {
+        backwardPath = backwardPath.drop(1)
+      } else if(reader.isStartElement) {
+        skipElement(reader)
+      } else if(reader.isEndElement) {
+        backwardPath = reader.getLocalName +: backwardPath
+      }
+    }
+
+    false
+  }
+
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
     nextTag(reader)
@@ -139,21 +152,27 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     var startElements = Set[String]()
 
     while(reader.isStartElement) {
-      val tagPath = path ++ Path(reader.getLocalName)
-      val attributePaths =
-        for(attributeIndex <- 0 until reader.getAttributeCount) yield {
-          tagPath ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
-        }
-      val childPaths = collectPaths(reader, tagPath, onlyLeafNodes)
-
-      var newPaths = attributePaths ++ childPaths
-      if(!(onlyLeafNodes && childPaths.nonEmpty)) {
-        newPaths = tagPath +: newPaths
-      }
-
       if(!startElements.contains(reader.getLocalName)) {
+        // Get paths from tag, attributes and children
+        val tagPath = path ++ Path(reader.getLocalName)
+        val attributePaths =
+          for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+            tagPath ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
+          }
+        val childPaths = collectPaths(reader, tagPath, onlyLeafNodes)
+
+        // Collect all wanted paths
+        var newPaths = attributePaths ++ childPaths
+        if (!(onlyLeafNodes && childPaths.nonEmpty)) {
+          newPaths = tagPath +: newPaths
+        }
+
+        // Append new paths
         paths ++= newPaths
         startElements += reader.getLocalName
+      } else {
+        // We already collected paths for this tag
+        skipElement(reader)
       }
 
       nextTag(reader)
@@ -162,12 +181,17 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     paths
   }
 
-  private def buildNode(reader: XMLStreamReader): Node = {
+  private def buildNode(reader: XMLStreamReader): Elem = {
     assert(reader.isStartElement)
 
     val label = reader.getLocalName
-    var children = List[Node]()
 
+    var attributes: MetaData = Null
+    for(i <- 0 until reader.getAttributeCount) {
+      attributes = new UnprefixedAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i), attributes)
+    }
+
+    var children = List[Node]()
     do {
       reader.next()
 
@@ -181,7 +205,20 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
 
     reader.next()
 
-    Elem(null, label, Null, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
+    Elem(null, label, attributes, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
+  }
+
+  private def skipElement(reader: XMLStreamReader): Unit = {
+    assert(reader.isStartElement)
+
+    do {
+      reader.next()
+      if(reader.isStartElement) {
+        skipElement(reader)
+      }
+    } while(!reader.isEndElement)
+
+    reader.next()
   }
 
   private def nextTag(reader: XMLStreamReader): Unit = {
