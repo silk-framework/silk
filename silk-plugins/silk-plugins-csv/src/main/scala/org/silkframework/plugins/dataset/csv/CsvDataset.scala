@@ -37,29 +37,30 @@ case class CsvDataset
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
     maxCharsPerColumn: Int = 128000,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
-    ignoreBadLines: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
+    ignoreBadLines: Boolean = true) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
 
   private val sepChar =
-    if (separator == "\\t") '\t'
-    else if (separator.length == 1) separator.head
-    else throw new IllegalArgumentException(s"Invalid separator: '$separator'. Must be a single character.")
+    if (separator == "\\t") { '\t' }
+    else if (separator.length == 1) { separator.head }
+    else { throw new IllegalArgumentException(s"Invalid separator: '$separator'. Must be a single character.") }
 
   private val arraySeparatorChar =
-    if (arraySeparator.isEmpty) None
-    else if(arraySeparator == "\\t") Some('\t')
-    else if (arraySeparator.length == 1) Some(arraySeparator.head)
-    else throw new IllegalArgumentException(s"Invalid array separator character: '$arraySeparator'. Must be a single character.")
+    if (arraySeparator.isEmpty) { None }
+    else if(arraySeparator == "\\t") { Some('\t') }
+    else if (arraySeparator.length == 1) { Some(arraySeparator.head) }
+    else { throw new IllegalArgumentException(s"Invalid array separator character: '$arraySeparator'. Must be a single character.") }
 
   private val quoteChar =
-    if (quote.isEmpty) None
-    else if (quote.length == 1) Some(quote.head)
-    else throw new IllegalArgumentException(s"Invalid quote character: '$quote'. Must be a single character.")
+    if (quote.isEmpty) { None }
+    else if (quote.length == 1) { Some(quote.head) }
+    else { throw new IllegalArgumentException(s"Invalid quote character: '$quote'. Must be a single character.") }
 
   private val codec = Codec(charset)
 
   private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar, maxCharsPerColumn = Some(maxCharsPerColumn))
 
-  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
+  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec,
+    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
 
   override def linkSink: LinkSink = new CsvLinkSink(file, settings)
 
@@ -75,16 +76,8 @@ case class CsvDataset
     val detectedSeparator = detectedSettings.separator.toString
     // Skip one more line if header was detected and property list set
     val skipHeader = 0 // if (csvSource.propertyList.nonEmpty) 1 else 0
-    CsvDataset(
-      file = file,
-      // Uncommented to work with schema changes in datasets
-      properties = "", // CsvSourceHelper.serialize(csvSource.propertyList),
+    this.copy(
       separator = if (detectedSeparator == "\t") "\\t" else detectedSeparator,
-      arraySeparator = arraySeparator,
-      quote = quote,
-      prefix = prefix,
-      uri = uri,
-      regexFilter = regexFilter,
       charset = csvSource.codecToUse.name,
       linesToSkip = csvSource.skipLinesAutomatic.map(_ + skipHeader).getOrElse(linesToSkip)
     )
