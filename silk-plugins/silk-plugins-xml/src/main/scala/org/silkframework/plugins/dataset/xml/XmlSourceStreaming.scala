@@ -1,13 +1,17 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.File
+import java.net.URLEncoder
+import java.util.UUID
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{EntitySchema, ForwardOperator, Path}
+import org.silkframework.entity.{Entity, EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
+
+import scala.xml._
 
 /**
   * XML streaming source.
@@ -17,19 +21,11 @@ import org.silkframework.util.Uri
   *   - For retrieving paths and types, stop parsing after a configured number of tags has been reached.
   *   - Don't call collectPaths recursively for ignored tags.
   */
-object XmlSourceStreaming extends App {
-
-  val resource = FileResource(new File("C:\\Users\\risele\\repositories\\data-integration\\conf\\logback.xml"))
-
-  val source = new XmlSourceStreaming(resource)
-
-  println(source.retrieveTypes())
-
-}
-
-class XmlSourceStreaming(file: Resource) extends DataSource {
+class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
+
+  private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val inputStream = file.load
@@ -55,6 +51,67 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
     } finally {
       inputStream.close()
     }
+  }
+
+  /**
+    * Retrieves entities from this source which satisfy a specific entity schema.
+    *
+    * @param entitySchema The entity schema
+    * @param limit        Limits the maximum number of retrieved entities
+    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+    */
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+    new Traversable[Entity] {
+      override def foreach[U](f: (Entity) => U): Unit = {
+        val inputStream = file.load
+        try {
+          val reader = xmlFactory.createXMLStreamReader(inputStream)
+          reader.nextTag()
+          goToPath(reader, Path.parse(entitySchema.typeUri.uri))
+          do {
+            val node = buildNode(reader)
+            val traverser = XmlTraverser(node)
+
+            val uri =
+              if (uriPattern.isEmpty) {
+                "urn:instance:" + entitySchema.typeUri + "/" + traverser.node.label + reader.getLocation.getCharacterOffset
+              } else {
+                uriRegex.replaceAllIn(uriPattern, m => {
+                  val pattern = m.group(1)
+                  val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
+                  URLEncoder.encode(value, "UTF8")
+                })
+              }
+
+            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath.path)
+
+            f(new Entity(uri, values, entitySchema))
+
+            // Move to next element
+            do {
+              if (reader.hasNext) {
+                reader.next()
+              }
+            } while (reader.hasNext && !(reader.isStartElement || reader.isEndElement))
+
+          } while (reader.isStartElement)
+        } finally {
+          inputStream.close()
+        }
+      }
+    }
+  }
+
+  /**
+    * Retrieves a list of entities from this source.
+    *
+    * @param entitySchema The entity schema
+    * @param entities     The URIs of the entities to be retrieved.
+    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+    */
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    val uriSet = entities.map(_.uri).toSet
+    retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
   }
 
   private def goToPath(reader: XMLStreamReader, path: Path): Unit = {
@@ -105,29 +162,32 @@ class XmlSourceStreaming(file: Resource) extends DataSource {
     paths
   }
 
-  private def nextTag(reader: XMLStreamReader): Unit = {
-    reader.next()
-    while(!reader.isStartElement && !reader.isEndElement) {
+  private def buildNode(reader: XMLStreamReader): Node = {
+    assert(reader.isStartElement)
+
+    val label = reader.getLocalName
+    var children = List[Node]()
+
+    do {
       reader.next()
-    }
+
+      if(reader.isStartElement) {
+        children ::= buildNode(reader)
+      } else if(reader.isCharacters) {
+        children ::= Text(reader.getText)
+      }
+
+    } while(!reader.isEndElement)
+
+    reader.next()
+
+    Elem(null, label, Null, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
   }
 
+  private def nextTag(reader: XMLStreamReader): Unit = {
+    do {
+      reader.next()
+    } while(!reader.isStartElement && !reader.isEndElement)
+  }
 
-  /**
-    * Retrieves entities from this source which satisfy a specific entity schema.
-    *
-    * @param entitySchema The entity schema
-    * @param limit        Limits the maximum number of retrieved entities
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
-    */
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]) = ???
-
-  /**
-    * Retrieves a list of entities from this source.
-    *
-    * @param entitySchema The entity schema
-    * @param entities     The URIs of the entities to be retrieved.
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
-    */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]) = ???
 }
