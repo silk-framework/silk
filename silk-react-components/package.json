@@ -21,6 +21,7 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "babel-runtime": "^6.26.0",
+    "classnames": "^2.2.5",
     "create-react-class": "^15.6.0",
     "dialog-polyfill": "0.4.4",
     "ecc-gui-elements": "^2.17.1",

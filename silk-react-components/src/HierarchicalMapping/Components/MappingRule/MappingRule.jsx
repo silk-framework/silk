@@ -3,6 +3,8 @@
  */
 
 import React from 'react';
+import _ from 'lodash';
+import className from 'classnames';
 import {
     Button,
     ContextMenu,
@@ -12,7 +14,6 @@ import {
     DisruptiveButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
@@ -312,28 +313,33 @@ const MappingRule = React.createClass({
 
         return (
             <li
-                className={`ecc-silk-mapping__ruleitem mdl-list__item ${type ===
-                'object'
-                    ? 'ecc-silk-mapping__ruleitem--object'
-                    : 'ecc-silk-mapping__ruleitem--literal'}${this.state
-                    .expanded
-                    ? ' ecc-silk-mapping__ruleitem--expanded'
-                    : ' ecc-silk-mapping__ruleitem--summary'}${errorInfo
-                    ? ' ecc-silk-mapping__ruleitem--defect'
-                    : ''}`}>
+                className={'mdl-list__item'}
+            >
                 {discardView}
                 {loading}
                 {reorderHandleButton}
                 <div
-                    className={`mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content${this
-                        .state.expanded
-                        ? ''
-                        : ' clickable'}`}
-                    onClick={this.state.expanded ? null : mainAction}>
-                    {this.state.expanded ? expandedView : shortView}
-                </div>
-                <div className="mdl-list__item-secondary-content" key="action">
-                    {action}
+                    className={
+                        className(
+                            'ecc-silk-mapping__ruleitem',
+                            {
+                                'ecc-silk-mapping__ruleitem--object': type === 'object',
+                                'ecc-silk-mapping__ruleitem--literal': type !== 'object',
+                                'ecc-silk-mapping__ruleitem--expanded': this.state.expanded,
+                                'ecc-silk-mapping__ruleitem--summary': !this.state.expanded,
+                                'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                                'clickable': !this.state.expanded,
+                            }
+                        )
+                    }
+                    onClick={this.state.expanded ? null : mainAction}
+                >
+                    <div className={'mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content'}>
+                        {this.state.expanded ? expandedView : shortView}
+                    </div>
+                    <div className="mdl-list__item-secondary-content" key="action">
+                        {action}
+                    </div>
                 </div>
             </li>
         );
