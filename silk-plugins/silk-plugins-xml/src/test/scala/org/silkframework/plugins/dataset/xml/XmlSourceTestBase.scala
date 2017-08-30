@@ -8,7 +8,9 @@ import org.silkframework.util.Uri
 
 import scala.languageFeature.postfixOps
 
-class XmlDatasetTest extends FlatSpec with Matchers {
+abstract class XmlSourceTestBase extends FlatSpec with Matchers {
+
+  def xmlSource: DataSource
 
   val persons = XmlDoc("persons.xml")
 

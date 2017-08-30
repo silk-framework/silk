@@ -55,9 +55,18 @@ case class XmlDataset(
   @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = "") extends Dataset {
+  uriPattern: String = "",
+  @Param(value = "Streaming allows for reading large XML files.", advanced = true)
+  streaming: Boolean = false) extends Dataset {
 
-  override def source: DataSource = new XmlSource(file, basePath, uriPattern)
+  override def source: DataSource = {
+    if(streaming) {
+      assert(basePath.nonEmpty, "basePath is not supported for streaming. Specify the base path as type instead.")
+      new XmlSourceStreaming(file, uriPattern)
+    } else {
+      new XmlSourceInMemory(file, basePath, uriPattern)
+    }
+  }
 
   override def linkSink: LinkSink = throw new NotImplementedError("XMLs cannot be written at the moment")
 
