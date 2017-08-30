@@ -170,7 +170,7 @@
     min-width: 50%;
 
     .mdl-card__title {
-        z-index: 2; // TODO: only if sticky, need to be moved to gui elements
+        z-index: auto; // TODO: only if sticky, need to be moved to gui elements
         background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
     }
 
@@ -225,22 +225,8 @@
     margin-bottom: $ecc-size-blockelement-margin-vertical;
 
     .mdl-card__title {
-        align-items: flex-start;
-    }
-
-    .mdl-card__title-text {
-        @include typo-body-1();
-
-        & > * {
-            margin-left: 0.25rem;
-        }
-    }
-
-    .ecc-silk-mapping__rulesobject__title-parent {
-        font-weight: lighter;
-    }
-    .ecc-silk-mapping__rulesobject__title-property {
-        font-weight: bolder;
+        display: block;
+        padding: 0;
     }
 }
 
@@ -259,204 +245,199 @@
         padding: 0;
     }
 
+}
+
+.ecc-silk-mapping__ruleitem {
+    @include typo-body-1();
+    max-width: 100%;
+    position: relative;
+    border-bottom: $data-table-dividers;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
     .mdl-list__item {
         color: inherit;
     }
 
-    .ecc-silk-mapping__ruleitem--literal {
-        .mdl-list__item-secondary-content {
-            align-self: flex-start;
-        }
-    }
-
-    .ecc-silk-mapping__ruleitem--object {
-        .mdl-list__item-secondary-content {
-            align-self: center;
-        }
-    }
-
-    .ecc-silk-mapping__ruleitem {
-        @include typo-body-1();
-        max-width: 100%;
-        position: relative;
-        border-bottom: $data-table-dividers;
-
-        &:last-child {
-            border-bottom: none;
-        }
-
-    }
-
-    .ecc-silk-mapping__ruleitem-expanded {
-    }
-
-    .ecc-silk-mapping__ruleitem--defect {
-        color: to_color($palette-orange-800);
-        background-color: to_color($palette-orange-50);
-        border-color: to_color($palette-orange-100);
-    }
-
     .mdl-list__item-primary-content {
         display: block;
-    }
-    .mdl-list__item-primary-content {
         width: 50vw;
     }
+}
 
-    .ecc-silk-mapping__ruleitem-icon {
-        font-size: 1.39em;
-        vertical-align: bottom;
-        margin-right: 0.1em;
+.ecc-silk-mapping__ruleitem--literal {
+    .mdl-list__item-secondary-content {
+        align-self: flex-start;
     }
+}
 
-    .ecc-silk-mapping__ruleitem-content {
-    }
-
-    .ecc-silk-mapping__ruleitem-headline {
-        font-size: $data-table-font-size;
-        line-height: 1.39;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-weight: 500;
-    }
-
-    .ecc-silk-mapping__ruleitem-subline {
-        font-size: $input-text-floating-label-fontsize;
-        line-height: 1.39;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        //@include typo-caption();
-    }
-
-
-    .ecc-silk-mapping__suggestitem-checkbox {
+.ecc-silk-mapping__ruleitem--object {
+    .mdl-list__item-secondary-content {
         align-self: center;
-        flex-grow: 0;
-        flex-shrink: 0;
-        width: 0;
+    }
+}
+
+.ecc-silk-mapping__ruleitem-expanded {
+}
+
+.ecc-silk-mapping__ruleitem--defect {
+    color: to_color($palette-orange-800);
+    background-color: to_color($palette-orange-50);
+    border-color: to_color($palette-orange-100);
+}
+
+.ecc-silk-mapping__ruleitem-icon {
+    font-size: 1.39em;
+    vertical-align: bottom;
+    margin-right: 0.1em;
+}
+
+.ecc-silk-mapping__ruleitem-headline {
+    font-size: $data-table-font-size;
+    line-height: 1.39;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.ecc-silk-mapping__ruleitem-subline {
+    font-size: $input-text-floating-label-fontsize;
+    line-height: 1.39;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    //@include typo-caption();
+}
+
+
+.ecc-silk-mapping__suggestitem-checkbox {
+    align-self: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 0;
+}
+
+.ecc-silk-mapping__ruleitem-summary {
+
+    @include material-animation-default(0.28s);
+    transition-property: background-color;
+
+    &:hover {
+        background-color: $data-table-hover-color;
     }
 
-    .ecc-silk-mapping__ruleitem-summary {
-
-        @include material-animation-default(0.28s);
-        transition-property: background-color;
-
-        &:hover {
-            background-color: $data-table-hover-color;
-        }
-
-        &.ecc-silk-mapping__ruleitem-summary--expanded {
-            background-color: transparent;
-
-            .mdl-list__item-primary-content {
-                opacity: 0.39;
-            }
-        }
-
-        .mdl-list__item {
-            padding: $ecc-size-blockelement-margin-vertical $ecc-size-blockelement-margin-horizontal;
-            overflow: visible;
-        }
+    &.ecc-silk-mapping__ruleitem-summary--expanded {
+        background-color: transparent;
 
         .mdl-list__item-primary-content {
-            //flex-direction: column;
-        }
-
-        @media (min-width: $grid-desktop-breakpoint) {
-            .mdl-list__item-primary-content {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                justify-content: space-between;
-                align-items: baseline;
-            }
-
-            .ecc-silk-mapping__ruleitem-headline,
-            .ecc-silk-mapping__ruleitem-subline {
-                font-size: $data-table-font-size;
-                flex-grow: 1;
-                box-sizing: border-box;
-                padding: 0.25em;
-                max-width: 33%;
-            }
-            .ecc-silk-mapping__sug-ruleitem-headline,
-            .ecc-silk-mapping__sug-ruleitem-subline,
-            .ecc-silk-mapping__sug-ruleitem-lastline {
-                font-size: $data-table-font-size;
-                flex-grow: 1;
-                box-sizing: border-box;
-                padding: 0.25em;
-                width: 31%;
-            }
-            .ecc-silk-mapping__sug-ruleitem-lastline {
-                width: 7%;
-            }
-            .hide-in-table {
-                display: none;
-            }
-
-            .ecc-silk-mapping__ruleitem-reorderhandler {
-                .material-icons {
-
-                }
-            }
-
-            .ecc-silk-mapping__suggestitem-headline {
-                width: 66%;
-                max-width: 66%;
-            }
-
-            .ecc-silk-mapping__suggestitem-subline {
-                width: 33%;
-                max-width: 33%;
-            }
+            opacity: 0.39;
         }
     }
 
-    .ecc-silk-mapping__ruleitem-reorderhandler {
-        width: $ecc-size-blockelement-margin-horizontal;
-        position: absolute;
-        top: $ecc-size-blockelement-margin-vertical / 2;
-        left: $ecc-size-blockelement-margin-horizontal / 2;
-        bottom: $ecc-size-blockelement-margin-vertical / 2;
-        border: $data-table-dividers;
-        background-color: to_color($color-white);
+    .mdl-list__item {
+        padding: $ecc-size-blockelement-margin-vertical $ecc-size-blockelement-margin-horizontal;
+        overflow: visible;
+    }
 
-        & + .mdl-list__item {
-            padding-left: 2 * $ecc-size-blockelement-margin-horizontal;
+    .mdl-list__item-primary-content {
+        //flex-direction: column;
+    }
+
+    @media (min-width: $grid-desktop-breakpoint) {
+        .mdl-list__item-primary-content {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        .contextmenu-container {
-            position: absolute;
-            left: 1px;
-            top: 1px;
-            right: 1px;
-            bottom: 1px;
+        .ecc-silk-mapping__ruleitem-headline,
+        .ecc-silk-mapping__ruleitem-subline {
+            font-size: $data-table-font-size;
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding: 0.25em;
+            max-width: 33%;
+        }
+        .ecc-silk-mapping__sug-ruleitem-headline,
+        .ecc-silk-mapping__sug-ruleitem-subline,
+        .ecc-silk-mapping__sug-ruleitem-lastline {
+            font-size: $data-table-font-size;
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding: 0.25em;
+            width: 31%;
+        }
+        .ecc-silk-mapping__sug-ruleitem-lastline {
+            width: 7%;
+        }
+        .hide-in-table {
+            display: none;
         }
 
-        .mdl-button--icon,
-        .material-icons {
-            overflow: hidden;
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 100%;
-            border-radius: 0;
-            min-width: 0;
-            line-height: 100%;
-            opacity: 0.61;
+        .ecc-silk-mapping__ruleitem-reorderhandler {
+            .material-icons {
 
-            &:hover, &:focus, &:active {
-                opacity: 1;
             }
         }
 
-        .material-icons {
-            transform: translate(-1px, 25%);
+        .ecc-silk-mapping__suggestitem-headline {
+            width: 66%;
+            max-width: 66%;
         }
+
+        .ecc-silk-mapping__suggestitem-subline {
+            width: 33%;
+            max-width: 33%;
+        }
+    }
+}
+
+.ecc-silk-mapping__ruleitem-reorderhandler {
+    width: $ecc-size-blockelement-margin-horizontal;
+    position: absolute;
+    top: $ecc-size-blockelement-margin-vertical / 2;
+    left: $ecc-size-blockelement-margin-horizontal / 2;
+    bottom: $ecc-size-blockelement-margin-vertical / 2;
+    border: $data-table-dividers;
+    background-color: to_color($color-white);
+
+    & + .mdl-list__item {
+        padding-left: 2 * $ecc-size-blockelement-margin-horizontal;
+    }
+
+    .contextmenu-container {
+        position: absolute;
+        left: 1px;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+    }
+
+    .mdl-button--icon,
+    .material-icons {
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        border-radius: 0;
+        min-width: 0;
+        line-height: 100%;
+        opacity: 0.61;
+
+        &:hover, &:focus, &:active {
+            opacity: 1;
+        }
+    }
+
+    .material-icons {
+        transform: translate(-1px, 25%);
     }
 }
 
