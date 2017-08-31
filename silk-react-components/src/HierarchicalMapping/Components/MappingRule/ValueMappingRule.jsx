@@ -240,8 +240,12 @@ const RuleValueView = React.createClass({
                                       <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                           Examples of target data
                                       </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <ExampleView id={this.props.id} />
+                                      <dd>
+                                          <InfoBox>
+                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                  <ExampleView id={this.props.id} />
+                                              </div>
+                                          </InfoBox>
                                       </dd>
                                   </dl>
                               </div>

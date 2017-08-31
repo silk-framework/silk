@@ -544,8 +544,12 @@
         @media (min-width: $grid-desktop-breakpoint) {
             .ecc-silk-mapping__rulesviewer__infobox-content {
                 display: flex;
-                // align-items: baseline;
                 flex-wrap: nowrap;
+
+                .ecc-silk-mapping__rulesviewer__examples & {
+                    display: block;
+                    width: auto;
+                }
 
                 & > div + div {
                     padding-left: 1rem;
@@ -649,8 +653,19 @@
                 background-color: transparent;
             }
         }
-    }
 
+        .is-narrowed & {
+            display: none;
+
+            &:first-of-type {
+                display: table-row-group;
+            }
+
+            tr {
+                opacity: 0.39;
+            }
+        }
+    }
 }
 
 .clickable {
