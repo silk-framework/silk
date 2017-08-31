@@ -240,7 +240,7 @@
         flex-grow: 1;
     }
 
-    .mdl-card__actions {
+    &:not(.ecc-silk-mapping__suggestionlist) .mdl-card__actions {
         background-color: transparent;
     }
 
