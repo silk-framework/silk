@@ -3817,9 +3817,13 @@ jest-docblock@^20.0.1:
   version "20.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jest-docblock/-/jest-docblock-20.0.3.tgz#17bea984342cc33d83c50fbe1545ea0efaa44712"
 
-jquery@1.11.3, jquery@>=1.7, jquery@>=1.9.1:
-  version "1.11.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/jquery/-/jquery-1.11.3.tgz#dd8b74278b27102d29df63eae28308a8cfa1b583"
+jquery-migrate@1.4.1:
+  version "1.4.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jquery-migrate/-/jquery-migrate-1.4.1.tgz#85152f3ec99a95625f4f7d0bcf62e9b8638f5a76"
+
+jquery@1.12.4, jquery@>=1.7, jquery@>=1.9.1:
+  version "1.12.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jquery/-/jquery-1.12.4.tgz#01e1dfba290fe73deba77ceeacb0f9ba2fec9e0c"
 
 js-base64@^2.1.8, js-base64@^2.1.9:
   version "2.1.9"

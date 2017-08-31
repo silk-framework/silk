@@ -10,16 +10,17 @@
 */gulpfile*
 */*.md
 */**/*.min.*
+*/AUTHORS.txt
 
 dialog-polyfill/tests
 dialog-polyfill/suite.js
 dialog-polyfill/test.html
 
-jquery/dist/
+jquery/*/
 !jquery/dist/jquery.js
-jquery/libs/
-jquery/src/
-jquery/AUTHORS.txt
+
+jquery-migrate/*/
+!jquery-migrate/dist/jquery-migrate.js
 
 jsplumb/dist/css/
 

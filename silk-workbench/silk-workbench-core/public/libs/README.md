@@ -19,6 +19,7 @@ These external libraries are managed via npm in the [silk-react-components](../.
 
 - dialog-polyfill
 - jquery
+- jquery-migrate
 - jsplumb
 - jstree
 - lodash
