@@ -163,15 +163,23 @@ const HierarchicalMapping = React.createClass({
             prevState.currentRuleId !== this.state.currentRuleId &&
             !_.isEmpty(this.state.currentRuleId)
         ) {
-            const uriTemplate = new URI(window.location.href);
+            const href = window.location.href;
 
-            if (uriTemplate.segment(-2) !== 'rule') {
-                uriTemplate.segment('rule');
-                uriTemplate.segment('rule');
+            try {
+                const uriTemplate = new URI(href);
+
+                if (uriTemplate.segment(-2) !== 'rule') {
+                    uriTemplate.segment('rule');
+                    uriTemplate.segment('rule');
+                }
+
+                uriTemplate.segment(-1, this.state.currentRuleId);
+                history.pushState(null, '', uriTemplate.toString());
+            } catch (e) {
+                console.debug(
+                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
+                );
             }
-
-            uriTemplate.segment(-1, this.state.currentRuleId);
-            history.pushState(null, '', uriTemplate.toString());
         }
     },
     // show / hide navigation
