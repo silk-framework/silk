@@ -36,6 +36,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   override def status = currentControl.status()
 
+  override def startTime: Option[Long] = currentControl.startTime
+
   def autoRun = currentFactory.autoRun
 
   def control = currentControl

@@ -20,8 +20,13 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   }
   parserSettings.setMaxCharsPerColumn(maxCharsPerColumn.getOrElse(MAX_CHARS_PER_COLUMNS_DEFAULT))
   parserSettings.setMaxColumns(maxColumns.getOrElse(MAX_COLUMNS_DEFAULT))
-  commentChar foreach {
-    parserSettings.getFormat.setComment(_)
+
+  commentChar match {
+    case Some(c) =>
+      parserSettings.getFormat.setComment(c)
+    case None =>
+      // We need to explicitly disable the comment char, as it defaults to '#'
+      parserSettings.getFormat.setComment('\u0000')
   }
 
   private val parser = new UniCsvParser(parserSettings)

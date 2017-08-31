@@ -66,7 +66,6 @@ const ValueMappingRuleForm = React.createClass({
                         });
                     },
                     err => {
-                        console.warn('err MappingRuleOverview: rule.get');
                         this.setState({loading: false});
                     }
                 );

@@ -16,8 +16,8 @@ import {URI} from 'ecc-utils';
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
 
-import MappingTree from './Components/MappingTree';
-import MappingRulesView from './Components/MappingRulesView';
+import MappingsTree from './Components/MappingsTree';
+import MappingsWorkview from './Components/MappingsWorkview';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -132,7 +132,6 @@ const HierarchicalMapping = React.createClass({
                 },
                 err => {
                     // FIXME: let know the user what have happened!
-                    console.warn(`Error happened`, err);
                     this.setState({
                         elementToDelete: false,
                         loading: false,
@@ -164,15 +163,23 @@ const HierarchicalMapping = React.createClass({
             prevState.currentRuleId !== this.state.currentRuleId &&
             !_.isEmpty(this.state.currentRuleId)
         ) {
-            const uriTemplate = new URI(window.location.href);
+            const href = window.location.href;
 
-            if (uriTemplate.segment(-2) !== 'rule') {
-                uriTemplate.segment('rule');
-                uriTemplate.segment('rule');
+            try {
+                const uriTemplate = new URI(href);
+
+                if (uriTemplate.segment(-2) !== 'rule') {
+                    uriTemplate.segment('rule');
+                    uriTemplate.segment('rule');
+                }
+
+                uriTemplate.segment(-1, this.state.currentRuleId);
+                history.pushState(null, '', uriTemplate.toString());
+            } catch (e) {
+                console.debug(
+                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
+                );
             }
-
-            uriTemplate.segment(-1, this.state.currentRuleId);
-            history.pushState(null, '', uriTemplate.toString());
         }
     },
     // show / hide navigation
@@ -205,7 +212,7 @@ const HierarchicalMapping = React.createClass({
     // template rendering
     render() {
         const navigationTree = this.state.showNavigation
-            ? <MappingTree currentRuleId={this.state.currentRuleId} />
+            ? <MappingsTree currentRuleId={this.state.currentRuleId} />
             : false;
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
@@ -304,7 +311,7 @@ const HierarchicalMapping = React.createClass({
                     <div className="ecc-silk-mapping__content">
                         {navigationTree}
                         {
-                            <MappingRulesView
+                            <MappingsWorkview
                                 currentRuleId={this.state.currentRuleId}
                             />
                         }

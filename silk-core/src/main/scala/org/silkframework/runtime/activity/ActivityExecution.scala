@@ -22,10 +22,16 @@ private class ActivityExecution[T](activity: Activity[T],
   @volatile
   private var forkJoinRunner: Option[ForkJoinRunner] = None
 
+  @volatile
+  private var startTimestamp: Option[Long] = None
+
+  override def startTime: Option[Long] = startTimestamp
+
   override def start()(implicit user: UserContext): Unit = {
     // Check if the current activity is still running
-    if (status().isRunning)
+    if (status().isRunning) {
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
+    }
     // Execute activity
     this.user = user
     status.update(Status.Started())
@@ -53,7 +59,7 @@ private class ActivityExecution[T](activity: Activity[T],
     value()
   }
 
-  override def cancel() = {
+  override def cancel(): Unit = {
     if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
@@ -61,7 +67,7 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
-  override def reset() = {
+  override def reset(): Unit = {
     activity.initialValue.foreach(value.update)
     activity.reset()
   }
@@ -86,14 +92,16 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def runActivity(): Unit = synchronized {
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
-      val startTime = System.currentTimeMillis
+      startTimestamp = Some(System.currentTimeMillis)
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTimestamp.get))
       } catch {
         case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTimestamp.get, Some(ex)))
           throw ex
+      } finally {
+        startTimestamp = None
       }
     }
   }

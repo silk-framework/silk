@@ -23,6 +23,12 @@ trait ActivityControl[T] {
   def status: Observable[Status]
 
   /**
+    * Holds the timestamp when the activity has been started.
+    * Is None if the activity is not running at the moment.
+    */
+  def startTime: Option[Long] = None
+
+  /**
    * The running child activities.
    */
   def children(): Seq[ActivityControl[_]]

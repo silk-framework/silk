@@ -13118,40 +13118,50 @@ h6 {
   .ecc-silk-mapping__rules .mdl-card__title {
     z-index: 2;
     background-color: white; }
+  .ecc-silk-mapping__rules .mdl-card__title .mdl-chip {
+    height: auto;
+    line-height: 2;
+    font-size: 1em; }
+  .ecc-silk-mapping__rules .mdl-card__title .mdl-chip__text {
+    font-size: 1em; }
+  .ecc-silk-mapping__rules .mdl-card__title-back {
+    position: relative;
+    left: -0.5rem; }
+  .ecc-silk-mapping__rules .mdl-card__title-text {
+    flex-grow: 1;
+    align-self: center;
+    display: flex; }
+
+.ecc-silk-mapping__navheader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 1rem; }
+  .ecc-silk-mapping__navheader .mdl-card__title-text-breadcrumbs {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0; }
+  .ecc-silk-mapping__navheader .mdl-card__title-text-main {
+    font-weight: 500;
+    margin: 0 0.25rem; }
 
 .ecc-silk-mapping__rulesobject {
   position: relative;
   margin-bottom: 1rem; }
   .ecc-silk-mapping__rulesobject .mdl-card__title {
-    align-items: flex-start;
-    background-color: white; }
-  .ecc-silk-mapping__rulesobject .mdl-card__title-back {
-    position: relative;
-    left: -0.5rem;
-    top: -0.25rem; }
+    align-items: flex-start; }
   .ecc-silk-mapping__rulesobject .mdl-card__title-text {
-    flex-grow: 1;
-    align-self: center;
-    display: flex;
-    flex-direction: column;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 400;
     line-height: 24px;
-    letter-spacing: 0.04em; }
-    .ecc-silk-mapping__rulesobject .mdl-card__title-text .mdl-card__title-text-sup {
-      font-size: 12px;
-      font-weight: 400;
-      line-height: 1;
-      letter-spacing: 0; }
-      .ecc-silk-mapping__rulesobject .mdl-card__title-text .mdl-card__title-text-sup .mdl-chip {
-        height: auto;
-        line-height: 2;
-        font-size: 1em; }
-      .ecc-silk-mapping__rulesobject .mdl-card__title-text .mdl-card__title-text-sup .mdl-chip__text {
-        font-size: 1em; }
-    .ecc-silk-mapping__rulesobject .mdl-card__title-text .mdl-card__title-text-main {
-      font-weight: 500; }
+    letter-spacing: 0; }
+    .ecc-silk-mapping__rulesobject .mdl-card__title-text > * {
+      margin-left: 0.25rem; }
+  .ecc-silk-mapping__rulesobject .ecc-silk-mapping__rulesobject__title-parent {
+    font-weight: lighter; }
+  .ecc-silk-mapping__rulesobject .ecc-silk-mapping__rulesobject__title-property {
+    font-weight: bolder; }
 
 .ecc-silk-mapping__ruleslist .ecc-floatingactionlist__wrapper--fixed {
   z-index: 2; }

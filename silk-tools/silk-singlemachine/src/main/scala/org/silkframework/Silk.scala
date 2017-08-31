@@ -195,7 +195,7 @@ object Silk {
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
-    marshaller.unmarshalAndImport(projectId, workspaceProvider, resourceRepository.get(projectId), new FileInputStream(projectFile))
+    marshaller.unmarshalProject(projectId, workspaceProvider, resourceRepository.get(projectId), new FileInputStream(projectFile))
 
     // Create a workspace from the import and get task
     val workspace = new Workspace(workspaceProvider, resourceRepository)

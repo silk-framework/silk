@@ -476,7 +476,6 @@ if (!__DEBUG__) {
                     },
                     err => {
                         // TODO: Beautify
-                        console.warn(`Error deleting rule in ${id}`, err);
                     }
                 );
         });
@@ -624,7 +623,9 @@ if (!__DEBUG__) {
                     ];
                     break;
                 default:
-                    console.error(`No autocomplete defined for ${entity}`);
+                    if (__DEBUG__) {
+                        console.error(`No autocomplete defined for ${entity}`);
+                    }
             }
 
             const search = _.isString(input) ? input.toLocaleLowerCase() : '';
@@ -877,9 +878,11 @@ if (!__DEBUG__) {
                     });
                     break;
                 default:
-                    console.warn(
-                        `No info for field ${field} available in mockStore`
-                    );
+                    if (__DEBUG__) {
+                        console.warn(
+                            `No info for field ${field} available in mockStore`
+                        );
+                    }
             }
 
             replySubject.onNext(ret);
