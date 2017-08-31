@@ -44,7 +44,12 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
       nodes.flatMap(_.evaluatePath(entitySchema.subPath))
     } else { nodes }
-    new Entities(subTypeEntities, entitySchema)
+    val entities = new Entities(subTypeEntities, entitySchema)
+
+    limit match {
+      case Some(max) => entities.take(max)
+      case None => entities
+    }
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {

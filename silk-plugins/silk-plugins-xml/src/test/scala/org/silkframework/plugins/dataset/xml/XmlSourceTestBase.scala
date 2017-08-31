@@ -92,6 +92,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
+  it should "respect the limit when reading entities" in {
+    (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
+    (persons atPath "Person" limit 2 valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
+  }
+
 
   /**
     * References an XML document from the test resources.
@@ -100,14 +105,14 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
 
-    private val xmlSource = XmlDataset(resourceLoader.get(name), uriPattern = "{#tag}").source
+    private val source = xmlSource
 
     def atPath(basePath: String = ""): Entities = {
-      Entities(xmlSource, basePath)
+      Entities(source, basePath)
     }
 
     def types: Seq[String] = {
-      xmlSource.retrieveTypes().map(_._1).toSeq
+      source.retrieveTypes().map(_._1).toSeq
     }
 
   }
@@ -115,7 +120,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   /**
     * References entities in a specified XML document at a specified path.
     */
-  case class Entities(xmlSource: DataSource, basePath: String) {
+  case class Entities(xmlSource: DataSource, basePath: String, entityLimit: Option[Int] = None) {
+
+    def limit(maxCount: Int): Entities = {
+      copy(entityLimit = Some(maxCount))
+    }
 
     def tags: Seq[String] = {
       retrieve(IndexedSeq.empty).map(_.uri)
@@ -136,7 +145,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
           typeUri = Uri(basePath),
           typedPaths = paths.map(_.asStringTypedPath)
         )
-      xmlSource.retrieve(entityDesc).toSeq
+      xmlSource.retrieve(entityDesc, entityLimit).toSeq
     }
 
   }

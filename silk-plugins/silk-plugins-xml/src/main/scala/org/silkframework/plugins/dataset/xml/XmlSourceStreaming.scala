@@ -6,7 +6,7 @@ import java.util.UUID
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, PeakDataSource}
 import org.silkframework.entity.{Entity, EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.util.Uri
@@ -19,14 +19,19 @@ import scala.xml._
   * Possible improvements:
   *   - Respect provided limits.
   *   - For retrieving paths and types, stop parsing after a configured number of tags has been reached.
-  *   - Don't call collectPaths recursively for ignored tags.
   */
-class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource {
+class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource with PeakDataSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
+  /**
+    * Retrieves known types in this source.
+    * Each path from the root corresponse to one type.
+    *
+    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
+    */
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val inputStream = file.load
     try {
@@ -41,11 +46,18 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     }
   }
 
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  /**
+    * Retrieves the most frequent paths in this source.
+    *
+    * @param typeUri The entity type, which provides the base path from which paths shall be collected.
+    * @param depth Only retrieve paths up to a certain length. Currently ignored on this dataset.
+    * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
+    */
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     val inputStream = file.load
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
-      goToPath(reader, Path.parse(t.uri))
+      goToPath(reader, Path.parse(typeUri.uri))
       collectPaths(reader, Path.empty, onlyLeafNodes = true).toIndexedSeq
 
     } finally {
@@ -58,7 +70,7 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     *
     * @param entitySchema The entity schema
     * @param limit        Limits the maximum number of retrieved entities
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+    * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
     new Traversable[Entity] {
@@ -68,13 +80,14 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
           val reader = xmlFactory.createXMLStreamReader(inputStream)
           reader.nextTag()
           goToPath(reader, Path.parse(entitySchema.typeUri.uri))
+          var count = 0
           do {
             val node = buildNode(reader)
             val traverser = XmlTraverser(node)
 
             val uri =
               if (uriPattern.isEmpty) {
-                "urn:instance:" + entitySchema.typeUri + "/" + traverser.node.label + reader.getLocation.getCharacterOffset
+                "urn:instance:" + entitySchema.typeUri + "/" + traverser.node.label + count
               } else {
                 uriRegex.replaceAllIn(uriPattern, m => {
                   val pattern = m.group(1)
@@ -88,7 +101,9 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
             f(new Entity(uri, values, entitySchema))
 
             goToNextEntity(reader, node.label)
-          } while (reader.isStartElement)
+            count += 1
+
+          } while (reader.isStartElement && limit.forall(count < _))
         } finally {
           inputStream.close()
         }
@@ -159,7 +174,7 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     */
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
-    nextTag(reader)
+    nextStartOrEndTag(reader)
 
     var paths = Seq[Path]()
     var startElements = Set[String]()
@@ -188,12 +203,16 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
         skipElement(reader)
       }
 
-      nextTag(reader)
+      nextStartOrEndTag(reader)
     }
 
     paths
   }
 
+  /**
+    * Builds a XML node for a given start element that includes all its children.
+    * The parser must be positioned on the start element when calling this method.
+    */
   private def buildNode(reader: XMLStreamReader): Elem = {
     assert(reader.isStartElement)
 
@@ -221,6 +240,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     Elem(null, label, attributes, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
   }
 
+  /**
+    * Skips an element.
+    * The parser must be positioned on the start element when calling this method.
+    */
   private def skipElement(reader: XMLStreamReader): Unit = {
     assert(reader.isStartElement)
 
@@ -234,7 +257,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     reader.next()
   }
 
-  private def nextTag(reader: XMLStreamReader): Unit = {
+  /**
+    * Positions the parser to next start or end element.
+    */
+  private def nextStartOrEndTag(reader: XMLStreamReader): Unit = {
     do {
       reader.next()
     } while(!reader.isStartElement && !reader.isEndElement)
