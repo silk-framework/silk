@@ -216,25 +216,27 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
   private def buildNode(reader: XMLStreamReader): Elem = {
     assert(reader.isStartElement)
 
+    // Remember label
     val label = reader.getLocalName
 
+    // Collect attributes on this element
     var attributes: MetaData = Null
     for(i <- 0 until reader.getAttributeCount) {
       attributes = new UnprefixedAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i), attributes)
     }
 
+    // Collect child nodes
     var children = List[Node]()
     do {
       reader.next()
-
       if(reader.isStartElement) {
         children ::= buildNode(reader)
       } else if(reader.isCharacters) {
         children ::= Text(reader.getText)
       }
-
     } while(!reader.isEndElement)
 
+    // Move to the element after the end element.
     reader.next()
 
     Elem(null, label, attributes, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
