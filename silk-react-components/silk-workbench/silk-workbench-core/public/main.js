@@ -38,12 +38,13 @@ $(function() {
     componentHandler.upgradeDom();
 
     // Initialize window
-    var id;
-    $(window).resize(function() {
-        clearTimeout(id);
+    var resize = _.throttle(function() {
         contentWidth = $(window).width() - helpWidth;
-        id = setTimeout(contentWidthCallback, 100);
-    });
+        contentWidthCallback();
+    }, 100);
+
+    $(window).resize(resize);
+
     contentWidth = $(window).width() - 190;
     contentWidthCallback();
 
