@@ -30,6 +30,7 @@ build-react: install
 vendors: install
 	@echo "Managing external libraries: ${LIST_OF_VENDORS}"
 	$(foreach var,$(LIST_OF_VENDORS), PACKAGE="$(var)" make copy-vendor;)
+	cd ../ && git apply --verbose  --no-index silk-react-components/jsplumb-throttle.patch && cd silk-react-components
 	git clean ../silk-workbench/silk-workbench-core/public/libs -Xfd
 	@echo "Finished copying external libraries: ${LIST_OF_VENDORS}"
 

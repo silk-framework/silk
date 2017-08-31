@@ -29,7 +29,7 @@
     "ecc-utils": "^1.4.0",
     "jquery": "1.12.4",
     "jquery-migrate": "1.4.1",
-    "jsplumb": "2.5.0",
+    "jsplumb": "2.5.1",
     "jstree": "3.2.1",
     "lodash": "^4.17.4",
     "mark.js": "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz",

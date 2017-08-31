@@ -1651,7 +1651,7 @@
             }
         }.bind(this);
 
-        this.moveListener = function(e) {
+        var moveListener = function(e) {
             if (downAt) {
                 if (!moving) {
                     var _continue = _dispatch("start", {el:this.el, pos:posAtDown, e:e, drag:this});
@@ -1676,6 +1676,8 @@
                 }
             }
         }.bind(this);
+
+        this.moveListener = _.throttle(moveListener, 20);
 
         this.upListener = function(e) {
             if (downAt) {
@@ -3512,7 +3514,7 @@
 
     var jsPlumbInstance = root.jsPlumbInstance = function (_defaults) {
 
-        this.version = "2.5.0";
+        this.version = "2.5.1";
 
         if (_defaults) {
             jsPlumb.extend(this.Defaults, _defaults);
@@ -3877,6 +3879,16 @@
                 return false;
             },
 
+            _mergeOverrides = function (def, values) {
+                var m = jsPlumb.extend({}, def);
+                for (var i in values) {
+                    if (values[i]) {
+                        m[i] = values[i];
+                    }
+                }
+                return m;
+            },
+
         /*
          * prepares a final params object that can be passed to _newConnection, taking into account defaults, events, etc.
          */
@@ -3947,15 +3959,6 @@
                     _p["pointer-events"] = _p.sourceEndpoint.connectorPointerEvents;
                 }
 
-                var _mergeOverrides = function (def, values) {
-                    var m = jsPlumb.extend({}, def);
-                    for (var i in values) {
-                        if (values[i]) {
-                            m[i] = values[i];
-                        }
-                    }
-                    return m;
-                };
 
                 var _addEndpoint = function (el, def, idx) {
                     return _currentInstance.addEndpoint(el, _mergeOverrides(def, {
@@ -3987,7 +3990,6 @@
                             if (!_p.scope && tep.def.scope) {
                                 _p.scope = tep.def.scope;
                             } // provide scope if not already provided and endpoint def has one.
-                            newEndpoint.setDeleteOnEmpty(true);
                             if (tep.uniqueEndpoint) {
                                 if (!tep.endpoint) {
                                     tep.endpoint = newEndpoint;
@@ -3996,6 +3998,8 @@
                                 else {
                                     newEndpoint.finalEndpoint = tep.endpoint;
                                 }
+                            } else {
+                                newEndpoint.setDeleteOnEmpty(true);
                             }
                         }
                     }
@@ -5435,6 +5439,13 @@
                         maxConnections: maxConnections,
                         enabled: true
                     };
+
+                    if (p.createEndpoint) {
+                        _def.uniqueEndpoint = true;
+                        _def.endpoint = _currentInstance.addEndpoint(el, _def.def);
+                        _def.endpoint.setDeleteOnEmpty(false);
+                    }
+
                     elInfo.def = _def;
                     this.targetEndpointDefinitions[elid][type] = _def;
                     _makeElementDropHandler(elInfo, p, dropOptions, p.isSource === true, true);
@@ -5491,6 +5502,11 @@
                         enabled: true
                     };
 
+                    if (p.createEndpoint) {
+                        _def.uniqueEndpoint = true;
+                        _def.endpoint = _currentInstance.addEndpoint(el, _def.def);
+                        _def.endpoint.setDeleteOnEmpty(false);
+                    }
 
                     this.sourceEndpointDefinitions[elid][type] = _def;
                     elInfo.def = _def;
@@ -7034,7 +7050,7 @@
                 else {
                     var c = component.getCachedTypeItem("overlay", t.overlays[i][1].id);
                     if (c != null) {
-                        c.reattach(component._jsPlumb.instance);
+                        c.reattach(component._jsPlumb.instance, component);
                         c.setVisible(true);
                         // maybe update from data, if there were parameterised values for instance.
                         c.updateFrom(t.overlays[i][1]);
@@ -7362,7 +7378,9 @@
         this._jsPlumb.events = {};
 
         var deleteOnEmpty = params.deleteOnEmpty === true;
-        this.setDeleteOnEmpty = function(d) { deleteOnEmpty = d; };
+        this.setDeleteOnEmpty = function(d) {
+            deleteOnEmpty = d;
+        };
 
         var _updateAnchorClass = function () {
             // stash old, get new
@@ -11390,9 +11408,7 @@
                 this.endpointLoc = null;
             }
         },
-        reattach:function(instance) {
-
-        },
+        reattach:function(instance, component) { },
         setVisible: function (val) {
             this.visible = val;
             this.component.repaint();
@@ -11727,7 +11743,7 @@
             }
 
         },
-        reattach:function(instance) {
+        reattach:function(instance, component) {
             if (this._jsPlumb.div != null) {
                 instance.getContainer().appendChild(this._jsPlumb.div);
             }
@@ -14147,9 +14163,9 @@
                 }
             }
         },
-        reattach:function(instance) {
-            if (this.path && this.canvas && this.path.parentNode == null) {
-                this.canvas.appendChild(this.path);
+        reattach:function(instance, component) {
+            if (this.path && component.canvas) {
+                component.canvas.appendChild(this.path);
             }
         },
         setVisible: function (v) {
