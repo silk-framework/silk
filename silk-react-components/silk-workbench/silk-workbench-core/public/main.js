@@ -191,3 +191,37 @@ function updateHelpWidth(newWidth) {
     contentWidth = $(window).width() - helpWidth;
     contentWidthCallback();
 }
+
+/*
+ *
+ * With the following code, we throttle fired mousemove events by jquery UI to 50 FPS
+ *
+ */
+
+let currentlyDragging = false;
+
+const mouseMove = jQuery.ui.mouse.prototype._mouseMove;
+const mouseDown = jQuery.ui.mouse.prototype._mouseDown;
+const mouseUp = jQuery.ui.mouse.prototype._mouseUp;
+
+function patchedMouseDown() {
+    if (currentlyDragging) {
+        mouseMove.apply(this, arguments);
+    }
+}
+
+
+function patchedMouseMove() {
+    currentlyDragging = true;
+    mouseDown.apply(this, arguments);
+}
+
+
+function patchedMouseUp() {
+    mouseUp.apply(this, arguments);
+    currentlyDragging = false;
+}
+
+jQuery.ui.mouse.prototype._mouseDown = patchedMouseDown;
+jQuery.ui.mouse.prototype._mouseMove = _.throttle(patchedMouseMove, 20);
+jQuery.ui.mouse.prototype._mouseUp = patchedMouseUp;
