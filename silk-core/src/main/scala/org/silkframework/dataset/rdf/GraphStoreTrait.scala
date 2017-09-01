@@ -5,6 +5,7 @@ import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.util.HttpURLConnectionUtils
 
 /**
  * Graph Store API trait.
@@ -46,7 +47,8 @@ trait GraphStoreTrait {
     val connection = initConnection(graph)
     connection.setRequestMethod("DELETE")
     if(connection.getResponseCode / 100 != 2) {
-      throw new RuntimeException(s"Could not delete graph $graph. Message: ${connection.getResponseMessage}")
+      val errorMessage = HttpURLConnectionUtils.errorMessage(connection, prefix = "Error response: ").getOrElse("")
+      throw new RuntimeException(s"Could not delete graph $graph. $errorMessage")
     }
   }
 
@@ -99,7 +101,8 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+        val errorMessage = HttpURLConnectionUtils.errorMessage(connection, prefix = "Error response: ").getOrElse("")
+        throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. $errorMessage")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -129,7 +132,8 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection) extends I
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+        val errorMessage = HttpURLConnectionUtils.errorMessage(connection, prefix = "Error response: ").getOrElse("")
+        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. $errorMessage")
       }
     } finally {
       connection.disconnect()
