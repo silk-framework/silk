@@ -7,6 +7,8 @@ import java.util.logging.Logger
 import org.silkframework.config.DefaultConfig
 import org.silkframework.util.HttpURLConnectionUtils
 
+import scala.util.control.NonFatal
+
 /**
  * Graph Store API trait.
  */
@@ -120,7 +122,14 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection) extends I
 
   private lazy val inputStream: InputStream = {
     connection.connect()
-    connection.getInputStream
+    try {
+      connection.getInputStream
+    } catch {
+      case NonFatal(_) =>
+        val responseCode = connection.getResponseCode
+        val errorMessage = HttpURLConnectionUtils.errorMessage(connection, prefix = "Error response: ").getOrElse("")
+        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. $errorMessage")
+    }
   }
 
   override def read(): Int = inputStream.read()
