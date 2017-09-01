@@ -37,7 +37,7 @@ case class CsvDataset
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
     maxCharsPerColumn: Int = 128000,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
-    ignoreBadLines: Boolean = true) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
+    ignoreBadLines: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
 
   private val sepChar =
     if (separator == "\\t") { '\t' }
