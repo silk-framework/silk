@@ -5966,6 +5966,10 @@ schema-utils@^0.3.0:
   dependencies:
     ajv "^5.0.0"
 
+scroll-into-view@^1.9.0:
+  version "1.9.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/scroll-into-view/-/scroll-into-view-1.9.0.tgz#b998b72bd4067bd3accc545a5828664c791f773d"
+
 scss-tokenizer@^0.2.3:
   version "0.2.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/scss-tokenizer/-/scss-tokenizer-0.2.3.tgz#8eb06db9a9723333824d3f5530641149847ce5d1"

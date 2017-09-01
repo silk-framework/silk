@@ -11,13 +11,14 @@ import {
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../../UseMessageBusMixin';
+import ViewportScrolling from '../../../Mixins/ViewportScrolling';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
 const ValueMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, ViewportScrolling],
 
     // define property types
     propTypes: {
@@ -32,6 +33,17 @@ const ValueMappingRuleForm = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.loading === true &&
+            _.get(this.state, 'loading', false) === false
+        ) {
+            this.scrollIntoView({
+                topOffset: 75
+            });
+        }
+    },
+
     loadData() {
         if (this.props.id) {
             hierarchicalMappingChannel

@@ -15,6 +15,7 @@ import {
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../UseMessageBusMixin';
+import ViewportScrolling from '../Mixins/ViewportScrolling';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
@@ -22,7 +23,7 @@ import {ParentElement} from './MappingRule/SharedComponents';
 let pendingRules = {};
 let wrongRules = {};
 const SuggestionsList = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, ViewportScrolling],
 
     // define property types
     // FIXME: check propTypes
@@ -76,6 +77,14 @@ const SuggestionsList = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate() {
+        if (_.get(this, 'state.data', false)) {
+            this.scrollIntoView({
+                topOffset: 75
+            });
+        }
+    },
+
     handleAddSuggestions(event) {
         event.stopPropagation();
         const correspondences = [];
