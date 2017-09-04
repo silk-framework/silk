@@ -335,8 +335,8 @@ case object DateTimeValueType extends ValueType with Serializable {
   /**
     * Returns the URI of the XML Schema date/time type that a lexical string actually has.
     */
-  def xsdSchemaType(lexicalString: String): String = {
+  def xmlSchemaType(lexicalString: String): String = {
     val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
-    qName.getNamespaceURI + "/" + qName.getLocalPart
+    qName.getNamespaceURI + "#" + qName.getLocalPart
   }
 }
