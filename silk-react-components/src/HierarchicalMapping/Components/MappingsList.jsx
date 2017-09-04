@@ -96,7 +96,7 @@ const MappingsList = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__ruleslist">
-                <Card>
+                <Card shadow={0}>
                     {listTitle}
                     {listItems}
                     {listActions}

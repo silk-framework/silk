@@ -228,6 +228,10 @@
         display: block;
         padding: 0;
     }
+
+    .mdl-card__actions {
+        border-bottom: 1px solid to_color($card-border-color);
+    }
 }
 
 .ecc-silk-mapping__ruleslist {
@@ -240,8 +244,12 @@
         flex-grow: 1;
     }
 
-    &:not(.ecc-silk-mapping__suggestionlist) .mdl-card__actions {
-        background-color: transparent;
+    &:not(.ecc-silk-mapping__suggestionlist) {
+        margin-top: -1 * $ecc-size-blockelement-margin-vertical;
+
+        & .mdl-card__actions {
+            background-color: transparent;
+        }
     }
 
     .mdl-list {

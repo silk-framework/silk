@@ -141,7 +141,7 @@ const MappingsObject = React.createClass({
         return (
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
-                <Card>
+                <Card shadow={0}>
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">
                             <div className={
