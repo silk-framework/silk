@@ -7069,6 +7069,11 @@
         value: "DoubleValueType",
         label: "Double",
         description: "Suited for large numbers which have a fractional value"
+    }, {
+      value: 'DateTimeValueType',
+      label: 'DateTime',
+      description:
+          'Suited for XML Schema dates and times. Accepts the following types: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.'
     } ], function(datatype) {
         return (0, _extends3.default)({}, datatype, {
             $search: _lodash2.default.deburr(datatype.value + "|" + datatype.label + "|" + datatype.description).toLocaleLowerCase()

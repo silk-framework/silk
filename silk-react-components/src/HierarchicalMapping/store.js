@@ -24,7 +24,7 @@ const datatypes = _.map(
             value: 'AutoDetectValueType',
             label: 'Auto Detect',
             description:
-                'The best suitable data type will be chosen automatically',
+                'The best suitable data type will be chosen automatically for each value',
         },
         {
             value: 'UriValueType',
@@ -63,6 +63,12 @@ const datatypes = _.map(
             label: 'Double',
             description:
                 'Suited for large numbers which have a fractional value',
+        },
+        {
+          value: 'DateTimeValueType',
+          label: 'DateTime',
+          description:
+              'Suited for XML Schema dates and times. Accepts the following types: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.',
         },
     ],
     datatype => ({

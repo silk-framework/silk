@@ -1,6 +1,7 @@
 package org.silkframework.entity
 
 import java.net.URI
+import javax.xml.datatype.DatatypeFactory
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -125,7 +126,8 @@ object ValueType {
     Right(IntegerValueType),
     Right(UriValueType),
     Right(AutoDetectValueType),
-    Right(BlankNodeValueType)
+    Right(BlankNodeValueType),
+    Right(DateTimeValueType)
   )
 
   val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
@@ -313,4 +315,28 @@ case object BlankNodeValueType extends ValueType with Serializable {
   override def uri: Option[String] = None
 
   override def id: String = "BlankNodeValueType"
+}
+
+case object DateTimeValueType extends ValueType with Serializable {
+
+  private val datatypeFactory = DatatypeFactory.newInstance()
+
+  override def label = "DateTime"
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(datatypeFactory.newXMLGregorianCalendar(lexicalString)).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "dateTime")
+
+  override def id: String = "DateTimeValueType"
+
+  /**
+    * Returns the URI of the XML Schema date/time type that a lexical string actually has.
+    */
+  def xsdSchemaType(lexicalString: String): String = {
+    val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
+    qName.getNamespaceURI + "/" + qName.getLocalPart
+  }
 }
