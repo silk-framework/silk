@@ -152,6 +152,7 @@ const ObjectRule = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
+                    raised
                     onClick={() =>
                         hierarchicalMappingChannel
                             .subject('removeClick')
@@ -287,6 +288,7 @@ const ObjectRule = React.createClass({
                     <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
                         <Button
                             className="ecc-silk-mapping__rulesviewer__actionrow-edit"
+                            raised
                             onClick={this.handleEdit}>
                             Edit
                         </Button>

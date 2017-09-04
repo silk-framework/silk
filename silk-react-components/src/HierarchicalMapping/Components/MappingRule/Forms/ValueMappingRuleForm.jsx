@@ -256,12 +256,14 @@ const ValueMappingRuleForm = React.createClass({
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                            raised
                             onClick={this.handleConfirm}
                             disabled={!allowConfirm || !this.state.changed}>
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
+                            raised
                             onClick={this.handleClose}>
                             Cancel
                         </DismissiveButton>

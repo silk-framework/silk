@@ -200,6 +200,7 @@ const RuleValueView = React.createClass({
                                       <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                           <code>{this.props.sourcePath}</code>{' '}
                                           <Button
+                                              raised
                                               iconName="edit"
                                               className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                               onClick={this.handleComplexEdit}
@@ -224,6 +225,7 @@ const RuleValueView = React.createClass({
                                           function{operators.length > 1 ? 's' : ''}:&nbsp;
                                           <code>{operators.join(', ')}</code>.
                                           <Button
+                                              raised
                                               iconName="edit"
                                               className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                               onClick={this.handleComplexEdit}
@@ -266,11 +268,13 @@ const RuleValueView = React.createClass({
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            raised
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
                         <DisruptiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                            raised
                             onClick={() =>
                                 hierarchicalMappingChannel
                                     .subject('removeClick')
