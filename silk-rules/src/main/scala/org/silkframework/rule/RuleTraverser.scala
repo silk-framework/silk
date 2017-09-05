@@ -42,7 +42,7 @@ sealed trait RuleTraverser {
       None
     }
     else {
-      Some(RuleTraverser.Hole(operator.children.head, Nil, this, operator.children.tail))
+      Some(RuleTraverser.Hole(operator.children.head, Nil, this, operator.children.tail.toList))
     }
   }
 
@@ -133,21 +133,21 @@ object RuleTraverser {
     override def moveUp = None
   }
 
-  case class Hole(override val operator: Operator, left: Seq[Operator], parent: RuleTraverser, right: Seq[Operator]) extends RuleTraverser {
+  case class Hole(override val operator: Operator, left: List[Operator], parent: RuleTraverser, right: List[Operator]) extends RuleTraverser {
 
     override def update(updatedOperator: Operator) = {
-      val updatedParent = parent.update(parent.operator.withChildren(left ++ (updatedOperator +: right)))
+      val updatedParent = parent.update(parent.operator.withChildren(left ::: (updatedOperator :: right)))
 
       Hole(updatedOperator, left, updatedParent, right)
     }
 
-    override def moveLeft = left match {
-      case leftHead :: leftTail => Some(Hole(leftHead, leftTail, parent, operator +: right))
+    override def moveLeft = left.reverse match {
+      case leftHead :: leftTail => Some(Hole(leftHead, leftTail.reverse, parent, operator :: right))
       case Nil => None
     }
 
     override def moveRight = right match {
-      case rightHead :: rightTail => Some(Hole(rightHead, operator +: left, parent, rightTail))
+      case rightHead :: rightTail => Some(Hole(rightHead, left :+ operator, parent, rightTail))
       case Nil => None
     }
 
