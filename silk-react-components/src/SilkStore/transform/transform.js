@@ -143,7 +143,7 @@ silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, rule, id} = data;
-        console.warn('peaking on the fly!')
+
         superagent
             .post(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`
