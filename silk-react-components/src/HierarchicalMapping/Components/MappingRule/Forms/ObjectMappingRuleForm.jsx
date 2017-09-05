@@ -280,6 +280,7 @@ const ObjectMappingRuleForm = React.createClass({
         const exampleView = (
             <ExampleView
                 id={this.props.parentId || 'root'}
+                key={this.state.sourceProperty.value || this.state.sourceProperty}
                 rawRule={this.state}
                 ruleType="object"
             />);
