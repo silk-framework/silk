@@ -7,8 +7,9 @@ import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, PeakDataSource}
-import org.silkframework.entity.{Entity, EntitySchema, ForwardOperator, Path}
+import org.silkframework.entity._
 import org.silkframework.runtime.resource.{FileResource, Resource}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.xml._
@@ -73,6 +74,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+    if(entitySchema.typedPaths.exists(_.path.operators.exists(_.isInstanceOf[BackwardOperator]))) {
+      throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
+    }
+
     new Traversable[Entity] {
       override def foreach[U](f: (Entity) => U): Unit = {
         val inputStream = file.load
