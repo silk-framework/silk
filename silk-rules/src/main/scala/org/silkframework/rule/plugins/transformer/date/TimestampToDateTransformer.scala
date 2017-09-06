@@ -17,12 +17,10 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import java.text.SimpleDateFormat
-import java.util.{Date, GregorianCalendar}
+import java.util.Date
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
-
-import scala.math.BigInt;
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Convert Unix timestamp to xsd:date.
@@ -35,6 +33,12 @@ import scala.math.BigInt;
   label = "Timestamp to date",
   description = "convert Unix timestamp to xsd:date"
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("1499040000"),
+    output = Array("2017-07-03")
+  )
+))
 case class TimestampToDateTransformer(format: String = "yyyy-MM-dd") extends SimpleTransformer {
   val sdf = new SimpleDateFormat(format)
 
