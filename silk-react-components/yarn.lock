@@ -2042,9 +2042,9 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@^2.17.1:
-  version "2.17.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.17.1.tgz#cd41c342353f15cac94ec0aa246118383241bedd"
+ecc-gui-elements@^2.19.0:
+  version "2.19.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.19.0.tgz#3c10595b160b973d9e8316dc8457f87854629023"
   dependencies:
     classnames "^2.2.5"
     lodash "^4.16.4"
@@ -2052,6 +2052,7 @@ ecc-gui-elements@^2.17.1:
     react-mdl "^1.10.3"
     react-select "^1.0.0-rc.5"
     sassyjson "^1.1.8"
+    scroll-into-view "^1.9.0"
 
 ecc-gulp-tasks@^3.10.0:
   version "3.10.0"
