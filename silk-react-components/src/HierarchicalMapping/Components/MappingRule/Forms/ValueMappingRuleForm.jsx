@@ -8,17 +8,17 @@ import {
     CardActions,
     TextField,
     Spinner,
+    ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../../UseMessageBusMixin';
-import ViewportScrolling from '../../../Mixins/ViewportScrolling';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
 const ValueMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus, ViewportScrolling],
+    mixins: [UseMessageBus, ScrollingMixin],
 
     // define property types
     propTypes: {

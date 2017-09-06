@@ -12,10 +12,10 @@ import {
     ContextMenu,
     MenuItem,
     Spinner,
+    ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../UseMessageBusMixin';
-import ViewportScrolling from '../Mixins/ViewportScrolling';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
@@ -23,7 +23,7 @@ import {ParentElement} from './MappingRule/SharedComponents';
 let pendingRules = {};
 let wrongRules = {};
 const SuggestionsList = React.createClass({
-    mixins: [UseMessageBus, ViewportScrolling],
+    mixins: [UseMessageBus, ScrollingMixin],
 
     // define property types
     // FIXME: check propTypes
