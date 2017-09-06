@@ -252,6 +252,7 @@ const SuggestionsList = React.createClass({
             <CardActions fixed>
                 {_.isEmpty(this.state.error)
                     ? <AffirmativeButton
+                          raised
                           className="ecc-hm-suggestions-save"
                           onClick={this.handleAddSuggestions}
                           disabled={_.size(this.state.checked) === 0}>
@@ -260,6 +261,7 @@ const SuggestionsList = React.createClass({
                     : false}
 
                 <DismissiveButton
+                    raised
                     onClick={this.props.onClose}
                     className="ecc-hm-suggestions-cancel">
                     Cancel
