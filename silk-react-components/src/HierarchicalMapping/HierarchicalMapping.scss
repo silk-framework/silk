@@ -204,6 +204,12 @@
     position: relative;
     margin-bottom: $ecc-size-blockelement-margin-vertical;
 
+    .ecc-silk-mapping__ruleitem-summary {
+        .ecc-silk-mapping__ruleitem-headline {
+            // @include typo-subhead();
+        }
+    }
+
     .mdl-card__title {
         display: block;
         padding: 0;
@@ -221,6 +227,7 @@
     }
 
     .mdl-card__title-text {
+        @include typo-subhead();
         flex-grow: 1;
     }
 
@@ -253,6 +260,8 @@
     max-width: 100%;
     position: relative;
     border-bottom: $data-table-dividers;
+
+
 
     &:last-child {
         border-bottom: none;
@@ -310,7 +319,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    //@include typo-caption();
 }
 
 
