@@ -8,6 +8,7 @@ import {
     ConfirmationDialog,
     DisruptiveButton,
     DismissiveButton,
+    NotAvailable,
 } from 'ecc-gui-elements';
 import {
     ThingIcon,
@@ -163,7 +164,17 @@ const MappingsObject = React.createClass({
                                             <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
                                         </div>
                                         <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type" />
-                                        <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern-TODO"></div>
+                                        <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
+                                            {
+                                                _.has(this.props.rule.rules, ['uriRule', 'pattern'])
+                                                ? this.props.rule.rules.uriRule.pattern
+                                                : <NotAvailable
+                                                    label="URI pattern not set"
+                                                    description="Not available element"
+                                                    inline={true}>
+                                                  </NotAvailable>
+                                            }
+                                        </div>
                                     </div>
                                     <div className="mdl-list__item-secondary-content" key="action">
                                         <Button
