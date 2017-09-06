@@ -10,9 +10,11 @@ import {
     Card,
     CardTitle,
     CardMenu,
-    Chip,
     ContextMenu,
     MenuItem,
+    PerformanceMixin,
+    BreadcrumbList,
+    BreadcrumbItem,
 } from 'ecc-gui-elements';
 
 import Navigation from '../Mixins/Navigation';
@@ -20,10 +22,11 @@ import {
     RuleTitle,
     RuleTypes,
     ParentElement,
+    ParentStructure,
 } from './MappingRule/SharedComponents';
 
 const MappingsHeader = React.createClass({
-    mixins: [Navigation],
+    mixins: [Navigation, PerformanceMixin],
 
     // define property types
     propTypes: {
@@ -52,39 +55,37 @@ const MappingsHeader = React.createClass({
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
 
+        console.log(breadcrumbs);
+
         const navBack = _.has(parent, 'id') ?
             <div className="mdl-card__title-back">
                 <Button
-                    iconName={'chevron_left'}
+                    iconName={'arrow_back'}
                     tooltip="Navigate back to parent"
                     onClick={this.handleNavigate.bind(null, parent.id)}
                 />
             </div> : false;
 
-        /*
-            - check for parent
-            - if there is no parent, the navBreadcrumbs = false
-            - if there is only one parent, then put it in chip, clickable
-            - TODO: if there are more than one parent then create menu with tree and put ellipsis (or horizontal_more) in chip as toggler
-        */
-        const navBreadcrumbs = _.has(parent, 'id') ? (
-            <div className="mdl-card__title-text-breadcrumbs">
-                <Chip onClick={this.handleNavigate.bind(null, parent.id)}>
-                    <ParentElement parent={parent} />
-                </Chip>
-            </div>
-        ) : false
+        const self = this;
 
-        const navTitle = <div className="mdl-card__title-text">
-            <div className="mdl-card__title-text-main">
+        const navBreadcrumbs = <BreadcrumbList>
+            {
+                (breadcrumbs.length > 0) ? breadcrumbs.map(
+                    function(crumb) {
+                        return (
+                            <BreadcrumbItem onClick={self.handleNavigate.bind(null, crumb.id)} separationChar="/">
+                                <ParentStructure parent={crumb} />
+                            </BreadcrumbItem>
+                        );
+                    }
+                ) : false
+            }
+            <BreadcrumbItem>
                 <RuleTitle rule={_.get(this.props, 'rule', {})} />
-            </div>
-            <div className="mdl-card__title-text-sub">
-                <RuleTypes rule={_.get(this.props, 'rule', {})} />
-            </div>
-        </div>;
+            </BreadcrumbItem>
+        </BreadcrumbList>;
 
-        const navMenu = <div className="mdl-card__title-action">
+        const navMenu = <CardMenu>
             <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
                 <MenuItem
                     className="ecc-silk-mapping__ruleslistmenu__item-add-value"
@@ -124,7 +125,7 @@ const MappingsHeader = React.createClass({
                     Reduce all
                 </MenuItem>
             </ContextMenu>
-        </div>;
+        </CardMenu>;
 
         return (
             <header className="ecc-silk-mapping__navheader">
@@ -132,9 +133,8 @@ const MappingsHeader = React.createClass({
                     <CardTitle className="ecc-silk-mapping__navheader-row">
                         {navBack}
                         {navBreadcrumbs}
-                        {navTitle}
-                        {navMenu}
                     </CardTitle>
+                    {navMenu}
                 </Card>
             </header>
         );
