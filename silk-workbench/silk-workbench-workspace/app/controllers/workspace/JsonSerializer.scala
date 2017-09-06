@@ -108,10 +108,10 @@ object JsonSerializer {
 
 
   def activityStatus(activity: WorkspaceActivity): JsValue = {
-    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.status)
+    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.status, activity.startTime)
   }
 
-  def activityStatus(project: String, task: String, activity: String, status: Status): JsValue = {
+  def activityStatus(project: String, task: String, activity: String, status: Status, startTime: Option[Long]): JsValue = {
     JsObject(
       ("project" -> JsString(project)) ::
       ("task" -> JsString(task)) ::
@@ -121,7 +121,8 @@ object JsonSerializer {
       ("progress" -> JsNumber(status.progress * 100.0)) ::
       ("message" -> JsString(status.toString)) ::
       ("failed" -> JsBoolean(status.failed)) ::
-      ("timestamp" -> JsNumber(status.timestamp)) :: Nil
+      ("lastUpdateTime" -> JsNumber(status.timestamp)) ::
+      ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull)) :: Nil
     )
   }
 

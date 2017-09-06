@@ -53,7 +53,7 @@ sealed trait Status {
   /**
     * The timestamp when the status has been updated.
     */
-  val timestamp = System.currentTimeMillis()
+  val timestamp: Long = System.currentTimeMillis()
 
   /**
    * The complete status message including the progress (if running).

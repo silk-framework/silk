@@ -76,7 +76,24 @@ trait Resource {
   }
 
   /**
+    * True, if this resource does exist and is not empty.
+    * False, otherwise.
+    */
+  def nonEmpty: Boolean = {
+    if(exists) {
+      val inputStream = load
+      try {
+        inputStream.read() != -1
+      } finally {
+        inputStream.close()
+      }
+    } else {
+      false
+    }
+  }
+
+  /**
    * Returns the name of this resource.
    */
-  override def toString = name
+  override def toString: String = name
 }

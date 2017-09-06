@@ -38,7 +38,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
-  final val START_PORT = 10600
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
@@ -497,44 +496,4 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
       }
     }
   }
-
-  // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
-  def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
-    val server: HttpServer = createHttpServer
-    for (responseContent <- servedContent) {
-      val handler = new HttpHandler {
-        override def handle(httpExchange: HttpExchange): Unit = {
-          val response = responseContent.content
-          val responseHeaders = httpExchange.getResponseHeaders
-          responseHeaders.add("content-type", responseContent.contentType)
-          httpExchange.sendResponseHeaders(200, response.getBytes("UTF-8").length)
-          val os = httpExchange.getResponseBody()
-          os.write(response.getBytes("UTF-8"))
-          os.close()
-        }
-      }
-      server.createContext(responseContent.contextPath, handler)
-    }
-    server.setExecutor(null) // creates a default executor
-    server.start()
-    withPort(server.getAddress.getPort)
-  }
-
-  private def createHttpServer: HttpServer = {
-    var port = START_PORT
-    var serverOpt: Option[HttpServer] = None
-    while (serverOpt.isEmpty) {
-      Try(HttpServer.create(new InetSocketAddress(port), 0)) match {
-        case Success(s) =>
-          serverOpt = Some(s)
-        case Failure(e: BindException) =>
-          port += 1
-        case Failure(e) =>
-          throw e
-      }
-    }
-    serverOpt.get
-  }
 }
-
-case class ServedContent(contextPath: String, content: String, contentType: String)

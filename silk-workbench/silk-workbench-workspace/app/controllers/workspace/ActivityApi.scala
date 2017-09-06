@@ -103,10 +103,10 @@ class ActivityApi extends Controller {
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
       val activity = task.activity(activityName)
-      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
+      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status, activity.startTime))
     } else {
       val activity = project.activity(activityName)
-      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status))
+      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status, activity.startTime))
     }
   }
 

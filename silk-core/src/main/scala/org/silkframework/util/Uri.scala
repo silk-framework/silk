@@ -55,11 +55,12 @@ case class Uri(uri: String) {
   /**
     * Checks if this is a valid URI according to:
     * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
+    * Only accepts absolute URIs.
     */
   def isValidUri: Boolean = {
     try {
       val u = new URI(uri)
-      u.isAbsolute && Option(u.getAuthority).isDefined
+      u.isAbsolute
     } catch {
       case _: URISyntaxException => false
     }

@@ -71,28 +71,28 @@
     <li>
       <div class="spacer"/>
     </li>
-    <li>
+    <li style="display: none">
       <label>Name:</label>
       <div id="input_rulename" class="mdl-textfield mdl-js-textfield">
-        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.id" />
+        <input id="rulename" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.id" disabled/>
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_rulename">
         The name of this transformation rule.
       </div>
     </li>
-    <li>
+    <li style="display: none">
       <div class="spacer"/>
     </li>
-    <li>
+    <li style="display: none">
       <label>Target Property:</label>
       <div id="input_targetproperty" class="mdl-textfield mdl-js-textfield">
-        <input id="targetproperty" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.propertyUri.serialize(context.project.config.prefixes)).getOrElse("")" />
+        <input id="targetproperty" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.propertyUri.uri).getOrElse("")" disabled/>
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_targetproperty">
         The target property.
       </div>
     </li>
-    <li>
+    <li style="display: none">
       <label>Target Type:</label>
       <div id="input_type" class="mdl-textfield mdl-js-textfield">
         <input id="targettype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(t => ValueType.valueTypeId(t.valueType)).getOrElse("AutoDetectValueType")" disabled/>

@@ -63,7 +63,7 @@ lazy val learning = (project in file("silk-learning"))
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, serializationJson)
+  .dependsOn(rules, learning, serializationJson, core % "test->test")
   .aggregate(rules, learning)
   .settings(commonSettings: _*)
   .settings(
