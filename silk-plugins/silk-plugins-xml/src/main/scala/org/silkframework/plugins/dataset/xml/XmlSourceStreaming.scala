@@ -16,10 +16,6 @@ import scala.xml._
 
 /**
   * XML streaming source.
-  *
-  * Possible improvements:
-  *   - Respect provided limits.
-  *   - For retrieving paths and types, stop parsing after a configured number of tags has been reached.
   */
 class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource with PeakDataSource {
 
@@ -179,23 +175,27 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
     */
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
+
+    // Collect attribute paths
+    val attributePaths =
+      for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+        path ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
+      }
+
+    // Move to first child
     nextStartOrEndTag(reader)
 
+    // Iterate all child elements
     var paths = Seq[Path]()
     var startElements = Set[String]()
-
     while(reader.isStartElement) {
       if(!startElements.contains(reader.getLocalName)) {
-        // Get paths from tag, attributes and children
+        // Get paths from tags and children
         val tagPath = path ++ Path(reader.getLocalName)
-        val attributePaths =
-          for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-            tagPath ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
-          }
         val childPaths = collectPaths(reader, tagPath, onlyLeafNodes)
 
         // Collect all wanted paths
-        var newPaths = attributePaths ++ childPaths
+        var newPaths = childPaths
         if (!(onlyLeafNodes && childPaths.nonEmpty)) {
           newPaths = tagPath +: newPaths
         }
@@ -211,7 +211,7 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
       nextStartOrEndTag(reader)
     }
 
-    paths
+    attributePaths ++ paths
   }
 
   /**

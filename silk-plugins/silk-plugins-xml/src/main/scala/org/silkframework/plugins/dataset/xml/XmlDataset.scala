@@ -57,11 +57,11 @@ case class XmlDataset(
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-  streaming: Boolean = false) extends Dataset {
+  streaming: Boolean = true) extends Dataset {
 
   override def source: DataSource = {
     if(streaming) {
-      assert(basePath.nonEmpty, "basePath is not supported for streaming. Specify the base path as type instead.")
+      assert(basePath.trim.isEmpty, "basePath is not supported for streaming. Specify the base path as type instead.")
       new XmlSourceStreaming(file, uriPattern)
     } else {
       new XmlSourceInMemory(file, basePath, uriPattern)
