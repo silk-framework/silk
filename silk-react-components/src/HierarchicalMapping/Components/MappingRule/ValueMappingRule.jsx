@@ -165,7 +165,11 @@ const RuleValueView = React.createClass({
                                       <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                           Data type
                                       </dt>
-                                      <dd>
+                                      <dd key={_.get(
+                                          this.props,
+                                          'mappingTarget.valueType.nodeType',
+                                          false
+                                      )}>
                                           <InfoBox>
                                               <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                   <PropertyTypeLabel
