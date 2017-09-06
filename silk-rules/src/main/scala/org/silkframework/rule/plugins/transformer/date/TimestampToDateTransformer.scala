@@ -43,7 +43,7 @@ case class TimestampToDateTransformer(format: String = "yyyy-MM-dd") extends Sim
   val sdf = new SimpleDateFormat(format)
 
   override def evaluate(value: String) = {
-    val date = new Date(value.toLong * 1000)
+    val date = new Date((BigDecimal(value) * 1000).longValue())
     sdf.format(date)
   }
 }
