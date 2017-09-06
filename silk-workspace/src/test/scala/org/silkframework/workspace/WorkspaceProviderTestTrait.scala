@@ -1,17 +1,16 @@
 package org.silkframework.workspace
 
-import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.{DataSource, Dataset, DatasetTask, DummyDataset}
+import org.silkframework.dataset.{Dataset, DatasetTask, DummyDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription, PluginRegistry}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
