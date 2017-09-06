@@ -14,8 +14,8 @@
 
 package org.silkframework.rule.plugins.transformer.numeric
 
-import org.silkframework.rule.input.{Transformer}
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -31,9 +31,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   label = "Numeric Operation",
   description =
     """ | Applies a numeric operation to the values of multiple input operators.
-        | The operator is applied to all input values.
-        | Accepts one parameter:
-        |   operator: One of '+', '-', '*', '/'"""
+        | Uses double-precision floating-point numbers for computation."""
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -79,7 +77,9 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     output = Array("3")
   )
 ))
-case class NumOperationTransformer(operator: String) extends Transformer {
+case class NumOperationTransformer(
+  @Param("The operator to be applied to all values. One of '+', '-', '*', '/'")
+  operator: String) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 

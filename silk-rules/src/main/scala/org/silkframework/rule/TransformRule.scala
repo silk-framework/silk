@@ -400,7 +400,7 @@ private object UriPattern {
       }
     }
 
-    TransformInput(transformer = ConcatTransformer(""), inputs = inputs)
+    TransformInput(id = "buildUri",transformer = ConcatTransformer(""), inputs = inputs)
   }
 
   def isPattern(inputs: Seq[Input]): Boolean = {

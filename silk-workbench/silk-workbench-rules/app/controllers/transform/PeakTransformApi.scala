@@ -2,7 +2,7 @@ package controllers.transform
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{Dataset, PeakDataSource, PeakException}
-import org.silkframework.entity.{Entity, Path, PathOperator}
+import org.silkframework.entity._
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -60,7 +60,8 @@ class PeakTransformApi extends Controller {
     implicit val readContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
 
     deserializeCompileTime[TransformRule]() { rule =>
-      val ruleSchemata = RuleSchemata.create(rule, transformSpec.selection, parentRule.inputSchema.subPath)
+      val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
+      val ruleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath).copy(transformRule = rule)
       peakRule(project, inputTaskId, ruleSchemata)
     }
   }

@@ -80,7 +80,7 @@ object JsonSerializers {
       case Some(value) =>
         value
       case None =>
-        throw JsonParseException("Attribute " + attributeName + " not found!")
+        throw JsonParseException("Attribute '" + attributeName + "' not found!")
     }
   }
 
@@ -89,7 +89,7 @@ object JsonSerializers {
       case Some(jsBoolean: JsBoolean) =>
         Some(jsBoolean.value)
       case Some(_) =>
-        throw JsonParseException("Value for attribute " + attributeName + " is not a boolean!")
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a boolean!")
       case None =>
         None
     }
@@ -100,7 +100,7 @@ object JsonSerializers {
       case Some(jsString: JsString) =>
         Some(jsString.value)
       case Some(_) =>
-        throw JsonParseException("Value for attribute " + attributeName + " is not a String!")
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a String!")
       case None =>
         None
     }
@@ -108,6 +108,15 @@ object JsonSerializers {
 
   def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
     (json \ attributeName).toOption.filterNot(_ == JsNull)
+  }
+
+  def requiredValue(json: JsValue, attributeName: String): JsValue = {
+    json \ attributeName match {
+      case JsDefined(value) if value != JsNull =>
+        value
+      case _ =>
+        throw JsonParseException("Attribute '" + attributeName + "' not found!")
+    }
   }
 
   def silkPath(id: String, pathStr: String)(implicit readContext: ReadContext): Path = {
@@ -123,7 +132,7 @@ object JsonSerializers {
       case Some(JsString(id)) =>
         id
       case Some(_) =>
-        throw JsonParseException("Value for attribute " + ID + " is not a String!")
+        throw JsonParseException("Value for attribute '" + ID + "' is not a String!")
       case None =>
         readContext.identifierGenerator.generate(defaultId)
     }
@@ -438,7 +447,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): DirectMapping = {
       val name = identifier(value, "direct")
       val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
-      val mappingTarget = fromJson[MappingTarget]((value \ MAPPING_TARGET_PROPERTY).get)
+      val mappingTarget = fromJson[MappingTarget](requiredValue(value, MAPPING_TARGET_PROPERTY))
       DirectMapping(name, sourcePath, mappingTarget, metaData(value))
     }
 
