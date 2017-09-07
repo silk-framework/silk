@@ -313,8 +313,8 @@ const ObjectMappingRuleForm = React.createClass({
                                 'targetEntityType'
                             )}
                         />
-                        {sourcePropertyInput}
                         {patternInput}
+                        {sourcePropertyInput}
                         {exampleView}
                         <TextField
                             multiline
