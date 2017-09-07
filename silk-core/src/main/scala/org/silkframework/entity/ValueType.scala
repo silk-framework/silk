@@ -320,7 +320,7 @@ case object BlankNodeValueType extends ValueType with Serializable {
 
 case object DateValueType extends ValueType with Serializable {
 
-  private val datatypeFactory = DatatypeFactory.newInstance()
+  @transient lazy private val datatypeFactory = DatatypeFactory.newInstance()
 
   override def label = "Date"
 
@@ -358,7 +358,7 @@ case object DateValueType extends ValueType with Serializable {
 
 case object DateTimeValueType extends ValueType with Serializable {
 
-  private val datatypeFactory = DatatypeFactory.newInstance()
+  @transient lazy private val datatypeFactory = DatatypeFactory.newInstance()
 
   override def label = "DateTime"
 
