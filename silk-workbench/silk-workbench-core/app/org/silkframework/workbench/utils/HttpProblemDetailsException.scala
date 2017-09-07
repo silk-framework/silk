@@ -4,6 +4,7 @@ import java.io.InputStream
 
 import play.api.libs.json.{JsString, JsValue, Json}
 
+import scala.io.Source
 import scala.util.control.NonFatal
 
 /**
@@ -19,11 +20,12 @@ object HttpProblemDetailsException {
     * @param inputStream The input stream to read from. Will be close on return.
     */
   def parse(inputStream: InputStream): HttpProblemDetailsException = {
+    val str = Source.fromInputStream(inputStream, "UTF8").getLines().mkString("\n")
     try {
-      parse(Json.parse(inputStream))
+      parse(Json.parse(str))
     } catch {
       case NonFatal(ex) =>
-       new HttpProblemDetailsException("Server response could not be parsed", ex.getMessage, None)
+        new HttpProblemDetailsException("Server response could not be parsed", str, None)
     } finally {
       inputStream.close()
     }
