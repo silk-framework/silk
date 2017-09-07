@@ -1,8 +1,7 @@
 package org.silkframework.workbench.utils
 
 import org.silkframework.runtime.validation.{ClientRequestException, ValidationIssue}
-import org.silkframework.util.StringUtils._
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{JsNull, JsString, JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 
@@ -21,7 +20,7 @@ object ErrorResult {
     * @param ex The exception that specifies the client error.
     */
   def clientError(ex: ClientRequestException): Result = {
-    apply(status = ex.errorCode, title = ex.errorText, ex.getMessage)
+    generateResult(ex.errorCode, fromException(ex))
   }
 
   /**
@@ -31,22 +30,40 @@ object ErrorResult {
     * @param ex The exception that has been thrown.
     */
   def serverError(status: Int, ex: Throwable): Result = {
-    val errorTitle = ex.getClass.getSimpleName.replace("Exception", "")
-    val readableTitle = errorTitle.flatMap(c => if (c.isUpper) " " + c.toLower else c.toString).trim.capitalize
-    apply(status, readableTitle, ex.getMessage)
+    generateResult(status, fromException(ex))
   }
 
   /**
     * Generates an error response.
     */
   def apply(status: Int, title: String, detail: String): Result = {
-    val json =
-      Json.obj(
-        "title" -> title,
-        "detail" -> detail
-      )
+    generateResult(status, format(title, detail))
+  }
 
-    Status(status)(json).as("application/problem+json")
+  private def fromException(ex: Throwable): JsValue = {
+    val cause = Option(ex.getCause).map(fromException).getOrElse(JsNull)
+    ex match {
+      case clientEx: ClientRequestException =>
+        format(clientEx.errorText, clientEx.getMessage, cause)
+      case requestEx: HttpProblemDetailsException =>
+        format(requestEx.title, requestEx.detail, cause)
+      case _ =>
+        val errorTitle = ex.getClass.getSimpleName.replace("Exception", "")
+        val readableTitle = errorTitle.flatMap(c => if (c.isUpper) " " + c.toLower else c.toString).trim.capitalize
+        format(readableTitle, ex.getMessage, cause)
+    }
+  }
+
+  private def format(title: String, detail: String, cause: JsValue = JsNull): JsValue = {
+    Json.obj(
+      "title" -> title,
+      "detail" -> detail,
+      "cause" -> cause
+    )
+  }
+
+  private def generateResult(status: Int, value: JsValue): Result = {
+    Status(status)(value).as("application/problem+json")
   }
 
   /**

@@ -20,7 +20,7 @@ import java.util.logging.Logger
 import javax.xml.bind.DatatypeConverter
 
 import org.silkframework.dataset.rdf._
-import org.silkframework.util.HttpURLConnectionUtils
+import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.io.Source
 import scala.xml.{Elem, XML}
@@ -117,7 +117,7 @@ case class RemoteSparqlEndpoint(val sparqlParams: SparqlParams) extends SparqlEn
 
     //Check if the HTTP response code is in the range 2xx
     if (connection.getResponseCode / 100 != 2) {
-      HttpURLConnectionUtils.errorMessage(connection) match {
+      connection.errorMessage() match {
         case Some(errorMessage) =>
           throw new IOException("SPARQL/Update query on " + sparqlParams.uri + " failed with error code " +
               connection.getResponseCode + ". Error Message: '" + errorMessage + "'. Failed query:\n" + query)
