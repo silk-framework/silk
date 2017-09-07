@@ -6,12 +6,11 @@ import controllers.core.{Stream, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.runtime.serialization.{Serialization, WriteContext}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsBoolean}
+import play.api.libs.json.JsArray
 import play.api.mvc._
 
 import scala.language.existentials
@@ -46,7 +45,7 @@ class ActivityApi extends Controller {
       }
 
     if (activityControl.status().isRunning) {
-      BadRequest(JsonError(s"Cannot start activity '$activityName'. Already running."))
+      ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
     } else {
       if (blocking)
         activityControl.startBlocking()
@@ -94,7 +93,7 @@ class ActivityApi extends Controller {
       }
       Ok
     } else {
-      BadRequest(JsonError("No config supplied."))
+      ErrorResult(BAD_REQUEST, title = "Bad Request.", detail = "No config supplied")
     }
   }
 

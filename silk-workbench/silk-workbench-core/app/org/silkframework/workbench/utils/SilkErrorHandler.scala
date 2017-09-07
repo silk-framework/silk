@@ -14,8 +14,9 @@ import play.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 import SilkErrorHandler.prefersHtml
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
+import org.silkframework.runtime.validation.{BadUserInputException, ClientRequestException, NotFoundException}
 import org.silkframework.serialization.json.JsonParseException
+import play.api.http.Status._
 
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
@@ -37,7 +38,7 @@ class SilkErrorHandler (env: Environment,
     } else {
       val m = if(statusCode == 404 && message.isEmpty) "Not Found." else message
       Future {
-        Status(statusCode)(JsonError(m))
+        ErrorResult(statusCode, title = m, detail = m)
       }
     }
   }
@@ -121,22 +122,20 @@ class SilkErrorHandler (env: Environment,
     ex match {
       case _: ExceptionSource if Option(ex.getCause).isDefined =>
         handleError(requestPath, ex.getCause)
-      case _: NotFoundException=>
-        NotFound(JsonError(ex))
       case executionException: ExecutionException =>
         Option(executionException.getCause) match {
           case Some(t) =>
-            InternalServerError(JsonError(t))
+            ErrorResult.serverError(INTERNAL_SERVER_ERROR, t)
           case None =>
-            InternalServerError("Unknown error.")
+            ErrorResult.serverError(INTERNAL_SERVER_ERROR, executionException)
         }
-      case BadUserInputException(msg) =>
-        BadRequest(JsonError(msg))
-      case JsonParseException(msg, _) =>
-        BadRequest(JsonError(msg))
+      case requestEx: ClientRequestException =>
+        ErrorResult.clientError(requestEx)
+      case _: JsonParseException =>
+        ErrorResult(BAD_REQUEST, "Could not parse JSON", ex.getMessage)
       case _ =>
         log.log(Level.INFO, s"Error handling request to $requestPath", ex)
-        InternalServerError(JsonError(ex))
+        ErrorResult.serverError(INTERNAL_SERVER_ERROR, ex)
     }
   }
 }

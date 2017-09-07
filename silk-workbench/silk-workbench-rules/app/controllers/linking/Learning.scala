@@ -18,7 +18,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, Controller, Result}
@@ -122,7 +122,7 @@ class Learning extends Controller {
             Ok("No link candidate generated, please wait for completion or restart...")
         }
       case None =>
-        BadRequest(JsonError("query parameters missing"))
+        ErrorResult(BAD_REQUEST, "Bad Request", "query parameters missing")
     }
   }
 
