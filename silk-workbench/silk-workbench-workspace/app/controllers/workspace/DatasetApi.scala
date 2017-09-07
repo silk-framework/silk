@@ -37,7 +37,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         val autoConfDataset = autoConfigurable.autoConfigured
         serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
       case _ =>
-        ErrorResult(NOT_IMPLEMENTED, "Nor implemented", "The dataset type does not support auto-configuration.")
+        ErrorResult.clientError(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 

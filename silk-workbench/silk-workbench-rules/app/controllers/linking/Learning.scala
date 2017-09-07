@@ -16,6 +16,7 @@ import org.silkframework.rule.input.{Input, PathInput}
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.{Finished, Idle}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
 import org.silkframework.workbench.utils.ErrorResult
@@ -122,7 +123,7 @@ class Learning extends Controller {
             Ok("No link candidate generated, please wait for completion or restart...")
         }
       case None =>
-        ErrorResult(BAD_REQUEST, "Bad Request", "query parameters missing")
+        ErrorResult.clientError(BadUserInputException("query parameters missing"))
     }
   }
 

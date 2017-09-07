@@ -6,7 +6,8 @@ import controllers.core.{Stream, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
@@ -93,7 +94,7 @@ class ActivityApi extends Controller {
       }
       Ok
     } else {
-      ErrorResult(BAD_REQUEST, title = "Bad Request.", detail = "No config supplied")
+      ErrorResult.clientError(BadUserInputException("No config supplied"))
     }
   }
 

@@ -1,7 +1,7 @@
 package controllers.util
 
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
 import play.api.libs.json.{JsArray, JsValue}
@@ -69,7 +69,7 @@ object SerializationUtils {
   private def notAcceptable(request: Request[AnyContent], valueType: Class[_]) = {
     val msg = s"No serialization for accepted MIME types (${request.acceptedTypes.mkString(", ")})" +
       s" available for values of type ${valueType.getSimpleName}"
-    ErrorResult(NOT_ACCEPTABLE, title = "Not Acceptable", detail = msg)
+    ErrorResult.clientError(NotAcceptableException(msg))
   }
 
   def serializeToStringCompileType[T: ClassTag](value: T,
@@ -223,7 +223,7 @@ object SerializationUtils {
       case None =>
         val msg = s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
                   s" available for values of type ${classToSerialize.getSimpleName}"
-        ErrorResult(NOT_ACCEPTABLE, title = "Not Acceptable", detail = msg)
+        ErrorResult.clientError(NotAcceptableException(msg))
     }
   }
 

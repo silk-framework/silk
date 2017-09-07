@@ -8,6 +8,7 @@ import play.api.mvc.{Action, AnyContent, Controller}
 import controllers.util.SerializationUtils._
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
@@ -28,7 +29,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabType) =>
         serializeCompileTime(vocabType)
       case None =>
-        ErrorResult(NOT_FOUND, "Not Found", s"Type $typeUri could not be found in any of the target vocabularies.")
+        ErrorResult.clientError(NotFoundException(s"Type $typeUri could not be found in any of the target vocabularies."))
     }
   }
 
@@ -42,7 +43,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabProperty) =>
         serializeCompileTime(vocabProperty)
       case None =>
-        ErrorResult(NOT_FOUND, "Not Found", s"Property $propertyUri could not be found in any of the target vocabularies.")
+        ErrorResult.clientError(NotFoundException(s"Property $propertyUri could not be found in any of the target vocabularies."))
     }
   }
 
@@ -60,7 +61,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case (None, Some(vocabProperty)) =>
         serializeCompileTime(vocabProperty)
       case (None, None) =>
-        ErrorResult(NOT_FOUND, "Not Found", s"Property or Class $uri could not be found in any of the target vocabularies.")
+        ErrorResult.clientError(NotFoundException(s"Property or Class $uri could not be found in any of the target vocabularies."))
       case (Some(_), Some(_)) =>
         ErrorResult(INTERNAL_SERVER_ERROR, "Vocabulary Issue", s"For $uri both a class and a property can be found in the target vocabularies.")
     }

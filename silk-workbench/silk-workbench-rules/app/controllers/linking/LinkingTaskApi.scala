@@ -11,7 +11,7 @@ import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
@@ -108,7 +108,7 @@ class LinkingTaskApi extends Controller {
             InternalServerError(ErrorResult("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
         }
       case None =>
-        ErrorResult(BAD_REQUEST, "Bad Request", "Expecting text/xml request body")
+        ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 
@@ -149,7 +149,7 @@ class LinkingTaskApi extends Controller {
             InternalServerError(ErrorResult("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
         }
       }
-      case None => ErrorResult(BAD_REQUEST, "Bad Request", "Expecting text/xml request body")
+      case None => ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 

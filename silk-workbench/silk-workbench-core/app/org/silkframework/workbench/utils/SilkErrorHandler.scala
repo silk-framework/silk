@@ -3,20 +3,19 @@ package org.silkframework.workbench.utils
 import java.util.logging.{Level, Logger}
 import javax.inject.Provider
 
-import org.silkframework.workspace.{ProjectNotFoundException, TaskNotFoundException}
+import org.silkframework.runtime.validation.ClientRequestException
+import org.silkframework.serialization.json.JsonParseException
+import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
+import play.api._
+import play.api.http.Status._
 import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
-import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Status}
+import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound}
 import play.api.mvc.{AcceptExtractors, RequestHeader, Result, Results}
 import play.api.routing.Router
-import play.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
-import SilkErrorHandler.prefersHtml
-import org.silkframework.runtime.validation.{BadUserInputException, ClientRequestException, NotFoundException}
-import org.silkframework.serialization.json.JsonParseException
-import play.api.http.Status._
 
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
@@ -36,9 +35,12 @@ class SilkErrorHandler (env: Environment,
     if(prefersHtml(request)) {
       super.onClientError(request, statusCode, message)
     } else {
-      val m = if(statusCode == 404 && message.isEmpty) "Not Found." else message
       Future {
-        ErrorResult(statusCode, title = m, detail = m)
+        if (statusCode == 404 && message.isEmpty) {
+          ErrorResult(statusCode, title = "Not Found", detail = "Not Found")
+        } else {
+          ErrorResult(statusCode, title = "Client error", detail = message)
+        }
       }
     }
   }
