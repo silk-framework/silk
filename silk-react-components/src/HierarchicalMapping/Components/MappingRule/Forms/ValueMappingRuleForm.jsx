@@ -198,13 +198,13 @@ const ValueMappingRuleForm = React.createClass({
             );
         }
 
-        const exampleView = (
+        const exampleView = this.state.sourceProperty ? (
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
                 rawRule={this.state}
                 ruleType="value"
-            />);
+            />) : false;
 
         // TODO: Where to get the list of target Properties?
         // TODO: Where to get the list of target property types?
