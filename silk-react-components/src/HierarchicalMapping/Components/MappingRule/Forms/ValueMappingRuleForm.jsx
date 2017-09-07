@@ -10,6 +10,7 @@ import {
     Spinner,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
+import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
@@ -196,6 +197,15 @@ const ValueMappingRuleForm = React.createClass({
                 />
             );
         }
+
+        const exampleView = allowConfirm && this.state.sourceProperty ? (
+            <ExampleView
+                id={this.props.parentId || 'root'}
+                key={this.state.sourceProperty.value || this.state.sourceProperty}
+                rawRule={this.state}
+                ruleType="value"
+            />) : false;
+
         // TODO: Where to get the list of target Properties?
         // TODO: Where to get the list of target property types?
         return (
@@ -230,6 +240,7 @@ const ValueMappingRuleForm = React.createClass({
                             )}
                         />
                         {sourcePropertyInput}
+                        {exampleView}
                         <TextField
                             multiline
                             label="Description"

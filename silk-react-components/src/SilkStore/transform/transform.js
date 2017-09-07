@@ -140,6 +140,22 @@ silkStore
     });
 
 silkStore
+    .subject('transform.task.rule.child.peak')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask, rule, id} = data;
+
+        superagent
+            .post(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`
+            )
+            .accept('application/json')
+            .send({...rule})
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
     .subject('transform.task.rule.rules.append')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, ruleId, payload} = data;
