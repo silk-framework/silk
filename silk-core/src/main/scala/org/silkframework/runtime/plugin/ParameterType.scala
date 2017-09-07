@@ -255,5 +255,13 @@ object ParameterType {
     }
 
     def enumerationValues: Seq[String] = enumConstants.map(_.name())
+
+    /** The display names. The Enum has to implement [[EnumerationParameterType]], else the enum name is used. */
+    def displayNames: Seq[String] = enumConstants map {
+      case e: EnumerationParameterType =>
+        e.displayName
+      case c: Enum[_] =>
+        c.name()
+    }
   }
 }

@@ -1,11 +1,20 @@
 package org.silkframework.dataset.rdf;
 
-public enum EntityRetrieverStrategy {
+import org.silkframework.runtime.plugin.EnumerationParameterType;
 
-    simple,
+public enum EntityRetrieverStrategy implements EnumerationParameterType {
 
-    subQuery,
+    simple("simple"),
 
-    parallel
+    subQuery("sub-query"),
 
+    parallel("parallel");
+
+    private String displayName;
+
+    EntityRetrieverStrategy(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String displayName() { return displayName; }
 }
