@@ -31,7 +31,9 @@ object ErrorResult {
     * @param ex The exception that has been thrown.
     */
   def serverError(status: Int, ex: Throwable): Result = {
-    apply(status, ex.getClass.getSimpleName.undoCamelCase.replace("Exception", "Issue"), ex.getMessage)
+    val errorTitle = ex.getClass.getSimpleName.replace("Exception", "")
+    val readableTitle = errorTitle.flatMap(c => if (c.isUpper) " " + c.toLower else c.toString).trim.capitalize
+    apply(status, readableTitle, ex.getMessage)
   }
 
   /**
