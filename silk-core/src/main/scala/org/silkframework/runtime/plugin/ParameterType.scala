@@ -243,7 +243,7 @@ object ParameterType {
 
     private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
 
-    private val valueList = enumConstants.map(_.name).mkString(", ")
+    private val valueList = enumerationValues.mkString(", ")
 
     override def name: String = "enumeration"
 
@@ -252,18 +252,13 @@ object ParameterType {
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
       enumConstants.find {
         case e: EnumerationParameterType =>
-          e.id == str.trim
+          e.id == str.trim || e.name == str.trim
         case c: Enum[_] =>
           c.name == str.trim
       } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
 
-    def enumerationValues: Seq[String] = enumConstants map {
-      case e: EnumerationParameterType =>
-        e.id
-      case c: Enum[_] =>
-        c.name()
-    }
+    def enumerationValues: Seq[String] = enumConstants map enumerationValue
 
     /** The display names. The Enum has to implement [[EnumerationParameterType]], else the enum name is used. */
     def displayNames: Seq[String] = enumConstants map {
@@ -272,5 +267,16 @@ object ParameterType {
       case c: Enum[_] =>
         c.name()
     }
+
+    private def enumerationValue(value: Enum[_]): String = {
+      value match {
+        case e: EnumerationParameterType =>
+          e.id
+        case c: Enum[_] =>
+          c.name()
+      }
+    }
+
+    override def toString(value: Enum[_]): String = enumerationValue(value)
   }
 }
