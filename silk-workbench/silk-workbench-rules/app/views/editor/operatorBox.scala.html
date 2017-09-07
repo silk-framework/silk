@@ -45,7 +45,7 @@
 @parameter(param: Parameter, value: String) = @{
   param.dataType match {
     case UriType => stringParameter(param.name, project.config.prefixes.shorten(value))
-    case enum: EnumerationType => enumParameter(param.name, value, enum.enumerationValues)
+    case enum: EnumerationType => enumParameter(param.name, value, enum.enumerationValues, enum.displayNames)
     case _ => stringParameter(param.name, value)
   }
 }
@@ -58,10 +58,10 @@
   <input class="param_value" type="text" name="@{name}" value="@value"/>
 }
 
-@enumParameter(name: String, value: String, enumerationValues: Seq[String]) = {
+@enumParameter(name: String, value: String, enumerationValues: Seq[String], enumerationLabels: Seq[String]) = {
   <select class="param_value" name="@{name}" >
-  @for(enumerationValue <- enumerationValues) {
-    <option @if(enumerationValue == value) { selected="selected" }>@enumerationValue</option>
+  @for((enumerationValue, label) <- enumerationValues.zip(enumerationLabels)) {
+    <option value="@enumerationValue" @if(enumerationValue == value) { selected="selected" }>@label</option>
   }
   </select>
 }

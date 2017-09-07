@@ -250,11 +250,20 @@ object ParameterType {
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
-      enumConstants.find(_.name == str.trim)
-          .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+      enumConstants.find {
+        case e: EnumerationParameterType =>
+          e.id == str.trim
+        case c: Enum[_] =>
+          c.name == str.trim
+      } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
 
-    def enumerationValues: Seq[String] = enumConstants.map(_.name())
+    def enumerationValues: Seq[String] = enumConstants map {
+      case e: EnumerationParameterType =>
+        e.id
+      case c: Enum[_] =>
+        c.name()
+    }
 
     /** The display names. The Enum has to implement [[EnumerationParameterType]], else the enum name is used. */
     def displayNames: Seq[String] = enumConstants map {

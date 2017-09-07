@@ -4,17 +4,22 @@ import org.silkframework.runtime.plugin.EnumerationParameterType;
 
 public enum EntityRetrieverStrategy implements EnumerationParameterType {
 
-    simple("simple"),
+    simple("simple", "simple"),
 
-    subQuery("sub-query"),
+    subQuery("subQuery", "sub-query"),
 
-    parallel("parallel");
+    parallel("parallel", "parallel");
+
+    private String id;
 
     private String displayName;
 
-    EntityRetrieverStrategy(String displayName) {
+    EntityRetrieverStrategy(String id, String displayName) {
+        this.id = id;
         this.displayName = displayName;
     }
+
+    public String id() { return id; }
 
     public String displayName() { return displayName; }
 }
