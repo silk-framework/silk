@@ -69,7 +69,7 @@ object ErrorResult {
     val json =
       Json.obj(
         "title" -> title,
-        "detail" -> issues.headOption.map(_.message).getOrElse("").toString,
+        "detail" -> issues.headOption.map(_.message).getOrElse("Validation Error").toString,
         "issues" -> issues.map(validationMessage)
       )
     generateResult(status, json)
