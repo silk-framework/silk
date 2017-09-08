@@ -393,13 +393,13 @@ input.param_value {
   border-color: #ddd;
 }
 
-.transformDiv input.param_value {
+.dragDiv input.param_value {
   border-style: none;
   border-bottom-style: solid;
   background-color: #FFF;
 }
 
-.transformDiv select.param_value {
+.dragDiv select.param_value {
   background-color: #FFF;
 }
 

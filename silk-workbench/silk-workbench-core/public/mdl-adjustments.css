@@ -146,6 +146,15 @@
   bottom: 0px;
 }
 
+.dragDiv input[type="checkbox"] {
+	cursor: pointer;
+	width: 14px;
+	height: 14px;
+	vertical-align: bottom;
+	background: #eee;
+	border:1px solid #ddd;
+}
+
 /*
 .scrollboxes {
   min-height: 82px;
@@ -226,7 +235,7 @@
   border-color: #CE93D8;
 }
 .sourceDiv:hover {
-  background-color:#E1BEE7;
+  background-color:#FFF;
   box-shadow: 1px 1px 6px #CE93D8;
 }
 .operator_footer.sourceDiv {
@@ -250,7 +259,7 @@
   border-color: #9FA8DA;
 }
 .targetDiv:hover {
-  background-color: #C5CAE9;
+  background-color: #FFF;
   box-shadow: 1px 1px 6px #9FA8DA;
 }
 .operator_footer.targetDiv {
@@ -301,7 +310,7 @@
   border-color: #90CAF9;
 }
 .compareDiv:hover {
-  background-color: #BBDEFB;
+  background-color: #FFF;
   box-shadow: 1px 1px 6px #90CAF9;
 }
 .operator_footer.compareDiv {
@@ -324,7 +333,7 @@
   border-color: #80CBC4;
 }
 .aggregateDiv:hover {
-  background-color: #B2DFDB;
+  background-color: #FFF;
   box-shadow: 1px 1px 6px #80CBC4;
 }
 .operator_footer.aggregateDiv {

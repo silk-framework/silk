@@ -3,6 +3,7 @@ package org.silkframework.rule.plugins.transformer.date
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.StringUtils.XSDDateLiteral
+import ComparatorEnum._
 
 /**
  * Compares two dates.
@@ -21,7 +22,7 @@ import org.silkframework.util.StringUtils.XSDDateLiteral
       | Accepts one parameter:
       |   comparator: One of '<', '<=', '=', '>=', '>' """
 )
-case class CompareDatesTransformer(comparator: String = "<") extends Transformer {
+case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all dates in milliseconds
@@ -31,11 +32,11 @@ case class CompareDatesTransformer(comparator: String = "<") extends Transformer
     // Compare dates
     val result = comparator match {
       case _ if n1.isEmpty || n2.isEmpty => false
-      case "<"  => n1.max < n2.min
-      case "<=" => n1.max <= n2.min
-      case ">"  => n1.min > n2.max
-      case ">=" => n1.min >= n2.max
-      case "="  => n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
+      case less  => n1.max < n2.min
+      case lessEqual => n1.max <= n2.min
+      case greater  => n1.min > n2.max
+      case greaterEqual => n1.min >= n2.max
+      case equal  => n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
     }
     // Return result
     Seq(if(result) "1" else "0")
