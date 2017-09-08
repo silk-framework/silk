@@ -17,7 +17,7 @@ import scala.xml._
 /**
   * XML streaming source.
   */
-class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource with PeakDataSource {
+class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource with PeakDataSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -127,8 +127,10 @@ class XmlSourceStreaming(file: Resource, uriPattern: String) extends DataSource 
   /**
     * Moves the parser to a given path.
     * On return, the parser will be positioned on the first start element with the given path.
+    * If the path is empty, the base path will be used.
     */
-  private def goToPath(reader: XMLStreamReader, path: Path): Unit = {
+  private def goToPath(reader: XMLStreamReader, rootPath: Path): Unit = {
+    val path = if(rootPath.isEmpty) Path.parse(basePath) else rootPath
     assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
     var remainingOperators = path.operators

@@ -52,7 +52,7 @@ Path examples:
 case class XmlDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: Resource,
-  @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
+  @Param(value = "Should no longer be used! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks. The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
@@ -61,8 +61,7 @@ case class XmlDataset(
 
   override def source: DataSource = {
     if(streaming) {
-      assert(basePath.trim.isEmpty, "basePath is not supported for streaming. Specify the base path as type instead.")
-      new XmlSourceStreaming(file, uriPattern)
+      new XmlSourceStreaming(file, basePath, uriPattern)
     } else {
       new XmlSourceInMemory(file, basePath, uriPattern)
     }
