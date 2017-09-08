@@ -135,7 +135,6 @@
 
 input.mdl-textfield__input.param_value {
   width: calc(100% - 3px);
-  margin-right: 5px;
 }
 
 .transformDiv .mdl-textfield,.mdl-selectfield {
@@ -143,8 +142,12 @@ input.mdl-textfield__input.param_value {
   padding-top: 16px !important;
 }
 
-.transformDiv label.mdl-textfield__label,.mdl-selectfield__label {
-  
+.mdl-textfield--floating-label.is-focused label.mdl-textfield__label {
+  top: 0px !important;
+}
+
+.transformDiv label.mdl-textfield__label:after,label.mdl-selectfield__label:after {
+  bottom: 0px;
 }
 
 /*
@@ -279,7 +282,7 @@ input.mdl-textfield__input.param_value {
   border-color: #B0BEC5;
 }
 .transformDiv:hover {
-  background-color: #CFD8DC;
+  background-color: #FFF;
   box-shadow: 1px 1px 6px #B0BEC5;
 }
 .operator_footer.transformDiv {
