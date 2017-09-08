@@ -45,7 +45,8 @@
 @parameter(param: Parameter, value: String) = @{
   param.dataType match {
     case UriType => stringParameter(param, project.config.prefixes.shorten(value))
-    case enum: EnumerationType => enumParameter(param, enum, value)
+    case enum: EnumerationType => enumParameter(param, enum.enumerationValues, enum.displayNames, value)
+    case BooleanType => enumParameter(param, Seq("true", "false"), Seq("True", "False"), value)
     case _ => stringParameter(param, value)
   }
 }
@@ -63,10 +64,10 @@
 }
 
 
-@enumParameter(param: Parameter, enumType: EnumerationType, value: String) = {
+@enumParameter(param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String], value: String) = {
 <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select param_value" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}" >
-        @for((enumerationValue, displayName) <- enumType.enumerationValues.zip(enumType.displayNames)) {
+        @for((enumerationValue, displayName) <- enumerationValues.zip(displayNames)) {
         <option value="@(enumerationValue)" @if(enumerationValue == value) { selected="selected" }>@displayName</option>
         }
     </select>
