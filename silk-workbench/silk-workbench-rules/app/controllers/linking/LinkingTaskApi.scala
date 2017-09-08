@@ -98,14 +98,14 @@ class LinkingTaskApi extends Controller {
             project.updateTask(taskName, updatedLinkSpec)
           }
           // Return warnings
-          Ok(ErrorResult("Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage))))
+          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
-            BadRequest(ErrorResult("Invalid linkage rule", issues = ex.errors))
+            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
           case ex: Exception =>
             log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            InternalServerError(ErrorResult("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       case None =>
         ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
@@ -139,14 +139,14 @@ class LinkingTaskApi extends Controller {
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           }
 
-          Ok(ErrorResult("Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage))))
+          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
-            BadRequest(ErrorResult("Invalid linkage rule", issues = ex.errors))
+            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
           case ex: Exception =>
             log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            InternalServerError(ErrorResult("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       }
       case None => ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))

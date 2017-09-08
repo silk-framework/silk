@@ -220,13 +220,13 @@ class TransformTaskApi extends Controller {
     } catch {
       case ex: ValidationException =>
         log.log(Level.INFO, "Invalid transformation rule", ex)
-        BadRequest(ErrorResult("Invalid transformation rule", ex.errors))
+        ErrorResult.validation(BAD_REQUEST, "Invalid transformation rule", ex.errors)
       case ex: JsonParseException =>
         log.log(Level.INFO, "Invalid transformation rule JSON", ex)
         ErrorResult.clientError(BadUserInputException(ex))
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
-        InternalServerError(ErrorResult("Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+        ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil)
     }
   }
 

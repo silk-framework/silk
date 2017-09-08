@@ -62,19 +62,17 @@ object ErrorResult {
     )
   }
 
-  private def generateResult(status: Int, value: JsValue): Result = {
-    Status(status)(value).as("application/problem+json")
-  }
-
   /**
     * Generates an error response with detailed issues.
-    * Not using Problem Details for HTTP APIs yet.
     */
-  def apply(message: String, issues: Seq[ValidationIssue]): JsValue = {
-    Json.obj(
-      "message" -> message,
-      "issues" -> issues.map(validationMessage)
-    )
+  def validation(status: Int, title: String, issues: Seq[ValidationIssue]): Result = {
+    val json =
+      Json.obj(
+        "title" -> title,
+        "detail" -> issues.headOption.map(_.message).getOrElse("").toString,
+        "issues" -> issues.map(validationMessage)
+      )
+    generateResult(status, json)
   }
 
   private def validationMessage(msg: ValidationIssue) = {
@@ -83,6 +81,10 @@ object ErrorResult {
       "message" -> msg.toString,
       "id" -> JsString(msg.id.map(_.toString).getOrElse(""))
     )
+  }
+
+  private def generateResult(status: Int, value: JsValue): Result = {
+    Status(status)(value).as("application/problem+json")
   }
 
 }
