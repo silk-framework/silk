@@ -133,20 +133,16 @@
   border: 1px solid #d9d9d9;
 }
 
-input.mdl-textfield__input.param_value {
+.dragDiv input.mdl-textfield__input.param_value {
   width: calc(100% - 3px);
 }
 
-.transformDiv .mdl-textfield,.mdl-selectfield {
+.dragDiv .mdl-textfield,.dragDiv .mdl-selectfield {
   padding: 0px 0 !important;
   padding-top: 16px !important;
 }
 
-.mdl-textfield--floating-label.is-focused label.mdl-textfield__label {
-  top: 0px !important;
-}
-
-.transformDiv label.mdl-textfield__label:after,label.mdl-selectfield__label:after {
+.dragDiv label.mdl-textfield__label:after,.dragDiv label.mdl-selectfield__label:after {
   bottom: 0px;
 }
 
