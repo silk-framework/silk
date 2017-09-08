@@ -1,14 +1,12 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.io.File
 import java.net.URLEncoder
-import java.util.UUID
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSource, PeakDataSource}
+import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
 import org.silkframework.entity._
-import org.silkframework.runtime.resource.{FileResource, Resource}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -17,7 +15,8 @@ import scala.xml._
 /**
   * XML streaming source.
   */
-class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource with PeakDataSource {
+class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -79,8 +78,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         val inputStream = file.load
         try {
           val reader = xmlFactory.createXMLStreamReader(inputStream)
-          reader.nextTag()
-          goToPath(reader, Path.parse(entitySchema.typeUri.uri))
+          goToPath(reader, Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
           var count = 0
           do {
             val node = buildNode(reader)
@@ -134,6 +132,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
     var remainingOperators = path.operators
+    reader.nextTag()
     while(reader.hasNext && remainingOperators.nonEmpty) {
       reader.next()
       val tagName = remainingOperators.head.asInstanceOf[ForwardOperator].property.uri
@@ -273,6 +272,15 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     do {
       reader.next()
     } while(!reader.isStartElement && !reader.isEndElement)
+  }
+
+  override def combinedPath(typeUri: String, inputPath: Path): Path = {
+    val typePath = Path.parse(typeUri)
+    Path(typePath.operators ++ inputPath.operators)
+  }
+
+  override def convertToIdPath(path: Path): Option[Path] = {
+    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 
 }
