@@ -5,7 +5,7 @@ import java.io.Closeable
 /**
  * Represents an abstraction over a data sink.
  */
-trait DataSink extends Closeable {
+trait DataSink extends Closeable with Serializable {
 
   /**
     * Makes sure that the next write will start from an empty dataset.
