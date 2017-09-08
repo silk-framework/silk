@@ -17,7 +17,7 @@ object HttpProblemDetailsException {
   /**
     * Parses our version of RFC 7807.
     *
-    * @param inputStream The input stream to read from. Will be close on return.
+    * @param inputStream The input stream to read from. Will be closed on return.
     */
   def parse(inputStream: InputStream): HttpProblemDetailsException = {
     val str = Source.fromInputStream(inputStream, "UTF8").getLines().mkString("\n")

@@ -20,7 +20,7 @@ object ErrorResult {
     * @param ex The exception that specifies the client error.
     */
   def clientError(ex: ClientRequestException): Result = {
-    generateResult(ex.errorCode, fromException(ex))
+    generateResult(ex.httpErrorCode, fromException(ex))
   }
 
   /**
