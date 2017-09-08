@@ -12,33 +12,66 @@ const ExampleView = React.createClass({
     // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
+        rawRule: React.PropTypes.object,
+        ruleType: React.PropTypes.object,
     },
     componentDidMount() {
-        hierarchicalMappingChannel
-            .request({
-                topic: 'rule.example',
-                data: {
-                    id: this.props.id,
-                },
-            })
-            .subscribe(
-                ({example}) => {
-                    this.setState({example});
-                },
-                err => {
-                    if (__DEBUG__) {
-                        console.warn('err MappingRuleOverview: rule.example');
-                    }
-                    this.setState({
-                        example: {
-                            status: {
-                                id: 'error',
-                                msg: err.toString(),
+        if (!this.props.rawRule) {
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.example',
+                    data: {
+                        id: this.props.id,
+                    },
+                })
+                .subscribe(
+                    ({example}) => {
+                        this.setState({example});
+                    },
+                    err => {
+                        if (__DEBUG__) {
+                            console.warn('err MappingRuleOverview: rule.example');
+                        }
+                        this.setState({
+                            example: {
+                                status: {
+                                    id: 'error',
+                                    msg: err.toString(),
+                                },
                             },
-                        },
-                    });
-                }
-            );
+                        });
+                    }
+                );
+        }
+        else {
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.child.example',
+                    data: {
+                        id: this.props.id,
+                        rawRule: this.props.rawRule,
+                        ruleType: this.props.ruleType,
+                    },
+                })
+                .subscribe(
+                    ({example}) => {
+                        this.setState({example});
+                    },
+                    err => {
+                        if (__DEBUG__) {
+                            console.warn('err MappingRuleOverview: rule.example');
+                        }
+                        this.setState({
+                            example: {
+                                status: {
+                                    id: 'error',
+                                    msg: err.toString(),
+                                },
+                            },
+                        });
+                    }
+                );
+        }
     },
     getInitialState() {
         return {
