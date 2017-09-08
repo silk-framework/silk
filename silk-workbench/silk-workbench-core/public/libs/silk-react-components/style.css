@@ -12366,7 +12366,9 @@ _:-ms-input-placeholder, :root .mdl-slider.mdl-slider.is-upgraded {
   display: inline-flex;
   vertical-align: middle;
   box-sizing: border-box;
-  max-width: 100%; }
+  max-width: 100%;
+  text-decoration: none;
+  font-weight: inherit; }
   .mdl-chip:active {
     background-color: rgba(0, 0, 0, 0.13); }
 
