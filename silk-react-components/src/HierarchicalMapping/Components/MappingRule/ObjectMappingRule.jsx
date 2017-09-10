@@ -213,25 +213,6 @@ const ObjectRule = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                        {this.props.type === 'object' &&
-                        _.get(this.props, 'sourcePath', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Value path
-                                      </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <SourcePath
-                                              rule={{
-                                                  type: this.props.type,
-                                                  sourcePath: this.props
-                                                      .sourcePath,
-                                              }}
-                                          />
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
                         {_.get(this.props, 'rules.uriRule.pattern', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__idpattern">
                                   <div className="ecc-silk-mapping__rulesviewer__comment">
@@ -250,6 +231,25 @@ const ObjectRule = React.createClass({
                                           </dd>
                                       </dl>
                                   </div>
+                              </div>
+                            : false}
+                        {this.props.type === 'object' &&
+                        _.get(this.props, 'sourcePath', false)
+                            ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                          Value path
+                                      </dt>
+                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                          <SourcePath
+                                              rule={{
+                                                  type: this.props.type,
+                                                  sourcePath: this.props
+                                                      .sourcePath,
+                                              }}
+                                          />
+                                      </dd>
+                                  </dl>
                               </div>
                             : false}
                         {_.get(this.props, 'rules.uriRule.id', false)

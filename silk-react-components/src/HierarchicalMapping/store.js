@@ -182,7 +182,7 @@ const prepareObjectMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            isBackwardProperty: data.entityConnection,
+            isBackwardProperty: data.entityConnection==='from',
             valueType: {
                 nodeType: 'UriValueType',
             },
@@ -281,6 +281,30 @@ if (!__DEBUG__) {
                 .multicast(replySubject)
                 .connect();
         });
+
+    hierarchicalMappingChannel
+        .subject('rule.child.example')
+        .subscribe(({data, replySubject}) => {
+            const {ruleType, rawRule, id} = data;
+            if (id) {
+
+                const rule = ruleType === "value"
+                    ? prepareValueMappingPayload(rawRule)
+                    : prepareObjectMappingPayload(rawRule)
+                ;
+                silkStore
+                    .request({
+                        topic: 'transform.task.rule.child.peak',
+                        data: {...apiDetails, id, rule}
+                    })
+                    .map(returned => ({
+                        example: returned.body,
+                    }))
+                    .multicast(replySubject)
+                    .connect();
+            }
+        });
+
 
     hierarchicalMappingChannel
         .subject('rule.example')
@@ -661,6 +685,31 @@ if (!__DEBUG__) {
             const hierarchy = _.chain(mockStore).value();
 
             replySubject.onNext({hierarchy});
+            replySubject.onCompleted();
+        });
+
+    hierarchicalMappingChannel
+        .subject('rule.child.example')
+        .subscribe(({replySubject}) => {
+            const example = {
+                sourcePaths: [['/name'], ['/birthdate']],
+                results: [
+                    {
+                        sourceValues: [['Abigale Purdy'], ['7/21/1977']],
+                        transformedValues: ['abigale purdy7/21/1977'],
+                    },
+                    {
+                        sourceValues: [['Ronny Wiegand'], ['10/24/1963']],
+                        transformedValues: ['ronny wiegand10/24/1963'],
+                    },
+                    {
+                        sourceValues: [['Rosalyn Wisozk'], ['5/8/1982']],
+                        transformedValues: ['rosalyn wisozk5/8/1982'],
+                    },
+                ],
+                status: {id: 'success', msg: ''},
+            };
+            replySubject.onNext({example});
             replySubject.onCompleted();
         });
 

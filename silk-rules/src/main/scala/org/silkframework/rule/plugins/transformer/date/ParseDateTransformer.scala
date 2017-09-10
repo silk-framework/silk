@@ -31,7 +31,7 @@ import org.silkframework.runtime.validation.ValidationException;
   label = "Parse date",
   description = "Parses a date, returning an xsd:date"
 )
-case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer {
+case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)

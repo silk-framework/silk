@@ -1,5 +1,6 @@
 package controllers.transform
 
+import java.net.{URLDecoder, URLEncoder}
 import java.util.logging.Logger
 
 import controllers.transform.AutoCompletionApi.Categories
@@ -13,6 +14,7 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
 
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * Generates auto completions for mapping paths and types.
@@ -261,11 +263,12 @@ class AutoCompletionApi extends Controller {
     /**
       * Returns the label if present or generates a label from the value if no label is set.
       */
-    def labelOrGenerated: String = label match {
+    lazy val labelOrGenerated: String = label match {
       case Some(existingLabel) =>
         existingLabel
       case None =>
-        value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1).filterNot(_ == '>')
+        val lastPart = value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1).filterNot(_ == '>')
+        Try(URLDecoder.decode(lastPart, "UTF8")).getOrElse(lastPart)
     }
 
     /**
@@ -276,7 +279,7 @@ class AutoCompletionApi extends Controller {
       *         Some(matchScore), if the terms match.
       */
     def matches(normalizedTerm: String): Option[Double] = {
-      val values = Set(value) ++ label ++ description
+      val values = Set(value, labelOrGenerated) ++ description
       val scores = values.flatMap(rank(normalizedTerm))
       if(scores.isEmpty)
         None

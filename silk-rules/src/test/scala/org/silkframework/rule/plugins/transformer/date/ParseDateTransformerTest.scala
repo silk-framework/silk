@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.transformer.date
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.test.PluginTest
 
-class ParseDataTransformerTest extends PluginTest {
+class ParseDateTransformerTest extends PluginTest {
 
   val transformer = ParseDateTransformer("dd.MM.yyyy")
 
