@@ -11,7 +11,7 @@
     resources = project.resources.list) {
 
     <script type="text/javascript">
-      function savePlugin(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
         var ctDoc = document.implementation.createDocument("", "CustomTask", null);
         var ct = ctDoc.documentElement
@@ -27,7 +27,7 @@
         var xml = oSerializer.serializeToString(ctDoc);
 
         // Submit task
-        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml);
+        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
       }
     </script>
   }
