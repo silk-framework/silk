@@ -217,21 +217,25 @@ const HierarchicalMapping = React.createClass({
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
-                  active
-                  modal
-                  title="Remove mapping rule?"
-                  confirmButton={
+                className="ecc-hm-delete-dialog"
+                active
+                modal
+                title="Remove mapping rule?"
+                confirmButton={
                       <DisruptiveButton
+                          className="ecc-hm-delete-accept"
                           disabled={false}
                           onClick={this.handleConfirmRemove}>
                           Remove
-                      </DisruptiveButton>
-                  }
-                  cancelButton={
-                      <DismissiveButton onClick={this.handleCancelRemove}>
+                     </DisruptiveButton>
+                }
+                cancelButton={
+                      <DismissiveButton
+                          className="ecc-hm-delete-cancel"
+                          onClick={this.handleCancelRemove}>
                           Cancel
                       </DismissiveButton>
-                  }>
+                }>
                   <p>
                       When you click REMOVE the mapping rule
                       {this.state.elementToDelete.type === 'object'
@@ -246,16 +250,20 @@ const HierarchicalMapping = React.createClass({
             ? <ConfirmationDialog
                   active
                   modal
+                  className="ecc-hm-discard-dialog"
                   title="Discard changes?"
                   confirmButton={
                       <DisruptiveButton
                           disabled={false}
+                          className="ecc-hm-accept-discard"
                           onClick={this.handleDiscardChanges}>
                           Discard
                       </DisruptiveButton>
                   }
                   cancelButton={
-                      <DismissiveButton onClick={this.handleCancelDiscard}>
+                      <DismissiveButton
+                          className="ecc-hm-cancel-discard"
+                          onClick={this.handleCancelDiscard}>
                           Cancel
                       </DismissiveButton>
                   }>
