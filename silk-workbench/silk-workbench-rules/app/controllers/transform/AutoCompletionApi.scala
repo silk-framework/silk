@@ -7,6 +7,7 @@ import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.TaskActivity
 import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask, User}
@@ -39,12 +40,11 @@ class AutoCompletionApi extends Controller {
         val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths)
         // Add known paths
         completions += relativeForwardPaths
+        // Return filtered result
+        Ok(completions.filter(term, maxResults).toJson)
       case None =>
-        log.warning("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
+        throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
     }
-
-    // Return filtered result
-    Ok(completions.filter(term, maxResults).toJson)
   }
 
   /** Filter out paths that start with either the simple source or forward only source path, then

@@ -10,11 +10,11 @@ import org.silkframework.util.Uri
 /**
   * Tests for XmlSource
   */
-class XmlSourceTest extends FlatSpec with MustMatchers {
+class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   behavior of "XML Source"
 
   it should "return 0% mapping coverage if there is no mapping" in {
-    val source: XmlSource = xmlSource
+    val source = xmlSource
     implicit val prefixes = Prefixes(Map.empty)
     val result = source.pathCoverage(Seq(
       CoveragePathInput("Person/Properties/Property", Seq())
@@ -35,9 +35,9 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
     result.paths.count(_.fully) mustBe 2
   }
 
-  private def xmlSource: XmlSource = {
+  private def xmlSource: XmlSourceStreaming = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml/")
-    val source = new XmlSource(resources.get("persons.xml"), "", "#id")
+    val source = new XmlSourceStreaming(resources.get("persons.xml"), "", "#id")
     source
   }
 
@@ -119,14 +119,14 @@ class XmlSourceTest extends FlatSpec with MustMatchers {
   private def matchPath(sourcePath: String,
                         inputPath: String,
                         typePath: String = "")
-                       (implicit xmlSource: XmlSource): Unit = {
+                       (implicit xmlSource: XmlSourceStreaming): Unit = {
     assert(xmlSource.matchPath(typePath, path(inputPath), path(sourcePath)), s"$sourcePath did not match $inputPath with type '$typePath'")
   }
 
   private def doNotMatchPath(sourcePath: String,
                              inputPath: String,
                              typePath: String = "")
-                            (implicit xmlSource: XmlSource): Unit = {
+                            (implicit xmlSource: XmlSourceStreaming): Unit = {
     assert(!xmlSource.matchPath(typePath, path(inputPath), path(sourcePath)), s"$sourcePath did match $inputPath with type '$typePath'")
   }
 
