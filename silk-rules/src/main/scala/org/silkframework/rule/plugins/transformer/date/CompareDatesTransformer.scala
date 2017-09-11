@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 import org.silkframework.util.StringUtils.XSDDateLiteral
 import ComparatorEnum._
 
@@ -22,6 +22,44 @@ import ComparatorEnum._
       | Accepts one parameter:
       |   comparator: One of '<', '<=', '=', '>=', '>' """
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("comparator", "<"),
+    input1 = Array("2017-01-01"),
+    input2 = Array("2017-01-02"),
+    output = Array("1")
+  ),
+  new TransformExample(
+    parameters = Array("comparator", "<"),
+    input1 = Array("2017-01-02"),
+    input2 = Array("2017-01-01"),
+    output = Array("0")
+  ),
+  new TransformExample(
+    parameters = Array("comparator", ">"),
+    input1 = Array("2017-01-02"),
+    input2 = Array("2017-01-01"),
+    output = Array("1")
+  ),
+  new TransformExample(
+    parameters = Array("comparator", ">"),
+    input1 = Array("2017-01-01"),
+    input2 = Array("2017-01-02"),
+    output = Array("0")
+  ),
+  new TransformExample(
+    parameters = Array("comparator", "="),
+    input1 = Array("2017-01-01"),
+    input2 = Array("2017-01-01"),
+    output = Array("1")
+  ),
+  new TransformExample(
+    parameters = Array("comparator", "="),
+    input1 = Array("2017-01-02"),
+    input2 = Array("2017-01-01"),
+    output = Array("0")
+  )
+))
 case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
@@ -31,12 +69,18 @@ case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.l
 
     // Compare dates
     val result = comparator match {
-      case _ if n1.isEmpty || n2.isEmpty => false
-      case less  => n1.max < n2.min
-      case lessEqual => n1.max <= n2.min
-      case greater  => n1.min > n2.max
-      case greaterEqual => n1.min >= n2.max
-      case equal  => n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
+      case _ if n1.isEmpty || n2.isEmpty =>
+        false
+      case ComparatorEnum.less =>
+        n1.max < n2.min
+      case ComparatorEnum.lessEqual =>
+        n1.max <= n2.min
+      case ComparatorEnum.greater =>
+        n1.min > n2.max
+      case ComparatorEnum.greaterEqual =>
+        n1.min >= n2.max
+      case ComparatorEnum.equal =>
+        n1.min == n1.max && n2.min == n2.max && n1.head == n2.head
     }
     // Return result
     Seq(if(result) "1" else "0")
