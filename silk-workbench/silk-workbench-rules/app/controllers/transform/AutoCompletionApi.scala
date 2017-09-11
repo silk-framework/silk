@@ -1,11 +1,13 @@
 package controllers.transform
 
+import java.net.{URLDecoder, URLEncoder}
 import java.util.logging.Logger
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.TaskActivity
 import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{Project, ProjectTask, User}
@@ -13,6 +15,7 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
 
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * Generates auto completions for mapping paths and types.
@@ -37,12 +40,11 @@ class AutoCompletionApi extends Controller {
         val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths)
         // Add known paths
         completions += relativeForwardPaths
+        // Return filtered result
+        Ok(completions.filter(term, maxResults).toJson)
       case None =>
-        log.warning("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
+        throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
     }
-
-    // Return filtered result
-    Ok(completions.filter(term, maxResults).toJson)
   }
 
   /** Filter out paths that start with either the simple source or forward only source path, then
@@ -261,11 +263,12 @@ class AutoCompletionApi extends Controller {
     /**
       * Returns the label if present or generates a label from the value if no label is set.
       */
-    def labelOrGenerated: String = label match {
+    lazy val labelOrGenerated: String = label match {
       case Some(existingLabel) =>
         existingLabel
       case None =>
-        value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1).filterNot(_ == '>')
+        val lastPart = value.substring(value.lastIndexWhere(c => c == '#' || c == '/' || c == ':') + 1).filterNot(_ == '>')
+        Try(URLDecoder.decode(lastPart, "UTF8")).getOrElse(lastPart)
     }
 
     /**
@@ -276,7 +279,7 @@ class AutoCompletionApi extends Controller {
       *         Some(matchScore), if the terms match.
       */
     def matches(normalizedTerm: String): Option[Double] = {
-      val values = Set(value) ++ label ++ description
+      val values = Set(value, labelOrGenerated) ++ description
       val scores = values.flatMap(rank(normalizedTerm))
       if(scores.isEmpty)
         None

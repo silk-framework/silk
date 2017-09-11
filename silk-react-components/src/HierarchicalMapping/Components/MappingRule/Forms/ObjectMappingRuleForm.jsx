@@ -12,6 +12,7 @@ import {
     Spinner,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
+import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
@@ -276,6 +277,14 @@ const ObjectMappingRuleForm = React.createClass({
             );
         }
 
+        const exampleView = allowConfirm && this.state.sourceProperty ?(
+            <ExampleView
+                id={this.props.parentId || 'root'}
+                key={this.state.sourceProperty.value || this.state.sourceProperty}
+                rawRule={this.state}
+                ruleType="object"
+            />) : false;
+
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>
@@ -304,8 +313,9 @@ const ObjectMappingRuleForm = React.createClass({
                                 'targetEntityType'
                             )}
                         />
-                        {sourcePropertyInput}
                         {patternInput}
+                        {sourcePropertyInput}
+                        {exampleView}
                         <TextField
                             multiline
                             label="Description"

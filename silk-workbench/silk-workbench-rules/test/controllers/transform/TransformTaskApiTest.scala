@@ -296,7 +296,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 404
   }
 
-  "Return 404 if submitted mapping parameters are invalid" in {
+  "Return 400 if submitted mapping parameters are invalid" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -319,7 +319,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 400
   }
 
-  "Return 404 if an invalid rule should be appended" in {
+  "Return 400 if an invalid rule should be appended" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -342,7 +342,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 400
   }
 
-  "Return 404 if an invalid rule json is provided" in {
+  "Return 400 if an invalid rule json is provided" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -364,5 +364,4 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val response = Await.result(request.post(Json.parse(json)), 100.seconds)
     response.status mustBe 400
   }
-
 }
