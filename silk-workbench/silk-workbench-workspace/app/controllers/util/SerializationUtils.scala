@@ -1,6 +1,7 @@
 package controllers.util
 
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.workbench.utils.JsonError
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
@@ -77,7 +78,7 @@ object SerializationUtils extends Results {
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     val noneType = None
-    applySerializationFormat[Option[String]](request.acceptedTypes, defaultMimeTypes, valueType, noneType) { (serializationFormat, mimeType) =>
+    applySerializationFormat[Option[String]](List(), defaultMimeTypes, valueType, noneType) { (serializationFormat, mimeType) =>
       val serializedValue = serializationFormat.toString(value, mimeType)
       Some(serializedValue)
     }
@@ -146,11 +147,16 @@ object SerializationUtils extends Results {
   }
 
   def deserializeJsonIterable[T: ClassTag](jsArray: JsArray)
-                                                  (implicit readContext: ReadContext): Seq[T] = {
-    val deserialized = for (jsObj <- jsArray.value) yield {
-      Serialization.formatForType[T, JsValue].read(jsObj)
+                                          (implicit readContext: ReadContext): Seq[T] = {
+    try {
+      val deserialized = for (jsObj <- jsArray.value) yield {
+        Serialization.formatForType[T, JsValue].read(jsObj)
+      }
+      deserialized
+    } catch {
+      case v: ValidationException =>
+        throw BadUserInputException(v.getMessage)
     }
-    deserialized
   }
 
   private def deserializeXmlIterable[T: ClassTag](expectedRootElementLabel: Option[String],
@@ -161,10 +167,15 @@ object SerializationUtils extends Results {
         throw new RuntimeException(s"The root element of the XML document is not the expected! Expected: $expected, got: ${rootElem.label}")
       }
     }
-    val deserialized = for (child <- rootElem.child) yield {
-      Serialization.formatForType[T, Node].read(child)
+    try {
+      val deserialized = for (child <- rootElem.child) yield {
+        Serialization.formatForType[T, Node].read(child)
+      }
+      deserialized
+    } catch {
+      case v: ValidationException =>
+        throw BadUserInputException(v.getMessage)
     }
-    deserialized
   }
 
   /**
@@ -181,20 +192,25 @@ object SerializationUtils extends Results {
                                          (implicit request: Request[AnyContent], readContext: ReadContext): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
-    mimeType(request.mediaType.toList, Seq(defaultMimeType)) match {
-      case Some(mimeType) =>
-        // Get the data from the body. We optimize the cases for xml and json as Play already parsed these.
-        val value =
-          request.body match {
-            case AnyContentAsXml(xml) => Serialization.formatForType[T, Node].read(xml.head)
-            case AnyContentAsJson(json) => Serialization.formatForType[T, JsValue].read(json)
-            case AnyContentAsText(str) => Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
-            case _ => return UnsupportedMediaType("Unsupported content type")
-          }
-        // Call the user provided function and return its result
-        func(value)
-      case None =>
-        UnsupportedMediaType(JsonError(s"No serialization for content type ${request.mediaType} available for values of type ${valueType.getName}"))
+    try {
+      mimeType(request.mediaType.toList, Seq(defaultMimeType)) match {
+        case Some(mimeType) =>
+          // Get the data from the body. We optimize the cases for xml and json as Play already parsed these.
+          val value =
+            request.body match {
+              case AnyContentAsXml(xml) => Serialization.formatForType[T, Node].read(xml.head)
+              case AnyContentAsJson(json) => Serialization.formatForType[T, JsValue].read(json)
+              case AnyContentAsText(str) => Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
+              case _ => return UnsupportedMediaType("Unsupported content type")
+            }
+          // Call the user provided function and return its result
+          func(value)
+        case None =>
+          UnsupportedMediaType(JsonError(s"No serialization for content type ${request.mediaType} available for values of type ${valueType.getName}"))
+      }
+    } catch {
+      case v: ValidationException =>
+        throw BadUserInputException(v.getMessage)
     }
   }
 
