@@ -27205,25 +27205,31 @@
             var navigationTree = !!this.state.showNavigation && _react2.default.createElement(_MappingsTree2.default, {
                 currentRuleId: this.state.currentRuleId
             }), loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), deleteView = !!this.state.elementToDelete && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+                className: "ecc-hm-delete-dialog",
                 active: !0,
                 modal: !0,
                 title: "Remove mapping rule?",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                    className: "ecc-hm-delete-accept",
                     disabled: !1,
                     onClick: this.handleConfirmRemove
                 }, "Remove"),
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                    className: "ecc-hm-delete-cancel",
                     onClick: this.handleCancelRemove
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", "object" === this.state.elementToDelete.type ? " including all child rules " : "", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
+                className: "ecc-hm-discard-dialog",
                 title: "Discard changes?",
                 confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
                     disabled: !1,
+                    className: "ecc-hm-accept-discard",
                     onClick: this.handleDiscardChanges
                 }, "Discard"),
                 cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                    className: "ecc-hm-cancel-discard",
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "You currently have unsaved changes", 1 === this.state.editingElements.length ? "" : " in " + this.state.editingElements.length + " mapping rules", "."));
