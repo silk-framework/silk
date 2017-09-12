@@ -36,6 +36,7 @@ const MappingsHeader = React.createClass({
     // initilize state
     getInitialState() {
         return {
+            showTreenavigation: true
         };
     },
 
@@ -46,6 +47,15 @@ const MappingsHeader = React.createClass({
         // );
     },
 
+    handleToggleTreenavigation() {
+        this.promoteToggleTreenavigation(!this.state.showTreenavigation);
+        this.setState(
+            {
+                showTreenavigation: !this.state.showTreenavigation
+            }
+        )
+    },
+
     // template rendering
     render() {
         if (_.isEmpty(this.props.rule)) {
@@ -54,8 +64,6 @@ const MappingsHeader = React.createClass({
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-
-        console.log(breadcrumbs);
 
         const navBack = _.has(parent, 'id') ?
             <div className="mdl-card__title-back">
@@ -86,25 +94,12 @@ const MappingsHeader = React.createClass({
         </BreadcrumbList>;
 
         const navMenu = <CardMenu>
-            <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+            <ContextMenu className="ecc-silk-mapping__ruleslistmenu" iconName="tune">
                 <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-add-value"
-                    onClick={() => {
-                        this.handleCreate({type: 'direct'});
-                    }}>
-                    Add value mapping
-                </MenuItem>
-                <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-add-object"
-                    onClick={() => {
-                        this.handleCreate({type: 'object'});
-                    }}>
-                    Add object mapping
-                </MenuItem>
-                <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-autosuggest"
-                    onClick={this.handleShowSuggestions}>
-                    Suggest mappings
+                    className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
+                    onClick={this.handleToggleTreenavigation}
+                >
+                    {this.state.showTreenavigation ? 'Hide tree navigation' : 'Show tree navigation'}
                 </MenuItem>
                 <MenuItem
                     className="ecc-silk-mapping__ruleslistmenu__item-expand"
