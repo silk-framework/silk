@@ -170,7 +170,6 @@ const MappingsObject = React.createClass({
                                                 ? this.props.rule.rules.uriRule.pattern
                                                 : <NotAvailable
                                                     label="URI pattern not set"
-                                                    description="Not available element"
                                                     inline={true}>
                                                   </NotAvailable>
                                             }
