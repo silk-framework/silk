@@ -46,6 +46,19 @@ trait Resource {
   def load: InputStream
 
   /**
+    * Reads the input stream with a provided read function.
+    * This method should usually be preferred over load() as it takes care of closing the input stream after reading is done.
+    */
+  def read[T](reader: InputStream => T): T = {
+    val inputStream = load
+    try {
+      reader(inputStream)
+    } finally {
+      inputStream.close()
+    }
+  }
+
+  /**
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
