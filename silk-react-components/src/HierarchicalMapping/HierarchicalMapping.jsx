@@ -295,16 +295,17 @@ const HierarchicalMapping = React.createClass({
                       }}>
                       RELOAD
                   </Button>
+                  <hr />
               </div>
             : false;
 
         return (
             <section className="ecc-silk-mapping">
+                {debugOptions}
                 <Card className="ecc-silk-mapping__header">
                     <CardTitle
                         className="ecc-silk-mapping__header-action-row"
                         border={false}>
-                        {debugOptions}
                         {deleteView}
                         {discardView}
                         {loading}
