@@ -299,22 +299,24 @@ const HierarchicalMapping = React.createClass({
               </div>
             : false;
 
+        const appHeader = <Card className="ecc-silk-mapping__header">
+            <CardTitle
+                className="ecc-silk-mapping__header-action-row"
+                border={false}>
+                <ContextMenu iconName="tune">
+                    <MenuItem onClick={this.handleToggleNavigation}>
+                        {this.state.showNavigation
+                            ? 'Hide tree navigation'
+                            : 'Show tree navigation'}
+                    </MenuItem>
+                </ContextMenu>
+            </CardTitle>
+        </Card>;
+
         return (
             <section className="ecc-silk-mapping">
                 {debugOptions}
-                <Card className="ecc-silk-mapping__header">
-                    <CardTitle
-                        className="ecc-silk-mapping__header-action-row"
-                        border={false}>
-                        <ContextMenu iconName="tune">
-                            <MenuItem onClick={this.handleToggleNavigation}>
-                                {this.state.showNavigation
-                                    ? 'Hide tree navigation'
-                                    : 'Show tree navigation'}
-                            </MenuItem>
-                        </ContextMenu>
-                    </CardTitle>
-                </Card>
+                {appHeader}
                 {deleteView}
                 {discardView}
                 {loading}
