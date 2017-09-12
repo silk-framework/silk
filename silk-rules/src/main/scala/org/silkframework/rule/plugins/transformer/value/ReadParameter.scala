@@ -2,6 +2,7 @@ package org.silkframework.rule.plugins.transformer.value
 
 import java.time.Instant
 import java.util.Properties
+import java.util.logging.Logger
 
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.{Param, Plugin}
@@ -19,6 +20,8 @@ case class ReadParameter(
   resource: Resource,
   @Param("The name of the parameter.")
   parameter: String) extends Transformer {
+
+  private val logger = Logger.getLogger(classOf[ReadParameter].getName)
 
   /**
     * The timestamp when the current properties have been loaded.
@@ -61,6 +64,8 @@ case class ReadParameter(
     if(value.isEmpty) {
       throw new ValidationException(s"Resource ${resource.name} does not provide a parameter '$parameter'")
     }
+    lastUpdateTime = Instant.now
+    logger.fine(s"Updated parameter $parameter from resource ${resource.name}.")
   }
 
 }
