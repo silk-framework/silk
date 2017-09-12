@@ -68,13 +68,14 @@
 }
 
 .ecc-silk-mapping__treenav {
-    flex-basis: 25%;
+    flex-basis: calc(25% - 1rem);
     min-width: 15em;
     max-width: 100%;
     flex-shrink: 1;
     flex-grow: 1;
     position: relative;
     margin: 0.5rem;
+    box-sizing: border-box;
 
     ul, li {
         list-style-type: none;
@@ -174,11 +175,12 @@
 }
 
 .ecc-silk-mapping__rules {
-  //flex-basis: 75%;
+    flex-basis: calc(75% - 1rem);
     flex-grow: 4;
     flex-shrink: 1;
     min-width: 50%;
     margin: 0.5rem;
+    box-sizing: border-box;
 
     .mdl-card__title {
         z-index: auto; // TODO: only if sticky, need to be moved to gui elements
