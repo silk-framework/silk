@@ -44,10 +44,17 @@
 *@
 @parameter(param: Parameter, value: String) = @{
   param.dataType match {
-    case UriType => stringParameter(param, project.config.prefixes.shorten(value))
-    case enum: EnumerationType => enumParameter(param, enum.enumerationValues, enum.displayNames, value)
-    case BooleanType => enumParameter(param, Seq("true", "false"), Seq("True", "False"), value)
-    case _ => stringParameter(param, value)
+    case UriType =>
+      stringParameter(param, project.config.prefixes.shorten(value))
+    case enum: EnumerationType =>
+      enumParameter(param, enum.enumerationValues, enum.displayNames, value)
+    case BooleanType =>
+      enumParameter(param, Seq("true", "false"), Seq("True", "False"), value)
+    case ResourceType | WritableResourceType =>
+      val resources = project.resources.listRecursive
+      enumParameter(param, resources, resources, value)
+    case _ =>
+      stringParameter(param, value)
   }
 }
 
