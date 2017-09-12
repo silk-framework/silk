@@ -13444,22 +13444,24 @@ h6 {
     white-space: nowrap; }
 
 .ecc-silk-mapping__header {
-  justify-content: flex-end; }
+  margin: 0.5rem 1rem; }
+  .ecc-silk-mapping__header-action-row {
+    justify-content: flex-end; }
 
 .ecc-silk-mapping__content {
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  padding: 0 1rem 1rem 1rem; }
+  padding: 0 0.5rem 0.5rem; }
 
 .ecc-silk-mapping__treenav {
-  flex-basis: 25%;
   min-width: 10em;
   min-height: 10em;
   max-width: 100%;
   flex-shrink: 1;
   flex-grow: 1;
-  position: relative; }
+  position: relative;
+  margin: 0.5rem; }
   .ecc-silk-mapping__treenav ul, .ecc-silk-mapping__treenav li {
     list-style-type: none; }
   .ecc-silk-mapping__treenav ul {
@@ -13528,10 +13530,10 @@ h6 {
     letter-spacing: 0; }
 
 .ecc-silk-mapping__rules {
-  flex-basis: 75%;
   flex-grow: 1;
   flex-shrink: 1;
-  min-width: 50%; }
+  min-width: 50%;
+  margin: 0.5rem; }
   .ecc-silk-mapping__rules .mdl-card__title {
     z-index: auto;
     background-color: rgb(255,255,255); }
