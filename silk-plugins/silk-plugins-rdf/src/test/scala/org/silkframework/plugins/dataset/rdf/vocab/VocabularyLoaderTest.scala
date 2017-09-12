@@ -8,7 +8,9 @@ import org.silkframework.rule.vocab._
 
 class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
   private val MOVIE = "Movie"
+  private val FILM = "Film"
   private val PERSON = "Person"
+  private val HAS_DIRECTOR = "hasDirector"
 
   behavior of "VocabularyLoader"
 
@@ -18,16 +20,22 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
 
   lazy val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
   lazy val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
+  lazy val properties: Seq[VocabularyProperty] = loader.retrieveProperties(graphUri, classes).toSeq.sortBy(_.info.uri)
 
   it should "load classes" in {
     classes.size shouldBe 3
     classes(1) shouldBe VocabularyClass(GenericInfo(uri(MOVIE), Some(MOVIE), None), Seq())
     classes(2) shouldBe VocabularyClass(GenericInfo(uri(PERSON), Some(PERSON), Some("A Person")), Seq())
-    classes.head shouldBe VocabularyClass(GenericInfo(uri("Employee"), Some("Angestellter"),Some("Angestellter einer Firma")), Seq(uri(PERSON)))
+  }
+
+  it should "pick the right language" in {
+    classes.head shouldBe VocabularyClass(GenericInfo(uri("Employee"), Some("Angestellter"),Some("Employee of a company")), Seq(uri(PERSON)))
+    val hasDirector = properties.find(_.info.uri == uri(HAS_DIRECTOR)).get
+    hasDirector.info.label shouldBe Some("director5")
+    hasDirector.info.description shouldBe Some("Director of a movie")
   }
 
   it should "load properties" in {
-    val properties = loader.retrieveProperties(graphUri, classes).toSeq.sortBy(_.info.uri)
     properties.size shouldBe 2
     properties.head shouldBe
       VocabularyProperty(
@@ -38,7 +46,7 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
       )
     properties(1) shouldBe
       VocabularyProperty(
-        info = GenericInfo(uri("hasDirector"), Some("director"), Some("Director of a movie")),
+        info = GenericInfo(uri("hasDirector"), Some("director5"), Some("Director of a movie")),
         domain = Some(classMap(uri(MOVIE))),
         range = Some(classMap(uri(PERSON))),
         propertyType = ObjectPropertyType

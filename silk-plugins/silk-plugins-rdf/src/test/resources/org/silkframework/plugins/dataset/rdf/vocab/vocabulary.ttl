@@ -15,6 +15,7 @@
 
 :Movie
   a owl:Class ;
+  rdfs:label "Film"@de ;
   rdfs:label "Movie"@en ;
   rdfs:isDefinedBy : ;
 .
@@ -36,8 +37,12 @@
 
 :hasDirector
    a owl:ObjectProperty ;
-   rdfs:label "director"@en ;
-   rdfs:comment "Director of a movie"@en ;
+   rdfs:label "director0"@dz ;
+   rdfs:label "director5"@az ;
+   rdfs:label "director2"@bz ;
+   rdfs:label "director1"@cz ;
+   rdfs:comment "Director of a movie2"^^xsd:string ;
+   rdfs:comment "Director of a movie" ;
    rdfs:domain :Movie ;
    rdfs:range :Person ;
    rdfs:isDefinedBy : ;
@@ -45,10 +50,11 @@
 
 :Employee
   a owl:Class ;
-  rdfs:label "employee"@en ;
-  rdfs:label "Angestellter"@de ;
-  rdfs:comment "Employee of a company"@en ;
+  rdfs:label "employé"@fr ;
+  rdfs:label "Angestellter"@de-DE ;
+  rdfs:label "empleado"@es ;
   rdfs:comment "Angestellter einer Firma"@de ;
+  rdfs:comment "Employee of a company"@en ;
   rdfs:subClassOf :Person ;
   rdfs:isDefinedBy : ;
 .
