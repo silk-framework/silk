@@ -24,7 +24,8 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/population.j
 */
 var helpWidth = 170;
 var contentWidth;
-var contentWidthCallback = function() {};
+var contentWidthCallback = function() {
+};
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
