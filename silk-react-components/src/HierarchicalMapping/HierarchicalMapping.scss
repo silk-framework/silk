@@ -52,25 +52,30 @@
 }
 
 .ecc-silk-mapping__header {
-    justify-content: flex-end;
-}
+    margin: 0.5rem 1rem;
 
+    &-action-row {
+        justify-content: flex-end;
+    }
+
+}
 
 .ecc-silk-mapping__content {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 0.5rem 0.5rem;
 }
 
 .ecc-silk-mapping__treenav {
-    flex-basis: 25%;
+  //flex-basis: 25%;
     min-width: 10em;
     min-height: 10em;
     max-width: 100%;
     flex-shrink: 1;
     flex-grow: 1;
     position: relative;
+    margin: 0.5rem;
 
     ul, li {
         list-style-type: none;
@@ -164,10 +169,11 @@
 }
 
 .ecc-silk-mapping__rules {
-    flex-basis: 75%;
+  //flex-basis: 75%;
     flex-grow: 1;
     flex-shrink: 1;
     min-width: 50%;
+  margin: 0.5rem;
 
     .mdl-card__title {
         z-index: auto; // TODO: only if sticky, need to be moved to gui elements
@@ -261,8 +267,6 @@
     position: relative;
     border-bottom: $data-table-dividers;
 
-
-
     &:last-child {
         border-bottom: none;
     }
@@ -320,7 +324,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 
 .ecc-silk-mapping__suggestitem-checkbox {
     align-self: center;

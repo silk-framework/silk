@@ -4,7 +4,14 @@
 
 import React from 'react';
 import _ from 'lodash';
-import {Spinner, Button, Icon} from 'ecc-gui-elements';
+import {
+    Spinner,
+    Button,
+    Icon,
+    Card,
+    CardTitle,
+    CardContent,
+} from 'ecc-gui-elements';
 
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
@@ -217,8 +224,12 @@ const MappingsTree = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__treenav">
-                {loading}
-                {content}
+                <Card>
+                    <CardContent>
+                        {loading}
+                        {content}
+                    </CardContent>
+                </Card>
             </div>
         );
     },

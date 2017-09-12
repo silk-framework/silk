@@ -217,25 +217,25 @@ const HierarchicalMapping = React.createClass({
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
-                className="ecc-hm-delete-dialog"
-                active
-                modal
-                title="Remove mapping rule?"
-                confirmButton={
+                  className="ecc-hm-delete-dialog"
+                  active
+                  modal
+                  title="Remove mapping rule?"
+                  confirmButton={
                       <DisruptiveButton
                           className="ecc-hm-delete-accept"
                           disabled={false}
                           onClick={this.handleConfirmRemove}>
                           Remove
-                     </DisruptiveButton>
-                }
-                cancelButton={
+                      </DisruptiveButton>
+                  }
+                  cancelButton={
                       <DismissiveButton
                           className="ecc-hm-delete-cancel"
                           onClick={this.handleCancelRemove}>
                           Cancel
                       </DismissiveButton>
-                }>
+                  }>
                   <p>
                       When you click REMOVE the mapping rule
                       {this.state.elementToDelete.type === 'object'
@@ -300,9 +300,9 @@ const HierarchicalMapping = React.createClass({
 
         return (
             <section className="ecc-silk-mapping">
-                <Card>
+                <Card className="ecc-silk-mapping__header">
                     <CardTitle
-                        className="ecc-silk-mapping__header"
+                        className="ecc-silk-mapping__header-action-row"
                         border={false}>
                         {debugOptions}
                         {deleteView}
@@ -316,15 +316,15 @@ const HierarchicalMapping = React.createClass({
                             </MenuItem>
                         </ContextMenu>
                     </CardTitle>
-                    <div className="ecc-silk-mapping__content">
-                        {navigationTree}
-                        {
-                            <MappingsWorkview
-                                currentRuleId={this.state.currentRuleId}
-                            />
-                        }
-                    </div>
                 </Card>
+                <div className="ecc-silk-mapping__content">
+                    {navigationTree}
+                    {
+                        <MappingsWorkview
+                            currentRuleId={this.state.currentRuleId}
+                        />
+                    }
+                </div>
             </section>
         );
     },
