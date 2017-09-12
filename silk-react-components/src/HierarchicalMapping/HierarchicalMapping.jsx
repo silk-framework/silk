@@ -306,9 +306,6 @@ const HierarchicalMapping = React.createClass({
                     <CardTitle
                         className="ecc-silk-mapping__header-action-row"
                         border={false}>
-                        {deleteView}
-                        {discardView}
-                        {loading}
                         <ContextMenu iconName="tune">
                             <MenuItem onClick={this.handleToggleNavigation}>
                                 {this.state.showNavigation
@@ -318,6 +315,9 @@ const HierarchicalMapping = React.createClass({
                         </ContextMenu>
                     </CardTitle>
                 </Card>
+                {deleteView}
+                {discardView}
+                {loading}
                 <div className="ecc-silk-mapping__content">
                     {navigationTree}
                     {
