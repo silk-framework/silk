@@ -181,7 +181,7 @@ const ValueMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId}
+                    ruleId={this.props.parentId || this.props.id || 'root'}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
@@ -221,7 +221,7 @@ const ValueMappingRuleForm = React.createClass({
                             isValidNewOption={newValueIsIRI}
                             creatable
                             value={this.state.targetProperty}
-                            ruleId={this.props.parentId}
+                            ruleId={this.props.parentId || this.props.id || 'root'}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
                                 'targetProperty'
@@ -231,7 +231,7 @@ const ValueMappingRuleForm = React.createClass({
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
-                            ruleId={this.props.parentId}
+                            ruleId={this.props.parentId || this.props.id || 'root'}
                             value={this.state.propertyType}
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(

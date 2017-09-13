@@ -206,7 +206,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="targetProperty"
                     isValidNewOption={newValueIsIRI}
                     creatable
-                    ruleId={this.props.parentId}
+                    ruleId={this.props.parentId || this.props.id || 'root'}
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
@@ -255,7 +255,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId}
+                    ruleId={this.props.parentId || this.props.id || 'root'}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
@@ -300,11 +300,7 @@ const ObjectMappingRuleForm = React.createClass({
                             }
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
-                            ruleId={
-                                type === 'root'
-                                    ? this.props.id
-                                    : this.props.parentId
-                            }
+                            ruleId={this.props.parentId || this.props.id || 'root'}
                             value={this.state.targetEntityType}
                             multi // allow multi selection
                             creatable
