@@ -98,8 +98,6 @@ trait ExecutorRegistry {
     }
   }
 
-  private case class ExecutorDescription(plugin: PluginDescription[Executor[_, _]], taskType: Class[_], executorType: Class[_])
-
 }
 
 object ExecutorRegistry extends ExecutorRegistry {
