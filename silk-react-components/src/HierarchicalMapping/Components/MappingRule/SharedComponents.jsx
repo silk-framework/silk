@@ -262,6 +262,12 @@ export const ParentElement = ({parent, ...otherProps}) =>
         ? <ThingName id={parent.type} {...otherProps} />
     : <span {...otherProps}>parent element</span>;
 
+export const ParentStructure = ({parent, ...otherProps}) => {
+    return _.get(parent, 'property')
+            ? <ThingName id={parent.property} {...otherProps} />
+        : <ParentElement parent={parent} {...otherProps} />;
+};
+
 export const InfoBox = React.createClass({
     getInitialState() {
         return {

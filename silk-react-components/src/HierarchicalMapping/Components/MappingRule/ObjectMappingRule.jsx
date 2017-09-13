@@ -152,6 +152,7 @@ const ObjectRule = React.createClass({
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
+                    raised
                     onClick={() =>
                         hierarchicalMappingChannel
                             .subject('removeClick')
@@ -257,10 +258,12 @@ const ObjectRule = React.createClass({
                                       <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                           Examples of target data
                                       </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <ExampleView
-                                              id={this.props.rules.uriRule.id}
-                                          />
+                                      <dd>
+                                          <InfoBox>
+                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                  <ExampleView id={this.props.rules.uriRule.id} />
+                                              </div>
+                                          </InfoBox>
                                       </dd>
                                   </dl>
                               </div>
@@ -285,6 +288,7 @@ const ObjectRule = React.createClass({
                     <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
                         <Button
                             className="ecc-silk-mapping__rulesviewer__actionrow-edit"
+                            raised
                             onClick={this.handleEdit}>
                             Edit
                         </Button>

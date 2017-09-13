@@ -52,25 +52,30 @@
 }
 
 .ecc-silk-mapping__header {
-    justify-content: flex-end;
-}
+    margin: 0.5rem 1rem;
 
+    &-action-row {
+        justify-content: flex-end;
+    }
+
+}
 
 .ecc-silk-mapping__content {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 0.5rem 0.5rem;
 }
 
 .ecc-silk-mapping__treenav {
-    flex-basis: 25%;
-    min-width: 10em;
-    min-height: 10em;
+    flex-basis: calc(25% - 1rem);
+    min-width: 15em;
     max-width: 100%;
     flex-shrink: 1;
     flex-grow: 1;
     position: relative;
+    margin: 0.5rem;
+    box-sizing: border-box;
 
     ul, li {
         list-style-type: none;
@@ -85,14 +90,20 @@
         }
     }
 
-    .ecc-silk-mapping__treenav--maintree {
+    & > .mdl-card {
         position: sticky;
         left: 0;
         top: 0;
         width: 100%;
-        max-height: calc(100vh - 150px);
-        overflow: auto;
-        padding-bottom: 1rem;
+
+        .mdl-card__content {
+            max-height: calc(100vh - 150px);
+            overflow: auto;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--maintree {
+        //padding-bottom: 1rem;
         box-sizing: border-box;
 
         & > li {
@@ -164,13 +175,15 @@
 }
 
 .ecc-silk-mapping__rules {
-    flex-basis: 75%;
-    flex-grow: 1;
+    flex-basis: calc(75% - 1rem);
+    flex-grow: 4;
     flex-shrink: 1;
     min-width: 50%;
+    margin: 0.5rem;
+    box-sizing: border-box;
 
     .mdl-card__title {
-        z-index: 2; // TODO: only if sticky, need to be moved to gui elements
+        z-index: auto; // TODO: only if sticky, need to be moved to gui elements
         background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
     }
 
@@ -178,21 +191,10 @@
         // z-index: 2; // TODO: only if sticky, need to be moved to gui elements
     }
 
-    .mdl-card__title {
-        .mdl-chip {
-            height: auto;
-            line-height: 2;
-            font-size: 1em;
-        }
-
-        .mdl-chip__text {
-            font-size: 1em;
-        }
-    }
-
     .mdl-card__title-back {
         position: relative;
         left: -0.5rem;
+        align-self: flex-start;
         //top: -0.25rem;
     }
 
@@ -209,38 +211,25 @@
     top: 0;
     z-index: 10;
     margin-bottom: $ecc-size-blockelement-margin-vertical;
-
-    .mdl-card__title-text-breadcrumbs {
-        @include typo-caption();
-    }
-
-    .mdl-card__title-text-main {
-        font-weight: 500;
-        margin: 0 0.25rem;
-    }
 }
 
 .ecc-silk-mapping__rulesobject {
     position: relative;
     margin-bottom: $ecc-size-blockelement-margin-vertical;
 
-    .mdl-card__title {
-        align-items: flex-start;
-    }
-
-    .mdl-card__title-text {
-        @include typo-body-1();
-
-        & > * {
-            margin-left: 0.25rem;
+    .ecc-silk-mapping__ruleitem-summary {
+        .ecc-silk-mapping__ruleitem-headline {
+            // @include typo-subhead();
         }
     }
 
-    .ecc-silk-mapping__rulesobject__title-parent {
-        font-weight: lighter;
+    .mdl-card__title {
+        display: block;
+        padding: 0;
     }
-    .ecc-silk-mapping__rulesobject__title-property {
-        font-weight: bolder;
+
+    .mdl-card__actions {
+        border-bottom: 1px solid to_color($card-border-color);
     }
 }
 
@@ -251,191 +240,223 @@
     }
 
     .mdl-card__title-text {
+        @include typo-subhead();
         flex-grow: 1;
+    }
+
+    &:not(.ecc-silk-mapping__suggestionlist) {
+        margin-top: -1 * $ecc-size-blockelement-margin-vertical;
+
+        & .mdl-card__actions {
+            background-color: transparent;
+        }
     }
 
     .mdl-list {
         margin: 0;
         padding: 0;
-    }
 
-    .mdl-list__item {
-        border-bottom: $data-table-dividers;
-
-        &:last-child {
-            border-bottom: none;
+        & > li:nth-child(odd):not(.ecc-silk-mapping__ruleitem--defect) {
+            background-color: rgba(to_color($data-table-hover-color), 0.39);
         }
 
-    }
-
-    .ecc-silk-mapping__ruleitem--literal {
-        .mdl-list__item-secondary-content {
-            align-self: flex-start;
-        }
-    }
-
-    .ecc-silk-mapping__ruleitem--object {
-        .mdl-list__item-secondary-content {
-            align-self: center;
-        }
-    }
-
-    .ecc-silk-mapping__ruleitem {
-        overflow: visible;
-        @include material-animation-default(0.28s);
-        transition-property: background-color;
-
-        &:hover {
-            background-color: $data-table-hover-color;
-        }
-    }
-
-    .ecc-silk-mapping__ruleitem--expanded {
-        padding-left: 0;
-        border-left: $data-table-dividers;
-        border-right: $data-table-dividers;
-
-        &:hover {
+        .mdl-card,
+        .mdl-data-table {
             background-color: transparent;
         }
     }
 
-    .ecc-silk-mapping__ruleitem--defect {
-        color: to_color($palette-orange-800);
-        background-color: to_color($palette-orange-50);
-        border-color: to_color($palette-orange-100);
+}
+
+.ecc-silk-mapping__ruleitem {
+    @include typo-body-1();
+    max-width: 100%;
+    position: relative;
+    border-bottom: $data-table-dividers;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .mdl-list__item {
+        color: inherit;
     }
 
     .mdl-list__item-primary-content {
         display: block;
-    }
-    .mdl-list__item-primary-content {
         width: 50vw;
     }
+}
 
-    .ecc-silk-mapping__ruleitem-icon {
-        font-size: 1.25em;
-        vertical-align: text-bottom;
-        margin-right: 0.1em;
+.ecc-silk-mapping__ruleitem--literal {
+    .mdl-list__item-secondary-content {
+        align-self: flex-start;
     }
+}
 
-    .ecc-silk-mapping__ruleitem-content {
-        @include typo-body-1();
-        max-width: 100%;
-    }
-
-    .ecc-silk-mapping__ruleitem-headline {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-weight: 500;
-    }
-
-    .ecc-silk-mapping__ruleitem-subline {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        @include typo-caption();
-    }
-
-
-    .ecc-silk-mapping__suggestitem-checkbox {
+.ecc-silk-mapping__ruleitem--object {
+    .mdl-list__item-secondary-content {
         align-self: center;
-        flex-grow: 0;
-        flex-shrink: 0;
-        width: 0;
+    }
+}
+
+.ecc-silk-mapping__ruleitem-expanded {
+}
+
+.ecc-silk-mapping__ruleitem--defect {
+    color: to_color($palette-orange-800);
+    background-color: to_color($palette-orange-50);
+    border-color: to_color($palette-orange-100);
+}
+
+.ecc-silk-mapping__ruleitem-icon {
+    font-size: 1.39em;
+    vertical-align: bottom;
+    margin-right: 0.1em;
+}
+
+.ecc-silk-mapping__ruleitem-headline {
+    font-size: $data-table-font-size;
+    line-height: 1.39;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.ecc-silk-mapping__ruleitem-subline {
+    font-size: $input-text-floating-label-fontsize;
+    line-height: 1.39;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ecc-silk-mapping__suggestitem-checkbox {
+    align-self: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 0;
+}
+
+.ecc-silk-mapping__ruleitem-summary {
+
+    @include material-animation-default(0.28s);
+    transition-property: background-color;
+
+    &:hover {
+        background-color: $data-table-hover-color;
     }
 
-    .ecc-silk-mapping__ruleitem--summary {
+    &.ecc-silk-mapping__ruleitem-summary--expanded {
+        background-color: transparent;
 
-        @media (min-width: $grid-desktop-breakpoint) {
-            .ecc-silk-mapping__ruleitem-content {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                justify-content: space-between;
-                align-items: baseline;
-            }
-
-            .ecc-silk-mapping__ruleitem-headline,
-            .ecc-silk-mapping__ruleitem-subline {
-                font-size: $data-table-font-size;
-                flex-grow: 1;
-                box-sizing: border-box;
-                padding: 0.25em;
-                max-width: 33%;
-            }
-            .ecc-silk-mapping__sug-ruleitem-headline,
-            .ecc-silk-mapping__sug-ruleitem-subline,
-            .ecc-silk-mapping__sug-ruleitem-lastline {
-                font-size: $data-table-font-size;
-                flex-grow: 1;
-                box-sizing: border-box;
-                padding: 0.25em;
-                width: 31%;
-            }
-            .ecc-silk-mapping__sug-ruleitem-lastline {
-                width: 7%;
-            }
-            .hide-in-table {
-                display: none;
-            }
-
-            .ecc-silk-mapping__ruleitem-reorderhandler {
-                .material-icons {
-                    transform: translate(-1px, 10%);
-                }
-            }
-
-            .ecc-silk-mapping__suggestitem-headline {
-                width: 66%;
-                max-width: 66%;
-            }
-
-            .ecc-silk-mapping__suggestitem-subline {
-                width: 33%;
-                max-width: 33%;
-            }
+        .mdl-list__item-primary-content {
+            opacity: 0.39;
         }
     }
 
-    .ecc-silk-mapping__ruleitem-reorderhandler {
-        width: 1rem;
-        position: relative;
-        left: -0.5rem;
-        border: $data-table-dividers;
-        align-self: stretch;
-        background-color: to_color($color-white);
+    .mdl-list__item {
+        padding: $ecc-size-blockelement-margin-vertical $ecc-size-blockelement-margin-horizontal;
+        overflow: visible;
+    }
 
-        .contextmenu-container {
-            position: absolute;
-            left: 1px;
-            top: 1px;
-            right: 1px;
-            bottom: 1px;
+    .mdl-list__item-primary-content {
+        //flex-direction: column;
+    }
+
+    @media (min-width: $grid-desktop-breakpoint) {
+        .mdl-list__item-primary-content {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        .mdl-button--icon,
-        .material-icons {
-            overflow: hidden;
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 100%;
-            border-radius: 0;
-            min-width: 0;
-            line-height: 100%;
-            opacity: 0.61;
+        .ecc-silk-mapping__ruleitem-headline,
+        .ecc-silk-mapping__ruleitem-subline {
+            font-size: $data-table-font-size;
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding: 0.25em;
+            max-width: 33%;
+        }
+        .ecc-silk-mapping__sug-ruleitem-headline,
+        .ecc-silk-mapping__sug-ruleitem-subline,
+        .ecc-silk-mapping__sug-ruleitem-lastline {
+            font-size: $data-table-font-size;
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding: 0.25em;
+            width: 31%;
+        }
+        .ecc-silk-mapping__sug-ruleitem-lastline {
+            width: 7%;
+        }
+        .hide-in-table {
+            display: none;
+        }
 
-            &:hover, &:focus, &:active {
-                opacity: 1;
+        .ecc-silk-mapping__ruleitem-reorderhandler {
+            .material-icons {
+
             }
         }
 
-        .material-icons {
-            transform: translate(-1px, 25%);
+        .ecc-silk-mapping__suggestitem-headline {
+            width: 66%;
+            max-width: 66%;
         }
+
+        .ecc-silk-mapping__suggestitem-subline {
+            width: 33%;
+            max-width: 33%;
+        }
+    }
+}
+
+.ecc-silk-mapping__ruleitem-reorderhandler {
+    width: $ecc-size-blockelement-margin-horizontal;
+    position: absolute;
+    top: $ecc-size-blockelement-margin-vertical / 2;
+    left: $ecc-size-blockelement-margin-horizontal / 2;
+    bottom: $ecc-size-blockelement-margin-vertical / 2;
+    border: $data-table-dividers;
+    background-color: to_color($color-white);
+
+    & + .mdl-list__item {
+        padding-left: 2 * $ecc-size-blockelement-margin-horizontal;
+    }
+
+    .contextmenu-container {
+        position: absolute;
+        left: 1px;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+    }
+
+    .mdl-button--icon,
+    .material-icons {
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        border-radius: 0;
+        min-width: 0;
+        line-height: 100%;
+        opacity: 0.61;
+
+        &:hover, &:focus, &:active {
+            opacity: 1;
+        }
+    }
+
+    .material-icons {
+        transform: translate(-1px, 25%);
     }
 }
 
@@ -443,7 +464,7 @@
 .ecc-silk-mapping__ruleseditor {
 
     .ecc-silk-mapping__ruleslist & {
-        margin: -1rem 0;
+        //margin: -1rem 0;
     }
 
     .mdl-card__content {
@@ -488,7 +509,7 @@
 
     .ecc-silk-mapping__rulesviewer__attribute-info {
         max-width: 100%;
-        overflow: auto;
+        overflow: visible;
         font-weight: 300;
 
         p {
@@ -529,8 +550,12 @@
         @media (min-width: $grid-desktop-breakpoint) {
             .ecc-silk-mapping__rulesviewer__infobox-content {
                 display: flex;
-                // align-items: baseline;
                 flex-wrap: nowrap;
+
+                .ecc-silk-mapping__rulesviewer__examples & {
+                    display: block;
+                    width: auto;
+                }
 
                 & > div + div {
                     padding-left: 1rem;
@@ -601,7 +626,7 @@
         padding: 0.5em 1em;
         white-space: normal;
         height: auto;
-        border-bottom-color: #ddd;
+        border-bottom-color: rgba(to_color($data-table-divider-color), 0.06); //#ddd;
 
         &:first-of-type,
         &:last-of-type {
@@ -621,7 +646,7 @@
 
     tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
     tr:last-of-type td {
-        border-bottom-color: #bbb;
+        border-bottom-color: to_color($data-table-divider-color);
     }
 
     thead {
@@ -634,8 +659,19 @@
                 background-color: transparent;
             }
         }
-    }
 
+        .is-narrowed & {
+            display: none;
+
+            &:first-of-type {
+                display: table-row-group;
+            }
+
+            tr {
+                opacity: 0.39;
+            }
+        }
+    }
 }
 
 .clickable {

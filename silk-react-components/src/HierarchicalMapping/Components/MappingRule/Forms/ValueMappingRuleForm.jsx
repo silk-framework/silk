@@ -8,6 +8,7 @@ import {
     CardActions,
     TextField,
     Spinner,
+    ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -18,7 +19,7 @@ import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
 
 const ValueMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, ScrollingMixin],
 
     // define property types
     propTypes: {
@@ -33,6 +34,17 @@ const ValueMappingRuleForm = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.loading === true &&
+            _.get(this.state, 'loading', false) === false
+        ) {
+            this.scrollIntoView({
+                topOffset: 75
+            });
+        }
+    },
+
     loadData() {
         if (this.props.id) {
             hierarchicalMappingChannel
@@ -255,12 +267,14 @@ const ValueMappingRuleForm = React.createClass({
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                            raised
                             onClick={this.handleConfirm}
                             disabled={!allowConfirm || !this.state.changed}>
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
+                            raised
                             onClick={this.handleClose}>
                             Cancel
                         </DismissiveButton>
