@@ -18898,6 +18898,9 @@
         },
         handleToggleRuleDetails: function(stateExpand) {
             _store2.default.subject("list.toggleDetails").onNext(stateExpand);
+        },
+        promoteToggleTreenavigation: function(stateVisibility) {
+            _store2.default.subject("treenav.toggleVisibility").onNext(stateVisibility);
         }
     };
     exports.default = Navigation;
@@ -27681,6 +27684,7 @@
             this.subscribe(_store2.default.subject("ruleView.unchanged"), this.onCloseEdit);
             this.subscribe(_store2.default.subject("ruleView.close"), this.onCloseEdit);
             this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
+            this.subscribe(_store2.default.subject("treenav.toggleVisibility"), this.handleToggleNavigation);
         },
         getInitialState: function() {
             var _props = this.props, baseUrl = _props.baseUrl, project = _props.project, transformTask = _props.transformTask, initialRule = _props.initialRule;
@@ -27778,9 +27782,9 @@
                 }
             }
         },
-        handleToggleNavigation: function() {
+        handleToggleNavigation: function(stateVisibility) {
             this.setState({
-                showNavigation: !this.state.showNavigation
+                showNavigation: stateVisibility
             });
         },
         handleDiscardChanges: function() {
@@ -27838,16 +27842,7 @@
             }, _react2.default.createElement("p", null, "You currently have unsaved changes", 1 === this.state.editingElements.length ? "" : " in " + this.state.editingElements.length + " mapping rules", "."));
             return _react2.default.createElement("section", {
                 className: "ecc-silk-mapping"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
-                className: "ecc-silk-mapping__header"
-            }, _react2.default.createElement(_eccGuiElements.CardTitle, {
-                className: "ecc-silk-mapping__header-action-row",
-                border: !1
-            }, !1, deleteView, discardView, loading, _react2.default.createElement(_eccGuiElements.ContextMenu, {
-                iconName: "tune"
-            }, _react2.default.createElement(_eccGuiElements.MenuItem, {
-                onClick: this.handleToggleNavigation
-            }, this.state.showNavigation ? "Hide tree navigation" : "Show tree navigation")))), _react2.default.createElement("div", {
+            }, !1, !1, deleteView, discardView, loading, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__content"
             }, navigationTree, _react2.default.createElement(_MappingsWorkview2.default, {
                 currentRuleId: this.state.currentRuleId
@@ -33733,15 +33728,21 @@
         mixins: [ _Navigation2.default, _eccGuiElements.PerformanceMixin ],
         propTypes: {},
         getInitialState: function() {
-            return {};
+            return {
+                showTreenavigation: !0
+            };
         },
         componentDidMount: function() {},
+        handleToggleTreenavigation: function() {
+            this.promoteToggleTreenavigation(!this.state.showTreenavigation);
+            this.setState({
+                showTreenavigation: !this.state.showTreenavigation
+            });
+        },
         render: function() {
             var _this = this;
             if (_lodash2.default.isEmpty(this.props.rule)) return !1;
-            var breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs);
-            console.log(breadcrumbs);
-            var navBack = !!_lodash2.default.has(parent, "id") && _react2.default.createElement("div", {
+            var breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), navBack = !!_lodash2.default.has(parent, "id") && _react2.default.createElement("div", {
                 className: "mdl-card__title-back"
             }, _react2.default.createElement(_eccGuiElements.Button, {
                 iconName: "arrow_back",
@@ -33757,25 +33758,12 @@
             }), _react2.default.createElement(_eccGuiElements.BreadcrumbItem, null, _react2.default.createElement(_SharedComponents.RuleTitle, {
                 rule: _lodash2.default.get(this.props, "rule", {})
             }))), navMenu = _react2.default.createElement(_eccGuiElements.CardMenu, null, _react2.default.createElement(_eccGuiElements.ContextMenu, {
-                className: "ecc-silk-mapping__ruleslistmenu"
+                className: "ecc-silk-mapping__ruleslistmenu",
+                iconName: "tune"
             }, _react2.default.createElement(_eccGuiElements.MenuItem, {
-                className: "ecc-silk-mapping__ruleslistmenu__item-add-value",
-                onClick: function() {
-                    _this.handleCreate({
-                        type: "direct"
-                    });
-                }
-            }, "Add value mapping"), _react2.default.createElement(_eccGuiElements.MenuItem, {
-                className: "ecc-silk-mapping__ruleslistmenu__item-add-object",
-                onClick: function() {
-                    _this.handleCreate({
-                        type: "object"
-                    });
-                }
-            }, "Add object mapping"), _react2.default.createElement(_eccGuiElements.MenuItem, {
-                className: "ecc-silk-mapping__ruleslistmenu__item-autosuggest",
-                onClick: this.handleShowSuggestions
-            }, "Suggest mappings"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+                className: "ecc-silk-mapping__ruleslistmenu__item-toggletree",
+                onClick: this.handleToggleTreenavigation
+            }, this.state.showTreenavigation ? "Hide tree navigation" : "Show tree navigation"), _react2.default.createElement(_eccGuiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-expand",
                 onClick: function() {
                     _this.handleToggleRuleDetails({
@@ -33917,7 +33905,6 @@
                 className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern"
             }, _lodash2.default.has(this.props.rule.rules, [ "uriRule", "pattern" ]) ? this.props.rule.rules.uriRule.pattern : _react2.default.createElement(_eccGuiElements.NotAvailable, {
                 label: "URI pattern not set",
-                description: "Not available element",
                 inline: !0
             }))), _react2.default.createElement("div", {
                 className: "mdl-list__item-secondary-content",
