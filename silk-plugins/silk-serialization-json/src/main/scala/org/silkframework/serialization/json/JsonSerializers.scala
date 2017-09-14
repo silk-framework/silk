@@ -480,7 +480,7 @@ object JsonSerializers {
         case "complexUri" =>
           fromJson[ComplexUriMapping](value)
         case mappingType: String =>
-          throw new ValidationException(s"Only 'uri' and 'complextUri' mapping types are allowed to be used as URI mappings. Got: '$mappingType'.")
+          throw new ValidationException(s"Only 'uri' and 'complexUri' mapping types are allowed to be used as URI mappings. Got: '$mappingType'.")
       }
     }
 
