@@ -140,7 +140,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
                   sourcePath = Path.empty,
                   target = Some(MappingTarget("address")),
                   rules = MappingRules(
-                    uriRule = Some(UriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}")),
+                    uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}")),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
                       DirectMapping("city", sourcePath = Path("city"), mappingTarget = MappingTarget("city")),

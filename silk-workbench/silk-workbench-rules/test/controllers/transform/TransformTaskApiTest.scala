@@ -289,6 +289,24 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     checkResponse(response)
   }
 
+  "Set complex URI pattern" in {
+    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
+      """
+        {
+          "rules": {
+            "uriRule": {
+              "type": "uri",
+              "pattern": "http://example.org/{PersonID}"
+            }
+        }
+      """
+    }
+
+    // Do some spot checks
+    (json \ "rules" \ "uriRule" \ "pattern").as[JsString].value mustBe "http://example.org/{PersonID}"
+    (json \ "rules" \ "propertyRules").as[JsArray].value mustBe Array.empty
+  }
+
   "Return 404 if a requested rule does not exist" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
     request = request.withHeaders("Accept" -> "application/json")

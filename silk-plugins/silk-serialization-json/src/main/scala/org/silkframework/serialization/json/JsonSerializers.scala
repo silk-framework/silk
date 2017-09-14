@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -10,6 +10,7 @@ import org.silkframework.rule.{MappingTarget, TransformRule}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
+import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat.readTransformRule
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
@@ -24,6 +25,7 @@ object JsonSerializers {
   final val PARAMETERS = "parameters"
   final val URI = "uri"
   final val METADATA = "metadata"
+  final val OPERATOR = "operator"
 
   implicit object UriJsonFormat extends JsonFormat[Uri] {
     /**
@@ -405,24 +407,24 @@ object JsonSerializers {
   }
 
   /**
-    * URI Mapping
+    * Pattern URI Mapping
     */
-  implicit object UriMappingJsonFormat extends JsonFormat[UriMapping] {
+  implicit object PatternUriMappingJsonFormat extends JsonFormat[PatternUriMapping] {
     final val PATTERN_PROPERTY: String = "pattern"
 
     /**
       * Deserializes a value.
       */
-    override def read(value: JsValue)(implicit readContext: ReadContext): UriMapping = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      UriMapping(name, pattern, metaData(value))(readContext.prefixes)
+      PatternUriMapping(name, pattern, metaData(value))(readContext.prefixes)
     }
 
     /**
       * Serializes a value.
       */
-    override def write(value: UriMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: PatternUriMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
           TYPE -> JsString("uri"),
@@ -431,6 +433,64 @@ object JsonSerializers {
           METADATA -> toJson(value.metaData)
         )
       )
+    }
+  }
+
+  /**
+    * Complex URI Mapping
+    */
+  implicit object ComplexUriMappingJsonFormat extends JsonFormat[ComplexUriMapping] {
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): ComplexUriMapping = {
+      ComplexUriMapping(
+        id = identifier(value, "uri"),
+        operator = fromJson[Input]((value \ OPERATOR).get),
+        metaData(value)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(rule: ComplexUriMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString("complexUri"),
+          ID -> JsString(rule.id),
+          OPERATOR -> toJson(rule.operator),
+          METADATA -> toJson(rule.metaData)
+        )
+      )
+    }
+  }
+
+  /**
+    * URI Mapping.
+    * Delegates serialization to the corresponding actual sub type.
+    */
+  implicit object UriMappingJsonFormat extends JsonFormat[UriMapping] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): UriMapping = {
+      stringValue(value, TYPE) match {
+        case "uri" =>
+          fromJson[PatternUriMapping](value)
+        case "complexUri" =>
+          fromJson[ComplexUriMapping](value)
+        case mappingType: String =>
+          throw new ValidationException(s"Only 'uri' and 'complextUri' mapping types are allowed to be used as URI mappings. Got: '$mappingType'.")
+      }
+    }
+
+    override def write(value: UriMapping)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      value match {
+        case pattern: PatternUriMapping =>
+          toJson[PatternUriMapping](pattern)
+        case complex: ComplexUriMapping =>
+          toJson[ComplexUriMapping](complex)
+      }
     }
   }
 
@@ -515,7 +575,9 @@ object JsonSerializers {
         case "type" =>
           fromJson[TypeMapping](jsValue)
         case "uri" =>
-          fromJson[UriMapping](jsValue)
+          fromJson[PatternUriMapping](jsValue)
+        case "complexUri" =>
+          fromJson[ComplexUriMapping](jsValue)
         case "direct" =>
           fromJson[DirectMapping](jsValue)
         case "object" =>
@@ -532,7 +594,7 @@ object JsonSerializers {
           map(fromJson[MappingTarget])
       val complex = ComplexMapping(
         id = identifier(jsValue, "complex"),
-        operator = fromJson[Input]((jsValue \ "operator").get),
+        operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
         metaData(jsValue)
       )
@@ -548,7 +610,9 @@ object JsonSerializers {
           toJson(t)
         case t: TypeMapping =>
           toJson(t)
-        case u: UriMapping =>
+        case u: PatternUriMapping =>
+          toJson(u)
+        case u: ComplexUriMapping =>
           toJson(u)
         case d: DirectMapping =>
           toJson(d)
@@ -564,7 +628,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString("complex"),
           ID -> JsString(rule.id),
-          "operator" -> toJson(rule.operator),
+          OPERATOR -> toJson(rule.operator),
           "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serialize(writeContext.prefixes)).map(JsString)),
           METADATA -> toJson(rule.metaData)
         ) ++

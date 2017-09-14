@@ -181,18 +181,38 @@ case class DirectMapping(id: Identifier = "sourcePath",
 
 /**
   * Assigns a new URI to each mapped entity.
+  */
+trait UriMapping extends ValueTransformRule
+
+/**
+  * Assigns a new URI to each mapped entity based on a pattern.
   *
   * @param id      The name of this mapping
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
-case class UriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty)
-                     (implicit prefixes: Prefixes = Prefixes.empty) extends ValueTransformRule {
+case class PatternUriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty)
+                     (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
   override val operator: Input = UriPattern.parse(pattern)
 
-  override val target = None
+  override val target: Option[MappingTarget] = None
 
   override val typeString = "URI"
+}
+
+
+/**
+  * Generates a URI based on an arbitrary rule tree.
+  *
+  * @param id      The name of this mapping
+  * @param operator The operator tree that generates the URI.
+  */
+case class ComplexUriMapping(id: Identifier = "complexUri", operator: Input, metaData: MetaData = MetaData.empty) extends UriMapping {
+
+  override val target: Option[MappingTarget] = None
+
+  override val typeString = "ComplexURI"
+
 }
 
 /**
@@ -249,9 +269,9 @@ case class ObjectMapping(id: Identifier = "mapping",
         rules.uriRule match {
           case Some (rule) => Some(rule)
           case None if sourcePath.isEmpty =>
-            Some(UriMapping(pattern = s"{}/$id"))
+            Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(UriMapping(pattern = s"{${pathPrefix.serialize}}"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}"))
         }
       case None =>
         None
@@ -359,19 +379,20 @@ object TransformRule {
     // Direct Mapping
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
       DirectMapping(id, path, target, metaData)
-    // URI Mapping
+    // Pattern URI Mapping
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
-      UriMapping(id, UriPattern.build(inputs), metaData)
+      PatternUriMapping(id, UriPattern.build(inputs), metaData)
+    // Complex URI mapping
+    case ComplexMapping(id, operator, None, metaData) =>
+      ComplexUriMapping(id, operator, metaData)
     // Object Mapping (old style, to be removed)
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
-      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(UriMapping(id + "uri", UriPattern.build(inputs)))), metaData)
+      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil),
-    Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping

@@ -34,12 +34,16 @@ function serializeTransformRule() {
     var xmlDoc = xml.ownerDocument;
 
     xml.setAttribute('name', $('#rulename').val());
-    var mappingTarget = xmlDoc.createElement('MappingTarget');
-    mappingTarget.setAttribute('uri', $('#targetproperty').val());
-    var valueType = xmlDoc.createElement('ValueType');
-    valueType.setAttribute('nodeType', $('#targettype').val());
-    mappingTarget.appendChild(valueType);
-    xml.appendChild(mappingTarget);
+
+    var targetUri = $('#targetproperty').val();
+    if(targetUri.trim().length > 0) {
+        var mappingTarget = xmlDoc.createElement('MappingTarget');
+        mappingTarget.setAttribute('uri', targetUri);
+        var valueType = xmlDoc.createElement('ValueType');
+        valueType.setAttribute('nodeType', $('#targettype').val());
+        mappingTarget.appendChild(valueType);
+        xml.appendChild(mappingTarget);
+    }
 
     // Add metadata
     var metaDataXml = $.parseXML($('#rule-metadata').text());
