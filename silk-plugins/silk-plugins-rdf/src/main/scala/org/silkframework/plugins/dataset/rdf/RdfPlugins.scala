@@ -5,14 +5,19 @@ import org.silkframework.runtime.plugin.PluginModule
 
 class RdfPlugins extends PluginModule {
 
-  override def pluginClasses =
+  override def pluginClasses: Seq[Class[_]] =
     Seq(
       classOf[FileDataset],
       classOf[SparqlDataset],
       classOf[AlignmentDataset],
       classOf[InMemoryDataset],
       classOf[RdfVocabularyManager],
-      classOf[RdfFilesVocabularyManager]
-    )
+      classOf[RdfFilesVocabularyManager],
+      classOf[SparqlSelectCustomTask]
+    ) ++ executors
+
+  val executors = Seq(
+    classOf[SparqlSelectLocalExecutor]
+  )
 
 }

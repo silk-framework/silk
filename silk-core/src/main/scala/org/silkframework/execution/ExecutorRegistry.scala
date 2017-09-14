@@ -3,11 +3,12 @@ package org.silkframework.execution
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 import java.util.logging.{Level, Logger}
 import java.lang.reflect.Modifier
+
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
 
 trait ExecutorRegistry {
@@ -21,12 +22,13 @@ trait ExecutorRegistry {
     val plugins = PluginRegistry.availablePlugins[Executor[TaskType, ExecType]]
     val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(task, context, plugin)) yield (plugin, taskType)
 
-    implicit val prefixes = Prefixes.empty
-    implicit val resource = EmptyResourceManager
+    implicit val prefixes: Prefixes = Prefixes.empty
+    implicit val resource: ResourceManager = EmptyResourceManager
 
     suitableExecutors match {
       case Nil =>
-        throw new ValidationException(s"No executor found for task type ${task.getClass} and execution type ${context.getClass}. Available executors: ${plugins.mkString(", ")}.")
+        throw new ValidationException(s"No executor found for task type ${task.getClass.getSimpleName} " +
+            s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
       case (plugin, _) :: Nil =>
         plugin()
       case _ =>
