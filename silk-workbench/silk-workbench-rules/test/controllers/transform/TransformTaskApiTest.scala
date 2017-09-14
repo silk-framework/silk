@@ -283,28 +283,40 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
   }
 
-  "Delete mapping rule" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
-    val response = request.delete()
-    checkResponse(response)
-  }
-
   "Set complex URI pattern" in {
-    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root") {
+    jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") {
       """
         {
           "rules": {
             "uriRule": {
-              "type": "uri",
-              "pattern": "http://example.org/{PersonID}"
+              "id": "complexUriRule",
+              "type": "complexUri",
+              "operator": {
+                "type": "transformInput",
+                "id": "constant",
+                "function": "constant",
+                "inputs": [],
+                "parameters": {
+                  "value": "http://example.org/constantUri"
+                }
+              }
             }
+          }
         }
       """
     }
 
     // Do some spot checks
-    (json \ "rules" \ "uriRule" \ "pattern").as[JsString].value mustBe "http://example.org/{PersonID}"
-    (json \ "rules" \ "propertyRules").as[JsArray].value mustBe Array.empty
+    val json = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val uriRule = json \ "rules" \ "uriRule"
+    (uriRule \ "type").get mustBe JsString("complexUri")
+    (uriRule \ "operator" \ "function").get mustBe JsString("constant")
+  }
+
+  "Delete mapping rule" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val response = request.delete()
+    checkResponse(response)
   }
 
   "Return 404 if a requested rule does not exist" in {
