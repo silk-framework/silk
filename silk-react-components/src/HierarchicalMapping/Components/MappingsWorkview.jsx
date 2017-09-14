@@ -367,8 +367,11 @@ const MappingsWorkview = React.createClass({
                 {loading}
                 {discardView}
                 <MappingsHeader rule={this.state.ruleData} key={'navhead_' + id} />
-                <MappingsObject rule={this.state.ruleData} key={'objhead_' + id} />
-                {listSuggestions || listMappings}
+                <div className="mdl-shadow--2dp">
+                    <MappingsObject rule={this.state.ruleData} key={'objhead_' + id} />
+                    {listSuggestions ? false : listMappings}
+                </div>
+                {listSuggestions}
                 {createRuleForm}
             </div>
         );

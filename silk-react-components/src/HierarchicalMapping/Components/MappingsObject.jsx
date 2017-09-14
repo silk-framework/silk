@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
+import className from 'classnames';
 import {
     Button,
     Card,
@@ -7,8 +8,10 @@ import {
     ConfirmationDialog,
     DisruptiveButton,
     DismissiveButton,
+    NotAvailable,
 } from 'ecc-gui-elements';
 import {
+    ThingIcon,
     RuleTitle,
     RuleTypes,
     ParentElement,
@@ -139,28 +142,53 @@ const MappingsObject = React.createClass({
         return (
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
-                <Card>
-                    <CardTitle className="clickable" onClick={this.handleToggleExpand}>
-                        <div className="mdl-card__title-text">
-                            {
-                                _.has(parent, 'id') ?
-                                <ParentElement parent={parent} className="ecc-silk-mapping__rulesobject__title-parent" />
-                                : false
-                            }
-                            <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
-                            <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-type" />
-                        </div>
-                        <div className="mdl-card__title-action">
-                            <Button
-                                iconName={
-                                    this.state.expanded
-                                        ? 'expand_less'
-                                        : 'expand_more'
+                <Card shadow={0}>
+                    <CardTitle>
+                        <div className="ecc-silk-mapping__ruleitem">
+                            <div className={
+                                    className(
+                                        'ecc-silk-mapping__ruleitem-summary',
+                                        {
+                                            'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
+                                        }
+                                    )
                                 }
-                                onClick={ev => {
-                                    this.handleToggleExpand();
-                                }}
-                            />
+                            >
+                                <div
+                                    className={'mdl-list__item clickable'}
+                                    onClick={this.handleToggleExpand}
+                                >
+                                    <div className={'mdl-list__item-primary-content'}>
+                                        <div className="ecc-silk-mapping__ruleitem-headline">
+                                            <ThingIcon type={'object'} />
+                                            <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
+                                        </div>
+                                        <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type" />
+                                        <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
+                                            {
+                                                _.has(this.props.rule.rules, ['uriRule', 'pattern'])
+                                                ? this.props.rule.rules.uriRule.pattern
+                                                : <NotAvailable
+                                                    label="URI pattern not set"
+                                                    inline={true}>
+                                                  </NotAvailable>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div className="mdl-list__item-secondary-content" key="action">
+                                        <Button
+                                            iconName={
+                                                this.state.expanded
+                                                    ? 'expand_less'
+                                                    : 'expand_more'
+                                            }
+                                            onClick={ev => {
+                                                this.handleToggleExpand();
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </CardTitle>
                     {content}

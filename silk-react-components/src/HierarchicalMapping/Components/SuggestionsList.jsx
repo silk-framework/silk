@@ -12,6 +12,7 @@ import {
     ContextMenu,
     MenuItem,
     Spinner,
+    ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../UseMessageBusMixin';
@@ -22,7 +23,7 @@ import {ParentElement} from './MappingRule/SharedComponents';
 let pendingRules = {};
 let wrongRules = {};
 const SuggestionsList = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, ScrollingMixin],
 
     // define property types
     // FIXME: check propTypes
@@ -76,6 +77,14 @@ const SuggestionsList = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate() {
+        if (_.get(this, 'state.data', false)) {
+            this.scrollIntoView({
+                topOffset: 75
+            });
+        }
+    },
+
     handleAddSuggestions(event) {
         event.stopPropagation();
         const correspondences = [];
@@ -243,6 +252,7 @@ const SuggestionsList = React.createClass({
             <CardActions fixed>
                 {_.isEmpty(this.state.error)
                     ? <AffirmativeButton
+                          raised
                           className="ecc-hm-suggestions-save"
                           onClick={this.handleAddSuggestions}
                           disabled={_.size(this.state.checked) === 0}>
@@ -251,6 +261,7 @@ const SuggestionsList = React.createClass({
                     : false}
 
                 <DismissiveButton
+                    raised
                     onClick={this.props.onClose}
                     className="ecc-hm-suggestions-cancel">
                     Cancel
