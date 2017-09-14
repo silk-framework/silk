@@ -216,7 +216,7 @@ case class ComplexUriMapping(id: Identifier = "complexUri", operator: Input, met
 }
 
 /**
-  * A type mapping, which assigns a type to each entitity.
+  * A type mapping, which assigns a type to each entity.
   *
   * @param id      The name of this mapping
   * @param typeUri The type URI.
