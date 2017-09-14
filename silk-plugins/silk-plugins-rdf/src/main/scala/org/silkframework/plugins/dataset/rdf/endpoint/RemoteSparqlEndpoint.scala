@@ -29,7 +29,7 @@ import scala.xml.{Elem, XML}
  * Executes queries on a remote SPARQL endpoint.
  *
  */
-case class RemoteSparqlEndpoint(val sparqlParams: SparqlParams) extends SparqlEndpoint {
+case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
 
