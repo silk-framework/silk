@@ -4,7 +4,7 @@ import com.hp.hpl.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
 import org.silkframework.entity.{AutoDetectValueType, EntitySchema, Path, TypedPath}
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -21,7 +21,7 @@ import scala.util.Try
   description = "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
-                                  selectQuery: String,
+                                  selectQuery: MultilineStringParameter,
                                   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
                                   limit: String = "") extends CustomTask {
   val intLimit: Option[Int] = {
@@ -34,7 +34,7 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
   override def outputSchemaOpt: Option[EntitySchema] = Some(outputSchema)
 
   val outputSchema: EntitySchema = {
-    val query = QueryFactory.create(selectQuery)
+    val query = QueryFactory.create(selectQuery.str)
     if (!query.isSelectType) {
       throw new ValidationException("Query is not a SELECT query!")
     }

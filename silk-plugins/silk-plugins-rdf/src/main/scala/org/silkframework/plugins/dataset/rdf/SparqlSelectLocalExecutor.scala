@@ -20,7 +20,7 @@ case class SparqlSelectLocalExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
-        val results = sparql.select(taskData.selectQuery, taskData.intLimit.getOrElse(Integer.MAX_VALUE))
+        val results = sparql.select(taskData.selectQuery.str, taskData.intLimit.getOrElse(Integer.MAX_VALUE))
         val vars: IndexedSeq[String] = getSparqlVars(taskData)
         val entities: Traversable[Entity] = createEntities(taskData, results, vars)
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))

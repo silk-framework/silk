@@ -75,7 +75,8 @@ object ParameterType {
     * All available static parameter types.
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType, TaskReferenceType)
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
+      WritableResourceType, TaskReferenceType, MultilineStringParameterType)
   }
 
   /**
@@ -200,7 +201,7 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str)
       }
     }
 
@@ -216,7 +217,7 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str)
       }
     }
 
@@ -278,5 +279,11 @@ object ParameterType {
     }
 
     override def toString(value: Enum[_]): String = enumerationValue(value)
+  }
+
+  object MultilineStringParameterType extends ParameterType[MultilineStringParameter] {
+    override def name: String = "multiline string"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
   }
 }
