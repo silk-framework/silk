@@ -1,26 +1,25 @@
 package controllers.transform
 
-import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{Dataset, PeakDataSource, PeakException}
-import org.silkframework.entity._
-import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec}
-import play.api.libs.json.Json
-import play.api.mvc._
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.dataset.{Dataset, PeakDataSource, PeakException}
+import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
+import play.api.libs.json.{Json, Writes}
+import play.api.mvc._
 
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 class PeakTransformApi extends Controller {
 
-  implicit private val peakStatusWrites = Json.writes[PeakStatus]
-  implicit private val peakResultWrites = Json.writes[PeakResult]
-  implicit private val peakResultsWrites = Json.writes[PeakResults]
+  implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
+  implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]
+  implicit private val peakResultsWrites: Writes[PeakResults] = Json.writes[PeakResults]
   // Max number of exceptions before aborting the mapping preview call
   final val MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS: Int = 50
   // The number of transformation preview results that should be returned by the REST API
@@ -57,7 +56,7 @@ class PeakTransformApi extends Controller {
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
     val inputTaskId = transformSpec.selection.inputId
-    implicit val readContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
 
     deserializeCompileTime[TransformRule]() { rule =>
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
@@ -71,7 +70,7 @@ class PeakTransformApi extends Controller {
 
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
     val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     project.anyTask(inputTaskId).data match {
       case dataset: Dataset =>
@@ -94,15 +93,9 @@ class PeakTransformApi extends Controller {
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
-    }
-  }
-
-  private def extractSourcePath(transformRule: TransformRule): List[PathOperator] = {
-    transformRule match {
-      case objMapping: ObjectMapping =>
-        objMapping.sourcePath.operators
-      case _ =>
-        List.empty
+      case t: TaskSpec =>
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${t.getClass.getSimpleName} " +
+            s"is not supported. Currently only dataset and transform tasks support producing example values."))))
     }
   }
 
