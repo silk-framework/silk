@@ -53,9 +53,15 @@
     case ResourceType | WritableResourceType =>
       val resources = project.resources.listRecursive
       enumParameter(param, resources, resources, value)
+//    case MultilineStringParameterType =>
+//      multilineParameter(param, value)
     case _ =>
       stringParameter(param, value)
   }
+}
+
+@multilineParameter(param: Parameter, value: String) = {
+  @widgets.multilineParameter(GenerateId(id, display), value, label = param.label, tooltip = param.description, additionalInputElementsClass = "param_value")
 }
 
 @stringParameter(param: Parameter, value: String) = {
