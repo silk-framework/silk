@@ -4,6 +4,7 @@ import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 
 import org.silkframework.config.{Prefixes, TaskReference}
+import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -76,7 +77,7 @@ object ParameterType {
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
-      WritableResourceType, TaskReferenceType, MultilineStringParameterType)
+      WritableResourceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType)
   }
 
   /**
@@ -285,5 +286,13 @@ object ParameterType {
     override def name: String = "multiline string"
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
+  }
+
+  object SparqlEndpointDatasetParameterType extends ParameterType[SparqlEndpointDatasetParameter] {
+    override def name: String = "SPARQL endpoint"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): SparqlEndpointDatasetParameter = {
+      SparqlEndpointDatasetParameter(str)
+    }
   }
 }

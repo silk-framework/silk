@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import com.hp.hpl.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
-import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
-import org.silkframework.entity.{AutoDetectValueType, EntitySchema, Path, TypedPath}
+import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
+import org.silkframework.entity._
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -23,7 +23,10 @@ import scala.util.Try
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
                                   selectQuery: MultilineStringParameter,
                                   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
-                                  limit: String = "") extends CustomTask {
+                                  limit: String = "",
+                                 @Param(label = "Optional SPARQL dataset",
+                                   value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.")
+                                  optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter("")) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption

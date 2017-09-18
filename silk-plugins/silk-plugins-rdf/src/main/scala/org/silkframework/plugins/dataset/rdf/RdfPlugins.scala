@@ -17,7 +17,7 @@ class RdfPlugins extends PluginModule {
     ) ++ executors
 
   val executors = Seq(
-    classOf[SparqlSelectLocalExecutor]
+    classOf[LocalSparqlSelectExecutor]
   )
 
 }

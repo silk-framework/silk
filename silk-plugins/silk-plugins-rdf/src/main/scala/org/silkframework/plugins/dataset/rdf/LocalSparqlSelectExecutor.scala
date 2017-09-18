@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.ActivityContext
 /**
   * Local executor for [[SparqlSelectCustomTask]].
   */
-case class SparqlSelectLocalExecutor() extends LocalExecutor[SparqlSelectCustomTask] {
+case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomTask] {
   override def execute(task: Task[SparqlSelectCustomTask],
                        inputs: Seq[EntityTable],
                        outputSchema: Option[EntitySchema],
@@ -20,13 +20,18 @@ case class SparqlSelectLocalExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
-        val results = sparql.select(taskData.selectQuery.str, taskData.intLimit.getOrElse(Integer.MAX_VALUE))
-        val vars: IndexedSeq[String] = getSparqlVars(taskData)
-        val entities: Traversable[Entity] = createEntities(taskData, results, vars)
+        val entities = executeOnSparqlEndpointEntityTable(taskData, sparql)
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
     }
+  }
+
+  def executeOnSparqlEndpointEntityTable(sparqlSelectTask: SparqlSelectCustomTask,
+                                         sparql: SparqlEndpointEntityTable): Traversable[Entity] = {
+    val results = sparql.select(sparqlSelectTask.selectQuery.str, sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE))
+    val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
+    createEntities(sparqlSelectTask, results, vars)
   }
 
   private def getSparqlVars(taskData: SparqlSelectCustomTask) = {

@@ -2,12 +2,15 @@ package controllers.transform
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.dataset.{Dataset, PeakDataSource, PeakException}
+import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
+import org.silkframework.dataset.{Dataset, EntityDatasource, PeakDataSource, PeakException}
 import org.silkframework.entity._
+import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 import play.api.libs.json.{Json, Writes}
@@ -90,12 +93,47 @@ class PeakTransformApi extends Controller {
               " of type " + dataset.plugin.label +
               " does not support transformation preview!"))))
         }
+      case sparqlSelectTask: SparqlSelectCustomTask =>
+        peakIntoSparqlSelectTask(project, inputTaskId, ruleSchemata, limit, maxTryEntities, sparqlSelectTask)
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
       case t: TaskSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${t.getClass.getSimpleName} " +
             s"is not supported. Currently only dataset and transform tasks support producing example values."))))
+    }
+  }
+
+  private def peakIntoSparqlSelectTask(project: Project,
+                                       inputTaskId: Identifier,
+                                       ruleSchemata: RuleSchemata,
+                                       limit: Int,
+                                       maxTryEntities: Int,
+                                       sparqlSelectTask: SparqlSelectCustomTask)
+                                      (implicit prefixes: Prefixes): Result = {
+    val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
+    if (sparqlDataset.toString == "") {
+      Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.plugin.label} " +
+          s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
+    } else {
+      project.task[Dataset](sparqlDataset).data match {
+        case rdfDataset: RdfDataset with Dataset =>
+          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, rdfDataset))
+          val executor = LocalSparqlSelectExecutor()
+          val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable)
+          val entityDatasource = EntityDatasource(entities, sparqlSelectTask.outputSchema)
+          try {
+            val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)
+            generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+          } catch {
+            case pe: PeakException =>
+              Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
+                  " of type " + sparqlSelectTask.plugin.label +
+                  " raised following issue:" + pe.msg))))
+          }
+        case _ =>
+          throw new ValidationException(s"Configured dataset $sparqlDataset for task $inputTaskId offers no SPARQL endpoint!")
+      }
     }
   }
 
