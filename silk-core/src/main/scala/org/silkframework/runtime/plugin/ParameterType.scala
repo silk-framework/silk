@@ -166,6 +166,8 @@ object ParameterType {
 
     override def name: String = "stringmap"
 
+    override def description: String = "A map of the form 'Key1:Value1,Key2:Value2'"
+
     private val utf8: String = "UTF8"
 
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
