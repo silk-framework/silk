@@ -4,7 +4,6 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory, PluginRegistr
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
-
 /**
   * A custom task provided by a plugin.
   */

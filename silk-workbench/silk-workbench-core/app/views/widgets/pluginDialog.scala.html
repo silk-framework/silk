@@ -6,7 +6,8 @@
 @import org.silkframework.runtime.plugin.ParameterType._
 @import controllers.core.routes.Assets
 
-@(name: String,
+@(projectName: String,
+  name: String,
   plugins: Seq[PluginDescription[_]],
   currentObj: Option[AnyPlugin],
   resources: List[String],
@@ -146,13 +147,15 @@
 }
 
 @**
- * Creates a new field for a plugin paramter
+ * Creates a new field for a plugin parameter
  *@
 @createField(pluginId: String, param: Parameter) = @{
   param.dataType match {
     case ParameterType.ResourceType | ParameterType.WritableResourceType => createResourceField(pluginId, param)
     case enum @ ParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
+    case MultilineStringParameterType => createMultilineTextField(pluginId, param)
+    case SparqlEndpointDatasetParameterType => createSparqlEndpointDatasetField(pluginId, param)
     case _ => createTextField(pluginId, param)
   }
 }
@@ -167,6 +170,14 @@
       Expected type: @param.dataType.description
     </div>
  </div>
+}
+
+@createMultilineTextField(pluginId: String, param: Parameter) = {
+  @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description)
+}
+
+@createSparqlEndpointDatasetField(pluginId: String, param: Parameter) = {
+  @widgets.sparqlDatasetSelect(projectName, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 
 @createEnumerationField(pluginId: String, param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String]) = {

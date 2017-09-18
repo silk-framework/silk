@@ -10,7 +10,7 @@ import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.util.Uri
 
 /**
-  * Created on 7/20/16.
+  * Local dataset executor that handles read and writes to [[Dataset]] tasks.
   */
 class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
@@ -26,43 +26,66 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): EntityTable = {
     schema match {
       case TripleEntitySchema.schema =>
-        dataset.data match {
-          case rdfDataset: RdfDataset =>
-            val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
-            val tripleEntities = sparqlResult.bindings.view map { resultMap =>
-              val s = resultMap("s").value
-              val p = resultMap("p").value
-              val (value, typ) = resultMap("o") match {
-                case PlainLiteral(v) =>
-                  (v, "")
-                case LanguageLiteral(v, l) =>
-                  (v, s"$LANGUAGE_ENC_PREFIX=$l")
-                case DataTypeLiteral(v, dt) =>
-                  (v, s"$DATA_TYPE_ENC_PREFIX=$dt")
-                case BlankNode(bn) =>
-                  (bn, s"$BLANK_NODE_ENC_PREFIX")
-                case Resource(uri) =>
-                  (uri, s"$URI_ENC_PREFIX")
-              }
-              new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
-            }
-            TripleEntityTable(tripleEntities, dataset)
-          case _ =>
-            throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
-        }
+        handleTripleEntitySchema(dataset)
+      case SparqlEndpointEntitySchema.schema =>
+        handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
-        MultiEntityTable(
-          entities = dataset.source.retrieve(entitySchema = schema),
-          entitySchema = schema,
-          subTables =
-            for(subSchema <- multi.subSchemata) yield
-              GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
-          task = dataset
-        )
+        handleMultiEntitySchema(dataset, schema, multi)
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
     }
+  }
+
+  private def handleMultiEntitySchema(dataset: Task[Dataset], schema: EntitySchema, multi: MultiEntitySchema) = {
+    MultiEntityTable(
+      entities = dataset.source.retrieve(entitySchema = schema),
+      entitySchema = schema,
+      subTables =
+          for (subSchema <- multi.subSchemata) yield
+            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
+      task = dataset
+    )
+  }
+
+  private def handleTripleEntitySchema(dataset: Task[Dataset]): TripleEntityTable = {
+    dataset.data match {
+      case rdfDataset: RdfDataset =>
+        readTriples(dataset, rdfDataset)
+      case _ =>
+        throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
+    }
+  }
+
+  private def handleSparqlEndpointSchema(dataset: Task[Dataset]): SparqlEndpointEntityTable = {
+    dataset.data match {
+      case rdfDataset: RdfDataset =>
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+      case _ =>
+        throw TaskException("Dataset does not offer a SPARQL endpoint!")
+    }
+  }
+
+  private def readTriples(dataset: Task[Dataset], rdfDataset: RdfDataset) = {
+    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
+    val tripleEntities = sparqlResult.bindings.view map { resultMap =>
+      val s = resultMap("s").value
+      val p = resultMap("p").value
+      val (value, typ) = resultMap("o") match {
+        case PlainLiteral(v) =>
+          (v, "")
+        case LanguageLiteral(v, l) =>
+          (v, s"$LANGUAGE_ENC_PREFIX=$l")
+        case DataTypeLiteral(v, dt) =>
+          (v, s"$DATA_TYPE_ENC_PREFIX=$dt")
+        case BlankNode(bn) =>
+          (bn, s"$BLANK_NODE_ENC_PREFIX")
+        case Resource(uri) =>
+          (uri, s"$URI_ENC_PREFIX")
+      }
+      new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
+    }
+    TripleEntityTable(tripleEntities, dataset)
   }
 
   override protected def write(data: EntityTable, dataset: Task[Dataset], execution: LocalExecution): Unit = {
