@@ -15,14 +15,26 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "map",
   categories = Array("Replace"),
   label = "Map",
-  description = "Maps strings based on a map of values."
+  description = "Replaces values based on a map of values."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("map", "Key1:Value1,Key2:Value2", "default", "Undefined"),
+    input1 = Array("Key1"),
+    output = Array("Value1")
+  ),
+  new TransformExample(
+    parameters = Array("map", "Key1:Value1,Key2:Value2", "default", "Undefined"),
+    input1 = Array("Key1X"),
+    output = Array("Undefined")
+  )
+))
 case class MapTransformer(
   @Param(value = "A map of values", example = "A:1,B:2,C:3")
   map: Map[String, String],
