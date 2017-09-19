@@ -202,6 +202,9 @@ function initEditor(canvasId = 'droppable') {
     $(document).on('change', "input[type!='text']", function() {
         modifyLinkSpec();
     });
+    $(document).on('change', "select", function () {
+      modifyLinkSpec();
+    });
     $(document).on('keyup', "input[type='text'].param_value", function() {
         modifyLinkSpec();
     });
