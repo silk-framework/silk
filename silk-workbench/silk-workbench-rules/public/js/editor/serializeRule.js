@@ -133,7 +133,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     if (elType === 'Source' || elType === 'Target') return { xml: xml, inputType: elType };
 
     // Parse parameters
-    var params = $(elementIdName + ' div.content .param_value');
+    var params = $(elementIdName + ' div.content input');
 
     var xml_param;
 
