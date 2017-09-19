@@ -1,7 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory, PluginRegistry}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
 /**
@@ -18,7 +18,7 @@ object CustomTask extends PluginFactory[CustomTask] {
 
     def read(node: Node)(implicit readContext: ReadContext): CustomTask = {
       val pluginType = (node \ "@type").text
-      val params = (node \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
+      val params = XmlSerialization.deserializeParameters(node)
 
       implicit val prefixes = readContext.prefixes
       implicit val resources = readContext.resources
@@ -31,9 +31,7 @@ object CustomTask extends PluginFactory[CustomTask] {
       val (pluginType, params) = PluginRegistry.reflect(value)
 
       <CustomTask type={pluginType.id.toString}>{
-        for ((name, value) <- params) yield {
-          <Param name={name} value={value}/>
-        }
+        {XmlSerialization.serializeParameter(params)}
       }</CustomTask>
     }
   }
