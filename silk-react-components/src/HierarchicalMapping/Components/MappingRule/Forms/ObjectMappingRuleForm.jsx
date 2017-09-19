@@ -174,7 +174,9 @@ const ObjectMappingRuleForm = React.createClass({
     },
     // template rendering
     render() {
-        const {id} = this.props;
+        const {id, parentId} = this.props;
+
+        const autoCompleteRuleId = id || parentId;
 
         const {error} = this.state;
 
@@ -206,7 +208,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="targetProperty"
                     isValidNewOption={newValueIsIRI}
                     creatable
-                    ruleId={this.props.parentId || this.props.id || 'root'}
+                    ruleId={autoCompleteRuleId}
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
@@ -255,7 +257,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId || this.props.id || 'root'}
+                    ruleId={autoCompleteRuleId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
@@ -300,7 +302,7 @@ const ObjectMappingRuleForm = React.createClass({
                             }
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
-                            ruleId={this.props.parentId || this.props.id || 'root'}
+                            ruleId={autoCompleteRuleId}
                             value={this.state.targetEntityType}
                             multi // allow multi selection
                             creatable

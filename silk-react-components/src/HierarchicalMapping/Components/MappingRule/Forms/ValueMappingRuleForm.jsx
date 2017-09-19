@@ -156,7 +156,9 @@ const ValueMappingRuleForm = React.createClass({
     },
     // template rendering
     render() {
-        const {id} = this.props;
+        const {id, parentId} = this.props;
+
+        const autoCompleteRuleId = id || parentId;
 
         const {type, error} = this.state;
 
@@ -181,7 +183,7 @@ const ValueMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId || this.props.id || 'root'}
+                    ruleId={autoCompleteRuleId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
@@ -221,7 +223,7 @@ const ValueMappingRuleForm = React.createClass({
                             isValidNewOption={newValueIsIRI}
                             creatable
                             value={this.state.targetProperty}
-                            ruleId={this.props.parentId || this.props.id || 'root'}
+                            ruleId={autoCompleteRuleId}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
                                 'targetProperty'
@@ -231,7 +233,7 @@ const ValueMappingRuleForm = React.createClass({
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
-                            ruleId={this.props.parentId || this.props.id || 'root'}
+                            ruleId={autoCompleteRuleId}
                             value={this.state.propertyType}
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(

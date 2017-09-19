@@ -402,7 +402,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('autocomplete')
         .subscribe(({data, replySubject}) => {
-            const {entity, input, ruleId} = data;
+            const {entity, input, ruleId = rootId} = data;
 
             let channel = 'transform.task.rule.completions.';
 
