@@ -1,0 +1,29 @@
+@(mainId: String, value: String, label: String, tooltip: String, additionalInputElementsClass: String = "")
+
+<div id="@{mainId}_multiline_textfield_container" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{mainId}-multiline-container">
+  <input id="@{mainId}_multiline_textfield" class="mdl-textfield__input" type="text"
+         name="@{mainId}_multiline_textfield" title="Restrict @{mainId} dataset using SPARQL clauses"
+         value="@value">
+  <label class="mdl-textfield__label" for="@{mainId}_multiline_textfield">@{label}</label>
+  <div class="mdl-tooltip mdl-tooltip--right" for="@{mainId}_multiline_textfield">
+    @tooltip
+  </div>
+</div>
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label @{mainId}-multiline-container" style="display: none;">
+  <textarea id="@{mainId}" name="@{mainId}" class="mdl-textfield__input @{additionalInputElementsClass}" type="text" rows="5">@value</textarea>
+  <label class="mdl-textfield__label" for="@{mainId}">@{label}</label>
+  <div class="mdl-tooltip mdl-tooltip--right" for="@{mainId}">
+    @tooltip
+  </div>
+</div>
+<script type="text/javascript">
+  $("#@{mainId}_multiline_textfield").focus(function() {
+    $(".@{mainId}-multiline-container").toggle(200, "linear");
+    $("#@{mainId}").focus();
+  });
+  $("#@{mainId}").focusout(function() {
+    $(".@{mainId}-multiline-container").toggle(200, "linear");
+    var multilineValue = $("#@{mainId}").val().replace(/[\n\r]+/g, ' ');
+    document.querySelector('#@{mainId}_multiline_textfield_container').MaterialTextfield.change(multilineValue);
+  });
+</script>

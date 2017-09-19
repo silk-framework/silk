@@ -12,7 +12,7 @@ import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.util.DPair
+import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
@@ -77,9 +77,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       description = "Updated Task Description"
     )
 
-  val dataset = new DatasetTask(DATASET_ID, InternalDataset("default"))
+  val dataset = new DatasetTask(DATASET_ID, DummyDataset("default"))
 
-  val datasetUpdated = new DatasetTask(DATASET_ID, InternalDataset("updated"))
+  val datasetUpdated = new DatasetTask(DATASET_ID, DummyDataset("updated"))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 
@@ -92,7 +92,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       id = TRANSFORM_ID,
       data =
         TransformSpec(
-          selection = DatasetSelection("InputDS", "http://type1"),
+          selection = DatasetSelection(DATASET_ID, "http://type1"),
           mappingRule =
             RootMappingRule(
               id = "root",
@@ -129,7 +129,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       id = TRANSFORM_ID,
       data =
         TransformSpec(
-          selection = DatasetSelection("id", "Person"),
+          selection = DatasetSelection(DATASET_ID, "Person"),
           mappingRule = RootMappingRule("root",
             MappingRules(
               uriRule = None,

@@ -11,11 +11,11 @@ import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationError, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json._
@@ -146,7 +146,7 @@ class TransformTaskApi extends Controller {
       }
     } catch {
       case ex: NoSuchElementException =>
-        NotFound(JsonError(ex.getMessage))
+        ErrorResult.clientError(NotFoundException(ex))
     }
   }
 
@@ -190,10 +190,10 @@ class TransformTaskApi extends Controller {
               updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
               Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
             } else {
-              BadRequest(JsonError(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+              ErrorResult.clientError(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }
           case None =>
-            NotAcceptable(JsonError("Expected application/json."))
+            ErrorResult.clientError(NotAcceptableException("Expected application/json."))
         }
       }
     }
@@ -207,7 +207,7 @@ class TransformTaskApi extends Controller {
       case Some(rule) =>
         catchExceptions(processFunc(rule))
       case None =>
-        NotFound(JsonError(s"No rule with id '$ruleId' found!"))
+        ErrorResult.clientError(NotFoundException(s"No rule with id '$ruleId' found!"))
     }
   }
 
@@ -220,16 +220,16 @@ class TransformTaskApi extends Controller {
     } catch {
       case ex: BadUserInputException =>
         log.log(Level.FINE, "Invalid transformation rule", ex)
-        BadRequest(JsonError(ex.getMessage, ValidationError(ex.getMessage) :: Nil))
+        ErrorResult.validation(BAD_REQUEST, ex.getMessage, ValidationError(ex.getMessage) :: Nil)
       case ex: ValidationException =>
         log.log(Level.INFO, "Invalid transformation rule", ex)
-        BadRequest(JsonError("Invalid transformation rule", ex.errors))
+        ErrorResult.validation(BAD_REQUEST, "Invalid transformation rule", ex.errors)
       case ex: JsonParseException =>
         log.log(Level.INFO, "Invalid transformation rule JSON", ex)
-        BadRequest(JsonError(ex))
+        ErrorResult.clientError(BadUserInputException(ex))
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
-        InternalServerError(JsonError("Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+        ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil)
     }
   }
 

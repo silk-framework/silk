@@ -139,7 +139,7 @@ function parseOperator(xmlDoc, elementId, connections) {
         return {xml, inputType: elType};
 
     // Parse parameters
-    var params = $(`${elementIdName} div.content input`);
+    var params = $(`${elementIdName} div.content .param_value`);
 
     var xml_param;
 

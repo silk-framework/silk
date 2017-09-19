@@ -171,7 +171,7 @@ object DatasetTask {
         val id = (node \ "@id").text
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
-          plugin = Dataset((node \ "@type").text, readParams(node)),
+          plugin = Dataset((node \ "@type").text, XmlSerialization.deserializeParameters(node)),
           metaData = MetaData.empty,
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
@@ -183,16 +183,12 @@ object DatasetTask {
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
-          plugin = Dataset((sourceNode \ "@type").text, readParams(sourceNode)),
+          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
           metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
       }
-    }
-
-    private def readParams(element: Node): Map[String, String] = {
-      (element \ "Param" map (p => ((p \ "@name").text, (p \ "@value").text))).toMap
     }
 
     def write(value: DatasetTask)(implicit writeContext: WriteContext[Node]): Node = {
@@ -202,9 +198,7 @@ object DatasetTask {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset id={value.id} type={pluginDesc.id} minConfidence={minConfidenceNode} maxConfidence={maxConfidenceNode}>
-            {params.map {
-            case (name, v) => <Param name={name} value={v}/>
-          }}
+            {XmlSerialization.serializeParameter(params)}
             {XmlSerialization.toXml[MetaData](value.metaData)}
           </Dataset>
       }

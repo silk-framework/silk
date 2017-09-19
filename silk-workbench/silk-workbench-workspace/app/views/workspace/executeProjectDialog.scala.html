@@ -4,7 +4,8 @@
 
 @(project: String)
 
-@widgets.pluginDialog(name = project,
+@widgets.pluginDialog(project,
+                      name = project,
                       plugins = PluginRegistry.availablePlugins[ProjectExecutor],
                       currentObj = None,
                       resources = Nil) {

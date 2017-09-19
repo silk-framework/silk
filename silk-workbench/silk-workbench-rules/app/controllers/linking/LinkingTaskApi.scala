@@ -11,11 +11,11 @@ import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.validation.{ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationError, ValidationException, ValidationWarning}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -98,17 +98,17 @@ class LinkingTaskApi extends Controller {
             project.updateTask(taskName, updatedLinkSpec)
           }
           // Return warnings
-          Ok(JsonError("Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage))))
+          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
-            BadRequest(JsonError("Invalid linkage rule", issues = ex.errors))
+            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
           case ex: Exception =>
             log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            InternalServerError(JsonError("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       case None =>
-        BadRequest(JsonError("Expecting text/xml request body"))
+        ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 
@@ -139,17 +139,17 @@ class LinkingTaskApi extends Controller {
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           }
 
-          Ok(JsonError("Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage))))
+          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
-            BadRequest(JsonError("Invalid linkage rule", issues = ex.errors))
+            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
           case ex: Exception =>
             log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            InternalServerError(JsonError("Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil))
+            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       }
-      case None => BadRequest(JsonError("Expecting text/xml request body"))
+      case None => ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 

@@ -1,10 +1,12 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.dataset.{DataSource, Dataset, DatasetTask}
+import org.silkframework.config.CustomTask
+import org.silkframework.dataset.{DataSource, Dataset}
+import org.silkframework.execution.TaskException
 import org.silkframework.rule.{TransformSpec, TransformedDataSource}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Adds additional methods to transform tasks.
@@ -18,11 +20,16 @@ object TransformTaskUtils {
       */
     def dataSource: DataSource = {
       val sourceId = task.data.selection.inputId
-      task.project.taskOption[TransformSpec](sourceId) match {
-        case Some(transformTask) =>
-          transformTask.asDataSource(transformTask.data.selection.typeUri)
+      task.project.taskOption[CustomTask](sourceId) match {
+        case Some(customTask) =>
+          throw TaskException(s"Task ${customTask.id} of type 'Other' is not supported as data source. Evaluate and Execute actions are thus not working.")
         case None =>
-          task.project.task[Dataset](sourceId).data.source
+          task.project.taskOption[TransformSpec](sourceId) match {
+            case Some(transformTask) =>
+              transformTask.asDataSource(transformTask.data.selection.typeUri)
+            case None =>
+              task.project.task[Dataset](sourceId).data.source
+          }
       }
     }
 

@@ -289,7 +289,7 @@ const ObjectMappingRuleForm = React.createClass({
             );
         }
 
-        const exampleView = allowConfirm && this.state.sourceProperty ?(
+        const exampleView = this.state.sourceProperty ?(
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
