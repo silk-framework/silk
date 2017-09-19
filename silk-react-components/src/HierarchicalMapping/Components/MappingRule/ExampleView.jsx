@@ -1,5 +1,6 @@
 import React from 'react';
-import {Spinner, Error, Chip} from 'ecc-gui-elements';
+import {Spinner, Chip} from 'ecc-gui-elements';
+import ErrorView from './ErrorView'
 import _ from 'lodash';
 
 import UseMessageBus from '../../UseMessageBusMixin';
@@ -28,17 +29,12 @@ const ExampleView = React.createClass({
                     ({example}) => {
                         this.setState({example});
                     },
-                    err => {
+                    error => {
                         if (__DEBUG__) {
                             console.warn('err MappingRuleOverview: rule.example');
                         }
                         this.setState({
-                            example: {
-                                status: {
-                                    id: 'error',
-                                    msg: err.toString(),
-                                },
-                            },
+                            error,
                         });
                     }
                 );
@@ -57,17 +53,12 @@ const ExampleView = React.createClass({
                     ({example}) => {
                         this.setState({example});
                     },
-                    err => {
+                    error => {
                         if (__DEBUG__) {
                             console.warn('err MappingRuleOverview: rule.example');
                         }
                         this.setState({
-                            example: {
-                                status: {
-                                    id: 'error',
-                                    msg: err.toString(),
-                                },
-                            },
+                            error,
                         });
                     }
                 );
@@ -83,56 +74,12 @@ const ExampleView = React.createClass({
     render() {
         if (_.isUndefined(this.state.example)) {
             return <Spinner />;
-        } else if (this.state.example.status.id !== 'success') {
-            const errorClassName = this.state.errorExpanded
-                ? ''
-                : 'mdl-alert--narrowed';
-            if (__DEBUG__) {
-                // eslint-disable-next-line
-                const loremIpsum = require('lorem-ipsum');
-                return (
-                    <Error
-                        border
-                        className={errorClassName}
-                        handlerDismiss={() => {
-                            this.setState({
-                                errorExpanded: !this.state.errorExpanded,
-                            });
-                        }}
-                        labelDismiss={
-                            this.state.errorExpanded ? 'Show less' : 'Show more'
-                        }
-                        iconDismiss={
-                            this.state.errorExpanded
-                                ? 'expand_less'
-                                : 'expand_more'
-                        }>
-                        {loremIpsum({
-                            count: _.random(5, 10),
-                            units: 'paragraphs',
-                        })}
-                    </Error>
-                );
-            }
-            return (
-                <Error
-                    border
-                    className={errorClassName}
-                    handlerDismiss={() => {
-                        this.setState({
-                            errorExpanded: !this.state.errorExpanded,
-                        });
-                    }}
-                    labelDismiss={
-                        this.state.errorExpanded ? 'Show less' : 'Show more'
-                    }
-                    iconDismiss={
-                        this.state.errorExpanded ? 'expand_less' : 'expand_more'
-                    }>
-                    {this.state.example.status.msg}
-                </Error>
-            );
+        } else if (this.state.error) {
+            return <ErrorView
+                {...this.state.error}
+                />
         }
+
         const pathsCount = this.state.example.sourcePaths.length;
 
         return (
