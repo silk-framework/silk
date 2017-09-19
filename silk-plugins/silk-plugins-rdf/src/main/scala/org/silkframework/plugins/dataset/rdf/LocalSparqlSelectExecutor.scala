@@ -28,8 +28,10 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   }
 
   def executeOnSparqlEndpointEntityTable(sparqlSelectTask: SparqlSelectCustomTask,
-                                         sparql: SparqlEndpointEntityTable): Traversable[Entity] = {
-    val results = sparql.select(sparqlSelectTask.selectQuery.str, sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE))
+                                         sparql: SparqlEndpointEntityTable,
+                                         limit: Int = Integer.MAX_VALUE): Traversable[Entity] = {
+    val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
+    val results = sparql.select(sparqlSelectTask.selectQuery.str, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
     createEntities(sparqlSelectTask, results, vars)
   }
