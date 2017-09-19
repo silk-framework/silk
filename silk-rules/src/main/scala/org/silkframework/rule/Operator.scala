@@ -16,6 +16,7 @@ package org.silkframework.rule
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.Identifier
 
 import scala.xml.Node
@@ -65,6 +66,6 @@ object Operator {
    * Reads the parameters of an operator.
    */
   def readParams(node: Node): Map[String, String] = {
-    (node \ "Param").map(p => ((p \ "@name").text, (p \ "@value").text)).toMap
+    XmlSerialization.deserializeParameters(node)
   }
 }

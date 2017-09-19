@@ -77,7 +77,7 @@ object TransformInput {
 
       <TransformInput id={value.id} function={plugin.id}>
         { value.inputs.map(toXml[Input]) }
-        { params.map { case (name, v) => <Param name={name} value={v}/>  } }
+        {XmlSerialization.serializeParameter(params)}
       </TransformInput>
     }
   }
