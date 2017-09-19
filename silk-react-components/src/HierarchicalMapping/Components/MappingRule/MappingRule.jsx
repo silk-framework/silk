@@ -18,6 +18,7 @@ import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
+import {isObjectMappingRule} from '../../helpers';
 
 const MappingRule = React.createClass({
     mixins: [UseMessageBus],
@@ -249,7 +250,7 @@ const MappingRule = React.createClass({
         ];
 
         const expandedView = this.state.expanded
-            ? type === 'object' || type === 'root'
+            ? isObjectMappingRule(type)
               ? <RuleObjectEdit
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}

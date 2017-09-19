@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import rxmq, {Rx} from 'ecc-messagebus';
+import {isObjectMappingRule} from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -123,7 +124,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         if (
             isObjectMapping &&
             result !== null &&
-            !_.includes(['root', 'object'], result.type)
+            !isObjectMappingRule(result.type)
         ) {
             result = element;
         }
@@ -815,7 +816,7 @@ if (!__DEBUG__) {
     };
 
     const handleUpdate = ({data, replySubject}) => {
-        const payload = _.includes(['object', 'root'], data.type)
+        const payload = isObjectMappingRule(data.type)
             ? prepareObjectMappingPayload(data)
             : prepareValueMappingPayload(data);
 

@@ -9,6 +9,7 @@ import {Spinner, Button, Icon} from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
+import {MAPPING_RULE_TYPE_ROOT} from '../helpers';
 
 const MappingsTree = React.createClass({
     mixins: [UseMessageBus],
@@ -102,7 +103,7 @@ const MappingsTree = React.createClass({
         let expanded = _.get(this.state, ['expanded', id], false);
         let isHighlighted =
             id === this.props.currentRuleId ||
-            (type === 'root' && _.isUndefined(this.props.currentRuleId));
+            (type === MAPPING_RULE_TYPE_ROOT && _.isUndefined(this.props.currentRuleId));
 
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {

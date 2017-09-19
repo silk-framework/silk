@@ -5,12 +5,13 @@ import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
 import hierarchicalMappingChannel from '../../store';
+import {MAPPING_RULE_TYPE_ROOT} from '../../helpers';
 
 export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
 
     switch (rule.type) {
-        case 'root':
+        case MAPPING_RULE_TYPE_ROOT:
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_TYPE;
         case 'direct':
@@ -50,7 +51,7 @@ export const RuleTypes = ({rule, ...otherProps}) => {
                     )}
                 </span>
             );
-        case 'root':
+        case MAPPING_RULE_TYPE_ROOT:
             return <span />;
     }
 };
