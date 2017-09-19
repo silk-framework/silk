@@ -9,7 +9,7 @@ import {Spinner, Button, Icon} from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
-import {MAPPING_RULE_TYPE_ROOT} from '../helpers';
+import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 
 const MappingsTree = React.createClass({
     mixins: [UseMessageBus],
@@ -112,7 +112,7 @@ const MappingsTree = React.createClass({
                 expanded = expanded || subtree.expanded;
 
                 if (
-                    subtree.type !== 'object' &&
+                    subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
                     subtree.id === this.props.currentRuleId
                 ) {
                     isHighlighted = true;
@@ -144,7 +144,7 @@ const MappingsTree = React.createClass({
 
             // get expanded state
             const childs = _.chain(rules.propertyRules)
-                .filter(({type}) => type === 'object')
+                .filter(({type}) => type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
             const element = () =>
@@ -156,7 +156,7 @@ const MappingsTree = React.createClass({
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>
-                    {parentType === 'object'
+                    {parentType === MAPPING_RULE_TYPE_OBJECT
                         ? <small className="ecc-silk-mapping__treenav--item-subtitle">
                               {<RuleTreeTypes rule={parent} />}
                           </small>

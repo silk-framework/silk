@@ -10,6 +10,7 @@ import {
 } from 'ecc-gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
+import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsList = React.createClass({
     mixins: [Navigation],
@@ -81,7 +82,7 @@ const MappingsList = React.createClass({
                         label: 'Add object mapping',
                         handler: () => {
                             this.handleCreate({
-                                type: 'object',
+                                type: MAPPING_RULE_TYPE_OBJECT,
                             });
                         },
                     },

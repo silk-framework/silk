@@ -18,6 +18,7 @@ import hierarchicalMappingChannel from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
+import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -117,7 +118,7 @@ const HierarchicalMapping = React.createClass({
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
-                    if (type === 'object') {
+                    if (type === MAPPING_RULE_TYPE_OBJECT) {
                         this.setState({
                             currentRuleId: parent,
                             elementToDelete: false,
@@ -234,7 +235,7 @@ const HierarchicalMapping = React.createClass({
                   }>
                   <p>
                       When you click REMOVE the mapping rule
-                      {this.state.elementToDelete.type === 'object'
+                      {this.state.elementToDelete.type === MAPPING_RULE_TYPE_OBJECT
                           ? ' including all child rules '
                           : ''}
                       will be deleted permanently.

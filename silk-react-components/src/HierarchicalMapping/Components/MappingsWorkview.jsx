@@ -27,6 +27,7 @@ import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingRule from './MappingRule/MappingRule';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
+import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -293,7 +294,7 @@ const MappingsWorkview = React.createClass({
 
         const createRuleForm = createType
             ? <div className="ecc-silk-mapping__createrule">
-                  {createType === 'object'
+                  {createType === MAPPING_RULE_TYPE_OBJECT
                       ? <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}

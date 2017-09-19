@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 import rxmq, {Rx} from 'ecc-messagebus';
-import {isObjectMappingRule} from './helpers';
+import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -203,7 +203,7 @@ const prepareObjectMappingPayload = data => {
     };
 
     if (!data.id) {
-        payload.type = 'object';
+        payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
 

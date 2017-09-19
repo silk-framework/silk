@@ -18,7 +18,7 @@ import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
-import {isObjectMappingRule} from '../../helpers';
+import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
 
 const MappingRule = React.createClass({
     mixins: [UseMessageBus],
@@ -56,7 +56,7 @@ const MappingRule = React.createClass({
                 // only trigger state / render change if necessary
                 if (
                     expanded !== this.state.expanded &&
-                    this.props.type !== 'object' &&
+                    this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
                     (id === true || id === this.props.id)
                 ) {
                     this.setState({expanded});
@@ -183,7 +183,7 @@ const MappingRule = React.createClass({
             : false;
 
         const mainAction = event => {
-            if (type === 'object') {
+            if (type === MAPPING_RULE_TYPE_OBJECT) {
                 this.handleNavigate();
             } else {
                 this.handleToggleExpand({force: true});
@@ -193,11 +193,11 @@ const MappingRule = React.createClass({
         const action = (
             <Button
                 iconName={
-                    type === 'object'
+                    type === MAPPING_RULE_TYPE_OBJECT
                         ? 'arrow_nextpage'
                         : this.state.expanded ? 'expand_less' : 'expand_more'
                 }
-                tooltip={type === 'object' ? 'Navigate to' : undefined}
+                tooltip={type ===  MAPPING_RULE_TYPE_OBJECT ? 'Navigate to' : undefined}
                 onClick={mainAction}
             />
         );
@@ -314,7 +314,7 @@ const MappingRule = React.createClass({
         return (
             <li
                 className={`ecc-silk-mapping__ruleitem mdl-list__item ${type ===
-                'object'
+                MAPPING_RULE_TYPE_OBJECT
                     ? 'ecc-silk-mapping__ruleitem--object'
                     : 'ecc-silk-mapping__ruleitem--literal'}${this.state
                     .expanded

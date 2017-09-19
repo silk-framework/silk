@@ -19,7 +19,7 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
-import {MAPPING_RULE_TYPE_ROOT} from '../../../helpers';
+import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -95,7 +95,7 @@ const ObjectMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'object',
+                type: MAPPING_RULE_TYPE_OBJECT,
             });
         }
     },
@@ -285,7 +285,7 @@ const ObjectMappingRuleForm = React.createClass({
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
                 rawRule={this.state}
-                ruleType="object"
+                ruleType={MAPPING_RULE_TYPE_OBJECT}
             />) : false;
 
         return (

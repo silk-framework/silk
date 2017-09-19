@@ -21,6 +21,7 @@ import {
     RuleTypes,
     ParentElement,
 } from './MappingRule/SharedComponents';
+import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsHeader = React.createClass({
     mixins: [Navigation],
@@ -96,7 +97,7 @@ const MappingsHeader = React.createClass({
                 <MenuItem
                     className="ecc-silk-mapping__ruleslistmenu__item-add-object"
                     onClick={() => {
-                        this.handleCreate({type: 'object'});
+                        this.handleCreate({type: MAPPING_RULE_TYPE_OBJECT});
                     }}>
                     Add object mapping
                 </MenuItem>
