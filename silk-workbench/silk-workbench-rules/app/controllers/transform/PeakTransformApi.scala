@@ -16,6 +16,7 @@ import org.silkframework.workspace.Project
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class PeakTransformApi extends Controller {
@@ -173,17 +174,16 @@ class PeakTransformApi extends Controller {
     var tryCounter = 0
     // Record the first error message
     var errorMessage: String = ""
-    val sourceAndTargetResults = (for (entity <- exampleEntities
-                                       if exampleCounter < limit) yield {
+    val resultBuffer = ArrayBuffer[PeakResult]()
+    val entityIterator = exampleEntities.toIterator
+    while (entityIterator.hasNext && exampleCounter < limit) {
       tryCounter += 1
+      val entity = entityIterator.next()
       try {
         val transformResult = rule(entity)
         if (transformResult.nonEmpty) {
-          val result = Some(PeakResult(entity.values, transformResult))
+          resultBuffer.append(PeakResult(entity.values, transformResult))
           exampleCounter += 1
-          result
-        } else {
-          None
         }
       } catch {
         case NonFatal(ex) =>
@@ -191,10 +191,9 @@ class PeakTransformApi extends Controller {
           if (errorMessage.isEmpty) {
             errorMessage = ex.getClass.getSimpleName + ": " + Option(ex.getMessage).getOrElse("")
           }
-          None
       }
-    }).toSeq.flatten
-    (tryCounter, errorCounter, errorMessage, sourceAndTargetResults)
+    }
+    (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
 
   private def serializePath(path: Path)
