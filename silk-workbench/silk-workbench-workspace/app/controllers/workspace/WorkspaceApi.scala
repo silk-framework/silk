@@ -12,7 +12,8 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoun
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
@@ -41,7 +42,7 @@ class WorkspaceApi extends Controller {
 
   def newProject(project: String): Action[AnyContent] = Action {
     if (User().workspace.projects.exists(_.name == project)) {
-      Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
+      ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
@@ -164,7 +165,8 @@ class WorkspaceApi extends Controller {
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(JsonError(ex))
+          case ex: Exception =>
+            ErrorResult.clientError(BadUserInputException(ex))
         }
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
@@ -176,7 +178,8 @@ class WorkspaceApi extends Controller {
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(JsonError(ex))
+          case ex: Exception =>
+            ErrorResult.clientError(BadUserInputException(ex))
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())

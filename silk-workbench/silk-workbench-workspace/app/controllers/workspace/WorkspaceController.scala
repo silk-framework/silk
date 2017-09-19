@@ -1,6 +1,7 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{PrefixRegistry, User}
