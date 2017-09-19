@@ -220,7 +220,7 @@ class TransformTaskApi extends Controller {
     } catch {
       case ex: BadUserInputException =>
         log.log(Level.FINE, "Invalid transformation rule", ex)
-        BadRequest(JsonError(ex.getMessage, ValidationError(ex.getMessage) :: Nil))
+        ErrorResult.validation(BAD_REQUEST, ex.getMessage, ValidationError(ex.getMessage) :: Nil)
       case ex: ValidationException =>
         log.log(Level.INFO, "Invalid transformation rule", ex)
         ErrorResult.validation(BAD_REQUEST, "Invalid transformation rule", ex.errors)
