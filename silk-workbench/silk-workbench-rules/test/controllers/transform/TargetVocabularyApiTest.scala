@@ -7,7 +7,7 @@ import play.api.libs.ws.WS
 
 class TargetVocabularyApiTest extends TransformTaskApiTestBase {
 
-  def printResponses: Boolean = true
+  def printResponses: Boolean = false
 
   "setup project" in {
     setup()
