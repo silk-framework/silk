@@ -9,8 +9,8 @@ import scala.util.control.NonFatal
 /**
   * A data source that transforms all entities using a provided transformation.
   *
-  * @param source The data source for retrieving the source entities.
-  * @param transform The transformation
+  * @param source        The data source for retrieving the source entities.
+  * @param transformRule The transformation
   */
 class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, transformRule: TransformRule) extends DataSource {
   /**

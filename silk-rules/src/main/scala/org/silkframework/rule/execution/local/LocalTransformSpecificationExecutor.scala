@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.{EntitySchema, Path, TypedPath}
 import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, Executor}
+import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.ActivityContext
 
@@ -19,9 +19,9 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
-    val input = inputs.head
-    val transformSpec = task.data.copy(selection = task.data.selection.copy(inputId = input.task.id))
-    val schema = outputSchema.orElse(transformSpec.outputSchemaOpt).get
+    val input = inputs.headOption.getOrElse {
+      throw TaskException("No input given to transform specification executor " + task.id + "!")
+    }
 
     input match {
       case mt: MultiEntityTable =>
@@ -36,7 +36,6 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
     }
   }
-
 
   private class EntityTransformer(task: Task[TransformSpec], inputTables: mutable.Buffer[EntityTable], outputTables: mutable.Buffer[EntityTable]) {
 
@@ -60,7 +59,5 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         transformEntities(updatedChildRules, childOutputSchema, context)
       }
     }
-
   }
-
 }

@@ -1,8 +1,6 @@
-@import org.silkframework.workspace.Constants
 @import org.silkframework.dataset.Dataset
-@import org.silkframework.workspace.User
-@import controllers.rules.routes.Assets
 @import org.silkframework.rule.TransformSpec
+@import org.silkframework.workspace.User
 
 @(project: String, task: String)
 
@@ -15,6 +13,12 @@
 @currentOutput = @{ transformationTask.flatMap(_.data.outputs.headOption) }
 
 @prefixes = @{ User().workspace.project(project).config.prefixes }
+
+@restrictionTooltip = @{
+  """Additional restrictions on the enumerated entities.
+  |If this is an RDF source, use SPARQL patterns that include the variable ?a to identify the enumerated entities, e.g.,
+  |?a foaf:knows <http://example.org/SomePerson>""".stripMargin
+}
 
 @widgets.dialog(title = "Transformation Task") {
 <div class="dialog-form" id="transFormationDialogForm">
@@ -36,7 +40,7 @@
       The type of entities to be retrieved from the source dataset.
     </div>
   </div>
-  @widgets.restriction("source", currentInput.map(_.restriction.serialize).getOrElse(""))
+  @widgets.multilineParameter("source", currentInput.map(_.restriction.serialize).getOrElse(""), label = "Source Restriction", tooltip = restrictionTooltip)
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
       <option value=""></option>
@@ -53,13 +57,7 @@
       Transformed entities are written to this dataset.
     </div>
   </div>
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" id="target_vocabularies" name="target_vocabularies" @for(t <- transformationTask) { value="@t.targetVocabularies.mkString(", ")" } />
-    <label class="mdl-textfield__label" for="target_vocabularies">Target Vocabularies</label>
-    <div class="mdl-tooltip mdl-tooltip--right" for="target_vocabularies">
-      Comma-separated list of target vocabularies.
-    </div>
-  </div>
+  @widgets.multilineParameter("target_vocabularies", transformationTask.map(_.targetVocabularies.mkString(", ")).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
 </div>
 }
 
@@ -92,7 +90,7 @@
       name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
       source: $("#source_dataset").val(),
       sourceType: $("#transformation_type").val(),
-      restriction: $("#source_restriction_textarea").val(),
+      restriction: $("#source").val(),
       output: $("#output_dataset").val(),
       targetVocabularies: $("#target_vocabularies").val()
     };
