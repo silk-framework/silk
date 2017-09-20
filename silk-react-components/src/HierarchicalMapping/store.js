@@ -142,6 +142,11 @@ const handleCreatedSelectBoxValue = (data, path) => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
     }
+    // the select boxes return an empty array when the user delete the existing text,
+    // instead of returning an empty string
+    if (_.isEmpty(_.get(data, [path]))) {
+        return '';
+    }
 
     return _.get(data, [path]);
 };
