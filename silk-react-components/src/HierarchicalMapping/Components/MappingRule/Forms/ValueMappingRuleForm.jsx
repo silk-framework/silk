@@ -221,8 +221,6 @@ const ValueMappingRuleForm = React.createClass({
                 ruleType="value"
             />) : false;
 
-        // TODO: Where to get the list of target Properties?
-        // TODO: Where to get the list of target property types?
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>
