@@ -803,10 +803,15 @@ if (!__DEBUG__) {
         if (_.includes(data.metadata.description, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'I am one error, but a tiny one that normal users never see',
+                cause: [
+                    {
+                        title: 'I am just a regular error',
+                        detail: 'I am one error, but a tiny one that normal users never see',
+                        cause: []
+                    },
+                ]
             });
 
             replySubject.onError(err);
@@ -833,10 +838,15 @@ if (!__DEBUG__) {
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'Comment can not contain error, that is not an error but it is an error',
+                cause: [
+                    {
+                        title: 'I am just a forced error',
+                        detail: 'I am THE error, a big one that everyone would see',
+                        cause: []
+                    },
+                ]
             });
             replySubject.onError(err);
             replySubject.onCompleted();
