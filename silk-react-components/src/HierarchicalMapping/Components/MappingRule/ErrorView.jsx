@@ -42,4 +42,4 @@ const ErrorView = React.createClass({
     }
 });
 
-export default ExampleView;
+export default ErrorView;
