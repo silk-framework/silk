@@ -7,7 +7,6 @@ import {
     CardMenu,
     CardContent,
     CardActions,
-    Error,
     Info,
     ContextMenu,
     MenuItem,
@@ -15,6 +14,7 @@ import {
     ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
+import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
@@ -23,10 +23,6 @@ import {ParentElement} from './MappingRule/SharedComponents';
 let pendingRules = {};
 let wrongRules = {};
 
-// TODO: here are several situations where errors can arise:
-//  1 request the list of suggestions (an error indicating the rule is wrong may come, or error calling DI endpoint)
-//  2 a list of errors when saving one or more rule
-//  3 an error converting one or more suggested pair (type and path) to an real "rule"
 const SuggestionsList = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
 
@@ -246,9 +242,7 @@ const SuggestionsList = React.createClass({
                               {err.rule.sourcePath}
                           </div>
                           <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline">
-                              <Error>
-                                  {err.msg.message}
-                              </Error>
+                              <ErrorView {...err}/>
                           </div>
                       </div>
                   </li>
