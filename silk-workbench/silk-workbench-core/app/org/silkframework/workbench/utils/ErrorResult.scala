@@ -1,6 +1,6 @@
 package org.silkframework.workbench.utils
 
-import org.silkframework.runtime.validation.{ClientRequestException, ValidationIssue}
+import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
@@ -15,12 +15,12 @@ import play.api.mvc.Results.Status
 object ErrorResult {
 
   /**
-    * Generate a client error response.
+    * Generate a request error response.
     *
-    * @param ex The exception that specifies the client error.
+    * @param ex The exception that specifies the request error.
     */
-  def clientError(ex: ClientRequestException): Result = {
-    generateResult(ex.httpErrorCode, fromException(ex))
+  def requestError(ex: RequestException): Result = {
+    generateResult(ex.httpErrorCode.getOrElse(500), fromException(ex))
   }
 
   /**
@@ -43,10 +43,8 @@ object ErrorResult {
   private def fromException(ex: Throwable): JsValue = {
     val cause = Option(ex.getCause).map(fromException).getOrElse(JsNull)
     ex match {
-      case clientEx: ClientRequestException =>
-        format(clientEx.errorText, clientEx.getMessage, cause)
-      case requestEx: HttpProblemDetailsException =>
-        format(requestEx.title, requestEx.detail, cause)
+      case requestEx: RequestException =>
+        format(requestEx.errorTitle, requestEx.getMessage, cause)
       case _ =>
         val errorTitle = ex.getClass.getSimpleName.replace("Exception", "")
         val readableTitle = errorTitle.flatMap(c => if (c.isUpper) " " + c.toLower else c.toString).trim.capitalize

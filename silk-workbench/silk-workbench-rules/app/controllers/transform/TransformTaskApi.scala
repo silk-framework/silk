@@ -143,7 +143,7 @@ class TransformTaskApi extends Controller {
       }
     } catch {
       case ex: NoSuchElementException =>
-        ErrorResult.clientError(NotFoundException(ex))
+        ErrorResult.requestError(NotFoundException(ex))
     }
   }
 
@@ -187,10 +187,10 @@ class TransformTaskApi extends Controller {
               updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
               Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
             } else {
-              ErrorResult.clientError(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+              ErrorResult.requestError(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }
           case None =>
-            ErrorResult.clientError(UnsupportedMediaTypeException.supportedFormats("application/json."))
+            ErrorResult.requestError(UnsupportedMediaTypeException.supportedFormats("application/json."))
         }
       }
     }
@@ -204,7 +204,7 @@ class TransformTaskApi extends Controller {
       case Some(rule) =>
         catchExceptions(processFunc(rule))
       case None =>
-        ErrorResult.clientError(NotFoundException(s"No rule with id '$ruleId' found!"))
+        ErrorResult.requestError(NotFoundException(s"No rule with id '$ruleId' found!"))
     }
   }
 
@@ -223,7 +223,7 @@ class TransformTaskApi extends Controller {
         ErrorResult.validation(BAD_REQUEST, "Invalid transformation rule", ex.errors)
       case ex: JsonParseException =>
         log.log(Level.INFO, "Invalid transformation rule JSON", ex)
-        ErrorResult.clientError(BadUserInputException(ex))
+        ErrorResult.requestError(BadUserInputException(ex))
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
         ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil)

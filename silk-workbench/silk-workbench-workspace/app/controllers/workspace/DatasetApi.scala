@@ -37,7 +37,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         val autoConfDataset = autoConfigurable.autoConfigured
         serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
       case _ =>
-        ErrorResult.clientError(BadUserInputException("This dataset type does not support auto-configuration."))
+        ErrorResult.requestError(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
@@ -53,7 +53,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
               project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
               Ok
             case _ =>
-              ErrorResult.clientError(BadUserInputException("This dataset type does not support auto-configuration."))
+              ErrorResult.requestError(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
           project.updateTask(dataset.id, dataset.data)
@@ -62,7 +62,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       }
     } catch {
       case ex: Exception =>
-        ErrorResult.clientError(BadUserInputException(ex))
+        ErrorResult.requestError(BadUserInputException(ex))
     }
   }
   }
@@ -88,7 +88,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       case ds: DatasetPluginAutoConfigurable[_] =>
         Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfigured)))
       case _ =>
-        ErrorResult.clientError(BadUserInputException("This dataset type does not support auto-configuration."))
+        ErrorResult.requestError(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
@@ -121,7 +121,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         }
         Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
       case _ =>
-        ErrorResult.clientError(BadUserInputException("This is not an RDF-Dataset."))
+        ErrorResult.requestError(BadUserInputException("This is not an RDF-Dataset."))
     }
   }
 

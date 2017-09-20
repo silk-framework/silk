@@ -2,19 +2,19 @@ package org.silkframework.workbench.utils
 
 import java.net.HttpURLConnection
 
-import org.silkframework.runtime.validation.ClientRequestException
+import org.silkframework.runtime.validation.RequestException
 
-case class UnsupportedMediaTypeException(msg: String) extends ClientRequestException(msg, None) {
+case class UnsupportedMediaTypeException(msg: String) extends RequestException(msg, None) {
 
   /**
     * A short error title.".
     */
-  override val errorText: String = "Unsupported Media Type"
+  override val errorTitle: String = "Unsupported Media Type"
 
   /**
     * The HTTP error code. Typically in the 4xx range.
     */
-  override val httpErrorCode: Int = HttpURLConnection.HTTP_UNSUPPORTED_TYPE
+  override val httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)
 }
 
 object UnsupportedMediaTypeException {

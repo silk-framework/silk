@@ -2,6 +2,7 @@ package org.silkframework.workbench.utils
 
 import java.io.InputStream
 
+import org.silkframework.runtime.validation.RequestException
 import play.api.libs.json.{JsString, JsValue, Json}
 
 import scala.io.Source
@@ -10,7 +11,10 @@ import scala.util.control.NonFatal
 /**
   * Error response according to RFC 7807 "Problem Details for HTTP APIs".
   */
-case class HttpProblemDetailsException(title: String, detail: String, cause: Option[HttpProblemDetailsException]) extends Exception(detail, cause.orNull)
+case class HttpProblemDetailsException(errorTitle: String,
+                                       detail: String,
+                                       cause: Option[HttpProblemDetailsException],
+                                       httpErrorCode: Option[Int] = None) extends RequestException(errorTitle, cause)
 
 object HttpProblemDetailsException {
 

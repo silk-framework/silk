@@ -3,7 +3,7 @@ package org.silkframework.workbench.utils
 import java.util.logging.{Level, Logger}
 import javax.inject.Provider
 
-import org.silkframework.runtime.validation.ClientRequestException
+import org.silkframework.runtime.validation.RequestException
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
@@ -131,8 +131,8 @@ class SilkErrorHandler (env: Environment,
           case None =>
             ErrorResult.serverError(INTERNAL_SERVER_ERROR, executionException)
         }
-      case requestEx: ClientRequestException =>
-        ErrorResult.clientError(requestEx)
+      case requestEx: RequestException =>
+        ErrorResult.requestError(requestEx)
       case _: JsonParseException =>
         ErrorResult(BAD_REQUEST, "Could not parse JSON", ex.getMessage)
       case _ =>

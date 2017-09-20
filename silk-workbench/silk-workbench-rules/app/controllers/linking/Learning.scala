@@ -123,7 +123,7 @@ class Learning extends Controller {
             Ok("No link candidate generated, please wait for completion or restart...")
         }
       case None =>
-        ErrorResult.clientError(BadUserInputException("query parameters missing"))
+        ErrorResult.requestError(BadUserInputException("query parameters missing"))
     }
   }
 

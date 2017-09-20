@@ -28,10 +28,10 @@ class CustomTasks extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            ErrorResult.clientError(BadUserInputException("Could not parse supplied XML", Some(ex)))
+            ErrorResult.requestError(BadUserInputException("Could not parse supplied XML", Some(ex)))
         }
       case None =>
-        ErrorResult.clientError(BadUserInputException("Expecting custom task specification in request body as text/xml."))
+        ErrorResult.requestError(BadUserInputException("Expecting custom task specification in request body as text/xml."))
     }
   }}
 

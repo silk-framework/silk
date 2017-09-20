@@ -108,7 +108,7 @@ class LinkingTaskApi extends Controller {
             ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       case None =>
-        ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
+        ErrorResult.requestError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 
@@ -149,7 +149,7 @@ class LinkingTaskApi extends Controller {
             ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
         }
       }
-      case None => ErrorResult.clientError(BadUserInputException("Expecting text/xml request body"))
+      case None => ErrorResult.requestError(BadUserInputException("Expecting text/xml request body"))
     }
   }}
 
