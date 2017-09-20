@@ -73,15 +73,22 @@ const ExampleView = React.createClass({
     // template rendering
     render() {
         if (_.isUndefined(this.state.example)) {
-            return <Spinner />;
+            return <div/>;
         } else if (this.state.error) {
             return <ErrorView
                 {...this.state.error}
                 />
         }
 
-        const pathsCount = this.state.example.sourcePaths.length;
+        const pathsCount = _.size(this.state.example.sourcePaths);
+        if (pathsCount === 0){
+            return <ErrorView
+                title={_.get(this.state, 'example.status.id', 'title')}
+                detail={_.get(this.state, 'example.status.msg', 'detail')}
+                cause={[]}
+            />
 
+        }
         return (
             <table className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
                 <thead>
