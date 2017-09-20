@@ -2,6 +2,12 @@
 
 import _ from 'lodash';
 import rxmq, {Rx} from 'ecc-messagebus';
+import {
+    isObjectMappingRule,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_URI,
+} from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -123,7 +129,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         if (
             isObjectMapping &&
             result !== null &&
-            !_.includes(['root', 'object'], result.type)
+            !isObjectMappingRule(result.type)
         ) {
             result = element;
         }
@@ -153,7 +159,7 @@ const prepareValueMappingPayload = data => {
         },
     };
 
-    if (data.type === 'direct') {
+    if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
@@ -193,7 +199,7 @@ const prepareObjectMappingPayload = data => {
         rules: {
             uriRule: data.pattern
                 ? {
-                      type: 'uri',
+                      type: MAPPING_RULE_TYPE_URI,
                       pattern: data.pattern,
                   }
                 : null,
@@ -202,7 +208,7 @@ const prepareObjectMappingPayload = data => {
     };
 
     if (!data.id) {
-        payload.type = 'object';
+        payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
 
@@ -402,7 +408,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('autocomplete')
         .subscribe(({data, replySubject}) => {
-            const {entity, input, ruleId} = data;
+            const {entity, input, ruleId = rootId} = data;
 
             let channel = 'transform.task.rule.completions.';
 
@@ -555,7 +561,7 @@ if (!__DEBUG__) {
                         },
                     },
                     sourcePath: correspondence.sourcePath,
-                    type: 'direct',
+                    type: MAPPING_RULE_TYPE_DIRECT,
                 });
             });
 
@@ -815,7 +821,7 @@ if (!__DEBUG__) {
     };
 
     const handleUpdate = ({data, replySubject}) => {
-        const payload = _.includes(['object', 'root'], data.type)
+        const payload = isObjectMappingRule(data.type)
             ? prepareObjectMappingPayload(data)
             : prepareValueMappingPayload(data);
 

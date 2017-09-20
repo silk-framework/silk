@@ -6,6 +6,7 @@ import org.silkframework.rule.ComplexMapping
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.date.DateToTimestampTransformer
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.CamelCaseTokenizer
 import org.silkframework.util.Uri
 
@@ -76,6 +77,19 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
     errors mustBe 2
     errorMsg mustBe "IllegalArgumentException: no date"
     peakResult mustBe Seq()
+  }
+
+  it should "collect the examples lazily" in {
+    val rule = transformRule(LowerCaseTransformer())
+    var counter = 0
+    val entities = for(i <- (1 to 1000).view) yield {
+      counter += 1
+      entity(Seq("UPPER" + i), Seq("UPPER" + i))
+    }
+    val (tries, errors, _, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    tries mustBe 3
+    errors mustBe 0
+    counter mustBe 3
   }
 
   private def entity(values: Seq[String]*)
