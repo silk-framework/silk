@@ -82,12 +82,7 @@ const ExampleView = React.createClass({
 
         const pathsCount = _.size(this.state.example.sourcePaths);
         if (pathsCount === 0){
-            // TODO: It should return a 404 with the right error protocol. Fix here after the endpoint changes.
-            return <ErrorView
-                cause={[]}
-                title={_.get(this.state, 'example.status.id', 'Not found')}
-                detail={_.get(this.state, 'example.status.msg', 'Source path not found in the source data')}
-            />
+            return false;
 
         }
         return (
