@@ -11,11 +11,11 @@ import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationError, ValidationException, ValidationWarning}
+import org.silkframework.runtime.validation._
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json.{JsArray, JsObject, JsString}
@@ -337,10 +337,10 @@ class LinkingTaskApi extends Controller {
           result(model, acceptedContentType, "Successfully generated links")
         } catch {
           case e: NoSuchElementException =>
-            NotFound
+            throw new NotFoundException("Not found")
         }
       case _ =>
-        UnsupportedMediaType("Only XML supported")
+        throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
   }
 }

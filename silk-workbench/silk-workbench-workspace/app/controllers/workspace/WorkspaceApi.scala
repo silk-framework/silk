@@ -102,7 +102,11 @@ class WorkspaceApi extends Controller {
         SilkConfigImporter(config, project)
         Ok
       case _ =>
-        UnsupportedMediaType("Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml")
+        ErrorResult(
+          status = UNSUPPORTED_MEDIA_TYPE,
+          title = "Unsupported Media Type",
+          detail = "Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml"
+        )
     }
   }
   }

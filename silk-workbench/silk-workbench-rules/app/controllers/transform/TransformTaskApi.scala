@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.Task
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -15,14 +15,11 @@ import org.silkframework.runtime.validation.{BadUserInputException, NotFoundExce
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
-import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json._
 import play.api.mvc._
-
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 class TransformTaskApi extends Controller {
 
@@ -193,7 +190,7 @@ class TransformTaskApi extends Controller {
               ErrorResult.clientError(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }
           case None =>
-            ErrorResult.clientError(NotAcceptableException("Expected application/json."))
+            ErrorResult.clientError(UnsupportedMediaTypeException.supportedFormats("application/json."))
         }
       }
     }
@@ -290,7 +287,7 @@ class TransformTaskApi extends Controller {
         val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")
       case _ =>
-        UnsupportedMediaType("Only XML supported")
+        throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
   }
 

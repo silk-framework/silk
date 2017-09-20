@@ -161,7 +161,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
           val result = vd.valueCoverage(dataSourcePath, matchingInputPaths)
           Ok(Json.toJson(result))
         case _ =>
-          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage.")
+          ErrorResult(
+            status = INTERNAL_SERVER_ERROR,
+            title = "Mapping coverage not supported",
+            detail = "The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage."
+          )
       }
     }
   }
@@ -183,7 +187,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
-          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping coverage.")
+          ErrorResult(
+            status = INTERNAL_SERVER_ERROR,
+            title = "Mapping coverage not supported",
+            detail = "The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage."
+          )
       }
     } catch {
       case e: IllegalArgumentException =>
