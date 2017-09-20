@@ -204,7 +204,7 @@ const ObjectMappingRuleForm = React.createClass({
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm =
-            type === MAPPING_RULE_TYPE_ROOT ? true : this.state.targetProperty;
+            type === MAPPING_RULE_TYPE_ROOT ? true : !_.isEmpty(this.state.targetProperty);
 
         const errorMessage = error ? <FormSaveError error={error} /> : false;
 

@@ -181,7 +181,7 @@ const ValueMappingRuleForm = React.createClass({
 
         const errorMessage = error ? <FormSaveError error={error} /> : false;
 
-        const allowConfirm = this.state.targetProperty;
+        const allowConfirm = !_.isEmpty(this.state.targetProperty);
 
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
