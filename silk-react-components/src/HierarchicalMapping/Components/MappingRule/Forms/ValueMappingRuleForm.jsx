@@ -17,6 +17,7 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
@@ -57,7 +58,7 @@ const ValueMappingRuleForm = React.createClass({
                 .subscribe(
                     ({rule}) => {
                         const initialValues = {
-                            type: _.get(rule, 'type', 'direct'),
+                            type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetProperty: _.get(
                                 rule,
@@ -89,7 +90,7 @@ const ValueMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'direct',
+                type: MAPPING_RULE_TYPE_DIRECT,
                 propertyType: 'AutoDetectValueType',
                 sourceProperty: '',
                 initialValues: {},
@@ -168,7 +169,9 @@ const ValueMappingRuleForm = React.createClass({
     },
     // template rendering
     render() {
-        const {id} = this.props;
+        const {id, parentId} = this.props;
+
+        const autoCompleteRuleId = id || parentId;
 
         const {type, error} = this.state;
 
@@ -185,7 +188,7 @@ const ValueMappingRuleForm = React.createClass({
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
 
-        if (type === 'direct') {
+        if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder={'Value path'}
@@ -193,14 +196,14 @@ const ValueMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId}
+                    ruleId={autoCompleteRuleId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
                     )}
                 />
             );
-        } else if (type === 'complex') {
+        } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
                 <TextField
                     disabled
@@ -233,7 +236,7 @@ const ValueMappingRuleForm = React.createClass({
                             isValidNewOption={newValueIsIRI}
                             creatable
                             value={this.state.targetProperty}
-                            ruleId={this.props.parentId}
+                            ruleId={autoCompleteRuleId}
                             onChange={this.handleChangeSelectBox.bind(
                                 null,
                                 'targetProperty'
@@ -243,7 +246,7 @@ const ValueMappingRuleForm = React.createClass({
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
-                            ruleId={this.props.parentId}
+                            ruleId={autoCompleteRuleId}
                             value={this.state.propertyType}
                             clearable={false}
                             onChange={this.handleChangeSelectBox.bind(

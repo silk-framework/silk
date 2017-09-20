@@ -107,6 +107,7 @@ const SuggestionsList = React.createClass({
                 topic: 'rules.generate',
                 data: {
                     correspondences,
+                    // TODO: DROP root
                     parentRuleId: _.get(this.props, 'ruleId', 'root'),
                 },
             })
