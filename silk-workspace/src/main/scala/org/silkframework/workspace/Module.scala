@@ -62,7 +62,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def task(name: Identifier): ProjectTask[TaskData] = {
     load()
-    cachedTasks.getOrElse(name, throw new TaskNotFoundException(project.name, name, taskType.getName))
+    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.name, name, taskType.getName))
   }
 
   def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {

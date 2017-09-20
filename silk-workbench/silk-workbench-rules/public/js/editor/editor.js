@@ -204,7 +204,7 @@ function initEditor() {
         modifyLinkSpec();
     });
     $(document).on('change', "select", function () {
-            modifyLinkSpec();
+      modifyLinkSpec();
     });
     $(document).on('keyup', "input[type='text'].param_value", function () {
         modifyLinkSpec();

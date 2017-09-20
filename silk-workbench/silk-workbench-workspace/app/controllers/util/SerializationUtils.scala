@@ -2,16 +2,18 @@ package controllers.util
 
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc._
+import play.api.mvc.Results.Ok
+import play.api.http.Status._
 
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
 
-object SerializationUtils extends Results {
+object SerializationUtils {
 
   private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle")
 
@@ -66,8 +68,9 @@ object SerializationUtils extends Results {
   }
 
   private def notAcceptable(request: Request[AnyContent], valueType: Class[_]) = {
-    NotAcceptable(JsonError(s"No serialization for accepted MIME types (${request.acceptedTypes.mkString(", ")})" +
-        s" available for values of type ${valueType.getSimpleName}"))
+    val msg = s"No serialization for accepted MIME types (${request.acceptedTypes.mkString(", ")})" +
+      s" available for values of type ${valueType.getSimpleName}"
+    ErrorResult.clientError(NotAcceptableException(msg))
   }
 
   def serializeToStringCompileType[T: ClassTag](value: T,
@@ -142,7 +145,7 @@ object SerializationUtils extends Results {
             throw new RuntimeException("Received JSON data is not a JSON array!")
         }
       case _ =>
-        UnsupportedMediaType("Unsupported content type. Try JSON or XML.")
+        ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported media type", detail = "Unsupported content type. Try JSON or XML.")
     }
   }
 
@@ -201,13 +204,13 @@ object SerializationUtils extends Results {
               case AnyContentAsXml(xml) => Serialization.formatForType[T, Node].read(xml.head)
               case AnyContentAsJson(json) => Serialization.formatForType[T, JsValue].read(json)
               case AnyContentAsText(str) => Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
-              case _ => return UnsupportedMediaType("Unsupported content type")
+              case _ => return ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported Media Type", detail = "Unsupported content type")
             }
           // Call the user provided function and return its result
           func(value)
         case None =>
-          UnsupportedMediaType(JsonError(s"No serialization for content type ${request.mediaType} available for values of type ${valueType.getName}"))
-      }
+          val msg = s"No serialization for content type ${request.mediaType} available for values of type ${valueType.getName}"
+          ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported Media Type", detail = msg) }
     } catch {
       case v: ValidationException =>
         throw BadUserInputException(v.getMessage)
@@ -233,8 +236,9 @@ object SerializationUtils extends Results {
       case Some(mimeType) =>
         fn(Serialization.formatForMime(classToSerialize, mimeType), mimeType)
       case None =>
-        NotAcceptable(JsonError(s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
-            s" available for values of type ${classToSerialize.getSimpleName}"))
+        val msg = s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
+                  s" available for values of type ${classToSerialize.getSimpleName}"
+        ErrorResult.clientError(NotAcceptableException(msg))
     }
   }
 

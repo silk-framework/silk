@@ -1,6 +1,6 @@
 package org.silkframework.runtime.serialization
 
-import scala.xml.Node
+import scala.xml.{Node, NodeSeq, PCData}
 
 /**
  * Serializes between classes and XML.
@@ -14,5 +14,26 @@ object XmlSerialization {
 
   def fromXml[T](node: Node)(implicit format: XmlFormat[T], readContext: ReadContext): T = {
     format.read(node)
+  }
+
+  def serializeParameter(parameters: Map[String, String]): NodeSeq = {
+    NodeSeq.fromSeq(parameters.toSeq.map {
+      case (name, v) =>
+        val vPCdata = PCData(v)
+        <Param name={name}>{vPCdata}</Param>
+    })
+  }
+
+  def deserializeParameters(node: Node): Map[String, String] = {
+    (node \ "Param").map { p =>
+      val name = (p \ "@name").text
+      val valueAttr = p \ "@value"
+      val value = if(valueAttr.isEmpty) {
+        p.text
+      } else {
+        valueAttr.text
+      }
+      (name, value)
+    }.toMap
   }
 }

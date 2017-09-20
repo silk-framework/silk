@@ -5,6 +5,7 @@
 @(project: Project, taskName: String, taskPlugin: Option[CustomTask])
 
   @widgets.pluginDialog(
+    project.config.id,
     name = taskName,
     plugins = PluginRegistry.availablePlugins[CustomTask],
     currentObj = taskPlugin,

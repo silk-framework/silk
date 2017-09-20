@@ -10,6 +10,7 @@ import {
     RadioGroup,
     TextField,
     Spinner,
+    ScrollingMixin
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -25,7 +26,7 @@ import {
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, ScrollingMixin],
 
     // define property types
     propTypes: {
@@ -40,6 +41,17 @@ const ObjectMappingRuleForm = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.loading === true &&
+            _.get(this.state, 'loading', false) === false
+        ) {
+            this.scrollIntoView({
+                topOffset: 75
+            });
+        }
+    },
+
     loadData() {
         if (this.props.id) {
             hierarchicalMappingChannel
@@ -284,7 +296,7 @@ const ObjectMappingRuleForm = React.createClass({
             );
         }
 
-        const exampleView = allowConfirm && this.state.sourceProperty ?(
+        const exampleView = this.state.sourceProperty ?(
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
@@ -333,12 +345,14 @@ const ObjectMappingRuleForm = React.createClass({
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                            raised
                             onClick={this.handleConfirm}
                             disabled={!allowConfirm || !this.state.changed}>
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
+                            raised
                             onClick={this.handleClose}>
                             Cancel
                         </DismissiveButton>

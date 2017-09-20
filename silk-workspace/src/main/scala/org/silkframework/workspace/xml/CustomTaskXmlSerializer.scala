@@ -14,13 +14,13 @@
 
 package org.silkframework.workspace.xml
 
+import java.io.OutputStreamWriter
 import java.util.logging.Logger
 
 import org.silkframework.config._
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
-import org.silkframework.util.XMLUtils._
 
 import scala.xml.XML
 
@@ -55,7 +55,13 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
    * Writes an updated task.
    */
   override def writeTask(task: Task[CustomTask], resources: ResourceManager): Unit = {
-    resources.get(task.id.toString + ".xml").write(){ os => XmlSerialization.toXml(task).write(os) }
+    resources.get(task.id.toString + ".xml").write() { os =>
+      val taskXml = XmlSerialization.toXml(task)
+      val out = new OutputStreamWriter(os, "UTF-8")
+      out.write(taskXml.toString())
+      out.write("\n")
+      out.flush()
+    }
   }
 
   /**

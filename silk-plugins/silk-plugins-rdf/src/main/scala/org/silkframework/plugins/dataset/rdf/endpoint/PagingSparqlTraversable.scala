@@ -6,7 +6,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap
-import scala.xml.{Elem, NodeSeq}
+import scala.xml.{Elem, Node, NodeSeq}
 
 /**
   * Given a SPARQL query, pages through the results by issuing multiple queries with sliding offsets.
@@ -23,13 +23,15 @@ object PagingSparqlTraversable {
     * @param params The SPARQL parameters
     * @param limit The maximum number of SPARQL results returned in total (not per single query)
     */
-  def apply(query: String, queryExecutor: String => Elem, params: SparqlParams, limit: Int) = {
+  def apply(query: String, queryExecutor: String => Elem, params: SparqlParams, limit: Int): SparqlResults = {
     SparqlResults(
       bindings = new ResultsTraversable(query, queryExecutor, params, limit)
     )
   }
 
-  private class ResultsTraversable(query: String, queryExecutor: String => Elem, params: SparqlParams, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+  private class ResultsTraversable(query: String,
+                                   queryExecutor: String => Elem,
+                                   params: SparqlParams, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
 
     private var blankNodeCount = 0
 
@@ -59,14 +61,16 @@ object PagingSparqlTraversable {
 
       val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
 
-      val literals = for (binding <- bindings; node <- binding \ "literal") yield ((binding \ "@name").text, PlainLiteral(node.text))
+      val literals = for (binding <- bindings; node <- binding \ "literal") yield {
+        parseLiteral(binding, node)
+      }
 
-      val bnodes = for (binding <- bindings; node <- binding \ "bnode") yield {
+      val bNodes = for (binding <- bindings; _ <- binding \ "bnode") yield {
         blankNodeCount += 1
         ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
       }
 
-      SortedMap(uris ++ literals ++ bnodes: _*)
+      SortedMap(uris ++ literals ++ bNodes: _*)
     }
 
     /**
@@ -83,32 +87,29 @@ object PagingSparqlTraversable {
       }
 
       //Execute query
-      if (logger.isLoggable(Level.FINE))
-        logger.fine("Executing query on \n" + query)
+      logger.fine("Executing query on \n" + query)
 
       var result: Elem = null
       var retries = 0
-      var retryPause = params.retryPause
+      val retryPause = params.retryPause
       while (result == null) {
         try {
           result = queryExecutor(query)
         }
         catch {
-          case ex: IOException => {
+          case ex: IOException =>
             retries += 1
             if (retries > params.retryCount) {
               throw ex
             }
-            logger.info("Query failed:\n" + query + "\nError Message: '" + ex.getMessage + "'.\nRetrying in " + retryPause + " ms. (" + retries + "/" + params.retryCount + ")")
+            logger.info(s"Query failed:\n$query\nError Message: '${ex.getMessage}'.\nRetrying in $retryPause ms. ($retries/${params.retryCount})")
 
             Thread.sleep(retryPause)
             //Double the retry pause up to a maximum of 1 hour
             //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
-          }
-          case ex: Exception => {
+          case ex: Exception =>
             logger.log(Level.SEVERE, "Could not execute query:\n" + query, ex)
             throw ex
-          }
         }
       }
 
@@ -117,4 +118,18 @@ object PagingSparqlTraversable {
     }
   }
 
+  private def parseLiteral(binding: Node, node: Node) = {
+    val attrMap = node.attributes.asAttrMap
+    val value = node.text
+    val bindingName = (binding \ "@name").text
+    val literal = (attrMap.get("xml:lang"), attrMap.get("datatype")) match {
+      case (Some(lang), _) =>
+        LanguageLiteral(value, lang)
+      case (_, Some(dataType)) =>
+        DataTypeLiteral(value, dataType)
+      case _ =>
+        PlainLiteral(value)
+    }
+    (bindingName, literal)
+  }
 }

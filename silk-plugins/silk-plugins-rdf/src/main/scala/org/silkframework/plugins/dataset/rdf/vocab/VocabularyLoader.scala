@@ -39,7 +39,8 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          | ORDER BY ?c
       """.stripMargin
 
-    val resultsPerClass = new SequentialGroup(endpoint.select(classQuery).bindings)
+    val queryResult = endpoint.select(classQuery).bindings
+    val resultsPerClass = new SequentialGroup(queryResult)
     for((classUri, bindings) <- resultsPerClass) yield {
       val label = collectLanguageRankedValue("label", bindings)
       val description = collectLanguageRankedValue("desc", bindings)

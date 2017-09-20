@@ -21,7 +21,7 @@ import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
 import org.silkframework.workspace.activity.transform._
@@ -106,10 +106,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param activityName The name of the requested activity
     * @return The activity control for the requested activity
+    * @throws org.silkframework.runtime.validation.NotFoundException
     */
   def activity(activityName: String) = {
     projectActivities.find(_.name == activityName)
-      .getOrElse(throw new NoSuchElementException(s"Project '$name' does not contain an activity named '$activityName'. " +
+      .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }
 
@@ -160,11 +161,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * Retrieves a task of any type by name.
    *
    * @param taskName The name of the task
-   * @throws java.util.NoSuchElementException If no task with the given name has been found
+   * @throws org.silkframework.workspace.TaskNotFoundException If no task with the given name has been found
    */
   def anyTask(taskName: Identifier): ProjectTask[_ <: TaskSpec] = {
     modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
-           .getOrElse(throw new NoSuchElementException(s"No task '$taskName' found in project '$name'"))
+           .getOrElse(throw TaskNotFoundException(config.id, taskName, "any type"))
   }
 
   /**

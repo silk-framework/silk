@@ -115,19 +115,6 @@ const RuleValueView = React.createClass({
         return (
             <div className="ecc-silk-mapping__rulesviewer">
                 <Card shadow={0}>
-                    <CardTitle
-                        className="ecc-silk-mapping__rulesviewer__title clickable"
-                        onClick={this.props.handleToggleExpand}>
-                        <div className="mdl-card__title-text">
-                            <ThingName
-                                id={_.get(
-                                    this.props,
-                                    'mappingTarget.uri',
-                                    false
-                                )}
-                            />
-                        </div>
-                    </CardTitle>
                     <CardContent>
                         {_.get(this.props, 'mappingTarget.uri', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__targetProperty">
@@ -179,7 +166,11 @@ const RuleValueView = React.createClass({
                                       <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                           Data type
                                       </dt>
-                                      <dd>
+                                      <dd key={_.get(
+                                          this.props,
+                                          'mappingTarget.valueType.nodeType',
+                                          false
+                                      )}>
                                           <InfoBox>
                                               <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                   <PropertyTypeLabel
@@ -214,6 +205,7 @@ const RuleValueView = React.createClass({
                                       <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                           <code>{this.props.sourcePath}</code>{' '}
                                           <Button
+                                              raised
                                               iconName="edit"
                                               className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                               onClick={this.handleComplexEdit}
@@ -238,6 +230,7 @@ const RuleValueView = React.createClass({
                                           function{operators.length > 1 ? 's' : ''}:&nbsp;
                                           <code>{operators.join(', ')}</code>.
                                           <Button
+                                              raised
                                               iconName="edit"
                                               className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                               onClick={this.handleComplexEdit}
@@ -254,8 +247,12 @@ const RuleValueView = React.createClass({
                                       <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                           Examples of target data
                                       </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <ExampleView id={this.props.id} />
+                                      <dd>
+                                          <InfoBox>
+                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                                  <ExampleView id={this.props.id} />
+                                              </div>
+                                          </InfoBox>
                                       </dd>
                                   </dl>
                               </div>
@@ -276,11 +273,13 @@ const RuleValueView = React.createClass({
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            raised
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
                         <DisruptiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-remove"
+                            raised
                             onClick={() =>
                                 hierarchicalMappingChannel
                                     .subject('removeClick')

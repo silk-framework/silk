@@ -5,7 +5,7 @@ import org.silkframework.util.Uri
 /**
   * Dummy dataset for tests. The main methods for retrieving and writing can be defined as parameter.
   */
-case class DummyDataset() extends Dataset {
+case class DummyDataset(name: String = "dummy") extends Dataset {
   var retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity] = (_, _) => Seq.empty
   var retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity] = (_, _) => Seq.empty
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}
