@@ -15,13 +15,13 @@
       function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
         var ctDoc = document.implementation.createDocument("", "CustomTask", null);
-        var ct = ctDoc.documentElement
+        var ct = ctDoc.documentElement;
         ct.setAttribute('id', name);
         ct.setAttribute('type', pluginId);
         for(var i in parameters) {
           var param = ctDoc.createElement('Param');
           param.setAttribute('name', parameters[i].name);
-          param.setAttribute('value', parameters[i].value);
+          param.appendChild(ctDoc.createCDATASection(parameters[i].value));
           ct.appendChild(param);
         }
         var oSerializer = new XMLSerializer();
