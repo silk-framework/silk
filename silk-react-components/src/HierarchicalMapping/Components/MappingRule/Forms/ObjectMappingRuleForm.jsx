@@ -296,7 +296,7 @@ const ObjectMappingRuleForm = React.createClass({
             );
         }
 
-        const exampleView = this.state.sourceProperty ?(
+        const exampleView = !_.isEmpty(this.state.sourceProperty) ?(
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
