@@ -6,6 +6,7 @@ import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_URI,
 } from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
@@ -198,7 +199,7 @@ const prepareObjectMappingPayload = data => {
         rules: {
             uriRule: data.pattern
                 ? {
-                      type: 'uri',
+                      type: MAPPING_RULE_TYPE_URI,
                       pattern: data.pattern,
                   }
                 : null,
