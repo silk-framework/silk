@@ -1,5 +1,6 @@
 import React from 'react';
 import {Error} from 'ecc-gui-elements';
+import _ from 'lodash';
 
 const ErrorView = React.createClass({
     propTypes: {
@@ -14,6 +15,11 @@ const ErrorView = React.createClass({
         return {
             errorExpanded: false,
         };
+    },
+    recursiveRender(array) {
+        return <ul className="ecc-hierarchical-mapping-error-list">{_.map(array, ({title, detail, cause}) => {
+            return <li><p>{title}</p><p>{detail}</p><p>{this.recursiveRender(cause)}</p></li>
+        })}</ul>;
     },
     // template rendering
     render() {
@@ -36,7 +42,8 @@ const ErrorView = React.createClass({
                 this.state.errorExpanded ? 'expand_less' : 'expand_more'
             }>
             <p>{this.props.title}</p>
-            <p>{this.props.title}</p>
+            <p>{this.props.detail}</p>
+            <ul className="ecc-hierarchical-mapping-error-list">{this.recursiveRender(this.props.cause)}</ul>
 
         </Error>;
     }
