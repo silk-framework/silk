@@ -13873,3 +13873,8 @@ ul.navigation {
     list-style-type: none; }
   ul.navigation .mdl-button.mdl-button--active {
     background-color: rgba(158,158,158, 0.20); }
+
+ul.ecc-hierarchical-mapping-error-list {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none; }
