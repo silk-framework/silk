@@ -16,6 +16,7 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
+import {MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -45,7 +46,7 @@ const ValueMappingRuleForm = React.createClass({
                 .subscribe(
                     ({rule}) => {
                         const initialValues = {
-                            type: _.get(rule, 'type', 'direct'),
+                            type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
                             targetProperty: _.get(
                                 rule,
@@ -77,7 +78,7 @@ const ValueMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'direct',
+                type: MAPPING_RULE_TYPE_DIRECT,
                 propertyType: 'AutoDetectValueType',
                 sourceProperty: '',
                 initialValues: {},
@@ -175,7 +176,7 @@ const ValueMappingRuleForm = React.createClass({
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
 
-        if (type === 'direct') {
+        if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder={'Value path'}

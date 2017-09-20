@@ -2,7 +2,11 @@
 
 import _ from 'lodash';
 import rxmq, {Rx} from 'ecc-messagebus';
-import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from './helpers';
+import {
+    isObjectMappingRule,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+} from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -154,7 +158,7 @@ const prepareValueMappingPayload = data => {
         },
     };
 
-    if (data.type === 'direct') {
+    if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
@@ -556,7 +560,7 @@ if (!__DEBUG__) {
                         },
                     },
                     sourcePath: correspondence.sourcePath,
-                    type: 'direct',
+                    type: MAPPING_RULE_TYPE_DIRECT,
                 });
             });
 

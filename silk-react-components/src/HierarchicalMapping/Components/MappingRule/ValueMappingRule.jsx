@@ -19,6 +19,7 @@ import {
     PropertyTypeLabel,
     PropertyTypeDescription,
 } from './SharedComponents';
+import {MAPPING_RULE_TYPE_DIRECT} from '../../helpers';
 
 const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
@@ -203,7 +204,7 @@ const RuleValueView = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                        {this.props.type === 'direct' &&
+                        {this.props.type === MAPPING_RULE_TYPE_DIRECT &&
                         _.get(this.props, 'sourcePath', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -223,7 +224,7 @@ const RuleValueView = React.createClass({
                                   </dl>
                               </div>
                             : false}
-                        {this.props.type !== 'direct' &&
+                        {this.props.type !== MAPPING_RULE_TYPE_DIRECT &&
                         _.get(this.props, 'sourcePaths', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">

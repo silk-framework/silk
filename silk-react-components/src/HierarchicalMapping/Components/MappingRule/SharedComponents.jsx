@@ -5,7 +5,11 @@ import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
 import hierarchicalMappingChannel from '../../store';
-import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../../helpers';
+import {
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
+} from '../../helpers';
 
 export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
@@ -14,7 +18,7 @@ export const RuleTitle = ({rule, ...otherProps}) => {
         case MAPPING_RULE_TYPE_ROOT:
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_TYPE;
-        case 'direct':
+        case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_OBJECT:
             uri = _.get(rule, 'mappingTarget.uri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_PROPERTY;
@@ -40,7 +44,7 @@ export const RuleTypes = ({rule, ...otherProps}) => {
                     {types}
                 </span>
             );
-        case 'direct':
+        case MAPPING_RULE_TYPE_DIRECT:
         case 'complex':
             return (
                 <span {...otherProps}>
@@ -236,7 +240,7 @@ export const ThingIcon = ({type, status, message}) => {
     let iconName = 'help_outline';
     let tooltip = '';
     switch (type) {
-        case 'direct':
+        case MAPPING_RULE_TYPE_DIRECT:
         case 'complex':
             tooltip = 'Value mapping';
             iconName = 'insert_drive_file';
@@ -261,7 +265,7 @@ export const ThingIcon = ({type, status, message}) => {
 export const ParentElement = ({parent, ...otherProps}) =>
     _.get(parent, 'type')
         ? <ThingName id={parent.type} {...otherProps} />
-    : <span {...otherProps}>parent element</span>;
+        : <span {...otherProps}>parent element</span>;
 
 export const InfoBox = React.createClass({
     getInitialState() {

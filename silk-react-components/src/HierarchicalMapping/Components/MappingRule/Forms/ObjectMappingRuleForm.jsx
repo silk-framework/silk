@@ -19,7 +19,10 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
-import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../../../helpers';
+import {
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
+} from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -188,7 +191,8 @@ const ObjectMappingRuleForm = React.createClass({
         }
 
         // FIXME: also check if data really has changed before allow saving
-        const allowConfirm = type ===  MAPPING_RULE_TYPE_ROOT ? true : this.state.targetProperty;
+        const allowConfirm =
+            type === MAPPING_RULE_TYPE_ROOT ? true : this.state.targetProperty;
 
         const errorMessage = error ? <FormSaveError error={error} /> : false;
 

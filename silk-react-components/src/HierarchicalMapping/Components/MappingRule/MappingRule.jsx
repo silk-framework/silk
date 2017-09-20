@@ -197,7 +197,11 @@ const MappingRule = React.createClass({
                         ? 'arrow_nextpage'
                         : this.state.expanded ? 'expand_less' : 'expand_more'
                 }
-                tooltip={type ===  MAPPING_RULE_TYPE_OBJECT ? 'Navigate to' : undefined}
+                tooltip={
+                    type === MAPPING_RULE_TYPE_OBJECT
+                        ? 'Navigate to'
+                        : undefined
+                }
                 onClick={mainAction}
             />
         );
@@ -311,6 +315,7 @@ const MappingRule = React.createClass({
                   </div>
                 : false;
 
+        // Fixme: Use classnames
         return (
             <li
                 className={`ecc-silk-mapping__ruleitem mdl-list__item ${type ===

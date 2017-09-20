@@ -10,7 +10,7 @@ import {
 } from 'ecc-gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
-import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsList = React.createClass({
     mixins: [Navigation],
@@ -73,7 +73,7 @@ const MappingsList = React.createClass({
                         label: 'Add value mapping',
                         handler: () => {
                             this.handleCreate({
-                                type: 'direct',
+                                type: MAPPING_RULE_TYPE_DIRECT,
                             });
                         },
                     },

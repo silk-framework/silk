@@ -335,6 +335,7 @@ const MappingsWorkview = React.createClass({
                 ? <SuggestionsList
                       key={_.join(types, ',')}
                       ruleId={
+                          // TODO: Remove this non-sense
                           _.isUndefined(this.props.currentRuleId)
                               ? 'root'
                               : this.props.currentRuleId
