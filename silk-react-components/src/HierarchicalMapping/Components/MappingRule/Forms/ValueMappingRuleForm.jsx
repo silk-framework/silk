@@ -16,7 +16,7 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import FormSaveError from './FormSaveError';
 import AutoComplete from './AutoComplete';
-import {MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -191,7 +191,7 @@ const ValueMappingRuleForm = React.createClass({
                     )}
                 />
             );
-        } else if (type === 'complex') {
+        } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
                 <TextField
                     disabled

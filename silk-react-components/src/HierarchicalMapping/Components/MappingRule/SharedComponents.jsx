@@ -6,6 +6,7 @@ const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
 import hierarchicalMappingChannel from '../../store';
 import {
+    MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
@@ -22,7 +23,7 @@ export const RuleTitle = ({rule, ...otherProps}) => {
         case MAPPING_RULE_TYPE_OBJECT:
             uri = _.get(rule, 'mappingTarget.uri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_PROPERTY;
-        case 'complex':
+        case MAPPING_RULE_TYPE_COMPLEX:
             // TODO: Complex Mappings need better titles
             return <span {...otherProps}>Complex Mapping</span>;
     }
@@ -45,7 +46,7 @@ export const RuleTypes = ({rule, ...otherProps}) => {
                 </span>
             );
         case MAPPING_RULE_TYPE_DIRECT:
-        case 'complex':
+        case MAPPING_RULE_TYPE_COMPLEX:
             return (
                 <span {...otherProps}>
                     {_.get(
@@ -241,7 +242,7 @@ export const ThingIcon = ({type, status, message}) => {
     let tooltip = '';
     switch (type) {
         case MAPPING_RULE_TYPE_DIRECT:
-        case 'complex':
+        case MAPPING_RULE_TYPE_COMPLEX:
             tooltip = 'Value mapping';
             iconName = 'insert_drive_file';
             break;
