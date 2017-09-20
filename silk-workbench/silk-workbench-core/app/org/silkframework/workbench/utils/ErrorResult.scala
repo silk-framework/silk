@@ -19,7 +19,7 @@ object ErrorResult {
     *
     * @param ex The exception that specifies the request error.
     */
-  def requestError(ex: RequestException): Result = {
+  def apply(ex: RequestException): Result = {
     generateResult(ex.httpErrorCode.getOrElse(500), fromException(ex))
   }
 

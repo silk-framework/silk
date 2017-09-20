@@ -132,9 +132,7 @@ class SilkErrorHandler (env: Environment,
             ErrorResult.serverError(INTERNAL_SERVER_ERROR, executionException)
         }
       case requestEx: RequestException =>
-        ErrorResult.requestError(requestEx)
-      case _: JsonParseException =>
-        ErrorResult(BAD_REQUEST, "Could not parse JSON", ex.getMessage)
+        ErrorResult(requestEx)
       case _ =>
         log.log(Level.INFO, s"Error handling request to $requestPath", ex)
         ErrorResult.serverError(INTERNAL_SERVER_ERROR, ex)

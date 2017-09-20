@@ -94,7 +94,7 @@ class ActivityApi extends Controller {
       }
       Ok
     } else {
-      ErrorResult.requestError(BadUserInputException("No config supplied"))
+      ErrorResult(BadUserInputException("No config supplied"))
     }
   }
 

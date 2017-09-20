@@ -170,7 +170,7 @@ class WorkspaceApi extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            ErrorResult.requestError(BadUserInputException(ex))
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
@@ -183,7 +183,7 @@ class WorkspaceApi extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            ErrorResult.requestError(BadUserInputException(ex))
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())

@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 case class HttpProblemDetailsException(errorTitle: String,
                                        detail: String,
                                        cause: Option[HttpProblemDetailsException],
-                                       httpErrorCode: Option[Int] = None) extends RequestException(errorTitle, cause)
+                                       httpErrorCode: Option[Int] = None) extends RequestException(detail, cause)
 
 object HttpProblemDetailsException {
 
