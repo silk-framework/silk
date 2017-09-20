@@ -5,19 +5,25 @@ import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
 import hierarchicalMappingChannel from '../../store';
+import {
+    MAPPING_RULE_TYPE_COMPLEX,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
+} from '../../helpers';
 
 export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
 
     switch (rule.type) {
-        case 'root':
+        case MAPPING_RULE_TYPE_ROOT:
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_TYPE;
-        case 'direct':
-        case 'object':
+        case MAPPING_RULE_TYPE_DIRECT:
+        case MAPPING_RULE_TYPE_OBJECT:
             uri = _.get(rule, 'mappingTarget.uri', false);
             return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_PROPERTY;
-        case 'complex':
+        case MAPPING_RULE_TYPE_COMPLEX:
             // TODO: Complex Mappings need better titles
             return <span {...otherProps}>Complex Mapping</span>;
     }
@@ -25,7 +31,7 @@ export const RuleTitle = ({rule, ...otherProps}) => {
 
 export const RuleTypes = ({rule, ...otherProps}) => {
     switch (rule.type) {
-        case 'object':
+        case MAPPING_RULE_TYPE_OBJECT:
             let types = _.get(rule, 'rules.typeRules', []);
             types = _.isEmpty(types)
                 ? NO_TARGET_TYPE
@@ -39,8 +45,8 @@ export const RuleTypes = ({rule, ...otherProps}) => {
                     {types}
                 </span>
             );
-        case 'direct':
-        case 'complex':
+        case MAPPING_RULE_TYPE_DIRECT:
+        case MAPPING_RULE_TYPE_COMPLEX:
             return (
                 <span {...otherProps}>
                     {_.get(
@@ -50,7 +56,7 @@ export const RuleTypes = ({rule, ...otherProps}) => {
                     )}
                 </span>
             );
-        case 'root':
+        case MAPPING_RULE_TYPE_ROOT:
             return <span />;
     }
 };
@@ -235,12 +241,12 @@ export const ThingIcon = ({type, status, message}) => {
     let iconName = 'help_outline';
     let tooltip = '';
     switch (type) {
-        case 'direct':
-        case 'complex':
+        case MAPPING_RULE_TYPE_DIRECT:
+        case MAPPING_RULE_TYPE_COMPLEX:
             tooltip = 'Value mapping';
             iconName = 'insert_drive_file';
             break;
-        case 'object':
+        case MAPPING_RULE_TYPE_OBJECT:
             tooltip = 'Object mapping';
             iconName = 'folder';
             break;
@@ -260,7 +266,7 @@ export const ThingIcon = ({type, status, message}) => {
 export const ParentElement = ({parent, ...otherProps}) =>
     _.get(parent, 'type')
         ? <ThingName id={parent.type} {...otherProps} />
-    : <span {...otherProps}>parent element</span>;
+        : <span {...otherProps}>parent element</span>;
 
 export const ParentStructure = ({parent, ...otherProps}) => {
     return _.get(parent, 'property')

@@ -16,6 +16,7 @@ import {
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
+import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 
 const MappingsTree = React.createClass({
     mixins: [UseMessageBus],
@@ -109,7 +110,7 @@ const MappingsTree = React.createClass({
         let expanded = _.get(this.state, ['expanded', id], false);
         let isHighlighted =
             id === this.props.currentRuleId ||
-            (type === 'root' && _.isUndefined(this.props.currentRuleId));
+            (type === MAPPING_RULE_TYPE_ROOT && _.isUndefined(this.props.currentRuleId));
 
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
@@ -118,7 +119,7 @@ const MappingsTree = React.createClass({
                 expanded = expanded || subtree.expanded;
 
                 if (
-                    subtree.type !== 'object' &&
+                    subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
                     subtree.id === this.props.currentRuleId
                 ) {
                     isHighlighted = true;
@@ -150,7 +151,7 @@ const MappingsTree = React.createClass({
 
             // get expanded state
             const childs = _.chain(rules.propertyRules)
-                .filter(({type}) => type === 'object')
+                .filter(({type}) => type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
             const element = () =>
@@ -162,7 +163,7 @@ const MappingsTree = React.createClass({
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>
-                    {parentType === 'object'
+                    {parentType === MAPPING_RULE_TYPE_OBJECT
                         ? <small className="ecc-silk-mapping__treenav--item-subtitle">
                               {<RuleTreeTypes rule={parent} />}
                           </small>

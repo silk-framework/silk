@@ -20,6 +20,7 @@ import {
     ParentElement,
     InfoBox,
 } from './SharedComponents';
+import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../../helpers';
 
 const ObjectRule = React.createClass({
     mixins: [UseMessageBus],
@@ -73,7 +74,7 @@ const ObjectRule = React.createClass({
         let entityRelation = false;
         let deleteButton = false;
 
-        if (type !== 'root') {
+        if (type !== MAPPING_RULE_TYPE_ROOT) {
             targetProperty = (
                 <div className="ecc-silk-mapping__rulesviewer__targetProperty">
                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -233,7 +234,7 @@ const ObjectRule = React.createClass({
                                   </div>
                               </div>
                             : false}
-                        {this.props.type === 'object' &&
+                        {this.props.type === MAPPING_RULE_TYPE_OBJECT &&
                         _.get(this.props, 'sourcePath', false)
                             ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
                                   <dl className="ecc-silk-mapping__rulesviewer__attribute">
