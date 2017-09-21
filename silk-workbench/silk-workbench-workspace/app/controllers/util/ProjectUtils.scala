@@ -2,7 +2,7 @@ package controllers.util
 
 import java.io.StringWriter
 
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset._
@@ -20,7 +20,7 @@ import scala.reflect.ClassTag
 import scala.xml.{Node, NodeSeq}
 
 /**
-  * Created by andreas on 12/10/15.
+  * Utility functions for [[Project]]
   */
 object ProjectUtils {
   def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
@@ -39,8 +39,6 @@ object ProjectUtils {
   /**
     * Extract a specific dataset from a XML document
     *
-    * @param xmlRoot
-    * @param datasetId
     * @return
     */
   def createDataSource(xmlRoot: NodeSeq,
@@ -53,8 +51,6 @@ object ProjectUtils {
   /**
     * Extract all data sources from an XML document.
     *
-    * @param xmlRoot
-    * @return
     */
   def createDataSources(xmlRoot: NodeSeq,
                         dataSourceIds: Option[Set[String]])
@@ -132,7 +128,7 @@ object ProjectUtils {
     if (dataSource.isEmpty) {
       throw new IllegalArgumentException(s"No data source with id $datasetIdOpt specified")
     }
-    implicit val readContext = ReadContext(resourceLoader)
+    implicit val readContext: ReadContext = ReadContext(resourceLoader)
     val dataset = XmlSerialization.fromXml[DatasetTask](dataSource.head)
     dataset
   }
@@ -143,11 +139,11 @@ object ProjectUtils {
                                 datasetIds: Option[Set[String]])
                                (implicit resourceLoader: ResourceManager): Seq[DatasetTask] = {
     val dataSources = xmlRoot \ xmlElementName \ "_"
-    implicit val readContext = ReadContext(resourceLoader)
+    implicit val readContext: ReadContext = ReadContext(resourceLoader)
     val datasets = for (dataSource <- dataSources) yield {
       XmlSerialization.fromXml[DatasetTask](dataSource)
     }
-    datasets.filter(ds => datasetIds.map(_.contains(ds.id.toString)).getOrElse(true))
+    datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
   }
 
   // Create a data sink as specified in a REST request
@@ -159,7 +155,7 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
+      implicit val resourceManager: EmptyResourceManager.type = EmptyResourceManager
       val dataset = createDataset(dataSink, None)
       (null, dataset.entitySink)
     }
@@ -173,7 +169,7 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
+      implicit val resourceManager: EmptyResourceManager.type = EmptyResourceManager
       val dataset = createDataset(xmlRoot, None)
       (null, dataset.linkSink)
     }
@@ -200,7 +196,6 @@ object ProjectUtils {
     * If the model is null, we assume that the result was written to the specified sink.
     * If the model exists, then write the result into the response body.
     *
-    * @param model
     * @param noResponseBodyMessage The message that should be displayed if the model does not exist
     * @return
     */
@@ -214,6 +209,6 @@ object ProjectUtils {
   }
 
   private def hasAttributeValue(attributeName: String, value: String)(node: Node): Boolean = {
-    node.attribute(attributeName).filter(_.text == value).isDefined
+    node.attribute(attributeName).exists(_.text == value)
   }
 }

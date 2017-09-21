@@ -1,13 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io._
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 import java.util.logging.Logger
 
-import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
-import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
+import org.apache.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
+import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 
 /**
@@ -20,8 +19,7 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
   }
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
-    val graphStore = GraphStoreFactory.create(dataset)
-    UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
+    UpdateExecutionFactory.create(UpdateFactory.create(query), dataset)
   }
 
   override def graphStoreEndpoint(graph: String): String = {
