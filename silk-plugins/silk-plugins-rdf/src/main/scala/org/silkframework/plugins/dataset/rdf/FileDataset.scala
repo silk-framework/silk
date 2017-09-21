@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
+import java.time.Instant
+
 import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
@@ -77,6 +79,7 @@ case class FileDataset(
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
+    private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
       load()
@@ -108,8 +111,10 @@ case class FileDataset(
      * Does nothing if the data set has already been loaded.
      */
     private def load() = synchronized {
-      if (endpoint == null) {
+      val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
+      if (endpoint == null || modificationTime != lastModificationTime) {
         endpoint = sparqlEndpoint
+        lastModificationTime = modificationTime
       }
     }
   }
