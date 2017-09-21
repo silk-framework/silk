@@ -25,7 +25,10 @@ import org.silkframework.util.Uri
 /**
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
  */
-class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = false) extends EntityRetriever {
+class ParallelEntityRetriever(endpoint: SparqlEndpoint,
+                              pageSize: Int = 1000,
+                              graphUri: Option[String] = None,
+                              useOrderBy: Boolean = false) extends EntityRetriever {
   private val varPrefix = "v"
 
   private val maxQueueSize = 1000
@@ -53,7 +56,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
   private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
-    override def foreach[U](f: Entity => U) {
+    override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0
 
@@ -88,18 +91,22 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, gr
       }
 
       if (inconsistentOrder) {
-        if (!useOrderBy) {
-          logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
-          val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
-          val entities = entityRetriever.retrieve(entitySchema, entityUris, limit)
-          entities.drop(counter).foreach(f)
-        }
-        else {
-          logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
-          val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
-          val entities = simpleEntityRetriever.retrieve(entitySchema, entityUris, limit)
-          entities.drop(counter).foreach(f)
-        }
+        handleInconsistentOrder(f, counter)
+      }
+    }
+
+    private def handleInconsistentOrder[U](f: (Entity) => U, counter: Int) = {
+      if (!useOrderBy) {
+        logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
+        val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
+        val entities = entityRetriever.retrieve(entitySchema, entityUris, limit)
+        entities.drop(counter).foreach(f)
+      }
+      else {
+        logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
+        val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
+        val entities = simpleEntityRetriever.retrieve(entitySchema, entityUris, limit)
+        entities.drop(counter).foreach(f)
       }
     }
   }
