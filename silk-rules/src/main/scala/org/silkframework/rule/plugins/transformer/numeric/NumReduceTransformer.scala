@@ -25,12 +25,14 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
 )
 @TransformExamples(Array(
   new TransformExample(
-    input1 = Array("some2Value"),
-    output = Array("2")
+    parameters = Array("keepPunctuation", "false"),
+    input1 = Array("some1.2Value"),
+    output = Array("12")
   ),
   new TransformExample(
-    input1 = Array("123"),
-    output = Array("123")
+    parameters = Array("keepPunctuation", "true"),
+    input1 = Array("some1.2Value"),
+    output = Array("1.2")
   )
 ))
 case class NumReduceTransformer(keepPunctuation: Boolean = true) extends SimpleTransformer {
