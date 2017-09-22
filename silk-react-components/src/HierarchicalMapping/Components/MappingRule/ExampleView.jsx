@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
+import {InfoBox} from './SharedComponents';
 
 const ExampleView = React.createClass({
     mixins: [UseMessageBus],
@@ -84,13 +85,14 @@ const ExampleView = React.createClass({
         }
 
         const pathsCount = _.size(this.state.example.sourcePaths);
-        if (pathsCount === 0){
+        if (pathsCount === 0) {
             return false;
 
         }
         return (
-            <table className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
-                <thead>
+            <InfoBox>
+                <table className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
+                    <thead>
                     <tr>
                         <th className="ecc-silk-mapping__rulesviewer__examples-table__path">
                             Value path
@@ -102,9 +104,9 @@ const ExampleView = React.createClass({
                             Transformed value
                         </th>
                     </tr>
-                </thead>
-                {_.map(this.state.example.results, (result, index) =>
-                    <tbody key={`tbody_${index}`}>
+                    </thead>
+                    {_.map(this.state.example.results, (result, index) =>
+                        <tbody key={`tbody_${index}`}>
                         {_.map(
                             this.state.example.sourcePaths,
                             (sourcePath, i) =>
@@ -133,26 +135,27 @@ const ExampleView = React.createClass({
                                     {i > 0
                                         ? false
                                         : <td
-                                              key="result"
-                                              className="ecc-silk-mapping__rulesviewer__examples-table__result"
-                                              rowSpan={pathsCount}>
-                                              {_.map(
-                                                  this.state.example.results[
-                                                      index
-                                                  ].transformedValues,
-                                                  (transformedValue, row) =>
-                                                      <Chip
-                                                          key={`value_${index}_${i}_${row}`}
-                                                          id={`value_${index}_${i}_${row}`}>
-                                                          {transformedValue}
-                                                      </Chip>
-                                              )}
-                                          </td>}
+                                            key="result"
+                                            className="ecc-silk-mapping__rulesviewer__examples-table__result"
+                                            rowSpan={pathsCount}>
+                                            {_.map(
+                                                this.state.example.results[
+                                                    index
+                                                    ].transformedValues,
+                                                (transformedValue, row) =>
+                                                    <Chip
+                                                        key={`value_${index}_${i}_${row}`}
+                                                        id={`value_${index}_${i}_${row}`}>
+                                                        {transformedValue}
+                                                    </Chip>
+                                            )}
+                                        </td>}
                                 </tr>
                         )}
-                    </tbody>
-                )}
-            </table>
+                        </tbody>
+                    )}
+                </table>
+            </InfoBox>
         );
     },
 });
