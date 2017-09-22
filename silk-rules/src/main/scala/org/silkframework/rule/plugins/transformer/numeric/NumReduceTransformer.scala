@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     output = Array("2")
   ),
   new TransformExample(
-    input1 = Array("#$1%2@3$#%"),
+    input1 = Array("123"),
     output = Array("123")
   )
 ))
