@@ -2,6 +2,28 @@ import React from 'react';
 import {Error} from 'ecc-gui-elements';
 import _ from 'lodash';
 
+const ErrorCause = ({errorCause}) => {
+
+    return <ul className="ecc-hierarchical-mapping-error-list">{
+        _.map(errorCause, ({title, detail, cause}) => {
+
+            let renderedCause = false;
+
+            if(_.isArray(cause)){
+                renderedCause = <ErrorCause errorCause={cause}/>;
+            }
+
+            return (
+                <li>
+                    <p>{title}</p>
+                    <p>{detail}</p>
+                    {renderedCause}
+                </li>
+            );
+        })
+    }</ul>;
+};
+
 const ErrorView = React.createClass({
     propTypes: {
         title: React.PropTypes.string,
@@ -16,35 +38,37 @@ const ErrorView = React.createClass({
             errorExpanded: false,
         };
     },
-    recursiveRender(array) {
-        return <ul className="ecc-hierarchical-mapping-error-list">{_.map(array, ({title, detail, cause}) => {
-            return <li><p>{title}</p><p>{detail}</p><p>{this.recursiveRender(cause)}</p></li>
-        })}</ul>;
+    toggleExpansion(){
+        this.setState({
+            errorExpanded: !this.state.errorExpanded,
+        });
     },
     // template rendering
     render() {
+
         const errorClassName = this.state.errorExpanded
-                ? ''
-                : 'mdl-alert--narrowed';
+            ? ''
+            : 'mdl-alert--narrowed';
+
+        let causes = false;
+
+        if(this.state.errorExpanded && _.isArray(this.props.cause)){
+            causes = <ErrorCause errorCause={this.props.cause} />
+        }
 
         return <Error
             border
             className={errorClassName}
-            handlerDismiss={() => {
-                this.setState({
-                    errorExpanded: !this.state.errorExpanded,
-                });
-            }}
+            handlerDismiss={this.toggleExpansion}
             labelDismiss={
                 this.state.errorExpanded ? 'Show less' : 'Show more'
             }
             iconDismiss={
                 this.state.errorExpanded ? 'expand_less' : 'expand_more'
             }>
-            <p>{this.props.title}</p>
+            <strong>{this.props.title}</strong>
             <p>{this.props.detail}</p>
-            <ul className="ecc-hierarchical-mapping-error-list">{this.recursiveRender(this.props.cause)}</ul>
-
+            {causes}
         </Error>;
     }
 });
