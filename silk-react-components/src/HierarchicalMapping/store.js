@@ -30,7 +30,7 @@ const datatypes = _.map(
             value: 'AutoDetectValueType',
             label: 'Auto Detect',
             description:
-                'The best suitable data type will be chosen automatically for each value',
+                'The data type is decided automatically, based on the lexical form of each value.',
         },
         {
             value: 'UriValueType',

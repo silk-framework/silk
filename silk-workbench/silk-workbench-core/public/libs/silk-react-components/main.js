@@ -7212,7 +7212,7 @@
     var datatypes = _lodash2.default.map([ {
         value: "AutoDetectValueType",
         label: "Auto Detect",
-        description: "The best suitable data type will be chosen automatically for each value"
+        description: "The data type is decided automatically, based on the lexical form of each value."
     }, {
         value: "UriValueType",
         label: "URI",
