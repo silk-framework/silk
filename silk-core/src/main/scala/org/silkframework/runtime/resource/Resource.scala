@@ -6,7 +6,7 @@ import java.time.Instant
 import scala.io.{Codec, Source}
 
 /**
- * A resource, such as a file, which is required by a plugin.
+ * A resource, such as a file.
  */
 trait Resource {
 
