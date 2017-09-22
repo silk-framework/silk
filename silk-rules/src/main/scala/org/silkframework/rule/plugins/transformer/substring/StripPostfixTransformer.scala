@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "stripPostfix",
@@ -23,6 +23,18 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Strip postfix",
   description = "Strips a postfix of a string."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("postfix", "Postfix"),
+    input1 = Array("valuePostfix"),
+    output = Array("value")
+  ),
+  new TransformExample(
+    parameters = Array("postfix", "Postfix"),
+    input1 = Array("Value"),
+    output = Array("Value")
+  )
+))
 case class StripPostfixTransformer(postfix: String) extends SimpleTransformer {
   override def evaluate(value: String): String = {
     value.stripSuffix(postfix)

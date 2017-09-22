@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Give a substring until the character given.
@@ -28,8 +28,20 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Until Character",
   description = "Give a substring until the character given"
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("untilCharacter", "c"),
+    input1 = Array("abcde"),
+    output = Array("ab")
+  ),
+  new TransformExample(
+    parameters = Array("untilCharacter", "c"),
+    input1 = Array("abab"),
+    output = Array("abab")
+  )
+))
 case class UntilCharacterTransformer(untilCharacter: Char) extends SimpleTransformer {
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     value.takeWhile(_ != untilCharacter)
   }
 }

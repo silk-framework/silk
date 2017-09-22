@@ -18,7 +18,8 @@ import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.util.Uri
 
 import scala.math.max
 
@@ -26,15 +27,33 @@ import scala.math.max
   id = "stripUriPrefix",
   categories = Array("Substring", "Normalize"),
   label = "Strip URI prefix",
-  description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which don't start with 'http:'"
+  description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which are not a valid URI."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("http://example.org/some/path/to/value"),
+    output = Array("value")
+  ),
+  new TransformExample(
+    input1 = Array("urn:scheme:value"),
+    output = Array("value")
+  ),
+  new TransformExample(
+    input1 = Array("http://example.org/some/path/to/encoded%20v%C3%A4lue"),
+    output = Array("encoded välue")
+  ),
+  new TransformExample(
+    input1 = Array("value"),
+    output = Array("value")
+  )
+))
 case class StripUriPrefixTransformer() extends SimpleTransformer {
 
   @transient
   private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
 
   override def evaluate(value: String): String = {
-    if(value.startsWith("http:")) {
+    if(new Uri(value).isValidUri) {
       //Remove prefix
       var uriPrefixEnd = max(value.lastIndexOf("/"), value.lastIndexOf("#"))
       uriPrefixEnd = max(uriPrefixEnd, value.lastIndexOf(":"))

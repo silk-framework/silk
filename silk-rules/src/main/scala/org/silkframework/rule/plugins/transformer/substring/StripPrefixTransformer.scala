@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "stripPrefix",
@@ -23,6 +23,18 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Strip prefix",
   description = "Strips a prefix of a string."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("prefix", "prefix"),
+    input1 = Array("prefixValue"),
+    output = Array("Value")
+  ),
+  new TransformExample(
+    parameters = Array("prefix", "prefix"),
+    input1 = Array("ValueWithoutPrefix"),
+    output = Array("ValueWithoutPrefix")
+  )
+))
 case class StripPrefixTransformer(prefix: String) extends SimpleTransformer {
   override def evaluate(value: String): String = {
     value.stripPrefix(prefix)

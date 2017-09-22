@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "numReduce",
@@ -23,6 +23,16 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Numeric reduce",
   description = "Strip all non-numeric characters from a string."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("some2Value"),
+    output = Array("2")
+  ),
+  new TransformExample(
+    input1 = Array("#$1%2@3$#%"),
+    output = Array("123")
+  )
+))
 case class NumReduceTransformer(keepPunctuation: Boolean = true) extends SimpleTransformer {
 
   override def evaluate(value: String): String = {
