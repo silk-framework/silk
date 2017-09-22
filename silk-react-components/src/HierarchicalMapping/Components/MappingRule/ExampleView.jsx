@@ -72,12 +72,15 @@ const ExampleView = React.createClass({
     },
     // template rendering
     render() {
-        if (_.isUndefined(this.state.example)) {
-            return <div/>;
-        } else if (this.state.error) {
+
+        if (this.state.error) {
             return <ErrorView
                 {...this.state.error}
-                />
+            />
+        }
+
+        if (_.isUndefined(this.state.example)) {
+            return <div/>;
         }
 
         const pathsCount = _.size(this.state.example.sourcePaths);

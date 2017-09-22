@@ -293,6 +293,20 @@ if (!__DEBUG__) {
                 .connect();
         });
 
+    function mapPeakResult(returned){
+
+        if(_.get(returned, 'body.status.id') !== 'success'){
+            return {
+                title: 'Could not load preview',
+                detail: _.get(returned, 'body.status.msg', 'No details available')
+            }
+        }
+
+        return {
+            example: returned.body,
+        };
+    }
+
     hierarchicalMappingChannel
         .subject('rule.child.example')
         .subscribe(({data, replySubject}) => {
@@ -308,14 +322,17 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.child.peak',
                         data: {...apiDetails, id, rule}
                     })
-                    .map(returned => ({
-                        example: returned.body,
-                    }))
-                    .multicast(replySubject)
-                    .connect();
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
             }
         });
-
 
     hierarchicalMappingChannel
         .subject('rule.example')
@@ -327,11 +344,15 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.peak',
                         data: {...apiDetails, id},
                     })
-                    .map(returned => ({
-                        example: returned.body,
-                    }))
-                    .multicast(replySubject)
-                    .connect();
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
             }
         });
 
