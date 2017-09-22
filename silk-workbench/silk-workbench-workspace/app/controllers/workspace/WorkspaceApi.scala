@@ -13,7 +13,7 @@ import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlS
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
@@ -77,9 +77,9 @@ class WorkspaceApi extends Controller {
     implicit val resources = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
-    if (projectExecutors.isEmpty)
-      BadRequest("No project executor available")
-    else {
+    if (projectExecutors.isEmpty) {
+      ErrorResult(BadUserInputException("No project executor available"))
+    } else {
       val projectExecutor = projectExecutors.head()
       Activity(projectExecutor.apply(project)).start()
       Ok
@@ -102,7 +102,7 @@ class WorkspaceApi extends Controller {
         SilkConfigImporter(config, project)
         Ok
       case _ =>
-        UnsupportedMediaType("Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml")
+        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/xml"))
     }
   }
   }
@@ -166,7 +166,7 @@ class WorkspaceApi extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            ErrorResult.clientError(BadUserInputException(ex))
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
@@ -179,7 +179,7 @@ class WorkspaceApi extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            ErrorResult.clientError(BadUserInputException(ex))
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
