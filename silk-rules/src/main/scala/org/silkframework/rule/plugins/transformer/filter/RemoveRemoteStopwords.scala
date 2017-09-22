@@ -14,14 +14,9 @@ import scala.io.Source
 )
 case class RemoveRemoteStopwords(stopWordListUrl: String, separator: String = "[\\s-]+") extends SimpleTransformer {
 
-  val html = Source.fromURL(stopWordListUrl)
-  val reader = html.bufferedReader()
-  val stopWords = new ListBuffer[String]
-  while (reader.readLine() != null) {
-    stopWords+=reader.readLine()
-  }
+  private val stopWords = loadStopWords
 
-  val regex = separator.r
+  private val regex = separator.r
 
   override def evaluate(value: String): String = {
     val result = new StringBuilder
@@ -30,5 +25,14 @@ case class RemoveRemoteStopwords(stopWordListUrl: String, separator: String = "[
       result.append(" ")
     }
     result.toString()
+  }
+
+  private def loadStopWords: Set[String] = {
+    val html = Source.fromURL(stopWordListUrl)
+    try {
+      html.getLines().toSet
+    } finally {
+      html.close()
+    }
   }
 }
