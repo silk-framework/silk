@@ -28,7 +28,7 @@ case class OutputStreamWritableResource(outputStream: OutputStream) extends Writ
    * @return An input stream for reading the resource.
    *         The caller is responsible for closing the stream after reading.
    */
-  override def load: InputStream = {
+  override def inputStream: InputStream = {
     throw new IOException("load: OutputStreamWritableResource cannot be read!")
   }
 

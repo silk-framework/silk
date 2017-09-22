@@ -57,7 +57,7 @@ case class FileDataset(
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createMem()
-    val inputStream = file.load
+    val inputStream = file.inputStream
     RDFDataMgr.read(dataset, inputStream, lang)
     inputStream.close()
 

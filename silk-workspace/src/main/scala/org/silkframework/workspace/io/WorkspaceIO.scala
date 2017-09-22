@@ -61,7 +61,7 @@ object WorkspaceIO {
       val input = inputResources.get(resourceName)
       val output = outputResources.get(resourceName, mustExist = false)
       if(!output.exists) {
-        output.writeStream(input.load)
+        output.writeStream(input.inputStream)
       }
     }
     // Copy child resources recursively

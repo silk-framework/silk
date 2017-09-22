@@ -147,7 +147,7 @@ class WorkspaceApi extends Controller {
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.load)
+    val enumerator = Enumerator.fromStream(resource.inputStream)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
   }
@@ -173,7 +173,7 @@ class WorkspaceApi extends Controller {
           val dataParts = formData.dataParts("resource-url")
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
-          val inputStream = urlResource.load
+          val inputStream = urlResource.inputStream
           resource.writeStream(inputStream)
           inputStream.close()
           Ok

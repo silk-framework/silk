@@ -286,7 +286,7 @@ class CsvSource(file: Resource,
   }
 
   private def getBufferedReaderForCsvFile(codec: Codec): BufferedReader = {
-    val inputStream = file.load
+    val inputStream = file.inputStream
     new BufferedReader(new InputStreamReader(inputStream, codec.decoder))
   }
 

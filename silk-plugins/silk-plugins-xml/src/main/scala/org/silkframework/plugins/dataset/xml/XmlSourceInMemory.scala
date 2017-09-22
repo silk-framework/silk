@@ -21,7 +21,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val xml = XML.load(file.load)
+    val xml = file.read(XML.load)
     for (path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
@@ -65,7 +65,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
     val pathStr = if (typeUri.isEmpty) basePath else typeUri
     // Load XML
-    val xml = XML.load(file.load)
+    val xml = file.read(XML.load)
     val rootTraverser = XmlTraverser(xml)
     // Move to base path
     rootTraverser.evaluatePath(Path.parse(pathStr))

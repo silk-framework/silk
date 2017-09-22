@@ -38,23 +38,23 @@ trait Resource {
   def modificationTime: Option[Instant]
 
   /**
-   * Loads the resource.
+   * Creates an input stream for reading the resource.
    *
    * @return An input stream for reading the resource.
    *         The caller is responsible for closing the stream after reading.
    */
-  def load: InputStream
+  def inputStream: InputStream
 
   /**
     * Reads the input stream with a provided read function.
     * This method should usually be preferred over load() as it takes care of closing the input stream after reading is done.
     */
   def read[T](reader: InputStream => T): T = {
-    val inputStream = load
+    val is = inputStream
     try {
-      reader(inputStream)
+      reader(is)
     } finally {
-      inputStream.close()
+      is.close()
     }
   }
 
@@ -62,7 +62,7 @@ trait Resource {
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
-    val source = Source.fromInputStream(load)(codec)
+    val source = Source.fromInputStream(inputStream)(codec)
     try {
       source.getLines.mkString("\n")
     } finally {
@@ -74,7 +74,7 @@ trait Resource {
     * Loads this resource into a byte array.
     */
   def loadAsBytes: Array[Byte] = {
-    val in = load
+    val in = inputStream
     try {
       val out = new ByteArrayOutputStream()
       var b = in.read()
@@ -94,11 +94,11 @@ trait Resource {
     */
   def nonEmpty: Boolean = {
     if(exists) {
-      val inputStream = load
+      val in = inputStream
       try {
-        inputStream.read() != -1
+        in.read() != -1
       } finally {
-        inputStream.close()
+        in.close()
       }
     } else {
       false
