@@ -199,30 +199,26 @@ function updateHelpWidth(newWidth) {
  *
  */
 
-let currentlyDragging = false;
+let jqueryDragActive = false;
 
-const mouseMove = jQuery.ui.mouse.prototype._mouseMove;
-const mouseDown = jQuery.ui.mouse.prototype._mouseDown;
-const mouseUp = jQuery.ui.mouse.prototype._mouseUp;
-
-function patchedMouseDown() {
-    if (currentlyDragging) {
-        mouseMove.apply(this, arguments);
+const originalMouseMove = jQuery.ui.mouse.prototype._mouseMove;
+jQuery.ui.mouse.prototype._mouseMove = function() {
+    if(jqueryDragActive) {
+        originalMouseMove.apply(this, arguments);
     }
-}
+};
 
+const originalMouseDown = jQuery.ui.mouse.prototype._mouseDown;
+jQuery.ui.mouse.prototype._mouseDown = function() {
+    jqueryDragActive = true;
+    originalMouseDown.apply(this, arguments);
+};
 
-function patchedMouseMove() {
-    currentlyDragging = true;
-    mouseDown.apply(this, arguments);
-}
+const originalMouseUp = jQuery.ui.mouse.prototype._mouseUp;
 
+jQuery.ui.mouse.prototype._mouseUp = function() {
+    originalMouseUp.apply(this, arguments);
+    jqueryDragActive = false;
+};
 
-function patchedMouseUp() {
-    mouseUp.apply(this, arguments);
-    currentlyDragging = false;
-}
-
-jQuery.ui.mouse.prototype._mouseDown = patchedMouseDown;
-jQuery.ui.mouse.prototype._mouseMove = _.throttle(patchedMouseMove, 20);
-jQuery.ui.mouse.prototype._mouseUp = patchedMouseUp;
+jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
