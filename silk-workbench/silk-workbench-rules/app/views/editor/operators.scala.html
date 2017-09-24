@@ -14,14 +14,14 @@ function initOperators() {
 
   var $selectedCategory = null;
 
-  function initDraggables($element){
-    var $draggables = $element.find('> .draggable');
+  function initDraggableOperators($element){
+    var $draggables = $element.find('.draggable');
 
-    $draggables.each(initDraggable);
+    $draggables.each(initDraggableOperator);
 
   }
 
-  function initDraggable() {
+  function initDraggableOperator() {
     var $draggable = $(this);
 
     $draggable.draggable({
@@ -46,7 +46,7 @@ function initOperators() {
     // Show selected Category
     $selectedCategory = $('#@{opType}_category_' + $(this).val()) ;
     $selectedCategory.show();
-    initDraggables($selectedCategory);
+    initDraggableOperators($selectedCategory);
   });
 
   $("#@{opType}_category_selector").change();
