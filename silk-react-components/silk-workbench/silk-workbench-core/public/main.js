@@ -33,6 +33,15 @@ var dialogs = {};
 
 let dialog;
 
+const startTime = new Date().getTime();
+let now = new Date().getTime();
+
+window.timeDump = function (str) {
+    const temp = new Date().getTime();
+    console.warn(str, temp - now, temp - startTime);
+    now = temp;
+};
+
 $(function() {
 
     // Make sure that mdl components are registered the right way
