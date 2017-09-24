@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "removeEmptyValues",
@@ -23,6 +23,16 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Remove empty values",
   description = "Removes empty values."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("value1", "", "value2"),
+    output = Array("value1", "value2")
+  ),
+  new TransformExample(
+    input1 = Array("", ""),
+    output = Array()
+  )
+))
 case class RemoveEmptyValues() extends Transformer {
   override def apply(values: Seq[Seq[String]]) = {
     values.head.filter(!_.isEmpty)

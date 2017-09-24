@@ -3,6 +3,8 @@
  */
 
 import React from 'react';
+import _ from 'lodash';
+import className from 'classnames';
 import {
     Button,
     ContextMenu,
@@ -12,12 +14,12 @@ import {
     DisruptiveButton,
     DismissiveButton,
 } from 'ecc-gui-elements';
-import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
+import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
 
 const MappingRule = React.createClass({
     mixins: [UseMessageBus],
@@ -55,7 +57,7 @@ const MappingRule = React.createClass({
                 // only trigger state / render change if necessary
                 if (
                     expanded !== this.state.expanded &&
-                    this.props.type !== 'object' &&
+                    this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
                     (id === true || id === this.props.id)
                 ) {
                     this.setState({expanded});
@@ -182,7 +184,7 @@ const MappingRule = React.createClass({
             : false;
 
         const mainAction = event => {
-            if (type === 'object') {
+            if (type === MAPPING_RULE_TYPE_OBJECT) {
                 this.handleNavigate();
             } else {
                 this.handleToggleExpand({force: true});
@@ -192,11 +194,15 @@ const MappingRule = React.createClass({
         const action = (
             <Button
                 iconName={
-                    type === 'object'
+                    type === MAPPING_RULE_TYPE_OBJECT
                         ? 'arrow_nextpage'
                         : this.state.expanded ? 'expand_less' : 'expand_more'
                 }
-                tooltip={type === 'object' ? 'Navigate to' : undefined}
+                tooltip={
+                    type === MAPPING_RULE_TYPE_OBJECT
+                        ? 'Navigate to'
+                        : undefined
+                }
                 onClick={mainAction}
             />
         );
@@ -224,17 +230,6 @@ const MappingRule = React.createClass({
                 </div>,
             */
             <div
-                key={'sl2'}
-                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
-                <span className="hide-in-table">from</span>{' '}
-                <SourcePath
-                    rule={{
-                        type,
-                        sourcePath: sourcePath || sourcePaths,
-                    }}
-                />
-            </div>,
-            <div
                 key={'sl3'}
                 className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
                 <span className="hide-in-table">DataType:</span>{' '}
@@ -246,10 +241,21 @@ const MappingRule = React.createClass({
                     }}
                 />
             </div>,
+            <div
+                key={'sl2'}
+                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
+                <span className="hide-in-table">from</span>{' '}
+                <SourcePath
+                    rule={{
+                        type,
+                        sourcePath: sourcePath || sourcePaths,
+                    }}
+                />
+            </div>,
         ];
 
         const expandedView = this.state.expanded
-            ? type === 'object' || type === 'root'
+            ? isObjectMappingRule(type)
               ? <RuleObjectEdit
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
@@ -312,29 +318,48 @@ const MappingRule = React.createClass({
 
         return (
             <li
-                className={`ecc-silk-mapping__ruleitem mdl-list__item ${type ===
-                'object'
-                    ? 'ecc-silk-mapping__ruleitem--object'
-                    : 'ecc-silk-mapping__ruleitem--literal'}${this.state
-                    .expanded
-                    ? ' ecc-silk-mapping__ruleitem--expanded'
-                    : ' ecc-silk-mapping__ruleitem--summary'}${errorInfo
-                    ? ' ecc-silk-mapping__ruleitem--defect'
-                    : ''}`}>
+                className={
+                    className(
+                        'ecc-silk-mapping__ruleitem',
+                        {
+                            'ecc-silk-mapping__ruleitem--object': type === 'object',
+                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
+                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                        }
+                    )
+                }
+            >
                 {discardView}
                 {loading}
-                {reorderHandleButton}
-                <div
-                    className={`mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content${this
-                        .state.expanded
-                        ? ''
-                        : ' clickable'}`}
-                    onClick={this.state.expanded ? null : mainAction}>
-                    {this.state.expanded ? expandedView : shortView}
+                <div className={
+                        className(
+                            'ecc-silk-mapping__ruleitem-summary',
+                            {
+                                'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
+                            }
+                        )
+                    }
+                >
+                    {reorderHandleButton}
+                    <div
+                        className={'mdl-list__item clickable'}
+                        onClick={mainAction}
+                    >
+                        <div className={'mdl-list__item-primary-content'}>
+                            {shortView}
+                        </div>
+                        <div className="mdl-list__item-secondary-content" key="action">
+                            {action}
+                        </div>
+                    </div>
                 </div>
-                <div className="mdl-list__item-secondary-content" key="action">
-                    {action}
-                </div>
+                {
+                    this.state.expanded ?
+                    <div className="ecc-silk-mapping__ruleitem-expanded">
+                        {expandedView}
+                    </div> :
+                    false
+                }
             </li>
         );
     },

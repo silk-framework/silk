@@ -28,6 +28,8 @@ object SilkVocab {
 
   val TripleSchemaType = namespace + "/TripleSchemaType"
 
+  val SparqlEndpointSchemaType = namespace + "/SparqlEndpointSchemaType"
+
   val tripleSubject = namespace + "tripleSubject"
   val triplePredicate = namespace + "triplePredicate"
   val tripleObject = namespace + "tripleObject"

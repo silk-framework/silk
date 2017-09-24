@@ -63,7 +63,7 @@ lazy val learning = (project in file("silk-learning"))
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, serializationJson)
+  .dependsOn(rules, learning, serializationJson, core % "test->test")
   .aggregate(rules, learning)
   .settings(commonSettings: _*)
   .settings(
@@ -76,7 +76,7 @@ lazy val workspace = (project in file("silk-workspace"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(core, rules, workspace, core % "test->test")
+  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",

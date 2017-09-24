@@ -4,6 +4,7 @@ import java.net.{HttpURLConnection, URL, URLEncoder}
 
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.collection.mutable.{ArrayBuffer, Set => MSet}
 import scala.xml.{Elem, XML}
@@ -47,7 +48,8 @@ object SpotlightClient {
     val rc = conn.getResponseCode
     if (rc < 200 || rc >= 300) {
       System.err.println("Query execution: Received error code " + rc + " from server")
-      System.err.println("Error message: " + conn.getResponseMessage + "\n\nFor query: \n")
+      val errorMessage = conn.errorMessage(prefix = "Error response: ").getOrElse("")
+      System.err.println(errorMessage + "\n\nFor query: \n")
       System.err.println(query + "\n")
     }
     val is = conn.getInputStream

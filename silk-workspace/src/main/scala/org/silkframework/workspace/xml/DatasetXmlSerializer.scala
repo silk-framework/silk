@@ -61,7 +61,7 @@ private class DatasetXmlSerializer extends XmlSerializer[Dataset] {
     // Load the data set
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val dataset = XmlSerialization.fromXml[DatasetTask](XML.load(resources.get(name).load))
+    val dataset = XmlSerialization.fromXml[DatasetTask](resources.get(name).read(XML.load))
 
     dataset
   }

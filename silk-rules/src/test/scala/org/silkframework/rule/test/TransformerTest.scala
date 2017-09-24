@@ -15,7 +15,11 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   private val epsilon = 0.0001
 
   /** The class of the transformation to be tested. */
-  private lazy val pluginClass = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
+  private lazy val pluginClass = {
+    val clazz = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
+    require(clazz != classOf[Nothing], "Type parameter T is no defined")
+    clazz
+  }
 
   /** The plugin description of the transformation to be tested. */
   private lazy val pluginDesc = PluginDescription(pluginClass)
@@ -29,11 +33,13 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   }
 
   // Add all transform tests
-  assert(transformTests.nonEmpty, s"$pluginClass does not define any TransformExample annotation")
   transformTests.foreach(_.addTest())
 
   // Forward one transformer for general plugin testing.
-  override protected lazy val pluginObject: AnyRef = transformTests.head.transformer
+  override protected lazy val pluginObject: AnyRef = {
+    require(transformTests.nonEmpty, s"$pluginClass does not define any TransformExample annotation.")
+    transformTests.head.transformer
+  }
 
   private class TransformTest(example: TransformExampleValue) {
     val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)

@@ -1009,7 +1009,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.22.0, babel-runtime@^6.25.0, babel-runtime@^6.26.0:
+babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.20.0, babel-runtime@^6.22.0, babel-runtime@^6.25.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -2127,19 +2127,19 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
 
 ecc-license-checker@^2.5.2:
-  version "2.6.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-license-checker/-/ecc-license-checker-2.6.2.tgz#9566937d93492e54aedadb476ce8983de9db961b"
+  version "2.5.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-license-checker/-/ecc-license-checker-2.5.2.tgz#2d43bedfad77059c97f308d57d320563af144400"
   dependencies:
-    babel-runtime "^6.26.0"
+    babel-runtime "^6.20.0"
     clear "0.0.1"
     cli-table "^0.3.1"
     command-line-args "^3.0.4"
     command-line-commands "^1.0.2"
     command-line-usage "^3.0.8"
     inquirer "^1.0.2"
-    js-yaml "^3.9.1"
+    js-yaml "^3.5.2"
     license-checker "^8.0.3"
-    lodash "^4.17.4"
+    lodash "^4.2.1"
     mkdirp "^0.5.1"
     spdx "^0.5.1"
 
@@ -3833,7 +3833,7 @@ js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
 
-js-yaml@3.x, js-yaml@^3.4.3, js-yaml@^3.5.1, js-yaml@^3.5.2, js-yaml@^3.9.1:
+js-yaml@3.x, js-yaml@^3.4.3, js-yaml@^3.5.1, js-yaml@^3.5.2:
   version "3.9.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/js-yaml/-/js-yaml-3.9.1.tgz#08775cebdfdd359209f0d2acd383c8f86a6904a0"
   dependencies:
@@ -4278,7 +4278,7 @@ lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
 
-lodash@^4.0.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.16.4, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.3.0, lodash@~4.17.4:
+lodash@^4.0.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.16.4, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0, lodash@~4.17.4:
   version "4.17.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -5366,11 +5366,11 @@ postcss@^5.0.10, postcss@^5.0.11, postcss@^5.0.12, postcss@^5.0.13, postcss@^5.0
     supports-color "^3.2.3"
 
 postcss@^6.0.2:
-  version "6.0.10"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/postcss/-/postcss-6.0.10.tgz#c311b89734483d87a91a56dc9e53f15f4e6e84e4"
+  version "6.0.9"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/postcss/-/postcss-6.0.9.tgz#54819766784a51c65b1ec4d54c2f93765438c35a"
   dependencies:
     chalk "^2.1.0"
-    source-map "^0.5.7"
+    source-map "^0.5.6"
     supports-color "^4.2.1"
 
 prelude-ls@~1.1.2:
@@ -5386,8 +5386,8 @@ preserve@^0.2.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
 
 prettier@^1.5.3:
-  version "1.6.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/prettier/-/prettier-1.6.1.tgz#850f411a3116226193e32ea5acfc21c0f9a76d7d"
+  version "1.5.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/prettier/-/prettier-1.5.3.tgz#59dadc683345ec6b88f88b94ed4ae7e1da394bfe"
 
 pretty-error@^2.0.2:
   version "2.1.1"
@@ -5974,6 +5974,10 @@ schema-utils@^0.3.0:
   dependencies:
     ajv "^5.0.0"
 
+scroll-into-view@^1.9.0:
+  version "1.9.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/scroll-into-view/-/scroll-into-view-1.9.0.tgz#b998b72bd4067bd3accc545a5828664c791f773d"
+
 scss-tokenizer@^0.2.3:
   version "0.2.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/scss-tokenizer/-/scss-tokenizer-0.2.3.tgz#8eb06db9a9723333824d3f5530641149847ce5d1"
@@ -6125,7 +6129,7 @@ source-map@0.4.x, source-map@^0.4.2, source-map@^0.4.4:
   dependencies:
     amdefine ">=0.0.4"
 
-source-map@0.5.x, source-map@^0.5.3, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.1, source-map@~0.5.3:
+source-map@0.5.x, source-map@^0.5.3, source-map@^0.5.6, source-map@~0.5.1, source-map@~0.5.3:
   version "0.5.7"
   resolved "https://artifactory.eccenca.com/api/npm/npm/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
 

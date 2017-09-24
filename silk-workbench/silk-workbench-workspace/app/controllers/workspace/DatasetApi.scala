@@ -8,8 +8,9 @@ import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json._
@@ -36,7 +37,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         val autoConfDataset = autoConfigurable.autoConfigured
         serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
       case _ =>
-        NotImplemented(JsonError("The dataset type does not support auto-configuration."))
+        ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
@@ -52,7 +53,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
               project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
               Ok
             case _ =>
-              NotImplemented(JsonError("The dataset type does not support auto-configuration."))
+              ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
           project.updateTask(dataset.id, dataset.data)
@@ -60,7 +61,8 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         }
       }
     } catch {
-      case ex: Exception => BadRequest(JsonError(ex))
+      case ex: Exception =>
+        ErrorResult(BadUserInputException(ex))
     }
   }
   }
@@ -86,7 +88,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       case ds: DatasetPluginAutoConfigurable[_] =>
         Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfigured)))
       case _ =>
-        NotImplemented("This dataset plugin does not support auto-configuration.")
+        ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
@@ -118,7 +120,8 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
           queryResults = Some(sparqlEndpoint.select(query))
         }
         Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
-      case _ => BadRequest("This is not an RDF-Dataset.")
+      case _ =>
+        ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
     }
   }
 
@@ -158,7 +161,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
           val result = vd.valueCoverage(dataSourcePath, matchingInputPaths)
           Ok(Json.toJson(result))
         case _ =>
-          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage.")
+          ErrorResult(
+            status = INTERNAL_SERVER_ERROR,
+            title = "Mapping coverage not supported",
+            detail = "The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage."
+          )
       }
     }
   }
@@ -180,7 +187,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
-          InternalServerError("The type of data source '" + datasetTask.id.toString + "' does not support mapping coverage.")
+          ErrorResult(
+            status = INTERNAL_SERVER_ERROR,
+            title = "Mapping coverage not supported",
+            detail = "The type of data source '" + datasetTask.id.toString + "' does not support mapping value coverage."
+          )
       }
     } catch {
       case e: IllegalArgumentException =>

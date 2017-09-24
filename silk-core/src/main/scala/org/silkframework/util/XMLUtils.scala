@@ -30,7 +30,7 @@ object XMLUtils {
  * Defines additional methods on XML, which are missing in the standard library.
  */
 class XMLUtils(xml: NodeSeq) {
-  def toFormattedString = {
+  def toFormattedString: String = {
     val stringWriter = new StringWriter()
     write(stringWriter)
     stringWriter.toString

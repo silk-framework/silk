@@ -1,7 +1,6 @@
-package org.silkframework.rule
+package org.silkframework.entity
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 
 /**
@@ -13,7 +12,7 @@ class ValueTypeTest extends FlatSpec with MustMatchers {
   implicit val readContext = ReadContext()
 
   it should "serialize and deserialize object value types to/from XML" in {
-    val objTypes = Seq(FloatValueType, DoubleValueType, UriValueType, AutoDetectValueType)
+    val objTypes = Seq(FloatValueType, DoubleValueType, UriValueType, AutoDetectValueType, DateTimeValueType)
 
     val xmlNodes = objTypes.map(XmlSerialization.toXml[ValueType])
     val roundTripObjTypes = xmlNodes.map(XmlSerialization.fromXml[ValueType])

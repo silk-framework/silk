@@ -4,11 +4,14 @@ import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity.Path
+import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.workspace.{Project, ProjectConfig}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{AnyContent, AnyContentAsJson, Request}
 
 /**
   *
@@ -20,10 +23,13 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
   val testObject = new TestSubSubClass()
   implicit val project: Project = mock[Project]
   when(project.config).thenReturn(ProjectConfig())
-  implicit val request: Request[AnyContent] = mock[Request[AnyContent]]
+  val request: Request[AnyContent] = mock[Request[AnyContent]]
   when(request.acceptedTypes).thenReturn(List())
+  when(request.mediaType).thenReturn(None)
+  implicit private val readContext = ReadContext()
 
   it must "serialize the object with the compile type of the object" in {
+    implicit val r = request
     // No formatter available
     typ(SerializationUtils.serializeToStringCompileType(testObject, Seq(APPLICATION_JSON))) mustBe None
     // Set class tag explicitly
@@ -37,6 +43,7 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
   }
 
   it must "serialize the object with the runtime type of the object" in {
+    implicit val r = request
     typ(SerializationUtils.serializeToStringRuntimeType(testObject, Seq(APPLICATION_JSON))) mustBe None
     val testTraitImpl = new TestTrait {}
     // Only exact runtime type works, so subclasses of TestTrait cannot be serialized
@@ -47,6 +54,30 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
 
   private def typ(jsString: Option[String]): Option[String] = {
     jsString map {str => (Json.parse(str) \ "type").as[String]}
+  }
+
+  it must "deserialize the object with the given compile type" in {
+    implicit val r = mock[Request[AnyContent]]
+    when(r.mediaType).thenReturn(None)
+    val json = SerializationUtils.serializeToStringCompileType[TestTrait](testObject, Seq(APPLICATION_JSON))
+    when(r.body).thenReturn(AnyContentAsJson(Json.parse(json.get)))
+    val result = SerializationUtils.deserializeCompileTime[TestTrait]("application/json") { requestBodyObj =>
+      requestBodyObj.m mustBe "SubSubTestClass"
+      null
+    }
+    result mustBe null
+  }
+
+  it must "return a BadRequestException if there are validation errors during the parsing" in {
+    implicit val r = mock[Request[AnyContent]]
+    when(r.mediaType).thenReturn(None)
+    val json = """{"type":"pathInput","id":"id","path":"/unknown:path"}"""
+    when(r.body).thenReturn(AnyContentAsJson(Json.parse(json)))
+    intercept[BadUserInputException] {
+      SerializationUtils.deserializeCompileTime[PathInput]("application/json") { requestBodyObj =>
+        null
+      }
+    }
   }
 }
 
@@ -68,7 +99,10 @@ class TestSubSubClass() extends TestSubClass {
 }
 
 class TestTraitFormatter extends JsonFormat[TestTrait] {
-  override def read(value: JsValue)(implicit readContext: ReadContext): TestTrait = ???
+  override def read(value: JsValue)(implicit readContext: ReadContext): TestTrait = {
+    new TestSubSubClass
+  }
+
   override def write(value: TestTrait)(implicit writeContext: WriteContext[JsValue]): JsValue = {
     JsObject(
       Seq(

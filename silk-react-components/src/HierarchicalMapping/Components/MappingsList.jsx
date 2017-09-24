@@ -10,6 +10,7 @@ import {
 } from 'ecc-gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
+import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsList = React.createClass({
     mixins: [Navigation],
@@ -72,7 +73,7 @@ const MappingsList = React.createClass({
                         label: 'Add value mapping',
                         handler: () => {
                             this.handleCreate({
-                                type: 'direct',
+                                type: MAPPING_RULE_TYPE_DIRECT,
                             });
                         },
                     },
@@ -81,7 +82,7 @@ const MappingsList = React.createClass({
                         label: 'Add object mapping',
                         handler: () => {
                             this.handleCreate({
-                                type: 'object',
+                                type: MAPPING_RULE_TYPE_OBJECT,
                             });
                         },
                     },
@@ -96,7 +97,7 @@ const MappingsList = React.createClass({
 
         return (
             <div className="ecc-silk-mapping__ruleslist">
-                <Card>
+                <Card shadow={0}>
                     {listTitle}
                     {listItems}
                     {listActions}

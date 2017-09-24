@@ -390,6 +390,16 @@ input.param_value {
   border-color: #ddd;
 }
 
+.dragDiv input.param_value {
+  border-style: none;
+  border-bottom-style: solid;
+  background-color: #FFF;
+}
+
+.dragDiv select.param_value {
+  background-color: #FFF;
+}
+
 label:hover {
     background: #f2f5ff;
     border-radius:5px;

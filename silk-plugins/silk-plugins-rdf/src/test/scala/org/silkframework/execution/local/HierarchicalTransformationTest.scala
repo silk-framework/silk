@@ -171,7 +171,7 @@ class HierarchicalTransformationTest extends FlatSpec with ShouldMatchers {
 
   private def compareWithExpected(model: Model, expectedResource: String): Unit = {
     val expectedModel = createModel
-    RDFDataMgr.read(expectedModel, resources.get(expectedResource).load, RDFLanguages.resourceNameToLang(expectedResource))
+    RDFDataMgr.read(expectedModel, resources.get(expectedResource).inputStream, RDFLanguages.resourceNameToLang(expectedResource))
 
     if(!model.isIsomorphicWith(expectedModel)) {
       val stringWriter = new StringWriter()

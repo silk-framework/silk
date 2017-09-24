@@ -4,6 +4,7 @@ import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 
 import org.silkframework.config.{Prefixes, TaskReference}
+import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -75,7 +76,8 @@ object ParameterType {
     * All available static parameter types.
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType, WritableResourceType, TaskReferenceType)
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
+      WritableResourceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType)
   }
 
   /**
@@ -166,6 +168,8 @@ object ParameterType {
 
     override def name: String = "stringmap"
 
+    override def description: String = "A map of the form 'Key1:Value1,Key2:Value2'"
+
     private val utf8: String = "UTF8"
 
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
@@ -200,7 +204,7 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str)
       }
     }
 
@@ -216,7 +220,7 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str, mustExist = false)
+        resourceLoader.get(str)
       }
     }
 
@@ -243,17 +247,54 @@ object ParameterType {
 
     private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
 
-    private val valueList = enumConstants.map(_.name).mkString(", ")
+    private val valueList = enumerationValues.mkString(", ")
 
     override def name: String = "enumeration"
 
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
-      enumConstants.find(_.name == str.trim)
-          .getOrElse(throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+      enumConstants.find {
+        case e: EnumerationParameterType =>
+          e.id == str.trim || e.name == str.trim
+        case c: Enum[_] =>
+          c.name == str.trim
+      } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
 
-    def enumerationValues: Seq[String] = enumConstants.map(_.name())
+    def enumerationValues: Seq[String] = enumConstants map enumerationValue
+
+    /** The display names. The Enum has to implement [[EnumerationParameterType]], else the enum name is used. */
+    def displayNames: Seq[String] = enumConstants map {
+      case e: EnumerationParameterType =>
+        e.displayName
+      case c: Enum[_] =>
+        c.name()
+    }
+
+    private def enumerationValue(value: Enum[_]): String = {
+      value match {
+        case e: EnumerationParameterType =>
+          e.id
+        case c: Enum[_] =>
+          c.name()
+      }
+    }
+
+    override def toString(value: Enum[_]): String = enumerationValue(value)
+  }
+
+  object MultilineStringParameterType extends ParameterType[MultilineStringParameter] {
+    override def name: String = "multiline string"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
+  }
+
+  object SparqlEndpointDatasetParameterType extends ParameterType[SparqlEndpointDatasetParameter] {
+    override def name: String = "SPARQL endpoint"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): SparqlEndpointDatasetParameter = {
+      SparqlEndpointDatasetParameter(str)
+    }
   }
 }

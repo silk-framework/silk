@@ -5,14 +5,27 @@ import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.util.HttpURLConnectionUtils._
+
+import scala.util.control.NonFatal
 
 /**
  * Graph Store API trait.
  */
 trait GraphStoreTrait {
+
   def graphStoreEndpoint(graph: String): String
 
   def graphStoreHeaders(): Map[String, String] = Map.empty
+
+  /**
+    * Handles a connection error.
+    * The default implementation throws a runtime exception that contains the error body as read from the connection.
+    */
+  def handleError(connection: HttpURLConnection, message: String): Nothing = {
+    val serverErrorMessage = connection.errorMessage(prefix = "Error response: ").getOrElse("")
+    throw new RuntimeException(message + serverErrorMessage)
+  }
 
   def defaultTimeouts: GraphStoreDefaults = {
     val cfg = DefaultConfig.instance()
@@ -39,14 +52,14 @@ trait GraphStoreTrait {
     chunkedStreamingMode foreach { connection.setChunkedStreamingMode }
     connection.setUseCaches(false)
     connection.setRequestProperty("Content-Type", contentType)
-    ConnectionClosingOutputStream(connection)
+    ConnectionClosingOutputStream(connection, handleError)
   }
 
   def deleteGraph(graph: String): Unit = {
     val connection = initConnection(graph)
     connection.setRequestMethod("DELETE")
     if(connection.getResponseCode / 100 != 2) {
-      throw new RuntimeException(s"Could not delete graph $graph. Message: ${connection.getResponseMessage}")
+      handleError(connection, s"Could not delete graph $graph")
     }
   }
 
@@ -72,14 +85,14 @@ trait GraphStoreTrait {
     connection.setRequestMethod("GET")
     connection.setDoInput(true)
     connection.setRequestProperty("Accept", acceptType)
-    ConnectionClosingInputStream(connection)
+    ConnectionClosingInputStream(connection, handleError)
   }
 }
 
 /**
  * Handles the sending of the request and the closing of the connection on closing the [[OutputStream]].
  */
-case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends OutputStream {
+case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHandler: (HttpURLConnection, String) => Nothing) extends OutputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   private lazy val outputStream = {
@@ -99,7 +112,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        throw new RuntimeException(s"Could not write to HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+        errorHandler(connection, s"Could not write to HTTP connection. Got $responseCode response code.")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -112,12 +125,17 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection) extends 
   }
 }
 
-case class ConnectionClosingInputStream(connection: HttpURLConnection) extends InputStream {
+case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHandler: (HttpURLConnection, String) => Nothing) extends InputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   private lazy val inputStream: InputStream = {
     connection.connect()
-    connection.getInputStream
+    try {
+      connection.getInputStream
+    } catch {
+      case NonFatal(_) =>
+        errorHandler(connection, s"Could not read from HTTP connection. Got ${connection.getResponseCode} response code.")
+    }
   }
 
   override def read(): Int = inputStream.read()
@@ -129,7 +147,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection) extends I
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        throw new RuntimeException(s"Could not read from HTTP connection. Got $responseCode response code. Message: ${connection.getResponseMessage}")
+        errorHandler(connection, s"Could not read from HTTP connection. Got $responseCode response code.")
       }
     } finally {
       connection.disconnect()

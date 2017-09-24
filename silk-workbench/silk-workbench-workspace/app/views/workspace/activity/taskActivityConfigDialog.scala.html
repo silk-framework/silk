@@ -1,14 +1,13 @@
 @import controllers.workspace.routes
+@import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 @import org.silkframework.workspace.activity.TaskActivity
-@import org.silkframework.runtime.plugin.PluginDescription
-@import org.silkframework.workspace.activity.TaskActivityFactory
-@import scala.language.existentials
 
-@import org.silkframework.runtime.plugin.AnyPlugin
+@import scala.language.existentials
 
 @(activity: TaskActivity[_, _])
 
 @widgets.pluginDialog(
+    activity.project.config.id,
     name = activity.name,
     plugins = PluginDescription(activity.factory.getClass) :: Nil,
     currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),

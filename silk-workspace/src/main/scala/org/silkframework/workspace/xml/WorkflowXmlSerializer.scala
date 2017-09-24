@@ -23,7 +23,7 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {
-        var xml = XML.load(resources.get(name).load)
+        var xml = resources.get(name).read(XML.load)
         // Old XML versions do not contain the id
         if((xml \ "@id").isEmpty) {
           xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)

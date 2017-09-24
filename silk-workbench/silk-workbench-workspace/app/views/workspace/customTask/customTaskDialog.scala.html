@@ -5,29 +5,30 @@
 @(project: Project, taskName: String, taskPlugin: Option[CustomTask])
 
   @widgets.pluginDialog(
+    project.config.id,
     name = taskName,
     plugins = PluginRegistry.availablePlugins[CustomTask],
     currentObj = taskPlugin,
     resources = project.resources.list) {
 
     <script type="text/javascript">
-      function savePlugin(pluginId, name, parameters) {
+      function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset xml
         var ctDoc = document.implementation.createDocument("", "CustomTask", null);
-        var ct = ctDoc.documentElement
+        var ct = ctDoc.documentElement;
         ct.setAttribute('id', name);
         ct.setAttribute('type', pluginId);
         for(var i in parameters) {
           var param = ctDoc.createElement('Param');
           param.setAttribute('name', parameters[i].name);
-          param.setAttribute('value', parameters[i].value);
+          param.appendChild(ctDoc.createCDATASection(parameters[i].value));
           ct.appendChild(param);
         }
         var oSerializer = new XMLSerializer();
         var xml = oSerializer.serializeToString(ctDoc);
 
         // Submit task
-        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml);
+        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
       }
     </script>
   }

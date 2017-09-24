@@ -102,7 +102,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with AutoDetectValueType as String if the value is an invalid URI" in {
-    format("http:/example.org/resource", AutoDetectValueType) mustBe
-      s"""$S_P "http:/example.org/resource" .$NL"""
+    format("example.org/resource", AutoDetectValueType) mustBe
+      s"""$S_P "example.org/resource" .$NL"""
   }
 }

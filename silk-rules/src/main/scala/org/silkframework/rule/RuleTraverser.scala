@@ -142,12 +142,12 @@ object RuleTraverser {
     }
 
     override def moveLeft = left match {
-      case leftHead :: leftTail => Some(Hole(leftHead, leftTail, parent, operator +: right))
+      case leftInit :+ leftLast => Some(Hole(leftLast, leftInit, parent, operator +: right))
       case Nil => None
     }
 
     override def moveRight = right match {
-      case rightHead :: rightTail => Some(Hole(rightHead, operator +: left, parent, rightTail))
+      case rightHead +: rightTail => Some(Hole(rightHead, left :+ operator, parent, rightTail))
       case Nil => None
     }
 

@@ -2,7 +2,8 @@ package controllers.workspace
 
 import org.silkframework.config.{CustomTask, Task}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
 
@@ -27,10 +28,10 @@ class CustomTasks extends Controller {
           Ok
         } catch {
           case ex: Exception =>
-            BadRequest(JsonError(ex))
+            ErrorResult(BadUserInputException("Could not parse supplied XML", Some(ex)))
         }
       case None =>
-        BadRequest(JsonError("Expecting custom task specification in request body as text/xml."))
+        ErrorResult(BadUserInputException("Expecting custom task specification in request body as text/xml."))
     }
   }}
 

@@ -1,24 +1,25 @@
 package org.silkframework.workspace
 
+import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetTask, MockDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.rule._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
-import org.silkframework.workspace.resources.{InMemoryResourceRepository, ResourceRepository}
+import org.silkframework.workspace.resources.InMemoryResourceRepository
 
 /**
   * Created on 9/13/16.
   */
-trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
+trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
@@ -29,6 +30,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   val LINKING_TASK_ID = "linking1"
   val CUSTOM_TASK_ID = "custom1"
   val NEW_PREFIX = "newPrefix"
+  val DUMMY_DATASET = "dummy"
+
+  val dummyDataset = MockDataset()
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
 
@@ -73,11 +77,11 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       description = "Updated Task Description"
     )
 
-  val dataset = new DatasetTask(DATASET_ID, InternalDataset("default"))
+  val dataset = new DatasetTask(DATASET_ID, MockDataset("default"))
 
-  val datasetUpdated = new DatasetTask(DATASET_ID, InternalDataset("updated"))
+  val datasetUpdated = new DatasetTask(DATASET_ID, MockDataset("updated"))
 
-  val linkSpec = LinkSpec(rule = rule)
+  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
 
@@ -88,7 +92,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       id = TRANSFORM_ID,
       data =
         TransformSpec(
-          selection = DatasetSelection("InputDS", "http://type1"),
+          selection = DatasetSelection(DATASET_ID, "http://type1"),
           mappingRule =
             RootMappingRule(
               id = "root",
@@ -125,7 +129,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
       id = TRANSFORM_ID,
       data =
         TransformSpec(
-          selection = DatasetSelection("id", "Person"),
+          selection = DatasetSelection(DATASET_ID, "Person"),
           mappingRule = RootMappingRule("root",
             MappingRules(
               uriRule = None,
@@ -196,13 +200,29 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
   private def createProject(projectName: String): ProjectConfig = {
     val project = ProjectConfig(projectName)
     workspace.createProject(project)
-//    workspaceProvider.putProject(project)
     project
+  }
+
+  it should "read and write dataset tasks" in {
+    PluginRegistry.registerPlugin(classOf[MockDataset])
+    project.addTask[Dataset](DUMMY_DATASET, dummyDataset)
+    workspaceProvider.putTask(PROJECT_NAME, dataset)
+    refreshTest {
+      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      ds shouldBe dataset
+    }
+  }
+
+  it should "update dataset tasks" in {
+    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
+    refreshTest {
+      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      ds shouldBe datasetUpdated
+    }
   }
 
   it should "read and write linking tasks" in {
     project.addTask[LinkSpec](LINKING_TASK_ID, linkSpec, metaData)
-//    workspaceProvider.putTask(PROJECT_NAME, linkTask)
     refreshTest {
       workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTask)
     }
@@ -212,22 +232,6 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     workspaceProvider.putTask(PROJECT_NAME, linkTaskUpdated)
     refreshTest {
       workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
-    }
-  }
-
-  it should "read and write dataset tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, dataset)
-    refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.get
-      ds shouldBe dataset
-    }
-  }
-
-  it should "update dataset tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
-    refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption.get
-      ds shouldBe datasetUpdated
     }
   }
 
@@ -329,7 +333,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers {
     workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[Dataset](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe empty
+      workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
     }
   }
 

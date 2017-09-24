@@ -23,8 +23,11 @@ const Navigation = {
 
     handleToggleRuleDetails(stateExpand) {
         hierarchicalMappingChannel.subject('list.toggleDetails').onNext(stateExpand);
-    }
+    },
 
+    promoteToggleTreenavigation(stateVisibility) {
+        hierarchicalMappingChannel.subject('treenav.toggleVisibility').onNext(stateVisibility);
+    }
 }
 
 export default Navigation;

@@ -15,7 +15,7 @@
     If required is set, the parent aggregation should only generate a result if this
     operator yields a value.
   </div>
-  <input type="checkbox" name="required" @if(required) {checked="checked"}/>
+  <input type="checkbox" class="param_value" name="required" @if(required) {checked="checked"}/>
 </div>
 <div class="param_element">
   <label id="@{GenerateId(id, display)}_param_weight" class="param_label" tabindex="-1">Weight</label>

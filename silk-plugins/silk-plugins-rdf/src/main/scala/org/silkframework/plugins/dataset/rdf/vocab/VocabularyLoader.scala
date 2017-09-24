@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
 import com.hp.hpl.jena.vocabulary.{OWL, RDF}
-import org.silkframework.dataset.rdf.{BlankNode, RdfNode, SparqlEndpoint}
+import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 
 import scala.collection.immutable.SortedMap
 
 private class VocabularyLoader(endpoint: SparqlEndpoint) {
+  final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
   def retrieveVocabulary(uri: String): Vocabulary = {
     val classes = retrieveClasses(uri)
@@ -38,25 +39,69 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          | ORDER BY ?c
       """.stripMargin
 
-    val resultsPerClass = new SequentialGroup(endpoint.select(classQuery).bindings)
+    val queryResult = endpoint.select(classQuery).bindings
+    val resultsPerClass = new SequentialGroup(queryResult)
     for((classUri, bindings) <- resultsPerClass) yield {
-      val labels = collectValues("label", bindings)
-      val descriptions = collectValues("desc", bindings)
+      val label = collectLanguageRankedValue("label", bindings)
+      val description = collectLanguageRankedValue("desc", bindings)
       val parents = collectValues("parent", bindings)
       VocabularyClass(
         info =
           GenericInfo(
             uri = classUri,
-            label = labels.headOption,
-            description = descriptions.headOption
+            label = label,
+            description = description
           ),
         parentClasses = parents
       )
     }
   }
 
-  private def collectValues(varName: String, bindings: Traversable[SortedMap[String, RdfNode]]): Seq[String] = {
+  private def collectValues(varName: String,
+                            bindings: Traversable[SortedMap[String, RdfNode]]): Seq[String] = {
     bindings.flatMap(_.get(varName).map(_.value)).toSeq.distinct
+  }
+
+  private def extractLangRank(langTag: String): (Int, String) = {
+    val mainLang = langTag.take(2).toLowerCase()
+    val idx = languageRanking.indexOf(mainLang)
+    if(idx == -1) {
+      (Int.MaxValue, mainLang)
+    } else {
+      (idx, mainLang)
+    }
+  }
+
+  private def collectLanguageRankedValue(varName: String,
+                                         bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
+    val values = bindings.flatMap(_.get(varName).toSeq).toSeq.distinct
+    val sortedNodes = values.sortWith {
+      case (l: LanguageLiteral, r: LanguageLiteral) =>
+        sortLanguageLiterals(l, r)
+      case (_: LanguageLiteral, _) =>
+        true
+      case (_, _: LanguageLiteral) =>
+        false
+      case (PlainLiteral(l), PlainLiteral(r)) =>
+        l < r
+      case (_: PlainLiteral, _) =>
+        true
+      case (_, _: PlainLiteral) =>
+        false
+      case (l, r) =>
+        l.value < r.value
+    }
+    sortedNodes.headOption.map(_.value)
+  }
+
+  private def sortLanguageLiterals(l: LanguageLiteral, r: LanguageLiteral) = {
+    val (leftRank, leftLang) = extractLangRank(l.language)
+    val (rightRank, rightLang) = extractLangRank(r.language)
+    if (leftRank == rightRank) {
+      leftLang < rightLang
+    } else {
+      leftRank < rightRank
+    }
   }
 
   class SequentialGroup(bindings: Traversable[SortedMap[String, RdfNode]]) extends Traversable[(String, Traversable[SortedMap[String, RdfNode]])] {
@@ -103,8 +148,8 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       val info =
         GenericInfo(
           uri = propertyResource.value,
-          label = firstValue("label", bindings),
-          description = firstValue("desc", bindings)
+          label = collectLanguageRankedValue("label", bindings),
+          description = collectLanguageRankedValue("desc", bindings)
         )
       val classes = bindings.flatMap(_.get("class"))
       val propertyType = classes.toSeq.

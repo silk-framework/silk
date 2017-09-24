@@ -12,7 +12,8 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoun
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
-import org.silkframework.workbench.utils.JsonError
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
@@ -41,7 +42,7 @@ class WorkspaceApi extends Controller {
 
   def newProject(project: String): Action[AnyContent] = Action {
     if (User().workspace.projects.exists(_.name == project)) {
-      Conflict(JsonError(s"Project with name '$project' already exists. Creation failed."))
+      ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
@@ -76,9 +77,9 @@ class WorkspaceApi extends Controller {
     implicit val resources = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
-    if (projectExecutors.isEmpty)
-      BadRequest("No project executor available")
-    else {
+    if (projectExecutors.isEmpty) {
+      ErrorResult(BadUserInputException("No project executor available"))
+    } else {
       val projectExecutor = projectExecutors.head()
       Activity(projectExecutor.apply(project)).start()
       Ok
@@ -101,7 +102,7 @@ class WorkspaceApi extends Controller {
         SilkConfigImporter(config, project)
         Ok
       case _ =>
-        UnsupportedMediaType("Link spec must be provided either as Multipart form data or as XML. Please set the Content-Type header accordingly, e.g. to application/xml")
+        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/xml"))
     }
   }
   }
@@ -146,7 +147,7 @@ class WorkspaceApi extends Controller {
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.load)
+    val enumerator = Enumerator.fromStream(resource.inputStream)
 
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
   }
@@ -164,19 +165,21 @@ class WorkspaceApi extends Controller {
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(JsonError(ex))
+          case ex: Exception =>
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
         try {
           val dataParts = formData.dataParts("resource-url")
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
-          val inputStream = urlResource.load
+          val inputStream = urlResource.inputStream
           resource.writeStream(inputStream)
           inputStream.close()
           Ok
         } catch {
-          case ex: Exception => BadRequest(JsonError(ex))
+          case ex: Exception =>
+            ErrorResult(BadUserInputException(ex))
         }
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())

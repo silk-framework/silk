@@ -32,7 +32,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     implicit val prefixes = Prefixes.empty
 
     taskResources.get("dataset.xml").write() { os => data.selection.toXML(asSource = true).write(os) }
-    taskResources.get("rules.xml").writeString(toXml(data).toString())
+    taskResources.get("rules.xml").write() { os => toXml(data).write(os) }
   }
 
   /**
@@ -50,8 +50,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       implicit val resources = projectResources
       implicit val readContext = ReadContext(resources)
       // Currently the transform spec is distributed in two xml files
-      val datasetXml = XML.load(taskResources.get("dataset.xml").load)
-      val rulesXml = XML.load(taskResources.get("rules.xml").load)
+      val datasetXml = taskResources.get("dataset.xml").read(XML.load)
+      val rulesXml = taskResources.get("rules.xml").read(XML.load)
       var xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
       // Old XML versions do not contain the id
       if((xml \ "@id").isEmpty) {

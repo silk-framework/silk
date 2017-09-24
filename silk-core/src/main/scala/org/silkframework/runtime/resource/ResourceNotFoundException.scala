@@ -1,3 +1,8 @@
 package org.silkframework.runtime.resource
 
-class ResourceNotFoundException(msg: String) extends Exception(msg)
+import org.silkframework.runtime.validation.NotFoundException
+
+class ResourceNotFoundException(msg: String) extends NotFoundException(msg) {
+
+  override val errorTitle = "Resource not found"
+}

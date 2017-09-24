@@ -20,7 +20,7 @@ case class CsvDataset
     properties: String = "",
   @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. \"\\t\" for specifying tab-separated values, is also supported.")
     separator: String = ",",
-  @Param("The character that is used to separate the parts of array values. Write \"\\t\" to specify the tab character.")
+  @Param(label = "Array separator", value = "The character that is used to separate the parts of array values. Write \"\\t\" to specify the tab character.")
     arraySeparator: String = "",
   @Param("Character used to quote values.")
     quote: String = "\"",
@@ -37,7 +37,7 @@ case class CsvDataset
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
     maxCharsPerColumn: Int = 128000,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
-    ignoreBadLines: Boolean = true) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
+    ignoreBadLines: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
 
   private val sepChar =
     if (separator == "\\t") { '\t' }

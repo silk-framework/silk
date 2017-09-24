@@ -6,7 +6,7 @@ import java.time.Instant
 import scala.io.{Codec, Source}
 
 /**
- * A resource, such as a file, which is required by a plugin.
+ * A resource, such as a file.
  */
 trait Resource {
 
@@ -38,18 +38,31 @@ trait Resource {
   def modificationTime: Option[Instant]
 
   /**
-   * Loads the resource.
+   * Creates an input stream for reading the resource.
    *
    * @return An input stream for reading the resource.
    *         The caller is responsible for closing the stream after reading.
    */
-  def load: InputStream
+  def inputStream: InputStream
+
+  /**
+    * Reads the input stream with a provided read function.
+    * This method should usually be preferred over load() as it takes care of closing the input stream after reading is done.
+    */
+  def read[T](reader: InputStream => T): T = {
+    val is = inputStream
+    try {
+      reader(is)
+    } finally {
+      is.close()
+    }
+  }
 
   /**
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
-    val source = Source.fromInputStream(load)(codec)
+    val source = Source.fromInputStream(inputStream)(codec)
     try {
       source.getLines.mkString("\n")
     } finally {
@@ -61,7 +74,7 @@ trait Resource {
     * Loads this resource into a byte array.
     */
   def loadAsBytes: Array[Byte] = {
-    val in = load
+    val in = inputStream
     try {
       val out = new ByteArrayOutputStream()
       var b = in.read()
@@ -76,7 +89,24 @@ trait Resource {
   }
 
   /**
+    * True, if this resource does exist and is not empty.
+    * False, otherwise.
+    */
+  def nonEmpty: Boolean = {
+    if(exists) {
+      val in = inputStream
+      try {
+        in.read() != -1
+      } finally {
+        in.close()
+      }
+    } else {
+      false
+    }
+  }
+
+  /**
    * Returns the name of this resource.
    */
-  override def toString = name
+  override def toString: String = name
 }

@@ -2,6 +2,12 @@
 
 import _ from 'lodash';
 import rxmq, {Rx} from 'ecc-messagebus';
+import {
+    isObjectMappingRule,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_URI,
+} from './helpers';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -24,7 +30,7 @@ const datatypes = _.map(
             value: 'AutoDetectValueType',
             label: 'Auto Detect',
             description:
-                'The best suitable data type will be chosen automatically',
+                'The data type is decided automatically, based on the lexical form of each value.',
         },
         {
             value: 'UriValueType',
@@ -64,6 +70,18 @@ const datatypes = _.map(
             description:
                 'Suited for large numbers which have a fractional value',
         },
+        {
+            value: 'DateValueType',
+            label: 'Date',
+            description:
+                'Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth.'
+        },
+        {
+            value: 'DateTimeValueType',
+            label: 'DateTime',
+            description:
+                'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.'
+        }
     ],
     datatype => ({
         ...datatype,
@@ -111,7 +129,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         if (
             isObjectMapping &&
             result !== null &&
-            !_.includes(['root', 'object'], result.type)
+            !isObjectMappingRule(result.type)
         ) {
             result = element;
         }
@@ -123,6 +141,11 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
 const handleCreatedSelectBoxValue = (data, path) => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
+    }
+    // the select boxes return an empty array when the user delete the existing text,
+    // instead of returning an empty string
+    if (_.isEmpty(_.get(data, [path]))) {
+        return '';
     }
 
     return _.get(data, [path]);
@@ -141,7 +164,7 @@ const prepareValueMappingPayload = data => {
         },
     };
 
-    if (data.type === 'direct') {
+    if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
@@ -170,7 +193,7 @@ const prepareObjectMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            isBackwardProperty: data.entityConnection,
+            isBackwardProperty: data.entityConnection==='from',
             valueType: {
                 nodeType: 'UriValueType',
             },
@@ -181,7 +204,7 @@ const prepareObjectMappingPayload = data => {
         rules: {
             uriRule: data.pattern
                 ? {
-                      type: 'uri',
+                      type: MAPPING_RULE_TYPE_URI,
                       pattern: data.pattern,
                   }
                 : null,
@@ -190,7 +213,7 @@ const prepareObjectMappingPayload = data => {
     };
 
     if (!data.id) {
-        payload.type = 'object';
+        payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
 
@@ -270,6 +293,47 @@ if (!__DEBUG__) {
                 .connect();
         });
 
+    function mapPeakResult(returned){
+
+        if(_.get(returned, 'body.status.id') !== 'success'){
+            return {
+                title: 'Could not load preview',
+                detail: _.get(returned, 'body.status.msg', 'No details available')
+            }
+        }
+
+        return {
+            example: returned.body,
+        };
+    }
+
+    hierarchicalMappingChannel
+        .subject('rule.child.example')
+        .subscribe(({data, replySubject}) => {
+            const {ruleType, rawRule, id} = data;
+            if (id) {
+
+                const rule = ruleType === "value"
+                    ? prepareValueMappingPayload(rawRule)
+                    : prepareObjectMappingPayload(rawRule)
+                ;
+                silkStore
+                    .request({
+                        topic: 'transform.task.rule.child.peak',
+                        data: {...apiDetails, id, rule}
+                    })
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
+            }
+        });
+
     hierarchicalMappingChannel
         .subject('rule.example')
         .subscribe(({data, replySubject}) => {
@@ -280,11 +344,15 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.peak',
                         data: {...apiDetails, id},
                     })
-                    .map(returned => ({
-                        example: returned.body,
-                    }))
-                    .multicast(replySubject)
-                    .connect();
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
             }
         });
 
@@ -366,7 +434,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('autocomplete')
         .subscribe(({data, replySubject}) => {
-            const {entity, input, ruleId} = data;
+            const {entity, input, ruleId = rootId} = data;
 
             let channel = 'transform.task.rule.completions.';
 
@@ -519,7 +587,7 @@ if (!__DEBUG__) {
                         },
                     },
                     sourcePath: correspondence.sourcePath,
-                    type: 'direct',
+                    type: MAPPING_RULE_TYPE_DIRECT,
                 });
             });
 
@@ -653,6 +721,31 @@ if (!__DEBUG__) {
         });
 
     hierarchicalMappingChannel
+        .subject('rule.child.example')
+        .subscribe(({replySubject}) => {
+            const example = {
+                sourcePaths: [['/name'], ['/birthdate']],
+                results: [
+                    {
+                        sourceValues: [['Abigale Purdy'], ['7/21/1977']],
+                        transformedValues: ['abigale purdy7/21/1977'],
+                    },
+                    {
+                        sourceValues: [['Ronny Wiegand'], ['10/24/1963']],
+                        transformedValues: ['ronny wiegand10/24/1963'],
+                    },
+                    {
+                        sourceValues: [['Rosalyn Wisozk'], ['5/8/1982']],
+                        transformedValues: ['rosalyn wisozk5/8/1982'],
+                    },
+                ],
+                status: {id: 'success', msg: ''},
+            };
+            replySubject.onNext({example});
+            replySubject.onCompleted();
+        });
+
+    hierarchicalMappingChannel
         .subject('rule.example')
         .subscribe(({replySubject}) => {
             const example = {
@@ -731,10 +824,15 @@ if (!__DEBUG__) {
         if (_.includes(data.metadata.description, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'I am one error, but a tiny one that normal users never see',
+                cause: [
+                    {
+                        title: 'I am just a regular error',
+                        detail: 'I am one error, but a tiny one that normal users never see',
+                        cause: []
+                    },
+                ]
             });
 
             replySubject.onError(err);
@@ -754,17 +852,22 @@ if (!__DEBUG__) {
     };
 
     const handleUpdate = ({data, replySubject}) => {
-        const payload = _.includes(['object', 'root'], data.type)
+        const payload = isObjectMappingRule(data.type)
             ? prepareObjectMappingPayload(data)
             : prepareValueMappingPayload(data);
 
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'Comment can not contain error, that is not an error but it is an error',
+                cause: [
+                    {
+                        title: 'I am just a forced error',
+                        detail: 'I am THE error, a big one that everyone would see',
+                        cause: []
+                    },
+                ]
             });
             replySubject.onError(err);
             replySubject.onCompleted();

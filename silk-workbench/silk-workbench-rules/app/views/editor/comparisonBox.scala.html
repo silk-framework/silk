@@ -16,7 +16,7 @@ project: Project)
     operator yields a value.
     A comparison will only yield a value if in turn both input operators yield values.
   </div>
-  <input type="checkbox" name="required" @if(required) {checked="checked"}/>
+  <input type="checkbox" class="param_value" name="required" @if(required) {checked="checked"}/>
 </div>
 <div class="param_element">
   <label id="@{GenerateId(id, display)}_param_threshold" class="param_label" tabindex="-1">Threshold</label>

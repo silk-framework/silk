@@ -52,8 +52,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
       """
         {
-          "id": "directRule",
           "type": "direct",
+          "id": "directRule",
           "sourcePath": "/source:name",
           "mappingTarget": {
             "uri": "target:name",
@@ -71,7 +71,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Update meta data of direct mapping rule" in {
-    val json = jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
+    jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
       """
         {
           "metadata" : {
@@ -87,8 +87,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
       """
         {
-          "id": "objectRule",
           "type": "object",
+          "id": "objectRule",
           "sourcePath": "source:address",
           "mappingTarget": {
             "uri": "target:address",
@@ -208,10 +208,33 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
   }
 
+  "Append another direct mapping rule to root" in {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
+      """
+        {
+          "type": "direct",
+          "id": "directRule2",
+          "sourcePath": "/source:lastName",
+          "mappingTarget": {
+            "uri": "target:lastName",
+            "valueType": {
+              "nodeType": "StringValueType"
+            }
+          },
+          "metadata" : {
+            "label" : "direct rule label",
+            "description" : "direct rule description"
+          }
+        }
+      """
+    }
+  }
+
   "Reorder the child rules" in {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/reorder") {
       """
         [
+          "directRule2",
           "objectRule",
           "directRule"
         ]
@@ -219,9 +242,45 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
 
     // Check if the rules have been reordered correctly
-    val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
-    val order = (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value).toSeq
-    order mustBe Seq("objectRule", "directRule")
+    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
+  }
+
+  "Update direct mapping rule" in {
+    jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
+      """
+        {
+          "sourcePath": "/source:firstName",
+          "mappingTarget": {
+            "uri": "target:firstName"
+          }
+        }
+      """
+    }
+
+    // Check if rule has been update correctly
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") mustMatchJson {
+      """
+        {
+          "type": "direct",
+          "id": "directRule",
+          "sourcePath": "/source:firstName",
+          "mappingTarget": {
+            "uri": "target:firstName",
+            "valueType": {
+              "nodeType": "StringValueType"
+            },
+            "isBackwardProperty": false
+          },
+          "metadata" : {
+            "label" : "updated direct rule label",
+            "description" : "updated direct rule description"
+          }
+        }
+      """
+    }
+
+    // Make sure that the position of the updated rule did not change
+    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
   }
 
   "Delete mapping rule" in {
@@ -237,7 +296,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 404
   }
 
-  "Return 404 if submitted mapping parameters are invalid" in {
+  "Return 400 if submitted mapping parameters are invalid" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -260,7 +319,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 400
   }
 
-  "Return 404 if an invalid rule should be appended" in {
+  "Return 400 if an invalid rule should be appended" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -283,7 +342,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 400
   }
 
-  "Return 404 if an invalid rule json is provided" in {
+  "Return 400 if an invalid rule json is provided" in {
     var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
@@ -305,5 +364,4 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val response = Await.result(request.post(Json.parse(json)), 100.seconds)
     response.status mustBe 400
   }
-
 }

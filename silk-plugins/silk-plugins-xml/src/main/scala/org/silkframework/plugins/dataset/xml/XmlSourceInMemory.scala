@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 
 import scala.xml.XML
 
-class XmlSource(file: Resource, basePath: String, uriPattern: String) extends DataSource
+class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
     with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
@@ -21,7 +21,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
   private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val xml = XML.load(file.load)
+    val xml = file.read(XML.load)
     for (path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
@@ -44,7 +44,12 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
       nodes.flatMap(_.evaluatePath(entitySchema.subPath))
     } else { nodes }
-    new Entities(subTypeEntities, entitySchema)
+    val entities = new Entities(subTypeEntities, entitySchema)
+
+    limit match {
+      case Some(max) => entities.take(max)
+      case None => entities
+    }
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
@@ -60,7 +65,7 @@ class XmlSource(file: Resource, basePath: String, uriPattern: String) extends Da
     // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
     val pathStr = if (typeUri.isEmpty) basePath else typeUri
     // Load XML
-    val xml = XML.load(file.load)
+    val xml = file.read(XML.load)
     val rootTraverser = XmlTraverser(xml)
     // Move to base path
     rootTraverser.evaluatePath(Path.parse(pathStr))

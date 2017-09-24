@@ -18,6 +18,7 @@ import hierarchicalMappingChannel from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
+import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -54,6 +55,10 @@ const HierarchicalMapping = React.createClass({
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
             this.discardAll
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject('treenav.toggleVisibility'),
+            this.handleToggleNavigation
         );
     },
     // initilize state
@@ -117,7 +122,7 @@ const HierarchicalMapping = React.createClass({
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!
-                    if (type === 'object') {
+                    if (type === MAPPING_RULE_TYPE_OBJECT) {
                         this.setState({
                             currentRuleId: parent,
                             elementToDelete: false,
@@ -183,9 +188,9 @@ const HierarchicalMapping = React.createClass({
         }
     },
     // show / hide navigation
-    handleToggleNavigation() {
+    handleToggleNavigation(stateVisibility) {
         this.setState({
-            showNavigation: !this.state.showNavigation,
+            showNavigation: stateVisibility,
         });
     },
     handleDiscardChanges() {
@@ -217,24 +222,28 @@ const HierarchicalMapping = React.createClass({
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete
             ? <ConfirmationDialog
+                  className="ecc-hm-delete-dialog"
                   active
                   modal
                   title="Remove mapping rule?"
                   confirmButton={
                       <DisruptiveButton
+                          className="ecc-hm-delete-accept"
                           disabled={false}
                           onClick={this.handleConfirmRemove}>
                           Remove
                       </DisruptiveButton>
                   }
                   cancelButton={
-                      <DismissiveButton onClick={this.handleCancelRemove}>
+                      <DismissiveButton
+                          className="ecc-hm-delete-cancel"
+                          onClick={this.handleCancelRemove}>
                           Cancel
                       </DismissiveButton>
                   }>
                   <p>
                       When you click REMOVE the mapping rule
-                      {this.state.elementToDelete.type === 'object'
+                      {this.state.elementToDelete.type === MAPPING_RULE_TYPE_OBJECT
                           ? ' including all child rules '
                           : ''}
                       will be deleted permanently.
@@ -246,16 +255,20 @@ const HierarchicalMapping = React.createClass({
             ? <ConfirmationDialog
                   active
                   modal
+                  className="ecc-hm-discard-dialog"
                   title="Discard changes?"
                   confirmButton={
                       <DisruptiveButton
                           disabled={false}
+                          className="ecc-hm-accept-discard"
                           onClick={this.handleDiscardChanges}>
                           Discard
                       </DisruptiveButton>
                   }
                   cancelButton={
-                      <DismissiveButton onClick={this.handleCancelDiscard}>
+                      <DismissiveButton
+                          className="ecc-hm-cancel-discard"
+                          onClick={this.handleCancelDiscard}>
                           Cancel
                       </DismissiveButton>
                   }>
@@ -287,36 +300,43 @@ const HierarchicalMapping = React.createClass({
                       }}>
                       RELOAD
                   </Button>
+                  <hr />
               </div>
             : false;
 
+        // this appHeader is currently not used
+        const appHeader = false;
+        /*
+        <Card className="ecc-silk-mapping__header">
+            <CardTitle
+                className="ecc-silk-mapping__header-action-row"
+                border={false}>
+                <ContextMenu iconName="tune">
+                    <MenuItem onClick={this.handleToggleNavigation}>
+                        {this.state.showNavigation
+                            ? 'Hide tree navigation'
+                            : 'Show tree navigation'}
+                    </MenuItem>
+                </ContextMenu>
+            </CardTitle>
+        </Card>;
+        */
+
         return (
             <section className="ecc-silk-mapping">
-                <Card>
-                    <CardTitle
-                        className="ecc-silk-mapping__header"
-                        border={false}>
-                        {debugOptions}
-                        {deleteView}
-                        {discardView}
-                        {loading}
-                        <ContextMenu iconName="tune">
-                            <MenuItem onClick={this.handleToggleNavigation}>
-                                {this.state.showNavigation
-                                    ? 'Hide tree navigation'
-                                    : 'Show tree navigation'}
-                            </MenuItem>
-                        </ContextMenu>
-                    </CardTitle>
-                    <div className="ecc-silk-mapping__content">
-                        {navigationTree}
-                        {
-                            <MappingsWorkview
-                                currentRuleId={this.state.currentRuleId}
-                            />
-                        }
-                    </div>
-                </Card>
+                {debugOptions}
+                {appHeader}
+                {deleteView}
+                {discardView}
+                {loading}
+                <div className="ecc-silk-mapping__content">
+                    {navigationTree}
+                    {
+                        <MappingsWorkview
+                            currentRuleId={this.state.currentRuleId}
+                        />
+                    }
+                </div>
             </section>
         );
     },

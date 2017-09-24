@@ -24,7 +24,7 @@ case class RdfFilesVocabularyManager() extends VocabularyManager {
 
     // Load into Jena model
     val model = ModelFactory.createDefaultModel()
-    val inputStream = vocabularyResource.load
+    val inputStream = vocabularyResource.inputStream
     RDFDataMgr.read(model, inputStream, RDFLanguages.filenameToLang(vocabularyResource.name))
     inputStream.close()
 

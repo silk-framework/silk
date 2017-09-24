@@ -1,23 +1,24 @@
 package org.silkframework.rule.plugins.transformer.filter
 
-import java.net.UnknownHostException
-import java.util.logging.Logger
-
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.util.{MockServerTestTrait, ServedContent}
 
 /**
   * Created by Christian Wartner on 12.08.2016.
   */
-class RemoveRemoteStopwordsTest extends FlatSpec with Matchers {
-  lazy val transformer = new RemoveRemoteStopwords("https://sites.google.com/site/kevinbouge/stopwords-lists/stopwords_de.txt?attredirects=0&d=1")
+class RemoveRemoteStopwordsTest extends FlatSpec with Matchers with MockServerTestTrait {
 
   "RemoveRemoteStopwordsTransformer" should "return 'x'" in {
-    try {
-      transformer.apply(Seq(Seq("x des und sei"))).map(_.trim) should equal(Seq("x"))
-    } catch {
-      case e: UnknownHostException =>
-        Logger.getLogger(getClass.getName).warning("No Internet connection, ignoring test.")
-        // Ignore this test if no Internet connection available
+    withAdditionalServer(Seq(
+      ServedContent(
+        contextPath = "/stopwords.txt",
+        content = "the\nis\n",
+        contentType = "plain/text",
+        statusCode = 200
+      )
+    )) { port =>
+      val transformer = RemoveRemoteStopwords(s"http://localhost:$port/stopwords.txt")
+      transformer.apply(Seq(Seq("the tree is big"))).map(_.trim) should equal(Seq("tree big"))
     }
   }
 

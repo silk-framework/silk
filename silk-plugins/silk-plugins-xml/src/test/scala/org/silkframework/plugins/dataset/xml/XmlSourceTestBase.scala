@@ -8,7 +8,9 @@ import org.silkframework.util.Uri
 
 import scala.languageFeature.postfixOps
 
-class XmlDatasetTest extends FlatSpec with Matchers {
+abstract class XmlSourceTestBase extends FlatSpec with Matchers {
+
+  def xmlSource: DataSource
 
   val persons = XmlDoc("persons.xml")
 
@@ -85,9 +87,19 @@ class XmlDatasetTest extends FlatSpec with Matchers {
         "/Person/Properties/Property/Value")
   }
 
+  it should "list all paths with leaf nodes of the root node" in {
+    (persons atPath "").subPaths shouldBe
+      Seq("/Person/ID", "/Person/Name", "/Person/Events/@count", "/Person/Events/Birth", "/Person/Events/Death", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
+  }
+
   it should "list all paths with leaf nodes, given a base path" in {
     (persons atPath "Person").subPaths shouldBe
       Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
+  }
+
+  it should "respect the limit when reading entities" in {
+    (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
+    (persons atPath "Person" limit 2 valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
   }
 
 
@@ -98,14 +110,14 @@ class XmlDatasetTest extends FlatSpec with Matchers {
 
     private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
 
-    private val xmlSource = XmlDataset(resourceLoader.get(name), uriPattern = "{#tag}").source
+    private val source = xmlSource
 
     def atPath(basePath: String = ""): Entities = {
-      Entities(xmlSource, basePath)
+      Entities(source, basePath)
     }
 
     def types: Seq[String] = {
-      xmlSource.retrieveTypes().map(_._1).toSeq
+      source.retrieveTypes().map(_._1).toSeq
     }
 
   }
@@ -113,7 +125,11 @@ class XmlDatasetTest extends FlatSpec with Matchers {
   /**
     * References entities in a specified XML document at a specified path.
     */
-  case class Entities(xmlSource: DataSource, basePath: String) {
+  case class Entities(xmlSource: DataSource, basePath: String, entityLimit: Option[Int] = None) {
+
+    def limit(maxCount: Int): Entities = {
+      copy(entityLimit = Some(maxCount))
+    }
 
     def tags: Seq[String] = {
       retrieve(IndexedSeq.empty).map(_.uri)
@@ -134,7 +150,7 @@ class XmlDatasetTest extends FlatSpec with Matchers {
           typeUri = Uri(basePath),
           typedPaths = paths.map(_.asStringTypedPath)
         )
-      xmlSource.retrieve(entityDesc).toSeq
+      xmlSource.retrieve(entityDesc, entityLimit).toSeq
     }
 
   }

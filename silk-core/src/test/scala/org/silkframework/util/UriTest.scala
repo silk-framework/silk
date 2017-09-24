@@ -25,7 +25,6 @@ class UriTest extends FlatSpec with Matchers {
     Uri("http://example.org/entity1").isValidUri shouldBe true
     Uri("http://example.org/###").isValidUri shouldBe false
     Uri("example.org/entity1").isValidUri shouldBe false
-    Uri("file:///path").isValidUri shouldBe false
     Uri("").isValidUri shouldBe false
   }
 

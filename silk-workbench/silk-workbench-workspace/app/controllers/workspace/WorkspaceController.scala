@@ -1,6 +1,7 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{PrefixRegistry, User}
@@ -62,7 +63,7 @@ class WorkspaceController extends Controller {
 
   def importExample(project: String): Action[AnyContent] = Action {
     val workspace = User().workspace
-    val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
+    val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").inputStream
     workspace.importProject(Identifier(project), inputStream, XmlZipProjectMarshaling())
 
     User().workspace.reload()

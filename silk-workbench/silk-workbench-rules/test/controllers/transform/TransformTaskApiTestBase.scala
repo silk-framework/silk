@@ -6,7 +6,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.DefaultConfig
 import org.silkframework.util.ConfigTestTrait
 import play.api.Logger
-import play.api.libs.json.{JsBoolean, JsValue, Json}
+import play.api.libs.json._
 import play.api.libs.ws.WS
 
 /**
@@ -74,6 +74,11 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
       if(!cachesLoaded)
         Thread.sleep(1000)
     } while(!cachesLoaded)
+  }
+
+  def retrieveRuleOrder(): Seq[String] = {
+    val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
+    (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value)
   }
 
   implicit class JsonOperations(json: JsValue) {
