@@ -92,12 +92,7 @@ const MappingRule = React.createClass({
             });
         }
     },
-    // jumps to selected rule as new center of view
-    handleNavigate() {
-        hierarchicalMappingChannel
-            .subject('ruleId.change')
-            .onNext({newRuleId: this.props.id, parent: this.props.parentId});
-    },
+
     // show / hide additional row details
     handleToggleExpand() {
         if (this.state.editing) {
