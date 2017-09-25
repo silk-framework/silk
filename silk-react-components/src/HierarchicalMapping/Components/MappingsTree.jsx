@@ -13,13 +13,14 @@ import {
     CardContent,
 } from 'ecc-gui-elements';
 
+import Navigation from '../Mixins/Navigation';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 
 const MappingsTree = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, Navigation],
 
     // define property types
     propTypes: {
@@ -81,13 +82,6 @@ const MappingsTree = React.createClass({
             }
         );
     },
-    // select clicked id
-    handleNavigate(ruleId) {
-        hierarchicalMappingChannel
-            .subject('ruleId.change')
-            .onNext({newRuleId: ruleId});
-    },
-
     // collapse / expand navigation childs
     handleToggleExpanded(id) {
         // copy
@@ -157,9 +151,7 @@ const MappingsTree = React.createClass({
             const element = () =>
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
-                    onClick={() => {
-                        this.handleNavigate(id);
-                    }}>
+                    onClick={this.handleNavigate.bind(null, id)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>

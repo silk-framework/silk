@@ -7,7 +7,7 @@ const Navigation = {
     handleNavigate(id, event) {
         hierarchicalMappingChannel
             .subject('ruleId.change')
-            .onNext({newRuleId: id, parent: this.props.rule.id});
+            .onNext({newRuleId: id});
 
         event.stopPropagation();
     },
