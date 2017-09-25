@@ -260,11 +260,7 @@ const ObjectRule = React.createClass({
                                           Examples of target data
                                       </dt>
                                       <dd>
-                                          <InfoBox>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                                  <ExampleView id={this.props.rules.uriRule.id} />
-                                              </div>
-                                          </InfoBox>
+                                          <ExampleView id={this.props.rules.uriRule.id} />
                                       </dd>
                                   </dl>
                               </div>
