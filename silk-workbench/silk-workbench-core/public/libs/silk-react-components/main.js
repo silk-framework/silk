@@ -22874,11 +22874,9 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute"
             }, _react2.default.createElement("dt", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "Examples of target data"), _react2.default.createElement("dd", null, _react2.default.createElement(_SharedComponents.InfoBox, null, _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, _react2.default.createElement(_ExampleView2.default, {
+            }, "Examples of target data"), _react2.default.createElement("dd", null, _react2.default.createElement(_ExampleView2.default, {
                 id: this.props.rules.uriRule.id
-            })))))), !!_lodash2.default.get(this.props, "metadata.description", !1) && _react2.default.createElement("div", {
+            })))), !!_lodash2.default.get(this.props, "metadata.description", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
