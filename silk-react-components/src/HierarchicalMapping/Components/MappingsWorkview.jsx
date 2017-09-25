@@ -24,7 +24,6 @@ import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRule from './MappingRule/MappingRule';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
 import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
@@ -355,11 +354,11 @@ const MappingsWorkview = React.createClass({
                       targetClassUris={types}
                   />
                 : false;
-
         const listMappings =
             (!createRuleForm && !listSuggestions) ?
             (
                     <MappingsList
+                        currentRuleId={_.get(this.props, 'currentRuleId', "root")}
                         rules={_.get(rules, 'propertyRules', [])}
                     />
             ) : false;
