@@ -47,15 +47,11 @@ const MappingsTree = React.createClass({
     componentDidMount() {
         this.loadData();
     },
-    expandElement({parent}) {
-        if (
-            !_.isUndefined(parent) &&
-            !_.includes(this.state.expanded, {[parent]: true})
-        ) {
-            this.setState({
-                expanded: _.merge(this.state.expanded, {[parent]: true}),
-            });
-        }
+    expandElement({newRuleId , parentRuleId}) {
+        const expanded = this.state.expanded;
+        expanded[newRuleId] = true;
+        expanded[parentRuleId] = true;
+        this.setState({expanded});
     },
     loadData() {
         if (__DEBUG__) {
@@ -82,14 +78,10 @@ const MappingsTree = React.createClass({
             }
         );
     },
-    // collapse / expand navigation childs
+    // collapse / expand navigation children
     handleToggleExpanded(id) {
-        // copy
-        const expanded = _.cloneDeep(this.state.expanded);
-        // get id state
-        const currentlyExpanded = _.get(expanded, [id], false);
-        // negate state
-        expanded[id] = !currentlyExpanded;
+        const expanded = this.state.expanded;
+        expanded[id] = !expanded[id];
         this.setState({expanded});
     },
     markTree(curr) {
@@ -109,8 +101,6 @@ const MappingsTree = React.createClass({
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
                 const subtree = this.markTree(rule);
-
-                expanded = expanded || subtree.expanded;
 
                 if (
                     subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
