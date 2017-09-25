@@ -63,7 +63,7 @@ object CsvSourceHelper {
               case None => columnName
             }
           case (s, _) =>
-            if (Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
+            if (Uri(s).isValidUri) {
               s
             } else {
               URLEncoder.encode(s, "UTF-8")
