@@ -4,10 +4,10 @@ import hierarchicalMappingChannel from '../store';
 
 const Navigation = {
     // jumps to selected rule as new center of view
-    handleNavigate(id, event) {
+    handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject('ruleId.change')
-            .onNext({newRuleId: id});
+            .onNext({newRuleId: id, parentRuleId: parent});
 
         event.stopPropagation();
     },

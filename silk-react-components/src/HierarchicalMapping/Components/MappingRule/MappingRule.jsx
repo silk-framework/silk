@@ -20,9 +20,10 @@ import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
 import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
+import Navigation from '../../Mixins/Navigation';
 
 const MappingRule = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, Navigation],
 
     // define property types
     propTypes: {
@@ -185,7 +186,7 @@ const MappingRule = React.createClass({
 
         const mainAction = event => {
             if (type === MAPPING_RULE_TYPE_OBJECT) {
-                this.handleNavigate();
+                this.handleNavigate(this.props.id, this.props.parentId, event);
             } else {
                 this.handleToggleExpand({force: true});
             }

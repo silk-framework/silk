@@ -151,7 +151,7 @@ const MappingsTree = React.createClass({
             const element = () =>
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
-                    onClick={this.handleNavigate.bind(null, id)}>
+                    onClick={this.handleNavigate.bind(null, id, undefined)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>
