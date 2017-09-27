@@ -78,7 +78,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
     override def modificationTime = None
 
-    override def load: InputStream = {
+    override def inputStream: InputStream = {
       resources.get(name) match {
         case Some(data) => new ByteArrayInputStream(data)
         case None => new ByteArrayInputStream(Array.empty)

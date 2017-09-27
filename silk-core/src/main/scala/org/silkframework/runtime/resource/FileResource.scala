@@ -21,7 +21,7 @@ case class FileResource(file: File) extends WritableResource {
 
   def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
 
-  override def load = {
+  override def inputStream = {
     new BufferedInputStream(new FileInputStream(file))
   }
 

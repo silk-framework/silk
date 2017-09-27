@@ -25,7 +25,7 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
   // Loaded Jena model
   private val model = {
     val dataset = DatasetFactory.createTxnMem()
-    val inputStream = resource.load
+    val inputStream = resource.inputStream
     RDFDataMgr.read(dataset, inputStream, lang)
     inputStream.close()
 

@@ -7,8 +7,7 @@ import play.twirl.api.Html
 class Branding extends Controller {
 
   def logo = Action {
-    val imgStream = WorkbenchConfig.get.logo.load
-    val bytes = scala.Stream.continually(imgStream.read).takeWhile(_ != -1).map(_.toByte).toArray
+    val bytes = WorkbenchConfig.get.logo.loadAsBytes
     Ok(bytes).as("image/png")
   }
 

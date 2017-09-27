@@ -30,7 +30,7 @@ const datatypes = _.map(
             value: 'AutoDetectValueType',
             label: 'Auto Detect',
             description:
-                'The best suitable data type will be chosen automatically for each value',
+                'The data type is decided automatically, based on the lexical form of each value.',
         },
         {
             value: 'UriValueType',
@@ -141,6 +141,11 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
 const handleCreatedSelectBoxValue = (data, path) => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
+    }
+    // the select boxes return an empty array when the user delete the existing text,
+    // instead of returning an empty string
+    if (_.isEmpty(_.get(data, [path]))) {
+        return '';
     }
 
     return _.get(data, [path]);
@@ -288,6 +293,20 @@ if (!__DEBUG__) {
                 .connect();
         });
 
+    function mapPeakResult(returned){
+
+        if(_.get(returned, 'body.status.id') !== 'success'){
+            return {
+                title: 'Could not load preview',
+                detail: _.get(returned, 'body.status.msg', 'No details available')
+            }
+        }
+
+        return {
+            example: returned.body,
+        };
+    }
+
     hierarchicalMappingChannel
         .subject('rule.child.example')
         .subscribe(({data, replySubject}) => {
@@ -303,14 +322,17 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.child.peak',
                         data: {...apiDetails, id, rule}
                     })
-                    .map(returned => ({
-                        example: returned.body,
-                    }))
-                    .multicast(replySubject)
-                    .connect();
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
             }
         });
-
 
     hierarchicalMappingChannel
         .subject('rule.example')
@@ -322,11 +344,15 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.peak',
                         data: {...apiDetails, id},
                     })
-                    .map(returned => ({
-                        example: returned.body,
-                    }))
-                    .multicast(replySubject)
-                    .connect();
+                    .subscribe((returned) => {
+                        const result = mapPeakResult(returned);
+                        if(result.title){
+                            replySubject.onError(result)
+                        } else {
+                            replySubject.onNext(result)
+                        }
+                        replySubject.onCompleted();
+                    })
             }
         });
 
@@ -798,10 +824,15 @@ if (!__DEBUG__) {
         if (_.includes(data.metadata.description, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'I am one error, but a tiny one that normal users never see',
+                cause: [
+                    {
+                        title: 'I am just a regular error',
+                        detail: 'I am one error, but a tiny one that normal users never see',
+                        cause: []
+                    },
+                ]
             });
 
             replySubject.onError(err);
@@ -828,10 +859,15 @@ if (!__DEBUG__) {
         if (_.includes(data.comment, 'error')) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
-                message: 'Comment cannot contain "error"',
-                issues: [
-                    {message: 'None really, we just want to test the feature'},
-                ],
+                title: 'I am just a regular error',
+                detail: 'Comment can not contain error, that is not an error but it is an error',
+                cause: [
+                    {
+                        title: 'I am just a forced error',
+                        detail: 'I am THE error, a big one that everyone would see',
+                        cause: []
+                    },
+                ]
             });
             replySubject.onError(err);
             replySubject.onCompleted();

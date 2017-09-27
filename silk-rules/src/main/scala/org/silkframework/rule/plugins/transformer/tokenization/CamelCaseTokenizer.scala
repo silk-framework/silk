@@ -15,9 +15,9 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
-import scala.collection.mutable.HashSet
+import scala.collection.mutable.{ArrayBuffer, HashSet}
 
 @Plugin(
   id = "camelcasetokenizer",
@@ -25,13 +25,23 @@ import scala.collection.mutable.HashSet
   label = "Camel Case Tokenizer",
   description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("camelCaseString"),
+    output = Array("camel", "Case", "String")
+  ),
+  new TransformExample(
+    input1 = Array("nocamelcase"),
+    output = Array("nocamelcase")
+  )
+))
 case class CamelCaseTokenizer() extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ ++ _).flatMap(splitOnCamelCase)
   }
   
-  def splitOnCamelCase(value: String): Set[String] = {
-    val tokens = new HashSet[String]
+  def splitOnCamelCase(value: String): Seq[String] = {
+    val tokens = ArrayBuffer[String]()
     var lastWasLowerCase = false
     var sb = new StringBuffer
     for(c <- value) {
@@ -42,8 +52,9 @@ case class CamelCaseTokenizer() extends Transformer {
       sb.append(c)
       lastWasLowerCase = c.isLower
     }
-    if(sb.length>0)
+    if(sb.length>0) {
       tokens += sb.toString
-    tokens.toSet
+    }
+    tokens
   }
 }

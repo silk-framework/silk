@@ -48,7 +48,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    XmlSerialization.fromXml[Task[CustomTask]](XML.load(resources.get(name).load))
+    XmlSerialization.fromXml[Task[CustomTask]](resources.get(name).read(XML.load))
   }
 
   /**

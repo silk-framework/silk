@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Counts the number of values.
@@ -29,6 +29,16 @@ import org.silkframework.runtime.plugin.Plugin
   description =
     """Counts the number of values."""
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("value1"),
+    output = Array("1")
+  ),
+  new TransformExample(
+    input1 = Array("value1", "value2"),
+    output = Array("2")
+  )
+))
 case class CountTransformer() extends Transformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {

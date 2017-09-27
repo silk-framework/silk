@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.Task
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -15,14 +15,11 @@ import org.silkframework.runtime.validation.{BadUserInputException, NotFoundExce
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
-import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
+import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json._
 import play.api.mvc._
-
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 class TransformTaskApi extends Controller {
 
@@ -146,7 +143,7 @@ class TransformTaskApi extends Controller {
       }
     } catch {
       case ex: NoSuchElementException =>
-        ErrorResult.clientError(NotFoundException(ex))
+        ErrorResult(NotFoundException(ex))
     }
   }
 
@@ -190,10 +187,10 @@ class TransformTaskApi extends Controller {
               updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
               Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
             } else {
-              ErrorResult.clientError(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
+              ErrorResult(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
             }
           case None =>
-            ErrorResult.clientError(NotAcceptableException("Expected application/json."))
+            ErrorResult(UnsupportedMediaTypeException.supportedFormats("application/json."))
         }
       }
     }
@@ -207,7 +204,7 @@ class TransformTaskApi extends Controller {
       case Some(rule) =>
         catchExceptions(processFunc(rule))
       case None =>
-        ErrorResult.clientError(NotFoundException(s"No rule with id '$ruleId' found!"))
+        ErrorResult(NotFoundException(s"No rule with id '$ruleId' found!"))
     }
   }
 
@@ -226,7 +223,7 @@ class TransformTaskApi extends Controller {
         ErrorResult.validation(BAD_REQUEST, "Invalid transformation rule", ex.errors)
       case ex: JsonParseException =>
         log.log(Level.INFO, "Invalid transformation rule JSON", ex)
-        ErrorResult.clientError(BadUserInputException(ex))
+        ErrorResult(BadUserInputException(ex))
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
         ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil)
@@ -290,7 +287,7 @@ class TransformTaskApi extends Controller {
         val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")
       case _ =>
-        UnsupportedMediaType("Only XML supported")
+        throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
   }
 

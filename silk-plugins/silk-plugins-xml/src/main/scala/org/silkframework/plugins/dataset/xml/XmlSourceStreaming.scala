@@ -29,7 +29,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val inputStream = file.load
+    val inputStream = file.inputStream
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       reader.nextTag()
@@ -50,7 +50,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
-    val inputStream = file.load
+    val inputStream = file.inputStream
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
@@ -75,7 +75,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     new Traversable[Entity] {
       override def foreach[U](f: (Entity) => U): Unit = {
-        val inputStream = file.load
+        val inputStream = file.inputStream
         try {
           val reader = xmlFactory.createXMLStreamReader(inputStream)
           goToPath(reader, Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)

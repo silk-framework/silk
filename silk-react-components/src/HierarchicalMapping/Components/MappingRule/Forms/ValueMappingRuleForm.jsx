@@ -181,7 +181,7 @@ const ValueMappingRuleForm = React.createClass({
 
         const errorMessage = error ? <FormSaveError error={error} /> : false;
 
-        const allowConfirm = this.state.targetProperty;
+        const allowConfirm = !_.isEmpty(this.state.targetProperty);
 
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
@@ -213,7 +213,7 @@ const ValueMappingRuleForm = React.createClass({
             );
         }
 
-        const exampleView = this.state.sourceProperty ? (
+        const exampleView = !_.isEmpty(this.state.sourceProperty) ? (
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
@@ -221,8 +221,6 @@ const ValueMappingRuleForm = React.createClass({
                 ruleType="value"
             />) : false;
 
-        // TODO: Where to get the list of target Properties?
-        // TODO: Where to get the list of target property types?
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>

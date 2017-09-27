@@ -34,7 +34,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
     errors mustBe 0
     errorMsg mustBe ""
     peakResult mustBe Seq(
-      PeakResult(Seq(Seq("aValue"), Seq("bValue")),Seq("Value", "a", "Value", "b")),
+      PeakResult(Seq(Seq("aValue"), Seq("bValue")),Seq("a", "Value", "b", "Value")),
       PeakResult(Seq(Seq("aValue1"), Seq()),Seq("a", "Value1")),
       PeakResult(Seq(Seq(), Seq("bValue2")),Seq("b", "Value2"))
     )

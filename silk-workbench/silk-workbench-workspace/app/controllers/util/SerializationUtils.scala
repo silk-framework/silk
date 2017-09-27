@@ -70,7 +70,7 @@ object SerializationUtils {
   private def notAcceptable(request: Request[AnyContent], valueType: Class[_]) = {
     val msg = s"No serialization for accepted MIME types (${request.acceptedTypes.mkString(", ")})" +
       s" available for values of type ${valueType.getSimpleName}"
-    ErrorResult.clientError(NotAcceptableException(msg))
+    ErrorResult(NotAcceptableException(msg))
   }
 
   def serializeToStringCompileType[T: ClassTag](value: T,
@@ -238,7 +238,7 @@ object SerializationUtils {
       case None =>
         val msg = s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
                   s" available for values of type ${classToSerialize.getSimpleName}"
-        ErrorResult.clientError(NotAcceptableException(msg))
+        ErrorResult(NotAcceptableException(msg))
     }
   }
 

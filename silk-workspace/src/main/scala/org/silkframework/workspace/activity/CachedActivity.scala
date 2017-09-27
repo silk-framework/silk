@@ -62,7 +62,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
 
   private def readValue(context: ActivityContext[T]): Option[T] = {
     try {
-      val xml = XML.load(resource.load)
+      val xml = resource.read(XML.load)
       implicit val readContext = ReadContext()
       val value = fromXml[T](xml)
       context.log.info(s"Cache read from $resource")

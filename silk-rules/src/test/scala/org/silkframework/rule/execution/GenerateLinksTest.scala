@@ -79,12 +79,12 @@ object GenerateLinksTest {
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
       implicit val readContext = ReadContext()
-      val xml = XML.load(resourceLoader.get(configFile).load)
+      val xml = resourceLoader.get(configFile).read(XML.load)
       XmlSerialization.fromXml[LinkingConfig](xml)
     }
 
     lazy val referenceLinks: Set[Link] = {
-      val stream = resourceLoader.get(referenceLinksFile).load
+      val stream = resourceLoader.get(referenceLinksFile).inputStream
       ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
     }
   }

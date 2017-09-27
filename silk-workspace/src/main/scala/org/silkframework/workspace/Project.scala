@@ -165,7 +165,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    */
   def anyTask(taskName: Identifier): ProjectTask[_ <: TaskSpec] = {
     modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
-           .getOrElse(throw TaskNotFoundException(config.id, taskName, "any type"))
+           .getOrElse(throw TaskNotFoundException(config.id, taskName, "Task"))
   }
 
   /**
