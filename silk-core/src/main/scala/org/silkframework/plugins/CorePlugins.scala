@@ -16,6 +16,7 @@ package org.silkframework.plugins
 
 import org.silkframework.dataset.VariableDataset
 import org.silkframework.dataset.DatasetTask.DatasetTaskFormat
+import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.plugin.PluginModule
 
@@ -34,5 +35,6 @@ class CorePlugins extends PluginModule {
     Nil
 
   private def serializers =
-    DatasetTaskFormat.getClass :: Nil
+    DatasetTaskFormat.getClass ::
+    EntitySchemaFormat.getClass :: Nil
 }
