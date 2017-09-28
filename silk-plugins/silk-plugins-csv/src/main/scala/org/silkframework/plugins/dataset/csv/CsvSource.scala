@@ -198,7 +198,7 @@ class CsvSource(file: Resource,
       case None =>
         values.map(v => if (v != null) Seq(v) else Seq.empty[String])
       case Some(c) =>
-        values.map(v => if (v != null) v.split(Regex.quote(c.toString), -1).toSeq else Seq.empty[String])
+        values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
     }
     entityValues
   }
