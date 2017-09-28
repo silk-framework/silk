@@ -37,7 +37,10 @@ case class CsvDataset
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
     maxCharsPerColumn: Int = 128000,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
-    ignoreBadLines: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
+    ignoreBadLines: Boolean = false,
+  @Param(label = "Quote escape character",
+    value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
+  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
 
   private val sepChar =
     if (separator == "\\t") { '\t' }
@@ -55,9 +58,13 @@ case class CsvDataset
     else if (quote.length == 1) { Some(quote.head) }
     else { throw new IllegalArgumentException(s"Invalid quote character: '$quote'. Must be a single character.") }
 
+  private val quoteEscapeChar =
+    if (quoteEscapeCharacter.length == 1) { quoteEscapeCharacter.head }
+    else { throw new IllegalArgumentException(s"Invalid quote escape character: '$quoteEscapeCharacter'. Must be a single character.")}
+
   private val codec = Codec(charset)
 
-  private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar, maxCharsPerColumn = Some(maxCharsPerColumn))
+  private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar, maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar)
 
   override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec,
     skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
