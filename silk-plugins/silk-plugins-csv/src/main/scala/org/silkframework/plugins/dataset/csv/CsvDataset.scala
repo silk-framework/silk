@@ -47,18 +47,18 @@ case class CsvDataset
     else if (separator.length == 1) { separator.head }
     else { throw new IllegalArgumentException(s"Invalid separator: '$separator'. Must be a single character.") }
 
-  private val arraySeparatorChar =
+  val arraySeparatorChar: Option[Char] =
     if (arraySeparator.isEmpty) { None }
     else if(arraySeparator == "\\t") { Some('\t') }
     else if (arraySeparator.length == 1) { Some(arraySeparator.head) }
     else { throw new IllegalArgumentException(s"Invalid array separator character: '$arraySeparator'. Must be a single character.") }
 
-  private val quoteChar =
+  val quoteChar: Option[Char] =
     if (quote.isEmpty) { None }
     else if (quote.length == 1) { Some(quote.head) }
     else { throw new IllegalArgumentException(s"Invalid quote character: '$quote'. Must be a single character.") }
 
-  private val quoteEscapeChar =
+  val quoteEscapeChar: Char =
     if (quoteEscapeCharacter.length == 1) { quoteEscapeCharacter.head }
     else { throw new IllegalArgumentException(s"Invalid quote escape character: '$quoteEscapeCharacter'. Must be a single character.")}
 
