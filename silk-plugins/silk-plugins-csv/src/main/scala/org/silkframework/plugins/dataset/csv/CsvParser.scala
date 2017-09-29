@@ -20,6 +20,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   }
   parserSettings.setMaxCharsPerColumn(maxCharsPerColumn.getOrElse(MAX_CHARS_PER_COLUMNS_DEFAULT))
   parserSettings.setMaxColumns(maxColumns.getOrElse(MAX_COLUMNS_DEFAULT))
+  parserSettings.getFormat.setQuoteEscape(settings.quoteEscapeChar)
 
   commentChar match {
     case Some(c) =>
