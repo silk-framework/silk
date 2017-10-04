@@ -349,13 +349,13 @@ Silk:
 
         THE SOFTWARE.
     - name: core-js
-      version: 2.5.0
+      version: 2.5.1
       url: 'https://github.com/zloirock/core-js#readme'
       spdx: MIT
       licenseFile: >
         ---
 
-        Copyright (c) 2014-2016 Denis Pushkarev
+        Copyright (c) 2014-2017 Denis Pushkarev
 
 
         Permission is hereby granted, free of charge, to any person obtaining a
@@ -446,146 +446,60 @@ Silk:
 
         IN THE SOFTWARE.
     - name: create-react-class
-      version: 15.6.0
+      version: 15.6.2
       url: 'https://facebook.github.io/react/'
-      spdx: BSD-3-Clause
+      spdx: MIT
       licenseFile: >
         ---
 
-        BSD License
-
-
-        For React software
+        MIT License
 
 
         Copyright (c) 2013-present, Facebook, Inc.
 
-        All rights reserved.
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
 
 
-        Redistribution and use in source and binary forms, with or without
-        modification,
+        The above copyright notice and this permission notice shall be included
+        in all
 
-        are permitted provided that the following conditions are met:
-
-         * Redistributions of source code must retain the above copyright notice, this
-           list of conditions and the following disclaimer.
-
-         * Redistributions in binary form must reproduce the above copyright notice,
-           this list of conditions and the following disclaimer in the documentation
-           and/or other materials provided with the distribution.
-
-         * Neither the name Facebook nor the names of its contributors may be used to
-           endorse or promote products derived from this software without specific
-           prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-        IS" AND
-
-        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-        IMPLIED
-
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-
-        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-        LIABLE FOR
-
-        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES
-
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-        SERVICES;
-
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-        AND ON
-
-        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-        THIS
-
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-      noticeFile: >
-        ---
-
-        Additional Grant of Patent Rights Version 2
+        copies or substantial portions of the Software.
 
 
-        "Software" means the React software distributed by Facebook, Inc.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
 
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 
-        Facebook, Inc. ("Facebook") hereby grants to each recipient of the
-        Software
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
 
-        ("you") a perpetual, worldwide, royalty-free, non-exclusive, irrevocable
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
-        (subject to the termination provision below) license under any Necessary
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
 
-        Claims, to make, have made, use, sell, offer to sell, import, and
-        otherwise
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
 
-        transfer the Software. For avoidance of doubt, no license is granted
-        under
-
-        Facebook's rights in any patent claims that are infringed by (i)
-        modifications
-
-        to the Software made by you or any third party or (ii) the Software in
-
-        combination with any software or other technology.
-
-
-        The license granted hereunder will terminate, automatically and without
-        notice,
-
-        if you (or any of your subsidiaries, corporate affiliates or agents)
-        initiate
-
-        directly or indirectly, or take a direct financial interest in, any
-        Patent
-
-        Assertion: (i) against Facebook or any of its subsidiaries or corporate
-
-        affiliates, (ii) against any party if such Patent Assertion arises in
-        whole or
-
-        in part from any software, technology, product or service of Facebook or
-        any of
-
-        its subsidiaries or corporate affiliates, or (iii) against any party
-        relating
-
-        to the Software. Notwithstanding the foregoing, if Facebook or any of
-        its
-
-        subsidiaries or corporate affiliates files a lawsuit alleging patent
-
-        infringement against you in the first instance, and you respond by
-        filing a
-
-        patent infringement counterclaim in that lawsuit against that party that
-        is
-
-        unrelated to the Software, the license granted hereunder will not
-        terminate
-
-        under section (i) of this paragraph due to such counterclaim.
-
-
-        A "Necessary Claim" is a claim of a patent owned by Facebook that is
-
-        necessarily infringed by the Software standing alone.
-
-
-        A "Patent Assertion" is any lawsuit or other action alleging direct,
-        indirect,
-
-        or contributory infringement or inducement to infringe any patent,
-        including a
-
-        cross-claim or counterclaim.
+        SOFTWARE.
     - name: debug
-      version: 2.6.8
+      version: 3.1.0
       url: 'https://github.com/visionmedia/debug#readme'
       spdx: MIT
       licenseFile: >+
@@ -813,146 +727,60 @@ Silk:
         WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     - name: fbjs
-      version: 0.8.14
+      version: 0.8.16
       url: 'https://github.com/facebook/fbjs#readme'
-      spdx: BSD-3-Clause
+      spdx: MIT
       licenseFile: >
         ---
 
-        BSD License
-
-
-        For fbjs software
+        MIT License
 
 
         Copyright (c) 2013-present, Facebook, Inc.
 
-        All rights reserved.
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of
+
+        this software and associated documentation files (the "Software"), to
+        deal in
+
+        the Software without restriction, including without limitation the
+        rights to
+
+        use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of
+
+        the Software, and to permit persons to whom the Software is furnished to
+        do so,
+
+        subject to the following conditions:
 
 
-        Redistribution and use in source and binary forms, with or without
-        modification,
+        The above copyright notice and this permission notice shall be included
+        in all
 
-        are permitted provided that the following conditions are met:
-
-         * Redistributions of source code must retain the above copyright notice, this
-           list of conditions and the following disclaimer.
-
-         * Redistributions in binary form must reproduce the above copyright notice,
-           this list of conditions and the following disclaimer in the documentation
-           and/or other materials provided with the distribution.
-
-         * Neither the name Facebook nor the names of its contributors may be used to
-           endorse or promote products derived from this software without specific
-           prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-        IS" AND
-
-        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-        IMPLIED
-
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-
-        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-        LIABLE FOR
-
-        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES
-
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-        SERVICES;
-
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-        AND ON
-
-        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-        THIS
-
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-      noticeFile: >
-        ---
-
-        Additional Grant of Patent Rights Version 2
+        copies or substantial portions of the Software.
 
 
-        "Software" means the fbjs software distributed by Facebook, Inc.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
 
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS
 
-        Facebook, Inc. ("Facebook") hereby grants to each recipient of the
-        Software
+        FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR
 
-        ("you") a perpetual, worldwide, royalty-free, non-exclusive, irrevocable
+        COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+        WHETHER
 
-        (subject to the termination provision below) license under any Necessary
+        IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 
-        Claims, to make, have made, use, sell, offer to sell, import, and
-        otherwise
-
-        transfer the Software. For avoidance of doubt, no license is granted
-        under
-
-        Facebook's rights in any patent claims that are infringed by (i)
-        modifications
-
-        to the Software made by you or any third party or (ii) the Software in
-
-        combination with any software or other technology.
-
-
-        The license granted hereunder will terminate, automatically and without
-        notice,
-
-        if you (or any of your subsidiaries, corporate affiliates or agents)
-        initiate
-
-        directly or indirectly, or take a direct financial interest in, any
-        Patent
-
-        Assertion: (i) against Facebook or any of its subsidiaries or corporate
-
-        affiliates, (ii) against any party if such Patent Assertion arises in
-        whole or
-
-        in part from any software, technology, product or service of Facebook or
-        any of
-
-        its subsidiaries or corporate affiliates, or (iii) against any party
-        relating
-
-        to the Software. Notwithstanding the foregoing, if Facebook or any of
-        its
-
-        subsidiaries or corporate affiliates files a lawsuit alleging patent
-
-        infringement against you in the first instance, and you respond by
-        filing a
-
-        patent infringement counterclaim in that lawsuit against that party that
-        is
-
-        unrelated to the Software, the license granted hereunder will not
-        terminate
-
-        under section (i) of this paragraph due to such counterclaim.
-
-
-        A "Necessary Claim" is a claim of a patent owned by Facebook that is
-
-        necessarily infringed by the Software standing alone.
-
-
-        A "Patent Assertion" is any lawsuit or other action alleging direct,
-        indirect,
-
-        or contributory infringement or inducement to infringe any patent,
-        including a
-
-        cross-claim or counterclaim.
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
     - name: form-data
-      version: 2.2.0
+      version: 2.3.1
       url: 'https://github.com/felixge/node-form-data'
       spdx: MIT
       licenseFile: >
@@ -1059,7 +887,7 @@ Silk:
         SOFTWARE.
 
     - name: iconv-lite
-      version: 0.4.15
+      version: 0.4.19
       url: 'https://github.com/ashtuchkin/iconv-lite'
       spdx: MIT
       licenseFile: |+
@@ -1227,12 +1055,52 @@ Silk:
 
         SOFTWARE.
     - name: jquery
-      version: 1.11.3
+      version: 1.12.4
       url: 'http://jquery.com'
-      licenses:
-        - name: MIT
-          url: >-
-            https://raw.githubusercontent.com/jquery/jquery/1.11.3/MIT-LICENSE.txt
+      spdx: MIT
+      licenseFile: |
+        ---
+        Copyright jQuery Foundation and other contributors, https://jquery.org/
+
+        This software consists of voluntary contributions made by many
+        individuals. For exact contribution history, see the revision history
+        available at https://github.com/jquery/jquery
+
+        The following license applies to all parts of this software except as
+        documented below:
+
+        ====
+
+        Permission is hereby granted, free of charge, to any person obtaining
+        a copy of this software and associated documentation files (the
+        "Software"), to deal in the Software without restriction, including
+        without limitation the rights to use, copy, modify, merge, publish,
+        distribute, sublicense, and/or sell copies of the Software, and to
+        permit persons to whom the Software is furnished to do so, subject to
+        the following conditions:
+
+        The above copyright notice and this permission notice shall be
+        included in all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+        EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+        NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+        LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+        OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+        WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+        ====
+
+        All files located in the node_modules and external directories are
+        externally maintained libraries used by this software which have their
+        own licenses; we recommend you read them, as their terms may differ from
+        the terms above.
+    - name: jquery-migrate
+      version: 1.4.1
+      url: 'https://github.com/jquery/jquery-migrate'
+      spdx: MIT
+      licenseFile: "---\nCopyright jQuery Foundation and other contributors, https://jquery.org/\r\n\r\nThis software consists of voluntary contributions made by many\r\nindividuals. For exact contribution history, see the revision history\r\navailable at https://github.com/jquery/jquery-migrate\r\n\r\nThe following license applies to all parts of this software except as\r\ndocumented below:\r\n\r\n====\r\n\r\nPermission is hereby granted, free of charge, to any person obtaining\r\na copy of this software and associated documentation files (the\r\n\"Software\"), to deal in the Software without restriction, including\r\nwithout limitation the rights to use, copy, modify, merge, publish,\r\ndistribute, sublicense, and/or sell copies of the Software, and to\r\npermit persons to whom the Software is furnished to do so, subject to\r\nthe following conditions:\r\n\r\nThe above copyright notice and this permission notice shall be\r\nincluded in all copies or substantial portions of the Software.\r\n\r\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\r\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\r\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\r\nNONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE\r\nLIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\r\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\r\nWITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\r\n\r\n====\r\n\r\nAll files located in the node_modules and external directories are\r\nexternally maintained libraries used by this software which have their\r\nown licenses; we recommend you read them, as their terms may differ from\r\nthe terms above.\r\n"
     - name: jquery-treeview
       version: 1.4.2
       url: 'https://github.com/jzaefferer/jquery-treeview'
@@ -1304,7 +1172,7 @@ Silk:
 
         THE SOFTWARE.
     - name: jsplumb
-      version: 2.5.0
+      version: 2.5.1
       url: 'https://github.com/sporritt/jsPlumb#readme'
       licenses:
         - name: (MIT OR GPL-2.0)
@@ -1929,11 +1797,14 @@ Silk:
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     - name: mime
-      version: 1.3.6
-      url: 'https://github.com/broofa/node-mime'
+      version: 2.0.3
+      url: 'https://github.com/broofa/node-mime#readme'
       spdx: MIT
       licenseFile: >
         ---
+
+        The MIT License (MIT)
+
 
         Copyright (c) 2010 Benjamin Thomas, Robert Kieffer
 
@@ -1979,7 +1850,7 @@ Silk:
 
         THE SOFTWARE.
     - name: mime-db
-      version: 1.29.0
+      version: 1.30.0
       url: 'https://github.com/jshttp/mime-db'
       spdx: MIT
       licenseFile: >
@@ -2033,7 +1904,7 @@ Silk:
 
         THE SOFTWARE.
     - name: mime-types
-      version: 2.1.16
+      version: 2.1.17
       url: 'https://github.com/jshttp/mime-types#readme'
       spdx: MIT
       licenseFile: |
@@ -2115,7 +1986,7 @@ Silk:
 
         SOFTWARE.
     - name: node-fetch
-      version: 1.7.2
+      version: 1.7.3
       url: 'https://github.com/bitinn/node-fetch'
       spdx: MIT
       licenseFile: >+
@@ -2322,146 +2193,60 @@ Silk:
 
         THE SOFTWARE.
     - name: prop-types
-      version: 15.5.10
+      version: 15.6.0
       url: 'https://facebook.github.io/react/'
-      spdx: BSD-3-Clause
-      licenseFile: >-
+      spdx: MIT
+      licenseFile: >
         ---
 
-        BSD License
-
-
-        For React software
+        MIT License
 
 
         Copyright (c) 2013-present, Facebook, Inc.
 
-        All rights reserved.
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
 
 
-        Redistribution and use in source and binary forms, with or without
-        modification,
+        The above copyright notice and this permission notice shall be included
+        in all
 
-        are permitted provided that the following conditions are met:
-
-         * Redistributions of source code must retain the above copyright notice, this
-           list of conditions and the following disclaimer.
-
-         * Redistributions in binary form must reproduce the above copyright notice,
-           this list of conditions and the following disclaimer in the documentation
-           and/or other materials provided with the distribution.
-
-         * Neither the name Facebook nor the names of its contributors may be used to
-           endorse or promote products derived from this software without specific
-           prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-        IS" AND
-
-        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-        IMPLIED
-
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-
-        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-        LIABLE FOR
-
-        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES
-
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-        SERVICES;
-
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-        AND ON
-
-        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-        THIS
-
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-      noticeFile: >
-        ---
-
-        Additional Grant of Patent Rights Version 2
+        copies or substantial portions of the Software.
 
 
-        "Software" means the React software distributed by Facebook, Inc.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
 
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 
-        Facebook, Inc. ("Facebook") hereby grants to each recipient of the
-        Software
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
 
-        ("you") a perpetual, worldwide, royalty-free, non-exclusive, irrevocable
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
-        (subject to the termination provision below) license under any Necessary
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
 
-        Claims, to make, have made, use, sell, offer to sell, import, and
-        otherwise
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
 
-        transfer the Software. For avoidance of doubt, no license is granted
-        under
-
-        Facebook's rights in any patent claims that are infringed by (i)
-        modifications
-
-        to the Software made by you or any third party or (ii) the Software in
-
-        combination with any software or other technology.
-
-
-        The license granted hereunder will terminate, automatically and without
-        notice,
-
-        if you (or any of your subsidiaries, corporate affiliates or agents)
-        initiate
-
-        directly or indirectly, or take a direct financial interest in, any
-        Patent
-
-        Assertion: (i) against Facebook or any of its subsidiaries or corporate
-
-        affiliates, (ii) against any party if such Patent Assertion arises in
-        whole or
-
-        in part from any software, technology, product or service of Facebook or
-        any of
-
-        its subsidiaries or corporate affiliates, or (iii) against any party
-        relating
-
-        to the Software. Notwithstanding the foregoing, if Facebook or any of
-        its
-
-        subsidiaries or corporate affiliates files a lawsuit alleging patent
-
-        infringement against you in the first instance, and you respond by
-        filing a
-
-        patent infringement counterclaim in that lawsuit against that party that
-        is
-
-        unrelated to the Software, the license granted hereunder will not
-        terminate
-
-        under section (i) of this paragraph due to such counterclaim.
-
-
-        A "Necessary Claim" is a claim of a patent owned by Facebook that is
-
-        necessarily infringed by the Software standing alone.
-
-
-        A "Patent Assertion" is any lawsuit or other action alleging direct,
-        indirect,
-
-        or contributory infringement or inducement to infringe any patent,
-        including a
-
-        cross-claim or counterclaim.
+        SOFTWARE.
     - name: qs
-      version: 6.5.0
+      version: 6.5.1
       url: 'https://github.com/hapijs/qs'
       spdx: BSD-3-Clause
       licenseFile: >
@@ -2518,283 +2303,111 @@ Silk:
         The complete list of contributors can be found at:
         https://github.com/hapijs/qs/graphs/contributors
     - name: react
-      version: 15.6.1
+      version: 15.6.2
       url: 'https://facebook.github.io/react/'
-      spdx: BSD-3-Clause
+      spdx: MIT
       licenseFile: >
         ---
 
-        BSD License
-
-
-        For React software
+        MIT License
 
 
         Copyright (c) 2013-present, Facebook, Inc.
 
-        All rights reserved.
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
 
 
-        Redistribution and use in source and binary forms, with or without
-        modification,
+        The above copyright notice and this permission notice shall be included
+        in all
 
-        are permitted provided that the following conditions are met:
-
-         * Redistributions of source code must retain the above copyright notice, this
-           list of conditions and the following disclaimer.
-
-         * Redistributions in binary form must reproduce the above copyright notice,
-           this list of conditions and the following disclaimer in the documentation
-           and/or other materials provided with the distribution.
-
-         * Neither the name Facebook nor the names of its contributors may be used to
-           endorse or promote products derived from this software without specific
-           prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-        IS" AND
-
-        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-        IMPLIED
-
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-
-        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-        LIABLE FOR
-
-        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES
-
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-        SERVICES;
-
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-        AND ON
-
-        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-        THIS
-
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-      noticeFile: >
-        ---
-
-        Additional Grant of Patent Rights Version 2
+        copies or substantial portions of the Software.
 
 
-        "Software" means the React software distributed by Facebook, Inc.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
 
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 
-        Facebook, Inc. ("Facebook") hereby grants to each recipient of the
-        Software
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
 
-        ("you") a perpetual, worldwide, royalty-free, non-exclusive, irrevocable
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
-        (subject to the termination provision below) license under any Necessary
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
 
-        Claims, to make, have made, use, sell, offer to sell, import, and
-        otherwise
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
 
-        transfer the Software. For avoidance of doubt, no license is granted
-        under
-
-        Facebook's rights in any patent claims that are infringed by (i)
-        modifications
-
-        to the Software made by you or any third party or (ii) the Software in
-
-        combination with any software or other technology.
-
-
-        The license granted hereunder will terminate, automatically and without
-        notice,
-
-        if you (or any of your subsidiaries, corporate affiliates or agents)
-        initiate
-
-        directly or indirectly, or take a direct financial interest in, any
-        Patent
-
-        Assertion: (i) against Facebook or any of its subsidiaries or corporate
-
-        affiliates, (ii) against any party if such Patent Assertion arises in
-        whole or
-
-        in part from any software, technology, product or service of Facebook or
-        any of
-
-        its subsidiaries or corporate affiliates, or (iii) against any party
-        relating
-
-        to the Software. Notwithstanding the foregoing, if Facebook or any of
-        its
-
-        subsidiaries or corporate affiliates files a lawsuit alleging patent
-
-        infringement against you in the first instance, and you respond by
-        filing a
-
-        patent infringement counterclaim in that lawsuit against that party that
-        is
-
-        unrelated to the Software, the license granted hereunder will not
-        terminate
-
-        under section (i) of this paragraph due to such counterclaim.
-
-
-        A "Necessary Claim" is a claim of a patent owned by Facebook that is
-
-        necessarily infringed by the Software standing alone.
-
-
-        A "Patent Assertion" is any lawsuit or other action alleging direct,
-        indirect,
-
-        or contributory infringement or inducement to infringe any patent,
-        including a
-
-        cross-claim or counterclaim.
+        SOFTWARE.
     - name: react-dom
-      version: 15.6.1
+      version: 15.6.2
       url: 'https://facebook.github.io/react/'
-      spdx: BSD-3-Clause
+      spdx: MIT
       licenseFile: >
         ---
 
-        BSD License
-
-
-        For React software
+        MIT License
 
 
         Copyright (c) 2013-present, Facebook, Inc.
 
-        All rights reserved.
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
 
 
-        Redistribution and use in source and binary forms, with or without
-        modification,
+        The above copyright notice and this permission notice shall be included
+        in all
 
-        are permitted provided that the following conditions are met:
-
-         * Redistributions of source code must retain the above copyright notice, this
-           list of conditions and the following disclaimer.
-
-         * Redistributions in binary form must reproduce the above copyright notice,
-           this list of conditions and the following disclaimer in the documentation
-           and/or other materials provided with the distribution.
-
-         * Neither the name Facebook nor the names of its contributors may be used to
-           endorse or promote products derived from this software without specific
-           prior written permission.
-
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-        IS" AND
-
-        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-        IMPLIED
-
-        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-
-        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-        LIABLE FOR
-
-        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES
-
-        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-        SERVICES;
-
-        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-        AND ON
-
-        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-
-        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-        THIS
-
-        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-      noticeFile: >
-        ---
-
-        Additional Grant of Patent Rights Version 2
+        copies or substantial portions of the Software.
 
 
-        "Software" means the React software distributed by Facebook, Inc.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
 
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 
-        Facebook, Inc. ("Facebook") hereby grants to each recipient of the
-        Software
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
 
-        ("you") a perpetual, worldwide, royalty-free, non-exclusive, irrevocable
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 
-        (subject to the termination provision below) license under any Necessary
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
 
-        Claims, to make, have made, use, sell, offer to sell, import, and
-        otherwise
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
 
-        transfer the Software. For avoidance of doubt, no license is granted
-        under
-
-        Facebook's rights in any patent claims that are infringed by (i)
-        modifications
-
-        to the Software made by you or any third party or (ii) the Software in
-
-        combination with any software or other technology.
-
-
-        The license granted hereunder will terminate, automatically and without
-        notice,
-
-        if you (or any of your subsidiaries, corporate affiliates or agents)
-        initiate
-
-        directly or indirectly, or take a direct financial interest in, any
-        Patent
-
-        Assertion: (i) against Facebook or any of its subsidiaries or corporate
-
-        affiliates, (ii) against any party if such Patent Assertion arises in
-        whole or
-
-        in part from any software, technology, product or service of Facebook or
-        any of
-
-        its subsidiaries or corporate affiliates, or (iii) against any party
-        relating
-
-        to the Software. Notwithstanding the foregoing, if Facebook or any of
-        its
-
-        subsidiaries or corporate affiliates files a lawsuit alleging patent
-
-        infringement against you in the first instance, and you respond by
-        filing a
-
-        patent infringement counterclaim in that lawsuit against that party that
-        is
-
-        unrelated to the Software, the license granted hereunder will not
-        terminate
-
-        under section (i) of this paragraph due to such counterclaim.
-
-
-        A "Necessary Claim" is a claim of a patent owned by Facebook that is
-
-        necessarily infringed by the Software standing alone.
-
-
-        A "Patent Assertion" is any lawsuit or other action alleging direct,
-        indirect,
-
-        or contributory infringement or inducement to infringe any patent,
-        including a
-
-        cross-claim or counterclaim.
+        SOFTWARE.
     - name: react-highlight-words
       version: 0.8.1
       url: 'https://github.com/bvaughn/react-highlight-words#readme'
@@ -2850,7 +2463,7 @@ Silk:
         SOFTWARE.
 
     - name: react-input-autosize
-      version: 1.1.4
+      version: 2.0.1
       url: 'https://github.com/JedWatson/react-input-autosize#readme'
       spdx: MIT
       licenseFile: >
@@ -2956,7 +2569,7 @@ Silk:
 
         THE SOFTWARE.
     - name: react-select
-      version: 1.0.0-rc.5
+      version: 1.0.0-rc.10
       url: 'https://github.com/JedWatson/react-select#readme'
       spdx: MIT
       licenseFile: >
@@ -3269,6 +2882,59 @@ Silk:
 
         CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         SOFTWARE.
+    - name: scroll-into-view
+      version: 1.9.1
+      url: 'https://github.com/KoryNunn/scroll-into-view#readme'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2014 Kory Nunn
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of
+
+        this software and associated documentation files (the "Software"), to
+        deal in
+
+        the Software without restriction, including without limitation the
+        rights to
+
+        use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of
+
+        the Software, and to permit persons to whom the Software is furnished to
+        do so,
+
+        subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS
+
+        FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR
+
+        COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+        WHETHER
+
+        IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+
+        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
     - name: setimmediate
       version: 1.0.5
       url: 'https://github.com/yuzujs/setImmediate#readme'
@@ -3423,7 +3089,7 @@ Silk:
         """
 
     - name: superagent
-      version: 3.6.0
+      version: 3.6.2
       url: 'https://github.com/visionmedia/superagent#readme'
       spdx: MIT
       licenseFile: |
@@ -3627,6 +3293,66 @@ Silk:
         IN THE
 
         SOFTWARE.
+    - name: warning
+      version: 3.0.0
+      url: 'https://github.com/BerkeleyTrue/warning'
+      spdx: BSD-3-Clause
+      licenseFile: >
+        ---
+
+        BSD License
+
+
+        For React software
+
+
+        Copyright (c) 2013-2015, Facebook, Inc.
+
+        All rights reserved.
+
+
+        Redistribution and use in source and binary forms, with or without
+        modification,
+
+        are permitted provided that the following conditions are met:
+
+         * Redistributions of source code must retain the above copyright notice, this
+           list of conditions and the following disclaimer.
+
+         * Redistributions in binary form must reproduce the above copyright notice,
+           this list of conditions and the following disclaimer in the documentation
+           and/or other materials provided with the distribution.
+
+         * Neither the name Facebook nor the names of its contributors may be used to
+           endorse or promote products derived from this software without specific
+           prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+        IS" AND
+
+        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+        IMPLIED
+
+        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+
+        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+        LIABLE FOR
+
+        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        DAMAGES
+
+        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+        SERVICES;
+
+        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+        AND ON
+
+        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+
+        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+        THIS
+
+        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     - name: whatwg-fetch
       version: 2.0.3
       url: 'https://github.com/github/fetch#readme'
