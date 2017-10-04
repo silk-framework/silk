@@ -246,3 +246,18 @@ function activateDeferredMDL($parent) {
         componentHandler.upgradeElements($elem.get());
     });
 }
+
+function generateNewIdsForTooltips($parent) {
+    $parent.find('.mdl-defer').each(function() {
+        const $elem = $(this);
+        const forAttr = $elem.attr('for');
+        if (forAttr) {
+            const $target = $parent.find(`#${forAttr}`);
+            if (_.size($target) > 0) {
+                const newID = _.uniqueId(forAttr);
+                $target.attr('id', newID);
+                $elem.attr('for', newID);
+            }
+        }
+    });
+}

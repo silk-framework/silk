@@ -170,31 +170,18 @@ function initEditor() {
 
             var boxId = generateNewElementId(idPrefix);
 
-            clone.find('.mdl-defer').each(function () {
-                var $elem = $(this);
-                var forAttr = $elem.attr('for');
-                if (forAttr) {
-                    var $target = clone.find('#' + forAttr);
-                    if (_.size($target) > 0) {
-                        var newID = boxId + forAttr;
-                        $target.attr('id', newID);
-                        $elem.attr('for', newID);
-                    }
-                }
-            });
+            generateNewIdsForTooltips(clone);
 
             clone.attr('id', boxId);
 
             // Set operator name to current id
-            $('#' + boxId + ' .handler label').text(boxId);
+            $('#' + boxId).find('.handler label').text(boxId);
 
             addEndpoints(boxId, draggedClass);
 
             clone.show();
 
-            var droppedClone = $('#' + boxId);
-
-            activateDeferredMDL(droppedClone);
+            activateDeferredMDL(clone);
 
             jsPlumb.draggable(boxId);
             jsPlumb.repaint(boxId);

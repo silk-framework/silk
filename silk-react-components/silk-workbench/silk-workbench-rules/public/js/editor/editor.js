@@ -169,31 +169,18 @@ function initEditor(canvasId = 'droppable') {
 
             const boxId = generateNewElementId(idPrefix);
 
-            clone.find('.mdl-defer').each(function() {
-                const $elem = $(this);
-                const forAttr = $elem.attr('for');
-                if (forAttr) {
-                    const $target = clone.find(`#${forAttr}`);
-                    if (_.size($target) > 0) {
-                        const newID = boxId + forAttr;
-                        $target.attr('id', newID);
-                        $elem.attr('for', newID);
-                    }
-                }
-            });
+            generateNewIdsForTooltips(clone);
 
             clone.attr('id', boxId);
 
             // Set operator name to current id
-            $(`#${boxId} .handler label`).text(boxId);
+            $(`#${boxId}`).find(`.handler label`).text(boxId);
 
             addEndpoints(boxId, draggedClass);
 
             clone.show();
 
-            const droppedClone = $(`#${boxId}`);
-
-            activateDeferredMDL(droppedClone);
+            activateDeferredMDL(clone);
 
             jsPlumb.draggable(boxId);
             jsPlumb.repaint(boxId);

@@ -232,7 +232,6 @@ jQuery.ui.mouse.prototype._mouseUp = function () {
 };
 
 jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
-
 /**
  * This functions searches for all visible deferred mdl elements and upgrades them accordingly
  * @param $parent
@@ -246,5 +245,20 @@ function activateDeferredMDL($parent) {
         var deferred = $elem.data('mdl-defer');
         $elem.addClass('mdl-' + deferred);
         componentHandler.upgradeElements($elem.get());
+    });
+}
+
+function generateNewIdsForTooltips($parent) {
+    $parent.find('.mdl-defer').each(function () {
+        var $elem = $(this);
+        var forAttr = $elem.attr('for');
+        if (forAttr) {
+            var $target = $parent.find('#' + forAttr);
+            if (_.size($target) > 0) {
+                var newID = _.uniqueId(forAttr);
+                $target.attr('id', newID);
+                $elem.attr('for', newID);
+            }
+        }
     });
 }
