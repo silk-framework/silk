@@ -84,7 +84,7 @@ function DynamicEndpointHandler() {
 
     this.getDynamicEndpoints = function (elementId) {
         var allEndpoints = this.jsPlumbInstance.getEndpoints(elementId);
-        if (allEndpoints) {
+        if (allEndpoints.length > 0) {
             var dynamicEndpoints = $.grep(allEndpoints, function (endpoint) {
                 return endpoint.dynamic;
             });

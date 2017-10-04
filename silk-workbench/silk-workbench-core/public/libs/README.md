@@ -19,17 +19,19 @@ These external libraries are managed via npm in the [silk-react-components](../.
 
 - dialog-polyfill
 - jquery
+- jquery-migrate
 - jsplumb
 - jstree
+- lodash
 - mark.js
 - material-design-lite
 - mdl-selectfield
+- twbs-pagination
 
 ## External libraries, unmanaged
 
 These (mostly legacy) external libraries are currently not managed via npm. You may change them manually.
 
-- jquery_pagination
 - jquery-ui
 - jquery.treeview
 - mdl-vertical-tabs

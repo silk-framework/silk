@@ -23,7 +23,7 @@
 
     initLinks('generateLinks', 'links');
 
-    $( window ).load(function() {
+    $( window ).on("load", function() {
      $("#links_stream_wrapper").append('<iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>');
     });
   </script>

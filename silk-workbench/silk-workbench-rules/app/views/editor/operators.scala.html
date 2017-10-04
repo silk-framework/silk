@@ -8,42 +8,58 @@
 
 <script type="text/javascript">
 // Initialization
-$(function() {
-  // Make operators draggable
-  $('.@name.toLowerCase').draggable({
-    helper: function() {
-      var box = $(this).children('.dragDiv');
-      box.show();
-      return box;
-    } ,
-    stop: function(event, ui) {
-      ui.helper.hide();
-      $.ui.ddmanager.current.cancelHelperRemoval = true;
-    }
-    //containment: "#content"
-  });
+$(initOperators);
 
+function initOperators() {
 
-  // Hide all operators except the recommended ones
-  @for(category <- pluginsByCategory.keys if category != "Recommended") {
-    $('#@{opType}_category_@category').hide();
+  var $selectedCategory = null;
+
+  function initDraggableOperators($element){
+    var $draggables = $element.find('.draggable');
+
+    $draggables.each(initDraggableOperator);
+
   }
 
-  $("#@{opType}_category").change(function() {
+  function initDraggableOperator() {
+    var $draggable = $(this);
+
+    $draggable.draggable({
+      helper: function () {
+        var box = $(this).children('.dragDiv');
+        box.show();
+        return box;
+      },
+      stop: function (event, ui) {
+        ui.helper.hide();
+        $.ui.ddmanager.current.cancelHelperRemoval = true;
+      }
+    });
+
+  }
+
+  $("#@{opType}_category_selector").change(function () {
     // Hide all categories
-    $('div[id^=@{opType}_category_]').hide();
+    if($selectedCategory){
+      $selectedCategory.hide();
+    }
     // Show selected Category
-    var selectedCategory = $(this).val();
-    $('#@{opType}_category_' + selectedCategory).show();
+    $selectedCategory = $('#@{opType}_category_' + $(this).val()) ;
+    $selectedCategory.show();
+    activateDeferredMDL($selectedCategory);
+    initDraggableOperators($selectedCategory);
   });
-});
+
+  $("#@{opType}_category_selector").change();
+
+}
 </script>
 
 <div class="palette-block">
   <div class="block-header @{opType}Header clearfix">
     <span class="operator-type">@name</span>
     <div class="mdl-selectfield mdl-js-selectfield">
-      <select id="@{opType}_category" class="mdl-selectfield__select" name="category" style="font-size:0.9em;">
+      <select id="@{opType}_category_selector" class="mdl-selectfield__select" name="category" style="font-size:0.9em;">
        @for(category <- pluginsByCategory.keys.toSeq.sorted) {
           <option value="@category" @if(category == "Recommended"){ selected="selected" } >
             @category
@@ -55,7 +71,7 @@ $(function() {
 
   <div id="@{opType}box" class="scrollboxes" style="height: 67.9px;">
     @for((category, plugins) <- pluginsByCategory) {
-      <div id="@{opType}_category_@category">
+      <div id="@{opType}_category_@category" class="@{opType}_category" style="display: none;">
       @for(plugin <- plugins.sortBy(_.label)) {
         @operatorIcon(plugin, category)
       }
@@ -74,7 +90,7 @@ $(function() {
     <p class="non-breaking-label">@plugin.label</p>
     @operatorExpanded(plugin)
   </div>
-  <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{category}_@plugin.id">
+  <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@{opType}_@{category}_@plugin.id">
     @plugin.description
   </div>
 }

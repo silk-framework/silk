@@ -24,7 +24,8 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/population.j
 */
 var helpWidth = 170;
 var contentWidth;
-var contentWidthCallback = function() {};
+var contentWidthCallback = function() {
+};
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
@@ -32,14 +33,28 @@ var dialogs = {};
 
 let dialog;
 
+const startTime = new Date().getTime();
+let now = new Date().getTime();
+
+window.timeDump = function (str) {
+    const temp = new Date().getTime();
+    console.warn(str, temp - now, temp - startTime);
+    now = temp;
+};
+
 $(function() {
+
+    // Make sure that mdl components are registered the right way
+    componentHandler.upgradeDom();
+
     // Initialize window
-    var id;
-    $(window).resize(function() {
-        clearTimeout(id);
+    var resize = _.throttle(function() {
         contentWidth = $(window).width() - helpWidth;
-        id = setTimeout(contentWidthCallback, 100);
-    });
+        contentWidthCallback();
+    }, 100);
+
+    $(window).resize(resize);
+
     contentWidth = $(window).width() - 190;
     contentWidthCallback();
 
@@ -185,4 +200,64 @@ function updateHelpWidth(newWidth) {
     helpWidth = newWidth;
     contentWidth = $(window).width() - helpWidth;
     contentWidthCallback();
+}
+
+/*
+ *
+ * With the following code, we throttle fired mousemove events by jquery UI to 50 FPS
+ *
+ */
+
+let jqueryDragActive = false;
+
+const originalMouseMove = jQuery.ui.mouse.prototype._mouseMove;
+jQuery.ui.mouse.prototype._mouseMove = function() {
+    if(jqueryDragActive) {
+        originalMouseMove.apply(this, arguments);
+    }
+};
+
+const originalMouseDown = jQuery.ui.mouse.prototype._mouseDown;
+jQuery.ui.mouse.prototype._mouseDown = function() {
+    jqueryDragActive = true;
+    originalMouseDown.apply(this, arguments);
+};
+
+const originalMouseUp = jQuery.ui.mouse.prototype._mouseUp;
+
+jQuery.ui.mouse.prototype._mouseUp = function() {
+    originalMouseUp.apply(this, arguments);
+    jqueryDragActive = false;
+};
+
+jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
+/**
+ * This functions searches for all visible deferred mdl elements and upgrades them accordingly
+ * @param $parent
+ */
+function activateDeferredMDL($parent) {
+    const deferredMDL = $parent.find('.mdl-defer');
+
+    deferredMDL.filter(':visible').each(function() {
+        const $elem = $(this);
+        $elem.removeClass('mdl-defer');
+        const deferred = $elem.data('mdl-defer');
+        $elem.addClass(`mdl-${deferred}`);
+        componentHandler.upgradeElements($elem.get());
+    });
+}
+
+function generateNewIdsForTooltips($parent) {
+    $parent.find('.mdl-defer').each(function() {
+        const $elem = $(this);
+        const forAttr = $elem.attr('for');
+        if (forAttr) {
+            const $target = $parent.find(`#${forAttr}`);
+            if (_.size($target) > 0) {
+                const newID = _.uniqueId(forAttr);
+                $target.attr('id', newID);
+                $elem.attr('for', newID);
+            }
+        }
+    });
 }

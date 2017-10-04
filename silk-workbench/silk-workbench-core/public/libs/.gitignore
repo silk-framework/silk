@@ -8,32 +8,30 @@
 !*/package.json
 */gruntfile.js
 */gulpfile*
-*/README.md
+*/*.md
 */**/*.min.*
+*/AUTHORS.txt
 
 dialog-polyfill/tests
 dialog-polyfill/suite.js
 dialog-polyfill/test.html
 
-jquery/dist/
+jquery/*/
 !jquery/dist/jquery.js
-jquery/libs/
-jquery/src/
-jquery/AUTHORS.txt
-jquery/CONTRIBUTING.md
 
-jsplumb/*
-!jsplumb/*LICENSE.txt
-!jsplumb/dist
-jsplumb/dist/*
-!jsplumb/dist/js
-jsplumb/dist/js/*
-!jsplumb/dist/js/jsPlumb-2.1.8.js
+jquery-migrate/*/
+!jquery-migrate/dist/jquery-migrate.js
+
+jsplumb/dist/css/
 
 jstree/demo
 jstree/test
 jstree/src
 jstree/dist/themes/default-dark
+
+lodash/fp/
+lodash/*.js
+!lodash/lodash.js
 
 mark.js/*
 !mark.js/dist

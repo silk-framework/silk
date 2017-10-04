@@ -53,30 +53,30 @@ jsPlumb.Defaults.DragOptions = {
 };
 
 var valueConnectorStyle = {
-    lineWidth: 4,
-    strokeStyle: '#61B7CF',
+    strokeWidth: 4,
+    stroke: '#61B7CF',
     joinstyle: 'round'
 };
 
 var valueConnectorHoverStyle = {
-    strokeStyle: '#216477'
+    stroke: '#216477'
 };
 
 var similarityConnectorStyle = {
-    lineWidth: 4,
-    strokeStyle: '#BF7761',
+    strokeWidth: 4,
+    stroke: '#BF7761',
     joinstyle: 'round'
 };
 
 var similarityConnectorHoverStyle = {
-    strokeStyle: '#7F2711'
+    stroke: '#7F2711'
 };
 
 var endpointValueSource = {
     anchor: 'RightMiddle',
     endpoint: 'Dot',
     paintStyle: {
-        fillStyle: '#3187CF',
+        fill: '#3187CF',
         radius: defaultRadius
     },
     connectorStyle: valueConnectorStyle,
@@ -91,7 +91,7 @@ var endpointValueTarget = {
     anchor: 'LeftMiddle',
     endpoint: 'Dot',
     paintStyle: {
-        fillStyle: '#3187CF',
+        fill: '#3187CF',
         radius: defaultRadius
     },
     connectorStyle: valueConnectorStyle,
@@ -104,7 +104,7 @@ var endpointSimilaritySource = {
     anchor: 'RightMiddle',
     endpoint: 'Dot',
     paintStyle: {
-        fillStyle: '#BF5741',
+        fill: '#BF5741',
         radius: defaultRadius
     },
     connectorStyle: similarityConnectorStyle,
@@ -119,7 +119,7 @@ var endpointSimilarityTarget = {
     anchor: 'LeftMiddle',
     endpoint: 'Dot',
     paintStyle: {
-        fillStyle: '#BF5741',
+        fill: '#BF5741',
         radius: defaultRadius
     },
     connectorStyle: similarityConnectorStyle,
@@ -143,7 +143,13 @@ function initEditor() {
     jsPlumb.reset();
 
     $canvas = $('#' + canvasId);
-    jsPlumb.setContainer(canvasId);
+    activateDeferredMDL($canvas);
+
+    var currentContainer = jsPlumb.getContainer();
+
+    if (!currentContainer || currentContainer.id !== canvasId) {
+        jsPlumb.setContainer(canvasId);
+    }
 
     $canvas.droppable({
         drop: function drop(event, ui) {
@@ -152,6 +158,7 @@ function initEditor() {
             var mousePosCanvas = getRelativeOffset(event, $canvas);
             mousePosCanvas = adjustOffset(mousePosCanvas, $canvas);
             var mousePosCombined = subtractOffsets(mousePosCanvas, mousePosDraggable);
+
             clone.appendTo($canvas);
             clone.css(mousePosCombined);
             clone.css({
@@ -160,21 +167,24 @@ function initEditor() {
 
             var draggedClass = $(ui.draggable).attr('class');
             var idPrefix = clone.find('.handler label').text();
+
             var boxId = generateNewElementId(idPrefix);
+
+            generateNewIdsForTooltips(clone);
+
             clone.attr('id', boxId);
 
             // Set operator name to current id
-            $('#' + boxId + ' .handler label').text(boxId);
+            $('#' + boxId).find('.handler label').text(boxId);
 
             addEndpoints(boxId, draggedClass);
 
-            // Make operator draggable
-            jsPlumb.draggable(boxId);
-            //      jsPlumb.draggable(boxId, {
-            //        containment: "parent"
-            //      });
-
             clone.show();
+
+            activateDeferredMDL(clone);
+
+            jsPlumb.draggable(boxId);
+            jsPlumb.repaint(boxId);
 
             modifyLinkSpec();
         }
@@ -186,7 +196,7 @@ function initEditor() {
 
     // Delete connections on clicking them
     jsPlumb.bind('click', function (conn) {
-        jsPlumb.detach(conn);
+        jsPlumb.deleteConnection(conn);
     });
 
     // Update whenever a new connection has been established
@@ -203,7 +213,7 @@ function initEditor() {
     $(document).on('change', "input[type!='text']", function () {
         modifyLinkSpec();
     });
-    $(document).on('change', "select", function () {
+    $(document).on('change', 'select', function () {
         modifyLinkSpec();
     });
     $(document).on('keyup', "input[type='text'].param_value", function () {
@@ -308,7 +318,7 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-    return $('#' + elId + ' .handler label').text();
+    return $('#' + elId).find('.handler label').text();
 }
 
 function validateLinkSpec() {
@@ -454,9 +464,7 @@ function highlightElement(elId, message) {
             var tooltip = $('#' + highlightId + '_tooltip');
             tooltip.text(encodeHtml(message));
             tooltip.show();
-            // elementToHighlight.prepend('<div class="mdl-tooltip" for="' + elId + '">encodeHtml(message)</div>');
             jsPlumb.repaint(elementToHighlight);
-            // componentHandler.upgradeAllRegistered();
         }
     });
 }
@@ -498,20 +506,34 @@ function removeElement(elementId) {
     }, 100);
 }
 
+var lastWindowStatus = null;
+
+// FIXME: Remove this and do it solely with css?
 function updateWindowSize() {
     var header_height = $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
     var window_width = $(window).width();
     var window_height = $(window).height();
+    var status = window_height + ';' + window_width + ';' + header_height + ';' + !!$canvas;
+
+    if (status === lastWindowStatus) {
+        return;
+    }
+    lastWindowStatus = status;
+
     var content_padding = 35;
     if (window_width > 1100) {
         $('.wrapperEditor').width(window_width - 10);
-        $canvas.width(window_width - 295);
+        if ($canvas) {
+            $canvas.width(window_width - 295);
+        }
     }
     if (window_height > 600) {
         // resize height of drawing canvas
         var height = window_height - header_height - content_padding;
         $('.droppable_outer').height(height);
-        $canvas.height(height);
+        if ($canvas) {
+            $canvas.height(height);
+        }
         $('.draggables').height(height);
 
         // resize palette blocks
@@ -556,7 +578,7 @@ function loadInstance(index) {
     var elements = instanceStack[index];
     var endpoints = [];
 
-    jsPlumb.detachEveryConnection();
+    jsPlumb.deleteEveryConnection();
     $canvas.find('> div.dragDiv').each(function () {
         jsPlumb.removeAllEndpoints($(this).attr('id'));
         $(this).remove();

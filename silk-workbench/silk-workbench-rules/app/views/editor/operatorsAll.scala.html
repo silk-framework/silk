@@ -7,7 +7,7 @@ pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_],
 project: Project)
 
 @for(plugin <- pluginGroup.availablePlugins) {
-  <div class="operator plugin">
+  <div class="operator plugin search-invisible">
     <div class="operator-index">
       @plugin.label
     </div>
@@ -16,7 +16,7 @@ project: Project)
       <p class="non-breaking-label">@plugin.label</p>
       @operatorExpanded(plugin)
     </div>
-    <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{plugin.categories.head}_@{plugin.id}">
+    <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@{opType}_@{plugin.categories.head}_@{plugin.id}">
       @plugin.description
     </div>
   </div>
