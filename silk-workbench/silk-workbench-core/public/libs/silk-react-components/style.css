@@ -86,6 +86,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.has-value.is-clearable.Select--single > .Select-control .Select-value {
+  padding-right: 42px;
+}
 .has-value.Select--single > .Select-control .Select-value .Select-value-label,
 .has-value.is-pseudo-focused.Select--single > .Select-control .Select-value .Select-value-label {
   color: #333;
@@ -12239,6 +12242,46 @@ _:-ms-input-placeholder, :root .mdl-slider.mdl-slider.is-upgraded {
   width: 56px;
   height: 56px; }
 
+.ecc-breadcrumbs {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  flex-wrap: wrap; }
+
+.ecc-breadcrumbs__item {
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  opacity: 0.61; }
+  .ecc-breadcrumbs__item:after {
+    display: inline-block;
+    content: '>'; }
+  .ecc-breadcrumbs__item:last-child {
+    opacity: 1;
+    font-weight: bolder; }
+    .ecc-breadcrumbs__item:last-child:after {
+      display: none; }
+
+.ecc-breadcrumbs__button {
+  display: inline-block;
+  border: 0;
+  margin: 0;
+  padding: 0.5rem 0.5rem;
+  font: inherit;
+  background-color: transparent;
+  color: inherit;
+  outline: none;
+  text-decoration: none; }
+  .ecc-breadcrumbs__button:not(span) {
+    cursor: pointer; }
+
 /**
  * Copyright 2015 eccenca GmbH. All Rights Reserved.
  *
@@ -12366,7 +12409,9 @@ _:-ms-input-placeholder, :root .mdl-slider.mdl-slider.is-upgraded {
   display: inline-flex;
   vertical-align: middle;
   box-sizing: border-box;
-  max-width: 100%; }
+  max-width: 100%;
+  text-decoration: none;
+  font-weight: inherit; }
   .mdl-chip:active {
     background-color: rgba(0, 0, 0, 0.13); }
 

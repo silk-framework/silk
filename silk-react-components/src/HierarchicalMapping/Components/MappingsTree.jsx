@@ -13,13 +13,14 @@ import {
     CardContent,
 } from 'ecc-gui-elements';
 
+import Navigation from '../Mixins/Navigation';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 
 const MappingsTree = React.createClass({
-    mixins: [UseMessageBus],
+    mixins: [UseMessageBus, Navigation],
 
     // define property types
     propTypes: {
@@ -46,15 +47,11 @@ const MappingsTree = React.createClass({
     componentDidMount() {
         this.loadData();
     },
-    expandElement({parent}) {
-        if (
-            !_.isUndefined(parent) &&
-            !_.includes(this.state.expanded, {[parent]: true})
-        ) {
-            this.setState({
-                expanded: _.merge(this.state.expanded, {[parent]: true}),
-            });
-        }
+    expandElement({newRuleId , parentRuleId}) {
+        const expanded = this.state.expanded;
+        expanded[newRuleId] = true;
+        expanded[parentRuleId] = true;
+        this.setState({expanded});
     },
     loadData() {
         if (__DEBUG__) {
@@ -81,21 +78,10 @@ const MappingsTree = React.createClass({
             }
         );
     },
-    // select clicked id
-    handleNavigate(ruleId) {
-        hierarchicalMappingChannel
-            .subject('ruleId.change')
-            .onNext({newRuleId: ruleId});
-    },
-
-    // collapse / expand navigation childs
+    // collapse / expand navigation children
     handleToggleExpanded(id) {
-        // copy
-        const expanded = _.cloneDeep(this.state.expanded);
-        // get id state
-        const currentlyExpanded = _.get(expanded, [id], false);
-        // negate state
-        expanded[id] = !currentlyExpanded;
+        const expanded = this.state.expanded;
+        expanded[id] = !expanded[id];
         this.setState({expanded});
     },
     markTree(curr) {
@@ -115,8 +101,6 @@ const MappingsTree = React.createClass({
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
                 const subtree = this.markTree(rule);
-
-                expanded = expanded || subtree.expanded;
 
                 if (
                     subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
@@ -157,9 +141,7 @@ const MappingsTree = React.createClass({
             const element = () =>
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
-                    onClick={() => {
-                        this.handleNavigate(id);
-                    }}>
+                    onClick={this.handleNavigate.bind(null, id, undefined)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>

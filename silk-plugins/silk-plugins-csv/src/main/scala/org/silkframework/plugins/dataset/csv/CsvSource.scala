@@ -14,6 +14,7 @@ import org.silkframework.util.Uri
 import scala.collection.mutable
 import scala.collection.mutable.{HashMap => MMap}
 import scala.io.Codec
+import scala.util.matching.Regex
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -31,8 +32,6 @@ class CsvSource(file: Resource,
                 maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
-  final val UNNAMED_COLUMN_PREFIX = "unnamed_col"
-  val unnamedRegex = s"""$UNNAMED_COLUMN_PREFIX([1-9]\\d*)(_[1-9]\\d*)?""".r
 
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
@@ -46,46 +45,11 @@ class CsvSource(file: Resource,
       parser.stopParsing()
       if (firstLine.isDefined) {
         val headerFields = firstLine.get
-        val existingUnnamedMap: Map[Int, Int] = unnamedColumnClashes(headerFields)
-        convertHeaderFields(headerFields, existingUnnamedMap)
+        CsvSourceHelper.convertHeaderFields(headerFields, prefix)
       } else {
         mutable.IndexedSeq()
       }
     }
-  }
-
-  /** Finds existing columns in the CSV header fields that follow the unnamed column name schema. Used later to prevent name clashes. */
-  private def unnamedColumnClashes(headerFields: Array[String]): Map[Int, Int] = {
-    val entries: Seq[Option[(Int, Int)]] = headerFields.toSeq.filter(f => Option(f).isDefined).map {
-      case unnamedRegex(colNr, offset) =>
-        Some((colNr.toInt, Option(offset).map(_.drop(1).toInt).getOrElse(1)))
-      case _ =>
-        None
-    }
-    entries.flatten.
-        groupBy(_._1).
-        mapValues(_.map(_._2).max)
-  }
-
-  /** Converts the field names to a representation that can be used in URIs */
-  private def convertHeaderFields(headerFields: Array[String],
-                                  existingUnnamedMap: Map[Int, Int]) = {
-    headerFields.zipWithIndex
-        .map {
-          case (null, idx) =>
-            val colIdx = idx + 1
-            val columnName = UNNAMED_COLUMN_PREFIX + colIdx
-            existingUnnamedMap.get(colIdx) match {
-              case Some(max) => columnName + "_" + (max + 1)
-              case None => columnName
-            }
-          case (s, _) =>
-            if (Uri(s).isValidUri && (Option(prefix).isEmpty || prefix == "")) {
-              s
-            } else {
-              URLEncoder.encode(s, "UTF-8")
-            }
-        }.toIndexedSeq
   }
 
   // Number of lines in input file (including header and potential skipped lines)
@@ -234,7 +198,7 @@ class CsvSource(file: Resource,
       case None =>
         values.map(v => if (v != null) Seq(v) else Seq.empty[String])
       case Some(c) =>
-        values.map(v => if (v != null) v.split(c.toString, -1).toSeq else Seq.empty[String])
+        values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
     }
     entityValues
   }
@@ -460,31 +424,3 @@ object SeparatorDetector {
   * @param numberOfFields the detected number of fields when splitting with this separator
   */
 case class DetectedSeparator(separator: Char, numberOfFields: Int, skipLinesBeginning: Int)
-
-object CsvSourceHelper {
-  lazy val standardCsvParser = new CsvParser(
-    Seq.empty,
-    CsvSettings(quote = Some('"'))
-  )
-
-  def serialize(fields: Traversable[String]): String = {
-    fields.map { field =>
-      if (field.contains("\"") || field.contains(",")) {
-        escapeString(field)
-      } else {
-        field
-      }
-    }.mkString(",")
-  }
-
-  def parse(str: String): Seq[String] = {
-    standardCsvParser.synchronized {
-      standardCsvParser.parseLine(str)
-    }
-  }
-
-  def escapeString(str: String): String = {
-    val quoteReplaced = str.replaceAll("\"", "\"\"")
-    s"""\"$quoteReplaced\""""
-  }
-}
