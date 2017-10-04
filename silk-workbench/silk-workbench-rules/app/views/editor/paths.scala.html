@@ -64,7 +64,6 @@
       <div class="block-header clearfix">
         <span style='font-weight: bold; color: #582271;' class="path_type">@pathType Paths:</span>
         <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
-        <div class="mdl-tooltip mdl-tooltip--right" for="@{pathType.toLowerCase}_id">@source</div>
       </div>
 
       <div class="scrollboxes">
@@ -84,11 +83,9 @@
             class="draggable @{pathType.toLowerCase}Paths @if(index < maximumPaths) {visible} else {hidden}"
             style="display: none;"
             >
-            <span></span>
             <p class="non-breaking-label">@path</p>
             @pathExpanded(path, pathType)
           </div>
-          <div class="mdl-tooltip mdl-tooltip--right" for="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}">@path</div>
         }
         @if(paths.length > maximumPaths) {
           <div id="@{pathType.toLowerCase}_show_all" onclick="showAllPaths('#@{pathType.toLowerCase}')">
