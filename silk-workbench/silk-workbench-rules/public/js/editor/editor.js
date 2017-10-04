@@ -143,6 +143,7 @@ function initEditor() {
     jsPlumb.reset();
 
     $canvas = $('#' + canvasId);
+    activateDeferredMDL($canvas);
 
     var currentContainer = jsPlumb.getContainer();
 
@@ -157,6 +158,7 @@ function initEditor() {
             var mousePosCanvas = getRelativeOffset(event, $canvas);
             mousePosCanvas = adjustOffset(mousePosCanvas, $canvas);
             var mousePosCombined = subtractOffsets(mousePosCanvas, mousePosDraggable);
+
             clone.appendTo($canvas);
             clone.css(mousePosCombined);
             clone.css({
@@ -165,7 +167,22 @@ function initEditor() {
 
             var draggedClass = $(ui.draggable).attr('class');
             var idPrefix = clone.find('.handler label').text();
+
             var boxId = generateNewElementId(idPrefix);
+
+            clone.find('.mdl-defer').each(function () {
+                var $elem = $(this);
+                var forAttr = $elem.attr('for');
+                if (forAttr) {
+                    var $target = clone.find('#' + forAttr);
+                    if (_.size($target) > 0) {
+                        var newID = boxId + forAttr;
+                        $target.attr('id', newID);
+                        $elem.attr('for', newID);
+                    }
+                }
+            });
+
             clone.attr('id', boxId);
 
             // Set operator name to current id
@@ -173,13 +190,14 @@ function initEditor() {
 
             addEndpoints(boxId, draggedClass);
 
-            // Make operator draggable
-            jsPlumb.draggable(boxId);
-            //      jsPlumb.draggable(boxId, {
-            //        containment: "parent"
-            //      });
-
             clone.show();
+
+            var droppedClone = $('#' + boxId);
+
+            activateDeferredMDL(droppedClone);
+
+            jsPlumb.draggable(boxId);
+            jsPlumb.repaint(boxId);
 
             modifyLinkSpec();
         }
@@ -208,7 +226,7 @@ function initEditor() {
     $(document).on('change', "input[type!='text']", function () {
         modifyLinkSpec();
     });
-    $(document).on('change', "select", function () {
+    $(document).on('change', 'select', function () {
         modifyLinkSpec();
     });
     $(document).on('keyup', "input[type='text'].param_value", function () {
@@ -313,7 +331,7 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-    return $('#' + elId + ' .handler label').text();
+    return $('#' + elId).find('.handler label').text();
 }
 
 function validateLinkSpec() {
@@ -459,9 +477,7 @@ function highlightElement(elId, message) {
             var tooltip = $('#' + highlightId + '_tooltip');
             tooltip.text(encodeHtml(message));
             tooltip.show();
-            // elementToHighlight.prepend('<div class="mdl-tooltip" for="' + elId + '">encodeHtml(message)</div>');
             jsPlumb.repaint(elementToHighlight);
-            // componentHandler.upgradeAllRegistered();
         }
     });
 }

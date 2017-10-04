@@ -139,6 +139,7 @@ function initEditor(canvasId = 'droppable') {
     jsPlumb.reset();
 
     $canvas = $(`#${canvasId}`);
+    activateDeferredMDL($canvas);
 
     const currentContainer = jsPlumb.getContainer();
 
@@ -148,23 +149,39 @@ function initEditor(canvasId = 'droppable') {
 
     $canvas.droppable({
         drop(event, ui) {
-            var clone = ui.helper.clone(false);
-            var mousePosDraggable = getRelativeOffset(event, ui.helper);
-            var mousePosCanvas = getRelativeOffset(event, $canvas);
+            const clone = ui.helper.clone(false);
+            const mousePosDraggable = getRelativeOffset(event, ui.helper);
+            let mousePosCanvas = getRelativeOffset(event, $canvas);
             mousePosCanvas = adjustOffset(mousePosCanvas, $canvas);
-            var mousePosCombined = subtractOffsets(
+            const mousePosCombined = subtractOffsets(
                 mousePosCanvas,
                 mousePosDraggable
             );
+
             clone.appendTo($canvas);
             clone.css(mousePosCombined);
             clone.css({
                 'z-index': 'auto',
             });
 
-            var draggedClass = $(ui.draggable).attr('class');
-            var idPrefix = clone.find('.handler label').text();
-            var boxId = generateNewElementId(idPrefix);
+            const draggedClass = $(ui.draggable).attr('class');
+            const idPrefix = clone.find('.handler label').text();
+
+            const boxId = generateNewElementId(idPrefix);
+
+            clone.find('.mdl-defer').each(function() {
+                const $elem = $(this);
+                const forAttr = $elem.attr('for');
+                if (forAttr) {
+                    const $target = clone.find(`#${forAttr}`);
+                    if (_.size($target) > 0) {
+                        const newID = boxId + forAttr;
+                        $target.attr('id', newID);
+                        $elem.attr('for', newID);
+                    }
+                }
+            });
+
             clone.attr('id', boxId);
 
             // Set operator name to current id
@@ -172,13 +189,14 @@ function initEditor(canvasId = 'droppable') {
 
             addEndpoints(boxId, draggedClass);
 
-            // Make operator draggable
-            jsPlumb.draggable(boxId);
-            //      jsPlumb.draggable(boxId, {
-            //        containment: "parent"
-            //      });
-
             clone.show();
+
+            const droppedClone = $(`#${boxId}`);
+
+            activateDeferredMDL(droppedClone);
+
+            jsPlumb.draggable(boxId);
+            jsPlumb.repaint(boxId);
 
             modifyLinkSpec();
         },
@@ -207,8 +225,8 @@ function initEditor(canvasId = 'droppable') {
     $(document).on('change', "input[type!='text']", function() {
         modifyLinkSpec();
     });
-    $(document).on('change', "select", function () {
-      modifyLinkSpec();
+    $(document).on('change', 'select', function() {
+        modifyLinkSpec();
     });
     $(document).on('keyup', "input[type='text'].param_value", function() {
         modifyLinkSpec();
@@ -331,7 +349,7 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-    return $(`#${elId} .handler label`).text();
+    return $(`#${elId}`).find(`.handler label`).text();
 }
 
 function validateLinkSpec() {
@@ -486,9 +504,7 @@ function highlightElement(elId, message) {
             var tooltip = $(`#${highlightId}_tooltip`);
             tooltip.text(encodeHtml(message));
             tooltip.show();
-            // elementToHighlight.prepend('<div class="mdl-tooltip" for="' + elId + '">encodeHtml(message)</div>');
             jsPlumb.repaint(elementToHighlight);
-            // componentHandler.upgradeAllRegistered();
         }
     });
 }

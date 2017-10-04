@@ -231,3 +231,18 @@ jQuery.ui.mouse.prototype._mouseUp = function() {
 };
 
 jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
+/**
+ * This functions searches for all visible deferred mdl elements and upgrades them accordingly
+ * @param $parent
+ */
+function activateDeferredMDL($parent) {
+    const deferredMDL = $parent.find('.mdl-defer');
+
+    deferredMDL.filter(':visible').each(function() {
+        const $elem = $(this);
+        $elem.removeClass('mdl-defer');
+        const deferred = $elem.data('mdl-defer');
+        $elem.addClass(`mdl-${deferred}`);
+        componentHandler.upgradeElements($elem.get());
+    });
+}

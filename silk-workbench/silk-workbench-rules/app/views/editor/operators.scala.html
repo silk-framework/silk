@@ -46,6 +46,7 @@ function initOperators() {
     // Show selected Category
     $selectedCategory = $('#@{opType}_category_' + $(this).val()) ;
     $selectedCategory.show();
+    activateDeferredMDL($selectedCategory);
     initDraggableOperators($selectedCategory);
   });
 
@@ -89,7 +90,7 @@ function initOperators() {
     <p class="non-breaking-label">@plugin.label</p>
     @operatorExpanded(plugin)
   </div>
-  <div class="mdl-tooltip mdl-tooltip--right" for="@{opType}_@{category}_@plugin.id">
+  <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@{opType}_@{category}_@plugin.id">
     @plugin.description
   </div>
 }

@@ -33,6 +33,8 @@
     $draggable.css('display', '');
     $draggable.removeClass('visible');
     $draggable.removeClass('hidden');
+    // TODO: paths currently have no deferred mdl, so we do no not need to activate it here
+    // activateDeferredMDL($draggable);
     $draggable.draggable({
       helper: function() {
         var box = $(this).children('.dragDiv');
