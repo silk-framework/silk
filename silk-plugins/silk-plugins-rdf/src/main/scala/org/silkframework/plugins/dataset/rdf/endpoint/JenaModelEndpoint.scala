@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.{QueryExecution, QueryExecutionFactory}
-import org.apache.jena.rdf.model.Model
-import org.apache.jena.sparql.core.DatasetGraphFactory
-import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
+import com.hp.hpl.jena.query.{QueryExecution, QueryExecutionFactory}
+import com.hp.hpl.jena.rdf.model.Model
+import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
 
 /**
@@ -17,7 +16,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
     this.synchronized {
-      val graphStore = DatasetGraphFactory.createOneGraph(model.getGraph)
+      val graphStore = GraphStoreFactory.create(model)
       UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
     }
   }

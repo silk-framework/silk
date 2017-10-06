@@ -2,12 +2,14 @@ package org.silkframework.execution.local
 
 import java.io.StringWriter
 
-import org.apache.jena.rdf.model.{Model, ModelFactory}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.scalatest.{FlatSpec, ShouldMatchers}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.Prefixes
+import org.silkframework.dataset.{Dataset, DatasetTask}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, Path}
+import org.silkframework.execution.ExecutionReport
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.{FileDataset, JenaModelDataset, SparqlSink}
 import org.silkframework.rule._

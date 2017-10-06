@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.apache.jena.rdf.model.Model
+import com.hp.hpl.jena.rdf.model.Model
+import org.silkframework.dataset.{DataSource, Dataset, EntitySink, LinkSink}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{DataSource, EntitySink, LinkSink}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 
 case class JenaModelDataset(model: Model) extends RdfDataset {

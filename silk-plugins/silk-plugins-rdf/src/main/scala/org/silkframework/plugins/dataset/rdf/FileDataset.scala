@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.time.Instant
 
-import org.apache.jena.query.DatasetFactory
+import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
@@ -56,7 +56,7 @@ case class FileDataset(
 
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
-    val dataset = DatasetFactory.createTxnMem()
+    val dataset = DatasetFactory.createMem()
     val inputStream = file.inputStream
     RDFDataMgr.read(dataset, inputStream, lang)
     inputStream.close()
@@ -69,11 +69,11 @@ case class FileDataset(
     new JenaModelEndpoint(model)
   }
 
-  override def source: FileSource.type = FileSource
+  override def source = FileSource
 
-  override def linkSink: FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink = new FormattedLinkSink(file, formatter)
 
-  override def entitySink: FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink = new FormattedEntitySink(file, formatter)
 
   object FileSource extends DataSource with PeakDataSource {
 
