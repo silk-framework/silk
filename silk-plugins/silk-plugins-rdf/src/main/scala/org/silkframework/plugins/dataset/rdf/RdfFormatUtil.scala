@@ -1,16 +1,18 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.ByteArrayOutputStream
+import java.net.URI
 
-import org.apache.jena.graph.{Node, NodeFactory, Triple}
-import org.apache.jena.rdf.model.{AnonId, ModelFactory}
+import com.hp.hpl.jena.graph.{Node, NodeFactory, Triple}
+import com.hp.hpl.jena.rdf.model.{AnonId, ModelFactory}
+import com.hp.hpl.jena.vocabulary.XSD
 import org.apache.jena.riot.RDFDataMgr
-import org.apache.jena.vocabulary.XSD
 import org.silkframework.entity._
-import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.{StringUtils, Uri}
+import org.silkframework.util.StringUtils.DoubleLiteral
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 /**
   * Created on 8/31/16.
