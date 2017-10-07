@@ -14,8 +14,8 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import com.hp.hpl.jena.query.{Dataset, DatasetFactory}
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.query.{Dataset, DatasetFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 

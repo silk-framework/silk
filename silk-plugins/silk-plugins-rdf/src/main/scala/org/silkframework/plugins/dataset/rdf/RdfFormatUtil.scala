@@ -3,9 +3,9 @@ package org.silkframework.plugins.dataset.rdf
 import java.io.ByteArrayOutputStream
 import java.net.URI
 
-import com.hp.hpl.jena.graph.{Node, NodeFactory, Triple}
-import com.hp.hpl.jena.rdf.model.{AnonId, ModelFactory}
-import com.hp.hpl.jena.vocabulary.XSD
+import org.apache.jena.graph.{Node, NodeFactory, Triple}
+import org.apache.jena.rdf.model.{AnonId, ModelFactory}
+import org.apache.jena.vocabulary.XSD
 import org.apache.jena.riot.RDFDataMgr
 import org.silkframework.entity._
 import org.silkframework.util.{StringUtils, Uri}

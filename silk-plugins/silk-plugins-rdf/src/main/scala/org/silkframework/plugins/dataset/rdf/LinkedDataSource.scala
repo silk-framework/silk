@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.util.logging.{Level, Logger}
 
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint

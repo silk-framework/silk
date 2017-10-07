@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.time.Instant
 
-import com.hp.hpl.jena.query.DatasetFactory
+import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}

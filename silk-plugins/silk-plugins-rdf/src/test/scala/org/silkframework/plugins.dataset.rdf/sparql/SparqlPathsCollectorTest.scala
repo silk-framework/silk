@@ -16,8 +16,8 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
 
-import com.hp.hpl.jena.query.DatasetFactory
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.query.DatasetFactory
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}

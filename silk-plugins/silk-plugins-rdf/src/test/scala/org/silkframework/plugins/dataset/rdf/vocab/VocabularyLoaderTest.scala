@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import com.hp.hpl.jena.query.DatasetFactory
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import org.apache.jena.query.DatasetFactory
+import org.apache.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab._

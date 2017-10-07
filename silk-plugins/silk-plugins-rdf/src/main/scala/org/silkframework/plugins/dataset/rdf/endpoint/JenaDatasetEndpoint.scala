@@ -4,9 +4,9 @@ import java.io._
 import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 import java.util.logging.Logger
 
-import com.hp.hpl.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
-import com.hp.hpl.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
+import org.apache.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.update.{GraphStoreFactory, UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 

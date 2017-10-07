@@ -2,7 +2,7 @@ package org.silkframework.execution.local
 
 import java.io.StringWriter
 
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config.Prefixes
