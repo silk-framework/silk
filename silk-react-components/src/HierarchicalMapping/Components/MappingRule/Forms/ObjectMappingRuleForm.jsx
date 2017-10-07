@@ -18,7 +18,7 @@ import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import FormSaveError from './FormSaveError';
+import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_OBJECT,
@@ -206,7 +206,7 @@ const ObjectMappingRuleForm = React.createClass({
         const allowConfirm =
             type === MAPPING_RULE_TYPE_ROOT ? true : !_.isEmpty(this.state.targetProperty);
 
-        const errorMessage = error ? <FormSaveError error={error} /> : false;
+        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
