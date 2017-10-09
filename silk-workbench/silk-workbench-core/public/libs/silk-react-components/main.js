@@ -22267,7 +22267,42 @@
             edit: _react2.default.PropTypes.bool.isRequired
         },
         componentDidMount: function() {
+            var _this = this;
             this.subscribe(_store2.default.subject("ruleView.close"), this.handleCloseEdit);
+            console.warn(this.props);
+            _lodash2.default.has(this.props, "rules.uriRule.id") && this.subscribe(_store2.default.request({
+                topic: "rule.getEditorHref",
+                data: {
+                    id: _lodash2.default.get(this.props, "rules.uriRule.id", !1)
+                }
+            }), function(_ref) {
+                var href = _ref.href;
+                return _this.setState({
+                    href: href
+                });
+            });
+        },
+        handleComplexEdit: function(event) {},
+        getOperators: function(operator, accumulator) {
+            var _this2 = this;
+            if (_lodash2.default.has(operator, "function")) {
+                _lodash2.default.has(operator, "inputs") && _lodash2.default.forEach(operator.inputs, function(input) {
+                    return accumulator = _lodash2.default.concat(accumulator, _this2.getOperators(input, []));
+                });
+                accumulator.push(operator.function);
+            }
+            return accumulator;
+        },
+        getPaths: function(operator, accumulator) {
+            var _this3 = this;
+            if (_lodash2.default.has(operator, "path")) {
+                console.warn("path?", operator.path);
+                accumulator.push(operator.path);
+            }
+            _lodash2.default.has(operator, "function") && _lodash2.default.has(operator, "inputs") && _lodash2.default.forEach(operator.inputs, function(input) {
+                return accumulator = _lodash2.default.concat(accumulator, _this3.getPaths(input, []));
+            });
+            return accumulator;
         },
         getInitialState: function() {
             return {
@@ -22285,12 +22320,48 @@
             });
         },
         render: function() {
-            var _this = this, type = this.props.type;
-            if (this.state.edit) return _react2.default.createElement(_ObjectMappingRuleForm2.default, {
+            var _this4 = this, type = this.props.type, edit = this.state.edit, paths = this.getPaths(this.props.rules.uriRule.operator, []), operators = this.getOperators(this.props.rules.uriRule.operator, []);
+            if (edit) return _react2.default.createElement(_ObjectMappingRuleForm2.default, {
                 id: this.props.id,
                 parent: this.props.parent,
                 parentId: this.props.parentId
             });
+            var uriPattern = !1;
+            "complexUri" === _lodash2.default.get(this.props, "rules.uriRule.type", !1) ? uriPattern = _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__idpattern"
+            }, _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__comment"
+            }, _react2.default.createElement("dl", {
+                className: "ecc-silk-mapping__rulesviewer__attribute"
+            }, _react2.default.createElement("dt", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-label"
+            }, "URI pattern"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-info"
+            }, "Uri uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".", _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "edit",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
+                onClick: this.handleComplexEdit,
+                href: this.state.href,
+                tooltip: "Convert uri to complex uri"
+            }))))) : _lodash2.default.get(this.props, "rules.uriRule.pattern", !1) && (uriPattern = _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__idpattern"
+            }, _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__comment"
+            }, _react2.default.createElement("dl", {
+                className: "ecc-silk-mapping__rulesviewer__attribute"
+            }, _react2.default.createElement("dt", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-label"
+            }, "URI pattern"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-title"
+            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")), _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "edit",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
+                onClick: this.handleComplexEdit,
+                href: this.state.href,
+                tooltip: "Convert uri to complex uri"
+            }))))));
             var targetProperty = !1, entityRelation = !1, deleteButton = !1;
             if ("root" !== type) {
                 targetProperty = _react2.default.createElement("div", {
@@ -22330,10 +22401,10 @@
                     raised: !0,
                     onClick: function() {
                         return _store2.default.subject("removeClick").onNext({
-                            id: _this.props.id,
-                            uri: _this.props.mappingTarget.uri,
-                            type: _this.props.type,
-                            parent: _this.props.parentId
+                            id: _this4.props.id,
+                            uri: _this4.props.mappingTarget.uri,
+                            type: _this4.props.type,
+                            parent: _this4.props.parentId
                         });
                     }
                 }, "Remove");
@@ -22360,17 +22431,7 @@
                 }, _react2.default.createElement(_SharedComponents.ThingDescription, {
                     id: typeRule.typeUri
                 }))));
-            }))), !!_lodash2.default.get(this.props, "rules.uriRule.pattern", !1) && _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__rulesviewer__idpattern"
-            }, _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__rulesviewer__comment"
-            }, _react2.default.createElement("dl", {
-                className: "ecc-silk-mapping__rulesviewer__attribute"
-            }, _react2.default.createElement("dt", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "URI pattern"), _react2.default.createElement("dd", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-title"
-            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")))))), !("object" !== this.props.type || !_lodash2.default.get(this.props, "sourcePath", !1)) && _react2.default.createElement("div", {
+            }))), uriPattern, !("object" !== this.props.type || !_lodash2.default.get(this.props, "sourcePath", !1)) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__sourcePath"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -22455,7 +22516,8 @@
                     targetEntityType: _lodash2.default.chain(rule).get("rules.typeRules", []).map("typeUri").value(),
                     entityConnection: _lodash2.default.get(rule, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     pattern: _lodash2.default.get(rule, "rules.uriRule.pattern", ""),
-                    type: _lodash2.default.get(rule, "type")
+                    type: _lodash2.default.get(rule, "type"),
+                    uriRuleType: _lodash2.default.get(rule, "rules.uriRule.type", "uri")
                 };
                 _this.setState((0, _extends3.default)({
                     loading: !1,
@@ -22585,11 +22647,16 @@
                 });
             }
             var patternInput = !1;
-            id && (patternInput = _react2.default.createElement(_eccGuiElements.TextField, {
+            console.warn(this.state, "malditos objetos!");
+            id && (patternInput = "uri" === this.state.uriRuleType ? _react2.default.createElement(_eccGuiElements.TextField, {
                 label: "URI pattern",
                 className: "ecc-silk-mapping__ruleseditor__pattern",
                 value: this.state.pattern,
                 onChange: this.handleChangeTextfield.bind(null, "pattern")
+            }) : _react2.default.createElement(_eccGuiElements.TextField, {
+                disabled: !0,
+                label: "Complex Uri",
+                value: "This uri cannot be edited in the edit form."
             }));
             var exampleView = !!this.state.sourceProperty && _react2.default.createElement(_ExampleView2.default, {
                 id: this.props.parentId || "root",
