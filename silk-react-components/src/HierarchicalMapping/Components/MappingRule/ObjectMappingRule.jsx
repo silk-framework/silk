@@ -110,8 +110,8 @@ const ObjectRule = React.createClass({
     render() {
         const {type} = this.props;
         const {edit} = this.state;
-        const paths = this.getPaths(this.props.rules.uriRule.operator, []);
-        const operators = this.getOperators(this.props.rules.uriRule.operator, []);
+        const paths = this.getPaths(_.get(this.props, 'rules.uriRule.operator', []), []);
+        const operators = this.getOperators(_.get(this.props, 'rules.uriRule.operator', []), []);
 
         if (edit) {
             return (
