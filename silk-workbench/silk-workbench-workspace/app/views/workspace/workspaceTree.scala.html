@@ -13,11 +13,26 @@
 <script type="text/javascript" >
   $(function () {
     $('#workspace_root').jstree({
+      "plugins": [ "search", "state" ],
       "state": { "key" : "workspace_state" },
-      "plugins": [ "state" ]
+      "search": { "show_only_matches": true }
+    });
+
+    var to = false;
+    $('#workspaceSearch').keyup(function () {
+      if(to) { clearTimeout(to); }
+      to = setTimeout(function () {
+        var v = $('#workspaceSearch').val();
+        $('#workspace_root').jstree(true).search(v);
+      }, 250);
     });
   });
 </script>
+
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+  <input class="mdl-textfield__input" type="text" id="workspaceSearch">
+  <label class="mdl-textfield__label" for="workspaceSearch">Search</label>
+</div>
 
 <div id="workspace_root">
   <ul  class="filetree">
