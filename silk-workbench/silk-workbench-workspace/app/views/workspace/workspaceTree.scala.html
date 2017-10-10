@@ -47,11 +47,6 @@
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
-    @for(plugin <- WorkbenchPlugins();
-         taskActions <- plugin.tasks;
-         path <- taskActions.createDialog(project.name)) {
-      @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
-    }
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
     @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
@@ -61,9 +56,8 @@
     @button("Remove", "Remove project", "cross.png", s"deleteProjectConfirm('${project.name}')")
     <ul>
       @for(plugin <- WorkbenchPlugins();
-           taskActions <- plugin.tasks;
-           t <- taskActions.projectTasks(project)) {
-        @task(project, t, taskActions)
+           taskActions <- plugin.tasks) {
+        @taskType(project, taskActions)
       }
     </ul>
   </li>
@@ -74,6 +68,20 @@
     "img/project.png"
   else
    "img/project-error.png"
+}
+
+@taskType(project: Project, taskActions: TaskActions[_ <: TaskSpec]) = {
+  <li>
+    @{taskActions.name}s
+    @for(path <- taskActions.createDialog(project.name)) {
+      @button("Add", "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
+    }
+    <ul>
+      @for(t <- taskActions.projectTasks(project)) {
+        @task(project, t, taskActions)
+      }
+    </ul>
+  </li>
 }
 
 @task(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_ <: TaskSpec]) = {
