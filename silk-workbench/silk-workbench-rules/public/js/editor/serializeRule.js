@@ -36,7 +36,7 @@ function serializeTransformRule() {
     xml.setAttribute('name', $('#rulename').val());
 
     var targetUri = $('#targetproperty').val();
-    if(targetUri.trim().length > 0) {
+    if (targetUri.trim().length > 0) {
         var mappingTarget = xmlDoc.createElement('MappingTarget');
         mappingTarget.setAttribute('uri', targetUri);
         var valueType = xmlDoc.createElement('ValueType');
