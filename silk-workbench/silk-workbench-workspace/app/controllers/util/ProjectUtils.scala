@@ -1,6 +1,6 @@
 package controllers.util
 
-import java.io.StringWriter
+import java.io.{File, StringWriter}
 
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
@@ -12,6 +12,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.util.FileUtils
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok

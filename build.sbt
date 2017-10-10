@@ -45,7 +45,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    libraryDependencies += "commons-io" % "commons-io" % "2.4" % "test"
   )
 
 lazy val rules = (project in file("silk-rules"))
