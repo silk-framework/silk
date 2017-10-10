@@ -139,6 +139,18 @@ const MappingsObject = React.createClass({
             );
         }
 
+        let uri = <NotAvailable
+            label="URI pattern not set"
+            inline={true}>
+        </NotAvailable>;
+
+        if (_.has(this.props.rule.rules, ['uriRule', 'pattern'])) {
+            uri = this.props.rule.rules.uriRule.pattern
+        }
+        else if (_.get(this.props.rule.rules, 'uriRule.type', false) === 'complexUri'){
+            uri = 'Complex URI';
+        }
+
         return (
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
@@ -165,14 +177,7 @@ const MappingsObject = React.createClass({
                                         </div>
                                         <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type" />
                                         <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
-                                            {
-                                                _.has(this.props.rule.rules, ['uriRule', 'pattern'])
-                                                ? this.props.rule.rules.uriRule.pattern
-                                                : <NotAvailable
-                                                    label="URI pattern not set"
-                                                    inline={true}>
-                                                  </NotAvailable>
-                                            }
+                                            {uri}
                                         </div>
                                     </div>
                                     <div className="mdl-list__item-secondary-content" key="action">
