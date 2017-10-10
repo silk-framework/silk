@@ -15,7 +15,7 @@ import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import FormSaveError from './FormSaveError';
+import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
 
@@ -179,7 +179,7 @@ const ValueMappingRuleForm = React.createClass({
             return <Spinner />;
         }
 
-        const errorMessage = error ? <FormSaveError error={error} /> : false;
+        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
 
         const allowConfirm = !_.isEmpty(this.state.targetProperty);
 
