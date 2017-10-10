@@ -43,7 +43,7 @@ const ObjectRule = React.createClass({
             this.subscribe(
                 hierarchicalMappingChannel.request({
                     topic: 'rule.getEditorHref',
-                    data: {id: _.get(this.props, 'rules.uriRule.id', false)},
+                    data: {id: this.props.rules.uriRule.id},
                 }),
                 ({href}) => this.setState({href})
             );
@@ -104,7 +104,20 @@ const ObjectRule = React.createClass({
         });
     },
     handleCloseEdit(obj) {
-        if (obj.id === this.props.id) this.setState({edit: false});
+        if (obj.id === this.props.id) {
+            this.setState({edit: false});
+        }
+    },
+    componentWillReceiveProps(nextProps) {
+        if (_.has(nextProps, 'rules.uriRule.id')) {
+            this.subscribe(
+                hierarchicalMappingChannel.request({
+                    topic: 'rule.getEditorHref',
+                    data: {id: _.get(nextProps, 'rules.uriRule.id', '')},
+                }),
+                ({href}) => this.setState({href})
+            );
+        }
     },
     // template rendering
     render() {
