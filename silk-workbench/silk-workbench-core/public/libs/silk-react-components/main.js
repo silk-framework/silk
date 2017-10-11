@@ -14128,7 +14128,8 @@
         propTypes: {
             title: _react2.default.PropTypes.string,
             detail: _react2.default.PropTypes.string,
-            cause: _react2.default.PropTypes.object
+            cause: _react2.default.PropTypes.object,
+            issues: _react2.default.PropTypes.object
         },
         componentDidMount: function() {},
         getInitialState: function() {
@@ -14142,9 +14143,12 @@
             });
         },
         render: function() {
-            var errorClassName = this.state.errorExpanded ? "" : "mdl-alert--narrowed", causes = !1;
+            var errorClassName = this.state.errorExpanded ? "" : "mdl-alert--narrowed", causes = !1, issues = !1;
             this.state.errorExpanded && _lodash2.default.isArray(this.props.cause) && (causes = _react2.default.createElement(ErrorCause, {
                 errorCause: this.props.cause
+            }));
+            this.state.errorExpanded && _lodash2.default.isArray(this.props.issues) && (issues = _react2.default.createElement(ErrorCause, {
+                errorCause: this.props.issues
             }));
             return _react2.default.createElement(_eccGuiElements.Error, {
                 border: !0,
@@ -14152,7 +14156,7 @@
                 handlerDismiss: this.toggleExpansion,
                 labelDismiss: this.state.errorExpanded ? "Show less" : "Show more",
                 iconDismiss: this.state.errorExpanded ? "expand_less" : "expand_more"
-            }, _react2.default.createElement("strong", null, this.props.title), _react2.default.createElement("p", null, this.props.detail), causes);
+            }, _react2.default.createElement("strong", null, this.props.title), _react2.default.createElement("p", null, this.props.detail), causes, issues);
         }
     });
     exports.default = ErrorView;
