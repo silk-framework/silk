@@ -36,5 +36,5 @@ object EmptyResource extends Resource {
     * @return An input stream for reading the resource.
     *         The caller is responsible for closing the stream after reading.
     */
-  override def load = new ByteArrayInputStream(Array.empty)
+  override def inputStream = new ByteArrayInputStream(Array.empty)
 }

@@ -34,14 +34,28 @@ var dialogs = {};
 
 var dialog = void 0;
 
+var startTime = new Date().getTime();
+var now = new Date().getTime();
+
+window.timeDump = function (str) {
+    var temp = new Date().getTime();
+    console.warn(str, temp - now, temp - startTime);
+    now = temp;
+};
+
 $(function () {
+
+    // Make sure that mdl components are registered the right way
+    componentHandler.upgradeDom();
+
     // Initialize window
-    var id;
-    $(window).resize(function () {
-        clearTimeout(id);
+    var resize = _.throttle(function () {
         contentWidth = $(window).width() - helpWidth;
-        id = setTimeout(contentWidthCallback, 100);
-    });
+        contentWidthCallback();
+    }, 100);
+
+    $(window).resize(resize);
+
     contentWidth = $(window).width() - 190;
     contentWidthCallback();
 
@@ -188,4 +202,64 @@ function updateHelpWidth(newWidth) {
     helpWidth = newWidth;
     contentWidth = $(window).width() - helpWidth;
     contentWidthCallback();
+}
+
+/*
+ *
+ * With the following code, we throttle fired mousemove events by jquery UI to 50 FPS
+ *
+ */
+
+var jqueryDragActive = false;
+
+var originalMouseMove = jQuery.ui.mouse.prototype._mouseMove;
+jQuery.ui.mouse.prototype._mouseMove = function () {
+    if (jqueryDragActive) {
+        originalMouseMove.apply(this, arguments);
+    }
+};
+
+var originalMouseDown = jQuery.ui.mouse.prototype._mouseDown;
+jQuery.ui.mouse.prototype._mouseDown = function () {
+    jqueryDragActive = true;
+    originalMouseDown.apply(this, arguments);
+};
+
+var originalMouseUp = jQuery.ui.mouse.prototype._mouseUp;
+
+jQuery.ui.mouse.prototype._mouseUp = function () {
+    originalMouseUp.apply(this, arguments);
+    jqueryDragActive = false;
+};
+
+jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
+/**
+ * This functions searches for all visible deferred mdl elements and upgrades them accordingly
+ * @param $parent
+ */
+function activateDeferredMDL($parent) {
+    var deferredMDL = $parent.find('.mdl-defer');
+
+    deferredMDL.filter(':visible').each(function () {
+        var $elem = $(this);
+        $elem.removeClass('mdl-defer');
+        var deferred = $elem.data('mdl-defer');
+        $elem.addClass('mdl-' + deferred);
+        componentHandler.upgradeElements($elem.get());
+    });
+}
+
+function generateNewIdsForTooltips($parent) {
+    $parent.find('.mdl-defer').each(function () {
+        var $elem = $(this);
+        var forAttr = $elem.attr('for');
+        if (forAttr) {
+            var $target = $parent.find('#' + forAttr);
+            if (_.size($target) > 0) {
+                var newID = _.uniqueId(forAttr);
+                $target.attr('id', newID);
+                $elem.attr('for', newID);
+            }
+        }
+    });
 }

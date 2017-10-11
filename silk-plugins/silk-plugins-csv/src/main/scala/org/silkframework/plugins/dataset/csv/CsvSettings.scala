@@ -5,4 +5,5 @@ case class CsvSettings(separator: Char = ',',
                        quote: Option[Char] = Some('"'),
                        maxCharsPerColumn: Option[Int] = None,
                        maxColumns: Option[Int] = None,
-                       commentChar: Option[Char] = None)
+                       commentChar: Option[Char] = None,
+                       quoteEscapeChar: Char = '"')

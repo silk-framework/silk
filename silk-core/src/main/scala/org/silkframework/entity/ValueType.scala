@@ -297,7 +297,7 @@ case object UriValueType extends ValueType with Serializable {
   override def label = "Resource"
 
   override def validate(lexicalString: String): Boolean = {
-    Try(new URI(lexicalString)).isSuccess
+    new Uri(lexicalString).isValidUri
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */

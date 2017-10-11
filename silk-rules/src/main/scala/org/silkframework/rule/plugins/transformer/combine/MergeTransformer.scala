@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "merge",
@@ -23,6 +23,16 @@ import org.silkframework.runtime.plugin.Plugin
   label = "Merge",
   description = "Merges the values of all inputs."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    output = Array()
+  ),
+  new TransformExample(
+    input1 = Array("a", "b"),
+    input2 = Array("c"),
+    output = Array("a", "b", "c")
+  )
+))
 case class MergeTransformer() extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ union _)

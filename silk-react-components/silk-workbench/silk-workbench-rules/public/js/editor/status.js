@@ -15,19 +15,26 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/editor/edito
  * message: The message to be displayed
  */
 function updateStatus(messages) {
-    $('#error-tooltip').html('');
-    $('#error-tooltip').append(printMessages(messages));
 
-    var errorCount = messages.filter(function(msg) {
+    const $tooltip =  $('#error-tooltip');
+
+    $tooltip.html('');
+    $tooltip.append(printMessages(messages));
+
+    const errorCount = messages.filter(function(msg) {
         return msg.type === 'Error';
-    }).length;
-    var warningCount = messages.filter(function(msg) {
-        return msg.type === 'Warning';
     }).length;
 
     if (errorCount > 0) {
         showInvalidIcon(errorCount);
-    } else if (warningCount > 0) {
+        return;
+    }
+
+    const warningCount = messages.filter(function(msg) {
+        return msg.type === 'Warning';
+    }).length;
+
+    if (warningCount > 0) {
         showWarningIcon(warningCount);
     } else {
         showValidIcon();
@@ -35,47 +42,53 @@ function updateStatus(messages) {
 }
 
 function showValidIcon() {
-    $('#exclamation, #warning, #pending').css('display', 'none');
+    $('#exclamation, #warning').css('display', 'none');
     $('#tick').css('display', 'block');
+    $('#pending').remove();
 }
 
 function showInvalidIcon(numberMessages) {
-    $('#exclamation').attr('data-badge', numberMessages);
-    $('#tick, #warning, #pending').css('display', 'none');
-    $('#exclamation').css('display', 'block');
+    const $excl = $('#exclamation');
+    $('#tick, #warning').css('display', 'none');
+    $('#pending').remove();
+    $excl.attr('data-badge', numberMessages);
+    $excl.css('display', 'block');
 }
 
 function showWarningIcon(numberMessages) {
-    $('#warning').attr('data-badge', numberMessages);
-    $('#tick, #exclamation, #pending').css('display', 'none');
-    $('#warning').css('display', 'block');
+    const $warn = $('#warning');
+    $('#tick, #exclamation').css('display', 'none');
+    $('#pending').remove();
+    $warn.attr('data-badge', numberMessages);
+    $warn.css('display', 'block');
 }
 
 /* exported updateStatus
 silk-workbench/silk-workbench-rules/app/views/editor/status.scala.html
  */
 function showPendingIcon() {
+    $('#pending').remove();
     $('#exclamation, #warning, #tick').css('display', 'none');
-    $('#pending').css('display', 'block');
+    const $icons = $('#validation-icons');
+    $icons.css('display', 'block');
+    const $pending = document.createElement('div');
+    $pending.id = 'pending';
+    $pending.className = 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active';
+    componentHandler.upgradeElement($pending);
+    $icons.append($pending)
 }
 
 function printMessages(array) {
-    var result = '';
-    var c = 1;
-    for (var i = 0; i < array.length; i++) {
-        result = `${result}<div class="msg">${c}. ${encodeHtml(
-            array[i].message
-        )}</div>`;
-        if (array[i].id)
+    let result = '';
+    for (let i = 0; i < array.length; i++) {
+        result += `<div class="msg">${i + 1}. ${encodeHtml(array[i].message)}</div>`;
+        if (array[i].id){
             highlightElement(array[i].id, encodeHtml(array[i].message));
-        c += 1;
+        }
     }
     return result;
 }
 
 function encodeHtml(value) {
-    var encodedHtml = value.replace('<', '&lt;');
-    encodedHtml = encodedHtml.replace('>', '&gt;');
-    encodedHtml = encodedHtml.replace('"', '\\"');
-    return encodedHtml;
+    return _.escape(value);
 }

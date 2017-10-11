@@ -29,7 +29,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabType) =>
         serializeCompileTime(vocabType)
       case None =>
-        ErrorResult.clientError(NotFoundException(s"Type $typeUri could not be found in any of the target vocabularies."))
+        ErrorResult(NotFoundException(s"Type $typeUri could not be found in any of the target vocabularies."))
     }
   }
 
@@ -43,7 +43,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case Some(vocabProperty) =>
         serializeCompileTime(vocabProperty)
       case None =>
-        ErrorResult.clientError(NotFoundException(s"Property $propertyUri could not be found in any of the target vocabularies."))
+        ErrorResult(NotFoundException(s"Property $propertyUri could not be found in any of the target vocabularies."))
     }
   }
 
@@ -61,7 +61,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
       case (None, Some(vocabProperty)) =>
         serializeCompileTime(vocabProperty)
       case (None, None) =>
-        ErrorResult.clientError(NotFoundException(s"Property or Class $uri could not be found in any of the target vocabularies."))
+        ErrorResult(NotFoundException(s"Property or Class $uri could not be found in any of the target vocabularies."))
       case (Some(_), Some(_)) =>
         ErrorResult(INTERNAL_SERVER_ERROR, "Vocabulary Issue", s"For $uri both a class and a property can be found in the target vocabularies.")
     }

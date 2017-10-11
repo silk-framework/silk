@@ -12,6 +12,7 @@ import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContentAsXml, Controller}
 import org.silkframework.config.Task
+import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 
 import scala.xml.Elem
 
@@ -93,7 +94,7 @@ class WorkflowApi extends Controller {
         executeVariableWorkflow(workflowTask, dataSources, sinks)
         Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))
       case _ =>
-        UnsupportedMediaType("Only XML supported")
+        throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
   }
 

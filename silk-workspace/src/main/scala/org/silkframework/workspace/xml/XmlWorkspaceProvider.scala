@@ -40,7 +40,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
 
   private def loadProject(projectName: String): Option[ProjectConfig] = {
     try {
-      val configXML = XML.load(resources.child(projectName).get("config.xml").load)
+      val configXML = resources.child(projectName).get("config.xml").read(XML.load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
       val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
       Some(ProjectConfig(projectName, prefixes, resourceURI))

@@ -23,7 +23,7 @@ case class ClasspathResource(path: String) extends Resource {
 
   def modificationTime: Option[Instant] = None
 
-  override def load: InputStream = {
+  override def inputStream: InputStream = {
     val inputStream = getClass.getClassLoader.getResourceAsStream(path)
     if(inputStream == null) {
       throw new ResourceNotFoundException(s"No resource found at classpath '$path'.")

@@ -14,7 +14,7 @@
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor.css")" rel="stylesheet" />
   <link type="text/css" href="@Assets.at("stylesheets/editor/status.css")" rel="stylesheet" />
 
-  <script src="@CoreAssets.at("libs/jsplumb/dist/js/jsPlumb-2.1.8.js")" type="text/javascript"></script>
+  <script src="@CoreAssets.at("libs/jsplumb/dist/js/jsplumb.js")" type="text/javascript"></script>
   <script src="@Assets.at("js/editor/editor.js")" type="text/javascript"></script>
   <script src="@Assets.at("js/editor/status.js")" type="text/javascript"></script>
   <script src="@Assets.at("js/editor/serializeRule.js")" type="text/javascript"></script>
@@ -141,6 +141,9 @@
         @operatorsAll("Transformations", "transform", Transformer, context.project)
         @operatorsAll("Comparators", "compare", DistanceMeasure, context.project)
         @operatorsAll("Aggregators", "aggregate", Aggregator, context.project)
+        <div id="max_results_alert" class="alert alert-info" style="display: none">
+          <strong>More than 50 matches, please refine your search.</strong>
+        </div>
       </div>
     </div>
   </div>

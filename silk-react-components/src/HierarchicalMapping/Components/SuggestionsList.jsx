@@ -7,7 +7,6 @@ import {
     CardMenu,
     CardContent,
     CardActions,
-    Error,
     Info,
     ContextMenu,
     MenuItem,
@@ -15,6 +14,7 @@ import {
     ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
+import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
@@ -22,6 +22,7 @@ import {ParentElement} from './MappingRule/SharedComponents';
 
 let pendingRules = {};
 let wrongRules = {};
+
 const SuggestionsList = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
 
@@ -102,6 +103,7 @@ const SuggestionsList = React.createClass({
                 topic: 'rules.generate',
                 data: {
                     correspondences,
+                    // TODO: DROP root
                     parentRuleId: _.get(this.props, 'ruleId', 'root'),
                 },
             })
@@ -240,9 +242,7 @@ const SuggestionsList = React.createClass({
                               {err.rule.sourcePath}
                           </div>
                           <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline">
-                              <Error>
-                                  {err.msg.message}
-                              </Error>
+                              <ErrorView {...err}/>
                           </div>
                       </div>
                   </li>

@@ -24,9 +24,9 @@ import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
-import MappingRule from './MappingRule/MappingRule';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
+import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -293,7 +293,7 @@ const MappingsWorkview = React.createClass({
 
         const createRuleForm = createType
             ? <div className="ecc-silk-mapping__createrule">
-                  {createType === 'object'
+                  {createType === MAPPING_RULE_TYPE_OBJECT
                       ? <ObjectMappingRuleForm
                             type={createType}
                             parentId={this.state.ruleData.id}
@@ -334,6 +334,7 @@ const MappingsWorkview = React.createClass({
                 ? <SuggestionsList
                       key={_.join(types, ',')}
                       ruleId={
+                          // TODO: Remove this non-sense
                           _.isUndefined(this.props.currentRuleId)
                               ? 'root'
                               : this.props.currentRuleId
@@ -353,11 +354,11 @@ const MappingsWorkview = React.createClass({
                       targetClassUris={types}
                   />
                 : false;
-
         const listMappings =
             (!createRuleForm && !listSuggestions) ?
             (
                     <MappingsList
+                        currentRuleId={_.get(this.props, 'currentRuleId', "root")}
                         rules={_.get(rules, 'propertyRules', [])}
                     />
             ) : false;

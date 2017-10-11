@@ -63,7 +63,7 @@ class WorkspaceController extends Controller {
 
   def importExample(project: String): Action[AnyContent] = Action {
     val workspace = User().workspace
-    val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").load
+    val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").inputStream
     workspace.importProject(Identifier(project), inputStream, XmlZipProjectMarshaling())
 
     User().workspace.reload()

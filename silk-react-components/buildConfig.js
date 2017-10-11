@@ -25,6 +25,10 @@ module.exports = {
         },
         debug: {},
         application: {
+            externals:{
+                'lodash': 'window._',
+                '@eccenca/material-design-lite': 'window.componentHandler',
+            },
             minify: false,
             output: {
                 path: path.resolve(__dirname, 'dist'),

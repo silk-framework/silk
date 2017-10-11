@@ -18,8 +18,12 @@ import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import FormSaveError from './FormSaveError';
+import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
+import {
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
+} from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
@@ -107,7 +111,7 @@ const ObjectMappingRuleForm = React.createClass({
             this.setState({
                 create: true,
                 loading: false,
-                type: 'object',
+                type: MAPPING_RULE_TYPE_OBJECT,
             });
         }
     },
@@ -187,7 +191,9 @@ const ObjectMappingRuleForm = React.createClass({
     },
     // template rendering
     render() {
-        const {id} = this.props;
+        const {id, parentId} = this.props;
+
+        const autoCompleteRuleId = id || parentId;
 
         const {error} = this.state;
 
@@ -198,9 +204,10 @@ const ObjectMappingRuleForm = React.createClass({
         }
 
         // FIXME: also check if data really has changed before allow saving
-        const allowConfirm = type === 'root' ? true : this.state.targetProperty;
+        const allowConfirm =
+            type === MAPPING_RULE_TYPE_ROOT ? true : !_.isEmpty(this.state.targetProperty);
 
-        const errorMessage = error ? <FormSaveError error={error} /> : false;
+        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
@@ -210,7 +217,7 @@ const ObjectMappingRuleForm = React.createClass({
         let entityRelationInput = false;
         let sourcePropertyInput = false;
 
-        if (type !== 'root') {
+        if (type !== MAPPING_RULE_TYPE_ROOT) {
             // TODO: where to get get list of target properties
             targetPropertyInput = (
                 <AutoComplete
@@ -219,7 +226,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="targetProperty"
                     isValidNewOption={newValueIsIRI}
                     creatable
-                    ruleId={this.props.parentId}
+                    ruleId={autoCompleteRuleId}
                     value={this.state.targetProperty}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
@@ -268,7 +275,7 @@ const ObjectMappingRuleForm = React.createClass({
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={this.props.parentId}
+                    ruleId={autoCompleteRuleId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
@@ -301,12 +308,12 @@ const ObjectMappingRuleForm = React.createClass({
             }
         }
 
-        const exampleView = this.state.sourceProperty ?(
+        const exampleView = !_.isEmpty(this.state.sourceProperty) ?(
             <ExampleView
                 id={this.props.parentId || 'root'}
                 key={this.state.sourceProperty.value || this.state.sourceProperty}
                 rawRule={this.state}
-                ruleType="object"
+                ruleType={MAPPING_RULE_TYPE_OBJECT}
             />) : false;
 
         return (
@@ -324,11 +331,7 @@ const ObjectMappingRuleForm = React.createClass({
                             }
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
-                            ruleId={
-                                type === 'root'
-                                    ? this.props.id
-                                    : this.props.parentId
-                            }
+                            ruleId={autoCompleteRuleId}
                             value={this.state.targetEntityType}
                             multi // allow multi selection
                             creatable

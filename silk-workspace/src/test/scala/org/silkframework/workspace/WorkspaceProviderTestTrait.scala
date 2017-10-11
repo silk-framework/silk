@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask, DummyDataset}
+import org.silkframework.dataset.{Dataset, DatasetTask, MockDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
@@ -32,7 +32,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   val NEW_PREFIX = "newPrefix"
   val DUMMY_DATASET = "dummy"
 
-  val dummyDataset = DummyDataset()
+  val dummyDataset = MockDataset()
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
 
@@ -77,9 +77,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       description = "Updated Task Description"
     )
 
-  val dataset = new DatasetTask(DATASET_ID, DummyDataset("default"))
+  val dataset = new DatasetTask(DATASET_ID, MockDataset("default"))
 
-  val datasetUpdated = new DatasetTask(DATASET_ID, DummyDataset("updated"))
+  val datasetUpdated = new DatasetTask(DATASET_ID, MockDataset("updated"))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 
@@ -204,7 +204,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   }
 
   it should "read and write dataset tasks" in {
-    PluginRegistry.registerPlugin(classOf[DummyDataset])
+    PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[Dataset](DUMMY_DATASET, dummyDataset)
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {

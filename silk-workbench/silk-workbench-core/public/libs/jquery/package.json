@@ -2,12 +2,12 @@
   "name": "jquery",
   "title": "jQuery",
   "description": "JavaScript library for DOM operations",
-  "version": "1.11.3",
+  "version": "1.12.4",
   "main": "dist/jquery.js",
   "homepage": "http://jquery.com",
   "author": {
     "name": "jQuery Foundation and other contributors",
-    "url": "https://github.com/jquery/jquery/blob/1.11.3/AUTHORS.txt"
+    "url": "https://github.com/jquery/jquery/blob/1.12-stable/AUTHORS.txt"
   },
   "repository": {
     "type": "git",
@@ -20,35 +20,66 @@
     "library"
   ],
   "bugs": {
-    "url": "http://bugs.jquery.com"
+    "url": "https://github.com/jquery/jquery/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/jquery/jquery/blob/1.11.3/MIT-LICENSE.txt"
-    }
-  ],
+  "license": "MIT",
   "dependencies": {},
   "devDependencies": {
     "commitplease": "2.0.0",
-    "grunt": "0.4.2",
-    "grunt-bowercopy": "0.7.1",
+    "core-js": "0.9.17",
+    "grunt": "0.4.5",
+    "grunt-babel": "5.0.1",
     "grunt-cli": "0.1.13",
     "grunt-compare-size": "0.4.0",
-    "grunt-contrib-jshint": "0.8.0",
-    "grunt-contrib-uglify": "0.3.2",
-    "grunt-contrib-watch": "0.5.3",
-    "grunt-git-authors": "1.2.0",
-    "grunt-jscs-checker": "0.4.1",
+    "grunt-contrib-jshint": "0.11.2",
+    "grunt-contrib-uglify": "0.9.2",
+    "grunt-contrib-watch": "0.6.1",
+    "grunt-git-authors": "2.0.1",
+    "grunt-jscs": "2.1.0",
     "grunt-jsonlint": "1.0.4",
+    "grunt-npmcopy": "0.1.0",
     "gzip-js": "0.3.2",
-    "load-grunt-tasks": "0.3.0",
-    "requirejs": "2.1.10",
-    "testswarm": "1.1.0"
+    "jsdom": "5.6.1",
+    "load-grunt-tasks": "1.0.0",
+    "npm": "2.1.12",
+    "qunitjs": "1.17.1",
+    "qunit-assert-step": "1.0.3",
+    "requirejs": "2.1.17",
+    "sinon": "1.12.2",
+    "sizzle": "2.2.1",
+    "strip-json-comments": "1.0.3",
+    "testswarm": "1.1.0",
+    "win-spawn": "2.0.0"
   },
   "scripts": {
     "build": "npm install && grunt",
     "start": "grunt watch",
-    "test": "grunt"
+    "test": "grunt && grunt test"
+  },
+  "commitplease": {
+    "components": [
+      "Docs",
+      "Tests",
+      "Build",
+      "Release",
+      "Core",
+      "Ajax",
+      "Attributes",
+      "Callbacks",
+      "CSS",
+      "Data",
+      "Deferred",
+      "Deprecated",
+      "Dimensions",
+      "Effects",
+      "Event",
+      "Manipulation",
+      "Offset",
+      "Queue",
+      "Selector",
+      "Serialize",
+      "Traversing",
+      "Wrap"
+    ]
   }
 }

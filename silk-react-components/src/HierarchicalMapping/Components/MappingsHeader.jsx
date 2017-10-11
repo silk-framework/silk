@@ -70,7 +70,9 @@ const MappingsHeader = React.createClass({
                 <Button
                     iconName={'arrow_back'}
                     tooltip="Navigate back to parent"
-                    onClick={this.handleNavigate.bind(null, parent.id)}
+                    onClick={(event) => {
+                        this.handleNavigate(parent.id, this.props.rule.id, event);
+                    }}
                 />
             </div> : false;
 
@@ -81,7 +83,9 @@ const MappingsHeader = React.createClass({
                 (breadcrumbs.length > 0) ? breadcrumbs.map(
                     function(crumb) {
                         return (
-                            <BreadcrumbItem onClick={self.handleNavigate.bind(null, crumb.id)} separationChar="/">
+                            <BreadcrumbItem onClick={ (event) => {
+                                self.handleNavigate(crumb.id, self.props.rule.id, event);
+                            }} separationChar="/">
                                 <ParentStructure parent={crumb} />
                             </BreadcrumbItem>
                         );

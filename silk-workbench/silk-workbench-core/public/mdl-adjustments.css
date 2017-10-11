@@ -355,11 +355,6 @@
   background-color: #80CBC4;
 }
 
-.operator:hover {
-  background-color: #B2DFDB;
-}
-
-
 /*
 * Active Learning
 */
@@ -494,4 +489,14 @@
 /* Fix blurry tooltip problem */
 .mdl-tooltip {
   will-change: unset;
+}
+
+/**
+We sometimes defer mdl elements like tooltips, we want them to be as invisible as possible,
+while also needing space in the layout (so that we can filter for :visible mdl-defers)
+ */
+.mdl-defer {
+  font-size: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
 }

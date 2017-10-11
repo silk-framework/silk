@@ -5,23 +5,49 @@
 @(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "", project: Project)
 
 <script type="text/javascript">
+
   // Initialization
-  $(function() {
-    // Make operators draggable
-    $('.sourcePaths, .targetPaths').draggable({
+  $(initPaths);
+
+  function initPaths() {
+    initDraggablePaths($('#source_container'));
+    initDraggablePaths($('#target_container'));
+  }
+
+  function showAllPaths(id) {
+    $(id + '_show_all').remove();
+    var $element = $(id + '_container');
+    var $draggables = $element.find('.draggable.hidden');
+
+    $draggables.each(initDraggablePath);
+  }
+
+  function initDraggablePaths($element) {
+    var $draggables = $element.find('.draggable.visible');
+
+    $draggables.each(initDraggablePath);
+  }
+
+  function initDraggablePath() {
+    var $draggable = $(this);
+    $draggable.css('display', '');
+    $draggable.removeClass('visible');
+    $draggable.removeClass('hidden');
+    // TODO: paths currently have no deferred mdl, so we do no not need to activate it here
+    // activateDeferredMDL($draggable);
+    $draggable.draggable({
       helper: function() {
         var box = $(this).children('.dragDiv');
         box.show();
         return box;
-      } ,
+      },
       stop: function(event, ui) {
         ui.helper.hide();
         $.ui.ddmanager.current.cancelHelperRemoval = true;
-      } 
-      //containment: "#content"
+      }
     });
+  }
 
-  })
 </script>
 
 @pathOperators(sources.source, paths.source, "Source")
@@ -30,44 +56,49 @@
 }
 
 @pathOperators(source: String, paths: Seq[String], pathType: String) = {
-  <div class="palette-block">
-    <div class="block-header clearfix">
-      <span style='font-weight: bold; color: #582271;' class="path_type">@pathType Paths:</span>
-      <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
-      <div class="mdl-tooltip mdl-tooltip--right" for="@{pathType.toLowerCase}_id">@source</div>
-    </div>
 
-    @*<div class="more">
-      <span class='restriction'>
-        <span style='font-weight: bold; float: left; padding-right: 5px; color: #582271;' class="path_type">Restriction: </span>
-        <span id='@{pathType.toLowerCase}_restriction' class="path_id"></span>
-      </span>
-      <div style='clear: both;'></div>
-    </div>*@
+  @*Maximum Paths that should be rendered by default*@
+  @defining(20) { maximumPaths =>
 
-    <div class="scrollboxes">
-      <div class="draggable @{pathType.toLowerCase}Paths">
-        <span></span>
-        <small></small>
-        <p>(custom path)</p>
-        @pathExpanded("", pathType)
+    <div class="palette-block" id="@{pathType.toLowerCase}_container">
+      <div class="block-header clearfix">
+        <span style='font-weight: bold; color: #582271;' class="path_type">@pathType Paths:</span>
+        <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
       </div>
 
-      @loadingMsg
-      @if(!warning.isEmpty) { <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
-
-      @for(path <- paths) {
-        <div id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}" class="draggable @{pathType.toLowerCase}Paths">
+      <div class="scrollboxes">
+        <div class="draggable @{pathType.toLowerCase}Paths visible">
           <span></span>
-          <p class="non-breaking-label">@path</p>
-          @pathExpanded(path, pathType)
+          <small></small>
+          <p>(custom path)</p>
+          @pathExpanded("", pathType)
         </div>
-        <div class="mdl-tooltip mdl-tooltip--right" for="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}">@path</div>
-      }
+
+        @loadingMsg
+        @if(!warning.isEmpty) { <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" title="@warning"/> }
+
+        @for((path, index) <- paths.zipWithIndex) {
+          <div
+            id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}"
+            class="draggable @{pathType.toLowerCase}Paths @if(index < maximumPaths) {visible} else {hidden}"
+            style="display: none;"
+            >
+            <p class="non-breaking-label">@path</p>
+            @pathExpanded(path, pathType)
+          </div>
+        }
+        @if(paths.length > maximumPaths) {
+          <div id="@{pathType.toLowerCase}_show_all" onclick="showAllPaths('#@{pathType.toLowerCase}')">
+            Show all @{pathType} Paths
+          </div>
+        }
+      </div>
     </div>
-  </div>
+  }
+
 }
 
 @pathExpanded(path: String, pathType: String) = {
   @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false, project)
 }
+
