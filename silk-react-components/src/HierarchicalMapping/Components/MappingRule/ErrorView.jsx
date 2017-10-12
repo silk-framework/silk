@@ -62,6 +62,8 @@ const ErrorView = React.createClass({
             issues = <ErrorCause errorCause={this.props.issues} />
         }
 
+        const detail = this.props.title !== this.props.detail ? (<p>{this.props.detail}</p>) : false;
+
         return <Error
             border
             className={errorClassName}
@@ -73,7 +75,7 @@ const ErrorView = React.createClass({
                 this.state.errorExpanded ? 'expand_less' : 'expand_more'
             }>
             <strong>{this.props.title}</strong>
-            <p>{this.props.detail}</p>
+            {detail}
             {causes}
             {issues}
         </Error>;
