@@ -24,6 +24,21 @@ const ErrorCause = ({errorCause}) => {
     }</ul>;
 };
 
+
+
+const ErrorIssue = ({errorCause}) => {
+
+    return <ul className="ecc-hierarchical-mapping-error-list">{
+        _.map(errorCause, ({message}) => {
+            return (
+                <li>
+                    <p>{message}</p>
+                </li>
+            );
+        })
+    }</ul>;
+};
+
 const ErrorView = React.createClass({
     propTypes: {
         title: React.PropTypes.string,
@@ -59,7 +74,7 @@ const ErrorView = React.createClass({
         }
 
         if(this.state.errorExpanded && _.isArray(this.props.issues)) {
-            issues = <ErrorCause errorCause={this.props.issues} />
+            issues = <ErrorIssue errorCause={this.props.issues} />
         }
 
         const detail = this.props.title !== this.props.detail ? (<p>{this.props.detail}</p>) : false;
