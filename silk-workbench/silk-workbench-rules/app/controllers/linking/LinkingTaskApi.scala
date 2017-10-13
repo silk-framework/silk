@@ -327,7 +327,7 @@ class LinkingTaskApi extends Controller {
       case AnyContentAsXml(xmlRoot) =>
         try{
           val (_, task) = projectAndTask(projectName, taskName)
-          implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot)
+          implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)

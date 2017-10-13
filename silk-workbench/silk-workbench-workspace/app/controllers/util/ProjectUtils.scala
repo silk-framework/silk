@@ -10,7 +10,7 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
-import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.mvc.Result
@@ -24,9 +24,13 @@ import scala.xml.{Node, NodeSeq}
   */
 object ProjectUtils {
   def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
-    val project = User().workspace.project(projectName)
+    val project = getProject(projectName)
     val task = project.task[T](taskName)
     (project, task)
+  }
+
+  def getProject(projectName: String): Project = {
+    User().workspace.project(projectName)
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -180,12 +184,12 @@ object ProjectUtils {
   }
 
   /**
-    * Reads all resource elements and load them into an in-memory resource manager
+    * Reads all resource elements and load them into an in-memory resource manager, use project resources as fallback.
     *
     * @param xmlRoot The element that contains the resource elements
     * @return
     */
-  def createInmemoryResourceManagerForResources(xmlRoot: NodeSeq): ResourceManager = {
+  def createInmemoryResourceManagerForResources(xmlRoot: NodeSeq, projectName: String, withProjectResources: Boolean): ResourceManager = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -193,7 +197,12 @@ object ProjectUtils {
           get(resourceId.text).
           writeString(inputResource.text)
     }
-    resourceManager
+    if(withProjectResources) {
+      val projectResourceManager = getProject(projectName).resources
+      FallbackResourceManager(resourceManager, projectResourceManager)
+    } else {
+      resourceManager
+    }
   }
 
   /**
