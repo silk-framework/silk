@@ -14123,12 +14123,21 @@
             }));
             return _react2.default.createElement("li", null, _react2.default.createElement("p", null, title), _react2.default.createElement("p", null, detail), renderedCause);
         }));
+    }, ErrorIssue = function(_ref3) {
+        var errorCause = _ref3.errorCause;
+        return _react2.default.createElement("ul", {
+            className: "ecc-hierarchical-mapping-error-list"
+        }, _lodash2.default.map(errorCause, function(_ref4) {
+            var message = _ref4.message;
+            return _react2.default.createElement("li", null, _react2.default.createElement("p", null, message));
+        }));
     }, ErrorView = _react2.default.createClass({
         displayName: "ErrorView",
         propTypes: {
             title: _react2.default.PropTypes.string,
             detail: _react2.default.PropTypes.string,
-            cause: _react2.default.PropTypes.object
+            cause: _react2.default.PropTypes.object,
+            issues: _react2.default.PropTypes.object
         },
         componentDidMount: function() {},
         getInitialState: function() {
@@ -14142,17 +14151,21 @@
             });
         },
         render: function() {
-            var errorClassName = this.state.errorExpanded ? "" : "mdl-alert--narrowed", causes = !1;
+            var errorClassName = this.state.errorExpanded ? "" : "mdl-alert--narrowed", causes = !1, issues = !1;
             this.state.errorExpanded && _lodash2.default.isArray(this.props.cause) && (causes = _react2.default.createElement(ErrorCause, {
                 errorCause: this.props.cause
             }));
+            this.state.errorExpanded && _lodash2.default.isArray(this.props.issues) && (issues = _react2.default.createElement(ErrorIssue, {
+                errorCause: this.props.issues
+            }));
+            var detail = this.props.title !== this.props.detail && _react2.default.createElement("p", null, this.props.detail);
             return _react2.default.createElement(_eccGuiElements.Error, {
                 border: !0,
                 className: errorClassName,
                 handlerDismiss: this.toggleExpansion,
                 labelDismiss: this.state.errorExpanded ? "Show less" : "Show more",
                 iconDismiss: this.state.errorExpanded ? "expand_less" : "expand_more"
-            }, _react2.default.createElement("strong", null, this.props.title), _react2.default.createElement("p", null, this.props.detail), causes);
+            }, _react2.default.createElement("strong", null, this.props.title), detail, causes, issues);
         }
     });
     exports.default = ErrorView;
