@@ -18,7 +18,7 @@ import scala.xml.Elem
 
 class WorkflowApi extends Controller {
 
-  def getWorkflows(projectName: String) = Action {
+  def getWorkflows(projectName: String): Action[AnyContent] = Action {
     val project = fetchProject(projectName)
     val workflowTasks = project.tasks[Workflow]
     val workflowIdsJson = workflowTasks map { task =>
@@ -29,39 +29,39 @@ class WorkflowApi extends Controller {
 
   private def fetchProject(projectName: String) = User().workspace.project(projectName)
 
-  def getWorkflow(projectName: String, taskName: String) = Action {
+  def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
-  def putWorkflow(projectName: String, taskName: String) = Action { request =>
+  def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
     val project = fetchProject(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok
   }
 
-  def deleteWorkflow(project: String, task: String) = Action {
+  def deleteWorkflow(project: String, task: String): Action[AnyContent] = Action {
     User().workspace.project(project).removeTask[Workflow](task)
     Ok
   }
 
-  def executeWorkflow(projectName: String, taskName: String) = Action {
+  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[LocalWorkflowExecutor].control
-    if (activity.status().isRunning)
+    if (activity.status().isRunning) {
       PreconditionFailed
-    else {
+    } else {
       activity.start()
       Ok
     }
   }
 
-  def status(projectName: String, taskName: String) = Action {
+  def status(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val report = workflow.activity[LocalWorkflowExecutor].value
@@ -94,7 +94,7 @@ class WorkflowApi extends Controller {
         // Create sinks and resources for variable datasets, all resources are returned in the response
         val sink2ResourceMap = variableDatasets.sinks.map(s => (s, s + "_file_resource")).toMap
         // Sink with in-memory payload resources only
-        implicit val resourceManager: ResourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = false)
+        implicit val resourceManager: ResourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
         val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
         executeVariableWorkflow(workflowTask, dataSources, sinks)
         Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))

@@ -199,7 +199,7 @@ object ProjectUtils {
     }
     if(withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
-      FallbackResourceManager(resourceManager, projectResourceManager)
+      FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true)
     } else {
       resourceManager
     }
@@ -223,6 +223,6 @@ object ProjectUtils {
   }
 
   private def hasAttributeValue(attributeName: String, value: String)(node: Node): Boolean = {
-    node.attribute(attributeName).filter(_.text == value).isDefined
+    node.attribute(attributeName).exists(_.text == value)
   }
 }
