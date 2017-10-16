@@ -1,18 +1,18 @@
 package controllers.workflow
 
 import controllers.util.ProjectUtils._
-import org.silkframework.dataset.{DataSource, Dataset, SinkTrait}
+import org.silkframework.config.Task
+import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
-import org.silkframework.config.Task
-import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 
 import scala.xml.Elem
 
@@ -88,16 +88,17 @@ class WorkflowApi extends Controller {
         // Create data sources from request payload
         val dataSources = {
           // Allow to read from project resources
-          implicit val resourceManager: ResourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+          implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
           createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources")
         }
         // Create sinks and resources for variable datasets, all resources are returned in the response
         val sink2ResourceMap = variableDatasets.sinks.map(s => (s, s + "_file_resource")).toMap
-        // Sink with in-memory payload resources only
-        implicit val resourceManager: ResourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+        // Sink
+        val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+        implicit val resourceManager: ResourceManager = sinkResourceManager
         val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
         executeVariableWorkflow(workflowTask, dataSources, sinks)
-        Ok(variableSinkResultXML(resourceManager, sink2ResourceMap))
+        Ok(variableSinkResultXML(resultResourceManager, sink2ResourceMap))
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
@@ -107,7 +108,7 @@ class WorkflowApi extends Controller {
   private def variableSinkResultXML(resourceManager: ResourceManager,
                                     sink2ResourceMap: Map[String, String]): Elem = {
     <WorkflowResults>
-      {for ((sinkId, resourceId) <- sink2ResourceMap) yield {
+      {for ((sinkId, resourceId) <- sink2ResourceMap if resourceManager.exists(resourceId)) yield {
       val resource = resourceManager.get(resourceId, mustExist = true)
       <Result sinkId={sinkId}>{resource.loadAsString}</Result>
     }}

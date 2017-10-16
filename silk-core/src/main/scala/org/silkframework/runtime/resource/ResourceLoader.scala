@@ -40,4 +40,12 @@ trait ResourceLoader {
   def child(name: String): ResourceLoader
 
   def parent: Option[ResourceLoader]
+
+  /**
+    * Returns true if a file with the given name exists on the current level.
+    * @param name The resource name
+    */
+  def exists(name: String): Boolean = {
+    list.contains(name)
+  }
 }

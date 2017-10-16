@@ -155,7 +155,8 @@ object ProjectUtils {
   }
 
   // Create a data sink as specified in a REST request
-  def createEntitySink(xmlRoot: NodeSeq): (Model, EntitySink) = {
+  def createEntitySink(xmlRoot: NodeSeq)
+                      (implicit resourceManager: ResourceManager): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -163,13 +164,13 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(dataSink, None)
       (null, dataset.entitySink)
     }
   }
 
-  def createLinkSink(xmlRoot: NodeSeq): (Model, LinkSink) = {
+  def createLinkSink(xmlRoot: NodeSeq)
+                    (implicit resourceManager: ResourceManager): (Model, LinkSink) = {
     val linkSink = xmlRoot \ "linkSink"
     if (linkSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -177,7 +178,6 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(xmlRoot, None)
       (null, dataset.linkSink)
     }
@@ -187,9 +187,11 @@ object ProjectUtils {
     * Reads all resource elements and load them into an in-memory resource manager, use project resources as fallback.
     *
     * @param xmlRoot The element that contains the resource elements
-    * @return
+    * @return The resource manager used for creating the sink and the in-memory resource manager to store results
     */
-  def createInmemoryResourceManagerForResources(xmlRoot: NodeSeq, projectName: String, withProjectResources: Boolean): ResourceManager = {
+  def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
+                                                projectName: String,
+                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -199,9 +201,9 @@ object ProjectUtils {
     }
     if(withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
-      FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true)
+      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
     } else {
-      resourceManager
+      (resourceManager, resourceManager)
     }
   }
 

@@ -280,7 +280,7 @@ class TransformTaskApi extends Controller {
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        implicit val resourceManager = createInmemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+        implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
         val dataSource = createDataSource(xmlRoot, None)
         val (model, entitySink) = createEntitySink(xmlRoot)
         executeTransform(task, entitySink, dataSource, errorEntitySinkOpt = None)
