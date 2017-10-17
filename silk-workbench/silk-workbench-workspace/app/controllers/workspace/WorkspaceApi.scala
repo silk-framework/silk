@@ -185,10 +185,12 @@ class WorkspaceApi extends Controller {
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
         resource.writeBytes(bytes)
         Ok
-      case _ =>
+      case AnyContentAsEmpty =>
         // Put empty resource
         resource.writeBytes(Array[Byte]())
         Ok
+      case _ =>
+        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream"))
     }
   }
   }
