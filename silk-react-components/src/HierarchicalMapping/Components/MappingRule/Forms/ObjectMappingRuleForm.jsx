@@ -18,7 +18,7 @@ import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
-import FormSaveError from './FormSaveError';
+import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_OBJECT,
@@ -88,6 +88,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
+                            uriRuleType: _.get(rule, 'rules.uriRule.type', 'uri')
                         };
 
                         this.setState({
@@ -206,7 +207,7 @@ const ObjectMappingRuleForm = React.createClass({
         const allowConfirm =
             type === MAPPING_RULE_TYPE_ROOT ? true : !_.isEmpty(this.state.targetProperty);
 
-        const errorMessage = error ? <FormSaveError error={error} /> : false;
+        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
@@ -286,14 +287,25 @@ const ObjectMappingRuleForm = React.createClass({
         let patternInput = false;
 
         if (id) {
-            patternInput = (
-                <TextField
-                    label="URI pattern"
-                    className="ecc-silk-mapping__ruleseditor__pattern"
-                    value={this.state.pattern}
-                    onChange={this.handleChangeTextfield.bind(null, 'pattern')}
-                />
-            );
+            if (this.state.uriRuleType === 'uri') {
+                patternInput = (
+                    <TextField
+                        label="URI pattern"
+                        className="ecc-silk-mapping__ruleseditor__pattern"
+                        value={this.state.pattern}
+                        onChange={this.handleChangeTextfield.bind(null, 'pattern')}
+                    />
+                );
+            }
+            else {
+                patternInput = (
+                    <TextField
+                        disabled
+                        label="Complex Uri"
+                        value="This uri cannot be edited in the edit form."
+                    />
+                )
+            }
         }
 
         const exampleView = !_.isEmpty(this.state.sourceProperty) ?(

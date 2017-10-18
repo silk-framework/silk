@@ -10,7 +10,7 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
-import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.mvc.Result
@@ -24,9 +24,13 @@ import scala.xml.{Node, NodeSeq}
   */
 object ProjectUtils {
   def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
-    val project = User().workspace.project(projectName)
+    val project = getProject(projectName)
     val task = project.task[T](taskName)
     (project, task)
+  }
+
+  def getProject(projectName: String): Project = {
+    User().workspace.project(projectName)
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -151,7 +155,8 @@ object ProjectUtils {
   }
 
   // Create a data sink as specified in a REST request
-  def createEntitySink(xmlRoot: NodeSeq): (Model, EntitySink) = {
+  def createEntitySink(xmlRoot: NodeSeq)
+                      (implicit resourceManager: ResourceManager): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -159,13 +164,13 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(dataSink, None)
       (null, dataset.entitySink)
     }
   }
 
-  def createLinkSink(xmlRoot: NodeSeq): (Model, LinkSink) = {
+  def createLinkSink(xmlRoot: NodeSeq)
+                    (implicit resourceManager: ResourceManager): (Model, LinkSink) = {
     val linkSink = xmlRoot \ "linkSink"
     if (linkSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -173,19 +178,20 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager = EmptyResourceManager
       val dataset = createDataset(xmlRoot, None)
       (null, dataset.linkSink)
     }
   }
 
   /**
-    * Reads all resource elements and load them into an in-memory resource manager
+    * Reads all resource elements and load them into an in-memory resource manager, use project resources as fallback.
     *
     * @param xmlRoot The element that contains the resource elements
-    * @return
+    * @return The resource manager used for creating the sink and the in-memory resource manager to store results
     */
-  def createInmemoryResourceManagerForResources(xmlRoot: NodeSeq): ResourceManager = {
+  def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
+                                                projectName: String,
+                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -193,7 +199,12 @@ object ProjectUtils {
           get(resourceId.text).
           writeString(inputResource.text)
     }
-    resourceManager
+    if(withProjectResources) {
+      val projectResourceManager = getProject(projectName).resources
+      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
+    } else {
+      (resourceManager, resourceManager)
+    }
   }
 
   /**
@@ -214,6 +225,6 @@ object ProjectUtils {
   }
 
   private def hasAttributeValue(attributeName: String, value: String)(node: Node): Boolean = {
-    node.attribute(attributeName).filter(_.text == value).isDefined
+    node.attribute(attributeName).exists(_.text == value)
   }
 }

@@ -20,6 +20,8 @@ case class EntitySchema(typeUri: Uri,
 
   /**
    * Retrieves the index of a given path.
+   *
+   * @throws NoSuchElementException If the path could not be found in the schema.
    */
   def pathIndex(path: Path): Int = {
     var index = 0

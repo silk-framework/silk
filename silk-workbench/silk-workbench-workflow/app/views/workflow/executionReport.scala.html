@@ -7,6 +7,7 @@
 @import org.silkframework.execution.ExecutionReport
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.rule.execution.Linking
+@import org.silkframework.util.Identifier
 
 @(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
@@ -18,16 +19,20 @@
 }
 
 @content = {
+  @renderReports(report.taskReports.keys.headOption)
+}
+
+@renderReports(activeTask: Option[Identifier]) = {
   <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-      @for(taskId <- report.taskReports.keys) {
-        <a href="#tab-@taskId" class="mdl-tabs__tab">@taskId</a>
-      }
+    @for(taskId <- report.taskReports.keys) {
+      <a href="#tab-@taskId" class="mdl-tabs__tab @if(activeTask.contains(taskId)) {is-active}">@taskId</a>
+    }
     </div>
 
     @for((taskId, taskReport) <- report.taskReports) {
-      <div class="mdl-tabs__panel" id="tab-@taskId">
-        @renderTaskReport(taskReport)
+      <div class="mdl-tabs__panel @if(activeTask.contains(taskId)) {is-active}" id="tab-@taskId">
+      @renderTaskReport(taskReport)
       </div>
     }
 
