@@ -135,7 +135,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def createEmptyResource(projectId: String, resourceId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId").withHeaders(("Content-Type", "application/octet-stream"))
 
     val response = request.put("")
     checkResponse(response)
