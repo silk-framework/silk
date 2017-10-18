@@ -29,6 +29,8 @@ case class TransformPlugin() extends WorkbenchPlugin {
     /** Path to the task icon */
     override def icon: String = Assets.at("img/arrow-skip.png").url
 
+    override def folderIcon: String = Assets.at("img/transform-folder.png").url
+
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String): Option[String] =
       Some(s"transform/dialogs/newTransformTask/$project")

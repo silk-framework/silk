@@ -71,7 +71,7 @@
 }
 
 @taskType(project: Project, taskActions: TaskActions[_ <: TaskSpec]) = {
-  <li>
+  <li data-jstree='{"icon":"@taskActions.folderIcon"}' >
     @{taskActions.name}s
     @for(path <- taskActions.createDialog(project.name)) {
       @button("Add", "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")

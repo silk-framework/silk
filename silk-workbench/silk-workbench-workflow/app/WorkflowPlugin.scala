@@ -32,6 +32,8 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     /** Path to the task icon */
     override def icon: String = controllers.workflow.routes.Assets.at("img/arrow-switch.png").url
 
+    override def folderIcon: String = controllers.workflow.routes.Assets.at("img/workflow-folder.png").url
+
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"workflow/dialogs/$project/workflowDialog")
