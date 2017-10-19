@@ -14,7 +14,8 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.Application
-import play.api.libs.ws.{WS, WSResponse}
+import play.api.libs.ws.{EmptyBody, WS, WSResponse}
+import play.api.mvc.Results
 import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
@@ -137,9 +138,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def createEmptyResource(projectId: String, resourceId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId").withHeaders(("Content-Type", "application/octet-stream"))
-
-    val response = request.put("")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
+    val response = request.put(Results.EmptyContent())
     checkResponse(response)
   }
 
