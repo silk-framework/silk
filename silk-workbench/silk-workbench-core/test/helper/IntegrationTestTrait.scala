@@ -34,6 +34,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
+  final val NOT_FOUND: Int = 404
+  final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
