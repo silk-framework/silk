@@ -4,18 +4,19 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
-import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException, UnsupportedMediaTypeException}
+import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json._
@@ -26,41 +27,41 @@ class TransformTaskApi extends Controller {
   private val log = Logger.getLogger(getClass.getName)
 
   def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime[Task[TransformSpec]](task)
   }
 
-  def putTransformTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
-    val proj = User().workspace.project(project)
-    implicit val prefixes = proj.config.prefixes
-    implicit val readContext = ReadContext()
+  def putTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
+    val project = getProject(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val readContext: ReadContext = ReadContext()
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
         val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
-        val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("restriction", "")))
+        val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
+          Restriction.custom(values.getOrElse("restriction", "")))
         val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
         val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
-        proj.tasks[TransformSpec].find(_.id == task) match {
+        project.tasks[TransformSpec].find(_.id == taskName) match {
           //Update existing task
           case Some(oldTask) =>
             val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
-            proj.updateTask(task, updatedTransformSpec)
+            project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case None =>
             val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-            proj.updateTask(task, transformSpec)
+            project.updateTask(taskName, transformSpec)
         }
 
         Ok
       case _ =>
         catchExceptions {
           deserializeCompileTime[Task[TransformSpec]]() { task =>
-            proj.updateTask(task.id, task.data)
+            project.updateTask(task.id, task.data)
             Ok
           }
         }
@@ -69,26 +70,24 @@ class TransformTaskApi extends Controller {
   }
 
   def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+    val project = getProject(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
     Ok
   }
 
   def getRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime(task.data.mappingRule)
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
     catchExceptions {
       task.synchronized {
@@ -103,9 +102,8 @@ class TransformTaskApi extends Controller {
   }
 
   def getRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     processRule(task, ruleId) { rule =>
       serializeCompileTime(rule.operator.asInstanceOf[TransformRule])
@@ -113,15 +111,14 @@ class TransformTaskApi extends Controller {
   }
 
   def putRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { request =>
-    implicit val project = User().workspace.project(projectName)
-    implicit val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes, identifierGenerator(task))
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, identifierGenerator(task))
 
     task.synchronized {
       processRule(task, ruleId) { currentRule =>
-        implicit val updatedRequest = updateJsonRequest(request, currentRule)
+        implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
         deserializeCompileTime[TransformRule]() { updatedRule =>
           updateRule(currentRule.update(updatedRule))
           serializeCompileTime[TransformRule](updatedRule)
@@ -131,9 +128,8 @@ class TransformTaskApi extends Controller {
   }
 
   def deleteRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     try {
       task.synchronized {
@@ -148,10 +144,9 @@ class TransformTaskApi extends Controller {
   }
 
   def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    implicit val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
     task.synchronized {
       processRule(task, ruleName) { parentRule =>
         deserializeCompileTime[TransformRule]() { newChildRule =>
@@ -167,9 +162,8 @@ class TransformTaskApi extends Controller {
   }
 
   def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
-    implicit val task = project.task[TransformSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     task.synchronized {
       processRule(task, ruleName) { parentRule =>
@@ -303,8 +297,28 @@ class TransformTaskApi extends Controller {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
+  def sourcePaths(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { implicit request =>
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+
+    task.nestedRuleAndSourcePath(ruleId) match {
+      case Some((_, sourcePath)) =>
+        val pathCache = task.activity[TransformPathsCache]
+        pathCache.control.waitUntilFinished()
+        val pathCacheSchema = pathCache.value
+        val matchingPaths = pathCacheSchema.typedPaths filter { p =>
+          p.path.operators.startsWith(sourcePath) && p.path.operators.size > sourcePath.size
+        } map { p =>
+          Path(p.path.operators.drop(sourcePath.size)).serializeSimplified
+        }
+        Ok(Json.toJson(matchingPaths))
+      case None =>
+        NotFound("No rule found with ID " + ruleId)
+    }
+  }
 }
 
+// Peak API
 case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
 
 case class PeakStatus(id: String, msg: String)

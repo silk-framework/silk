@@ -3,8 +3,8 @@ package controllers.transform
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.libs.ws.WS
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
