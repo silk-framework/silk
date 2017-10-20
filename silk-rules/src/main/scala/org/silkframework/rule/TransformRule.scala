@@ -95,9 +95,9 @@ sealed trait TransformRule extends Operator {
 }
 
 // Trait of classes that can have child rules
-trait ContainerTransformRule extends TransformRule
+sealed trait ContainerTransformRule extends TransformRule
 
-trait ValueTransformRule extends TransformRule
+sealed trait ValueTransformRule extends TransformRule
 
 case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
 

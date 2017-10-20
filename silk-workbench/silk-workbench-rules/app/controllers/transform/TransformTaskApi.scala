@@ -297,7 +297,7 @@ class TransformTaskApi extends Controller {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
-  def sourcePaths(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { implicit request =>
+  def sourcePaths(projectName: String, taskName: String, ruleId: String, maxDepth: Int, unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -307,11 +307,22 @@ class TransformTaskApi extends Controller {
         pathCache.control.waitUntilFinished()
         val pathCacheSchema = pathCache.value
         val matchingPaths = pathCacheSchema.typedPaths filter { p =>
-          p.path.operators.startsWith(sourcePath) && p.path.operators.size > sourcePath.size
+          val pathSize = p.path.operators.size
+          p.path.operators.startsWith(sourcePath) &&
+              pathSize > sourcePath.size &&
+              pathSize - sourcePath.size <= maxDepth
         } map { p =>
-          Path(p.path.operators.drop(sourcePath.size)).serializeSimplified
+          Path(p.path.operators.drop(sourcePath.size))
         }
-        Ok(Json.toJson(matchingPaths))
+        val filteredPaths = if(unusedOnly) {
+          val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
+          matchingPaths.filterNot { path =>
+            sourcePaths.contains(path)
+          }
+        } else {
+          matchingPaths
+        }
+        Ok(Json.toJson(filteredPaths.map(_.serializeSimplified)))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }
