@@ -80,10 +80,12 @@ object RdfFormatUtil {
         model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
       case LongValueType =>
         model.createTypedLiteral(lexicalValue, LONG_JENA_TYPE).asNode()
+      case DateValueType =>
+        model.createTypedLiteral(lexicalValue, DateValueType.xmlSchemaType(lexicalValue)).asNode()
       case DateTimeValueType =>
         model.createTypedLiteral(lexicalValue, DateTimeValueType.xmlSchemaType(lexicalValue)).asNode()
       case _ =>
-        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string $lexicalValue! Validation failed.")
+        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
   }
 
