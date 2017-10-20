@@ -297,7 +297,7 @@ class TransformTaskApi extends Controller {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
-  def sourcePaths(projectName: String, taskName: String, ruleId: String, maxDepth: Int, unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
+  def valueSourcePaths(projectName: String, taskName: String, ruleId: String, maxDepth: Int, unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
