@@ -15,7 +15,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
   it should "write flat structures" in {
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource)
+    val sink = new XmlSink(resource, "/Root")
 
     val properties = Seq(
       TypedProperty("FirstTag", StringValueType, isBackwardProperty = false),
@@ -37,14 +37,15 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
   it should "write nested structures" in {
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource)
+    val sink = new XmlSink(resource, "/Persons/Person")
 
     val properties = Seq(
-      TypedProperty("Person", UriValueType, isBackwardProperty = false)
+      TypedProperty("Name", UriValueType, isBackwardProperty = false),
+      TypedProperty("Year", StringValueType, isBackwardProperty = false)
     )
-    sink.open(Uri("Persons"), properties)
-    sink.writeEntity("someUri", Seq(Seq("urn:instance:Person1")))
-    sink.writeEntity("someUri", Seq(Seq("urn:instance:Person2")))
+    sink.open(Uri(""), properties)
+    sink.writeEntity("urn:instance:Person1", Seq(Seq("urn:instance:PersonName1"), Seq("1980")))
+    sink.writeEntity("urn:instance:Person2", Seq(Seq("urn:instance:PersonName2"), Seq("1990")))
     sink.close()
 
     val properties2 = Seq(
@@ -52,26 +53,32 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
       TypedProperty("LastName", StringValueType, isBackwardProperty = false)
     )
     sink.open(Uri(""), properties2)
-    sink.writeEntity("urn:instance:Person1", Seq(Seq("John"), Seq("Doe")))
-    sink.writeEntity("urn:instance:Person2", Seq(Seq("Max"), Seq("Mustermann")))
+    sink.writeEntity("urn:instance:PersonName1", Seq(Seq("John"), Seq("Doe")))
+    sink.writeEntity("urn:instance:PersonName2", Seq(Seq("Max"), Seq("Mustermann")))
     sink.close()
 
     compareResult(resource,
       <Persons>
         <Person>
-          <FirstName>John</FirstName>
-          <LastName>Doe</LastName>
+          <Name>
+            <FirstName>John</FirstName>
+            <LastName>Doe</LastName>
+          </Name>
+          <Year>1980</Year>
         </Person>
         <Person>
-          <FirstName>Max</FirstName>
-          <LastName>Mustermann</LastName>
+          <Name>
+            <FirstName>Max</FirstName>
+            <LastName>Mustermann</LastName>
+          </Name>
+          <Year>1990</Year>
         </Person>
       </Persons>
     )
   }
 
   private def compareResult(resource: Resource, xml: Node): Unit = {
-    val prettyPrinter = new PrettyPrinter(Int.MaxValue, 0)
+    val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
     val formattedXml = prettyPrinter.format(xml)
 
     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + formattedXml shouldBe resource.loadAsString

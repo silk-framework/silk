@@ -12,9 +12,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node}
 
-class XmlSink(resource: WritableResource, basePath: String) extends EntitySink {
-
-  private val defaultNamespace = "urn:schema:"
+class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: String = "urn:schema:") extends EntitySink {
 
   private val doc: Document =  DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
 
