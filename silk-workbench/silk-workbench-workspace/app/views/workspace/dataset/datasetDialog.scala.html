@@ -4,7 +4,7 @@
 @(project: Project, datasetName: String, dataset: Option[Dataset], title: String = "Edit Dataset")
 
   @widgets.pluginDialog(
-    project.config.id,
+    project,
     name = datasetName,
     plugins = Dataset.availablePlugins,
     currentObj = dataset,

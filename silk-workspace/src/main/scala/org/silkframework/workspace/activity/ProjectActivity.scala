@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.{Activity, ActivityControl}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.Project
@@ -26,7 +27,7 @@ class ProjectActivity(override val project: Project, initialFactory: ProjectActi
 
   def factory = currentFactory
 
-  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
+  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
   def update(config: Map[String, String]) = {
     val oldControl = currentControl

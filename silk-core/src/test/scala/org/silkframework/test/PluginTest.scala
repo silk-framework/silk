@@ -3,6 +3,7 @@ package org.silkframework.test
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
 import org.scalatest.{FlatSpec, _}
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.PluginRegistry
 
 /**
@@ -28,7 +29,7 @@ abstract class PluginTest extends FlatSpec with ShouldMatchers {
 
   it should "be a valid plugin" in {
     // Will throw an exception if the plugin is invalid
-    PluginRegistry.reflect(obj)
+    PluginRegistry.reflect(obj)(Prefixes.empty)
   }
 
   private def serialize(obj: Any) = {

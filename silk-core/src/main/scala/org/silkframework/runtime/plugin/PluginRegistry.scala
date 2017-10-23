@@ -85,7 +85,7 @@ object PluginRegistry {
   /**
    * Given a plugin instance, extracts its plugin description and parameters.
    */
-  def reflect(pluginInstance: AnyRef): (PluginDescription[_], Map[String, String]) = {
+  def reflect(pluginInstance: AnyRef)(implicit prefixes: Prefixes): (PluginDescription[_], Map[String, String]) = {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield

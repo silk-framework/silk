@@ -7,7 +7,7 @@
 @(activity: TaskActivity[_, _])
 
 @widgets.pluginDialog(
-    activity.project.config.id,
+    activity.project,
     name = activity.name,
     plugins = PluginDescription(activity.factory.getClass) :: Nil,
     currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),
