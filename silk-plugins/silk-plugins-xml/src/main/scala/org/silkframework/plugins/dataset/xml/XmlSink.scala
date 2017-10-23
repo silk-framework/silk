@@ -84,11 +84,13 @@ class XmlSink(resource: WritableResource, basePath: String) extends EntitySink {
   }
 
   override def close(): Unit = {
-    val transformerFactor = TransformerFactory.newInstance
-    val transformer = transformerFactor.newTransformer
+    val transformerFactory = TransformerFactory.newInstance
+    val transformer = transformerFactory.newTransformer
 
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
     transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+    // This is implementation specific, but there is no standard way of setting the indent amount
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
     resource.write()(os => transformer.transform(new DOMSource(doc), new StreamResult(os)))
 
     isRoot = false
