@@ -27,7 +27,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     sink.close()
 
     compareResult(resource,
-      <Root>
+      <Root xmlns="urn:schema:">
         <FirstTag>1</FirstTag>
         <SecondTag>2</SecondTag>
       </Root>
@@ -59,7 +59,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     sink.close()
 
     compareResult(resource,
-      <Persons>
+      <Persons xmlns="urn:schema:">
         <Person>
           <Name>
             <FirstName>John</FirstName>

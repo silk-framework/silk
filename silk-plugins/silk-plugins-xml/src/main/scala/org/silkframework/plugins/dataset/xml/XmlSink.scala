@@ -36,7 +36,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
       require(basePath.nonEmpty, "The base path needs to be set to a non empty path, such as \"/Root/Element\"")
       val parts = basePath.stripPrefix("/").split('/')
       for(part <- parts.init) {
-        val node = doc.createElement(part)
+        val node = doc.createElementNS(defaultNamespace, part)
         rootNode.appendChild(node)
         rootNode = node
       }
@@ -55,7 +55,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     */
   override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
     if(isRoot) {
-      val entityNode = doc.createElement(childNodeName)
+      val entityNode = doc.createElementNS(defaultNamespace, childNodeName)
       rootNode.appendChild(entityNode)
     }
 
@@ -63,7 +63,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
       (property, valueSeq) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
       value <- valueSeq
     } {
-      val node = doc.createElement(property.propertyUri.stripPrefix(defaultNamespace))
+      val node = createElement(property.propertyUri)
 
       property.valueType match {
         case UriValueType =>
@@ -103,4 +103,21 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     */
   override def clear(): Unit = {
   }
+
+  /**
+    * Generates an empty XML element from a URI.
+    */
+  private def createElement(uri: String): Element = {
+    if(uri.startsWith(defaultNamespace)) {
+      doc.createElementNS(defaultNamespace, uri.stripPrefix(defaultNamespace))
+    } else {
+      val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
+      if(separatorIndex == -1) {
+        doc.createElement(uri)
+      } else {
+        doc.createElementNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1))
+      }
+    }
+
+}
 }
