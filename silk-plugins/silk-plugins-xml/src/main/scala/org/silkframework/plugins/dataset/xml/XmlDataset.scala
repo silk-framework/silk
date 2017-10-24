@@ -52,7 +52,7 @@ Path examples:
 case class XmlDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: WritableResource,
-  @Param(value = "Should no longer be used! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks. The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
+  @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
