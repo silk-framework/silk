@@ -115,8 +115,6 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
     val formattedXml = header + prettyPrinter.format(expected)
 
-    println(resource.loadAsString)
-
     formattedXml shouldBe resource.loadAsString
   }
 
