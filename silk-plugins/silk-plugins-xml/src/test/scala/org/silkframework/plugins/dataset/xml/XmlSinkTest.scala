@@ -3,8 +3,6 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.util.Uri
-
 import scala.xml.{Node, PrettyPrinter}
 
 class XmlSinkTest extends FlatSpec with ShouldMatchers {
@@ -103,7 +101,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     // Write entity tables
     for(entityTable <- entityTables) {
       val schema = entityTable.head.desc
-      sink.open(Uri(""), schema.typedPaths.flatMap(_.property))
+      sink.open(schema.typeUri, schema.typedPaths.flatMap(_.property))
       for (entity <- entityTable) {
         sink.writeEntity(entity.uri, entity.values)
       }

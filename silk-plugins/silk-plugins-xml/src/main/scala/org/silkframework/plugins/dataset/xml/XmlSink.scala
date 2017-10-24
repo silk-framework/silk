@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
-import javax.xml.parsers.{DocumentBuilder, DocumentBuilderFactory}
-import javax.xml.transform.{OutputKeys, TransformerFactory}
+import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.{OutputKeys, TransformerFactory}
 
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.UriValueType
@@ -118,6 +118,5 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
         doc.createElementNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1))
       }
     }
-
-}
+  }
 }
