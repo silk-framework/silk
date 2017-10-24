@@ -1,92 +1,123 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
-import org.silkframework.dataset.TypedProperty
-import org.silkframework.entity.{StringValueType, UriValueType}
-import org.silkframework.runtime.resource.{InMemoryResourceManager, Resource}
+import org.silkframework.entity.{Entity, _}
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Uri
 
-import scala.xml.{Node, PrettyPrinter, XML}
+import scala.xml.{Node, PrettyPrinter}
 
 class XmlSinkTest extends FlatSpec with ShouldMatchers {
 
   behavior of "XmlSink"
 
   it should "write flat structures" in {
-    val resourceMgr = InMemoryResourceManager()
-    val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource, "/Root")
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("FirstTag"), StringValueType),
+            TypedPath(Path("SecondTag"), StringValueType)
+          )
+      )
 
-    val properties = Seq(
-      TypedProperty("FirstTag", StringValueType, isBackwardProperty = false),
-      TypedProperty("SecondTag", StringValueType, isBackwardProperty = false)
-    )
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
 
-    sink.open(Uri("Root"), properties)
-    sink.writeEntity("someUri", Seq(Seq("1"), Seq("2")))
-    sink.close()
-
-    compareResult(resource,
-      <Root xmlns="urn:schema:">
-        <FirstTag>1</FirstTag>
-        <SecondTag>2</SecondTag>
-      </Root>
+    test(
+      basePath = "/Root",
+      entityTables = Seq(entities),
+      expected =
+        <Root xmlns="urn:schema:">
+          <FirstTag>1</FirstTag>
+          <SecondTag>2</SecondTag>
+        </Root>
     )
   }
 
   it should "write nested structures" in {
-    val resourceMgr = InMemoryResourceManager()
-    val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource, "/Persons/Person")
+    val personSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("Name"), UriValueType),
+            TypedPath(Path("Year"), StringValueType)
+          )
+      )
 
-    val properties = Seq(
-      TypedProperty("Name", UriValueType, isBackwardProperty = false),
-      TypedProperty("Year", StringValueType, isBackwardProperty = false)
+    val persons = Seq(
+      Entity("urn:instance:Person1", IndexedSeq(Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")), personSchema),
+      Entity("urn:instance:Person2", IndexedSeq(Seq("urn:instance:PersonName2"), Seq("1990")), personSchema)
     )
-    sink.open(Uri(""), properties)
-    sink.writeEntity("urn:instance:Person1", Seq(Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")))
-    sink.writeEntity("urn:instance:Person2", Seq(Seq("urn:instance:PersonName2"), Seq("1990")))
-    sink.close()
 
-    val properties2 = Seq(
-      TypedProperty("FirstName", StringValueType, isBackwardProperty = false),
-      TypedProperty("LastName", StringValueType, isBackwardProperty = false)
+    val nameSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("FirstName"), StringValueType),
+            TypedPath(Path("LastName"), StringValueType)
+          )
+      )
+
+    val names = Seq(
+      Entity("urn:instance:PersonName1a", IndexedSeq(Seq("John"), Seq("Doe")), nameSchema),
+      Entity("urn:instance:PersonName1b", IndexedSeq(Seq("Peter"), Seq("Stein")), nameSchema),
+      Entity("urn:instance:PersonName2", IndexedSeq(Seq("Max"), Seq("Mustermann")), nameSchema)
     )
-    sink.open(Uri(""), properties2)
-    sink.writeEntity("urn:instance:PersonName1a", Seq(Seq("John"), Seq("Doe")))
-    sink.writeEntity("urn:instance:PersonName1b", Seq(Seq("Peter"), Seq("Stein")))
-    sink.writeEntity("urn:instance:PersonName2", Seq(Seq("Max"), Seq("Mustermann")))
-    sink.close()
 
-    compareResult(resource,
-      <Persons xmlns="urn:schema:">
-        <Person>
-          <Name>
-            <FirstName>John</FirstName>
-            <LastName>Doe</LastName>
-          </Name>
-          <Name>
-            <FirstName>Peter</FirstName>
-            <LastName>Stein</LastName>
-          </Name>
-          <Year>1980</Year>
-        </Person>
-        <Person>
-          <Name>
-            <FirstName>Max</FirstName>
-            <LastName>Mustermann</LastName>
-          </Name>
-          <Year>1990</Year>
-        </Person>
-      </Persons>
+    test(
+      basePath = "/Persons/Person",
+      entityTables = Seq(persons, names),
+      expected =
+        <Persons xmlns="urn:schema:">
+          <Person>
+            <Name>
+              <FirstName>John</FirstName>
+              <LastName>Doe</LastName>
+            </Name>
+            <Name>
+              <FirstName>Peter</FirstName>
+              <LastName>Stein</LastName>
+            </Name>
+            <Year>1980</Year>
+          </Person>
+          <Person>
+            <Name>
+              <FirstName>Max</FirstName>
+              <LastName>Mustermann</LastName>
+            </Name>
+            <Year>1990</Year>
+          </Person>
+        </Persons>
     )
   }
 
-  private def compareResult(resource: Resource, xml: Node): Unit = {
-    val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
-    val formattedXml = prettyPrinter.format(xml)
+  private def test(basePath: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
+    // Create in-memory XML sink
+    val resourceMgr = InMemoryResourceManager()
+    val resource = resourceMgr.get("test.xml")
+    val sink = new XmlSink(resource, basePath)
 
-    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" + formattedXml shouldBe resource.loadAsString
+    // Write entity tables
+    for(entityTable <- entityTables) {
+      val schema = entityTable.head.desc
+      sink.open(Uri(""), schema.typedPaths.flatMap(_.property))
+      for (entity <- entityTable) {
+        sink.writeEntity(entity.uri, entity.values)
+      }
+      sink.close()
+    }
+
+    // Compare results
+    val header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+    val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
+    val formattedXml = header + prettyPrinter.format(expected)
+
+    println(resource.loadAsString)
+
+    formattedXml shouldBe resource.loadAsString
   }
 
 }
