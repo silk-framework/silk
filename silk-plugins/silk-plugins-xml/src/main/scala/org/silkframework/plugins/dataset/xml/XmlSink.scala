@@ -33,6 +33,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     */
   override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     if(isRoot) {
+      require(basePath.nonEmpty, "The base path needs to be set to a non empty path, such as \"/Root/Element\"")
       val parts = basePath.stripPrefix("/").split('/')
       for(part <- parts.init) {
         val node = doc.createElement(part)
@@ -58,14 +59,17 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
       rootNode.appendChild(entityNode)
     }
 
-    for((property, value) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+    for {
+      (property, valueSeq) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      value <- valueSeq
+    } {
       val node = doc.createElement(property.propertyUri.stripPrefix(defaultNamespace))
 
       property.valueType match {
         case UriValueType =>
-          uriMap ++= value.map(v => (v, node))
+          uriMap += ((value, node))
         case _ =>
-          node.setTextContent(value.mkString(""))
+          node.setTextContent(value)
       }
 
       if(isRoot) {

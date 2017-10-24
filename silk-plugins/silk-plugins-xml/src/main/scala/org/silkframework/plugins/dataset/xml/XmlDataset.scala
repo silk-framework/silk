@@ -56,6 +56,8 @@ case class XmlDataset(
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
+  @Param(value = "The default namespace of the generated XML. All URIs in this namespace will be shortened.", advanced = true)
+  defaultNamespace: String = "urn:schema:",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
   streaming: Boolean = true) extends Dataset {
 
@@ -69,5 +71,5 @@ case class XmlDataset(
 
   override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink: EntitySink = new XmlSink(file, basePath)
+  override def entitySink: EntitySink = new XmlSink(file, basePath, defaultNamespace)
 }

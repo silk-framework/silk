@@ -44,7 +44,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
       TypedProperty("Year", StringValueType, isBackwardProperty = false)
     )
     sink.open(Uri(""), properties)
-    sink.writeEntity("urn:instance:Person1", Seq(Seq("urn:instance:PersonName1"), Seq("1980")))
+    sink.writeEntity("urn:instance:Person1", Seq(Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")))
     sink.writeEntity("urn:instance:Person2", Seq(Seq("urn:instance:PersonName2"), Seq("1990")))
     sink.close()
 
@@ -53,7 +53,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
       TypedProperty("LastName", StringValueType, isBackwardProperty = false)
     )
     sink.open(Uri(""), properties2)
-    sink.writeEntity("urn:instance:PersonName1", Seq(Seq("John"), Seq("Doe")))
+    sink.writeEntity("urn:instance:PersonName1a", Seq(Seq("John"), Seq("Doe")))
+    sink.writeEntity("urn:instance:PersonName1b", Seq(Seq("Peter"), Seq("Stein")))
     sink.writeEntity("urn:instance:PersonName2", Seq(Seq("Max"), Seq("Mustermann")))
     sink.close()
 
@@ -63,6 +64,10 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
           <Name>
             <FirstName>John</FirstName>
             <LastName>Doe</LastName>
+          </Name>
+          <Name>
+            <FirstName>Peter</FirstName>
+            <LastName>Stein</LastName>
           </Name>
           <Year>1980</Year>
         </Person>
