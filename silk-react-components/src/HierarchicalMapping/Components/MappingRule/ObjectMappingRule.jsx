@@ -158,7 +158,7 @@ const ObjectRule = React.createClass({
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.handleComplexEdit}
                                 href={this.state.href}
-                                tooltip="Convert uri to complex uri"
+                                tooltip="Edit complex uri"
                             />
                         </dd>
                     </dl>

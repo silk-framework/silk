@@ -140,7 +140,7 @@ const MappingsObject = React.createClass({
         }
 
         let uri = <NotAvailable
-            label="URI pattern not set"
+            label="automatic default pattern"
             inline={true}>
         </NotAvailable>;
 
