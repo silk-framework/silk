@@ -18765,7 +18765,7 @@
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.handleComplexEdit,
                 href: this.state.href,
-                tooltip: "Convert uri to complex uri"
+                tooltip: "Edit complex uri"
             }))))) : _lodash2.default.get(this.props, "rules.uriRule.pattern", !1) && (uriPattern = _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__idpattern"
             }, _react2.default.createElement("div", {
@@ -28297,7 +28297,7 @@
                 edit: !1
             })));
             var uri = _react2.default.createElement(_eccGuiElements.NotAvailable, {
-                label: "URI pattern not set",
+                label: "automatic default pattern",
                 inline: !0
             });
             _lodash2.default.has(this.props.rule.rules, [ "uriRule", "pattern" ]) ? uri = this.props.rule.rules.uriRule.pattern : "complexUri" === _lodash2.default.get(this.props.rule.rules, "uriRule.type", !1) && (uri = "Complex URI");
