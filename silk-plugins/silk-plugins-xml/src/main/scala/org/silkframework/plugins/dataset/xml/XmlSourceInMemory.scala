@@ -17,7 +17,6 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  private val uriRegex = "\\{([^\\}]+)\\}".r
   private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
@@ -75,18 +74,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((traverser, index) <- xml.zipWithIndex) {
-        val uri =
-          if (uriPattern.isEmpty) {
-            "urn:instance:" + entityDesc.typeUri + "/" + traverser.node.label + index
-          } else {
-            uriRegex.replaceAllIn(uriPattern, m => {
-              val pattern = m.group(1)
-              val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
-              URLEncoder.encode(value, "UTF8")
-            })
-          }
-
-        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath.path)
+        val uri = traverser.generateUri(uriPattern)
+        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
         f(new Entity(uri, values, entityDesc))
       }
     }
