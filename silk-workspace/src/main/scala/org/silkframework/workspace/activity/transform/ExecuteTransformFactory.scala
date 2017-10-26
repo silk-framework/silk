@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
+import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.Activity
@@ -21,7 +22,7 @@ case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpec, 
       new ExecuteTransform(
         task.dataSource,
         task.data,
-        task.entitySinks
+        new CombinedEntitySink(task.entitySinks)
       )
     }
   }

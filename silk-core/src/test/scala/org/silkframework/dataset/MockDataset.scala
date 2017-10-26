@@ -45,13 +45,15 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {}
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
     writeEntityFn(subject, values)
   }
 
   override def clear(): Unit = { clearFn() }
+
+  override def closeTable(): Unit = {}
 
   override def close(): Unit = {}
 }

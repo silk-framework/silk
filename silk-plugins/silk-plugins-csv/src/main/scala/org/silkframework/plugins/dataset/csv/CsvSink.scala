@@ -9,7 +9,7 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
   @volatile
   private var writerOpt: Option[CsvWriter] = None
 
-  def open(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty) {
+  def openTable(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty) {
     writerOpt = Some(new CsvWriter(resource, properties, settings))
   }
 
@@ -20,11 +20,15 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
     }
   }
 
-  def close() {
+  def closeTable(): Unit = {
     for(writer <- writerOpt) {
       writer.close()
     }
     writerOpt = None
+  }
+
+  def close(): Unit = {
+
   }
 
   /**

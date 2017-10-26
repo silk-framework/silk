@@ -106,7 +106,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     val sink = dataset.entitySink
-    sink.openWithTypedPath(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
+    sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1

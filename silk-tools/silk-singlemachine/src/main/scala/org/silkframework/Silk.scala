@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
+import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
@@ -178,7 +179,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform(input, transform.data, config.outputs.map(_.entitySink))).startBlocking() // TODO: Allow to set error output
+    Activity(new ExecuteTransform(input, transform.data, new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
   }
 
   /**

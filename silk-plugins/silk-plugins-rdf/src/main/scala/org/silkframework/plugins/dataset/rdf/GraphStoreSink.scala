@@ -27,7 +27,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var byteCount = 0L
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     init()
     this.properties = properties
   }
@@ -95,6 +95,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
       graphStore.deleteGraph(graphUri)
     }
   }
+
+  override def closeTable(): Unit = {}
 
   override def close(): Unit = {
     output match {
