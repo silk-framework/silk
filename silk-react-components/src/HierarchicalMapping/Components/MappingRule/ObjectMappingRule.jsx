@@ -240,11 +240,11 @@ const ObjectRule = React.createClass({
                             &nbsp;
                             <Button
                                 raised
-                                iconName="delete"
+                                iconName="remove"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
                                 onClick={this.deleteUriRule}
                                 //href={this.state.href}
-                                tooltip="Delete uri"
+                                tooltip="Remove uri"
                             />
                         </dd>
                     </dl>
