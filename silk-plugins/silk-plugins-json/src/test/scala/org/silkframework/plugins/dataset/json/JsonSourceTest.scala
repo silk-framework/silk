@@ -56,4 +56,10 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     result.size mustBe 3
     result.map(_.values) mustBe Seq(IndexedSeq(Seq("123")), IndexedSeq(Seq("456")), IndexedSeq(Seq("789")))
   }
+
+  it should "return all paths including intermediate paths for retrieve paths" in {
+    val paths = jsonSource.retrievePaths(Uri(""))
+    paths.size mustBe 9
+    paths must contain allOf(Path.parse("/persons"), Path.parse("/persons/phoneNumbers"))
+  }
 }

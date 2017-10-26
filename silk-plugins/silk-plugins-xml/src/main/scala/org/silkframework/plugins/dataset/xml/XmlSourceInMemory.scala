@@ -32,7 +32,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     if (xml.isEmpty) {
       throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
     } else {
-      xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
+      xml.head.collectPaths(onlyLeafNodes = false).toIndexedSeq
     }
   }
 
