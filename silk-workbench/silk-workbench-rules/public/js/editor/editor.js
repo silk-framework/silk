@@ -711,18 +711,18 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
 
 // Reloads the paths cache and renders absolute path widget
 function reloadPropertyPaths() {
-    reloadPropertyPathsCache(function() {
+    reloadPropertyPathsCache(function () {
         getPropertyPaths('#paths');
         updateScore();
-    })
+    });
 }
 
 // Reloads the paths cache and renders absolute path widget
 function reloadRelativePropertyPaths() {
-    reloadPropertyPathsCache(function() {
+    reloadPropertyPathsCache(function () {
         getRelativePropertyPathsForRule(ruleIndex, '#paths');
         updateScore();
-    })
+    });
 }
 
 function reloadPropertyPathsCache(callback) {
