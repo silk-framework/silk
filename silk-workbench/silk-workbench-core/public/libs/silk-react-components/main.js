@@ -3352,12 +3352,16 @@
         var data = _ref11.data, replySubject = _ref11.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref12) {
-        var data = _ref12.data, replySubject = _ref12.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
+    hierarchicalMappingChannel.subject("rule.updateObjectMapping").subscribe(function(_ref12) {
+        var data = _ref12.data, replySubject = _ref12.replySubject;
+        editMappingRule(data, data.id, parent).multicast(replySubject).connect();
+    });
+    hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref13) {
+        var data = _ref13.data, replySubject = _ref13.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, !1, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref13) {
-        var data = _ref13.data, replySubject = _ref13.replySubject, id = data.id;
+    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref14) {
+        var data = _ref14.data, replySubject = _ref14.replySubject, id = data.id;
         silkStore.request({
             topic: "transform.task.rule.delete",
             data: (0, _extends3.default)({}, apiDetails, {
@@ -18693,7 +18697,7 @@
                 });
             });
         },
-        handleComplexEdit: function(event) {},
+        editUriRule: function(event) {},
         getOperators: function(operator, accumulator) {
             var _this2 = this;
             if (_lodash2.default.has(operator, "function")) {
@@ -18711,6 +18715,46 @@
                 return accumulator = _lodash2.default.concat(accumulator, _this3.getPaths(input, []));
             });
             return accumulator;
+        },
+        createUriRule: function() {
+            var rule = _lodash2.default.cloneDeep(this.props);
+            rule.rules.uriRule = {
+                type: "uri",
+                pattern: "/"
+            };
+            _store2.default.request({
+                topic: "rule.updateObjectMapping",
+                data: rule
+            }).subscribe(function(data) {
+                _store2.default.request({
+                    topic: "rule.getEditorHref",
+                    data: {
+                        id: data.body.rules.uriRule.id
+                    }
+                }).subscribe(function(_ref2) {
+                    var href = _ref2.href;
+                    window.location = href;
+                }, function(err) {
+                    console.error(err);
+                });
+            }, function(err) {
+                console.error(err);
+            });
+            return !1;
+        },
+        deleteUriRule: function() {
+            console.warn("borras");
+            var rule = _lodash2.default.cloneDeep(this.props);
+            rule.rules.uriRule = null;
+            _store2.default.request({
+                topic: "rule.updateObjectMapping",
+                data: rule
+            }).subscribe(function(data) {
+                _store2.default.subject("reload").onNext(!0);
+            }, function(err) {
+                console.error(err);
+            });
+            return !1;
         },
         getInitialState: function() {
             return {
@@ -18734,8 +18778,8 @@
                 data: {
                     id: _lodash2.default.get(nextProps, "rules.uriRule.id", "")
                 }
-            }), function(_ref2) {
-                var href = _ref2.href;
+            }), function(_ref3) {
+                var href = _ref3.href;
                 return _this4.setState({
                     href: href
                 });
@@ -18749,24 +18793,7 @@
                 parentId: this.props.parentId
             });
             var uriPattern = !1;
-            "complexUri" === _lodash2.default.get(this.props, "rules.uriRule.type", !1) ? uriPattern = _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__rulesviewer__idpattern"
-            }, _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__rulesviewer__comment"
-            }, _react2.default.createElement("dl", {
-                className: "ecc-silk-mapping__rulesviewer__attribute"
-            }, _react2.default.createElement("dt", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-label"
-            }, "URI pattern"), _react2.default.createElement("dd", {
-                className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, "Uri uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".", _react2.default.createElement(_eccGuiElements.Button, {
-                raised: !0,
-                iconName: "edit",
-                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
-                onClick: this.handleComplexEdit,
-                href: this.state.href,
-                tooltip: "Edit complex uri"
-            }))))) : _lodash2.default.get(this.props, "rules.uriRule.pattern", !1) && (uriPattern = _react2.default.createElement("div", {
+            uriPattern = _lodash2.default.get(this.props, "rules.uriRule.pattern", !1) ? _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__idpattern"
             }, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__comment"
@@ -18776,14 +18803,60 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "URI pattern"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-title"
-            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")), _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")), " ", _react2.default.createElement(_eccGuiElements.Button, {
                 raised: !0,
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
-                onClick: this.handleComplexEdit,
+                onClick: this.editUriRule,
                 href: this.state.href,
                 tooltip: "Convert uri to complex uri"
-            }))))));
+            }), " ", _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "delete",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
+                onClick: this.deleteUriRule,
+                tooltip: "Delete uri"
+            }))))) : "complexUri" === _lodash2.default.get(this.props, "rules.uriRule.type", !1) ? _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__idpattern"
+            }, _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__comment"
+            }, _react2.default.createElement("dl", {
+                className: "ecc-silk-mapping__rulesviewer__attribute"
+            }, _react2.default.createElement("dt", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-label"
+            }, "URI pattern"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-info"
+            }, "Uri uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".  ", _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "edit",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
+                onClick: this.editUriRule,
+                href: this.state.href,
+                tooltip: "Edit complex uri"
+            }), " ", _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "delete",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
+                onClick: this.deleteUriRule,
+                href: this.state.href,
+                tooltip: "Delete complex uri"
+            }))))) : _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__idpattern"
+            }, _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__rulesviewer__comment"
+            }, _react2.default.createElement("dl", {
+                className: "ecc-silk-mapping__rulesviewer__attribute"
+            }, _react2.default.createElement("dt", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-label"
+            }, "URI pattern"), _react2.default.createElement("dd", {
+                className: "ecc-silk-mapping__rulesviewer__attribute-title"
+            }, _react2.default.createElement("code", null, _lodash2.default.get(this.props, "rules.uriRule.pattern", "")), " ", _react2.default.createElement(_eccGuiElements.Button, {
+                raised: !0,
+                iconName: "edit",
+                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
+                onClick: this.createUriRule,
+                tooltip: "Create complex uri rule"
+            })))));
             var targetProperty = !1, entityRelation = !1, deleteButton = !1;
             if (type !== _helpers.MAPPING_RULE_TYPE_ROOT) {
                 targetProperty = _react2.default.createElement("div", {
