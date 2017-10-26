@@ -18812,10 +18812,10 @@
                 tooltip: "Convert uri to complex uri"
             }), " ", _react2.default.createElement(_eccGuiElements.Button, {
                 raised: !0,
-                iconName: "delete",
+                iconName: "remove",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
                 onClick: this.deleteUriRule,
-                tooltip: "Delete uri"
+                tooltip: "Remove uri"
             }))))) : "complexUri" === _lodash2.default.get(this.props, "rules.uriRule.type", !1) ? _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__idpattern"
             }, _react2.default.createElement("div", {
