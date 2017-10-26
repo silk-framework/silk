@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import java.net.URLEncoder
 import org.silkframework.entity._
 import scala.xml.{Node, Text}
 
@@ -42,6 +43,21 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   def nodeId: String = {
     // As we do not have access to the line number, we use a hashcode and hope that it doesn't clash
     XmlTraverser.nodeId(node)
+  }
+
+  /**
+    * Generates a URI for this node.
+    */
+  def generateUri(uriPattern: String): String = {
+    if (uriPattern.isEmpty) {
+      "urn:instance:" + node.label + nodeId
+    } else {
+      XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
+        val pattern = m.group(1)
+        val value = evaluatePath(Path.parse(pattern)).map(_.node.text).mkString("")
+        URLEncoder.encode(value, "UTF8")
+      })
+    }
   }
 
   /**
@@ -97,9 +113,23 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePathAsString(path: Path): Seq[String] = {
+  def evaluatePathAsString(path: Path, uriPattern: String): Seq[String] = {
     val xml = evaluatePath(path)
-    xml.map(_.node.text)
+    xml.map(_.formatNode(uriPattern))
+  }
+
+  /**
+    * Formats this node as String.
+    * For leaf nodes, the text inside the node is returned.
+    * For non-leaf nodes, a URI is generated.
+    */
+  private def formatNode(uriPattern: String): String = {
+    // Check if this is a leaf node
+    if(node.isInstanceOf[Text] || (node.child.size == 1 && node.child.head.isInstanceOf[Text])) {
+      node.text
+    } else {
+      generateUri(uriPattern)
+    }
   }
 
   private def evaluateOperators(ops: List[PathOperator]): Seq[XmlTraverser] = {
@@ -167,6 +197,8 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
 }
 
 object XmlTraverser {
+
+  private val uriRegex = "\\{([^\\}]+)\\}".r
 
   /**
     * Generates a ID for a given XML node that is unique inside the document.
