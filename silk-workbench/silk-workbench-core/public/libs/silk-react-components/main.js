@@ -14066,8 +14066,10 @@
             var _this2 = this;
             if (this.state.error) return _react2.default.createElement(_ErrorView2.default, this.state.error);
             if (_lodash2.default.isUndefined(this.state.example)) return _react2.default.createElement("div", null);
-            var pathsCount = _lodash2.default.size(this.state.example.sourcePaths);
-            return 0 !== pathsCount && _react2.default.createElement(_SharedComponents.InfoBox, null, _react2.default.createElement("table", {
+            var pathsCount = _lodash2.default.size(this.state.example.sourcePaths), resultsCount = _lodash2.default.size(this.state.example.results);
+            if (0 === pathsCount && 0 === resultsCount) return !1;
+            var sourcePaths = 0 === pathsCount ? [ "" ] : this.state.example.sourcePaths;
+            return _react2.default.createElement(_SharedComponents.InfoBox, null, _react2.default.createElement("table", {
                 className: "mdl-data-table ecc-silk-mapping__rulesviewer__examples-table"
             }, _react2.default.createElement("thead", null, _react2.default.createElement("tr", null, _react2.default.createElement("th", {
                 className: "ecc-silk-mapping__rulesviewer__examples-table__path"
@@ -14078,14 +14080,14 @@
             }, "Transformed value"))), _lodash2.default.map(this.state.example.results, function(result, index) {
                 return _react2.default.createElement("tbody", {
                     key: "tbody_" + index
-                }, _lodash2.default.map(_this2.state.example.sourcePaths, function(sourcePath, i) {
+                }, _lodash2.default.map(sourcePaths, function(sourcePath, i) {
                     return _react2.default.createElement("tr", {
                         key: index + "_" + sourcePath + "_" + i,
                         id: index + "_" + sourcePath + "_" + i
                     }, _react2.default.createElement("td", {
                         key: "path",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__path"
-                    }, _react2.default.createElement(_eccGuiElements.Chip, null, sourcePath)), _react2.default.createElement("td", {
+                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, "sourcePath")), _react2.default.createElement("td", {
                         key: "value",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, _lodash2.default.map(result.sourceValues[i], function(value, valueIndex) {
@@ -18697,7 +18699,9 @@
                 });
             });
         },
-        editUriRule: function(event) {},
+        editUriRule: function(event) {
+            window.location.href = this.state.href;
+        },
         getOperators: function(operator, accumulator) {
             var _this2 = this;
             if (_lodash2.default.has(operator, "function")) {
@@ -18733,7 +18737,7 @@
                     }
                 }).subscribe(function(_ref2) {
                     var href = _ref2.href;
-                    window.location = href;
+                    window.location.href = href;
                 }, function(err) {
                     console.error(err);
                 });
@@ -18742,8 +18746,7 @@
             });
             return !1;
         },
-        deleteUriRule: function() {
-            console.warn("borras");
+        removeUriRule: function() {
             var rule = _lodash2.default.cloneDeep(this.props);
             rule.rules.uriRule = null;
             _store2.default.request({
@@ -18808,14 +18811,7 @@
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.editUriRule,
-                href: this.state.href,
-                tooltip: "Convert uri to complex uri"
-            }), " ", _react2.default.createElement(_eccGuiElements.Button, {
-                raised: !0,
-                iconName: "remove",
-                className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
-                onClick: this.deleteUriRule,
-                tooltip: "Remove uri"
+                tooltip: "Convert uri pattern to uri formula"
             }))))) : "complexUri" === _lodash2.default.get(this.props, "rules.uriRule.type", !1) ? _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__idpattern"
             }, _react2.default.createElement("div", {
@@ -18831,15 +18827,13 @@
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.editUriRule,
-                href: this.state.href,
-                tooltip: "Edit complex uri"
+                tooltip: "Edit uri formula"
             }), " ", _react2.default.createElement(_eccGuiElements.Button, {
                 raised: !0,
                 iconName: "delete",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
-                onClick: this.deleteUriRule,
-                href: this.state.href,
-                tooltip: "Delete complex uri"
+                onClick: this.removeUriRule,
+                tooltip: "Remove uri formula"
             }))))) : _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__idpattern"
             }, _react2.default.createElement("div", {
@@ -18855,7 +18849,7 @@
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
                 onClick: this.createUriRule,
-                tooltip: "Create complex uri rule"
+                tooltip: "Create uri formula"
             })))));
             var targetProperty = !1, entityRelation = !1, deleteButton = !1;
             if (type !== _helpers.MAPPING_RULE_TYPE_ROOT) {
@@ -19139,18 +19133,17 @@
             }
             var patternInput = !1;
             id && (patternInput = "uri" === this.state.uriRuleType ? _react2.default.createElement(_eccGuiElements.TextField, {
-                label: "URI pattern",
+                label: "Uri pattern",
                 className: "ecc-silk-mapping__ruleseditor__pattern",
                 value: this.state.pattern,
                 onChange: this.handleChangeTextfield.bind(null, "pattern")
             }) : _react2.default.createElement(_eccGuiElements.TextField, {
                 disabled: !0,
-                label: "Complex Uri",
+                label: "Uri formula",
                 value: "This uri cannot be edited in the edit form."
             }));
-            var exampleView = !_lodash2.default.isEmpty(this.state.sourceProperty) && _react2.default.createElement(_ExampleView2.default, {
+            var exampleView = _react2.default.createElement(_ExampleView2.default, {
                 id: this.props.parentId || "root",
-                key: this.state.sourceProperty.value || this.state.sourceProperty,
                 rawRule: this.state,
                 ruleType: _helpers2.MAPPING_RULE_TYPE_OBJECT
             });

@@ -58,6 +58,9 @@ const ObjectRule = React.createClass({
             );
             return false;
         }
+        else {
+            window.location.href = this.state.href;
+        }
     },
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
@@ -107,7 +110,6 @@ const ObjectRule = React.createClass({
                 type: 'uri',
                 pattern: '/',
             };
-            // TODO: change to this.subscribe?
             hierarchicalMappingChannel
                 .request({
                     topic: 'rule.updateObjectMapping',
@@ -115,7 +117,6 @@ const ObjectRule = React.createClass({
                 })
                 .subscribe(
                     (data) => {
-
                         hierarchicalMappingChannel
                             .request({
                                 topic: 'rule.getEditorHref',
@@ -124,7 +125,7 @@ const ObjectRule = React.createClass({
                                 },
                         }).subscribe(
                             ({href}) => {
-                                window.location = href;
+                                window.location.href = href;
                             },
                             err => {
                                 console.error(err)
@@ -138,7 +139,7 @@ const ObjectRule = React.createClass({
             return false;
         }
     },
-    deleteUriRule() {
+    removeUriRule() {
         if (__DEBUG__) {
             event.stopPropagation();
             alert(
@@ -147,10 +148,8 @@ const ObjectRule = React.createClass({
             return false;
         }
         else {
-            console.warn('borras')
             const rule = _.cloneDeep(this.props);
             rule.rules.uriRule = null;
-            // TODO: change to this.subscribe?
             hierarchicalMappingChannel
                 .request({
                     topic: 'rule.updateObjectMapping',
@@ -234,17 +233,7 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.editUriRule}
-                                href={this.state.href}
-                                tooltip="Convert uri to complex uri"
-                            />
-                            &nbsp;
-                            <Button
-                                raised
-                                iconName="remove"
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
-                                onClick={this.deleteUriRule}
-                                //href={this.state.href}
-                                tooltip="Remove uri"
+                                tooltip="Convert uri pattern to uri formula"
                             />
                         </dd>
                     </dl>
@@ -269,17 +258,15 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.editUriRule}
-                                href={this.state.href}
-                                tooltip="Edit complex uri"
+                                tooltip="Edit uri formula"
                             />
                             &nbsp;
                             <Button
                                 raised
                                 iconName="delete"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
-                                onClick={this.deleteUriRule}
-                                href={this.state.href}
-                                tooltip="Delete complex uri"
+                                onClick={this.removeUriRule}
+                                tooltip="Remove uri formula"
                             />
                         </dd>
                     </dl>
@@ -306,7 +293,7 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.createUriRule}
-                                tooltip="Create complex uri rule"
+                                tooltip="Create uri formula"
                             />
                         </dd>
                     </dl>
