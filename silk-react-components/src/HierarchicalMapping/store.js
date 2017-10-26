@@ -512,6 +512,14 @@ if (!__DEBUG__) {
         });
 
     hierarchicalMappingChannel
+        .subject('rule.updateObjectMapping')
+        .subscribe(({data, replySubject}) => {
+            editMappingRule(data, data.id, parent)
+                .multicast(replySubject)
+                .connect();
+        });
+
+    hierarchicalMappingChannel
         .subject('rule.createGeneratedMapping')
         .subscribe(({data, replySubject}) => {
             const payload = data;

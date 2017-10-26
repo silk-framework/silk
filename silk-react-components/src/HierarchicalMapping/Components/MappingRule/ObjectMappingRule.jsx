@@ -50,7 +50,7 @@ const ObjectRule = React.createClass({
             );
         }
     },
-    handleComplexEdit(event) {
+    editUriRule(event) {
         if (__DEBUG__) {
             event.stopPropagation();
             alert(
@@ -92,6 +92,80 @@ const ObjectRule = React.createClass({
         }
 
         return accumulator;
+    },
+    createUriRule() {
+        if (__DEBUG__) {
+            event.stopPropagation();
+            alert(
+                'Normally this would open the complex editor (aka jsplumb view)'
+            );
+            return false;
+        }
+        else {
+            const rule = _.cloneDeep(this.props);
+            rule.rules.uriRule = {
+                type: 'uri',
+                pattern: '/',
+            };
+            // TODO: change to this.subscribe?
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.updateObjectMapping',
+                    data: rule,
+                })
+                .subscribe(
+                    (data) => {
+
+                        hierarchicalMappingChannel
+                            .request({
+                                topic: 'rule.getEditorHref',
+                                data: {
+                                    id: data.body.rules.uriRule.id
+                                },
+                        }).subscribe(
+                            ({href}) => {
+                                window.location = href;
+                            },
+                            err => {
+                                console.error(err)
+                            },
+                        )
+                    },
+                    err => {
+                        console.error(err)
+                    }
+                );
+            return false;
+        }
+    },
+    deleteUriRule() {
+        if (__DEBUG__) {
+            event.stopPropagation();
+            alert(
+                'Normally this would open the complex editor (aka jsplumb view)'
+            );
+            return false;
+        }
+        else {
+            console.warn('borras')
+            const rule = _.cloneDeep(this.props);
+            rule.rules.uriRule = null;
+            // TODO: change to this.subscribe?
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.updateObjectMapping',
+                    data: rule,
+                })
+                .subscribe(
+                    (data) => {
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                    },
+                    err => {
+                        console.error(err)
+                    }
+                );
+            return false;
+        }
     },
     getInitialState() {
         return {
@@ -139,32 +213,7 @@ const ObjectRule = React.createClass({
 
         let uriPattern = false;
 
-        if (_.get(this.props, 'rules.uriRule.type', false ) === 'complexUri')
-            uriPattern = <div className="ecc-silk-mapping__rulesviewer__idpattern">
-                <div className="ecc-silk-mapping__rulesviewer__comment">
-                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                            URI pattern
-                        </dt>
-                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                            Uri uses {paths.length} value path{paths.length > 1 ? 's' : ''}:&nbsp;
-                            <code>{paths.join(', ')}</code>
-                            &nbsp;and {operators.length} operator
-                            function{operators.length > 1 ? 's' : ''}:&nbsp;
-                            <code>{operators.join(', ')}</code>.
-                            <Button
-                                raised
-                                iconName="edit"
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                onClick={this.handleComplexEdit}
-                                href={this.state.href}
-                                tooltip="Edit complex uri"
-                            />
-                        </dd>
-                    </dl>
-                </div>
-            </div>
-        else if (_.get(this.props, 'rules.uriRule.pattern', false)){
+        if (_.get(this.props, 'rules.uriRule.pattern', false)){
             uriPattern = <div className="ecc-silk-mapping__rulesviewer__idpattern">
                 <div className="ecc-silk-mapping__rulesviewer__comment">
                     <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -179,13 +228,85 @@ const ObjectRule = React.createClass({
                                     ''
                                 )}
                             </code>
+                            &nbsp;
                             <Button
                                 raised
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                onClick={this.handleComplexEdit}
+                                onClick={this.editUriRule}
                                 href={this.state.href}
                                 tooltip="Convert uri to complex uri"
+                            />
+                            &nbsp;
+                            <Button
+                                raised
+                                iconName="delete"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
+                                onClick={this.deleteUriRule}
+                                //href={this.state.href}
+                                tooltip="Delete uri"
+                            />
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        } else if (_.get(this.props, 'rules.uriRule.type', false ) === 'complexUri')
+            uriPattern = <div className="ecc-silk-mapping__rulesviewer__idpattern">
+                <div className="ecc-silk-mapping__rulesviewer__comment">
+                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                            URI pattern
+                        </dt>
+                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                            Uri uses {paths.length} value path{paths.length > 1 ? 's' : ''}:&nbsp;
+                            <code>{paths.join(', ')}</code>
+                            &nbsp;and {operators.length} operator
+                            function{operators.length > 1 ? 's' : ''}:&nbsp;
+                            <code>{operators.join(', ')}</code>.
+                            &nbsp;
+                            <Button
+                                raised
+                                iconName="edit"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                onClick={this.editUriRule}
+                                href={this.state.href}
+                                tooltip="Edit complex uri"
+                            />
+                            &nbsp;
+                            <Button
+                                raised
+                                iconName="delete"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
+                                onClick={this.deleteUriRule}
+                                href={this.state.href}
+                                tooltip="Delete complex uri"
+                            />
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        else {
+            uriPattern = <div className="ecc-silk-mapping__rulesviewer__idpattern">
+                <div className="ecc-silk-mapping__rulesviewer__comment">
+                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                            URI pattern
+                        </dt>
+                        <dd className="ecc-silk-mapping__rulesviewer__attribute-title">
+                            <code>
+                                {_.get(
+                                    this.props,
+                                    'rules.uriRule.pattern',
+                                    ''
+                                )}
+                            </code>
+                            &nbsp;
+                            <Button
+                                raised
+                                iconName="edit"
+                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                onClick={this.createUriRule}
+                                tooltip="Create complex uri rule"
                             />
                         </dd>
                     </dl>
