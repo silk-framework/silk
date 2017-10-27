@@ -139,15 +139,18 @@ function putTask(
         error(request) {
             const responseJson = JSON.parse(request.responseText);
             var responseMessage = responseJson.message; // Old format
-            if(responseMessage === undefined) {
-                if(responseJson.title === "Bad Request") {
-                    responseMessage = "Task could not be saved! Details: "
-                } else { responseMessage = "" }
+            if (responseMessage === undefined) {
+                if (responseJson.title === 'Bad Request') {
+                    responseMessage = 'Task could not be saved! Details: ';
+                } else {
+                    responseMessage = '';
+                }
                 var finestDetail = responseJson;
-                while(finestDetail.cause !== null) {
+                while (finestDetail.cause !== null) {
                     finestDetail = finestDetail.cause;
                 }
-                responseMessage = responseMessage + finestDetail.title + ": " + finestDetail.detail;
+                responseMessage = `${responseMessage +
+                    finestDetail.title}: ${finestDetail.detail}`;
             }
             callbacks.error(responseMessage);
         },

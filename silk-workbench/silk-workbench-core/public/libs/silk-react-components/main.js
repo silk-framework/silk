@@ -18803,7 +18803,7 @@
             } else if (uriRuleType === _helpers.MAPPING_RULE_TYPE_COMPLEX_URI) {
                 var paths = this.getPaths(_lodash2.default.get(this.props, "rules.uriRule.operator", []), []), operators = this.getOperators(_lodash2.default.get(this.props, "rules.uriRule.operator", []), []);
                 uriPatternLabel = "URI formula";
-                uriPattern = _react2.default.createElement("span", null, "Uri uses ", paths.length, " value ", paths.length > 1 ? "paths" : "path", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, "operator ", operators.length > 1 ? "functions" : "function", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".");
+                uriPattern = _react2.default.createElement("span", null, "Uri uses ", paths.length, " value", " ", paths.length > 1 ? "paths" : "path", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, "operator ", operators.length > 1 ? "functions" : "function", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".");
                 tooltipText = "Edit URI formula";
                 removeButton = _react2.default.createElement(_eccGuiElements.Button, {
                     raised: !0,

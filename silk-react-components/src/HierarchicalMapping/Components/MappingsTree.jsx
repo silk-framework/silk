@@ -47,7 +47,7 @@ const MappingsTree = React.createClass({
     componentDidMount() {
         this.loadData();
     },
-    expandElement({newRuleId , parentRuleId}) {
+    expandElement({newRuleId, parentRuleId}) {
         const expanded = this.state.expanded;
         expanded[newRuleId] = true;
         expanded[parentRuleId] = true;
@@ -95,8 +95,10 @@ const MappingsTree = React.createClass({
 
         let expanded = _.get(this.state, ['expanded', id], false);
         let isHighlighted =
-            id === this.props.currentRuleId || _.get(tree, 'rules.uriRule.id') === this.props.currentRuleId ||
-            (type === MAPPING_RULE_TYPE_ROOT && _.isUndefined(this.props.currentRuleId));
+            id === this.props.currentRuleId ||
+            _.get(tree, 'rules.uriRule.id') === this.props.currentRuleId ||
+            (type === MAPPING_RULE_TYPE_ROOT &&
+                _.isUndefined(this.props.currentRuleId));
 
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
@@ -138,19 +140,22 @@ const MappingsTree = React.createClass({
                 .filter(({type}) => type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
-            const element = () =>
+            const element = () => (
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
                     onClick={this.handleNavigate.bind(null, id, undefined)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                     </span>
-                    {parentType === MAPPING_RULE_TYPE_OBJECT
-                        ? <small className="ecc-silk-mapping__treenav--item-subtitle">
-                              {<RuleTreeTypes rule={parent} />}
-                          </small>
-                        : false}
-                </button>;
+                    {parentType === MAPPING_RULE_TYPE_OBJECT ? (
+                        <small className="ecc-silk-mapping__treenav--item-subtitle">
+                            {<RuleTreeTypes rule={parent} />}
+                        </small>
+                    ) : (
+                        false
+                    )}
+                </button>
+            );
 
             return (
                 <div>
@@ -158,50 +163,50 @@ const MappingsTree = React.createClass({
                         className={`ecc-silk-mapping__treenav--item${isHighlighted
                             ? ' ecc-silk-mapping__treenav--item-active'
                             : ''}`}>
-                        {!_.isEmpty(childs)
-                            ? <Button
-                                  className="ecc-silk-mapping__treenav--item-toggler"
-                                  iconName={
-                                      expanded
-                                          ? 'expand_more'
-                                          : 'arrow_nextpage'
-                                  }
-                                  tooltip={
-                                      expanded
-                                          ? 'Hide sub tree'
-                                          : 'Open sub tree'
-                                  }
-                                  onClick={() => {
-                                      this.handleToggleExpanded(id);
-                                  }}
-                              />
-                            : <Icon
-                                  className="ecc-silk-mapping__treenav--item-toggler"
-                                  name="radio_button_unchecked"
-                                  tooltip=""
-                              />}
+                        {!_.isEmpty(childs) ? (
+                            <Button
+                                className="ecc-silk-mapping__treenav--item-toggler"
+                                iconName={
+                                    expanded ? 'expand_more' : 'arrow_nextpage'
+                                }
+                                tooltip={
+                                    expanded ? 'Hide sub tree' : 'Open sub tree'
+                                }
+                                onClick={() => {
+                                    this.handleToggleExpanded(id);
+                                }}
+                            />
+                        ) : (
+                            <Icon
+                                className="ecc-silk-mapping__treenav--item-toggler"
+                                name="radio_button_unchecked"
+                                tooltip=""
+                            />
+                        )}
                         {element()}
                     </div>
-                    {expanded
-                        ? <ul className="ecc-silk-mapping__treenav--subtree">
-                              {_.map(childs, child =>
-                                  <li key={child.id}>
-                                      {navigationList({parent: child})}
-                                  </li>
-                              )}
-                          </ul>
-                        : false}
+                    {expanded ? (
+                        <ul className="ecc-silk-mapping__treenav--subtree">
+                            {_.map(childs, child => (
+                                <li key={child.id}>
+                                    {navigationList({parent: child})}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        false
+                    )}
                 </div>
             );
         };
 
-        const content = !_.isEmpty(tree)
-            ? <ul className="ecc-silk-mapping__treenav--maintree">
-                  <li>
-                      {navigationList({parent: tree})}
-                  </li>
-              </ul>
-            : false;
+        const content = !_.isEmpty(tree) ? (
+            <ul className="ecc-silk-mapping__treenav--maintree">
+                <li>{navigationList({parent: tree})}</li>
+            </ul>
+        ) : (
+            false
+        );
 
         const loading = this.state.loading ? <Spinner /> : false;
 

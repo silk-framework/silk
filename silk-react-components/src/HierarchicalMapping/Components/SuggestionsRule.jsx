@@ -23,7 +23,11 @@ const SuggestionsRule = React.createClass({
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">
                         <Checkbox
-                            onChange={this.props.check.bind(null, suggestedClass, pos)}
+                            onChange={this.props.check.bind(
+                                null,
+                                suggestedClass,
+                                pos
+                            )}
                             checked={checked}
                             className="ecc-silk-mapping__suggestitem-checkbox"
                             ripple
@@ -32,7 +36,11 @@ const SuggestionsRule = React.createClass({
                         <div
                             className="mdl-list__item-primary-content clickable"
                             title={`Click to add the suggested value mapping:\n\nTarget property: ${suggestedClass}\nValue path: ${item.uri}\nConfidence: ${item.confidence}`}
-                            onClick={this.props.check.bind(null, suggestedClass, pos)}>
+                            onClick={this.props.check.bind(
+                                null,
+                                suggestedClass,
+                                pos
+                            )}>
                             <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
                                 {suggestedClass}
                             </div>
