@@ -21,7 +21,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
-    for (path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }

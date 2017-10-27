@@ -67,7 +67,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @return Sequence of all found paths
     */
   def collectPaths(onlyLeafNodes: Boolean): Seq[Path] = {
-    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty)) yield {
+    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty) if pathOperators.size > 1) yield {
       Path(pathOperators.tail.toList)
     }
   }.distinct
@@ -89,12 +89,13 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     val attributes = node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
 
-    if(!onlyLeafNodes)
+    if(!onlyLeafNodes) {
       Seq(path) ++ attributesPaths ++ childPaths
-    else if (childPaths.isEmpty)
+    } else if (childPaths.isEmpty) {
       Seq(path) ++ attributesPaths
-    else
+    } else {
       attributesPaths ++ childPaths
+    }
   }
 
   /**
