@@ -290,7 +290,7 @@ const ObjectMappingRuleForm = React.createClass({
             if (this.state.uriRuleType === 'uri') {
                 patternInput = (
                     <TextField
-                        label="Uri pattern"
+                        label="URI pattern"
                         className="ecc-silk-mapping__ruleseditor__pattern"
                         value={this.state.pattern}
                         onChange={this.handleChangeTextfield.bind(null, 'pattern')}
@@ -301,8 +301,8 @@ const ObjectMappingRuleForm = React.createClass({
                 patternInput = (
                     <TextField
                         disabled
-                        label="Uri formula"
-                        value="This uri cannot be edited in the edit form."
+                        label="URI formula"
+                        value="This URI cannot be edited in the edit form."
                     />
                 )
             }

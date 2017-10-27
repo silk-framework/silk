@@ -233,7 +233,7 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.editUriRule}
-                                tooltip="Convert uri pattern to uri formula"
+                                tooltip="Convert URI pattern to URI formula"
                             />
                         </dd>
                     </dl>
@@ -258,7 +258,7 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.editUriRule}
-                                tooltip="Edit uri formula"
+                                tooltip="Edit URI formula"
                             />
                             &nbsp;
                             <Button
@@ -266,7 +266,7 @@ const ObjectRule = React.createClass({
                                 iconName="delete"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
                                 onClick={this.removeUriRule}
-                                tooltip="Remove uri formula"
+                                tooltip="Remove URI formula"
                             />
                         </dd>
                     </dl>
@@ -293,7 +293,7 @@ const ObjectRule = React.createClass({
                                 iconName="edit"
                                 className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
                                 onClick={this.createUriRule}
-                                tooltip="Create uri formula"
+                                tooltip="Create URI formula"
                             />
                         </dd>
                     </dl>
