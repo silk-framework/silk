@@ -44,7 +44,6 @@ window.timeDump = function (str) {
 };
 
 $(function () {
-
     // Make sure that mdl components are registered the right way
     componentHandler.upgradeDom();
 

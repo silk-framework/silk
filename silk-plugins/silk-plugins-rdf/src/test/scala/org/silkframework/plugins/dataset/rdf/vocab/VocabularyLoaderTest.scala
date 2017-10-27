@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.apache.jena.query.DatasetFactory
-import org.apache.jena.rdf.model.ModelFactory
+import com.hp.hpl.jena.query.DatasetFactory
+import com.hp.hpl.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab._
@@ -60,7 +60,7 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
     model.read(stream, null, "TURTLE")
 
     // Create Jena dataset
-    val dataset = DatasetFactory.createTxnMem()
+    val dataset = DatasetFactory.createMem()
     dataset.addNamedModel(graphUri, model)
 
     // Create VocabularyLoader

@@ -1,5 +1,6 @@
 package controllers.core
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.{Parameter, ParameterType, PluginDescription, PluginRegistry}
 import org.silkframework.util.StringUtils
 import play.api.libs.json._
@@ -45,7 +46,7 @@ class PluginApi extends Controller {
     }
 
     private def serializeParam(param: Parameter) = {
-      val defaultValue = param.stringDefaultValue match {
+      val defaultValue = param.stringDefaultValue(Prefixes.empty) match {
         case Some(value) => JsString(value)
         case None => JsNull
       }

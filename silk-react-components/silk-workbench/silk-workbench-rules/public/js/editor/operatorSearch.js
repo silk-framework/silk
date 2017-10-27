@@ -23,7 +23,9 @@
     }
 
     function operatorSearchFn() {
-        const searchTerm = $(this).val().toLocaleLowerCase();
+        const searchTerm = $(this)
+            .val()
+            .toLocaleLowerCase();
         if (searchTerm === '') {
             // show regular grouped view if search term empty
             $('#operators-grouped').show();

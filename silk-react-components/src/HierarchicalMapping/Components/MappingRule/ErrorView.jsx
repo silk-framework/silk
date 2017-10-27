@@ -2,15 +2,13 @@ import React from 'react';
 import {Error} from 'ecc-gui-elements';
 import _ from 'lodash';
 
-const ErrorCause = ({errorCause}) => {
-
-    return <ul className="ecc-hierarchical-mapping-error-list">{
-        _.map(errorCause, ({title, detail, cause}) => {
-
+const ErrorCause = ({errorCause}) => (
+    <ul className="ecc-hierarchical-mapping-error-list">
+        {_.map(errorCause, ({title, detail, cause}) => {
             let renderedCause = false;
 
-            if(_.isArray(cause)){
-                renderedCause = <ErrorCause errorCause={cause}/>;
+            if (_.isArray(cause)) {
+                renderedCause = <ErrorCause errorCause={cause} />;
             }
 
             return (
@@ -20,57 +18,80 @@ const ErrorCause = ({errorCause}) => {
                     {renderedCause}
                 </li>
             );
-        })
-    }</ul>;
-};
+        })}
+    </ul>
+);
+
+const ErrorIssue = ({errorCause}) => (
+    <ul className="ecc-hierarchical-mapping-error-list">
+        {_.map(errorCause, ({message}) => (
+            <li>
+                <p>{message}</p>
+            </li>
+        ))}
+    </ul>
+);
 
 const ErrorView = React.createClass({
     propTypes: {
         title: React.PropTypes.string,
         detail: React.PropTypes.string,
         cause: React.PropTypes.object, // it may contain a list for errors with title and detail itself
+        issues: React.PropTypes.object, // it may contain a list for errors with title and detail itself, too
     },
-    componentDidMount() {
-
-    },
+    componentDidMount() {},
     getInitialState() {
         return {
             errorExpanded: false,
         };
     },
-    toggleExpansion(){
+    toggleExpansion() {
         this.setState({
             errorExpanded: !this.state.errorExpanded,
         });
     },
     // template rendering
     render() {
-
         const errorClassName = this.state.errorExpanded
             ? ''
             : 'mdl-alert--narrowed';
 
         let causes = false;
+        let issues = false;
 
-        if(this.state.errorExpanded && _.isArray(this.props.cause)){
-            causes = <ErrorCause errorCause={this.props.cause} />
+        if (this.state.errorExpanded && _.isArray(this.props.cause)) {
+            causes = <ErrorCause errorCause={this.props.cause} />;
         }
 
-        return <Error
-            border
-            className={errorClassName}
-            handlerDismiss={this.toggleExpansion}
-            labelDismiss={
-                this.state.errorExpanded ? 'Show less' : 'Show more'
-            }
-            iconDismiss={
-                this.state.errorExpanded ? 'expand_less' : 'expand_more'
-            }>
-            <strong>{this.props.title}</strong>
-            <p>{this.props.detail}</p>
-            {causes}
-        </Error>;
-    }
+        if (this.state.errorExpanded && _.isArray(this.props.issues)) {
+            issues = <ErrorIssue errorCause={this.props.issues} />;
+        }
+
+        const detail =
+            this.props.title !== this.props.detail ? (
+                <p>{this.props.detail}</p>
+            ) : (
+                false
+            );
+
+        return (
+            <Error
+                border
+                className={errorClassName}
+                handlerDismiss={this.toggleExpansion}
+                labelDismiss={
+                    this.state.errorExpanded ? 'Show less' : 'Show more'
+                }
+                iconDismiss={
+                    this.state.errorExpanded ? 'expand_less' : 'expand_more'
+                }>
+                <strong>{this.props.title}</strong>
+                {detail}
+                {causes}
+                {issues}
+            </Error>
+        );
+    },
 });
 
 export default ErrorView;

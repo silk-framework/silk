@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import java.io.IOException
 import java.util.logging.{Level, Logger}
 
+import com.hp.hpl.jena.query.{QueryFactory, Syntax}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap
@@ -38,15 +39,21 @@ object PagingSparqlTraversable {
     private var lastQueryTime = 0L
 
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-      if (query.toLowerCase.contains("limit ") || query.toLowerCase.contains("offset ")) {
-        val xml = executeQuery(query)
+      val parsedQuery = QueryFactory.create(query)
+      params.graph foreach { graphURI =>
+        parsedQuery.addGraphURI(graphURI)
+      }
+      if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
+        val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
         val resultsXml = xml \ "results" \ "result"
         for (resultXml <- resultsXml) {
           f(parseResult(resultXml))
         }
       } else {
         for (offset <- 0 until limit by params.pageSize) {
-          val xml = executeQuery(query + " OFFSET " + offset + " LIMIT " + math.min(params.pageSize, limit - offset))
+          parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
+          parsedQuery.setOffset(offset)
+          val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
           val resultsXml = xml \ "results" \ "result"
           for (resultXml <- resultsXml) {
             f(parseResult(resultXml))

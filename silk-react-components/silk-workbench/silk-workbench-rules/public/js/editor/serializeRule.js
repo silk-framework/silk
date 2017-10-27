@@ -9,7 +9,9 @@ function serializeLinkageRule() {
 
     // Add filter
     var filter = xml.ownerDocument.createElement('Filter');
-    var filterLimit = $('#linklimit').find(':selected').text();
+    var filterLimit = $('#linklimit')
+        .find(':selected')
+        .text();
     if (filterLimit !== 'unlimited') {
         filter.setAttribute('limit', filterLimit);
     }
@@ -32,12 +34,16 @@ function serializeTransformRule() {
     var xmlDoc = xml.ownerDocument;
 
     xml.setAttribute('name', $('#rulename').val());
-    var mappingTarget = xmlDoc.createElement('MappingTarget');
-    mappingTarget.setAttribute('uri', $('#targetproperty').val());
-    var valueType = xmlDoc.createElement('ValueType');
-    valueType.setAttribute('nodeType', $('#targettype').val());
-    mappingTarget.appendChild(valueType);
-    xml.appendChild(mappingTarget);
+
+    var targetUri = $('#targetproperty').val();
+    if (targetUri.trim().length > 0) {
+        var mappingTarget = xmlDoc.createElement('MappingTarget');
+        mappingTarget.setAttribute('uri', targetUri);
+        var valueType = xmlDoc.createElement('ValueType');
+        valueType.setAttribute('nodeType', $('#targettype').val());
+        mappingTarget.appendChild(valueType);
+        xml.appendChild(mappingTarget);
+    }
 
     // Add metadata
     var metaDataXml = $.parseXML($('#rule-metadata').text());
@@ -77,8 +83,12 @@ function serializeRule(tagName) {
  */
 function parseOperator(xmlDoc, elementId, connections) {
     var elementIdName = `#${elementId}`;
-    var elName = $(elementIdName).children('.name').text();
-    var elType = $(elementIdName).children('.type').text();
+    var elName = $(elementIdName)
+        .children('.name')
+        .text();
+    var elType = $(elementIdName)
+        .children('.type')
+        .text();
 
     // Create xml element
     var xml;

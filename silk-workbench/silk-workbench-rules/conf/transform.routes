@@ -9,6 +9,7 @@ GET           /:project/:task/editor/rule/:rule                                 
 GET           /:project/:task/editor/:rule                                         controllers.transform.TransformEditor.editor(project: String, task: String, rule: String)
 GET           /:project/:task/editor/widgets/property                              controllers.transform.TransformEditor.propertyDetails(project: String, task: String, property: String)
 GET           /:project/:task/editor/widgets/paths                                 controllers.transform.TransformEditor.paths(project: String, task: String)
+GET           /:project/:task/editor/rule/:rule/widgets/paths                      controllers.transform.TransformEditor.rulePaths(project: String, task: String, rule: String)
 GET           /:project/:task/editor/widgets/score                                 controllers.transform.TransformEditor.score(project: String, task: String)
 
 # Evaluate Transformation
@@ -49,3 +50,4 @@ GET           /tasks/:project/:task/targetVocabulary/propertiesByClass          
 GET           /tasks/:project/:task/targetVocabulary/relationsOfClass              controllers.transform.TargetVocabularyApi.relationsOfType(project: String, task: String, classUri: String)
 
 POST          /tasks/:project/:task/transformInput                                 controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
+GET           /tasks/:project/:task/rule/:rule/sourcePaths                         controllers.transform.TransformTaskApi.sourcePaths(project: String, task: String, rule: String)

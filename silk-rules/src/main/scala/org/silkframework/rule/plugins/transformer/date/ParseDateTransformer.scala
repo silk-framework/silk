@@ -19,7 +19,7 @@ package org.silkframework.rule.plugins.transformer.date
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException;
 
 /**
@@ -31,6 +31,18 @@ import org.silkframework.runtime.validation.ValidationException;
   label = "Parse date",
   description = "Parses a date, returning an xsd:date"
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("format", "dd.MM.yyyy"),
+    input1 = Array("03.04.2015"),
+    output = Array("2015-04-03")
+  ),
+  new TransformExample(
+    parameters = Array("format", "dd.MM.yyyy"),
+    input1 = Array("3.4.2015"),
+    output = Array("2015-04-03")
+  )
+))
 case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {

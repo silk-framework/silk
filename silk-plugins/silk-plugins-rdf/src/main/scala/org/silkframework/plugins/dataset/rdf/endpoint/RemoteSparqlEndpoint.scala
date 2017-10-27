@@ -105,13 +105,14 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     val connection = new URL(sparqlParams.uri).openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
     connection.setDoOutput(true)
-    connection.setRequestProperty("Content-Type", "application/sparql-update")
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
       connection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
     }
     val writer = new OutputStreamWriter(connection.getOutputStream, "UTF-8")
-    writer.write(query)
+    writer.write("query=")
+    writer.write(URLEncoder.encode(query, "UTF8"))
     writer.close()
 
     //Check if the HTTP response code is in the range 2xx

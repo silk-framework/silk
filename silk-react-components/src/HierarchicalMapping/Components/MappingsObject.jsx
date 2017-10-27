@@ -10,16 +10,12 @@ import {
     DismissiveButton,
     NotAvailable,
 } from 'ecc-gui-elements';
-import {
-    ThingIcon,
-    RuleTitle,
-    RuleTypes,
-    ParentElement,
-} from './MappingRule/SharedComponents';
+import {ThingIcon, RuleTitle, RuleTypes} from './MappingRule/SharedComponents';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
+import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../helpers';
 
 const MappingsObject = React.createClass({
     mixins: [UseMessageBus, Navigation],
@@ -35,7 +31,10 @@ const MappingsObject = React.createClass({
             hierarchicalMappingChannel.subject('rulesView.toggle'),
             ({expanded, id}) => {
                 // only trigger state / render change if necessary
-                if (id === true && expanded !== this.state.expanded) {
+                if (
+                    (id === true || id === this.props.rule.id) &&
+                    expanded !== this.state.expanded
+                ) {
                     this.setState({expanded});
                 }
             }
@@ -102,26 +101,28 @@ const MappingsObject = React.createClass({
             return false;
         }
 
-        const discardView = this.state.askForDiscard
-            ? <ConfirmationDialog
-                  active
-                  modal
-                  title="Discard changes?"
-                  confirmButton={
-                      <DisruptiveButton
-                          disabled={false}
-                          onClick={this.handleDiscardChanges}>
-                          Discard
-                      </DisruptiveButton>
-                  }
-                  cancelButton={
-                      <DismissiveButton onClick={this.handleCancelDiscard}>
-                          Cancel
-                      </DismissiveButton>
-                  }>
-                  <p>You currently have unsaved changes.</p>
-              </ConfirmationDialog>
-            : false;
+        const discardView = this.state.askForDiscard ? (
+            <ConfirmationDialog
+                active
+                modal
+                title="Discard changes?"
+                confirmButton={
+                    <DisruptiveButton
+                        disabled={false}
+                        onClick={this.handleDiscardChanges}>
+                        Discard
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.handleCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>You currently have unsaved changes.</p>
+            </ConfirmationDialog>
+        ) : (
+            false
+        );
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
@@ -139,43 +140,59 @@ const MappingsObject = React.createClass({
             );
         }
 
+        let uriPattern;
+
+        const uriRuleType = _.get(this.props.rule.rules, 'uriRule.type', false);
+
+        if (uriRuleType === MAPPING_RULE_TYPE_URI) {
+            uriPattern = _.get(this, 'props.rule.rules.uriRule.pattern');
+        } else if (uriRuleType === MAPPING_RULE_TYPE_COMPLEX_URI) {
+            uriPattern = 'URI formula';
+        } else {
+            uriPattern = (
+                <NotAvailable label="automatic default pattern" inline />
+            );
+        }
+
         return (
             <div className="ecc-silk-mapping__rulesobject">
                 {discardView}
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">
-                            <div className={
-                                    className(
-                                        'ecc-silk-mapping__ruleitem-summary',
-                                        {
-                                            'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
-                                        }
-                                    )
-                                }
-                            >
+                            <div
+                                className={className(
+                                    'ecc-silk-mapping__ruleitem-summary',
+                                    {
+                                        'ecc-silk-mapping__ruleitem-summary--expanded': this
+                                            .state.expanded,
+                                    }
+                                )}>
                                 <div
                                     className={'mdl-list__item clickable'}
-                                    onClick={this.handleToggleExpand}
-                                >
-                                    <div className={'mdl-list__item-primary-content'}>
+                                    onClick={this.handleToggleExpand}>
+                                    <div
+                                        className={
+                                            'mdl-list__item-primary-content'
+                                        }>
                                         <div className="ecc-silk-mapping__ruleitem-headline">
                                             <ThingIcon type={'object'} />
-                                            <RuleTitle rule={this.props.rule} className="ecc-silk-mapping__rulesobject__title-property" />
+                                            <RuleTitle
+                                                rule={this.props.rule}
+                                                className="ecc-silk-mapping__rulesobject__title-property"
+                                            />
                                         </div>
-                                        <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type" />
+                                        <RuleTypes
+                                            rule={this.props.rule}
+                                            className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
+                                        />
                                         <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
-                                            {
-                                                _.has(this.props.rule.rules, ['uriRule', 'pattern'])
-                                                ? this.props.rule.rules.uriRule.pattern
-                                                : <NotAvailable
-                                                    label="URI pattern not set"
-                                                    inline={true}>
-                                                  </NotAvailable>
-                                            }
+                                            {uriPattern}
                                         </div>
                                     </div>
-                                    <div className="mdl-list__item-secondary-content" key="action">
+                                    <div
+                                        className="mdl-list__item-secondary-content"
+                                        key="action">
                                         <Button
                                             iconName={
                                                 this.state.expanded

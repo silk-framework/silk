@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.DatasetFactory
+import com.hp.hpl.jena.query.DatasetFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.dataset.rdf.{SparqlParams, SparqlEndpoint, SparqlResults}
 import org.silkframework.runtime.resource.Resource
 
 class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends SparqlEndpoint {
@@ -24,7 +24,7 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
 
   // Loaded Jena model
   private val model = {
-    val dataset = DatasetFactory.createTxnMem()
+    val dataset = DatasetFactory.createMem()
     val inputStream = resource.inputStream
     RDFDataMgr.read(dataset, inputStream, lang)
     inputStream.close()

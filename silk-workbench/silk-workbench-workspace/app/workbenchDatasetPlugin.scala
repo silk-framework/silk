@@ -1,4 +1,4 @@
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, DatasetTask}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
@@ -55,7 +55,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
       Some(s"workspace/datasets/$project/$task/dataset")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(taskData: Any): Seq[(String, String)] = {
+    override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
       taskData.asInstanceOf[Dataset] match {
         case Dataset(_, params) => params.toSeq
       }

@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import org.apache.jena.rdf.model.Model
+import com.hp.hpl.jena.rdf.model.Model
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
 

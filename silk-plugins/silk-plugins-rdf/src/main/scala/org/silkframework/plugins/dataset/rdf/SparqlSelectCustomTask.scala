@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.apache.jena.query.QueryFactory
+import com.hp.hpl.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
 import org.silkframework.entity._

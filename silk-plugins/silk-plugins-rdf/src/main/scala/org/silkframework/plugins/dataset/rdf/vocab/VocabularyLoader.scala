@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.apache.jena.vocabulary.{OWL, RDF}
+import com.hp.hpl.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 

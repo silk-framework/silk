@@ -2,7 +2,7 @@ package controllers.util
 
 import java.io.{File, StringWriter}
 
-import org.apache.jena.rdf.model.{Model, ModelFactory}
+import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset._
@@ -10,7 +10,7 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
-import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.FileUtils
 import org.silkframework.workspace.{Project, ProjectTask, User}
@@ -21,13 +21,17 @@ import scala.reflect.ClassTag
 import scala.xml.{Node, NodeSeq}
 
 /**
-  * Utility functions for [[Project]]
+  * Created by andreas on 12/10/15.
   */
 object ProjectUtils {
   def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
-    val project = User().workspace.project(projectName)
+    val project = getProject(projectName)
     val task = project.task[T](taskName)
     (project, task)
+  }
+
+  def getProject(projectName: String): Project = {
+    User().workspace.project(projectName)
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -40,6 +44,8 @@ object ProjectUtils {
   /**
     * Extract a specific dataset from a XML document
     *
+    * @param xmlRoot
+    * @param datasetId
     * @return
     */
   def createDataSource(xmlRoot: NodeSeq,
@@ -52,6 +58,8 @@ object ProjectUtils {
   /**
     * Extract all data sources from an XML document.
     *
+    * @param xmlRoot
+    * @return
     */
   def createDataSources(xmlRoot: NodeSeq,
                         dataSourceIds: Option[Set[String]])
@@ -129,7 +137,7 @@ object ProjectUtils {
     if (dataSource.isEmpty) {
       throw new IllegalArgumentException(s"No data source with id $datasetIdOpt specified")
     }
-    implicit val readContext: ReadContext = ReadContext(resourceLoader)
+    implicit val readContext = ReadContext(resourceLoader)
     val dataset = XmlSerialization.fromXml[DatasetTask](dataSource.head)
     dataset
   }
@@ -140,15 +148,16 @@ object ProjectUtils {
                                 datasetIds: Option[Set[String]])
                                (implicit resourceLoader: ResourceManager): Seq[DatasetTask] = {
     val dataSources = xmlRoot \ xmlElementName \ "_"
-    implicit val readContext: ReadContext = ReadContext(resourceLoader)
+    implicit val readContext = ReadContext(resourceLoader)
     val datasets = for (dataSource <- dataSources) yield {
       XmlSerialization.fromXml[DatasetTask](dataSource)
     }
-    datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
+    datasets.filter(ds => datasetIds.map(_.contains(ds.id.toString)).getOrElse(true))
   }
 
   // Create a data sink as specified in a REST request
-  def createEntitySink(xmlRoot: NodeSeq): (Model, EntitySink) = {
+  def createEntitySink(xmlRoot: NodeSeq)
+                      (implicit resourceManager: ResourceManager): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -156,13 +165,13 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager: EmptyResourceManager.type = EmptyResourceManager
       val dataset = createDataset(dataSink, None)
       (null, dataset.entitySink)
     }
   }
 
-  def createLinkSink(xmlRoot: NodeSeq): (Model, LinkSink) = {
+  def createLinkSink(xmlRoot: NodeSeq)
+                    (implicit resourceManager: ResourceManager): (Model, LinkSink) = {
     val linkSink = xmlRoot \ "linkSink"
     if (linkSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -170,19 +179,20 @@ object ProjectUtils {
       (model, inmemoryModelSink)
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
-      implicit val resourceManager: EmptyResourceManager.type = EmptyResourceManager
       val dataset = createDataset(xmlRoot, None)
       (null, dataset.linkSink)
     }
   }
 
   /**
-    * Reads all resource elements and load them into an in-memory resource manager
+    * Reads all resource elements and load them into an in-memory resource manager, use project resources as fallback.
     *
     * @param xmlRoot The element that contains the resource elements
-    * @return
+    * @return The resource manager used for creating the sink and the in-memory resource manager to store results
     */
-  def createInmemoryResourceManagerForResources(xmlRoot: NodeSeq): ResourceManager = {
+  def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
+                                                projectName: String,
+                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -190,13 +200,19 @@ object ProjectUtils {
           get(resourceId.text).
           writeString(inputResource.text)
     }
-    resourceManager
+    if(withProjectResources) {
+      val projectResourceManager = getProject(projectName).resources
+      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
+    } else {
+      (resourceManager, resourceManager)
+    }
   }
 
   /**
     * If the model is null, we assume that the result was written to the specified sink.
     * If the model exists, then write the result into the response body.
     *
+    * @param model
     * @param noResponseBodyMessage The message that should be displayed if the model does not exist
     * @return
     */

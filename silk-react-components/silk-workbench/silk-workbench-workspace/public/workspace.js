@@ -137,7 +137,22 @@ function putTask(
         processData: false,
         data: xml,
         error(request) {
-            callbacks.error(JSON.parse(request.responseText).message);
+            const responseJson = JSON.parse(request.responseText);
+            var responseMessage = responseJson.message; // Old format
+            if (responseMessage === undefined) {
+                if (responseJson.title === 'Bad Request') {
+                    responseMessage = 'Task could not be saved! Details: ';
+                } else {
+                    responseMessage = '';
+                }
+                var finestDetail = responseJson;
+                while (finestDetail.cause !== null) {
+                    finestDetail = finestDetail.cause;
+                }
+                responseMessage = `${responseMessage +
+                    finestDetail.title}: ${finestDetail.detail}`;
+            }
+            callbacks.error(responseMessage);
         },
         success() {
             reloadWorkspace();

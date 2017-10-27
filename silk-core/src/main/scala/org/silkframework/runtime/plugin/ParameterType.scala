@@ -58,7 +58,7 @@ sealed abstract class ParameterType[T: ClassTag] {
     * @param value The value to be serialized.
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
-  def toString(value: T): String = Option(value) map (_.toString) getOrElse ""
+  def toString(value: T)(implicit prefixes: Prefixes): String = Option(value) map (_.toString) getOrElse ""
 
   /**
     * Short name of this type.
@@ -176,7 +176,7 @@ object ParameterType {
       str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
     }
 
-    override def toString(value: Map[String, String]): String = {
+    override def toString(value: Map[String, String])(implicit prefixes: Prefixes): String = {
       val strValues = for ((k, v) <- value) yield URLEncoder.encode(k, utf8) + ":" + URLEncoder.encode(v, utf8)
       strValues.mkString(",")
     }
@@ -191,6 +191,10 @@ object ParameterType {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
       Uri.parse(str, prefixes)
+    }
+
+    override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
+      value.serialize(prefixes)
     }
   }
 
@@ -236,7 +240,7 @@ object ParameterType {
       TaskReference(Identifier(str))
     }
 
-    override def toString(value: TaskReference): String = {
+    override def toString(value: TaskReference)(implicit prefixes: Prefixes): String = {
       value.id
     }
 
@@ -281,7 +285,7 @@ object ParameterType {
       }
     }
 
-    override def toString(value: Enum[_]): String = enumerationValue(value)
+    override def toString(value: Enum[_])(implicit prefixes: Prefixes): String = enumerationValue(value)
   }
 
   object MultilineStringParameterType extends ParameterType[MultilineStringParameter] {

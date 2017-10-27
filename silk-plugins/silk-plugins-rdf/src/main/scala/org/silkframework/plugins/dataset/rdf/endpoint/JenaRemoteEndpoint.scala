@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.{QueryExecution, QueryExecutionFactory}
-import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
+import com.hp.hpl.jena.query.{QueryExecution, QueryExecutionFactory}
+import com.hp.hpl.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 
 /**

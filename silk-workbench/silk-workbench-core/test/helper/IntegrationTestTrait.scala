@@ -1,9 +1,8 @@
 package helper
 
 import java.io._
-import java.net.{BindException, InetSocketAddress, URLDecoder}
+import java.net.URLDecoder
 
-import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
@@ -15,14 +14,14 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.Application
-import play.api.libs.ws.{WS, WSResponse}
+import play.api.libs.ws.{EmptyBody, WS, WSResponse}
+import play.api.mvc.Results
 import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
@@ -35,6 +34,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
+  final val NOT_FOUND: Int = 404
+  final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
   var oldUserManager: () => User = null
@@ -65,8 +66,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
-    implicit val resourceManager = InMemoryResourceManager()
-    implicit val prefixes = Prefixes.empty
+    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
+    implicit val prefixes: Prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
     val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceUser = new User {
@@ -82,12 +83,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
     deleteRecursively(tmpDir)
-  }
-
-  def init(): Unit = {
-    //    System.setProperty("workspace.provider.plugin", "inMemoryRdfWorkspace")
-    //    System.setProperty("workspace.provider.plugin", "file")
-    //    System.setProperty("workspace.provider.file.dir", "testWorkspace")
   }
 
   /**
@@ -144,8 +139,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   def createEmptyResource(projectId: String, resourceId: String): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-
-    val response = request.put("")
+    val response = request.put(Results.EmptyContent())
     checkResponse(response)
   }
 
@@ -426,7 +420,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   /**
     * Retrieves a file from the resources directory.
     */
-  def file(path: String) = {
+  def file(path: String): File = {
     new File(URLDecoder.decode(getClass.getClassLoader.getResource(path).getFile, "UTF-8"))
   }
 
@@ -456,7 +450,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   def getVariableValues(variableName: String,
                         results: Traversable[SortedMap[String, RdfNode]]): Traversable[String] = {
-    results.map(_.get(variableName).get.value)
+    results.map(_(variableName).value)
   }
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {
@@ -473,12 +467,19 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
                                     pluginParams: Map[String, String],
                                     payLoadOpt: Option[String],
                                     isSink: Boolean) {
-    lazy val fileResourceId = datasetId + "_file_resource"
+    var fileResourceId: String = datasetId + "_file_resource"
+
+    private val additionalParam = if(pluginParams.contains("file")) {
+      fileResourceId = pluginParams("file")
+      Map()
+    } else {
+      Map("file" -> fileResourceId)
+    }
 
     lazy val datasetXml: Elem = {
       <Dataset id={datasetId}>
         <DatasetPlugin type={datasetPluginType}>
-          {for ((key, value) <- pluginParams.filter(_._1 != "file") ++ Map("file" -> fileResourceId)) yield {
+          {for ((key, value) <- pluginParams ++ additionalParam) yield {
             <Param name={key} value={value}/>
         }}
         </DatasetPlugin>

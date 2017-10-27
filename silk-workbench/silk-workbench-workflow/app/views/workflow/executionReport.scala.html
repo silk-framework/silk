@@ -18,16 +18,20 @@
 }
 
 @content = {
+  @renderReports(context.task.data.topologicalSortedNodes.map(_.nodeId).filter(report.taskReports.contains(_)))
+}
+
+@renderReports(tasks: Seq[String]) = {
   <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-      @for(taskId <- report.taskReports.keys) {
-        <a href="#tab-@taskId" class="mdl-tabs__tab">@taskId</a>
-      }
+    @for(taskId <- tasks) {
+      <a href="#tab-@taskId" class="mdl-tabs__tab @if(taskId == tasks.head) {is-active}">@taskId</a>
+    }
     </div>
 
-    @for((taskId, taskReport) <- report.taskReports) {
-      <div class="mdl-tabs__panel" id="tab-@taskId">
-        @renderTaskReport(taskReport)
+    @for(taskId <- tasks) {
+      <div class="mdl-tabs__panel @if(taskId == tasks.head) {is-active}" id="tab-@taskId">
+      @renderTaskReport(report.taskReports(taskId))
       </div>
     }
 

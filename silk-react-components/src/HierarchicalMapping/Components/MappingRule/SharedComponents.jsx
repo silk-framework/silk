@@ -18,11 +18,19 @@ export const RuleTitle = ({rule, ...otherProps}) => {
     switch (rule.type) {
         case MAPPING_RULE_TYPE_ROOT:
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
-            return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_TYPE;
+            return uri ? (
+                <ThingName id={uri} {...otherProps} />
+            ) : (
+                NO_TARGET_TYPE
+            );
         case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_OBJECT:
             uri = _.get(rule, 'mappingTarget.uri', false);
-            return uri ? <ThingName id={uri} {...otherProps} /> : NO_TARGET_PROPERTY;
+            return uri ? (
+                <ThingName id={uri} {...otherProps} />
+            ) : (
+                NO_TARGET_PROPERTY
+            );
         case MAPPING_RULE_TYPE_COMPLEX:
             // TODO: Complex Mappings need better titles
             return <span {...otherProps}>Complex Mapping</span>;
@@ -36,15 +44,11 @@ export const RuleTypes = ({rule, ...otherProps}) => {
             types = _.isEmpty(types)
                 ? NO_TARGET_TYPE
                 : types
-                      .map(({typeUri}) =>
+                      .map(({typeUri}) => (
                           <ThingName id={typeUri} key={typeUri} />
-                      )
+                      ))
                       .reduce((prev, curr) => [prev, ', ', curr]);
-            return (
-                <span {...otherProps}>
-                    {types}
-                </span>
-            );
+            return <span {...otherProps}>{types}</span>;
         case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_COMPLEX:
             return (
@@ -64,11 +68,7 @@ export const RuleTypes = ({rule, ...otherProps}) => {
 export const SourcePath = ({rule}) => {
     const path = _.get(rule, 'sourcePath', <NotAvailable inline />);
 
-    return (
-        <span>
-            {_.isArray(path) ? path.join(', ') : path}
-        </span>
-    );
+    return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 };
 
 export const RuleTreeTitle = ({rule}) => {
@@ -135,11 +135,7 @@ const URIInfo = React.createClass({
         const {info} = this.state;
 
         if (info) {
-            return (
-                <span>
-                    {info}
-                </span>
-            );
+            return <span>{info}</span>;
         }
 
         const {uri, fallback, field, ...otherProps} = this.props;
@@ -156,11 +152,7 @@ const URIInfo = React.createClass({
             noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, '');
         }
 
-        return (
-            <span {...otherProps}>
-                {noInfo}
-            </span>
-        );
+        return <span {...otherProps}>{noInfo}</span>;
     },
 });
 
@@ -210,15 +202,13 @@ const PropertyTypeInfo = React.createClass({
         };
     },
     render() {
-        return (
-            <div>
-                {this.state.result}
-            </div>
-        );
+        return <div>{this.state.result}</div>;
     },
 });
 
-export const ThingName = ({id, ...otherProps}) => <URIInfo uri={id} {...otherProps} field="label" />;
+export const ThingName = ({id, ...otherProps}) => (
+    <URIInfo uri={id} {...otherProps} field="label" />
+);
 
 export const ThingDescription = ({id}) => {
     const fallbackInfo = (
@@ -231,11 +221,13 @@ export const ThingDescription = ({id}) => {
     return <URIInfo uri={id} field="description" fallback={fallbackInfo} />;
 };
 
-export const PropertyTypeLabel = ({name}) =>
-    <PropertyTypeInfo name={name} option="label" />;
+export const PropertyTypeLabel = ({name}) => (
+    <PropertyTypeInfo name={name} option="label" />
+);
 
-export const PropertyTypeDescription = ({name}) =>
-    <PropertyTypeInfo name={name} option="description" />;
+export const PropertyTypeDescription = ({name}) => (
+    <PropertyTypeInfo name={name} option="description" />
+);
 
 export const ThingIcon = ({type, status, message}) => {
     let iconName = 'help_outline';
@@ -264,15 +256,18 @@ export const ThingIcon = ({type, status, message}) => {
 };
 
 export const ParentElement = ({parent, ...otherProps}) =>
-    _.get(parent, 'type')
-        ? <ThingName id={parent.type} {...otherProps} />
-        : <span {...otherProps}>parent element</span>;
+    _.get(parent, 'type') ? (
+        <ThingName id={parent.type} {...otherProps} />
+    ) : (
+        <span {...otherProps}>parent element</span>
+    );
 
-export const ParentStructure = ({parent, ...otherProps}) => {
-    return _.get(parent, 'property')
-            ? <ThingName id={parent.property} {...otherProps} />
-        : <ParentElement parent={parent} {...otherProps} />;
-};
+export const ParentStructure = ({parent, ...otherProps}) =>
+    _.get(parent, 'property') ? (
+        <ThingName id={parent.property} {...otherProps} />
+    ) : (
+        <ParentElement parent={parent} {...otherProps} />
+    );
 
 export const InfoBox = React.createClass({
     getInitialState() {

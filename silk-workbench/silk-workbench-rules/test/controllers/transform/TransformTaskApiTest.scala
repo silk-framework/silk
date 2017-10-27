@@ -3,8 +3,8 @@ package controllers.transform
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.libs.ws.WS
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
@@ -281,6 +281,36 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
     // Make sure that the position of the updated rule did not change
     retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
+  }
+
+  "Set complex URI pattern" in {
+    jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") {
+      """
+        {
+          "rules": {
+            "uriRule": {
+              "id": "complexUriRule",
+              "type": "complexUri",
+              "operator": {
+                "type": "transformInput",
+                "id": "constant",
+                "function": "constant",
+                "inputs": [],
+                "parameters": {
+                  "value": "http://example.org/constantUri"
+                }
+              }
+            }
+          }
+        }
+      """
+    }
+
+    // Do some spot checks
+    val json = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val uriRule = json \ "rules" \ "uriRule"
+    (uriRule \ "type").get mustBe JsString("complexUri")
+    (uriRule \ "operator" \ "function").get mustBe JsString("constant")
   }
 
   "Delete mapping rule" in {
