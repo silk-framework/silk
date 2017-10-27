@@ -201,7 +201,7 @@ const RuleValueView = React.createClass({
                                           Value path
                                       </dt>
                                       <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <code>{this.props.sourcePath}</code>{' '}
+                                          <code>{this.props.sourcePath}</code>
                                           <Button
                                               raised
                                               iconName="edit"

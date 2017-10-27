@@ -14,12 +14,12 @@ import {
     ThingIcon,
     RuleTitle,
     RuleTypes,
-    ParentElement,
 } from './MappingRule/SharedComponents';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
+import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../helpers';
 
 const MappingsObject = React.createClass({
     mixins: [UseMessageBus, Navigation],
@@ -139,16 +139,16 @@ const MappingsObject = React.createClass({
             );
         }
 
-        let uri = <NotAvailable
-            label="automatic default pattern"
-            inline={true}>
-        </NotAvailable>;
+        let uriPattern;
 
-        if (_.has(this.props.rule.rules, ['uriRule', 'pattern'])) {
-            uri = this.props.rule.rules.uriRule.pattern
-        }
-        else if (_.get(this.props.rule.rules, 'uriRule.type', false) === 'complexUri'){
-            uri = 'Complex URI';
+        const uriRuleType = _.get(this.props.rule.rules, 'uriRule.type', false);
+
+        if (uriRuleType === MAPPING_RULE_TYPE_URI) {
+            uriPattern = _.get(this, 'props.rule.rules.uriRule.pattern')
+        } else if (uriRuleType === MAPPING_RULE_TYPE_COMPLEX_URI){
+            uriPattern = 'URI formula';
+        } else {
+            uriPattern = <NotAvailable label="automatic default pattern" inline={true}/>;
         }
 
         return (
@@ -177,7 +177,7 @@ const MappingsObject = React.createClass({
                                         </div>
                                         <RuleTypes rule={this.props.rule} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type" />
                                         <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
-                                            {uri}
+                                            {uriPattern}
                                         </div>
                                     </div>
                                     <div className="mdl-list__item-secondary-content" key="action">
