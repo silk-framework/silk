@@ -24,15 +24,17 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
-    // If we got a java file, we write directly to it, otherwise we write to a temporary string
-    writer = javaFile match {
-      case Some(file) =>
-        file.getParentFile.mkdirs()
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
-      case None => new StringWriter()
+    if(writer == null) {
+      // If we got a java file, we write directly to it, otherwise we write to a temporary string
+      writer = javaFile match {
+        case Some(file) =>
+          file.getParentFile.mkdirs()
+          new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
+        case None => new StringWriter()
+      }
+      //Write header
+      writer.write(formatter.header)
     }
-    //Write header
-    writer.write(formatter.header)
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
