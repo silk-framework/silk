@@ -38,5 +38,8 @@ $(document).on('keyup', 'input.edit_label', function(e) {
 // start editing
 $(document).on('click', 'label.edit_label', function() {
     $(this).hide();
-    $(this).next().show().focus();
+    $(this)
+        .next()
+        .show()
+        .focus();
 });

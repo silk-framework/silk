@@ -13490,6 +13490,9 @@ h6 {
 .clickable {
   cursor: pointer; }
 
+.ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
+  margin: 0 0.5rem; }
+
 ul.navigation {
   display: flex;
   float: left;

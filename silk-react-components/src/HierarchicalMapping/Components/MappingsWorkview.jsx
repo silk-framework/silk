@@ -162,11 +162,24 @@ const MappingsWorkview = React.createClass({
             .subscribe(
                 ({rule}) => {
                     if (initialLoad && rule.id !== this.props.currentRuleId) {
+                        let toBeOpened;
+
+                        // If the currentRuleId equals the uriRule's id, we want to expand the object mapping
+                        if (
+                            _.get(rule, 'rules.uriRule.id') ===
+                            this.props.currentRuleId
+                        ) {
+                            toBeOpened = rule.id;
+                        } else {
+                            // otherwise we want to expand the value mapping
+                            toBeOpened = this.props.currentRuleId;
+                        }
+
                         hierarchicalMappingChannel
                             .subject('rulesView.toggle')
                             .onNext({
                                 expanded: true,
-                                id: this.props.currentRuleId,
+                                id: toBeOpened,
                             });
                     }
 
@@ -262,61 +275,66 @@ const MappingsWorkview = React.createClass({
         const loading = this.state.loading ? <Spinner /> : false;
 
         const discardView =
-            this.state.askForDiscard !== false
-                ? <ConfirmationDialog
-                      active
-                      modal
-                      title="Discard changes?"
-                      confirmButton={
-                          <DisruptiveButton
-                              disabled={false}
-                              onClick={this.handleDiscardChanges}>
-                              Discard
-                          </DisruptiveButton>
-                      }
-                      cancelButton={
-                          <DismissiveButton onClick={this.handleCancelDiscard}>
-                              Cancel
-                          </DismissiveButton>
-                      }>
-                      <p>
-                          You currently have unsaved changes{this.state.editing
-                              .length === 1
-                              ? ''
-                              : ` in ${this.state.editing
-                                    .length} mapping rules`}.
-                      </p>
-                  </ConfirmationDialog>
-                : false;
+            this.state.askForDiscard !== false ? (
+                <ConfirmationDialog
+                    active
+                    modal
+                    title="Discard changes?"
+                    confirmButton={
+                        <DisruptiveButton
+                            disabled={false}
+                            onClick={this.handleDiscardChanges}>
+                            Discard
+                        </DisruptiveButton>
+                    }
+                    cancelButton={
+                        <DismissiveButton onClick={this.handleCancelDiscard}>
+                            Cancel
+                        </DismissiveButton>
+                    }>
+                    <p>
+                        You currently have unsaved changes{this.state.editing
+                            .length === 1
+                            ? ''
+                            : ` in ${this.state.editing.length} mapping rules`}.
+                    </p>
+                </ConfirmationDialog>
+            ) : (
+                false
+            );
 
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
-        const createRuleForm = createType
-            ? <div className="ecc-silk-mapping__createrule">
-                  {createType === MAPPING_RULE_TYPE_OBJECT
-                      ? <ObjectMappingRuleForm
-                            type={createType}
-                            parentId={this.state.ruleData.id}
-                            parent={{
-                                id: this.state.ruleData.id,
-                                property: _.get(
-                                    this,
-                                    'state.ruleData.mappingTarget.uri'
-                                ),
-                                type: _.get(
-                                    this,
-                                    'state.ruleData.rules.typeRules[0].typeUri'
-                                ),
-                            }}
-                            edit
-                        />
-                      : <ValueMappingRuleForm
-                            type={createType}
-                            parentId={this.state.ruleData.id}
-                            edit
-                        />}
-              </div>
-            : false;
+        const createRuleForm = createType ? (
+            <div className="ecc-silk-mapping__createrule">
+                {createType === MAPPING_RULE_TYPE_OBJECT ? (
+                    <ObjectMappingRuleForm
+                        type={createType}
+                        parentId={this.state.ruleData.id}
+                        parent={{
+                            id: this.state.ruleData.id,
+                            property: _.get(
+                                this,
+                                'state.ruleData.mappingTarget.uri'
+                            ),
+                            type: _.get(
+                                this,
+                                'state.ruleData.rules.typeRules[0].typeUri'
+                            ),
+                        }}
+                        edit
+                    />
+                ) : (
+                    <ValueMappingRuleForm
+                        type={createType}
+                        parentId={this.state.ruleData.id}
+                        edit
+                    />
+                )}
+            </div>
+        ) : (
+            false
+        );
 
         const types =
             !createRuleForm &&
@@ -330,46 +348,55 @@ const MappingsWorkview = React.createClass({
         const listSuggestions =
             !createRuleForm &&
             this.state.showSuggestions &&
-            _.has(this.state, 'ruleData.rules.typeRules')
-                ? <SuggestionsList
-                      key={_.join(types, ',')}
-                      ruleId={
-                          // TODO: Remove this non-sense
-                          _.isUndefined(this.props.currentRuleId)
-                              ? 'root'
-                              : this.props.currentRuleId
-                      }
-                      onClose={this.handleCloseSuggestions}
-                      parent={{
-                          id: this.state.ruleData.id,
-                          property: _.get(
-                              this,
-                              'state.ruleData.mappingTarget.uri'
-                          ),
-                          type: _.get(
-                              this,
-                              'state.ruleData.rules.typeRules[0].typeUri'
-                          ),
-                      }}
-                      targetClassUris={types}
-                  />
-                : false;
+            _.has(this.state, 'ruleData.rules.typeRules') ? (
+                <SuggestionsList
+                    key={_.join(types, ',')}
+                    ruleId={
+                        // TODO: Remove this non-sense
+                        _.isUndefined(this.props.currentRuleId)
+                            ? 'root'
+                            : this.props.currentRuleId
+                    }
+                    onClose={this.handleCloseSuggestions}
+                    parent={{
+                        id: this.state.ruleData.id,
+                        property: _.get(
+                            this,
+                            'state.ruleData.mappingTarget.uri'
+                        ),
+                        type: _.get(
+                            this,
+                            'state.ruleData.rules.typeRules[0].typeUri'
+                        ),
+                    }}
+                    targetClassUris={types}
+                />
+            ) : (
+                false
+            );
         const listMappings =
-            (!createRuleForm && !listSuggestions) ?
-            (
-                    <MappingsList
-                        currentRuleId={_.get(this.props, 'currentRuleId', "root")}
-                        rules={_.get(rules, 'propertyRules', [])}
-                    />
-            ) : false;
+            !createRuleForm && !listSuggestions ? (
+                <MappingsList
+                    currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
+                    rules={_.get(rules, 'propertyRules', [])}
+                />
+            ) : (
+                false
+            );
 
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                <MappingsHeader rule={this.state.ruleData} key={'navhead_' + id} />
+                <MappingsHeader
+                    rule={this.state.ruleData}
+                    key={`navhead_${id}`}
+                />
                 <div className="mdl-shadow--2dp">
-                    <MappingsObject rule={this.state.ruleData} key={'objhead_' + id} />
+                    <MappingsObject
+                        rule={this.state.ruleData}
+                        key={`objhead_${id}`}
+                    />
                     {listSuggestions ? false : listMappings}
                 </div>
                 {listSuggestions}

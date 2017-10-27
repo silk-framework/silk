@@ -23,9 +23,7 @@ import {MAPPING_RULE_TYPE_DIRECT} from '../../helpers';
 
 const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
-
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
@@ -116,155 +114,168 @@ const RuleValueView = React.createClass({
             <div className="ecc-silk-mapping__rulesviewer">
                 <Card shadow={0}>
                     <CardContent>
-                        {_.get(this.props, 'mappingTarget.uri', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__targetProperty">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Target property
-                                      </dt>
-                                      <dd>
-                                          <InfoBox>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                  <ThingName
-                                                      id={_.get(
-                                                          this.props,
-                                                          'mappingTarget.uri',
-                                                          undefined
-                                                      )}
-                                                  />
-                                              </div>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
-                                                  <code>
-                                                      {_.get(
-                                                          this.props,
-                                                          'mappingTarget.uri',
-                                                          undefined
-                                                      )}
-                                                  </code>
-                                              </div>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                  <ThingDescription
-                                                      id={_.get(
-                                                          this.props,
-                                                          'mappingTarget.uri',
-                                                          undefined
-                                                      )}
-                                                  />
-                                              </div>
-                                          </InfoBox>
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
+                        {_.get(this.props, 'mappingTarget.uri', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__targetProperty">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Target property
+                                    </dt>
+                                    <dd>
+                                        <InfoBox>
+                                            <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                <ThingName
+                                                    id={_.get(
+                                                        this.props,
+                                                        'mappingTarget.uri',
+                                                        undefined
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
+                                                <code>
+                                                    {_.get(
+                                                        this.props,
+                                                        'mappingTarget.uri',
+                                                        undefined
+                                                    )}
+                                                </code>
+                                            </div>
+                                            <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                <ThingDescription
+                                                    id={_.get(
+                                                        this.props,
+                                                        'mappingTarget.uri',
+                                                        undefined
+                                                    )}
+                                                />
+                                            </div>
+                                        </InfoBox>
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                         {_.get(
                             this.props,
                             'mappingTarget.valueType.nodeType',
                             false
-                        )
-                            ? <div className="ecc-silk-mapping__rulesviewer__propertyType">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Data type
-                                      </dt>
-                                      <dd key={_.get(
-                                          this.props,
-                                          'mappingTarget.valueType.nodeType',
-                                          false
-                                      )}>
-                                          <InfoBox>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                  <PropertyTypeLabel
-                                                      name={_.get(
-                                                          this.props,
-                                                          'mappingTarget.valueType.nodeType',
-                                                          false
-                                                      )}
-                                                  />
-                                              </div>
-                                              <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                  <PropertyTypeDescription
-                                                      name={_.get(
-                                                          this.props,
-                                                          'mappingTarget.valueType.nodeType',
-                                                          false
-                                                      )}
-                                                  />
-                                              </div>
-                                          </InfoBox>
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
+                        ) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__propertyType">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Data type
+                                    </dt>
+                                    <dd
+                                        key={_.get(
+                                            this.props,
+                                            'mappingTarget.valueType.nodeType',
+                                            false
+                                        )}>
+                                        <InfoBox>
+                                            <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                <PropertyTypeLabel
+                                                    name={_.get(
+                                                        this.props,
+                                                        'mappingTarget.valueType.nodeType',
+                                                        false
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                <PropertyTypeDescription
+                                                    name={_.get(
+                                                        this.props,
+                                                        'mappingTarget.valueType.nodeType',
+                                                        false
+                                                    )}
+                                                />
+                                            </div>
+                                        </InfoBox>
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                         {this.props.type === MAPPING_RULE_TYPE_DIRECT &&
-                        _.get(this.props, 'sourcePath', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Value path
-                                      </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <code>{this.props.sourcePath}</code>{' '}
-                                          <Button
-                                              raised
-                                              iconName="edit"
-                                              className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                              onClick={this.handleComplexEdit}
-                                              href={this.state.href}
-                                              tooltip="Convert value path to value formula"
-                                          />
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
+                        _.get(this.props, 'sourcePath', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Value path
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        <code>{this.props.sourcePath}</code>
+                                        <Button
+                                            raised
+                                            iconName="edit"
+                                            className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                            onClick={this.handleComplexEdit}
+                                            href={this.state.href}
+                                            tooltip="Convert value path to value formula"
+                                        />
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                         {this.props.type !== MAPPING_RULE_TYPE_DIRECT &&
-                        _.get(this.props, 'sourcePaths', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Value formula
-                                      </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          Formula uses {paths.length} value path{paths.length > 1 ? 's' : ''}:&nbsp;
-                                          <code>{paths.join(', ')}</code>
-                                          &nbsp;and {operators.length} operator
-                                          function{operators.length > 1 ? 's' : ''}:&nbsp;
-                                          <code>{operators.join(', ')}</code>.
-                                          <Button
-                                              raised
-                                              iconName="edit"
-                                              className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                              onClick={this.handleComplexEdit}
-                                              href={this.state.href}
-                                              tooltip="Edit value formula"
-                                          />
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
-                        {_.get(this.props, 'id', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__examples">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Examples of target data
-                                      </dt>
-                                      <dd>
-                                          <ExampleView id={this.props.id} />
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
-                        {_.get(this, 'props.metadata.description', false)
-                            ? <div className="ecc-silk-mapping__rulesviewer__comment">
-                                  <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                      <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                          Description
-                                      </dt>
-                                      <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          {this.props.metadata.description}
-                                      </dd>
-                                  </dl>
-                              </div>
-                            : false}
+                        _.get(this.props, 'sourcePaths', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Value formula
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        Formula uses {paths.length} value path{paths.length > 1 ? 's' : ''}:&nbsp;
+                                        <code>{paths.join(', ')}</code>
+                                        &nbsp;and {operators.length} operator
+                                        function{operators.length > 1 ? 's' : ''}:&nbsp;
+                                        <code>{operators.join(', ')}</code>.
+                                        <Button
+                                            raised
+                                            iconName="edit"
+                                            className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                            onClick={this.handleComplexEdit}
+                                            href={this.state.href}
+                                            tooltip="Edit value formula"
+                                        />
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
+                        {_.get(this.props, 'id', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__examples">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Examples of target data
+                                    </dt>
+                                    <dd>
+                                        <ExampleView id={this.props.id} />
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
+                        {_.get(this, 'props.metadata.description', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__comment">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Description
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        {this.props.metadata.description}
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                     </CardContent>
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <Button
