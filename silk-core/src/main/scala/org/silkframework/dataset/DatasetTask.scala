@@ -27,7 +27,7 @@ import scala.xml.{Node, Text}
 /**
   * A dataset of entities.
   */
-class DatasetTask(val id: Identifier,
+class DatasetCsvDatasetExecutionTest Task(val id: Identifier,
                   val plugin: Dataset,
                   val metaData: MetaData = MetaData.empty,
                   val minConfidence: Option[Double] = None,

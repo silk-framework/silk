@@ -21,4 +21,9 @@ class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink
   override def writeLink(link: Link, predicateUri: String) {
     write(Seq(link.source, link.target))
   }
+
+  override def close(): Unit = {
+    closeTable()
+    super.close()
+  }
 }

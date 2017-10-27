@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf._
-import org.silkframework.dataset.{Dataset, TripleSinkDataset}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.util.Uri
@@ -91,21 +91,46 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override protected def write(data: EntityTable, dataset: Task[Dataset], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
-        writeLinks(dataset, links, linkType)
+        withLinkSink(dataset) { linkSink =>
+          writeLinks(linkSink, links, linkType)
+        }
       case TripleEntityTable(entities, _) =>
-        writeTriples(dataset, entities)
+        withEntitySink(dataset) { entitySink =>
+          writeTriples(entitySink, entities)
+        }
       case tables: MultiEntityTable =>
-        writeMultiTables(dataset, tables)
+        withEntitySink(dataset) { entitySink =>
+          writeMultiTables(entitySink, tables)
+        }
       case et: EntityTable =>
-        writeEntities(dataset, et)
+        withEntitySink(dataset) { entitySink =>
+          writeEntities(entitySink, et)
+        }
     }
   }
 
-  private def writeEntities(dataset: Dataset, entityTable: EntityTable): Unit = {
+  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit): Unit = {
+    val sink = dataset.linkSink
+    try {
+      f(sink)
+    } finally {
+      sink.close()
+    }
+  }
+
+  private def withEntitySink(dataset: Dataset)(f: EntitySink => Unit): Unit = {
+    val sink = dataset.entitySink
+    try {
+      f(sink)
+    } finally {
+     sink.close()
+    }
+  }
+
+  private def writeEntities(sink: EntitySink, entityTable: EntityTable): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
-    val sink = dataset.entitySink
     sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
       sink.writeEntity(entity.uri, entity.values)
@@ -118,23 +143,22 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         }
       }
     }
-    sink.close()
+    sink.closeTable()
     val time = (System.currentTimeMillis - startTime) / 1000.0
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(dataset: Dataset, links: Seq[Link], linkType: Uri): Unit = {
+  private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri): Unit = {
     val startTime = System.currentTimeMillis()
-    val sink = dataset.linkSink
     sink.writeLinks(links, linkType.uri)
     val time = (System.currentTimeMillis - startTime) / 1000.0
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeTriples(dataset: Dataset, entities: Traversable[Entity]): Unit = {
-    dataset match {
-      case rdfDataset: TripleSinkDataset =>
-        writeTriples(entities, rdfDataset)
+  private def writeTriples(sink: EntitySink, entities: Traversable[Entity]): Unit = {
+    sink match {
+      case tripleSink: TripleSink =>
+        writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")
     }
@@ -155,8 +179,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeTriples(entities: Traversable[Entity], tripleSinkDataset: TripleSinkDataset): Unit = {
-    val sink = tripleSinkDataset.tripleSink
+  private def writeTriples(entities: Traversable[Entity], sink: TripleSink): Unit = {
     sink.init()
     for (entity <- entities) {
       if (entity.values.size != 4) {
@@ -171,13 +194,12 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           throw new scala.RuntimeException("Triple entity with empty values")
       }
     }
-    sink.close()
   }
 
-  private def writeMultiTables(dataset: Dataset, tables: MultiEntityTable): Unit = {
-    writeEntities(dataset, tables)
+  private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable): Unit = {
+    writeEntities(sink, tables)
     for(table <- tables.subTables) {
-      writeEntities(dataset, table)
+      writeEntities(sink, table)
     }
   }
 
