@@ -35,7 +35,7 @@ const MappingsObject = React.createClass({
             hierarchicalMappingChannel.subject('rulesView.toggle'),
             ({expanded, id}) => {
                 // only trigger state / render change if necessary
-                if (id === true && expanded !== this.state.expanded) {
+                if ((id === true || id === this.props.rule.id) && expanded !== this.state.expanded) {
                     this.setState({expanded});
                 }
             }

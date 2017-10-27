@@ -108,7 +108,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         breadcrumbs,
     };
 
-    if (element.id === id) {
+    if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
         let result = null;

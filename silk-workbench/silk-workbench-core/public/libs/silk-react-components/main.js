@@ -3059,7 +3059,7 @@
         var element = (0, _extends3.default)({}, curr, {
             breadcrumbs: breadcrumbs
         });
-        if (element.id === id) return element;
+        if (element.id === id || _lodash2.default.get(element, "rules.uriRule.id") === id) return element;
         if (_lodash2.default.has(element, "rules.propertyRules")) {
             var result = null, bc = [].concat(breadcrumbs, [ {
                 id: element.id,
@@ -27888,7 +27888,7 @@
         markTree: function(curr) {
             var _this2 = this;
             if (_lodash2.default.isEmpty(curr)) return curr;
-            var tree = _lodash2.default.cloneDeep(curr), id = tree.id, type = tree.type, expanded = _lodash2.default.get(this.state, [ "expanded", id ], !1), isHighlighted = id === this.props.currentRuleId || type === _helpers.MAPPING_RULE_TYPE_ROOT && _lodash2.default.isUndefined(this.props.currentRuleId);
+            var tree = _lodash2.default.cloneDeep(curr), id = tree.id, type = tree.type, expanded = _lodash2.default.get(this.state, [ "expanded", id ], !1), isHighlighted = id === this.props.currentRuleId || _lodash2.default.get(tree, "rules.uriRule.id") === this.props.currentRuleId || type === _helpers.MAPPING_RULE_TYPE_ROOT && _lodash2.default.isUndefined(this.props.currentRuleId);
             _lodash2.default.has(tree, "rules.propertyRules") && (tree.rules.propertyRules = _lodash2.default.map(tree.rules.propertyRules, function(rule) {
                 var subtree = _this2.markTree(rule);
                 if (subtree.type !== _helpers.MAPPING_RULE_TYPE_OBJECT && subtree.id === _this2.props.currentRuleId) {
@@ -28055,10 +28055,14 @@
                 }
             }).subscribe(function(_ref4) {
                 var rule = _ref4.rule;
-                initialLoad && rule.id !== _this.props.currentRuleId && _store2.default.subject("rulesView.toggle").onNext({
-                    expanded: !0,
-                    id: _this.props.currentRuleId
-                });
+                if (initialLoad && rule.id !== _this.props.currentRuleId) {
+                    var toBeOpened = void 0;
+                    toBeOpened = _lodash2.default.get(rule, "rules.uriRule.id") === _this.props.currentRuleId ? rule.id : _this.props.currentRuleId;
+                    _store2.default.subject("rulesView.toggle").onNext({
+                        expanded: !0,
+                        id: toBeOpened
+                    });
+                }
                 _this.setState({
                     loading: !1,
                     ruleData: rule
@@ -28281,8 +28285,8 @@
         componentDidMount: function() {
             var _this = this;
             this.subscribe(_store2.default.subject("rulesView.toggle"), function(_ref) {
-                var expanded = _ref.expanded;
-                !0 === _ref.id && expanded !== _this.state.expanded && _this.setState({
+                var expanded = _ref.expanded, id = _ref.id;
+                !0 !== id && id !== _this.props.rule.id || expanded === _this.state.expanded || _this.setState({
                     expanded: expanded
                 });
             });
