@@ -21,7 +21,6 @@ import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT} from '../../../help
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
-
     // define property types
     propTypes: {
         id: React.PropTypes.string,

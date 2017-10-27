@@ -149,8 +149,26 @@
                 },
                 "rules": {
                     "uriRule": {
-                        "type": "uri",
-                        "pattern": "https://eccenca.example.org/person/{friend id}"
+                        "type": "complexUri",
+                        "operator": {
+                            "type": "transformInput",
+                            "id": "concat1",
+                            "function": "concat",
+                            "inputs": [{
+                                "type": "pathInput",
+                                "id": "sourcePath1",
+                                "path": "/foo"
+                            },
+                                {
+                                    "type": "pathInput",
+                                    "id": "sourcePath2",
+                                    "path": "/bar"
+                                }
+                            ],
+                            "parameters": {
+                                "glue": ""
+                            }
+                        }
                     },
                     "typeRules": [{
                         "type": "type",

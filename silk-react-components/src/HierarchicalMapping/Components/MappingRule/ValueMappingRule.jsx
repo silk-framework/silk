@@ -23,9 +23,7 @@ import {MAPPING_RULE_TYPE_DIRECT} from '../../helpers';
 
 const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
-
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
@@ -203,7 +201,7 @@ const RuleValueView = React.createClass({
                                           Value path
                                       </dt>
                                       <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                          <code>{this.props.sourcePath}</code>{' '}
+                                          <code>{this.props.sourcePath}</code>
                                           <Button
                                               raised
                                               iconName="edit"

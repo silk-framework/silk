@@ -9,9 +9,7 @@ import {InfoBox} from './SharedComponents';
 
 const ExampleView = React.createClass({
     mixins: [UseMessageBus],
-
     // define property types
-    // FIXME: check propTypes
     propTypes: {
         id: React.PropTypes.string,
         rawRule: React.PropTypes.object,
@@ -85,10 +83,17 @@ const ExampleView = React.createClass({
         }
 
         const pathsCount = _.size(this.state.example.sourcePaths);
-        if (pathsCount === 0) {
-            return false;
+        const resultsCount = _.size(this.state.example.results);
 
+        if (pathsCount === 0 && resultsCount === 0) {
+            return false;
         }
+
+        const sourcePaths =
+            pathsCount === 0
+                ? ['']
+                : this.state.example.sourcePaths
+
         return (
             <InfoBox>
                 <table className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
@@ -108,7 +113,7 @@ const ExampleView = React.createClass({
                     {_.map(this.state.example.results, (result, index) =>
                         <tbody key={`tbody_${index}`}>
                         {_.map(
-                            this.state.example.sourcePaths,
+                            sourcePaths,
                             (sourcePath, i) =>
                                 <tr
                                     key={`${index}_${sourcePath}_${i}`}
@@ -116,9 +121,12 @@ const ExampleView = React.createClass({
                                     <td
                                         key="path"
                                         className="ecc-silk-mapping__rulesviewer__examples-table__path">
-                                        <Chip>
-                                            {sourcePath}
-                                        </Chip>
+                                        {
+                                            sourcePath
+                                                ?<Chip>sourcePath</Chip>
+                                                : false
+                                        }
+
                                     </td>
                                     <td
                                         key="value"

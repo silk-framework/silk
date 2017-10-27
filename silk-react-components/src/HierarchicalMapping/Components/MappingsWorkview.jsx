@@ -162,11 +162,24 @@ const MappingsWorkview = React.createClass({
             .subscribe(
                 ({rule}) => {
                     if (initialLoad && rule.id !== this.props.currentRuleId) {
+
+                        let toBeOpened;
+
+                        // If the currentRuleId equals the uriRule's id, we want to expand the object mapping
+                        if(_.get(rule,'rules.uriRule.id') === this.props.currentRuleId){
+                            toBeOpened = rule.id;
+                        }
+                        //otherwise we want to expand the value mapping
+                        else {
+                            toBeOpened = this.props.currentRuleId;
+                        }
+
+
                         hierarchicalMappingChannel
                             .subject('rulesView.toggle')
                             .onNext({
                                 expanded: true,
-                                id: this.props.currentRuleId,
+                                id: toBeOpened,
                             });
                     }
 

@@ -108,7 +108,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         breadcrumbs,
     };
 
-    if (element.id === id) {
+    if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
         let result = null;
@@ -507,6 +507,14 @@ if (!__DEBUG__) {
             const parent = data.parentId ? data.parentId : rootId;
 
             editMappingRule(payload, data.id, parent)
+                .multicast(replySubject)
+                .connect();
+        });
+
+    hierarchicalMappingChannel
+        .subject('rule.updateObjectMapping')
+        .subscribe(({data, replySubject}) => {
+            editMappingRule(data, data.id, parent)
                 .multicast(replySubject)
                 .connect();
         });
