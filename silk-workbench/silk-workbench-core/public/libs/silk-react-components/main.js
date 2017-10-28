@@ -3201,9 +3201,9 @@
                     ruleId: parentId,
                     payload: swappedRule
                 })
-            }).subscribe(function(xxx) {
+            }).subscribe(function(response) {
                 hierarchicalMappingChannel.subject("reload").onNext(!0);
-                replySubject.onNext(xxx);
+                replySubject.onNext(response);
                 replySubject.onCompleted();
             }, function(error) {
                 replySubject.onError(error);

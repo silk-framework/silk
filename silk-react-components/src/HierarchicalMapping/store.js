@@ -259,11 +259,11 @@ if (!__DEBUG__) {
                             },
                         })
                         .subscribe(
-                            (xxx) => {
+                            (response) => {
                                 hierarchicalMappingChannel
                                     .subject('reload')
                                     .onNext(true);
-                                replySubject.onNext(xxx)
+                                replySubject.onNext(response)
                                 replySubject.onCompleted();
                             },
                             (error) => {
