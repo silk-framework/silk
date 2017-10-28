@@ -226,6 +226,57 @@ if (!__DEBUG__) {
     const vocabularyCache = {};
 
     hierarchicalMappingChannel
+        .subject('rule.orderRule')
+        .subscribe(({data, replySubject}) => {
+            const {parentId, fromPos, toPos} = data;
+            silkStore
+                .request({
+                    topic: 'transform.task.rules.get',
+                    data: {...apiDetails},
+                })
+                .map(returned => {
+                    const rules = returned.body;
+                    const searchId = parentId || rules.id;
+                    if (!_.isString(rootId)) {
+                        rootId = rules.id;
+                    }
+                    const swappedRule = findRule(
+                        _.cloneDeep(rules),
+                        searchId,
+                        true,
+                        []
+                    );
+                    const temp = swappedRule.rules.propertyRules[toPos];
+                    swappedRule.rules.propertyRules[toPos] = swappedRule.rules.propertyRules[fromPos];
+                    swappedRule.rules.propertyRules[fromPos] = temp;
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.put',
+                            data: {
+                                ...apiDetails,
+                                ruleId: parentId,
+                                payload: swappedRule,
+                            },
+                        })
+                        .subscribe(
+                            (xxx) => {
+                                hierarchicalMappingChannel
+                                    .subject('reload')
+                                    .onNext(true);
+                                replySubject.onNext(xxx)
+                                replySubject.onCompleted();
+                            },
+                            (error) => {
+                                replySubject.onError(error)
+                                replySubject.onCompleted();
+                            }
+                        );
+                })
+                .multicast(replySubject)
+                .connect();
+        });
+
+    hierarchicalMappingChannel
         .subject('rules.generate')
         .subscribe(({data, replySubject}) => {
             const {correspondences, parentRuleId} = data;
@@ -954,8 +1005,8 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {pos, id} = data;
-            mockStore = orderRule(_.chain(mockStore).value(), id, pos);
+            const {toPos, id} = data;
+            mockStore = orderRule(_.chain(mockStore).value(), id, toPos);
             saveMockStore();
             replySubject.onNext();
             replySubject.onCompleted();
