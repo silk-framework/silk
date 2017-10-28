@@ -121,22 +121,23 @@ const MappingRule = React.createClass({
         });
     },
 
-    handleMoveElement(id, pos, parentId, event) {
+    handleMoveElement({toPos, fromPos, parentId, id}, event) {
+        if (fromPos === toPos) {
+            return;
+        }
         this.setState({
             loading: true,
         });
         event.stopPropagation();
         hierarchicalMappingChannel
-            .request({topic: 'rule.orderRule', data: {id, pos, parentId}})
+            .request({topic: 'rule.orderRule', data: {toPos, fromPos, parentId, id}})
             .subscribe(
-                () => {
-                    // FIXME: let know the user which element is gone!
+                (/*data*/) => {
                     this.setState({
                         loading: false,
                     });
                 },
-                err => {
-                    // FIXME: let know the user what have happened!
+                (/*err*/) => {
                     this.setState({
                         loading: false,
                     });
@@ -269,42 +270,51 @@ const MappingRule = React.createClass({
             : false;
 
         const reorderHandleButton =
-            !this.state.expanded && __DEBUG__
+            !this.state.expanded
                 ? <div className="ecc-silk-mapping__ruleitem-reorderhandler">
                       <ContextMenu iconName="reorder" align="left" valign="top">
                           <MenuItem
                               onClick={this.handleMoveElement.bind(
                                   null,
-                                  id,
-                                  0,
-                                  parentId
+                                  {
+                                      parentId,
+                                      fromPos: pos,
+                                      toPos: 0,
+                                      id,
+                                  }
                               )}>
                               Move to top
                           </MenuItem>
                           <MenuItem
                               onClick={this.handleMoveElement.bind(
                                   null,
-                                  id,
-                                  Math.max(0, pos - 1),
-                                  parentId
+                                  {
+                                      parentId,
+                                      fromPos: pos,
+                                      toPos: Math.max(0, pos - 1),
+                                  }
                               )}>
                               Move up
                           </MenuItem>
                           <MenuItem
                               onClick={this.handleMoveElement.bind(
                                   null,
-                                  id,
-                                  Math.min(pos + 1, count - 1),
-                                  parentId
+                                  {
+                                      parentId,
+                                      fromPos: pos,
+                                      toPos: Math.min(pos + 1, count - 1),
+                                  }
                               )}>
                               Move down
                           </MenuItem>
                           <MenuItem
                               onClick={this.handleMoveElement.bind(
                                   null,
-                                  id,
-                                  count - 1,
-                                  parentId
+                                  {
+                                      parentId,
+                                      fromPos: pos,
+                                      toPos: count - 1,
+                                  }
                               )}>
                               Move to bottom
                           </MenuItem>
