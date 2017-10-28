@@ -3184,8 +3184,35 @@
             example: returned.body
         };
     }, rootId = null, vocabularyCache = {};
-    hierarchicalMappingChannel.subject("rules.generate").subscribe(function(_ref) {
-        var data = _ref.data, replySubject = _ref.replySubject, correspondences = data.correspondences, parentRuleId = data.parentRuleId;
+    hierarchicalMappingChannel.subject("rule.orderRule").subscribe(function(_ref) {
+        var data = _ref.data, replySubject = _ref.replySubject, parentId = data.parentId, fromPos = data.fromPos, toPos = data.toPos;
+        silkStore.request({
+            topic: "transform.task.rules.get",
+            data: (0, _extends3.default)({}, apiDetails)
+        }).map(function(returned) {
+            var rules = returned.body, searchId = parentId || rules.id;
+            _lodash2.default.isString(rootId) || (rootId = rules.id);
+            var swappedRule = findRule(_lodash2.default.cloneDeep(rules), searchId, !0, []), temp = swappedRule.rules.propertyRules[toPos];
+            swappedRule.rules.propertyRules[toPos] = swappedRule.rules.propertyRules[fromPos];
+            swappedRule.rules.propertyRules[fromPos] = temp;
+            silkStore.request({
+                topic: "transform.task.rule.put",
+                data: (0, _extends3.default)({}, apiDetails, {
+                    ruleId: parentId,
+                    payload: swappedRule
+                })
+            }).subscribe(function(xxx) {
+                hierarchicalMappingChannel.subject("reload").onNext(!0);
+                replySubject.onNext(xxx);
+                replySubject.onCompleted();
+            }, function(error) {
+                replySubject.onError(error);
+                replySubject.onCompleted();
+            });
+        }).multicast(replySubject).connect();
+    });
+    hierarchicalMappingChannel.subject("rules.generate").subscribe(function(_ref2) {
+        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentRuleId = data.parentRuleId;
         silkStore.request({
             topic: "transform.task.rule.generate",
             data: (0, _extends3.default)({}, apiDetails, {
@@ -3198,8 +3225,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("vocabularyInfo.get").subscribe(function(_ref2) {
-        var data = _ref2.data, replySubject = _ref2.replySubject, uri = data.uri, field = data.field, path = [ uri, field ];
+    hierarchicalMappingChannel.subject("vocabularyInfo.get").subscribe(function(_ref3) {
+        var data = _ref3.data, replySubject = _ref3.replySubject, uri = data.uri, field = data.field, path = [ uri, field ];
         if (_lodash2.default.has(vocabularyCache, path)) {
             replySubject.onNext({
                 info: _lodash2.default.get(vocabularyCache, path)
@@ -3220,8 +3247,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.suggestions").subscribe(function(_ref3) {
-        var data = _ref3.data, replySubject = _ref3.replySubject;
+    hierarchicalMappingChannel.subject("rule.suggestions").subscribe(function(_ref4) {
+        var data = _ref4.data, replySubject = _ref4.replySubject;
         silkStore.request({
             topic: "transform.task.rule.suggestions",
             data: (0, _extends3.default)({}, apiDetails, data)
@@ -3231,8 +3258,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.child.example").subscribe(function(_ref4) {
-        var data = _ref4.data, replySubject = _ref4.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id;
+    hierarchicalMappingChannel.subject("rule.child.example").subscribe(function(_ref5) {
+        var data = _ref5.data, replySubject = _ref5.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id;
         if (id) {
             var rule = "value" === ruleType ? prepareValueMappingPayload(rawRule) : prepareObjectMappingPayload(rawRule);
             silkStore.request({
@@ -3248,8 +3275,8 @@
             });
         }
     });
-    hierarchicalMappingChannel.subject("rule.example").subscribe(function(_ref5) {
-        var data = _ref5.data, replySubject = _ref5.replySubject, id = data.id;
+    hierarchicalMappingChannel.subject("rule.example").subscribe(function(_ref6) {
+        var data = _ref6.data, replySubject = _ref6.replySubject, id = data.id;
         id && silkStore.request({
             topic: "transform.task.rule.peak",
             data: (0, _extends3.default)({}, apiDetails, {
@@ -3261,8 +3288,8 @@
             replySubject.onCompleted();
         });
     });
-    hierarchicalMappingChannel.subject("hierarchy.get").subscribe(function(_ref6) {
-        var replySubject = _ref6.replySubject;
+    hierarchicalMappingChannel.subject("hierarchy.get").subscribe(function(_ref7) {
+        var replySubject = _ref7.replySubject;
         silkStore.request({
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
@@ -3274,8 +3301,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.getEditorHref").subscribe(function(_ref7) {
-        var data = _ref7.data, replySubject = _ref7.replySubject, ruleId = data.id;
+    hierarchicalMappingChannel.subject("rule.getEditorHref").subscribe(function(_ref8) {
+        var data = _ref8.data, replySubject = _ref8.replySubject, ruleId = data.id;
         if (ruleId) {
             var _apiDetails = apiDetails, transformTask = _apiDetails.transformTask, baseUrl = _apiDetails.baseUrl, project = _apiDetails.project;
             replySubject.onNext({
@@ -3286,8 +3313,8 @@
         });
         replySubject.onCompleted();
     });
-    hierarchicalMappingChannel.subject("rule.get").subscribe(function(_ref8) {
-        var data = _ref8.data, replySubject = _ref8.replySubject, id = data.id, isObjectMapping = data.isObjectMapping;
+    hierarchicalMappingChannel.subject("rule.get").subscribe(function(_ref9) {
+        var data = _ref9.data, replySubject = _ref9.replySubject, id = data.id, isObjectMapping = data.isObjectMapping;
         silkStore.request({
             topic: "transform.task.rules.get",
             data: (0, _extends3.default)({}, apiDetails)
@@ -3299,8 +3326,8 @@
             };
         }).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("autocomplete").subscribe(function(_ref9) {
-        var data = _ref9.data, replySubject = _ref9.replySubject, entity = data.entity, input = data.input, _data$ruleId = data.ruleId, ruleId = void 0 === _data$ruleId ? rootId : _data$ruleId, channel = "transform.task.rule.completions.";
+    hierarchicalMappingChannel.subject("autocomplete").subscribe(function(_ref10) {
+        var data = _ref10.data, replySubject = _ref10.replySubject, entity = data.entity, input = data.input, _data$ruleId = data.ruleId, ruleId = void 0 === _data$ruleId ? rootId : _data$ruleId, channel = "transform.task.rule.completions.";
         switch (entity) {
           case "propertyType":
             filterPropertyType(input, replySubject);
@@ -3344,20 +3371,20 @@
             })
         });
     };
-    hierarchicalMappingChannel.subject("rule.createValueMapping").subscribe(function(_ref10) {
-        var data = _ref10.data, replySubject = _ref10.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
+    hierarchicalMappingChannel.subject("rule.createValueMapping").subscribe(function(_ref11) {
+        var data = _ref11.data, replySubject = _ref11.replySubject, payload = prepareValueMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.createObjectMapping").subscribe(function(_ref11) {
-        var data = _ref11.data, replySubject = _ref11.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
+    hierarchicalMappingChannel.subject("rule.createObjectMapping").subscribe(function(_ref12) {
+        var data = _ref12.data, replySubject = _ref12.replySubject, payload = prepareObjectMappingPayload(data), parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, data.id, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref12) {
-        var data = _ref12.data, replySubject = _ref12.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
+    hierarchicalMappingChannel.subject("rule.createGeneratedMapping").subscribe(function(_ref13) {
+        var data = _ref13.data, replySubject = _ref13.replySubject, payload = data, parent = data.parentId ? data.parentId : rootId;
         editMappingRule(payload, !1, parent).multicast(replySubject).connect();
     });
-    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref13) {
-        var data = _ref13.data, replySubject = _ref13.replySubject, id = data.id;
+    hierarchicalMappingChannel.subject("rule.removeRule").subscribe(function(_ref14) {
+        var data = _ref14.data, replySubject = _ref14.replySubject, id = data.id;
         silkStore.request({
             topic: "transform.task.rule.delete",
             data: (0, _extends3.default)({}, apiDetails, {
@@ -29162,32 +29189,34 @@
                 askForDiscard: !1
             });
         },
-        handleMoveElement: function(id, pos, parentId, event) {
-            var _this2 = this;
-            this.setState({
-                loading: !0
-            });
-            event.stopPropagation();
-            _store2.default.request({
-                topic: "rule.orderRule",
-                data: {
-                    id: id,
-                    pos: pos,
-                    parentId: parentId
-                }
-            }).subscribe(function() {
-                _this2.setState({
-                    loading: !1
+        handleMoveElement: function(_ref2, event) {
+            var _this2 = this, toPos = _ref2.toPos, fromPos = _ref2.fromPos, parentId = _ref2.parentId, id = _ref2.id;
+            if (fromPos !== toPos) {
+                this.setState({
+                    loading: !0
                 });
-            }, function(err) {
-                _this2.setState({
-                    loading: !1
+                event.stopPropagation();
+                _store2.default.request({
+                    topic: "rule.orderRule",
+                    data: {
+                        toPos: toPos,
+                        fromPos: fromPos,
+                        parentId: parentId,
+                        id: id
+                    }
+                }).subscribe(function() {
+                    _this2.setState({
+                        loading: !1
+                    });
+                }, function() {
+                    _this2.setState({
+                        loading: !1
+                    });
                 });
-            });
+            }
         },
         render: function() {
-            var _this3 = this, _props = this.props, type = (_props.id, _props.type), parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, loading = (_props.pos, 
-            _props.count, !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null)), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            var _this3 = this, _props = this.props, id = _props.id, type = _props.type, parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, pos = _props.pos, count = _props.count, loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 title: "Discard changes?",
@@ -29248,7 +29277,38 @@
                 type: type,
                 parentId: parentId,
                 edit: !1
-            }))), reorderHandleButton = (this.state.expanded, !1);
+            }))), reorderHandleButton = !this.state.expanded && _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__ruleitem-reorderhandler"
+            }, _react2.default.createElement(_eccGuiElements.ContextMenu, {
+                iconName: "reorder",
+                align: "left",
+                valign: "top"
+            }, _react2.default.createElement(_eccGuiElements.MenuItem, {
+                onClick: this.handleMoveElement.bind(null, {
+                    parentId: parentId,
+                    fromPos: pos,
+                    toPos: 0,
+                    id: id
+                })
+            }, "Move to top"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+                onClick: this.handleMoveElement.bind(null, {
+                    parentId: parentId,
+                    fromPos: pos,
+                    toPos: Math.max(0, pos - 1)
+                })
+            }, "Move up"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+                onClick: this.handleMoveElement.bind(null, {
+                    parentId: parentId,
+                    fromPos: pos,
+                    toPos: Math.min(pos + 1, count - 1)
+                })
+            }, "Move down"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+                onClick: this.handleMoveElement.bind(null, {
+                    parentId: parentId,
+                    fromPos: pos,
+                    toPos: count - 1
+                })
+            }, "Move to bottom")));
             return _react2.default.createElement("li", {
                 className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem", {
                     "ecc-silk-mapping__ruleitem--object": "object" === type,
