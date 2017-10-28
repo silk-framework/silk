@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import java.net.URLEncoder
 import org.silkframework.entity._
 import scala.xml.{Node, Text}
 
@@ -45,13 +46,28 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   }
 
   /**
+    * Generates a URI for this node.
+    */
+  def generateUri(uriPattern: String): String = {
+    if (uriPattern.isEmpty) {
+      "urn:instance:" + node.label + nodeId
+    } else {
+      XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
+        val pattern = m.group(1)
+        val value = evaluatePath(Path.parse(pattern)).map(_.node.text).mkString("")
+        URLEncoder.encode(value, "UTF8")
+      })
+    }
+  }
+
+  /**
     * Collects all direct and indirect paths for this node.
     *
     * @param onlyLeafNodes Only return leaf nodes
     * @return Sequence of all found paths
     */
   def collectPaths(onlyLeafNodes: Boolean): Seq[Path] = {
-    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty)) yield {
+    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty) if pathOperators.size > 1) yield {
       Path(pathOperators.tail.toList)
     }
   }.distinct
@@ -73,12 +89,13 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     val attributes = node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
 
-    if(!onlyLeafNodes)
+    if(!onlyLeafNodes) {
       Seq(path) ++ attributesPaths ++ childPaths
-    else if (childPaths.isEmpty)
+    } else if (childPaths.isEmpty) {
       Seq(path) ++ attributesPaths
-    else
+    } else {
       attributesPaths ++ childPaths
+    }
   }
 
   /**
@@ -97,9 +114,23 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePathAsString(path: Path): Seq[String] = {
+  def evaluatePathAsString(path: Path, uriPattern: String): Seq[String] = {
     val xml = evaluatePath(path)
-    xml.map(_.node.text)
+    xml.map(_.formatNode(uriPattern))
+  }
+
+  /**
+    * Formats this node as String.
+    * For leaf nodes, the text inside the node is returned.
+    * For non-leaf nodes, a URI is generated.
+    */
+  private def formatNode(uriPattern: String): String = {
+    // Check if this is a leaf node
+    if(node.isInstanceOf[Text] || (node.child.size == 1 && node.child.head.isInstanceOf[Text])) {
+      node.text
+    } else {
+      generateUri(uriPattern)
+    }
   }
 
   private def evaluateOperators(ops: List[PathOperator]): Seq[XmlTraverser] = {
@@ -167,6 +198,8 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
 }
 
 object XmlTraverser {
+
+  private val uriRegex = "\\{([^\\}]+)\\}".r
 
   /**
     * Generates a ID for a given XML node that is unique inside the document.

@@ -28,10 +28,7 @@ const MappingsList = React.createClass({
 
     // template rendering
     render() {
-
-        const {
-            rules
-        } = this.props;
+        const {rules} = this.props;
 
         const listTitle = (
             <CardTitle>
@@ -41,26 +38,28 @@ const MappingsList = React.createClass({
             </CardTitle>
         );
 
-        const listItems = _.isEmpty(rules)
-            ? <CardContent>
-                  <Info vertSpacing border>
-                      No existing mapping rules.
-                  </Info>
-                  {/* TODO: we should provide options like adding rules or suggestions here,
+        const listItems = _.isEmpty(rules) ? (
+            <CardContent>
+                <Info vertSpacing border>
+                    No existing mapping rules.
+                </Info>
+                {/* TODO: we should provide options like adding rules or suggestions here,
                          even a help text would be a good support for the user.
                          */}
-              </CardContent>
-            : <ol className="mdl-list">
-                  {_.map(rules, (rule, idx) =>
-                      <MappingRule
-                          pos={idx}
-                          parentId={this.props.currentRuleId}
-                          count={rules.length}
-                          key={`MappingRule_${rule.id}`}
-                          {...rule}
-                      />
-                  )}
-              </ol>;
+            </CardContent>
+        ) : (
+            <ol className="mdl-list">
+                {_.map(rules, (rule, idx) => (
+                    <MappingRule
+                        pos={idx}
+                        parentId={this.props.currentRuleId}
+                        count={rules.length}
+                        key={`MappingRule_${rule.id}`}
+                        {...rule}
+                    />
+                ))}
+            </ol>
+        );
 
         const listActions = (
             <FloatingActionList
@@ -104,8 +103,7 @@ const MappingsList = React.createClass({
                 </Card>
             </div>
         );
-    }
-
+    },
 });
 
 export default MappingsList;

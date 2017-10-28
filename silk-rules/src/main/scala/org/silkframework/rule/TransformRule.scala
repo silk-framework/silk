@@ -294,7 +294,7 @@ case class ObjectMapping(id: Identifier = "mapping",
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}/$id"))
         }
       case None =>
         None
@@ -316,6 +316,10 @@ case class ObjectMapping(id: Identifier = "mapping",
   override def withChildren(newChildren: Seq[Operator]): Operator = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
+  }
+
+  def fillEmptyUriRule: ObjectMapping = {
+    copy(rules = rules.copy(uriRule = rules.uriRule.orElse(uriRule())))
   }
 
 }

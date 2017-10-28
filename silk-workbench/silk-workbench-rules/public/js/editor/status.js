@@ -17,7 +17,6 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/editor/edito
  * message: The message to be displayed
  */
 function updateStatus(messages) {
-
     var $tooltip = $('#error-tooltip');
 
     $tooltip.html('');

@@ -10,19 +10,19 @@ import scala.languageFeature.postfixOps
 
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
-  def xmlSource: DataSource
+  def xmlSource(uriPattern: String): DataSource
 
   val persons = XmlDoc("persons.xml")
 
   behavior of "XML Dataset"
 
   it should "read the root element, if the base path is empty." in {
-    (persons atPath "").tags shouldBe Seq("Persons")
+    (persons atPath "").uris shouldBe Seq("Persons")
   }
 
   it should "read the direct children, if they are referenced by a direct path" in {
-    (persons atPath "Person").tags shouldBe Seq("Person", "Person")
-    (persons atPath "/Person").tags shouldBe Seq("Person", "Person")
+    (persons atPath "Person").uris shouldBe Seq("Person", "Person")
+    (persons atPath "/Person").uris shouldBe Seq("Person", "Person")
   }
 
   it should "extract values of direct children" in {
@@ -70,6 +70,16 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     (persons atPath "Person/ID" valuesAt "#text") shouldBe Seq(Seq("1"), Seq("2"))
   }
 
+  it should "generate correct URIs for non-leaf nodes when the URI pattern is empty" in {
+    (persons withUriPattern "" atPath "Person" valuesAt "Properties/Property").head shouldBe
+    (persons withUriPattern "" atPath "Person/Properties/Property").uris
+  }
+
+  it should "generate correct URIs for non-leaf nodes when the URI pattern is defined" in {
+    (persons withUriPattern "http://example.org/Property{Key}" atPath "Person" valuesAt "Properties/Property") shouldBe
+      Seq(Seq("http://example.org/Property1", "http://example.org/Property2", "http://example.org/Property3"), Seq())
+  }
+
   it should "list all base paths as types" in {
     persons.types shouldBe
       Seq(
@@ -87,14 +97,16 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
         "/Person/Properties/Property/Value")
   }
 
-  it should "list all paths with leaf nodes of the root node" in {
+  it should "list all paths of the root node" in {
     (persons atPath "").subPaths shouldBe
-      Seq("/Person/ID", "/Person/Name", "/Person/Events/@count", "/Person/Events/Birth", "/Person/Events/Death", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
+    Seq("/Person", "/Person/ID", "/Person/Name", "/Person/Events", "/Person/Events/@count", "/Person/Events/Birth",
+      "/Person/Events/Death", "/Person/Properties", "/Person/Properties/Property", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
   }
 
-  it should "list all paths with leaf nodes, given a base path" in {
+  it should "list all paths, given a base path" in {
     (persons atPath "Person").subPaths shouldBe
-      Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
+      Seq("/ID", "/Name", "/Events", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties",
+        "/Properties/Property", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
   it should "respect the limit when reading entities" in {
@@ -106,11 +118,15 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   /**
     * References an XML document from the test resources.
     */
-  case class XmlDoc(name: String) {
+  case class XmlDoc(name: String, uriPattern: String = "{#tag}") {
 
     private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
 
-    private val source = xmlSource
+    private val source = xmlSource(uriPattern)
+
+    def withUriPattern(pattern: String): XmlDoc = {
+      copy(uriPattern = pattern)
+    }
 
     def atPath(basePath: String = ""): Entities = {
       Entities(source, basePath)
@@ -131,7 +147,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       copy(entityLimit = Some(maxCount))
     }
 
-    def tags: Seq[String] = {
+    def uris: Seq[String] = {
       retrieve(IndexedSeq.empty).map(_.uri)
     }
 

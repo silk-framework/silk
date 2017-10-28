@@ -81,7 +81,7 @@ const SuggestionsList = React.createClass({
     componentDidUpdate() {
         if (_.get(this, 'state.data', false)) {
             this.scrollIntoView({
-                topOffset: 75
+                topOffset: 75,
             });
         }
     },
@@ -186,22 +186,24 @@ const SuggestionsList = React.createClass({
     },
     // template rendering
     render() {
-        const suggestionsMenu = !_.isEmpty(this.state.error)
-            ? false
-            : <CardMenu>
-                  <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
-                      <MenuItem
-                          className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                          onClick={this.checkAll}>
-                          Select all
-                      </MenuItem>
-                      <MenuItem
-                          className="ecc-silk-mapping__ruleslistmenu__item-select-none"
-                          onClick={this.checkNone}>
-                          Select none
-                      </MenuItem>
-                  </ContextMenu>
-              </CardMenu>;
+        const suggestionsMenu = !_.isEmpty(this.state.error) ? (
+            false
+        ) : (
+            <CardMenu>
+                <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-all"
+                        onClick={this.checkAll}>
+                        Select all
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-select-none"
+                        onClick={this.checkNone}>
+                        Select none
+                    </MenuItem>
+                </ContextMenu>
+            </CardMenu>
+        );
 
         const suggestionsHeader = (
             <CardTitle>
@@ -219,7 +221,7 @@ const SuggestionsList = React.createClass({
         const suggestionsList = !_.isEmpty(this.state.error)
             ? false
             : _.map(this.state.data, (value, suggestedClass) =>
-                  _.map(value, (item, pos) =>
+                  _.map(value, (item, pos) => (
                       <SuggestionsRule
                           item={item}
                           pos={pos}
@@ -227,12 +229,12 @@ const SuggestionsList = React.createClass({
                           check={this.check}
                           checked={this.isChecked(suggestedClass, pos)}
                       />
-                  )
+                  ))
               );
 
         const errorsList = _.isEmpty(this.state.error)
             ? false
-            : _.map(this.state.error, err =>
+            : _.map(this.state.error, err => (
                   <li className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
                       <div className="mdl-list__item-primary-content ecc-silk-mapping__ruleitem-content">
                           <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline">
@@ -242,23 +244,25 @@ const SuggestionsList = React.createClass({
                               {err.rule.sourcePath}
                           </div>
                           <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline">
-                              <ErrorView {...err}/>
+                              <ErrorView {...err} />
                           </div>
                       </div>
                   </li>
-              );
+              ));
 
         const actions = (
             <CardActions fixed>
-                {_.isEmpty(this.state.error)
-                    ? <AffirmativeButton
-                          raised
-                          className="ecc-hm-suggestions-save"
-                          onClick={this.handleAddSuggestions}
-                          disabled={_.size(this.state.checked) === 0}>
-                          Save
-                      </AffirmativeButton>
-                    : false}
+                {_.isEmpty(this.state.error) ? (
+                    <AffirmativeButton
+                        raised
+                        className="ecc-hm-suggestions-save"
+                        onClick={this.handleAddSuggestions}
+                        disabled={_.size(this.state.checked) === 0}>
+                        Save
+                    </AffirmativeButton>
+                ) : (
+                    false
+                )}
 
                 <DismissiveButton
                     raised
@@ -270,14 +274,16 @@ const SuggestionsList = React.createClass({
         );
 
         const suggestionsEmptyInfo =
-            _.size(this.state.data) === 0
-                ? <CardContent>
-                      <Info vertSpacing border>
-                          No suggestions found for{' '}
-                          <ParentElement parent={this.props.parent} />.
-                      </Info>
-                  </CardContent>
-                : false;
+            _.size(this.state.data) === 0 ? (
+                <CardContent>
+                    <Info vertSpacing border>
+                        No suggestions found for{' '}
+                        <ParentElement parent={this.props.parent} />.
+                    </Info>
+                </CardContent>
+            ) : (
+                false
+            );
 
         if (this.state.loading) {
             return <Spinner />;

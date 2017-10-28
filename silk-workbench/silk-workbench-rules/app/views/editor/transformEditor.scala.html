@@ -61,7 +61,7 @@
       <div class="spacer"/>
     </li>
       <li>
-      <button id="button_reload_paths" class="mdl-button mdl-js-button mdl-button--icon" onclick="reloadPropertyPaths();">
+      <button id="button_reload_paths" class="mdl-button mdl-js-button mdl-button--icon" onclick="reloadRelativePropertyPaths();">
         <i class="material-icons">cached</i>
       </button>
       <div class="mdl-tooltip mdl-tooltip--large" for="button_reload_paths">
@@ -117,7 +117,7 @@
       <div id="paths">
         <div id="loading" style="width:230px;">loading ...</div>
         <script type="text/javascript">
-          getPropertyPaths('#paths');
+            getRelativePropertyPathsForRule(ruleIndex, '#paths');
         </script>
       </div>
 
