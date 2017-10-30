@@ -28055,7 +28055,7 @@
                 }
             }).subscribe(function(_ref4) {
                 var rule = _ref4.rule;
-                if (initialLoad && rule.id !== _this.props.currentRuleId) {
+                if (initialLoad && _this.props.currentRuleId && rule.id !== _this.props.currentRuleId) {
                     var toBeOpened = void 0;
                     toBeOpened = _lodash2.default.get(rule, "rules.uriRule.id") === _this.props.currentRuleId ? rule.id : _this.props.currentRuleId;
                     _store2.default.subject("rulesView.toggle").onNext({

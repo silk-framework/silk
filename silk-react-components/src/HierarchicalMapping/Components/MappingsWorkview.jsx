@@ -161,7 +161,7 @@ const MappingsWorkview = React.createClass({
             })
             .subscribe(
                 ({rule}) => {
-                    if (initialLoad && rule.id !== this.props.currentRuleId) {
+                    if (initialLoad && this.props.currentRuleId && rule.id !== this.props.currentRuleId) {
                         let toBeOpened;
 
                         // If the currentRuleId equals the uriRule's id, we want to expand the object mapping
