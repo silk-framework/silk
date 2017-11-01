@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import java.io.IOException
 import java.util.logging.{Level, Logger}
 
-import com.hp.hpl.jena.query.{QueryFactory, Syntax}
+import org.apache.jena.query.{QueryFactory, Syntax}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap

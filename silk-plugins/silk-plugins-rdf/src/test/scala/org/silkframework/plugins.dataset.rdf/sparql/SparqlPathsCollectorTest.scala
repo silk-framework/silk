@@ -16,8 +16,8 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
 
-import com.hp.hpl.jena.query.DatasetFactory
-import com.hp.hpl.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.query.DatasetFactory
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
@@ -73,7 +73,7 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers {
   }
 
   private def createEndpoint() = {
-    val dataset = DatasetFactory.createMem()
+    val dataset = DatasetFactory.createTxnMem()
     dataset.addNamedModel(graphDBpedia, loadData("test.nt"))
     dataset.addNamedModel(graphSchemaOrg, loadData("test2.nt"))
     new JenaDatasetEndpoint(dataset)
@@ -96,7 +96,7 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers {
  * Compares the performance of the different path collectors.
  */
 object SparqlPathsCollectorBenchmark {
-  implicit val logger = Logger.getLogger(getClass.getName)
+  implicit val logger: Logger = Logger.getLogger(getClass.getName)
 
   private val tests = {
     Test(

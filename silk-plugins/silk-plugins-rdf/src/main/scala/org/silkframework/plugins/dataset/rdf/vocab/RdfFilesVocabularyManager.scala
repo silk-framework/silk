@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import com.hp.hpl.jena.query.DatasetFactory
-import com.hp.hpl.jena.rdf.model.ModelFactory
+import org.apache.jena.query.DatasetFactory
+import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
@@ -29,7 +29,7 @@ case class RdfFilesVocabularyManager() extends VocabularyManager {
     inputStream.close()
 
     // Create vocabulary loader
-    val dataset = DatasetFactory.createMem()
+    val dataset = DatasetFactory.createTxnMem()
     dataset.addNamedModel(prefix + uri, model)
     val endpoint = new JenaDatasetEndpoint(dataset)
     val loader = new VocabularyLoader(endpoint)
