@@ -219,14 +219,18 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       attributes = new UnprefixedAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i), attributes)
     }
 
+    reader.next()
+
     // Collect child nodes
     var children = List[Node]()
     do {
-      reader.next()
       if(reader.isStartElement) {
         children ::= buildNode(reader)
-      } else if(reader.isCharacters) {
+      } else if(reader.isCharacters && !reader.isWhiteSpace) {
         children ::= Text(reader.getText)
+        reader.next()
+      } else {
+        reader.next()
       }
     } while(!reader.isEndElement)
 
