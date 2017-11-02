@@ -4,7 +4,7 @@
 
 import React from 'react';
 import _ from 'lodash';
-import className from 'classnames';
+
 import {
     Button,
     ContextMenu,
@@ -21,7 +21,7 @@ import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
 import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
-
+import className from 'classnames';
 const MappingRule = React.createClass({
     mixins: [UseMessageBus, Navigation],
 
@@ -130,7 +130,7 @@ const MappingRule = React.createClass({
         });
         event.stopPropagation();
         hierarchicalMappingChannel
-            .request({topic: 'rule.orderRule', data: {toPos, fromPos, parentId, id}})
+            .request({topic: 'rule.orderRule', data: {toPos, fromPos, parentId, id, reload: true}})
             .subscribe(
                 (/*data*/) => {
                     this.setState({
@@ -205,10 +205,6 @@ const MappingRule = React.createClass({
         );
 
         // TODO: enable real API structure
-        const errorInfo =
-            _.get(this.props, 'status[0].type', false) === 'error'
-                ? _.get(this.props, 'status[0].message', false)
-                : false;
 
         const shortView = [
             <div
@@ -326,18 +322,7 @@ const MappingRule = React.createClass({
                 : false;
 
         return (
-            <li
-                className={
-                    className(
-                        'ecc-silk-mapping__ruleitem',
-                        {
-                            'ecc-silk-mapping__ruleitem--object': type === 'object',
-                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
-                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
-                        }
-                    )
-                }
-            >
+            <div>
                 {discardView}
                 {loading}
                 <div className={
@@ -369,7 +354,7 @@ const MappingRule = React.createClass({
                     </div> :
                     false
                 }
-            </li>
+            </div>
         );
     },
 });

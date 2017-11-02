@@ -228,7 +228,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {parentId, fromPos, toPos} = data;
+            const {parentId, fromPos, toPos, reload} = data;
             silkStore
                 .request({
                     topic: 'transform.task.rules.get',
@@ -260,9 +260,11 @@ if (!__DEBUG__) {
                         })
                         .subscribe(
                             (response) => {
-                                hierarchicalMappingChannel
-                                    .subject('reload')
-                                    .onNext(true);
+                                if (reload) {
+                                    hierarchicalMappingChannel
+                                        .subject('reload')
+                                        .onNext(true);
+                                }
                                 replySubject.onNext(response)
                                 replySubject.onCompleted();
                             },
@@ -874,8 +876,10 @@ if (!__DEBUG__) {
         }
     };
 
-    const saveMockStore = () => {
-        hierarchicalMappingChannel.subject('reload').onNext(true);
+    const saveMockStore = (reload) => {
+        if (reload) {
+            hierarchicalMappingChannel.subject('reload').onNext(true);
+        }
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
@@ -1019,9 +1023,9 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {toPos, id} = data;
+            const {toPos, id, reload} = data;
             mockStore = orderRule(_.chain(mockStore).value(), id, toPos);
-            saveMockStore();
+            saveMockStore(reload);
             replySubject.onNext();
             replySubject.onCompleted();
         });
