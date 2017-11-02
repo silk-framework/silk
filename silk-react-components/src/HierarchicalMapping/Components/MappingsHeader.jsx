@@ -30,13 +30,13 @@ const MappingsHeader = React.createClass({
 
     // define property types
     propTypes: {
-        //currentRuleId: React.PropTypes.string, // selected rule id
+        // currentRuleId: React.PropTypes.string, // selected rule id
     },
 
     // initilize state
     getInitialState() {
         return {
-            showTreenavigation: true
+            showTreenavigation: true,
         };
     },
 
@@ -49,11 +49,9 @@ const MappingsHeader = React.createClass({
 
     handleToggleTreenavigation() {
         this.promoteToggleTreenavigation(!this.state.showTreenavigation);
-        this.setState(
-            {
-                showTreenavigation: !this.state.showTreenavigation
-            }
-        )
+        this.setState({
+            showTreenavigation: !this.state.showTreenavigation,
+        });
     },
 
     // template rendering
@@ -65,66 +63,82 @@ const MappingsHeader = React.createClass({
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
 
-        const navBack = _.has(parent, 'id') ?
+        const navBack = _.has(parent, 'id') ? (
             <div className="mdl-card__title-back">
                 <Button
                     iconName={'arrow_back'}
                     tooltip="Navigate back to parent"
-                    onClick={(event) => {
-                        this.handleNavigate(parent.id, this.props.rule.id, event);
+                    onClick={event => {
+                        this.handleNavigate(
+                            parent.id,
+                            this.props.rule.id,
+                            event
+                        );
                     }}
                 />
-            </div> : false;
+            </div>
+        ) : (
+            false
+        );
 
         const self = this;
 
-        const navBreadcrumbs = <BreadcrumbList>
-            {
-                (breadcrumbs.length > 0) ? breadcrumbs.map(
-                    function(crumb) {
-                        return (
-                            <BreadcrumbItem onClick={ (event) => {
-                                self.handleNavigate(crumb.id, self.props.rule.id, event);
-                            }} separationChar="/">
-                                <ParentStructure parent={crumb} />
-                            </BreadcrumbItem>
-                        );
-                    }
-                ) : false
-            }
-            <BreadcrumbItem>
-                <RuleTitle rule={_.get(this.props, 'rule', {})} />
-            </BreadcrumbItem>
-        </BreadcrumbList>;
+        const navBreadcrumbs = (
+            <BreadcrumbList>
+                {breadcrumbs.length > 0
+                    ? breadcrumbs.map(crumb => (
+                          <BreadcrumbItem
+                              onClick={event => {
+                                  self.handleNavigate(
+                                      crumb.id,
+                                      self.props.rule.id,
+                                      event
+                                  );
+                              }}
+                              separationChar="/">
+                              <ParentStructure parent={crumb} />
+                          </BreadcrumbItem>
+                      ))
+                    : false}
+                <BreadcrumbItem>
+                    <RuleTitle rule={_.get(this.props, 'rule', {})} />
+                </BreadcrumbItem>
+            </BreadcrumbList>
+        );
 
-        const navMenu = <CardMenu>
-            <ContextMenu className="ecc-silk-mapping__ruleslistmenu" iconName="tune">
-                <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
-                    onClick={this.handleToggleTreenavigation}
-                >
-                    {this.state.showTreenavigation ? 'Hide tree navigation' : 'Show tree navigation'}
-                </MenuItem>
-                <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-expand"
-                    onClick={() => {
-                        this.handleToggleRuleDetails({
-                            expanded: true,
-                        });
-                    }}>
-                    Expand all
-                </MenuItem>
-                <MenuItem
-                    className="ecc-silk-mapping__ruleslistmenu__item-reduce"
-                    onClick={() => {
-                        this.handleToggleRuleDetails({
-                            expanded: false,
-                        });
-                    }}>
-                    Reduce all
-                </MenuItem>
-            </ContextMenu>
-        </CardMenu>;
+        const navMenu = (
+            <CardMenu>
+                <ContextMenu
+                    className="ecc-silk-mapping__ruleslistmenu"
+                    iconName="tune">
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
+                        onClick={this.handleToggleTreenavigation}>
+                        {this.state.showTreenavigation
+                            ? 'Hide tree navigation'
+                            : 'Show tree navigation'}
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                        onClick={() => {
+                            this.handleToggleRuleDetails({
+                                expanded: true,
+                            });
+                        }}>
+                        Expand all
+                    </MenuItem>
+                    <MenuItem
+                        className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                        onClick={() => {
+                            this.handleToggleRuleDetails({
+                                expanded: false,
+                            });
+                        }}>
+                        Reduce all
+                    </MenuItem>
+                </ContextMenu>
+            </CardMenu>
+        );
 
         return (
             <header className="ecc-silk-mapping__navheader">

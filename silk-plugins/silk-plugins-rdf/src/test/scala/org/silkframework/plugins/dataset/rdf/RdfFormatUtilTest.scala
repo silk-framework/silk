@@ -91,6 +91,16 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
         s"""$S_P "5432554325432542235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
   }
 
+  it should "serialize triples with DateValueType" in {
+    format("2015-04-03", DateValueType) mustBe
+      s"""$S_P "2015-04-03"^^<http://www.w3.org/2001/XMLSchema#date> .$NL"""
+  }
+
+  it should "serialize triples with DateTimeValueType" in {
+    format("2002-05-30T09:00:00", DateTimeValueType) mustBe
+      s"""$S_P "2002-05-30T09:00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .$NL"""
+  }
+
   it should "serialize triples with AutoDetectValueType as Integer if the value is a whole number" in {
     format("1024", AutoDetectValueType) mustBe
       s"""$S_P "1024"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""

@@ -12,11 +12,7 @@ const Highlight = props => {
     }
 
     if (!_.isString(searchWord) || _.isEmpty(searchWord)) {
-        return (
-            <span>
-                {textToHighlight}
-            </span>
-        );
+        return <span>{textToHighlight}</span>;
     }
 
     return (
@@ -35,16 +31,12 @@ const AutoComplete = React.createClass({
         const {label, value, description, $userCreated} = option;
 
         if ($userCreated) {
-            return (
-                <strong className="Select-option__label">
-                    {label}
-                </strong>
-            );
+            return <strong className="Select-option__label">{label}</strong>;
         }
 
         // only show value entry if it is not same as label
-        const optionValue = (value === label) ?
-            (
+        const optionValue =
+            value === label ? (
                 false
             ) : (
                 <code key="autoCompleteValue" className="Select-option__value">

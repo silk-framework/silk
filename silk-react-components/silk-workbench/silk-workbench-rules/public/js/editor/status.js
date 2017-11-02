@@ -15,8 +15,7 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/editor/edito
  * message: The message to be displayed
  */
 function updateStatus(messages) {
-
-    const $tooltip =  $('#error-tooltip');
+    const $tooltip = $('#error-tooltip');
 
     $tooltip.html('');
     $tooltip.append(printMessages(messages));
@@ -73,16 +72,19 @@ function showPendingIcon() {
     $icons.css('display', 'block');
     const $pending = document.createElement('div');
     $pending.id = 'pending';
-    $pending.className = 'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active';
+    $pending.className =
+        'mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active';
     componentHandler.upgradeElement($pending);
-    $icons.append($pending)
+    $icons.append($pending);
 }
 
 function printMessages(array) {
     let result = '';
     for (let i = 0; i < array.length; i++) {
-        result += `<div class="msg">${i + 1}. ${encodeHtml(array[i].message)}</div>`;
-        if (array[i].id){
+        result += `<div class="msg">${i + 1}. ${encodeHtml(
+            array[i].message
+        )}</div>`;
+        if (array[i].id) {
             highlightElement(array[i].id, encodeHtml(array[i].message));
         }
     }

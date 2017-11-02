@@ -24,8 +24,7 @@ silk-react-components/silk-workbench/silk-workbench-rules/public/js/population.j
 */
 var helpWidth = 170;
 var contentWidth;
-var contentWidthCallback = function() {
-};
+var contentWidthCallback = function() {};
 // The currently open dialog
 var primary_dialog;
 var secondary_dialog;
@@ -36,14 +35,13 @@ let dialog;
 const startTime = new Date().getTime();
 let now = new Date().getTime();
 
-window.timeDump = function (str) {
+window.timeDump = function(str) {
     const temp = new Date().getTime();
     console.warn(str, temp - now, temp - startTime);
     now = temp;
 };
 
 $(function() {
-
     // Make sure that mdl components are registered the right way
     componentHandler.upgradeDom();
 
@@ -212,7 +210,7 @@ let jqueryDragActive = false;
 
 const originalMouseMove = jQuery.ui.mouse.prototype._mouseMove;
 jQuery.ui.mouse.prototype._mouseMove = function() {
-    if(jqueryDragActive) {
+    if (jqueryDragActive) {
         originalMouseMove.apply(this, arguments);
     }
 };
@@ -230,7 +228,10 @@ jQuery.ui.mouse.prototype._mouseUp = function() {
     jqueryDragActive = false;
 };
 
-jQuery.ui.mouse.prototype._mouseMove = _.throttle(jQuery.ui.mouse.prototype._mouseMove, 20);
+jQuery.ui.mouse.prototype._mouseMove = _.throttle(
+    jQuery.ui.mouse.prototype._mouseMove,
+    20
+);
 /**
  * This functions searches for all visible deferred mdl elements and upgrades them accordingly
  * @param $parent

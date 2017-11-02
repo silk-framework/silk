@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -54,7 +54,7 @@ case class TransformSpec(selection: DatasetSelection,
 
 
   /**
-    * Output schemata of all object rules in the tree.
+    * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
     new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
@@ -69,10 +69,9 @@ case class TransformSpec(selection: DatasetSelection,
     // Add rule schemata for this rule
     schemata :+= RuleSchemata.create(rule, selection, subPath)
 
-    // Add rule schemata of all child rules
-    val objectMappings = rule.rules.allRules.collect { case m: ObjectMapping => m }
-    for (objectMapping <- objectMappings) {
-      schemata ++= collectSchemata(objectMapping, subPath ++ objectMapping.sourcePath)
+    // Add rule schemata of all child object rules
+    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _) <- rule.rules.allRules) {
+      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
     }
 
     schemata

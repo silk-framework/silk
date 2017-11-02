@@ -1,3 +1,4 @@
+import org.silkframework.config.Prefixes
 import org.silkframework.workspace.activity.workflow.Workflow
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
@@ -45,7 +46,7 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
       Some(s"workflow/editor/$project/$task")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any): Seq[(String, String)] = {
+    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
       Seq()
     }
   }

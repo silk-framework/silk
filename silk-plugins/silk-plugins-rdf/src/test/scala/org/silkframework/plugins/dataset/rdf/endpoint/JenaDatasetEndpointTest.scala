@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import com.hp.hpl.jena.query.DatasetFactory
+import org.apache.jena.query.DatasetFactory
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -11,7 +11,7 @@ class JenaDatasetEndpointTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "JenaDatasetEndpoint"
 
   private def endpoint = {
-    val dataset = DatasetFactory.createMem()
+    val dataset = DatasetFactory.createTxnMem()
     new JenaDatasetEndpoint(dataset)
   }
 

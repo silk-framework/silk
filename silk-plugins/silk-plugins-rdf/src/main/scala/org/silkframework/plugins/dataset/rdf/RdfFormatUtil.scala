@@ -1,18 +1,16 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.ByteArrayOutputStream
-import java.net.URI
 
-import com.hp.hpl.jena.graph.{Node, NodeFactory, Triple}
-import com.hp.hpl.jena.rdf.model.{AnonId, ModelFactory}
-import com.hp.hpl.jena.vocabulary.XSD
+import org.apache.jena.graph.{Node, NodeFactory, Triple}
+import org.apache.jena.rdf.model.{AnonId, ModelFactory}
 import org.apache.jena.riot.RDFDataMgr
+import org.apache.jena.vocabulary.XSD
 import org.silkframework.entity._
-import org.silkframework.util.{StringUtils, Uri}
 import org.silkframework.util.StringUtils.DoubleLiteral
+import org.silkframework.util.{StringUtils, Uri}
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 /**
   * Created on 8/31/16.
@@ -80,10 +78,12 @@ object RdfFormatUtil {
         model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
       case LongValueType =>
         model.createTypedLiteral(lexicalValue, LONG_JENA_TYPE).asNode()
+      case DateValueType =>
+        model.createTypedLiteral(lexicalValue, DateValueType.xmlSchemaType(lexicalValue)).asNode()
       case DateTimeValueType =>
         model.createTypedLiteral(lexicalValue, DateTimeValueType.xmlSchemaType(lexicalValue)).asNode()
       case _ =>
-        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string $lexicalValue! Validation failed.")
+        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
   }
 

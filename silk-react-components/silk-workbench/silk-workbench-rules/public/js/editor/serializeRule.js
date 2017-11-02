@@ -9,7 +9,9 @@ function serializeLinkageRule() {
 
     // Add filter
     var filter = xml.ownerDocument.createElement('Filter');
-    var filterLimit = $('#linklimit').find(':selected').text();
+    var filterLimit = $('#linklimit')
+        .find(':selected')
+        .text();
     if (filterLimit !== 'unlimited') {
         filter.setAttribute('limit', filterLimit);
     }
@@ -34,7 +36,7 @@ function serializeTransformRule() {
     xml.setAttribute('name', $('#rulename').val());
 
     var targetUri = $('#targetproperty').val();
-    if(targetUri.trim().length > 0) {
+    if (targetUri.trim().length > 0) {
         var mappingTarget = xmlDoc.createElement('MappingTarget');
         mappingTarget.setAttribute('uri', targetUri);
         var valueType = xmlDoc.createElement('ValueType');
@@ -81,8 +83,12 @@ function serializeRule(tagName) {
  */
 function parseOperator(xmlDoc, elementId, connections) {
     var elementIdName = `#${elementId}`;
-    var elName = $(elementIdName).children('.name').text();
-    var elType = $(elementIdName).children('.type').text();
+    var elName = $(elementIdName)
+        .children('.name')
+        .text();
+    var elType = $(elementIdName)
+        .children('.type')
+        .text();
 
     // Create xml element
     var xml;

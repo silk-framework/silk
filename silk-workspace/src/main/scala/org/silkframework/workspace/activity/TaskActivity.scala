@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import java.lang.reflect.{ParameterizedType, Type}
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{Activity, HasValue}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.ProjectTask
@@ -44,7 +44,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def factory = currentFactory
 
-  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)
+  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
   def reset() = {
     currentControl.cancel()

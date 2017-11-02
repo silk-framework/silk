@@ -1,7 +1,6 @@
 
-import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.config.TaskSpec
 import plugins.WorkbenchPlugin
 import plugins.WorkbenchPlugin.TaskActions
 import controllers.workspace.routes.Assets
@@ -36,7 +35,7 @@ case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
       None
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(taskData: Any): Seq[(String, String)] = {
+    override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
       val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTask])
       params.toSeq
     }

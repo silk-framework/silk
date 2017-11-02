@@ -20,8 +20,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
-  private val uriRegex = "\\{([^\\}]+)\\}".r
-
   /**
     * Retrieves known types in this source.
     * Each path from the root corresponse to one type.
@@ -54,7 +52,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
-      collectPaths(reader, Path.empty, onlyLeafNodes = true).toIndexedSeq
+      collectPaths(reader, Path.empty, onlyLeafNodes = false).toIndexedSeq
 
     } finally {
       inputStream.close()
@@ -84,18 +82,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val node = buildNode(reader)
             val traverser = XmlTraverser(node)
 
-            val uri =
-              if (uriPattern.isEmpty) {
-                "urn:instance:" + entitySchema.typeUri + "/" + traverser.node.label + count
-              } else {
-                uriRegex.replaceAllIn(uriPattern, m => {
-                  val pattern = m.group(1)
-                  val value = traverser.evaluatePathAsString(Path.parse(pattern)).mkString("")
-                  URLEncoder.encode(value, "UTF8")
-                })
-              }
-
-            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath.path)
+            val uri = traverser.generateUri(uriPattern)
+            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
 
             f(new Entity(uri, values, entitySchema))
 

@@ -2,17 +2,23 @@ package org.silkframework.entity
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
+import org.silkframework.util.Uri
 
 class PathParserTest extends FlatSpec with Matchers {
+  behavior of "path parser"
 
-  private val prefixes = Prefixes(Map(
+  implicit private val prefixes: Prefixes = Prefixes(Map(
     "ex" -> "http://www.example.org/",
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#"))
+    "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
+    "pre1" -> "http://www.pre.cc/pre1/",
+    "pre2" -> "http://www.pre.cc/pre1/pre2/",
+    "pre3" -> "http://www.pre.cc/pre1/pre3#"
+  ))
 
   private val p = new PathParser(prefixes)
 
-  "PathParser" should " parse simple forward paths with prefixes" in {
+  it should " parse simple forward paths with prefixes" in {
     p.parse("?a/ex:prop") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
   }
 
@@ -24,13 +30,13 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse("?a\\ex:prop") should equal(Path(BackwardOperator("http://www.example.org/prop") :: Nil))
   }
 
-  "PathParser" should " parse paths with simplified syntax" in {
+  it should " parse paths with simplified syntax" in {
     p.parse("ex:prop") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
     p.parse("/ex:prop") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
     p.parse("\\ex:prop") should equal(Path(BackwardOperator("http://www.example.org/prop") :: Nil))
   }
 
-  "PathParser" should " parse empty paths" in {
+  it should " parse empty paths" in {
     p.parse("") should equal(Path(Nil))
   }
 
@@ -56,6 +62,20 @@ class PathParserTest extends FlatSpec with Matchers {
 
   it should "parse language filterss" in {
     p.parse( """?a/ex:prop[@lang = 'en']""") should equal(Path(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
+  }
+
+  it should "parse a path with conflicting prefixes with /" in {
+    val path = p.parse("/<http://www.pre.cc/pre1/pre2/test>")
+    path shouldBe Path(List(ForwardOperator(Uri("http://www.pre.cc/pre1/pre2/test"))))
+    path.serializeSimplified shouldBe "pre2:test"
+    path.serialize shouldBe "/pre2:test"
+  }
+
+  it should "parse a path with conflicting prefixes with #" in {
+    val path = p.parse("/<http://www.pre.cc/pre1/pre3#test>")
+    path shouldBe Path(List(ForwardOperator(Uri("http://www.pre.cc/pre1/pre3#test"))))
+    path.serializeSimplified shouldBe "pre3:test"
+    path.serialize shouldBe "/pre3:test"
   }
 }
 

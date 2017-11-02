@@ -17,11 +17,13 @@ import hierarchicalMappingChannel from '../../../store';
 import {newValueIsIRI, wasTouched} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
-import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT} from '../../../helpers';
+import {
+    MAPPING_RULE_TYPE_COMPLEX,
+    MAPPING_RULE_TYPE_DIRECT,
+} from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
-
     // define property types
     propTypes: {
         id: React.PropTypes.string,
@@ -41,7 +43,7 @@ const ValueMappingRuleForm = React.createClass({
             _.get(this.state, 'loading', false) === false
         ) {
             this.scrollIntoView({
-                topOffset: 75
+                topOffset: 75,
             });
         }
     },
@@ -179,7 +181,11 @@ const ValueMappingRuleForm = React.createClass({
             return <Spinner />;
         }
 
-        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
+        const errorMessage = error ? (
+            <ErrorView {...error.response.body} />
+        ) : (
+            false
+        );
 
         const allowConfirm = !_.isEmpty(this.state.targetProperty);
 
@@ -216,10 +222,15 @@ const ValueMappingRuleForm = React.createClass({
         const exampleView = !_.isEmpty(this.state.sourceProperty) ? (
             <ExampleView
                 id={this.props.parentId || 'root'}
-                key={this.state.sourceProperty.value || this.state.sourceProperty}
+                key={
+                    this.state.sourceProperty.value || this.state.sourceProperty
+                }
                 rawRule={this.state}
                 ruleType="value"
-            />) : false;
+            />
+        ) : (
+            false
+        );
 
         return (
             <div className="ecc-silk-mapping__ruleseditor">
