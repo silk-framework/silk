@@ -18823,14 +18823,14 @@
                 parent: this.props.parent,
                 parentId: this.props.parentId
             });
-            var uriPattern = !1, uriRuleType = _lodash2.default.get(this, "props.rules.uriRule.type", !1), uriPatternLabel = "URI Pattern", tooltipText = void 0, removeButton = !1;
+            var uriPattern = !1, uriRuleType = _lodash2.default.get(this, "props.rules.uriRule.type", !1), uriPatternLabel = "URI pattern", tooltipText = void 0, removeButton = !1;
             if (uriRuleType === _helpers.MAPPING_RULE_TYPE_URI) {
                 uriPattern = _react2.default.createElement("code", null, _lodash2.default.get(this, "props.rules.uriRule.pattern"));
                 tooltipText = "Convert URI pattern to URI formula";
             } else if (uriRuleType === _helpers.MAPPING_RULE_TYPE_COMPLEX_URI) {
                 var paths = this.getPaths(_lodash2.default.get(this.props, "rules.uriRule.operator", []), []), operators = this.getOperators(_lodash2.default.get(this.props, "rules.uriRule.operator", []), []);
                 uriPatternLabel = "URI formula";
-                uriPattern = _react2.default.createElement("span", null, "Uri uses ", paths.length, " value", " ", paths.length > 1 ? "paths" : "path", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, "operator ", operators.length > 1 ? "functions" : "function", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".");
+                uriPattern = _react2.default.createElement("span", null, "URI uses ", paths.length, " value", " ", paths.length > 1 ? "paths" : "path", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, "  operator ", operators.length > 1 ? "functions" : "function", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".");
                 tooltipText = "Edit URI formula";
                 removeButton = _react2.default.createElement(_eccGuiElements.Button, {
                     raised: !0,
@@ -29349,19 +29349,22 @@
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
-                    toPos: Math.max(0, pos - 1)
+                    toPos: Math.max(0, pos - 1),
+                    id: id
                 })
             }, "Move up"), _react2.default.createElement(_eccGuiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
-                    toPos: Math.min(pos + 1, count - 1)
+                    toPos: Math.min(pos + 1, count - 1),
+                    id: id
                 })
             }, "Move down"), _react2.default.createElement(_eccGuiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
-                    toPos: count - 1
+                    toPos: count - 1,
+                    id: id
                 })
             }, "Move to bottom")));
             return _react2.default.createElement("li", {
