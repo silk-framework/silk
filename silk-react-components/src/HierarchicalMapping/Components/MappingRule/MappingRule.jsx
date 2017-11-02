@@ -292,6 +292,7 @@ const MappingRule = React.createClass({
                                       parentId,
                                       fromPos: pos,
                                       toPos: Math.max(0, pos - 1),
+                                      id,
                                   }
                               )}>
                               Move up
@@ -303,6 +304,7 @@ const MappingRule = React.createClass({
                                       parentId,
                                       fromPos: pos,
                                       toPos: Math.min(pos + 1, count - 1),
+                                      id,
                                   }
                               )}>
                               Move down
@@ -314,6 +316,7 @@ const MappingRule = React.createClass({
                                       parentId,
                                       fromPos: pos,
                                       toPos: count - 1,
+                                      id,
                                   }
                               )}>
                               Move to bottom
