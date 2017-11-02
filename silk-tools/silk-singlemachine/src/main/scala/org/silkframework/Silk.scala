@@ -18,17 +18,16 @@ import java.io.{File, FileInputStream, OutputStreamWriter}
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
-import org.apache.log4j.{ConsoleAppender, PatternLayout}
 import org.silkframework.config._
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.resource.{FallbackResourceManager, FileResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
-import org.silkframework.workspace.resources.{FileRepository, InMemoryResourceRepository}
+import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
@@ -45,16 +44,16 @@ object Silk {
   /**
    * The default number of threads to be used for matching.
    */
-  val DefaultThreads = max(8, Runtime.getRuntime.availableProcessors())
+  val DefaultThreads: Int = max(8, Runtime.getRuntime.availableProcessors())
 
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   // Initialize Log4j
-  val ca = new ConsoleAppender()
-  ca.setWriter(new OutputStreamWriter(System.out))
-  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
-  ca.setThreshold(org.apache.log4j.Level.WARN)
-  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
+//  val ca = new ConsoleAppender()
+//  ca.setWriter(new OutputStreamWriter(System.out))
+//  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
+//  ca.setThreshold(org.apache.log4j.Level.WARN)
+//  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
 
   /**
    * Executes Silk.
@@ -64,7 +63,7 @@ object Silk {
    *  - 'threads' (optional): The number of threads to be be used for matching.
    *  - 'reload' (optional): Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  def execute() {
+  def execute(): Unit = {
     System.getProperty("logQueries") match {
       case BooleanLiteral(b) if b =>
         Logger.getLogger("org.silkframework.plugins.dataset.rdf").setLevel(Level.FINE)
@@ -111,7 +110,7 @@ object Silk {
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
-    implicit val readContext = ReadContext(new FileResourceManager(configFile.getAbsoluteFile.getParentFile))
+    implicit val readContext: ReadContext = ReadContext(new FileResourceManager(configFile.getAbsoluteFile.getParentFile))
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }
