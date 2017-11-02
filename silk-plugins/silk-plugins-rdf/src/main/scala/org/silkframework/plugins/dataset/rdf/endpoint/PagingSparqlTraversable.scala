@@ -38,10 +38,15 @@ object PagingSparqlTraversable {
 
     private var lastQueryTime = 0L
 
+    private val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)
-      params.graph foreach { graphURI =>
-        parsedQuery.addGraphURI(graphURI)
+      // Don't set graph if the query is already containing a GRAPH pattern (not easily possible to check with parsed query)
+      if(graphPatternRegex.findFirstIn(query).isEmpty) {
+        params.graph foreach { graphURI =>
+          parsedQuery.addGraphURI(graphURI)
+        }
       }
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
         val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
