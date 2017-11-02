@@ -14115,7 +14115,7 @@
                     }, _react2.default.createElement("td", {
                         key: "path",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__path"
-                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, "sourcePath")), _react2.default.createElement("td", {
+                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, sourcePath)), _react2.default.createElement("td", {
                         key: "value",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, _lodash2.default.map(result.sourceValues[i], function(value, valueIndex) {
@@ -28082,7 +28082,7 @@
                 }
             }).subscribe(function(_ref4) {
                 var rule = _ref4.rule;
-                if (initialLoad && rule.id !== _this.props.currentRuleId) {
+                if (initialLoad && _this.props.currentRuleId && rule.id !== _this.props.currentRuleId) {
                     var toBeOpened = void 0;
                     toBeOpened = _lodash2.default.get(rule, "rules.uriRule.id") === _this.props.currentRuleId ? rule.id : _this.props.currentRuleId;
                     _store2.default.subject("rulesView.toggle").onNext({
