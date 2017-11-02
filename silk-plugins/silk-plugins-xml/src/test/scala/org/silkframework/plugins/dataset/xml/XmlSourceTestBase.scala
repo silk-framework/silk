@@ -97,14 +97,16 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
         "/Person/Properties/Property/Value")
   }
 
-  it should "list all paths with leaf nodes of the root node" in {
+  it should "list all paths of the root node" in {
     (persons atPath "").subPaths shouldBe
-      Seq("/Person/ID", "/Person/Name", "/Person/Events/@count", "/Person/Events/Birth", "/Person/Events/Death", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
+    Seq("/Person", "/Person/ID", "/Person/Name", "/Person/Events", "/Person/Events/@count", "/Person/Events/Birth",
+      "/Person/Events/Death", "/Person/Properties", "/Person/Properties/Property", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
   }
 
-  it should "list all paths with leaf nodes, given a base path" in {
+  it should "list all paths, given a base path" in {
     (persons atPath "Person").subPaths shouldBe
-      Seq("/ID", "/Name", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties/Property/Key", "/Properties/Property/Value")
+      Seq("/ID", "/Name", "/Events", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties",
+        "/Properties/Property", "/Properties/Property/Key", "/Properties/Property/Value")
   }
 
   it should "respect the limit when reading entities" in {

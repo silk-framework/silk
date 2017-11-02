@@ -56,4 +56,19 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     result.size mustBe 3
     result.map(_.values) mustBe Seq(IndexedSeq(Seq("123")), IndexedSeq(Seq("456")), IndexedSeq(Seq("789")))
   }
+
+  it should "return all paths including intermediate paths for retrieve paths" in {
+    val paths = jsonSource.retrievePaths(Uri(""))
+    paths.size mustBe 9
+    paths must contain allOf(Path.parse("/persons"), Path.parse("/persons/phoneNumbers"))
+  }
+
+  it should "return valid URIs for resource paths" in {
+    val result = jsonSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons").asStringTypedPath)))
+    val uris = result.flatMap(_.values.flatten).toSeq
+    for(uri <- uris) {
+      assert(Uri(uri).isValidUri, s"URI $uri was not valid!")
+    }
+    uris.distinct.size mustBe uris.size
+  }
 }

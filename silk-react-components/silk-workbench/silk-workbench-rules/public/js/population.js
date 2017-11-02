@@ -31,7 +31,9 @@ function initTrees() {
     $('.details-tree').treeview();
 
     // fix '+' and '-' icons:
-    $('li.expandable').removeClass('expandable').addClass('collapsable');
+    $('li.expandable')
+        .removeClass('expandable')
+        .addClass('collapsable');
     $('li.lastExpandable')
         .removeClass('lastExpandable')
         .addClass('lastCollapsable');
@@ -107,7 +109,9 @@ $(function() {
     $('#selectLinks').buttonset();
 
     $(document).on('click', '.individual-header', function(e) {
-        var link_id = $(this).parent().attr('id');
+        var link_id = $(this)
+            .parent()
+            .attr('id');
         if ($(e.target).is('a, img')) return;
         toggleLinkDetails(link_id);
     });

@@ -21,7 +21,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
-    for (path <- XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }
@@ -32,7 +32,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     if (xml.isEmpty) {
       throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
     } else {
-      xml.head.collectPaths(onlyLeafNodes = true).toIndexedSeq
+      xml.head.collectPaths(onlyLeafNodes = false).toIndexedSeq
     }
   }
 

@@ -174,7 +174,9 @@ function initEditor(canvasId = 'droppable') {
             clone.attr('id', boxId);
 
             // Set operator name to current id
-            $(`#${boxId}`).find(`.handler label`).text(boxId);
+            $(`#${boxId}`)
+                .find(`.handler label`)
+                .text(boxId);
 
             addEndpoints(boxId, draggedClass);
 
@@ -225,8 +227,13 @@ function initEditor(canvasId = 'droppable') {
     $(document).on('click', '.label', function() {
         var current_label = $(this).html();
         var input = `<input class="label-change" type="text" value="${current_label}" />`;
-        $(this).html(input).addClass('label-active').removeClass('label');
-        $(this).children().focus();
+        $(this)
+            .html(input)
+            .addClass('label-active')
+            .removeClass('label');
+        $(this)
+            .children()
+            .focus();
     });
 
     $(document).on('blur', '.label-change', function() {
@@ -238,29 +245,42 @@ function initEditor(canvasId = 'droppable') {
             .removeClass('label-active');
     });
 
-    $(
-        document
-    ).on(
+    $(document).on(
         'click',
         "div.sourcePath > h5 > div[class!='active'], div.targetPath > h5 > div[class!='active']",
         function() {
             var thisPath = $(this).text();
-            if (!thisPath) thisPath = $(this).children().val();
+            if (!thisPath)
+                thisPath = $(this)
+                    .children()
+                    .val();
             if (thisPath !== undefined) thisPath = encodeHtml(thisPath);
             $(this).addClass('active');
             $(this).html(
                 `<input class="new-path" type="text" value="${thisPath}" />`
             );
-            $(this).parent().css('height', '19px');
-            $(this).children().focus();
+            $(this)
+                .parent()
+                .css('height', '19px');
+            $(this)
+                .children()
+                .focus();
         }
     );
 
     $(document).on('blur', '.new-path', function() {
         var newPath = $(this).val();
         if (newPath !== undefined) newPath = encodeHtml(newPath);
-        $(this).parent().parent().css('height', '15px');
-        $(this).parent().parent().parent().children('.name').html(newPath);
+        $(this)
+            .parent()
+            .parent()
+            .css('height', '15px');
+        $(this)
+            .parent()
+            .parent()
+            .parent()
+            .children('.name')
+            .html(newPath);
         $(this)
             .parent()
             .removeClass('active')
@@ -336,7 +356,9 @@ function generateNewElementId(currentId) {
 }
 
 function getCurrentElementName(elId) {
-    return $(`#${elId}`).find(`.handler label`).text();
+    return $(`#${elId}`)
+        .find(`.handler label`)
+        .text();
 }
 
 function validateLinkSpec() {
@@ -485,7 +507,9 @@ function highlightElements(messages) {
 function highlightElement(elId, message) {
     $('.handler label').each(function() {
         if ($(this).text() === elId) {
-            var elementToHighlight = $(this).parent().parent();
+            var elementToHighlight = $(this)
+                .parent()
+                .parent();
             elementToHighlight.addClass('editor-highlighted');
             var highlightId = elementToHighlight.attr('id');
             var tooltip = $(`#${highlightId}_tooltip`);
@@ -742,16 +766,22 @@ function getPropertyPaths(targetElement, groupPaths) {
 function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
     $.ajax({
         type: 'get',
-        url: editorUrl + '/rule' + ruleId + '/widgets/paths',
-        data: { groupPaths: groupPaths },
+        url: `${editorUrl}/rule${ruleId}/widgets/paths`,
+        data: {groupPaths},
         complete: function complete(response, status) {
             $(targetElement).html(response.responseText);
             if (status === 'error') {
-                setTimeout(getRelativePropertyPathsForRule, 2000, ruleId, targetElement, groupPaths);
+                setTimeout(
+                    getRelativePropertyPathsForRule,
+                    2000,
+                    ruleId,
+                    targetElement,
+                    groupPaths
+                );
             } else {
                 updateWindowSize();
             }
-        }
+        },
     });
 }
 
@@ -760,7 +790,7 @@ function reloadPropertyPaths() {
     reloadPropertyPathsCache(function() {
         getPropertyPaths('#paths');
         updateScore();
-    })
+    });
 }
 
 // Reloads the paths cache and renders absolute path widget
@@ -768,11 +798,13 @@ function reloadRelativePropertyPaths() {
     reloadPropertyPathsCache(function() {
         getRelativePropertyPathsForRule(ruleIndex, '#paths');
         updateScore();
-    })
+    });
 }
 
 function reloadPropertyPathsCache(callback) {
-    var answer = confirm('Reloading the cache may take a long time. Do you want to proceed?');
+    var answer = confirm(
+        'Reloading the cache may take a long time. Do you want to proceed?'
+    );
     if (answer) {
         reloadCache(callback);
     }
@@ -781,11 +813,11 @@ function reloadPropertyPathsCache(callback) {
 function reloadCache(callback) {
     $.ajax({
         type: 'POST',
-        url: apiUrl + '/reloadCache',
+        url: `${apiUrl}/reloadCache`,
         dataType: 'xml',
         success: function success() {
             callback();
-        }
+        },
     });
 }
 

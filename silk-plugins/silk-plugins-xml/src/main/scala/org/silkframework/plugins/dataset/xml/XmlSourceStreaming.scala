@@ -52,7 +52,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
-      collectPaths(reader, Path.empty, onlyLeafNodes = true).toIndexedSeq
+      collectPaths(reader, Path.empty, onlyLeafNodes = false).toIndexedSeq
 
     } finally {
       inputStream.close()
