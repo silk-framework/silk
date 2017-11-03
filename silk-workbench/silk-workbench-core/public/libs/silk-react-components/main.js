@@ -30510,6 +30510,11 @@
         propTypes: {
             rules: _react2.default.PropTypes.array.isRequired
         },
+        getInitialState: function() {
+            return {
+                items: []
+            };
+        },
         getDefaultProps: function() {
             return {
                 rules: []

@@ -22,7 +22,11 @@ const MappingsList = React.createClass({
     propTypes: {
         rules: React.PropTypes.array.isRequired,
     },
-
+    getInitialState() {
+        return {
+            items: [],
+        }
+    },
     getDefaultProps() {
         return {
             rules: [],
