@@ -33,7 +33,7 @@ ul.ecc-hierarchical-mapping-error-list {
   list-style-type: none;
 }
 // it looks weird if you select the element using tabs cause the invisible menu includes the border
-:focus {
+*::focus {
   outline: none;
 }
 
