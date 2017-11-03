@@ -2,6 +2,7 @@
  An individual Mapping Rule Line
  */
 
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import React from 'react';
 import _ from 'lodash';
 
@@ -39,6 +40,8 @@ const MappingRule = React.createClass({
         parentId: React.PropTypes.string,
         pos: React.PropTypes.number.isRequired,
         count: React.PropTypes.number.isRequired,
+        // provided,
+        // snapshot,
     },
 
     // initilize state
@@ -146,6 +149,22 @@ const MappingRule = React.createClass({
     },
     // template rendering
     render() {
+
+        const getItemStyle = (draggableStyle, isDragging) => {
+            console.warn(draggableStyle);
+
+            return {
+                // some basic styles to make the items look a bit nicer
+                userSelect: this.state.expanded ? 'inherit' : 'none',
+                background: isDragging ? 'white' : 'inherit',
+                boxShadow: isDragging ? "0px 3px 4px silver" : "inherit",
+                opacity: isDragging ? '1' : '1',
+                zIndex: isDragging ? '1' : 'inherit',
+                // styles we need to apply on draggables
+                ...draggableStyle,
+            };
+        }
+
         const {
             id,
             type,
@@ -156,7 +175,9 @@ const MappingRule = React.createClass({
             rules,
             pos,
             count,
+            errorInfo,
         } = this.props;
+
 
         const loading = this.state.loading ? <Spinner /> : false;
         const discardView = this.state.askForDiscard
@@ -321,8 +342,20 @@ const MappingRule = React.createClass({
                   </div>
                 : false;
 
-        return (
-            <div>
+        const rule = (
+            <li
+                className={
+                    className(
+                        'ecc-silk-mapping__ruleitem',
+                        {
+                            'ecc-silk-mapping__ruleitem--object': type === 'object',
+                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
+                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                        }
+                    )
+                }
+            >
+                <div>
                 {discardView}
                 {loading}
                 <div className={
@@ -355,7 +388,26 @@ const MappingRule = React.createClass({
                     false
                 }
             </div>
+            </li>
         );
+
+        return <Draggable isDragDisabled={this.state.expanded} style={{width: '15'}} key={id} draggableId={id}>
+                {(provided, snapshot) => (
+                    <div className={'beautiful-selected'}>
+                        <div
+                            className={'beautiful-selected'}
+                            ref={provided.innerRef}
+                            style={getItemStyle(
+                                provided.draggableStyle,
+                                snapshot.isDragging
+                            )}
+                            {...provided.dragHandleProps}
+                        >{rule}</div>
+                        {provided.placeholder}
+                    </div>
+                )}
+        </Draggable>
+
     },
 });
 

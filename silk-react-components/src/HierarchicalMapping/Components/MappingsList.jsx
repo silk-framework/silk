@@ -12,17 +12,19 @@ import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import className from 'classnames';
 import hierarchicalMappingChannel from '../store';
 
 const MappingsList = React.createClass({
     mixins: [Navigation],
-
     // define property types
     propTypes: {
         rules: React.PropTypes.array.isRequired,
     },
-
+    getInitialState() {
+        return {
+            items: this.getItems(this.props.rules),
+        }
+    },
     getDefaultProps() {
         return {
             rules: [],
@@ -64,45 +66,32 @@ const MappingsList = React.createClass({
             items
         });
     },
+    getItems(rules) {
+        return _.map(rules, (rule, i) => ({
+            id: i,
+            key: rule.id,
+            props: {
+                pos: i,
+                parentId: this.props.currentRuleId,
+                count:rules.length,
+                key: `MappingRule_${rule.id}`,
+                ...rule
+            },
+            errorInfo: _.get(rule, 'status[0].type', false) === 'error'
+                ? _.get(rule, 'status[0].message', false)
+                : false,
+        }));
+    },
+    onDragStart(params) {
+        console.warn(params);
+    },
     componentWillReceiveProps(nextProps) {
 
         if (_.isEqual(this.props, nextProps))
             return;
 
-        const items = _.map(nextProps.rules, (rule, i) => {
-
-            const errorInfo =
-                _.get(rule, 'status[0].type', false) === 'error'
-                    ? _.get(rule, 'status[0].message', false)
-                    : false;
-
-            return {
-                id: i,
-                key: rule.id,
-                content: <li
-                    className={
-                        className(
-                            'ecc-silk-mapping__ruleitem',
-                            {
-                                'ecc-silk-mapping__ruleitem--object': rule.type === 'object',
-                                'ecc-silk-mapping__ruleitem--literal': rule.type !== 'object',
-                                'ecc-silk-mapping__ruleitem--defect': errorInfo,
-                            }
-                        )
-                    }
-                >
-                    <MappingRule
-                    pos={i}
-                    parentId={this.props.currentRuleId}
-                    count={nextProps.rules.length}
-                    key={`MappingRule_${rule.id}`}
-                    {...rule}
-                    /></li>,
-            }
-        });
-
         this.setState ({
-            items
+            items: this.getItems(nextProps.rules),
         });
     },
     shouldComponentUpdate(nextProps, nextState) {
@@ -117,16 +106,7 @@ const MappingsList = React.createClass({
     },
     // template rendering
     render() {
-        const getItemStyle = (draggableStyle, isDragging) => ({
-            // some basic styles to make the items look a bit nicer
-            userSelect: 'none',
-            background: isDragging ? 'white' : 'inherit',
-            boxShadow: isDragging ? "0px 3px 4px silver" : "inherit",
-            opacity: isDragging ? '1' : '1',
-            zIndex: isDragging ? '1' : 'inherit',
-            // styles we need to apply on draggables
-            ...draggableStyle,
-        });
+
 
 
 
@@ -140,6 +120,15 @@ const MappingsList = React.createClass({
             </CardTitle>
         );
 
+        const listItem = (index, item, provided, snapshot) => (
+            <MappingRule
+                {...item.props}
+                provided
+                snapshot
+            />
+
+            );
+
         const listItems = _.isEmpty(rules) ? (
             <CardContent>
                 <Info vertSpacing border>
@@ -151,32 +140,17 @@ const MappingsList = React.createClass({
             </CardContent>
         ) : (
             <div>
-                    <DragDropContext onDragEnd={this.onDragEnd}>
+
+                <DragDropContext onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}>
                     <Droppable droppableId="droppable">
                         {(provided, snapshot) => (
                             <div
                                 ref={provided.innerRef}
                             >
                                 <ol className="mdl-list">
-                                    {this.state.items.map(item => (
-                                        <Draggable key={item.id} draggableId={item.id}>
-                                            {(provided, snapshot) => (
-                                                <div>
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        style={getItemStyle(
-                                                            provided.draggableStyle,
-                                                            snapshot.isDragging
-                                                        )}
-                                                        {...provided.dragHandleProps}
-                                                    >
-                                                        {item.content}
-                                                    </div>
-                                                    {provided.placeholder}
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
+                                    {_.map(this.state.items, (item, index) => {
+                                        return listItem(index, item, provided, snapshot);
+                                    })}
                                     {provided.placeholder}
                                 </ol>
                             </div>
