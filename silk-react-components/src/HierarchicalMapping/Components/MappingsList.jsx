@@ -82,8 +82,8 @@ const MappingsList = React.createClass({
                 : false,
         }));
     },
-    onDragStart(params) {
-        console.warn(params);
+    onDragStart(result) {
+
     },
     componentWillReceiveProps(nextProps) {
 

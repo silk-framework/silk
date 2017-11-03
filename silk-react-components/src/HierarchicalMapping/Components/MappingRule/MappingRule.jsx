@@ -151,8 +151,6 @@ const MappingRule = React.createClass({
     render() {
 
         const getItemStyle = (draggableStyle, isDragging) => {
-            console.warn(draggableStyle);
-
             return {
                 // some basic styles to make the items look a bit nicer
                 userSelect: this.state.expanded ? 'inherit' : 'none',
