@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import java.io.IOException
 import java.util.logging.{Level, Logger}
 
-import com.hp.hpl.jena.query.{QueryFactory, Syntax}
+import org.apache.jena.query.{QueryFactory, Syntax}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap
@@ -38,10 +38,15 @@ object PagingSparqlTraversable {
 
     private var lastQueryTime = 0L
 
+    private val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)
-      params.graph foreach { graphURI =>
-        parsedQuery.addGraphURI(graphURI)
+      // Don't set graph if the query is already containing a GRAPH pattern (not easily possible to check with parsed query)
+      if(graphPatternRegex.findFirstIn(query).isEmpty) {
+        params.graph foreach { graphURI =>
+          parsedQuery.addGraphURI(graphURI)
+        }
       }
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
         val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))

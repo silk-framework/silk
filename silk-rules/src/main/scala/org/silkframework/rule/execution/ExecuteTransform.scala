@@ -3,10 +3,10 @@ package org.silkframework.rule.execution
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Executes a set of transformation rules.
@@ -32,19 +32,20 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       output.clear()
     }
 
-    transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
+    for(ruleSchemata <- transform.ruleSchemata) {
+      transformEntities(ruleSchemata, context)
+    }
   }
 
-  private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema,
-                                context: ActivityContext[TransformReport]): Unit = {
+  private def transformEntities(rule: RuleSchemata, context: ActivityContext[TransformReport]): Unit = {
     try {
       for (output <- outputs) {
-        output.open(outputSchema.typeUri, outputSchema.typedPaths.map(_.property.get))
+        output.open(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
       }
 
-      val entities = input.retrieve(inputSchema)
+      val entities = input.retrieve(rule.inputSchema)
 
-      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+      val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
       for (entity <- transformedEntities) {
         for (output <- outputs) {
           output.writeEntity(entity.uri, entity.values)
@@ -58,24 +59,6 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
       for (output <- outputs) {
         output.close()
       }
-    }
-
-    for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
-      val childInputSchema =
-        EntitySchema(
-          typeUri = inputSchema.typeUri,
-          typedPaths = childRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
-          subPath = relativePath
-        )
-      val childOutputSchema =
-        EntitySchema(
-          typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
-          typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
-        )
-
-      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
-
-      transformEntities(childInputSchema, updatedChildRules, childOutputSchema, context)
     }
   }
 

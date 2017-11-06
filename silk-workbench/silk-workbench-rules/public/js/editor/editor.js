@@ -687,21 +687,58 @@ function getPropertyPaths(targetElement, groupPaths) {
     });
 }
 
+/**
+ * Replaces targetElement with the list of paths.
+ * @targetElement jQuery selector to define the target element
+ * @groupPath boolean - true if we want the grouped list, false if we want an ungrouped list (for the keyword search
+ *     results)
+ */
+function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
+    $.ajax({
+        type: 'get',
+        url: editorUrl + '/rule' + ruleId + '/widgets/paths',
+        data: { groupPaths: groupPaths },
+        complete: function complete(response, status) {
+            $(targetElement).html(response.responseText);
+            if (status === 'error') {
+                setTimeout(getRelativePropertyPathsForRule, 2000, ruleId, targetElement, groupPaths);
+            } else {
+                updateWindowSize();
+            }
+        }
+    });
+}
+
+// Reloads the paths cache and renders absolute path widget
 function reloadPropertyPaths() {
+    reloadPropertyPathsCache(function () {
+        getPropertyPaths('#paths');
+        updateScore();
+    });
+}
+
+// Reloads the paths cache and renders absolute path widget
+function reloadRelativePropertyPaths() {
+    reloadPropertyPathsCache(function () {
+        getRelativePropertyPathsForRule(ruleIndex, '#paths');
+        updateScore();
+    });
+}
+
+function reloadPropertyPathsCache(callback) {
     var answer = confirm('Reloading the cache may take a long time. Do you want to proceed?');
     if (answer) {
-        reloadCache();
+        reloadCache(callback);
     }
 }
 
-function reloadCache() {
+function reloadCache(callback) {
     $.ajax({
         type: 'POST',
         url: apiUrl + '/reloadCache',
         dataType: 'xml',
         success: function success() {
-            getPropertyPaths('#paths');
-            updateScore();
+            callback();
         }
     });
 }

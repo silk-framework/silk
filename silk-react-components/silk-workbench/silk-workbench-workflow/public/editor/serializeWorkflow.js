@@ -24,12 +24,16 @@ function serializeWorkflow() {
     // minPosition will be used to align the minimum x and y values to 0
     const minPosition = minPositionAllOperators();
     // Serialize all operators and datasets
-    $('#editorContent').find('.operator').each(function() {
-        serializeWorkflowOperator(this, xml, 'Operator', minPosition);
-    });
-    $('#editorContent').find('.dataset').each(function() {
-        serializeWorkflowOperator(this, xml, 'Dataset', minPosition);
-    });
+    $('#editorContent')
+        .find('.operator')
+        .each(function() {
+            serializeWorkflowOperator(this, xml, 'Operator', minPosition);
+        });
+    $('#editorContent')
+        .find('.dataset')
+        .each(function() {
+            serializeWorkflowOperator(this, xml, 'Dataset', minPosition);
+        });
 
     // Return xml string
     return new XMLSerializer().serializeToString(xml);

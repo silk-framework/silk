@@ -59,7 +59,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     val json = JsonTraverser(file)(codec)
     val selectedElements = json.select(basePathParts)
     for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths()) yield {
+         path <- element.collectPaths(path = Nil, leafPathsOnly = false)) yield {
       Path(path.toList)
     }
   }
