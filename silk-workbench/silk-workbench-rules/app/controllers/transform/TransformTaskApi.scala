@@ -297,7 +297,11 @@ class TransformTaskApi extends Controller {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
-  def valueSourcePaths(projectName: String, taskName: String, ruleId: String, maxDepth: Int, unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
+  def valueSourcePaths(projectName: String,
+                       taskName: String,
+                       ruleId: String,
+                       maxDepth: Int,
+                       unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -322,7 +326,7 @@ class TransformTaskApi extends Controller {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serializeSimplified)))
+        Ok(Json.toJson(filteredPaths.map(_.serialize)))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }
