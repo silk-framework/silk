@@ -13036,6 +13036,18 @@ h6 {
   /* Support for IE. */
   font-feature-settings: 'liga'; }
 
+ul.navigation {
+  display: flex;
+  float: left;
+  margin: 0;
+  padding: 0;
+  list-style-type: none; }
+  ul.navigation .mdl-button.mdl-button--pagination {
+    min-width: unset;
+    list-style-type: none; }
+  ul.navigation .mdl-button.mdl-button--active {
+    background-color: rgba(158, 158, 158, 0.2); }
+
 .ecc-silk-mapping {
   margin: 1rem; }
   .ecc-silk-mapping .mdl-dialog {
@@ -13070,6 +13082,13 @@ h6 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap; }
+  .ecc-silk-mapping .beautiful-selected {
+    outline: none !important; }
+
+ul.ecc-hierarchical-mapping-error-list {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none; }
 
 .ecc-silk-mapping__header {
   margin: 0.5rem 1rem; }
@@ -13492,23 +13511,3 @@ h6 {
 
 .ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
   margin: 0 0.5rem; }
-
-ul.navigation {
-  display: flex;
-  float: left;
-  margin: 0;
-  padding: 0;
-  list-style-type: none; }
-  ul.navigation .mdl-button.mdl-button--pagination {
-    min-width: unset;
-    list-style-type: none; }
-  ul.navigation .mdl-button.mdl-button--active {
-    background-color: rgba(158, 158, 158, 0.2); }
-
-ul.ecc-hierarchical-mapping-error-list {
-  margin-left: 0;
-  padding-left: 0;
-  list-style-type: none; }
-
-*::focus {
-  outline: none; }

@@ -1,39 +1,5 @@
 // include basic environment
 @import '~ecc-gui-elements/src/main';
+@import 'workbench-rules';
 // include enhancements for silk mapping editor
 @import '../HierarchicalMapping/HierarchicalMapping';
-
-ul.navigation {
-  display: flex;
-  float: left;
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-
-  .mdl-button {
-
-    &.mdl-button--pagination {
-      min-width: unset;
-      list-style-type: none;
-
-    }
-
-    &.mdl-button--active {
-      background-color: $button-hover-color;
-    }
-
-
-  }
-
-}
-
-ul.ecc-hierarchical-mapping-error-list {
-  margin-left: 0;
-  padding-left: 0;
-  list-style-type: none;
-}
-// it looks weird if you select the element using tabs cause the invisible menu includes the border
-*::focus {
-  outline: none;
-}
-
