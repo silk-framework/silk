@@ -295,12 +295,14 @@ object JsonSerializers {
   implicit object MappingTargetJsonFormat extends JsonFormat[MappingTarget] {
     final val VALUE_TYPE = "valueType"
     final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
+    final val IS_ATTRIBUTE = "isAttribute"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
       val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
       val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
-      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty = isBackwardProperty)
+      val isAttribute = booleanValueOption(value, IS_ATTRIBUTE).getOrElse(false)
+      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty, isAttribute)
     }
 
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -308,7 +310,8 @@ object JsonSerializers {
         Seq(
           URI -> JsString(value.propertyUri.serialize(writeContext.prefixes)),
           VALUE_TYPE -> toJson(value.valueType),
-          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty)
+          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty),
+          IS_ATTRIBUTE -> JsBoolean(value.isAttribute)
         )
       )
     }

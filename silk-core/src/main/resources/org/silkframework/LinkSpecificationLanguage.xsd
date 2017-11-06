@@ -177,7 +177,8 @@
                 <xs:element ref="ValueType" />
             </xs:sequence>
             <xs:attribute name="uri" type="xs:string"/>
-            <xs:attribute name="isBackwardProperty" type="xs:string"/>
+            <xs:attribute name="isBackwardProperty" type="xs:boolean"/>
+            <xs:attribute name="isAttribute" type="xs:boolean"/>
         </xs:complexType>
     </xs:element>
 

@@ -416,10 +416,10 @@ object TransformRule {
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
       ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping
