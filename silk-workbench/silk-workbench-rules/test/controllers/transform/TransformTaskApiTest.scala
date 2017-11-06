@@ -142,7 +142,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "valueType" : {
                   "nodeType" : "StringValueType"
                 },
-                "isBackwardProperty" : false
+                "isBackwardProperty" : false,
+                "isAttribute": false
               },
               "metadata" : {
                 "label" : "updated direct rule label",
@@ -157,7 +158,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "valueType" : {
                   "nodeType" : "UriValueType"
                 },
-                "isBackwardProperty" : false
+                "isBackwardProperty" : false,
+                "isAttribute": false
               },
               "rules" : {
                 "uriRule" : null,
@@ -192,7 +194,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "valueType" : {
               "nodeType" : "UriValueType"
             },
-            "isBackwardProperty" : false
+            "isBackwardProperty" : false,
+            "isAttribute": false
           },
           "rules" : {
             "uriRule" : null,
@@ -251,7 +254,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         {
           "sourcePath": "/source:firstName",
           "mappingTarget": {
-            "uri": "target:firstName"
+            "uri": "target:firstName",
+            "isAttribute": true
           }
         }
       """
@@ -269,7 +273,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "valueType": {
               "nodeType": "StringValueType"
             },
-            "isBackwardProperty": false
+            "isBackwardProperty": false,
+            "isAttribute": true
           },
           "metadata" : {
             "label" : "updated direct rule label",
