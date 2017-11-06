@@ -96,7 +96,7 @@ const MappingsTree = React.createClass({
         let expanded = _.get(this.state, ['expanded', id], false);
         let isHighlighted =
             id === this.props.currentRuleId ||
-            _.get(tree, 'rules.uriRule.id') === this.props.currentRuleId ||
+            (_.get(tree, 'rules.uriRule.id') === this.props.currentRuleId && !_.isUndefined(this.props.currentRuleId)) ||
             (type === MAPPING_RULE_TYPE_ROOT &&
                 _.isUndefined(this.props.currentRuleId));
 
