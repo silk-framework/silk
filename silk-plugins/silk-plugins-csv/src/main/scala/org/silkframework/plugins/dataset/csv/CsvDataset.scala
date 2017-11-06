@@ -40,44 +40,20 @@ case class CsvDataset
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
-  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset {
+  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait {
 
-  private val sepChar =
-    if (separator == "\\t") { '\t' }
-    else if (separator.length == 1) { separator.head }
-    else { throw new IllegalArgumentException(s"Invalid separator: '$separator'. Must be a single character.") }
-
-  val arraySeparatorChar: Option[Char] =
-    if (arraySeparator.isEmpty) { None }
-    else if(arraySeparator == "\\t") { Some('\t') }
-    else if (arraySeparator.length == 1) { Some(arraySeparator.head) }
-    else { throw new IllegalArgumentException(s"Invalid array separator character: '$arraySeparator'. Must be a single character.") }
-
-  val quoteChar: Option[Char] =
-    if (quote.isEmpty) { None }
-    else if (quote.length == 1) { Some(quote.head) }
-    else { throw new IllegalArgumentException(s"Invalid quote character: '$quote'. Must be a single character.") }
-
-  val quoteEscapeChar: Char =
-    if (quoteEscapeCharacter.length == 1) { quoteEscapeCharacter.head }
-    else { throw new IllegalArgumentException(s"Invalid quote escape character: '$quoteEscapeCharacter'. Must be a single character.")}
-
-  private val codec = Codec(charset)
-
-  private val settings = CsvSettings(sepChar, arraySeparatorChar, quoteChar, maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar)
-
-  override def source: DataSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec,
+  override def source: DataSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
     skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
 
-  override def linkSink: LinkSink = new CsvLinkSink(file, settings)
+  override def linkSink: LinkSink = new CsvLinkSink(file, csvSettings)
 
-  override def entitySink: EntitySink = new CsvEntitySink(file, settings)
+  override def entitySink: EntitySink = new CsvEntitySink(file, csvSettings)
 
   /**
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured: CsvDataset = {
-    val csvSource = new CsvSource(file, settings, properties, prefix, uri, regexFilter, codec,
+    val csvSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
