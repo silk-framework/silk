@@ -140,6 +140,30 @@ silkStore
     });
 
 silkStore
+    .subject('transform.task.rule.valueSourcePaths')
+    .subscribe(({data, replySubject}) => {
+        const {
+            baseUrl,
+            project,
+            transformTask,
+            ruleId,
+            unusedOnly = false,
+        } = data;
+
+        superagent
+            .get(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePaths`
+            )
+            .query({
+                unusedOnly,
+            })
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, rule, id} = data;

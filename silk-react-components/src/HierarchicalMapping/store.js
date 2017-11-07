@@ -8,6 +8,7 @@ import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
 } from './helpers';
+import {Suggestion} from './Suggestion';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -138,6 +139,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
     }
     return null;
 }
+
 const handleCreatedSelectBoxValue = (data, path) => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
@@ -220,6 +222,29 @@ const prepareObjectMappingPayload = data => {
     return payload;
 };
 
+const createGeneratedRules = ({rules}) =>
+    Rx.Observable.forkJoin(
+        _.map(rules, rule =>
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.createGeneratedMapping',
+                    data: {...rule},
+                })
+                .catch(e => Rx.Observable.return({error: e, rule}))
+        ),
+        (...createdRules) => {
+            const failedRules = _.filter(createdRules, 'error');
+
+            if (_.size(failedRules)) {
+                const error = new Error('Could not create rules.');
+                error.failedRules = failedRules;
+                throw error;
+            }
+
+            return createdRules;
+        }
+    );
+
 if (!__DEBUG__) {
     let rootId = null;
 
@@ -237,6 +262,7 @@ if (!__DEBUG__) {
                 .map(returned => ({
                     rules: _.get(returned, ['body'], []),
                 }))
+                .flatMap(createGeneratedRules)
                 .multicast(replySubject)
                 .connect();
         });
@@ -281,14 +307,43 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.suggestions')
         .subscribe(({data, replySubject}) => {
-            silkStore
-                .request({
-                    topic: 'transform.task.rule.suggestions',
-                    data: {...apiDetails, ...data},
-                })
-                .map(returned => ({
-                    suggestions: returned.body,
-                }))
+            Rx.Observable
+                .forkJoin(
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.suggestions',
+                            data: {...apiDetails, ...data},
+                        })
+                        .catch(() => Rx.Observable.return(null))
+                        .map(returned => {
+                            const body = _.get(returned, 'body', []);
+
+                            const suggestions = [];
+
+                            _.forEach(body, (sources, target) => {
+                                _.forEach(sources, ({uri, confidence}) => {
+                                    suggestions.push(
+                                        new Suggestion(uri, target, confidence)
+                                    );
+                                });
+                            });
+                            return suggestions;
+                        }),
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.valueSourcePaths',
+                            data: {unusedOnly: true, ...apiDetails, ...data},
+                        })
+                        .catch(() => Rx.Observable.return(null))
+                        .map(returned => {
+                            const body = _.get(returned, 'body', []);
+
+                            return _.map(body, path => new Suggestion(path));
+                        }),
+                    (arg1, arg2) => ({
+                        suggestions: _.concat([], arg1, arg2),
+                    })
+                )
                 .multicast(replySubject)
                 .connect();
         });
@@ -559,7 +614,7 @@ if (!__DEBUG__) {
         });
 } else {
     // eslint-disable-next-line
-  const rawMockStore = require("./retrieval2.json");
+    const rawMockStore = require("./retrieval2.json");
 
     let mockStore = null;
 
@@ -601,49 +656,80 @@ if (!__DEBUG__) {
                 });
             });
 
-            replySubject.onNext({rules});
-            replySubject.onCompleted();
+            Rx.Observable
+                .return({rules})
+                .flatMap(createGeneratedRules)
+                .multicast(replySubject)
+                .connect();
         });
 
     hierarchicalMappingChannel
         .subject('rule.suggestions')
         .subscribe(({data, replySubject}) => {
-            const paths = [
-                '/name',
-                '/city',
-                '/loan',
-                '/country',
-                '/lastname',
-                '/firstName',
+            const suggRaw = {
+                'https://spec.edmcouncil.org/fibo/ontology/FND/AgentsAndPeople/People/hasDateOfBirth': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.028520143597925807,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/surname': [
+                    {
+                        uri: '/surname',
+                        confidence: 0.21,
+                    },
+                    {
+                        uri: '/name',
+                        confidence: 0.0170975813177648,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/birthday': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.043659343420819535,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/lastName': [
+                    {
+                        uri: '/surname',
+                        confidence: 0.001,
+                    },
+                    {
+                        uri: '/name',
+                        confidence: 0.00458715596330274,
+                    },
+                ],
+                'http://schema.org/birthDate': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.07339449541284403,
+                    },
+                ],
+            };
+
+            const directRaw = [
+                '/birthdate',
                 '/address',
-                '/expected-error',
-            ];
-            const types = [
+                '/surname',
                 '/name',
-                '/city',
-                '/loan',
-                '/country',
-                '/lastname',
-                '/firstName',
-                '/address',
-                '/one-error',
+                '/error',
             ];
-            const suggestions = {};
-            _.forEach(data.targetClassUris, target => {
-                _.forEach(types, (type, key) => {
-                    const path = paths[key];
-                    suggestions[`${target}${type}`] = [
-                        {
-                            uri: path,
-                            confidence:
-                                Math.floor(100 - 0.1 * Math.random() * 100) /
-                                100,
-                        },
-                    ];
+
+            const suggestions = [];
+
+            _.forEach(suggRaw, (sources, target) => {
+                _.forEach(sources, ({uri, confidence}) => {
+                    suggestions.push(new Suggestion(uri, target, confidence));
                 });
             });
 
-            replySubject.onNext({suggestions});
+            _.forEach(directRaw, source => {
+                suggestions.push(new Suggestion(source));
+            });
+
+            replySubject.onNext({
+                suggestions,
+            });
             replySubject.onCompleted();
         });
 
@@ -859,7 +945,7 @@ if (!__DEBUG__) {
 
         saveMockStore();
 
-        replySubject.onNext();
+        replySubject.onNext(data);
         replySubject.onCompleted();
     };
 
@@ -915,6 +1001,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.createGeneratedMapping')
         .subscribe(handleUpdatePreparedRule);
+
     const removeRule = (store, id) => {
         if (store.id === id) {
             return null;
@@ -976,7 +1063,7 @@ if (!__DEBUG__) {
         });
 
     // eslint-disable-next-line
-  const loremIpsum = require("lorem-ipsum");
+    const loremIpsum = require("lorem-ipsum");
 
     hierarchicalMappingChannel
         .subject('vocabularyInfo.get')
