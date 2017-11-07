@@ -31,8 +31,9 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, output: Enti
     output.clear()
 
     try {
-      for (ruleSchemata <- transform.ruleSchemata) {
+      for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
         transformEntities(ruleSchemata, context)
+        context.status.updateProgress((index + 1.0) / transform.ruleSchemata.size)
       }
     } finally {
       output.close()
