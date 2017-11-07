@@ -29,4 +29,4 @@ trait EntitySink extends DataSink {
   def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
 }
 
-case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean)
+case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean, isAttribute: Boolean)
