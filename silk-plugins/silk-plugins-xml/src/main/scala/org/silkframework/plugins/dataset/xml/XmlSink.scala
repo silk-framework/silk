@@ -31,7 +31,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     *
     * @param properties The list of properties of the entities to be written.
     */
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     if(isRoot) {
       require(basePath.nonEmpty, "The base path needs to be set to a non empty path, such as \"/Root/Element\"")
       val parts = basePath.stripPrefix("/").split('/')
@@ -54,35 +54,17 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     *                when opening this writer, it must contain a set of values.
     */
   override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
-    if(isRoot) {
-      val entityNode = doc.createElementNS(defaultNamespace, childNodeName)
-      rootNode.appendChild(entityNode)
-    }
-
+    val entityNode = getEntityNode(subject)
     for {
       (property, valueSeq) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
       value <- valueSeq
     } {
-      val node = createElement(property.propertyUri)
-
-      property.valueType match {
-        case UriValueType =>
-          uriMap += ((value, node))
-        case _ =>
-          node.setTextContent(value)
-      }
-
-      if(isRoot) {
-        rootNode.getChildNodes.item(rootNode.getChildNodes.getLength - 1).appendChild(node)
-      } else {
-        uriMap.get(subject) match {
-          case Some(parentNode) =>
-            parentNode.appendChild(node)
-          case None =>
-            throw new ValidationException("Could not find parent for " + subject)
-        }
-      }
+      addValue(entityNode, property, value)
     }
+  }
+
+  override def closeTable(): Unit = {
+    isRoot = false
   }
 
   override def close(): Unit = {
@@ -94,8 +76,6 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     // This is implementation specific, but there is no standard way of setting the indent amount
     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
     resource.write()(os => transformer.transform(new DOMSource(doc), new StreamResult(os)))
-
-    isRoot = false
   }
 
   /**
@@ -105,9 +85,45 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
   }
 
   /**
+    * Gets the XML node for an entity.
+    */
+  private def getEntityNode(uri: String): Element = {
+    if(isRoot) {
+      val entityNode = doc.createElementNS(defaultNamespace, childNodeName)
+      rootNode.appendChild(entityNode)
+      entityNode
+    } else {
+      uriMap.get(uri) match {
+        case Some(parentNode) =>
+          parentNode
+        case None =>
+          throw new ValidationException("Could not find parent for " + uri)
+      }
+    }
+  }
+
+  /**
+    * Adds a single property value to a XML node.
+    */
+  private def addValue(entityNode: Element, property: TypedProperty, value: String): Unit = {
+    property.valueType match {
+      case UriValueType =>
+        val valueNode = newElement(property.propertyUri)
+        uriMap += ((value, valueNode.asInstanceOf[Element]))
+        entityNode.appendChild(valueNode)
+      case _ if !property.isAttribute =>
+        val valueNode = newElement(property.propertyUri)
+        valueNode.setTextContent(value)
+        entityNode.appendChild(valueNode)
+      case _  =>
+        setAttribute(entityNode, property.propertyUri, value)
+    }
+  }
+
+  /**
     * Generates an empty XML element from a URI.
     */
-  private def createElement(uri: String): Element = {
+  private def newElement(uri: String): Element = {
     if(uri.startsWith(defaultNamespace)) {
       doc.createElementNS(defaultNamespace, uri.stripPrefix(defaultNamespace))
     } else {
@@ -116,6 +132,22 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
         doc.createElement(uri)
       } else {
         doc.createElementNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1))
+      }
+    }
+  }
+
+  /**
+    * Sets an attribute on a node using a URI.
+    */
+  private def setAttribute(node: Element, uri: String, value: String): Unit = {
+    if(uri.startsWith(defaultNamespace)) {
+      node.setAttributeNS(defaultNamespace, uri.stripPrefix(defaultNamespace), value)
+    } else {
+      val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
+      if(separatorIndex == -1) {
+        node.setAttribute(uri, value)
+      } else {
+        node.setAttributeNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1), value)
       }
     }
   }

@@ -39,14 +39,15 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
+            TypedPath(Path("id"), StringValueType, isAttribute = true),
             TypedPath(Path("Name"), UriValueType),
             TypedPath(Path("Year"), StringValueType)
           )
       )
 
     val persons = Seq(
-      Entity("urn:instance:Person1", IndexedSeq(Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")), personSchema),
-      Entity("urn:instance:Person2", IndexedSeq(Seq("urn:instance:PersonName2"), Seq("1990")), personSchema)
+      Entity("urn:instance:Person1", IndexedSeq(Seq("001"), Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")), personSchema),
+      Entity("urn:instance:Person2", IndexedSeq(Seq("002"), Seq("urn:instance:PersonName2"), Seq("1990")), personSchema)
     )
 
     val nameSchema =
@@ -70,7 +71,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
       entityTables = Seq(persons, names),
       expected =
         <Persons xmlns="urn:schema:">
-          <Person>
+          <Person id="001">
             <Name>
               <FirstName>John</FirstName>
               <LastName>Doe</LastName>
@@ -81,7 +82,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
             </Name>
             <Year>1980</Year>
           </Person>
-          <Person>
+          <Person id="002">
             <Name>
               <FirstName>Max</FirstName>
               <LastName>Mustermann</LastName>
@@ -101,19 +102,20 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     // Write entity tables
     for(entityTable <- entityTables) {
       val schema = entityTable.head.desc
-      sink.open(schema.typeUri, schema.typedPaths.flatMap(_.property))
+      sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
       for (entity <- entityTable) {
         sink.writeEntity(entity.uri, entity.values)
       }
-      sink.close()
+      sink.closeTable()
     }
+    sink.close()
 
     // Compare results
     val header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
     val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
     val formattedXml = header + prettyPrinter.format(expected)
 
-    formattedXml shouldBe resource.loadAsString
+    resource.loadAsString shouldBe formattedXml
   }
 
 }
