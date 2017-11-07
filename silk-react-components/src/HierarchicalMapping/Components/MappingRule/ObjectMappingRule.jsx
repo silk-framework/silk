@@ -211,7 +211,7 @@ const ObjectRule = React.createClass({
 
         const uriRuleType = _.get(this, 'props.rules.uriRule.type', false);
 
-        let uriPatternLabel = `URI Pattern`;
+        let uriPatternLabel = `URI pattern`;
         let tooltipText;
         let removeButton = false;
 
@@ -232,9 +232,9 @@ const ObjectRule = React.createClass({
             uriPatternLabel = 'URI formula';
             uriPattern = (
                 <span>
-                    Uri uses {paths.length} value{' '}
+                    URI uses {paths.length} value{' '}
                     {paths.length > 1 ? 'paths' : 'path'}:&nbsp;
-                    <code>{paths.join(', ')}</code>&nbsp;and {operators.length}
+                    <code>{paths.join(', ')}</code>&nbsp;and {operators.length}&nbsp;
                     operator {operators.length > 1
                         ? 'functions'
                         : 'function'}:&nbsp;<code>{operators.join(', ')}</code>.

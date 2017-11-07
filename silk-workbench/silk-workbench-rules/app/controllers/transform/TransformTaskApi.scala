@@ -289,7 +289,7 @@ class TransformTaskApi extends Controller {
                                entitySink: EntitySink,
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink]): Unit = {
-    val transform = new ExecuteTransform(dataSource, task.data, Seq(entitySink))
+    val transform = new ExecuteTransform(dataSource, task.data, entitySink)
     Activity(transform).startBlocking()
   }
 

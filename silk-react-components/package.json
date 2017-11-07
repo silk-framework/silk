@@ -36,6 +36,7 @@
     "mark.js": "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz",
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",
+    "react-beautiful-dnd": "^2.5.0",
     "react-dom": "^15.6.1",
     "react-highlight-words": "^0.8.1",
     "twbs-pagination": "^1.4.1"

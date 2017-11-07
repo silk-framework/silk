@@ -67,13 +67,13 @@ class DatasetTask(val id: Identifier,
     /**
       * Initializes this writer.
       */
-    override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
       if (isOpen) {
         writer.close()
         isOpen = false
       }
 
-      writer.open(typeUri, properties)
+      writer.openTable(typeUri, properties)
       entityCount = 0
       isOpen = true
     }
@@ -82,6 +82,14 @@ class DatasetTask(val id: Identifier,
       require(isOpen, "Output must be opened before writing statements to it")
       writer.writeEntity(subject, values)
       entityCount += 1
+    }
+
+    /**
+      * Closes the current table.
+      */
+    override def closeTable() {
+      if (writer != null) writer.closeTable()
+      isOpen = false
     }
 
     /**

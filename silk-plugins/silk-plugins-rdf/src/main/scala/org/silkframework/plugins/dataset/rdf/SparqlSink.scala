@@ -26,7 +26,7 @@ class SparqlSink(params: SparqlParams,
 
   private var properties = Seq[TypedProperty]()
 
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
   }
 
@@ -54,6 +54,8 @@ class SparqlSink(params: SparqlParams,
       }
     }
   }
+
+  override def closeTable() {}
 
   override def close() {
     if(body.nonEmpty) {

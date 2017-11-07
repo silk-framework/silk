@@ -11,7 +11,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext}
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq[EntitySink]) extends Activity[TransformReport] {
+class ExecuteTransform(input: DataSource, transform: TransformSpec, output: EntitySink) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -28,38 +28,30 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
     isCanceled = false
 
     // Clear outputs before writing
-    for (output <- outputs) {
-      output.clear()
-    }
+    output.clear()
 
-    for(ruleSchemata <- transform.ruleSchemata) {
-      transformEntities(ruleSchemata, context)
+    try {
+      for (ruleSchemata <- transform.ruleSchemata) {
+        transformEntities(ruleSchemata, context)
+      }
+    } finally {
+      output.close()
     }
   }
 
   private def transformEntities(rule: RuleSchemata, context: ActivityContext[TransformReport]): Unit = {
-    try {
-      for (output <- outputs) {
-        output.open(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
-      }
+    output.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
-      val entities = input.retrieve(rule.inputSchema)
-
-      val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
-      for (entity <- transformedEntities) {
-        for (output <- outputs) {
-          output.writeEntity(entity.uri, entity.values)
-        }
-        if (isCanceled) {
-          return
-        }
-      }
-
-    } finally {
-      for (output <- outputs) {
-        output.close()
+    val entities = input.retrieve(rule.inputSchema)
+    val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+    for (entity <- transformedEntities) {
+      output.writeEntity(entity.uri, entity.values)
+      if (isCanceled) {
+        return
       }
     }
+
+    output.closeTable()
   }
 
   override def cancelExecution(): Unit = {

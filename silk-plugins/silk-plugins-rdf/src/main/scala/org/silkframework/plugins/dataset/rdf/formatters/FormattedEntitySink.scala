@@ -22,17 +22,19 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   private var writer: Writer = _
 
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]) {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
     this.properties = properties
-    // If we got a java file, we write directly to it, otherwise we write to a temporary string
-    writer = javaFile match {
-      case Some(file) =>
-        file.getParentFile.mkdirs()
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
-      case None => new StringWriter()
+    if(writer == null) {
+      // If we got a java file, we write directly to it, otherwise we write to a temporary string
+      writer = javaFile match {
+        case Some(file) =>
+          file.getParentFile.mkdirs()
+          new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
+        case None => new StringWriter()
+      }
+      //Write header
+      writer.write(formatter.header)
     }
-    //Write header
-    writer.write(formatter.header)
   }
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]) {
@@ -50,6 +52,8 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     writer.write(formatter.formatLiteralStatement(subject, predicate, value, valueType))
   }
 
+  override def closeTable(): Unit = {}
+
   override def close() {
     if (Option(writer).isDefined) {
       writer.write(formatter.footer)
@@ -64,7 +68,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   }
 
   override def init(): Unit = {
-    open(typeUri = "", properties = Seq())
+    openTable(typeUri = "", properties = Seq())
   }
 
   override def writeTriple(subject: String, predicate: String, value: String, valueType: ValueType): Unit = {
