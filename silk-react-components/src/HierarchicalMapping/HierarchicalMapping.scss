@@ -49,6 +49,17 @@
             white-space: nowrap;
         }
     }
+
+    .beautiful-selected {
+      outline: none !important;
+    }
+
+}
+
+ul.ecc-hierarchical-mapping-error-list {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none;
 }
 
 .ecc-silk-mapping__header {

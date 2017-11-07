@@ -7,17 +7,23 @@ import org.silkframework.util.Uri
  * An entity sink implements methods to write entities, e.g. the result of a transformation task.
  */
 trait EntitySink extends DataSink {
+
   /**
-   * Initializes this writer.
+   * Called before a new table of entities of a particular schema is written.
    *
    * @param properties The list of properties of the entities to be written.
    */
-  def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit
+  def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit
 
-  def openWithTypedPath(typeUri: Uri, typedPaths: Seq[TypedPath]): Unit = {
+  def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath]): Unit = {
     val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
-    open(typeUri, properties)
+    openTable(typeUri, properties)
   }
+
+  /**
+    * Closes writing a table of entities.
+    */
+  def closeTable()
 
   /**
    * Writes a new entity.

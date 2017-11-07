@@ -48,9 +48,9 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
   }
 
   override def close() {
-    write(formatter.footer)
     formattedLinkWriter match {
       case writer: Writer =>
+        write(formatter.footer)
         writer.flush()
         writer.close()
         if(writer.isInstanceOf[StringWriter]) {
@@ -60,6 +60,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
         log.warning("Not initialized!")
         // Nothing to be done
     }
+    formattedLinkWriter = null
   }
 
   /**
