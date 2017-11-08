@@ -29,14 +29,16 @@ object StreamUtils {
     }
   }
 
-  def fastStreamCopy(input: InputStream, output: OutputStream): Unit = {
+  def fastStreamCopy(input: InputStream, output: OutputStream, close: Boolean): Unit = {
     // get an channel from the stream
     val inputChannel = Channels.newChannel(input)
     val outputChannel = Channels.newChannel(output)
     // copy the channels
     fastChannelCopy(inputChannel, outputChannel)
-    // closing the channels
-    inputChannel.close()
-    outputChannel.close()
+    if(close) {
+      // closing the channels
+      inputChannel.close()
+      outputChannel.close()
+    }
   }
 }

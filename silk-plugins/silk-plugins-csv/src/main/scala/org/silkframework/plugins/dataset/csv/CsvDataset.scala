@@ -42,27 +42,24 @@ case class CsvDataset
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait {
 
-  override def source: DataSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
-    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
+  override def source: DataSource = csvSource
 
   override def linkSink: LinkSink = new CsvLinkSink(file, csvSettings)
 
   override def entitySink: EntitySink = new CsvEntitySink(file, csvSettings)
 
+  private def csvSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
+    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
+
   /**
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured: CsvDataset = {
-    val csvSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
-      detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
-    val detectedSettings = csvSource.csvSettings
-    val detectedSeparator = detectedSettings.separator.toString
-    // Skip one more line if header was detected and property list set
-    val skipHeader = 0 // if (csvSource.propertyList.nonEmpty) 1 else 0
+    val autoConfig = csvSource.autoConfigure()
     this.copy(
-      separator = if (detectedSeparator == "\t") "\\t" else detectedSeparator,
-      charset = csvSource.codecToUse.name,
-      linesToSkip = csvSource.skipLinesAutomatic.map(_ + skipHeader).getOrElse(linesToSkip)
+      separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,
+      charset = autoConfig.codecName,
+      linesToSkip = autoConfig.linesToSkip.getOrElse(linesToSkip)
     )
   }
 
