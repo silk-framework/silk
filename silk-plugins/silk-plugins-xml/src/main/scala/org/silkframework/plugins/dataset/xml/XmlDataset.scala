@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
-import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 @Plugin(
   id = "xml",
@@ -56,8 +56,8 @@ case class XmlDataset(
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
-  @Param(value = "The default namespace of the generated XML. All URIs in this namespace will be shortened.", advanced = true)
-  defaultNamespace: String = "urn:schema:",
+  @Param(value = "The output template used for writing XML")
+  outputTemplate: MultilineStringParameter = "<Root><?Entity?><Root>",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
   streaming: Boolean = true) extends Dataset {
 
@@ -71,5 +71,5 @@ case class XmlDataset(
 
   override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink: EntitySink = new XmlSink(file, basePath, defaultNamespace)
+  override def entitySink: EntitySink = new XmlSink(file, outputTemplate.str)
 }

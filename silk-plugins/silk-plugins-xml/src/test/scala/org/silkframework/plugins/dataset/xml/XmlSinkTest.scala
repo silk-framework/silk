@@ -24,12 +24,14 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
 
     test(
-      basePath = "/Root",
+      template = "<Root><?Element?></Root>",
       entityTables = Seq(entities),
       expected =
-        <Root xmlns="urn:schema:">
-          <FirstTag>1</FirstTag>
-          <SecondTag>2</SecondTag>
+        <Root>
+          <Element>
+            <FirstTag>1</FirstTag>
+            <SecondTag>2</SecondTag>
+          </Element>
         </Root>
     )
   }
@@ -48,11 +50,38 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102")), schema))
 
     test(
-      basePath = "/Root/Element",
+      template = "<Root><?Element?></Root>",
       entityTables = Seq(entities),
       expected =
         <Root xmlns="urn:schema:">
           <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102" />
+        </Root>
+    )
+  }
+
+  it should "use existing namespaces from the template" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("http://example1.org/FirstTag"), StringValueType),
+            TypedPath(Path("http://example1.org/SecondTag"), StringValueType)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    test(
+      template =
+        """<Root xmlns="http://example1.org/"><?Element?></Root>""",
+      entityTables = Seq(entities),
+      expected =
+        <Root xmlns="http://example1.org/">
+          <Element>
+            <FirstTag>1</FirstTag>
+            <SecondTag>2</SecondTag>
+          </Element>
         </Root>
     )
   }
@@ -91,7 +120,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
 
     test(
-      basePath = "/Persons/Person",
+      template = "<Persons><?Person?></Persons>",
       entityTables = Seq(persons, names),
       expected =
         <Persons xmlns="urn:schema:">
@@ -117,11 +146,11 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
   }
 
-  private def test(basePath: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
+  private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
     // Create in-memory XML sink
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource, basePath)
+    val sink = new XmlSink(resource, template)
 
     // Write entity tables
     for(entityTable <- entityTables) {
@@ -138,6 +167,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
     val formattedXml = prettyPrinter.format(expected)
     val formattedExpected = XML.loadString(formattedXml)
+
+    println(resource.loadAsString)
 
     resource.read(XML.load) shouldBe formattedExpected
   }

@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
@@ -10,21 +11,24 @@ import org.silkframework.entity.UriValueType
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import org.w3c.dom.{Attr, Document, Element, Node}
+import org.w3c.dom.{Attr, Document, Element, Node, ProcessingInstruction}
 
-class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: String = "urn:schema:") extends EntitySink {
+import scala.xml.InputSource
 
-  private val doc: Document =  DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
+class XmlSink(resource: WritableResource, outputTemplate: String) extends EntitySink {
 
-  private var isRoot: Boolean = true
+  private var doc: Document = null
 
-  private var rootNode: Node = doc
+  private var entityTemplate: ProcessingInstruction = null
 
-  private var childNodeName: String = ""
+  private var entityRoot: Node = null
+
+  private var atRoot: Boolean = true
 
   private var properties: Seq[TypedProperty] = Seq.empty
 
   private var uriMap: Map[String, Element] = Map.empty
+
 
   /**
     * Initializes this writer.
@@ -32,15 +36,11 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     * @param properties The list of properties of the entities to be written.
     */
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
-    if(isRoot) {
-      require(basePath.nonEmpty, "The base path needs to be set to a non empty path, such as \"/Root/Element\"")
-      val parts = basePath.stripPrefix("/").split('/')
-      for(part <- parts.init) {
-        val node = doc.createElementNS(defaultNamespace, part)
-        rootNode.appendChild(node)
-        rootNode = node
-      }
-      childNodeName = parts.last
+    if(atRoot) {
+      doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.parse(new InputSource(new StringReader(outputTemplate)))
+      entityTemplate = findEntityTemplate(doc)
+      entityRoot = entityTemplate.getParentNode
+      entityRoot.removeChild(entityTemplate)
     }
 
     this.properties = properties
@@ -64,7 +64,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
   }
 
   override def closeTable(): Unit = {
-    isRoot = false
+    atRoot = false
   }
 
   override def close(): Unit = {
@@ -84,13 +84,25 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
   override def clear(): Unit = {
   }
 
+  private def findEntityTemplate(node: Node): ProcessingInstruction = {
+    if(node.isInstanceOf[ProcessingInstruction]) {
+      node.asInstanceOf[ProcessingInstruction]
+    } else if(node.getFirstChild != null) {
+      findEntityTemplate(node.getFirstChild)
+    } else if(node.getNextSibling != null) {
+      findEntityTemplate(node.getNextSibling)
+    } else {
+      throw new ValidationException("Could not find template entity of the form <?Entity?>")
+    }
+  }
+
   /**
     * Gets the XML node for an entity.
     */
   private def getEntityNode(uri: String): Element = {
-    if(isRoot) {
-      val entityNode = doc.createElementNS(defaultNamespace, childNodeName)
-      rootNode.appendChild(entityNode)
+    if(atRoot) {
+      val entityNode = doc.createElement(entityTemplate.getTarget)
+      entityRoot.appendChild(entityNode)
       entityNode
     } else {
       uriMap.get(uri) match {
@@ -124,15 +136,11 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     * Generates an empty XML element from a URI.
     */
   private def newElement(uri: String): Element = {
-    if(uri.startsWith(defaultNamespace)) {
-      doc.createElementNS(defaultNamespace, uri.stripPrefix(defaultNamespace))
+    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
+    if(separatorIndex == -1) {
+      doc.createElement(uri)
     } else {
-      val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
-      if(separatorIndex == -1) {
-        doc.createElement(uri)
-      } else {
-        doc.createElementNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1))
-      }
+      doc.createElementNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1))
     }
   }
 
@@ -140,15 +148,11 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
     * Sets an attribute on a node using a URI.
     */
   private def setAttribute(node: Element, uri: String, value: String): Unit = {
-    if(uri.startsWith(defaultNamespace)) {
-      node.setAttributeNS(defaultNamespace, uri.stripPrefix(defaultNamespace), value)
+    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
+    if(separatorIndex == -1) {
+      node.setAttribute(uri, value)
     } else {
-      val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
-      if(separatorIndex == -1) {
-        node.setAttribute(uri, value)
-      } else {
-        node.setAttributeNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1), value)
-      }
+      node.setAttributeNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1), value)
     }
   }
 }
