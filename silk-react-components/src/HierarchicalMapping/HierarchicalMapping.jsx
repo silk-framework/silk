@@ -313,28 +313,9 @@ const HierarchicalMapping = React.createClass({
             false
         );
 
-        // this appHeader is currently not used
-        const appHeader = false;
-        /*
-        <Card className="ecc-silk-mapping__header">
-            <CardTitle
-                className="ecc-silk-mapping__header-action-row"
-                border={false}>
-                <ContextMenu iconName="tune">
-                    <MenuItem onClick={this.handleToggleNavigation}>
-                        {this.state.showNavigation
-                            ? 'Hide tree navigation'
-                            : 'Show tree navigation'}
-                    </MenuItem>
-                </ContextMenu>
-            </CardTitle>
-        </Card>;
-        */
-
         return (
             <section className="ecc-silk-mapping">
                 {debugOptions}
-                {appHeader}
                 {deleteView}
                 {discardView}
                 {loading}

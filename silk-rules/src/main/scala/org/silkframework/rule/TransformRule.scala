@@ -97,12 +97,12 @@ sealed trait TransformRule extends Operator {
 /**
   * Base trait for all rules that can have child rules.
   */
-trait ContainerTransformRule extends TransformRule
+sealed trait ContainerTransformRule extends TransformRule
 
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
   */
-trait ValueTransformRule extends TransformRule
+sealed trait ValueTransformRule extends TransformRule
 
 /**
   * The root mapping rule.

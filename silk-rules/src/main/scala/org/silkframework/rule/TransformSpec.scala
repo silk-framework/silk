@@ -7,7 +7,7 @@ import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -125,6 +125,49 @@ case class TransformSpec(selection: DatasetSelection,
     mappingRule.id :: childRuleNames
   }
 
+  /** A list of relative source paths fetched recursively from the whole rule tree starting with the given rule by the rule id.
+    * Only source paths are considered that are used in value property mappings, i.e. that have a target property set and
+    * create a property value. Also, source paths from complex rules are only considered if they are the only source paths
+    * in that rule. */
+  def valueSourcePaths(ruleName: Identifier,
+                       maxPathDepth: Int = Int.MaxValue): Seq[Path] = {
+    nestedRuleAndSourcePath(ruleName) match {
+      case Some((rule, _)) =>
+        rule.children flatMap (child => valueSourcePathsRecursive(child, List.empty, maxPathDepth))
+      case None =>
+        throw new RuntimeException("No rule with name " + ruleName + " exists!")
+    }
+  }
+
+  private def valueSourcePathsRecursive(rule: Operator,
+                                        basePath: List[PathOperator],
+                                        maxPathDepth: Int): Seq[Path] = {
+    rule match {
+      case transformRule: TransformRule =>
+        transformRule match {
+          case dm: DirectMapping =>
+            listPath(basePath ++ dm.sourcePath.operators)
+          case cm: ComplexMapping =>
+            cm.sourcePaths match {
+              case oneInput :: Nil =>
+                listPath(basePath ++ oneInput.operators) // Only consider complex mapping with one single source path
+              case _ =>
+                List.empty
+            }
+          case om: ObjectMapping =>
+            val newBasePath = basePath ++ om.sourcePath.operators
+            om.children flatMap (c => valueSourcePathsRecursive(c, newBasePath, maxPathDepth))
+          case rm: RootMappingRule =>
+            rm.children flatMap (c => valueSourcePathsRecursive(c, List.empty, maxPathDepth)) // At the moment this branch is never taken
+          case _: UriMapping | _: TypeMapping =>
+            List.empty // Don't consider non-value mappings
+        }
+      case _ =>
+        List() // No transform rule, no path used
+    }
+  }
+
+  private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
 }
 
 /**
