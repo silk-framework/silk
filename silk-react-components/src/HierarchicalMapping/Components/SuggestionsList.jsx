@@ -85,7 +85,7 @@ const SuggestionsList = React.createClass({
         this.setState({
             loading: true,
         });
-        // TODO: Fix
+
         _.forEach(this.state.data, suggestion => {
             if (this.isChecked(suggestion)) {
                 correspondences.push({
