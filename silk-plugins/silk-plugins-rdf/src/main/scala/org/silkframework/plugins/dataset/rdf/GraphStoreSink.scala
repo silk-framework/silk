@@ -48,12 +48,11 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def init(): Unit = {
-    stmtCount = 0
-    byteCount = 0L
-    if (output.isDefined) {
-      log.warning("Calling init() on already initialized graph store output stream.")
+    if(output.isEmpty) {
+      stmtCount = 0
+      byteCount = 0L
+      output = initOutputStream
     }
-    output = initOutputStream
   }
 
   private def initOutputStream: Option[BufferedOutputStream] = {
