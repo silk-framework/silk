@@ -10,7 +10,7 @@ import org.silkframework.entity.UriValueType
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import org.w3c.dom.{Document, Element, Node}
+import org.w3c.dom.{Attr, Document, Element, Node}
 
 class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: String = "urn:schema:") extends EntitySink {
 
@@ -131,7 +131,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
       if(separatorIndex == -1) {
         doc.createElement(uri)
       } else {
-        doc.createElementNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1))
+        doc.createElementNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1))
       }
     }
   }
@@ -147,7 +147,7 @@ class XmlSink(resource: WritableResource, basePath: String, defaultNamespace: St
       if(separatorIndex == -1) {
         node.setAttribute(uri, value)
       } else {
-        node.setAttributeNS(uri.substring(0, separatorIndex + 1), "ns:" + uri.substring(separatorIndex + 1), value)
+        node.setAttributeNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1), value)
       }
     }
   }

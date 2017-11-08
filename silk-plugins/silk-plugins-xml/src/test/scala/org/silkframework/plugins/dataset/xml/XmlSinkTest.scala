@@ -3,7 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import scala.xml.{Node, PrettyPrinter}
+
+import scala.xml.{Node, PrettyPrinter, XML}
 
 class XmlSinkTest extends FlatSpec with ShouldMatchers {
 
@@ -29,6 +30,29 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         <Root xmlns="urn:schema:">
           <FirstTag>1</FirstTag>
           <SecondTag>2</SecondTag>
+        </Root>
+    )
+  }
+
+  it should "write attributes" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
+            TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102")), schema))
+
+    test(
+      basePath = "/Root/Element",
+      entityTables = Seq(entities),
+      expected =
+        <Root xmlns="urn:schema:">
+          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102" />
         </Root>
     )
   }
@@ -110,12 +134,12 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     }
     sink.close()
 
-    // Compare results
-    val header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+    // We need to reformat the expected XML to normalize the formatting.
     val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
-    val formattedXml = header + prettyPrinter.format(expected)
+    val formattedXml = prettyPrinter.format(expected)
+    val formattedExpected = XML.loadString(formattedXml)
 
-    resource.loadAsString shouldBe formattedXml
+    resource.read(XML.load) shouldBe formattedExpected
   }
 
 }

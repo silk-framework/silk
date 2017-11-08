@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.{WritableResource, Resource}
   description =
 """Retrieves all entities from an xml file.""",
   documentation =
-"""Typically, this dataset is used to transform an XML file to another format, e.g., to RDF. Currently, writing XML files is not supported.
+"""Typically, this dataset is used to transform an XML file to another format, e.g., to RDF.
 When this dataset is used as an input for another task (e.g., a transformation task), the input type of the consuming task selects the path where the entities to be read are located.
 
 Example:
