@@ -161,6 +161,7 @@ const prepareValueMappingPayload = data => {
             valueType: {
                 nodeType: handleCreatedSelectBoxValue(data, 'propertyType'),
             },
+            isAttribute: data.isAttribute,
         },
     };
 

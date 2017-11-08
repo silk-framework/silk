@@ -3144,7 +3144,8 @@
                 uri: handleCreatedSelectBoxValue(data, "targetProperty"),
                 valueType: {
                     nodeType: handleCreatedSelectBoxValue(data, "propertyType")
-                }
+                },
+                isAttribute: data.isAttribute
             }
         };
         data.type === _helpers.MAPPING_RULE_TYPE_DIRECT && (payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, "sourceProperty") : "");
@@ -20287,7 +20288,8 @@
                     comment: _lodash2.default.get(rule, "metadata.description", ""),
                     targetProperty: _lodash2.default.get(rule, "mappingTarget.uri", ""),
                     propertyType: _lodash2.default.get(rule, "mappingTarget.valueType.nodeType", "AutoDetectValueType"),
-                    sourceProperty: rule.sourcePath
+                    sourceProperty: rule.sourcePath,
+                    isAttribute: _lodash2.default.get(rule, "mappingTarget.isAttribute", !1)
                 };
                 _this.setState((0, _extends3.default)({
                     loading: !1
@@ -20308,6 +20310,7 @@
                     type: _helpers2.MAPPING_RULE_TYPE_DIRECT,
                     propertyType: "AutoDetectValueType",
                     sourceProperty: "",
+                    isAttribute: !1,
                     initialValues: {}
                 });
             }
@@ -20328,7 +20331,8 @@
                     comment: this.state.comment,
                     targetProperty: this.state.targetProperty,
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty
+                    sourceProperty: this.state.sourceProperty,
+                    isAttribute: this.state.isAttribute
                 }
             }).subscribe(function() {
                 _this2.handleClose(event);
@@ -20406,7 +20410,11 @@
                 value: this.state.targetProperty,
                 ruleId: autoCompleteRuleId,
                 onChange: this.handleChangeSelectBox.bind(null, "targetProperty")
-            }), _react2.default.createElement(_AutoComplete2.default, {
+            }), _react2.default.createElement(_eccGuiElements.Checkbox, {
+                checked: this.state.isAttribute,
+                className: "ecc-silk-mapping__ruleseditor__isAttribute",
+                onChange: this.handleChangeValue.bind(null, "isAttribute", !this.state.isAttribute)
+            }, "Write values as attributes (if supported by the target dataset)"), _react2.default.createElement(_AutoComplete2.default, {
                 placeholder: "Data type",
                 className: "ecc-silk-mapping__ruleseditor__propertyType",
                 entity: "propertyType",
@@ -34911,7 +34919,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub"
             }, _react2.default.createElement(_SharedComponents.ThingDescription, {
                 id: _lodash2.default.get(this.props, "mappingTarget.uri", void 0)
-            })))))), !!_lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", !1) && _react2.default.createElement("div", {
+            }))), !!_lodash2.default.get(this.props, "mappingTarget.isAttribute", !1) && _react2.default.createElement("div", null, "Values will be written as attributes if the target dataset supports it.")))), !!_lodash2.default.get(this.props, "mappingTarget.valueType.nodeType", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__propertyType"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"

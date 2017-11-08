@@ -150,6 +150,19 @@ const RuleValueView = React.createClass({
                                                 />
                                             </div>
                                         </InfoBox>
+                                        {_.get(
+                                            this.props,
+                                            'mappingTarget.isAttribute',
+                                            false
+                                        ) ? (
+                                            <div>
+                                                Values will be written as
+                                                attributes if the target dataset
+                                                supports it.
+                                            </div>
+                                        ) : (
+                                            false
+                                        )}
                                     </dd>
                                 </dl>
                             </div>
