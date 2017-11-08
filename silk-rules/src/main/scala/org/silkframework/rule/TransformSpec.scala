@@ -169,7 +169,7 @@ object TransformSpec {
         typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
           val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
-          TypedPath(Path(List(path)), mt.valueType)
+          TypedPath(Path(List(path)), mt.valueType, mt.isAttribute)
         }.distinct.toIndexedSeq
       )
 
