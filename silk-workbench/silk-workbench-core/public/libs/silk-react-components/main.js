@@ -30680,20 +30680,19 @@
         }, listItems = _lodash2.default.isEmpty(rules) ? _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
             vertSpacing: !0,
             border: !0
-        }, "No existing mapping rules.")) : _react2.default.createElement("div", null, _react2.default.createElement(_reactBeautifulDnd.DragDropContext, {
+        }, "No existing mapping rules.")) : _react2.default.createElement(_reactBeautifulDnd.DragDropContext, {
             onDragStart: this.onDragStart,
             onDragEnd: this.onDragEnd
         }, _react2.default.createElement(_reactBeautifulDnd.Droppable, {
             droppableId: "droppable"
         }, function(provided, snapshot) {
-            return _react2.default.createElement("div", {
+            return _react2.default.createElement("ol", {
+                className: "mdl-list",
                 ref: provided.innerRef
-            }, _react2.default.createElement("ol", {
-                className: "mdl-list"
             }, _lodash2.default.map(_this2.state.items, function(item, index) {
                 return listItem(0, item);
-            }), provided.placeholder));
-        }))), listActions = _react2.default.createElement(_eccGuiElements.FloatingActionList, {
+            }), provided.placeholder);
+        })), listActions = _react2.default.createElement(_eccGuiElements.FloatingActionList, {
             fabSize: "large",
             fixed: !0,
             iconName: "add",
@@ -30926,7 +30925,7 @@
             var _this3 = this, getItemStyle = function(draggableStyle, isDragging) {
                 return (0, _extends3.default)({
                     userSelect: _this3.state.expanded ? "inherit" : "none",
-                    background: isDragging ? "white" : "inherit",
+                    background: isDragging ? "#cbe7fb" : "transparent",
                     boxShadow: isDragging ? "0px 3px 4px silver" : "inherit",
                     opacity: "1",
                     zIndex: isDragging ? "1" : "inherit"
@@ -31026,27 +31025,7 @@
                     toPos: count - 1,
                     id: id
                 })
-            }, "Move to bottom"))), rule = _react2.default.createElement("li", {
-                className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem", {
-                    "ecc-silk-mapping__ruleitem--object": "object" === type,
-                    "ecc-silk-mapping__ruleitem--literal": "object" !== type,
-                    "ecc-silk-mapping__ruleitem--defect": errorInfo
-                })
-            }, _react2.default.createElement("div", null, discardView, loading, _react2.default.createElement("div", {
-                className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem-summary", {
-                    "ecc-silk-mapping__ruleitem-summary--expanded": this.state.expanded
-                })
-            }, reorderHandleButton, _react2.default.createElement("div", {
-                className: "mdl-list__item clickable",
-                onClick: mainAction
-            }, _react2.default.createElement("div", {
-                className: "mdl-list__item-primary-content"
-            }, shortView), _react2.default.createElement("div", {
-                className: "mdl-list__item-secondary-content",
-                key: "action"
-            }, action))), !!this.state.expanded && _react2.default.createElement("div", {
-                className: "ecc-silk-mapping__ruleitem-expanded"
-            }, expandedView)));
+            }, "Move to bottom")));
             return _react2.default.createElement(_reactBeautifulDnd.Draggable, {
                 isDragDisabled: this.state.expanded,
                 style: {
@@ -31055,13 +31034,31 @@
                 key: id,
                 draggableId: id
             }, function(provided, snapshot) {
-                return _react2.default.createElement("div", {
-                    className: "beautiful-selected"
+                return _react2.default.createElement("li", {
+                    className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem", {
+                        "ecc-silk-mapping__ruleitem--object": "object" === type,
+                        "ecc-silk-mapping__ruleitem--literal": "object" !== type,
+                        "ecc-silk-mapping__ruleitem--defect": errorInfo
+                    })
                 }, _react2.default.createElement("div", (0, _extends3.default)({
-                    className: "beautiful-selected",
+                    className: "ecc-silk-mapping__ruleitem--dnd",
                     ref: provided.innerRef,
                     style: getItemStyle(provided.draggableStyle, snapshot.isDragging)
-                }, provided.dragHandleProps), rule), provided.placeholder);
+                }, provided.dragHandleProps), discardView, loading, _react2.default.createElement("div", {
+                    className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem-summary", {
+                        "ecc-silk-mapping__ruleitem-summary--expanded": _this3.state.expanded
+                    })
+                }, reorderHandleButton, _react2.default.createElement("div", {
+                    className: "mdl-list__item clickable",
+                    onClick: mainAction
+                }, _react2.default.createElement("div", {
+                    className: "mdl-list__item-primary-content"
+                }, shortView), _react2.default.createElement("div", {
+                    className: "mdl-list__item-secondary-content",
+                    key: "action"
+                }, action))), !!_this3.state.expanded && _react2.default.createElement("div", {
+                    className: "ecc-silk-mapping__ruleitem-expanded"
+                }, expandedView)), provided.placeholder);
             });
         }
     });

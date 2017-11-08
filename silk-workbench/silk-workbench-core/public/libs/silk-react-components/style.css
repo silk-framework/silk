@@ -13082,8 +13082,6 @@ ul.navigation {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap; }
-  .ecc-silk-mapping .beautiful-selected {
-    outline: none !important; }
 
 ul.ecc-hierarchical-mapping-error-list {
   margin-left: 0;
@@ -13252,6 +13250,9 @@ ul.ecc-hierarchical-mapping-error-list {
   .ecc-silk-mapping__ruleitem .mdl-list__item-primary-content {
     display: block;
     width: 50vw; }
+
+.ecc-silk-mapping__ruleitem--dnd {
+  outline: none; }
 
 .ecc-silk-mapping__ruleitem--literal .mdl-list__item-secondary-content {
   align-self: flex-start; }
