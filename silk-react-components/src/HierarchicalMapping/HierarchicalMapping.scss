@@ -49,11 +49,6 @@
             white-space: nowrap;
         }
     }
-
-    .beautiful-selected {
-      outline: none !important;
-    }
-
 }
 
 ul.ecc-hierarchical-mapping-error-list {
@@ -297,6 +292,10 @@ ul.ecc-hierarchical-mapping-error-list {
         display: block;
         width: 50vw;
     }
+}
+
+.ecc-silk-mapping__ruleitem--dnd {
+    outline: none;
 }
 
 .ecc-silk-mapping__ruleitem--literal {
