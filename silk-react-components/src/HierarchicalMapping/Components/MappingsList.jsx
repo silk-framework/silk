@@ -139,27 +139,22 @@ const MappingsList = React.createClass({
                          */}
             </CardContent>
         ) : (
-            <div>
+            <DragDropContext onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}>
+                <Droppable droppableId="droppable">
+                    {(provided, snapshot) => (
+                        <ol
+                            className="mdl-list"
+                            ref={provided.innerRef}
+                        >
+                            {_.map(this.state.items, (item, index) => {
+                                return listItem(index, item, provided, snapshot);
+                            })}
+                            {provided.placeholder}
+                        </ol>
+                    )}
 
-                <DragDropContext onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}>
-                    <Droppable droppableId="droppable">
-                        {(provided, snapshot) => (
-                            <div
-                                ref={provided.innerRef}
-                            >
-                                <ol className="mdl-list">
-                                    {_.map(this.state.items, (item, index) => {
-                                        return listItem(index, item, provided, snapshot);
-                                    })}
-                                    {provided.placeholder}
-                                </ol>
-                            </div>
-                        )}
-
-                    </Droppable>
-                    </DragDropContext>
-            </div>
-
+                </Droppable>
+            </DragDropContext>
         );
 
         const listActions = (

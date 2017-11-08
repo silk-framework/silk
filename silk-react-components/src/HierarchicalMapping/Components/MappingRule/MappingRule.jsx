@@ -154,7 +154,7 @@ const MappingRule = React.createClass({
             return {
                 // some basic styles to make the items look a bit nicer
                 userSelect: this.state.expanded ? 'inherit' : 'none',
-                background: isDragging ? 'white' : 'inherit',
+                background: isDragging ? '#cbe7fb' : 'transparent',
                 boxShadow: isDragging ? "0px 3px 4px silver" : "inherit",
                 opacity: isDragging ? '1' : '1',
                 zIndex: isDragging ? '1' : 'inherit',
@@ -340,69 +340,63 @@ const MappingRule = React.createClass({
                   </div>
                 : false;
 
-        const rule = (
-            <li
-                className={
-                    className(
-                        'ecc-silk-mapping__ruleitem',
-                        {
-                            'ecc-silk-mapping__ruleitem--object': type === 'object',
-                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
-                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
-                        }
-                    )
-                }
-            >
-                <div>
-                {discardView}
-                {loading}
-                <div className={
-                        className(
-                            'ecc-silk-mapping__ruleitem-summary',
-                            {
-                                'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
-                            }
-                        )
-                    }
-                >
-                    {reorderHandleButton}
-                    <div
-                        className={'mdl-list__item clickable'}
-                        onClick={mainAction}
-                    >
-                        <div className={'mdl-list__item-primary-content'}>
-                            {shortView}
-                        </div>
-                        <div className="mdl-list__item-secondary-content" key="action">
-                            {action}
-                        </div>
-                    </div>
-                </div>
-                {
-                    this.state.expanded ?
-                    <div className="ecc-silk-mapping__ruleitem-expanded">
-                        {expandedView}
-                    </div> :
-                    false
-                }
-            </div>
-            </li>
-        );
-
         return <Draggable isDragDisabled={this.state.expanded} style={{width: '15'}} key={id} draggableId={id}>
                 {(provided, snapshot) => (
-                    <div className={'beautiful-selected'}>
-                        <div
-                            className={'beautiful-selected'}
-                            ref={provided.innerRef}
-                            style={getItemStyle(
-                                provided.draggableStyle,
-                                snapshot.isDragging
-                            )}
-                            {...provided.dragHandleProps}
-                        >{rule}</div>
-                        {provided.placeholder}
-                    </div>
+                            <li
+                                className={
+                                    className(
+                                        'ecc-silk-mapping__ruleitem',
+                                        {
+                                            'ecc-silk-mapping__ruleitem--object': type === 'object',
+                                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
+                                            'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                                        }
+                                    )
+                                }
+                            >
+                                <div
+                                    className={'ecc-silk-mapping__ruleitem--dnd'}
+                                    ref={provided.innerRef}
+                                    style={getItemStyle(
+                                        provided.draggableStyle,
+                                        snapshot.isDragging
+                                    )}
+                                    {...provided.dragHandleProps}
+                                >
+                                    {discardView}
+                                    {loading}
+                                    <div className={
+                                            className(
+                                                'ecc-silk-mapping__ruleitem-summary',
+                                                {
+                                                    'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded
+                                                }
+                                            )
+                                        }
+                                    >
+                                        {reorderHandleButton}
+                                        <div
+                                            className={'mdl-list__item clickable'}
+                                            onClick={mainAction}
+                                        >
+                                            <div className={'mdl-list__item-primary-content'}>
+                                                {shortView}
+                                            </div>
+                                            <div className="mdl-list__item-secondary-content" key="action">
+                                                {action}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {
+                                        this.state.expanded ?
+                                        <div className="ecc-silk-mapping__ruleitem-expanded">
+                                            {expandedView}
+                                        </div> :
+                                        false
+                                    }
+                                </div>
+                                {provided.placeholder}
+                            </li>
                 )}
         </Draggable>
 
