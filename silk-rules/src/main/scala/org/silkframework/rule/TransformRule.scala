@@ -290,7 +290,12 @@ case class ObjectMapping(id: Identifier = "mapping",
     target match {
       case Some(prop) =>
         rules.uriRule match {
-          case Some (rule) => Some(rule)
+          case Some (rule) => {
+            val rewrittenInput = Input.rewriteSourcePaths(rule.operator, path => {
+              Path(sourcePath.operators ++ path.operators)
+            })
+            Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
+          }
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
