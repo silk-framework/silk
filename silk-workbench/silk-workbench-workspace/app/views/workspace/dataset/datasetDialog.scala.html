@@ -23,8 +23,8 @@
         for(var i in parameters) {
           var param = xmlDoc.createElement("Param");
           param.setAttribute('name', parameters[i].name);
-          param.setAttribute('value', parameters[i].value);
-          xml.appendChild(param)
+          param.appendChild(xmlDoc.createCDATASection(parameters[i].value));
+          xml.appendChild(param);
         }
         var xmlString = new XMLSerializer().serializeToString(xml);
 
