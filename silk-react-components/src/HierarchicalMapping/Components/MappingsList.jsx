@@ -11,7 +11,7 @@ import {
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import hierarchicalMappingChannel from '../store';
 
 const MappingsList = React.createClass({
@@ -23,7 +23,7 @@ const MappingsList = React.createClass({
     getInitialState() {
         return {
             items: this.getItems(this.props.rules),
-        }
+        };
     },
     getDefaultProps() {
         return {
@@ -48,14 +48,16 @@ const MappingsList = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        hierarchicalMappingChannel
-            .request({topic: 'rule.orderRule', data: {
+        hierarchicalMappingChannel.request({
+            topic: 'rule.orderRule',
+            data: {
                 reload: false,
                 toPos,
                 fromPos,
                 parentId: this.props.currentRuleId,
-                id: this.props.rules[result.source.index].id
-            }});
+                id: this.props.rules[result.source.index].id,
+            },
+        });
 
         const items = this.reorder(
             this.state.items,
@@ -63,7 +65,7 @@ const MappingsList = React.createClass({
             result.destination.index
         );
         this.setState({
-            items
+            items,
         });
     },
     getItems(rules) {
@@ -73,30 +75,26 @@ const MappingsList = React.createClass({
             props: {
                 pos: i,
                 parentId: this.props.currentRuleId,
-                count:rules.length,
+                count: rules.length,
                 key: `MappingRule_${rule.id}`,
-                ...rule
+                ...rule,
             },
-            errorInfo: _.get(rule, 'status[0].type', false) === 'error'
-                ? _.get(rule, 'status[0].message', false)
-                : false,
+            errorInfo:
+                _.get(rule, 'status[0].type', false) === 'error'
+                    ? _.get(rule, 'status[0].message', false)
+                    : false,
         }));
     },
-    onDragStart(result) {
-
-    },
+    onDragStart(result) {},
     componentWillReceiveProps(nextProps) {
+        if (_.isEqual(this.props, nextProps)) return;
 
-        if (_.isEqual(this.props, nextProps))
-            return;
-
-        this.setState ({
+        this.setState({
             items: this.getItems(nextProps.rules),
         });
     },
     shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.props, nextProps)
-
+        return !_.isEqual(this.props, nextProps);
     },
     reorder(list, startIndex, endIndex) {
         const result = Array.from(list);
@@ -106,10 +104,6 @@ const MappingsList = React.createClass({
     },
     // template rendering
     render() {
-
-
-
-
         const {rules} = this.props;
 
         const listTitle = (
@@ -121,13 +115,8 @@ const MappingsList = React.createClass({
         );
 
         const listItem = (index, item, provided, snapshot) => (
-            <MappingRule
-                {...item.props}
-                provided
-                snapshot
-            />
-
-            );
+            <MappingRule {...item.props} provided snapshot />
+        );
 
         const listItems = _.isEmpty(rules) ? (
             <CardContent>
@@ -139,20 +128,18 @@ const MappingsList = React.createClass({
                          */}
             </CardContent>
         ) : (
-            <DragDropContext onDragStart={this.onDragStart} onDragEnd={this.onDragEnd}>
+            <DragDropContext
+                onDragStart={this.onDragStart}
+                onDragEnd={this.onDragEnd}>
                 <Droppable droppableId="droppable">
                     {(provided, snapshot) => (
-                        <ol
-                            className="mdl-list"
-                            ref={provided.innerRef}
-                        >
-                            {_.map(this.state.items, (item, index) => {
-                                return listItem(index, item, provided, snapshot);
-                            })}
+                        <ol className="mdl-list" ref={provided.innerRef}>
+                            {_.map(this.state.items, (item, index) =>
+                                listItem(index, item, provided, snapshot)
+                            )}
                             {provided.placeholder}
                         </ol>
                     )}
-
                 </Droppable>
             </DragDropContext>
         );

@@ -206,9 +206,9 @@ const prepareObjectMappingPayload = data => {
         rules: {
             uriRule: data.pattern
                 ? {
-                    type: MAPPING_RULE_TYPE_URI,
-                    pattern: data.pattern,
-                }
+                      type: MAPPING_RULE_TYPE_URI,
+                      pattern: data.pattern,
+                  }
                 : null,
             typeRules,
         },
@@ -279,7 +279,8 @@ if (!__DEBUG__) {
                         []
                     );
                     const temp = swappedRule.rules.propertyRules[toPos];
-                    swappedRule.rules.propertyRules[toPos] = swappedRule.rules.propertyRules[fromPos];
+                    swappedRule.rules.propertyRules[toPos] =
+                        swappedRule.rules.propertyRules[fromPos];
                     swappedRule.rules.propertyRules[fromPos] = temp;
                     silkStore
                         .request({
@@ -291,17 +292,17 @@ if (!__DEBUG__) {
                             },
                         })
                         .subscribe(
-                            (response) => {
+                            response => {
                                 if (reload) {
                                     hierarchicalMappingChannel
                                         .subject('reload')
                                         .onNext(true);
                                 }
-                                replySubject.onNext(response)
+                                replySubject.onNext(response);
                                 replySubject.onCompleted();
                             },
-                            (error) => {
-                                replySubject.onError(error)
+                            error => {
+                                replySubject.onError(error);
                                 replySubject.onCompleted();
                             }
                         );
@@ -557,22 +558,22 @@ if (!__DEBUG__) {
             let channel = 'transform.task.rule.completions.';
 
             switch (entity) {
-            case 'propertyType':
-                filterPropertyType(input, replySubject);
-                return;
-            case 'targetProperty':
-                channel += 'targetProperties';
-                break;
-            case 'targetEntityType':
-                channel += 'targetTypes';
-                break;
-            case 'sourcePath':
-                channel += 'sourcePaths';
-                break;
-            default:
-                if (__DEBUG__) {
-                    console.error(`No autocomplete defined for ${entity}`);
-                }
+                case 'propertyType':
+                    filterPropertyType(input, replySubject);
+                    return;
+                case 'targetProperty':
+                    channel += 'targetProperties';
+                    break;
+                case 'targetEntityType':
+                    channel += 'targetTypes';
+                    break;
+                case 'sourcePath':
+                    channel += 'sourcePaths';
+                    break;
+                default:
+                    if (__DEBUG__) {
+                        console.error(`No autocomplete defined for ${entity}`);
+                    }
             }
 
             silkStore
@@ -802,55 +803,55 @@ if (!__DEBUG__) {
             let result = [];
 
             switch (entity) {
-            case 'propertyType':
-                filterPropertyType(input, replySubject);
-                return;
-            case 'targetProperty':
-                result = [
-                    {
-                        value: 'http://xmlns.com/foaf/0.1/knows',
-                        label: 'foaf:knows',
-                        description:
-                            'A person known by this person (indicating some level of reciprocated interaction between the parties).',
-                    },
-                    {
-                        value: 'http://xmlns.com/foaf/0.1/name',
-                        label: 'foaf:name',
-                        description: 'A name for some thing.',
-                    },
-                    {
-                        value: 'http://schmea.org/address',
-                        label: 'schema:address',
-                        description: 'Physical address of the item.',
-                    },
-                ];
-                break;
-            case 'targetEntityType':
-                result = [
-                    {
-                        value: 'http://xmlns.com/foaf/0.1/Person',
-                        label: 'foaf:Person',
-                        description:
-                            "The Person class represents people. Something is a Person if it is a person. We don't nitpic about whether they're alive, dead, real, or imaginary. The Person class is a sub-class of the Agent class, since all people are considered 'agents' in FOAF.",
-                    },
-                    {
-                        value: 'http://schema.org/PostalAddress',
-                        label: 'schema:PostalAddress',
-                        description: 'The mailing address.',
-                    },
-                ];
-                break;
-            case 'sourcePath':
-                result = [
-                    {value: '/name', label: 'name'},
-                    {value: '/address', label: 'address'},
-                    {value: '/last_name', label: 'last name'},
-                ];
-                break;
-            default:
-                if (__DEBUG__) {
-                    console.error(`No autocomplete defined for ${entity}`);
-                }
+                case 'propertyType':
+                    filterPropertyType(input, replySubject);
+                    return;
+                case 'targetProperty':
+                    result = [
+                        {
+                            value: 'http://xmlns.com/foaf/0.1/knows',
+                            label: 'foaf:knows',
+                            description:
+                                'A person known by this person (indicating some level of reciprocated interaction between the parties).',
+                        },
+                        {
+                            value: 'http://xmlns.com/foaf/0.1/name',
+                            label: 'foaf:name',
+                            description: 'A name for some thing.',
+                        },
+                        {
+                            value: 'http://schmea.org/address',
+                            label: 'schema:address',
+                            description: 'Physical address of the item.',
+                        },
+                    ];
+                    break;
+                case 'targetEntityType':
+                    result = [
+                        {
+                            value: 'http://xmlns.com/foaf/0.1/Person',
+                            label: 'foaf:Person',
+                            description:
+                                "The Person class represents people. Something is a Person if it is a person. We don't nitpic about whether they're alive, dead, real, or imaginary. The Person class is a sub-class of the Agent class, since all people are considered 'agents' in FOAF.",
+                        },
+                        {
+                            value: 'http://schema.org/PostalAddress',
+                            label: 'schema:PostalAddress',
+                            description: 'The mailing address.',
+                        },
+                    ];
+                    break;
+                case 'sourcePath':
+                    result = [
+                        {value: '/name', label: 'name'},
+                        {value: '/address', label: 'address'},
+                        {value: '/last_name', label: 'last name'},
+                    ];
+                    break;
+                default:
+                    if (__DEBUG__) {
+                        console.error(`No autocomplete defined for ${entity}`);
+                    }
             }
 
             const search = _.isString(input) ? input.toLocaleLowerCase() : '';
@@ -970,7 +971,7 @@ if (!__DEBUG__) {
         }
     };
 
-    const saveMockStore = (reload) => {
+    const saveMockStore = reload => {
         if (reload) {
             hierarchicalMappingChannel.subject('reload').onNext(true);
         }
@@ -1136,20 +1137,20 @@ if (!__DEBUG__) {
             const ret = {info: null};
 
             switch (field) {
-            case 'label':
-                break;
-            case 'description':
-                ret.info = loremIpsum({
-                    count: _.random(0, 2),
-                    units: 'paragraphs',
-                });
-                break;
-            default:
-                if (__DEBUG__) {
-                    console.warn(
-                        `No info for field ${field} available in mockStore`
-                    );
-                }
+                case 'label':
+                    break;
+                case 'description':
+                    ret.info = loremIpsum({
+                        count: _.random(0, 2),
+                        units: 'paragraphs',
+                    });
+                    break;
+                default:
+                    if (__DEBUG__) {
+                        console.warn(
+                            `No info for field ${field} available in mockStore`
+                        );
+                    }
             }
 
             replySubject.onNext(ret);
