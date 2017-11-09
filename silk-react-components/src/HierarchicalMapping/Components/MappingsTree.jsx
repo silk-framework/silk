@@ -47,10 +47,10 @@ const MappingsTree = React.createClass({
     componentDidMount() {
         this.loadData();
     },
-    expandElement({newRuleId, parentRuleId}) {
+    expandElement({newRuleId, parentId}) {
         const expanded = this.state.expanded;
         expanded[newRuleId] = true;
-        expanded[parentRuleId] = true;
+        expanded[parentId] = true;
         this.setState({expanded});
     },
     loadData() {

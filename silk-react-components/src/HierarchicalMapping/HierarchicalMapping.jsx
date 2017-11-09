@@ -150,7 +150,7 @@ const HierarchicalMapping = React.createClass({
         });
     },
     // react to rule id changes
-    onRuleNavigation({newRuleId, parentRuleId}) {
+    onRuleNavigation({newRuleId}) {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {

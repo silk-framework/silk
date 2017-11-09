@@ -3182,15 +3182,19 @@
         }
         return payload;
     }, createGeneratedRules = function(_ref) {
-        var rules = _ref.rules;
+        var rules = _ref.rules, parentId = _ref.parentId;
         return _eccMessagebus.Rx.Observable.forkJoin(_lodash2.default.map(rules, function(rule) {
+            var newRule = rule;
+            delete newRule.id;
             return hierarchicalMappingChannel.request({
                 topic: "rule.createGeneratedMapping",
-                data: (0, _extends3.default)({}, rule)
+                data: (0, _extends3.default)({}, newRule, {
+                    parentId: parentId
+                })
             }).catch(function(e) {
                 return _eccMessagebus.Rx.Observable.return({
                     error: e,
-                    rule: rule
+                    rule: newRule
                 });
             });
         }), function() {
@@ -3239,16 +3243,17 @@
         }).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rules.generate").subscribe(function(_ref3) {
-        var data = _ref3.data, replySubject = _ref3.replySubject, correspondences = data.correspondences, parentRuleId = data.parentRuleId;
+        var data = _ref3.data, replySubject = _ref3.replySubject, correspondences = data.correspondences, parentId = data.parentId;
         silkStore.request({
             topic: "transform.task.rule.generate",
             data: (0, _extends3.default)({}, apiDetails, {
                 correspondences: correspondences,
-                parentRuleId: parentRuleId
+                parentId: parentId
             })
         }).map(function(returned) {
             return {
-                rules: _lodash2.default.get(returned, [ "body" ], [])
+                rules: _lodash2.default.get(returned, [ "body" ], []),
+                parentId: parentId
             };
         }).flatMap(createGeneratedRules).multicast(replySubject).connect();
     });
@@ -4961,7 +4966,7 @@
         handleNavigate: function(id, parent, event) {
             _store2.default.subject("ruleId.change").onNext({
                 newRuleId: id,
-                parentRuleId: parent
+                parentId: parent
             });
             event.stopPropagation();
         },
@@ -25347,7 +25352,6 @@
         },
         onRuleNavigation: function(_ref2) {
             var newRuleId = _ref2.newRuleId;
-            _ref2.parentRuleId;
             newRuleId === this.state.currentRuleId || (0 === this.state.editingElements.length ? this.setState({
                 currentRuleId: newRuleId
             }) : this.setState({
@@ -29374,9 +29378,9 @@
             this.loadData();
         },
         expandElement: function(_ref) {
-            var newRuleId = _ref.newRuleId, parentRuleId = _ref.parentRuleId, expanded = this.state.expanded;
+            var newRuleId = _ref.newRuleId, parentId = _ref.parentId, expanded = this.state.expanded;
             expanded[newRuleId] = !0;
-            expanded[parentRuleId] = !0;
+            expanded[parentId] = !0;
             this.setState({
                 expanded: expanded
             });
@@ -35134,7 +35138,7 @@
                 topic: "rules.generate",
                 data: {
                     correspondences: correspondences,
-                    parentRuleId: _lodash2.default.get(this.props, "ruleId", "root")
+                    parentId: this.props.ruleId
                 }
             }).subscribe(function() {
                 _store2.default.subject("ruleView.close").onNext({
@@ -35340,8 +35344,8 @@
     silkStore.subject("transform.task.rules.put").subscribe();
     silkStore.subject("transform.task.rule.get").subscribe();
     silkStore.subject("transform.task.rule.generate").subscribe(function(_ref2) {
-        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentRuleId = data.parentRuleId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask;
-        _superagent2.default.post(baseUrl + "/ontologyMatching/rulesGenerator/" + project + "/" + transformTask + "/rule/" + parentRuleId).accept("application/json").send({
+        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentId = data.parentId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask;
+        _superagent2.default.post(baseUrl + "/ontologyMatching/rulesGenerator/" + project + "/" + transformTask + "/rule/" + parentId).accept("application/json").send({
             correspondences: _lodash2.default.map(correspondences, function(c) {
                 return {
                     sourcePath: _lodash2.default.last(_lodash2.default.split(c.sourcePath, "/")),

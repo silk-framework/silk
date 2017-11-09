@@ -35,7 +35,7 @@ silkStore
     .subscribe(({data, replySubject}) => {
         const {
             correspondences,
-            parentRuleId,
+            parentId,
             baseUrl,
             project,
             transformTask,
@@ -43,7 +43,7 @@ silkStore
 
         superagent
             .post(
-                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentRuleId}`
+                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentId}`
             )
             .accept('application/json')
             .send({
