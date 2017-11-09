@@ -200,7 +200,7 @@
 @createResourceField(pluginId: String, param: Parameter) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
-      @for(resource <- resources) {
+      @for(resource <- (value(pluginId, param) :: resources).distinct) { // Selected resource should be chosen even if deleted
         <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
       }
     </select>
