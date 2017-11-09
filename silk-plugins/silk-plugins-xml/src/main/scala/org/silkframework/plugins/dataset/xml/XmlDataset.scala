@@ -3,6 +3,9 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.validation.ValidationException
+
+import scala.xml.{Node, ProcInstr, XML}
 
 @Plugin(
   id = "xml",
@@ -57,9 +60,11 @@ case class XmlDataset(
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
   @Param(value = "The output template used for writing XML")
-  outputTemplate: MultilineStringParameter = "<Root><?Entity?><Root>",
+  outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
   streaming: Boolean = true) extends Dataset {
+
+  validateOutputTemplate()
 
   override def source: DataSource = {
     if(streaming) {
@@ -72,4 +77,22 @@ case class XmlDataset(
   override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
   override def entitySink: EntitySink = new XmlSink(file, outputTemplate.str)
+
+  /**
+    * Validates the output template parameter
+    */
+  private def validateOutputTemplate(): Unit = {
+    val xml = XML.loadString(outputTemplate.str)
+    def collectProcInstructions(node: Node): Seq[ProcInstr] = {
+      node match {
+        case proc: ProcInstr => Seq(proc)
+        case _ => node.child.flatMap(collectProcInstructions)
+      }
+    }
+    val procInstructions = collectProcInstructions(xml)
+    if(procInstructions.size != 1) {
+      throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
+    }
+  }
+
 }
