@@ -146,8 +146,8 @@ class TransformTaskApi extends Controller {
   def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
     task.synchronized {
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(task, ruleName) { parentRule =>
         deserializeCompileTime[TransformRule]() { newChildRule =>
           if(task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {

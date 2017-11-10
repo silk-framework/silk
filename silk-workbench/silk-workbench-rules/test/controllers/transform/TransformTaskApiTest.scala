@@ -3,8 +3,9 @@ package controllers.transform
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.libs.ws.WS
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
@@ -393,5 +394,31 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
     val response = Await.result(request.post(Json.parse(json)), 100.seconds)
     response.status mustBe 400
+  }
+
+  "Append multiple new direct mapping rules without ID at the same time" in {
+    val resultsFutures = for(i <- 1 to 10) yield {
+      Future(jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
+        s"""
+        {
+          "type": "direct",
+          "sourcePath": "/source:name",
+          "mappingTarget": {
+            "uri": "target:name$i",
+            "valueType": {
+              "nodeType": "StringValueType"
+            }
+          },
+          "metadata" : {
+            "label" : "direct rule label $i",
+            "description" : "direct rule description"
+          }
+        }
+      """
+      })
+    }
+    val seqFuture = Future.sequence(resultsFutures)
+    val jsons = Await.result(seqFuture, 10.seconds)
+    jsons.map(json => (json \ "id").as[String]).distinct.size mustBe 10
   }
 }
