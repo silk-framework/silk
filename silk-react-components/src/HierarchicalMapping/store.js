@@ -222,24 +222,37 @@ const prepareObjectMappingPayload = data => {
     return payload;
 };
 
-const createGeneratedRules = ({rules, parentId}) =>
-    Rx.Observable.forkJoin(
-        _.map(rules, rule => {
-            /* The DI endpoint for rule generation generates IDs for the rules,
-                which can lead to conflicts when creating the rules.
-                Therefore we need to delete the rule ID.
-             */
-            const newRule = rule;
-            delete newRule.id;
+const generateRule = (rule, parentId) =>
+    hierarchicalMappingChannel
+        .request({
+            topic: 'rule.createGeneratedMapping',
+            data: {...rule, parentId},
+        })
+        .catch(e => Rx.Observable.return({error: e, rule}));
 
-            return hierarchicalMappingChannel
-                .request({
-                    topic: 'rule.createGeneratedMapping',
-                    data: {...newRule, parentId},
-                })
-                .catch(e => Rx.Observable.return({error: e, rule: newRule}));
-        }),
-        (...createdRules) => {
+const createGeneratedRules = ({rules, parentId}) =>
+    Rx.Observable
+        .from(rules)
+        .flatMapWithMaxConcurrent(5, rule =>
+            Rx.Observable.defer(() => generateRule(rule, parentId))
+        )
+        .reduce((all, result, idx) => {
+            const total = _.size(rules);
+            const count = idx + 1;
+
+            hierarchicalMappingChannel
+                .subject('rule.suggestions.progress')
+                .onNext({
+                    progressNumber: _.round(count / total * 100, 0),
+                    lastUpdate: `Saved ${count} of ${total} rules.`,
+                });
+
+            all.push(result);
+
+            return all;
+        }, [])
+        .map(createdRules => {
+
             const failedRules = _.filter(createdRules, 'error');
 
             if (_.size(failedRules)) {
@@ -249,8 +262,7 @@ const createGeneratedRules = ({rules, parentId}) =>
             }
 
             return createdRules;
-        }
-    );
+        });
 
 if (!__DEBUG__) {
     let rootId = null;
