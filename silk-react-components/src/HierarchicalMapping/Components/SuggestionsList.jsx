@@ -13,6 +13,7 @@ import {
     Spinner,
     ScrollingMixin,
     Checkbox,
+    ProgressButton,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
@@ -83,7 +84,7 @@ const SuggestionsList = React.createClass({
         event.stopPropagation();
         const correspondences = [];
         this.setState({
-            loading: true,
+            saving: true,
         });
 
         _.forEach(this.state.data, suggestion => {
@@ -118,7 +119,7 @@ const SuggestionsList = React.createClass({
                         ? err.failedRules
                         : [{error: err}];
 
-                    this.setState({loading: false, error});
+                    this.setState({saving: false, error});
 
                     hierarchicalMappingChannel.subject('reload').onNext(true);
                 }
@@ -151,6 +152,36 @@ const SuggestionsList = React.createClass({
     render() {
         if (this.state.loading) {
             return <Spinner />;
+        }
+
+        if (this.state.saving) {
+            return (
+                <SuggestionsListWrapper>
+                    <CardTitle>Saving...</CardTitle>
+                    <CardContent>
+                        <p>
+                            The {_.size(this.state.checked)} rules you have
+                            selected are being created.
+                        </p>
+                    </CardContent>
+                    <CardActions fixed>
+                        <ProgressButton
+                            progress={0}
+                            progressTopic={hierarchicalMappingChannel.subject(
+                                'rule.suggestions.progress'
+                            )}
+                            tooltip={'Progress'}>
+                            Save
+                        </ProgressButton>
+                        <DismissiveButton
+                            raised
+                            disabled
+                            className="ecc-hm-suggestions-cancel">
+                            Cancel
+                        </DismissiveButton>
+                    </CardActions>
+                </SuggestionsListWrapper>
+            );
         }
 
         if (this.state.error) {
