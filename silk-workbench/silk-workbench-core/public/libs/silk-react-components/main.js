@@ -3181,24 +3181,33 @@
             payload.rules.propertyRules = [];
         }
         return payload;
+    }, generateRule = function(rule, parentId) {
+        return hierarchicalMappingChannel.request({
+            topic: "rule.createGeneratedMapping",
+            data: (0, _extends3.default)({}, rule, {
+                parentId: parentId
+            })
+        }).catch(function(e) {
+            return _eccMessagebus.Rx.Observable.return({
+                error: e,
+                rule: rule
+            });
+        });
     }, createGeneratedRules = function(_ref) {
         var rules = _ref.rules, parentId = _ref.parentId;
-        return _eccMessagebus.Rx.Observable.forkJoin(_lodash2.default.map(rules, function(rule) {
-            var newRule = rule;
-            delete newRule.id;
-            return hierarchicalMappingChannel.request({
-                topic: "rule.createGeneratedMapping",
-                data: (0, _extends3.default)({}, newRule, {
-                    parentId: parentId
-                })
-            }).catch(function(e) {
-                return _eccMessagebus.Rx.Observable.return({
-                    error: e,
-                    rule: newRule
-                });
+        return _eccMessagebus.Rx.Observable.from(rules).flatMapWithMaxConcurrent(5, function(rule) {
+            return _eccMessagebus.Rx.Observable.defer(function() {
+                return generateRule(rule, parentId);
             });
-        }), function() {
-            for (var _len = arguments.length, createdRules = Array(_len), _key = 0; _key < _len; _key++) createdRules[_key] = arguments[_key];
+        }).reduce(function(all, result, idx) {
+            var total = _lodash2.default.size(rules), count = idx + 1;
+            hierarchicalMappingChannel.subject("rule.suggestions.progress").onNext({
+                progressNumber: _lodash2.default.round(count / total * 100, 0),
+                lastUpdate: "Saved " + count + " of " + total + " rules."
+            });
+            all.push(result);
+            return all;
+        }, []).map(function(createdRules) {
             var failedRules = _lodash2.default.filter(createdRules, "error");
             if (_lodash2.default.size(failedRules)) {
                 var error = new Error("Could not create rules.");
@@ -25417,7 +25426,7 @@
                     className: "ecc-hm-delete-cancel",
                     onClick: this.handleCancelRemove
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : "", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : " ", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 className: "ecc-hm-discard-dialog",
@@ -35126,7 +35135,7 @@
             event.stopPropagation();
             var correspondences = [];
             this.setState({
-                loading: !0
+                saving: !0
             });
             _lodash2.default.forEach(this.state.data, function(suggestion) {
                 _this2.isChecked(suggestion) && correspondences.push({
@@ -35151,9 +35160,10 @@
                     error: err
                 } ];
                 _this2.setState({
-                    loading: !1,
+                    saving: !1,
                     error: error
                 });
+                _store2.default.subject("reload").onNext(!0);
             });
         },
         getInitialState: function() {
@@ -35180,6 +35190,17 @@
         render: function() {
             var _this3 = this;
             if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(this.state.checked), " rules you have selected are being created.")), _react2.default.createElement(_eccGuiElements.CardActions, {
+                fixed: !0
+            }, _react2.default.createElement(_eccGuiElements.ProgressButton, {
+                progress: 0,
+                progressTopic: _store2.default.subject("rule.suggestions.progress"),
+                tooltip: "Progress"
+            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                raised: !0,
+                disabled: !0,
+                className: "ecc-hm-suggestions-cancel"
+            }, "Cancel")));
             if (this.state.error) {
                 var errorsList = _lodash2.default.map(this.state.error, function(err) {
                     return _react2.default.createElement("li", {
