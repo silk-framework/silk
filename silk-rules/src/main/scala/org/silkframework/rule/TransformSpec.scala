@@ -1,13 +1,13 @@
 package org.silkframework.rule
 
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -267,4 +267,12 @@ object TransformSpec {
     }
   }
 
+  /** Creates an ID generator pre-populated with IDs from the transform spec */
+  def identifierGenerator(transformSpec: TransformSpec): IdentifierGenerator = {
+    val identifierGenerator = new IdentifierGenerator()
+    for(id <- RuleTraverser(transformSpec.mappingRule).iterateAllChildren.map(_.operator.id)) {
+      identifierGenerator.add(id)
+    }
+    identifierGenerator
+  }
 }

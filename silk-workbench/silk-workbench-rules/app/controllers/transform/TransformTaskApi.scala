@@ -225,11 +225,7 @@ class TransformTaskApi extends Controller {
   }
 
   private def identifierGenerator(transformTask: Task[TransformSpec]): IdentifierGenerator = {
-    val identifierGenerator = new IdentifierGenerator()
-    for(id <- RuleTraverser(transformTask.data.mappingRule).iterateAllChildren.map(_.operator.id)) {
-      identifierGenerator.add(id)
-    }
-    identifierGenerator
+    TransformSpec.identifierGenerator(transformTask.data)
   }
 
   private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
