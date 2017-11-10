@@ -119,6 +119,8 @@ const SuggestionsList = React.createClass({
                         : [{error: err}];
 
                     this.setState({loading: false, error});
+
+                    hierarchicalMappingChannel.subject('reload').onNext(true);
                 }
             );
     },
