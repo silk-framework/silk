@@ -1,11 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.time.Instant
-
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
@@ -28,7 +26,10 @@ case class FileDataset(
   @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
-  graph: String = "") extends RdfDataset with TripleSinkDataset {
+  graph: String = "",
+  @Param(label = "Max. read size (MB)",
+    value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
+  maxReadSize: Long = 10) extends RdfDataset with TripleSinkDataset {
 
   /** The RDF format of the given resource. */
   private val lang = {
@@ -46,10 +47,11 @@ case class FileDataset(
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
   private def formatter: LinkFormatter with EntityFormatter = {
-    if(lang == Lang.NTRIPLES)
+    if(lang == Lang.NTRIPLES) {
       NTriplesLinkFormatter()
-    else
+    } else {
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
+    }
   }
 
   private val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
@@ -110,11 +112,17 @@ case class FileDataset(
      * Loads the dataset and creates an endpoint.
      * Does nothing if the data set has already been loaded.
      */
-    private def load() = synchronized {
-      val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
-      if (endpoint == null || modificationTime != lastModificationTime) {
-        endpoint = sparqlEndpoint
-        lastModificationTime = modificationTime
+    private def load(): Unit = synchronized {
+      if(file.size.isEmpty) {
+        throw new RuntimeException("File size could not be determined, ")
+      } else if(file.size.get > maxReadSize * 1000 * 1000) {
+        throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
+      } else {
+        val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
+        if (endpoint == null || modificationTime != lastModificationTime) {
+          endpoint = sparqlEndpoint
+          lastModificationTime = modificationTime
+        }
       }
     }
   }
