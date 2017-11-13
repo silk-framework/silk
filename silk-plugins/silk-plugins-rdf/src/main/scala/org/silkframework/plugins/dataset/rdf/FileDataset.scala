@@ -89,7 +89,7 @@ case class FileDataset(
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-      if(entities.isEmpty) {
+      if (entities.isEmpty) {
         Seq.empty
       } else {
         load()
@@ -109,17 +109,17 @@ case class FileDataset(
     }
 
     /**
-     * Loads the dataset and creates an endpoint.
-     * Does nothing if the data set has already been loaded.
-     */
+      * Loads the dataset and creates an endpoint.
+      * Does nothing if the data set has already been loaded.
+      */
     private def load(): Unit = synchronized {
-      if(file.size.isEmpty) {
-        throw new RuntimeException("File size could not be determined, ")
-      } else if(file.size.get > maxReadSize * 1000 * 1000) {
-        throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
-      } else {
-        val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
-        if (endpoint == null || modificationTime != lastModificationTime) {
+      val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
+      if (endpoint == null || modificationTime != lastModificationTime) {
+        if (file.size.isEmpty) {
+          throw new RuntimeException("File size could not be determined, ")
+        } else if (file.size.get > maxReadSize * 1000 * 1000) {
+          throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
+        } else {
           endpoint = sparqlEndpoint
           lastModificationTime = modificationTime
         }
