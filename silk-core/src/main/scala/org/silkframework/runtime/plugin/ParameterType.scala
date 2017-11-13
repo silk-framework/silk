@@ -77,7 +77,7 @@ object ParameterType {
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
-      WritableResourceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType)
+      WritableResourceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType)
   }
 
   /**
@@ -132,6 +132,18 @@ object ParameterType {
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
       str.toInt
+    }
+
+  }
+
+  object LongType extends ParameterType[Long] {
+
+    override def name: String = "Long"
+
+    override def description: String = "A Long number."
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Long = {
+      str.toLong
     }
 
   }
