@@ -63,6 +63,24 @@
         $("#resource_type_select").prop("disabled", "true");
       }
 
+      // Add autocompletion
+      $(".input-resource").autocomplete({
+        source: function( request, response ) {
+          var json = $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
+            .done(function(json) {
+              var data = $.map(json, function(resource) {
+                return {
+                  label: resource.name,
+                  value: resource.name
+                };
+              });
+              console.log(json);
+              response(data);
+            });
+          },
+        minLength: 0,
+      })
+
     });
 
     function submit() {
@@ -198,12 +216,9 @@
 }
 
 @createResourceField(pluginId: String, param: Parameter) = {
-  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
-    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
-      @for(resource <- (value(pluginId, param) :: resources).distinct) { // Selected resource should be chosen even if deleted
-        <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
-      }
-    </select>
+  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label input-resource">
+    <input class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
+    </input>
     <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
