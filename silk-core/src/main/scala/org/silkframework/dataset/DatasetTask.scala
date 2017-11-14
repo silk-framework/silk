@@ -192,7 +192,7 @@ object DatasetTask {
         new DatasetTask(
           id = if (id.nonEmpty) id else Identifier.random,
           plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
+          metaData = (node \ "MetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
           minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
           maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
         )
