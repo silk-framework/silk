@@ -1,12 +1,10 @@
-@import org.silkframework.workspace.activity.ProjectExecutor
-@import plugins.WorkbenchPlugins
-@import org.silkframework.workspace.Project
-@import plugins.WorkbenchPlugin.TaskActions
-@import org.silkframework.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
-@import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.ProjectTask
+@import org.silkframework.runtime.plugin.PluginRegistry
+@import org.silkframework.workspace.{Project, ProjectTask, Workspace}
+@import org.silkframework.workspace.activity.ProjectExecutor
+@import plugins.WorkbenchPlugin.TaskActions
+@import plugins.WorkbenchPlugins
 
 @(workspace: Workspace)
 
@@ -73,7 +71,7 @@
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
     <ul>
-      @for((key, value) <- taskActions.properties(task.data)(project.config.prefixes) if !value.isEmpty) {
+      @for((key, value) <- task.metaDataFields ++ taskActions.properties(task.data)(project.config.prefixes) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
           @key: @value
         </li>

@@ -184,6 +184,19 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   override def toString: String = {
     s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
   }
+
+  // Returns all non-empty meta data fields as key value pairs
+  def metaDataFields(): Seq[(String, String)] = {
+    // ID is part of the metaData
+    var metaDataFields: Vector[(String, String)] = Vector(("Task identifier", id.toString))
+    if(metaData.label.trim != "") {
+      metaDataFields = metaDataFields :+ "Label" -> metaData.label
+    }
+    if(metaData.description.trim != "") {
+      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    }
+    metaDataFields
+  }
 }
 
 object ProjectTask {
