@@ -3323,21 +3323,34 @@
         }).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.child.example").subscribe(function(_ref7) {
-        var data = _ref7.data, replySubject = _ref7.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id;
-        if (id) {
-            var rule = "value" === ruleType ? prepareValueMappingPayload(rawRule) : prepareObjectMappingPayload(rawRule);
-            silkStore.request({
-                topic: "transform.task.rule.child.peak",
-                data: (0, _extends3.default)({}, apiDetails, {
-                    id: id,
-                    rule: rule
-                })
-            }).subscribe(function(returned) {
-                var result = mapPeakResult(returned);
-                result.title ? replySubject.onError(result) : replySubject.onNext(result);
-                replySubject.onCompleted();
-            });
-        }
+        var data = _ref7.data, replySubject = _ref7.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id, rule = function(rawRule, type) {
+            switch (type) {
+              case _helpers.MAPPING_RULE_TYPE_DIRECT:
+              case _helpers.MAPPING_RULE_TYPE_COMPLEX:
+                return prepareValueMappingPayload(rawRule);
+
+              case _helpers.MAPPING_RULE_TYPE_OBJECT:
+                return prepareObjectMappingPayload(rawRule);
+
+              case _helpers.MAPPING_RULE_TYPE_URI:
+              case _helpers.MAPPING_RULE_TYPE_COMPLEX_URI:
+                return rawRule;
+
+              default:
+                throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+            }
+        }(rawRule, ruleType);
+        rule && id && silkStore.request({
+            topic: "transform.task.rule.child.peak",
+            data: (0, _extends3.default)({}, apiDetails, {
+                id: id,
+                rule: rule
+            })
+        }).subscribe(function(returned) {
+            var result = mapPeakResult(returned);
+            result.title ? replySubject.onError(result) : replySubject.onNext(result);
+            replySubject.onCompleted();
+        });
     });
     hierarchicalMappingChannel.subject("rule.example").subscribe(function(_ref8) {
         var data = _ref8.data, replySubject = _ref8.replySubject, id = data.id;
@@ -20021,7 +20034,8 @@
                     entityConnection: _lodash2.default.get(rule, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     pattern: _lodash2.default.get(rule, "rules.uriRule.pattern", ""),
                     type: _lodash2.default.get(rule, "type"),
-                    uriRuleType: _lodash2.default.get(rule, "rules.uriRule.type", "uri")
+                    uriRuleType: _lodash2.default.get(rule, "rules.uriRule.type", _helpers2.MAPPING_RULE_TYPE_URI),
+                    uriRule: _lodash2.default.get(rule, "rules.uriRule")
                 };
                 _this.setState((0, _extends3.default)({
                     loading: !1,
@@ -20107,6 +20121,20 @@
                 id: id
             });
         },
+        getExampleView: function() {
+            return this.state.pattern ? _react2.default.createElement(_ExampleView2.default, {
+                id: this.props.parentId || "root",
+                rawRule: {
+                    type: _helpers2.MAPPING_RULE_TYPE_URI,
+                    pattern: this.state.pattern
+                },
+                ruleType: _helpers2.MAPPING_RULE_TYPE_URI
+            }) : !!this.state.uriRule && _react2.default.createElement(_ExampleView2.default, {
+                id: this.props.parentId || "root",
+                rawRule: this.state.uriRule,
+                ruleType: this.state.uriRule.type
+            });
+        },
         render: function() {
             var _props = this.props, id = _props.id, parentId = _props.parentId, autoCompleteRuleId = id || parentId, error = this.state.error, type = this.state.type;
             if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
@@ -20159,11 +20187,7 @@
                 label: "URI formula",
                 value: "This URI cannot be edited in the edit form."
             }));
-            var exampleView = _react2.default.createElement(_ExampleView2.default, {
-                id: this.props.parentId || "root",
-                rawRule: this.state,
-                ruleType: _helpers2.MAPPING_RULE_TYPE_OBJECT
-            });
+            var exampleView = this.getExampleView();
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
             }, _react2.default.createElement(_eccGuiElements.Card, {
@@ -20450,7 +20474,7 @@
                 id: this.props.parentId || "root",
                 key: this.state.sourceProperty.value || this.state.sourceProperty,
                 rawRule: this.state,
-                ruleType: "value"
+                ruleType: type
             });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
@@ -35411,7 +35435,6 @@
     });
     silkStore.subject("transform.task.rule.child.peak").subscribe(function(_ref9) {
         var data = _ref9.data, replySubject = _ref9.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, rule = data.rule, id = data.id;
-        _lodash2.default.get(rule, "mappingTarget.uri") || _lodash2.default.set(rule, "mappingTarget.uri", "http://example.org");
         _superagent2.default.post(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/peak/" + id + "/childRule").accept("application/json").send((0, 
         _extends3.default)({}, rule)).observe().multicast(replySubject).connect();
     });
