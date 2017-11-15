@@ -7,6 +7,7 @@ import {
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -443,11 +444,21 @@ if (!__DEBUG__) {
         .subject('rule.child.example')
         .subscribe(({data, replySubject}) => {
             const {ruleType, rawRule, id} = data;
-            if (id) {
-                const rule =
-                    ruleType === 'value'
-                        ? prepareValueMappingPayload(rawRule)
-                        : prepareObjectMappingPayload(rawRule);
+            const getRule = (rawRule, type) => {
+                switch (type) {
+                    case MAPPING_RULE_TYPE_DIRECT:
+                        return prepareValueMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_OBJECT:
+                        return prepareObjectMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_URI:
+                    case MAPPING_RULE_TYPE_COMPLEX_URI:
+                        return rawRule;
+                    default:
+                        throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+                }
+            };
+            const rule = getRule(rawRule, ruleType);
+            if (rule && id) {
                 silkStore
                     .request({
                         topic: 'transform.task.rule.child.peak',
