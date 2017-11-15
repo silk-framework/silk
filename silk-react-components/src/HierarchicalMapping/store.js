@@ -6,6 +6,7 @@ import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
 } from './helpers';
@@ -447,6 +448,7 @@ if (!__DEBUG__) {
             const getRule = (rawRule, type) => {
                 switch (type) {
                     case MAPPING_RULE_TYPE_DIRECT:
+                    case MAPPING_RULE_TYPE_COMPLEX:
                         return prepareValueMappingPayload(rawRule);
                     case MAPPING_RULE_TYPE_OBJECT:
                         return prepareObjectMappingPayload(rawRule);

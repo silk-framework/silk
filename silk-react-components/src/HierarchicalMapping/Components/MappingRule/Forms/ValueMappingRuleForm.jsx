@@ -218,7 +218,6 @@ const ValueMappingRuleForm = React.createClass({
                 />
             );
         }
-
         const exampleView = !_.isEmpty(this.state.sourceProperty) ? (
             <ExampleView
                 id={this.props.parentId || 'root'}
@@ -226,7 +225,7 @@ const ValueMappingRuleForm = React.createClass({
                     this.state.sourceProperty.value || this.state.sourceProperty
                 }
                 rawRule={this.state}
-                ruleType="value"
+                ruleType={type}
             />
         ) : (
             false
