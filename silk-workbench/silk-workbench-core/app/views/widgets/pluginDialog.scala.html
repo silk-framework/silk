@@ -63,7 +63,38 @@
         $("#resource_type_select").prop("disabled", "true");
       }
 
+      // Add autocompletion for resources
+      $(".input-resource").each(addResourceAutocomplete);
+
     });
+
+    function addResourceAutocomplete(index, input) {
+      var originalName = $(input).attr("value");
+      $(input).autocomplete({
+        source: function( request, response ) {
+          var searchTerm = request.term.toLowerCase();
+          // Get list of all resources
+          $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
+            .done(function(json) {
+              // Convert list of resources to autocompletion values
+              var filteredData = json.filter(function(res) { return res.name.toLowerCase().includes(searchTerm) } );
+              var data = filteredData.map(function(resource) {
+                return {
+                  label: resource.name,
+                  value: resource.name
+                };
+              });
+              // Add original resource name to autocompletion
+              data.unshift({
+                label: originalName,
+                value: originalName
+              });
+              response(data);
+            });
+        },
+        minLength: 0
+      }).focus(function() { $(this).autocomplete("search"); });
+    }
 
     function submit() {
       console.log("submit");
@@ -199,21 +230,13 @@
 
 @createResourceField(pluginId: String, param: Parameter) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
-    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
-      @for(resource <- (value(pluginId, param) :: resources).distinct) {
-        @* Selected resource should be chosen even if deleted *@
-        <option value="@resource" @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
-      }
-    </select>
+    <input class="mdl-selectfield__select input-resource" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)" />
     <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
       Expected type: @param.dataType.description
     </div>
-    @if(resources.isEmpty) {
-      <span class="no-data-avaliable">No resources found!</span>
-    }
   </div>
 }
 
