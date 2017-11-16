@@ -5,7 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.rule.vocab.GenericInfo.GenericInfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
-import scala.xml.Node
+import scala.xml.{Node, Null}
 
 case class Vocabulary(info: GenericInfo, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty]) {
 
@@ -43,7 +43,7 @@ object Vocabulary {
     }
 
     def readProperties(node: Node, classes: Seq[VocabularyClass])(implicit readContext: ReadContext): Seq[VocabularyProperty] = {
-      val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(GenericInfo(uri), Seq.empty))
+      val classMap = classes.map(c => (c.info.uri, c)).toMap.withDefault(uri => VocabularyClass(GenericInfo(uri, altLabels = Seq.empty), Seq.empty))
       for (propertyNode <- node \ "Properties" \ "VocabularyProperty") yield {
         val propertyTypeStr = (propertyNode \ "@type").headOption.map(_.text).getOrElse("")
         val propertyType = PropertyType.idToTypeMap.getOrElse(propertyTypeStr, BasePropertyType)
@@ -131,7 +131,7 @@ object PropertyType {
 
 case class VocabularyProperty(info: GenericInfo, propertyType: PropertyType, domain: Option[VocabularyClass], range: Option[VocabularyClass])
 
-case class GenericInfo(uri: String, label: Option[String] = None, description: Option[String] = None)
+case class GenericInfo(uri: String, label: Option[String] = None, description: Option[String] = None, altLabels: Seq[String] = Seq.empty)
 
 object GenericInfo {
 
@@ -141,13 +141,15 @@ object GenericInfo {
       GenericInfo(
         uri = (node \ "@uri").text,
         label = (node \ "@label").headOption.map(_.text).filter(_.nonEmpty),
-        description = if (node.text.trim.nonEmpty) Some(node.text.trim) else None
+        description = (node \ "Description").headOption.map(_.text).filter(_.nonEmpty),
+        altLabels = (node \ "AltLabel").map(_.text)
       )
     }
 
     def write(desc: GenericInfo)(implicit writeContext: WriteContext[Node]): Node = {
       <Info uri={desc.uri} label={desc.label.getOrElse("")}>
-        {desc.description.getOrElse("")}
+        {desc.description.map(desc => <Description>{desc}</Description>).getOrElse(Null)}
+        {desc.altLabels map (l => <AltLabel>{l}</AltLabel>)}
       </Info>
     }
   }

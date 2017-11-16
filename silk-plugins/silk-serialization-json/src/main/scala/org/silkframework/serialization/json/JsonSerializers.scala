@@ -737,16 +737,23 @@ object JsonSerializers {
   implicit object GenericInfoJsonFormat extends JsonFormat[GenericInfo] {
     final val DESCRIPTION: String = "description"
     final val LABEL: String = "label"
+    final val ALT_LABELS: String = "altLabels"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericInfo = {
       GenericInfo(
         uri = stringValue(value, URI),
         label = stringValueOption(value, LABEL),
-        description = stringValueOption(value, DESCRIPTION)
+        description = stringValueOption(value, DESCRIPTION),
+        altLabels = optionalValue(value, ALT_LABELS).toSeq.flatMap { array =>
+          mustBeJsArray(array) { jsArray =>
+            jsArray.value.map(_.as[String])
+          }
+        }
       )
     }
 
     override def write(value: GenericInfo)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val altLabels = JsArray(value.altLabels.map(l => JsString(l)))
       JsObject(
         Seq(
           URI -> UriJsonFormat.write(value.uri)
@@ -754,7 +761,9 @@ object JsonSerializers {
           LABEL -> JsString(l)
         } ++ value.description.map { d =>
           DESCRIPTION -> JsString(d)
-        }
+        } ++ Seq(
+          ALT_LABELS -> altLabels
+        ).filter(_._2.value.nonEmpty)
       )
     }
   }
