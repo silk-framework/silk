@@ -1,7 +1,6 @@
-@import controllers.core.routes.Assets
-@import plugins.Context
-@import controllers.core.Start
 @import config.WorkbenchConfig
+@import controllers.core.Start
+@import plugins.Context
 
 @(context: Option[Context[_]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 
