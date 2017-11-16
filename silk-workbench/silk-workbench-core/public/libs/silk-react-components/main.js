@@ -3181,24 +3181,33 @@
             payload.rules.propertyRules = [];
         }
         return payload;
+    }, generateRule = function(rule, parentId) {
+        return hierarchicalMappingChannel.request({
+            topic: "rule.createGeneratedMapping",
+            data: (0, _extends3.default)({}, rule, {
+                parentId: parentId
+            })
+        }).catch(function(e) {
+            return _eccMessagebus.Rx.Observable.return({
+                error: e,
+                rule: rule
+            });
+        });
     }, createGeneratedRules = function(_ref) {
         var rules = _ref.rules, parentId = _ref.parentId;
-        return _eccMessagebus.Rx.Observable.forkJoin(_lodash2.default.map(rules, function(rule) {
-            var newRule = rule;
-            delete newRule.id;
-            return hierarchicalMappingChannel.request({
-                topic: "rule.createGeneratedMapping",
-                data: (0, _extends3.default)({}, newRule, {
-                    parentId: parentId
-                })
-            }).catch(function(e) {
-                return _eccMessagebus.Rx.Observable.return({
-                    error: e,
-                    rule: newRule
-                });
+        return _eccMessagebus.Rx.Observable.from(rules).flatMapWithMaxConcurrent(5, function(rule) {
+            return _eccMessagebus.Rx.Observable.defer(function() {
+                return generateRule(rule, parentId);
             });
-        }), function() {
-            for (var _len = arguments.length, createdRules = Array(_len), _key = 0; _key < _len; _key++) createdRules[_key] = arguments[_key];
+        }).reduce(function(all, result, idx) {
+            var total = _lodash2.default.size(rules), count = idx + 1;
+            hierarchicalMappingChannel.subject("rule.suggestions.progress").onNext({
+                progressNumber: _lodash2.default.round(count / total * 100, 0),
+                lastUpdate: "Saved " + count + " of " + total + " rules."
+            });
+            all.push(result);
+            return all;
+        }, []).map(function(createdRules) {
             var failedRules = _lodash2.default.filter(createdRules, "error");
             if (_lodash2.default.size(failedRules)) {
                 var error = new Error("Could not create rules.");
@@ -3314,21 +3323,34 @@
         }).multicast(replySubject).connect();
     });
     hierarchicalMappingChannel.subject("rule.child.example").subscribe(function(_ref7) {
-        var data = _ref7.data, replySubject = _ref7.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id;
-        if (id) {
-            var rule = "value" === ruleType ? prepareValueMappingPayload(rawRule) : prepareObjectMappingPayload(rawRule);
-            silkStore.request({
-                topic: "transform.task.rule.child.peak",
-                data: (0, _extends3.default)({}, apiDetails, {
-                    id: id,
-                    rule: rule
-                })
-            }).subscribe(function(returned) {
-                var result = mapPeakResult(returned);
-                result.title ? replySubject.onError(result) : replySubject.onNext(result);
-                replySubject.onCompleted();
-            });
-        }
+        var data = _ref7.data, replySubject = _ref7.replySubject, ruleType = data.ruleType, rawRule = data.rawRule, id = data.id, rule = function(rawRule, type) {
+            switch (type) {
+              case _helpers.MAPPING_RULE_TYPE_DIRECT:
+              case _helpers.MAPPING_RULE_TYPE_COMPLEX:
+                return prepareValueMappingPayload(rawRule);
+
+              case _helpers.MAPPING_RULE_TYPE_OBJECT:
+                return prepareObjectMappingPayload(rawRule);
+
+              case _helpers.MAPPING_RULE_TYPE_URI:
+              case _helpers.MAPPING_RULE_TYPE_COMPLEX_URI:
+                return rawRule;
+
+              default:
+                throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+            }
+        }(rawRule, ruleType);
+        rule && id && silkStore.request({
+            topic: "transform.task.rule.child.peak",
+            data: (0, _extends3.default)({}, apiDetails, {
+                id: id,
+                rule: rule
+            })
+        }).subscribe(function(returned) {
+            var result = mapPeakResult(returned);
+            result.title ? replySubject.onError(result) : replySubject.onNext(result);
+            replySubject.onCompleted();
+        });
     });
     hierarchicalMappingChannel.subject("rule.example").subscribe(function(_ref8) {
         var data = _ref8.data, replySubject = _ref8.replySubject, id = data.id;
@@ -20012,7 +20034,8 @@
                     entityConnection: _lodash2.default.get(rule, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     pattern: _lodash2.default.get(rule, "rules.uriRule.pattern", ""),
                     type: _lodash2.default.get(rule, "type"),
-                    uriRuleType: _lodash2.default.get(rule, "rules.uriRule.type", "uri")
+                    uriRuleType: _lodash2.default.get(rule, "rules.uriRule.type", _helpers2.MAPPING_RULE_TYPE_URI),
+                    uriRule: _lodash2.default.get(rule, "rules.uriRule")
                 };
                 _this.setState((0, _extends3.default)({
                     loading: !1,
@@ -20098,6 +20121,20 @@
                 id: id
             });
         },
+        getExampleView: function() {
+            return this.state.pattern ? _react2.default.createElement(_ExampleView2.default, {
+                id: this.props.parentId || "root",
+                rawRule: {
+                    type: _helpers2.MAPPING_RULE_TYPE_URI,
+                    pattern: this.state.pattern
+                },
+                ruleType: _helpers2.MAPPING_RULE_TYPE_URI
+            }) : !!this.state.uriRule && _react2.default.createElement(_ExampleView2.default, {
+                id: this.props.parentId || "root",
+                rawRule: this.state.uriRule,
+                ruleType: this.state.uriRule.type
+            });
+        },
         render: function() {
             var _props = this.props, id = _props.id, parentId = _props.parentId, autoCompleteRuleId = id || parentId, error = this.state.error, type = this.state.type;
             if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
@@ -20150,11 +20187,7 @@
                 label: "URI formula",
                 value: "This URI cannot be edited in the edit form."
             }));
-            var exampleView = _react2.default.createElement(_ExampleView2.default, {
-                id: this.props.parentId || "root",
-                rawRule: this.state,
-                ruleType: _helpers2.MAPPING_RULE_TYPE_OBJECT
-            });
+            var exampleView = this.getExampleView();
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
             }, _react2.default.createElement(_eccGuiElements.Card, {
@@ -20441,7 +20474,7 @@
                 id: this.props.parentId || "root",
                 key: this.state.sourceProperty.value || this.state.sourceProperty,
                 rawRule: this.state,
-                ruleType: "value"
+                ruleType: type
             });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
@@ -25417,7 +25450,7 @@
                     className: "ecc-hm-delete-cancel",
                     onClick: this.handleCancelRemove
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : "", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : " ", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 className: "ecc-hm-discard-dialog",
@@ -35126,7 +35159,7 @@
             event.stopPropagation();
             var correspondences = [];
             this.setState({
-                loading: !0
+                saving: !0
             });
             _lodash2.default.forEach(this.state.data, function(suggestion) {
                 _this2.isChecked(suggestion) && correspondences.push({
@@ -35151,9 +35184,10 @@
                     error: err
                 } ];
                 _this2.setState({
-                    loading: !1,
+                    saving: !1,
                     error: error
                 });
+                _store2.default.subject("reload").onNext(!0);
             });
         },
         getInitialState: function() {
@@ -35180,6 +35214,17 @@
         render: function() {
             var _this3 = this;
             if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(this.state.checked), " rules you have selected are being created.")), _react2.default.createElement(_eccGuiElements.CardActions, {
+                fixed: !0
+            }, _react2.default.createElement(_eccGuiElements.ProgressButton, {
+                progress: 0,
+                progressTopic: _store2.default.subject("rule.suggestions.progress"),
+                tooltip: "Progress"
+            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                raised: !0,
+                disabled: !0,
+                className: "ecc-hm-suggestions-cancel"
+            }, "Cancel")));
             if (this.state.error) {
                 var errorsList = _lodash2.default.map(this.state.error, function(err) {
                     return _react2.default.createElement("li", {
@@ -35390,7 +35435,6 @@
     });
     silkStore.subject("transform.task.rule.child.peak").subscribe(function(_ref9) {
         var data = _ref9.data, replySubject = _ref9.replySubject, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, rule = data.rule, id = data.id;
-        _lodash2.default.get(rule, "mappingTarget.uri") || _lodash2.default.set(rule, "mappingTarget.uri", "http://example.org");
         _superagent2.default.post(baseUrl + "/transform/tasks/" + project + "/" + transformTask + "/peak/" + id + "/childRule").accept("application/json").send((0, 
         _extends3.default)({}, rule)).observe().multicast(replySubject).connect();
     });

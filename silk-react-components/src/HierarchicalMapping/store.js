@@ -6,7 +6,9 @@ import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_URI,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -222,24 +224,37 @@ const prepareObjectMappingPayload = data => {
     return payload;
 };
 
-const createGeneratedRules = ({rules, parentId}) =>
-    Rx.Observable.forkJoin(
-        _.map(rules, rule => {
-            /* The DI endpoint for rule generation generates IDs for the rules,
-                which can lead to conflicts when creating the rules.
-                Therefore we need to delete the rule ID.
-             */
-            const newRule = rule;
-            delete newRule.id;
+const generateRule = (rule, parentId) =>
+    hierarchicalMappingChannel
+        .request({
+            topic: 'rule.createGeneratedMapping',
+            data: {...rule, parentId},
+        })
+        .catch(e => Rx.Observable.return({error: e, rule}));
 
-            return hierarchicalMappingChannel
-                .request({
-                    topic: 'rule.createGeneratedMapping',
-                    data: {...newRule, parentId},
-                })
-                .catch(e => Rx.Observable.return({error: e, rule: newRule}));
-        }),
-        (...createdRules) => {
+const createGeneratedRules = ({rules, parentId}) =>
+    Rx.Observable
+        .from(rules)
+        .flatMapWithMaxConcurrent(5, rule =>
+            Rx.Observable.defer(() => generateRule(rule, parentId))
+        )
+        .reduce((all, result, idx) => {
+            const total = _.size(rules);
+            const count = idx + 1;
+
+            hierarchicalMappingChannel
+                .subject('rule.suggestions.progress')
+                .onNext({
+                    progressNumber: _.round(count / total * 100, 0),
+                    lastUpdate: `Saved ${count} of ${total} rules.`,
+                });
+
+            all.push(result);
+
+            return all;
+        }, [])
+        .map(createdRules => {
+
             const failedRules = _.filter(createdRules, 'error');
 
             if (_.size(failedRules)) {
@@ -249,8 +264,7 @@ const createGeneratedRules = ({rules, parentId}) =>
             }
 
             return createdRules;
-        }
-    );
+        });
 
 if (!__DEBUG__) {
     let rootId = null;
@@ -431,11 +445,22 @@ if (!__DEBUG__) {
         .subject('rule.child.example')
         .subscribe(({data, replySubject}) => {
             const {ruleType, rawRule, id} = data;
-            if (id) {
-                const rule =
-                    ruleType === 'value'
-                        ? prepareValueMappingPayload(rawRule)
-                        : prepareObjectMappingPayload(rawRule);
+            const getRule = (rawRule, type) => {
+                switch (type) {
+                    case MAPPING_RULE_TYPE_DIRECT:
+                    case MAPPING_RULE_TYPE_COMPLEX:
+                        return prepareValueMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_OBJECT:
+                        return prepareObjectMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_URI:
+                    case MAPPING_RULE_TYPE_COMPLEX_URI:
+                        return rawRule;
+                    default:
+                        throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+                }
+            };
+            const rule = getRule(rawRule, ruleType);
+            if (rule && id) {
                 silkStore
                     .request({
                         topic: 'transform.task.rule.child.peak',

@@ -167,10 +167,6 @@ silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, rule, id} = data;
-        // mappingTarget.uri (aka. targetProperty) must be set:
-        if (!_.get(rule, 'mappingTarget.uri')) {
-            _.set(rule, 'mappingTarget.uri', 'http://example.org');
-        }
         superagent
             .post(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`

@@ -23,6 +23,8 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
+    MAPPING_RULE_TYPE_URI
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -91,8 +93,9 @@ const ObjectMappingRuleForm = React.createClass({
                             uriRuleType: _.get(
                                 rule,
                                 'rules.uriRule.type',
-                                'uri'
+                                MAPPING_RULE_TYPE_URI
                             ),
+                            uriRule: _.get(rule, 'rules.uriRule'),
                         };
 
                         this.setState({
@@ -192,6 +195,30 @@ const ObjectMappingRuleForm = React.createClass({
         const id = _.get(this.props, 'id', 0);
         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
+    },
+    getExampleView() {
+        if (this.state.pattern){
+            return (
+                <ExampleView
+                    id={this.props.parentId || 'root'}
+                    rawRule={{
+                        type: MAPPING_RULE_TYPE_URI,
+                        pattern: this.state.pattern,
+                    }}
+                    ruleType={MAPPING_RULE_TYPE_URI}
+                />
+            );
+        }
+        else if (this.state.uriRule) {
+            return <ExampleView
+                id={this.props.parentId || 'root'}
+                rawRule={this.state.uriRule}
+                ruleType={this.state.uriRule.type}
+            />;
+        }
+        else {
+            return false;
+        }
     },
     // template rendering
     render() {
@@ -320,13 +347,7 @@ const ObjectMappingRuleForm = React.createClass({
             }
         }
 
-        const exampleView = (
-            <ExampleView
-                id={this.props.parentId || 'root'}
-                rawRule={this.state}
-                ruleType={MAPPING_RULE_TYPE_OBJECT}
-            />
-        );
+        const exampleView = this.getExampleView();
 
         return (
             <div className="ecc-silk-mapping__ruleseditor">

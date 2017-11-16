@@ -10,6 +10,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
+import org.silkframework.util.StreamUtils
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
@@ -222,6 +223,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     outWriter.write(rdfString.getBytes())
     outWriter.flush()
     outWriter.close()
+  }
+
+  def loadRdfAsInputStreamIntoGraph(input: InputStream, graph: String, contentType: String = "application/n-triples"): Unit = {
+    val out = loadRdfIntoGraph(graph, contentType)
+    StreamUtils.fastStreamCopy(input, out, close = true)
   }
 
   def createXmlDataset(projectId: String, datasetId: String, fileResourceId: String): WSResponse = {

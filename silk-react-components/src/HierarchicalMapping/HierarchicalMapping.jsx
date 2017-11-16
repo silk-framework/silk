@@ -248,7 +248,7 @@ const HierarchicalMapping = React.createClass({
                     {this.state.elementToDelete.type ===
                     MAPPING_RULE_TYPE_OBJECT
                         ? ' including all child rules '
-                        : ''}
+                        : ' '}
                     will be deleted permanently.
                 </p>
             </ConfirmationDialog>
