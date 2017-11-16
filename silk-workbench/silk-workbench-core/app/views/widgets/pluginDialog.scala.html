@@ -64,11 +64,19 @@
       }
 
       // Add autocompletion for resources
-      $(".input-resource").autocomplete({
+      $(".input-resource").each(addResourceAutocomplete);
+
+    });
+
+    function addResourceAutocomplete(index, input) {
+      var originalName = $(input).attr("value");
+      $(input).autocomplete({
         source: function( request, response ) {
           var searchTerm = request.term.toLowerCase();
+          // Get list of all resources
           $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
             .done(function(json) {
+              // Convert list of resources to autocompletion values
               var filteredData = json.filter(function(res) { return res.name.toLowerCase().includes(searchTerm) } );
               var data = filteredData.map(function(resource) {
                 return {
@@ -76,12 +84,17 @@
                   value: resource.name
                 };
               });
+              // Add original resource name to autocompletion
+              data.unshift({
+                label: originalName,
+                value: originalName
+              });
               response(data);
             });
         },
         minLength: 0
       }).focus(function() { $(this).autocomplete("search"); });
-    });
+    }
 
     function submit() {
       console.log("submit");
