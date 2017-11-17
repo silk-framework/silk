@@ -3162,7 +3162,7 @@
             },
             mappingTarget: {
                 uri: handleCreatedSelectBoxValue(data, "targetProperty"),
-                isBackwardProperty: "from" === data.entityConnection,
+                isBackwardProperty: data.entityConnection,
                 valueType: {
                     nodeType: "UriValueType"
                 }

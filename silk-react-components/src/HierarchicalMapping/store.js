@@ -197,7 +197,7 @@ const prepareObjectMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            isBackwardProperty: data.entityConnection === 'from',
+            isBackwardProperty: data.entityConnection,
             valueType: {
                 nodeType: 'UriValueType',
             },
