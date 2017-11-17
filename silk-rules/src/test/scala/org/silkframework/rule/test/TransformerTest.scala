@@ -1,8 +1,10 @@
 package org.silkframework.rule.test
 
+import java.util.logging.Logger
+
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{PluginDescription, TransformExample, TransformExampleValue}
+import org.silkframework.runtime.plugin.{PluginDescription, TransformExampleValue}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -13,6 +15,8 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
 
   /** Numeric values may differ slightly from their expected values. */
   private val epsilon = 0.0001
+
+  private val log: Logger = Logger.getLogger(getClass.getName)
 
   /** The class of the transformation to be tested. */
   private lazy val pluginClass = {
@@ -44,23 +48,43 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   private class TransformTest(example: TransformExampleValue) {
     val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)
 
-    private val generatedOutput =
+    private val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
       try {
-        transformer(example.input)
+        (transformer(example.input), None)
       } catch {
         case NonFatal(ex) =>
-          List()
+          (List(), Some(ex))
       }
 
     def addTest(): Unit = {
-      it should s"return ${format(example.input)} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
-        generatedOutput should have size example.output.size
-        for ((value, expected) <- generatedOutput zip example.output) {
-          (value, expected) match {
-            case (DoubleLiteral(doubleValue), DoubleLiteral(doubleExpected)) =>
-              doubleValue shouldEqual doubleExpected +- epsilon
-            case _ =>
-              value shouldEqual expected
+      if(example.throwsException != "") {
+        it should s"throw ${example.throwsException} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
+          generatedOutput should have size 0
+          val expectedException = Class.forName(example.throwsException)
+          throwableOpt match {
+            case Some(ex) =>
+              if(ex.getClass != expectedException) {
+                throw new RuntimeException("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
+              }
+            case None =>
+              throw new RuntimeException("Exception " + example.throwsException + " has not been thrown!")
+          }
+
+        }
+      } else {
+        it should s"return ${format(example.output)} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
+          throwableOpt foreach { ex =>
+            log.warning("Exception was thrown: " + ex.getMessage)
+            ex.printStackTrace()
+          }
+          generatedOutput should have size example.output.size
+          for ((value, expected) <- generatedOutput zip example.output) {
+            (value, expected) match {
+              case (DoubleLiteral(doubleValue), DoubleLiteral(doubleExpected)) =>
+                doubleValue shouldEqual doubleExpected +- epsilon
+              case _ =>
+                value shouldEqual expected
+            }
           }
         }
       }

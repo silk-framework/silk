@@ -20,7 +20,10 @@ public @interface TransformExample {
 
     String[] input5() default {};
 
-    String[] output();
+    String[] output() default {};
+
+    // The full class path or empty string
+    String throwsException() default "";
 
 }
 
