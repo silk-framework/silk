@@ -23,7 +23,7 @@ import org.silkframework.rule.plugins.distance.equality._
 import org.silkframework.rule.plugins.distance.numeric._
 import org.silkframework.rule.plugins.distance.tokenbased._
 import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
-import org.silkframework.rule.plugins.transformer.conditional.{IfContains, IfExists, IfMatchesRegexTransformer}
+import org.silkframework.rule.plugins.transformer.conditional._
 import org.silkframework.rule.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.rule.plugins.transformer.date._
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
@@ -97,6 +97,8 @@ class RulePlugins extends PluginModule {
         classOf[IfContains] ::
         classOf[IfExists] ::
         classOf[IfMatchesRegexTransformer] ::
+        classOf[ContainsAllOf] ::
+        classOf[ContainsAnyOf] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
