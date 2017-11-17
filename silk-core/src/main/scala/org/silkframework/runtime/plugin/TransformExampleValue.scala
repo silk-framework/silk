@@ -4,7 +4,7 @@ case class TransformExampleValue(parameters: Map[String, String], input: Seq[Seq
 
   def formatted: String = {
     if(throwsException.trim != "") {
-      s"Fails and thus returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
+      s"Fails validation and thus returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
     } else {
       s"Returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
     }
