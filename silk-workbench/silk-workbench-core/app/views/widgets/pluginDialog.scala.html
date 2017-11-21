@@ -72,7 +72,12 @@
       var originalName = $(input).attr("value");
       $(input).autocomplete({
         source: function( request, response ) {
-          var searchTerm = request.term.toLowerCase();
+          const requestSearchTerm = request.term.toLowerCase();
+          var searchTerm = requestSearchTerm;
+          if(requestSearchTerm === originalName.toLowerCase()) {
+              // If no search term was entered. i.e. the original selection is present show complete list
+              searchTerm = "";
+          }
           // Get list of all resources
           $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
             .done(function(json) {
@@ -92,6 +97,7 @@
                 }
               }
               if(! included) {
+                // Always add original selection
                 data.unshift({
                   label: originalName,
                   value: originalName
