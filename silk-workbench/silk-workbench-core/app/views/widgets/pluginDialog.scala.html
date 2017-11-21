@@ -85,10 +85,18 @@
                 };
               });
               // Add original resource name to autocompletion
-              data.unshift({
-                label: originalName,
-                value: originalName
-              });
+              var included = false
+              for (var i = 0; i < data.length; i++) {
+                if(data[i].label === originalName) {
+                    included = true
+                }
+              }
+              if(! included) {
+                data.unshift({
+                  label: originalName,
+                  value: originalName
+                });
+              }
               response(data);
             });
         },
