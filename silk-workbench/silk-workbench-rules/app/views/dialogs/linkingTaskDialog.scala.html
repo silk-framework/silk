@@ -1,7 +1,7 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.rule.{LinkSpec, TransformSpec}
 @import org.silkframework.workspace.User
-@(project: String, task: String)
+@(project: String, task: String, createDialog: Boolean)
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset] }
 
@@ -21,7 +21,7 @@
   |?a foaf:knows <http://example.org/SomePerson>""".stripMargin
 }
 
-@widgets.dialog(title = "Linking Task") {
+@widgets.dialog(title = "Linking Task", createDialog = createDialog) {
   <div class="dialog-form" id="linkingTaskDialogForm">
     @if(task.isEmpty) {
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">

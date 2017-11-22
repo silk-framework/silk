@@ -72,10 +72,10 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     Ok
   }
 
-  def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset"): Action[AnyContent] = Action { request =>
+  def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset", createDialog: Boolean): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
     val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title))
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
   }
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String): Action[AnyContent] = Action { request =>

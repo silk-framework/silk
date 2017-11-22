@@ -1,22 +1,19 @@
-@import org.silkframework.runtime.plugin.PluginDescription
-@import org.silkframework.runtime.plugin.Parameter
-@import org.silkframework.runtime.plugin.ParameterType
-@import org.silkframework.runtime.plugin.AnyPlugin
-@import  org.silkframework.dataset.DatasetPluginAutoConfigurable
+@import org.silkframework.dataset.DatasetPluginAutoConfigurable
 @import org.silkframework.runtime.plugin.ParameterType._
-@import controllers.core.routes.Assets
+@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 
 @(project: Project,
-  name: String,
-  plugins: Seq[PluginDescription[_]],
-  currentObj: Option[AnyPlugin],
-  resources: List[String],
-  title: String = "Edit Properties",
-  submitLabel: String = "OK",
-  secondaryLabel: String = "Secondary")(contents: Html)
+    name: String,
+    plugins: Seq[PluginDescription[_]],
+    currentObj: Option[AnyPlugin],
+    resources: List[String],
+    title: String = "Edit Properties",
+    submitLabel: String = "OK",
+    secondaryLabel: String = "Secondary",
+    createDialog: Boolean = false)(contents: Html)
 
-@dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500) {
+@dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500, createDialog = createDialog) {
   <div id="plugintabs">
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="resource_type_select" name="resource_type_select">
