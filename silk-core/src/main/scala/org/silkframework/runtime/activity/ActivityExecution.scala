@@ -17,7 +17,10 @@ private class ActivityExecution[T](activity: Activity[T],
   override val name: String = activity.name
 
   @volatile
-  private var user: UserContext = UserContext.Empty
+  private var startedByUser: UserContext = UserContext.Empty
+
+  @volatile
+  private var cancelledByUser: UserContext = UserContext.Empty
 
   @volatile
   private var forkJoinRunner: Option[ForkJoinRunner] = None
@@ -33,7 +36,7 @@ private class ActivityExecution[T](activity: Activity[T],
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     }
     // Execute activity
-    this.user = user
+    this.startedByUser = user
     status.update(Status.Started())
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
@@ -45,13 +48,13 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    this.user = user
+    this.startedByUser = user
     status.update(Status.Started())
     runActivity()
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
-    this.user = user
+    this.startedByUser = user
     status.update(Status.Started())
     for (v <- initialValue)
       value.update(v)
@@ -59,8 +62,9 @@ private class ActivityExecution[T](activity: Activity[T],
     value()
   }
 
-  override def cancel(): Unit = {
+  override def cancel()(implicit user: UserContext): Unit = {
     if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
+      this.cancelledByUser = user
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()

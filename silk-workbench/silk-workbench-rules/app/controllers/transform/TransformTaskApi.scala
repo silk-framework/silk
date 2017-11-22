@@ -9,9 +9,10 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._

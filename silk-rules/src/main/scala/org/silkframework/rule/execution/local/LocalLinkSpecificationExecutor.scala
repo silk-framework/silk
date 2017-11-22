@@ -16,7 +16,11 @@ import org.silkframework.util.{DPair, Uri}
   */
 class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] {
 
-  override def execute(task: Task[LinkSpec], inputs: Seq[EntityTable], outputSchema: Option[EntitySchema], execution: LocalExecution, context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
+  override def execute(task: Task[LinkSpec],
+                       inputs: Seq[EntityTable],
+                       outputSchema: Option[EntitySchema],
+                       execution: LocalExecution,
+                       context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
     val linkSpec = updateSelection(task.data, inputs)
     val sources = DPair[DataSource](entitySource(inputs(0), task.dataSelections.source.typeUri), entitySource(inputs(1), task.dataSelections.target.typeUri))
     val output = execution.createInternalDataset(None) // TODO: Is this needed?

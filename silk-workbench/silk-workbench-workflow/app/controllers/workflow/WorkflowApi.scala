@@ -5,9 +5,10 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
@@ -49,7 +50,8 @@ class WorkflowApi extends Controller {
     Ok
   }
 
-  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[LocalWorkflowExecutor].control

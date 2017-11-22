@@ -6,12 +6,13 @@ import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
 import org.silkframework.config._
-import org.silkframework.runtime.activity.{Activity, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
@@ -71,7 +72,8 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
-  def executeProject(projectName: String): Action[AnyContent] = Action {
+  def executeProject(projectName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val project = User().workspace.project(projectName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources

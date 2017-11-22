@@ -1,7 +1,5 @@
 package org.silkframework.runtime.activity
 
-import org.silkframework.runtime.activity.Status.Finished
-
 /**
  * Holds the current state of the activity.
  */
@@ -59,7 +57,7 @@ trait ActivityControl[T] {
    * Activities need to override cancelExecution() to allow cancellation.
    * Calls cancelExecution() on child activities recursively
    */
-  def cancel()
+  def cancel()(implicit user: UserContext = UserContext.Empty)
 
   /**
    * Resets the value of this activity to its initial value.
