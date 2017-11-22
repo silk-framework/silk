@@ -47,6 +47,8 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case _ => None
   }
 
+  def size: Int = operators.size
+
   /**
     * Tests if this path is empty, i.e, has not operators.
     */
