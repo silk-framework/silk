@@ -120,9 +120,13 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   private def addValue(entityNode: Element, property: TypedProperty, value: String): Unit = {
     property.valueType match {
       case UriValueType =>
-        val valueNode = newElement(property.propertyUri)
-        uriMap += ((value, valueNode.asInstanceOf[Element]))
-        entityNode.appendChild(valueNode)
+        if(property.propertyUri.isEmpty) { // Empty target on object mapping, stay on same target node
+          uriMap += ((value, entityNode))
+        } else {
+          val valueNode = newElement(property.propertyUri)
+          uriMap += ((value, valueNode.asInstanceOf[Element]))
+          entityNode.appendChild(valueNode)
+        }
       case _ if !property.isAttribute =>
         val valueNode = newElement(property.propertyUri)
         valueNode.setTextContent(value)
