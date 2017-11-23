@@ -74,6 +74,11 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
 }
 
 object Entity {
+
+  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
+    new Entity(uri, values, schema)
+  }
+
   def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
       uri = (node \ "@uri").text.trim,
