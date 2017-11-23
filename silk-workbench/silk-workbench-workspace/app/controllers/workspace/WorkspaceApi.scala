@@ -181,16 +181,23 @@ class WorkspaceApi extends Controller {
           case ex: Exception =>
             ErrorResult(BadUserInputException(ex))
         }
+      case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
+        // Put empty resource
+        resource.writeBytes(Array[Byte]())
+        Ok
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
         resource.writeBytes(bytes)
+        Ok
+      case AnyContentAsText(txt) =>
+        resource.writeString(txt)
         Ok
       case AnyContentAsEmpty =>
         // Put empty resource
         resource.writeBytes(Array[Byte]())
         Ok
       case _ =>
-        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream"))
+        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
     }
   }
   }

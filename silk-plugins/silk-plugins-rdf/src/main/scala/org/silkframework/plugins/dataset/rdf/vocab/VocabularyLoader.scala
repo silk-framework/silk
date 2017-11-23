@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import com.hp.hpl.jena.vocabulary.{OWL, RDF}
+import org.apache.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 
@@ -12,7 +12,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
   def retrieveVocabulary(uri: String): Vocabulary = {
     val classes = retrieveClasses(uri)
     Vocabulary(
-      info = GenericInfo(uri, None, None),
+      info = GenericInfo(uri, None, None, Seq.empty),
       classes = classes,
       properties = retrieveProperties(uri, classes)
     )
@@ -34,6 +34,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
          |     OPTIONAL { ?c rdfs:comment ?desc }
          |     OPTIONAL { ?c skos:definition ?desc }
          |     OPTIONAL { ?c rdfs:subClassOf ?parent }
+         |     OPTIONAL { ?c skos:altLabel ?altLabel }
          |   }
          | }
          | ORDER BY ?c
@@ -42,15 +43,17 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     val queryResult = endpoint.select(classQuery).bindings
     val resultsPerClass = new SequentialGroup(queryResult)
     for((classUri, bindings) <- resultsPerClass) yield {
-      val label = collectLanguageRankedValue("label", bindings)
-      val description = collectLanguageRankedValue("desc", bindings)
+      val label = collectLanguageRankedValueOpt("label", bindings)
+      val description = collectLanguageRankedValueOpt("desc", bindings)
+      val altLabels = collectLanguageRankedValues("altLabel", bindings)
       val parents = collectValues("parent", bindings)
       VocabularyClass(
         info =
           GenericInfo(
             uri = classUri,
             label = label,
-            description = description
+            description = description,
+            altLabels = altLabels
           ),
         parentClasses = parents
       )
@@ -72,8 +75,13 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     }
   }
 
-  private def collectLanguageRankedValue(varName: String,
-                                         bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
+  private def collectLanguageRankedValueOpt(varName: String,
+                                            bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
+    collectLanguageRankedValues(varName, bindings).headOption
+  }
+
+  private def collectLanguageRankedValues(varName: String,
+                                          bindings: Traversable[SortedMap[String, RdfNode]]): Seq[String] = {
     val values = bindings.flatMap(_.get(varName).toSeq).toSeq.distinct
     val sortedNodes = values.sortWith {
       case (l: LanguageLiteral, r: LanguageLiteral) =>
@@ -91,7 +99,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       case (l, r) =>
         l.value < r.value
     }
-    sortedNodes.headOption.map(_.value)
+    sortedNodes.map(_.value)
   }
 
   private def sortLanguageLiterals(l: LanguageLiteral, r: LanguageLiteral) = {
@@ -140,7 +148,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     val propertyQuery = propertiesOfClassQuery(uri)
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap
-    def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri), Seq()))
+    def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri, altLabels = Seq.empty), Seq()))
     val result = endpoint.select(propertyQuery).bindings
     val propertiesGrouped = result.groupBy(_("p"))
 
@@ -148,8 +156,9 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       val info =
         GenericInfo(
           uri = propertyResource.value,
-          label = collectLanguageRankedValue("label", bindings),
-          description = collectLanguageRankedValue("desc", bindings)
+          label = collectLanguageRankedValueOpt("label", bindings),
+          description = collectLanguageRankedValueOpt("desc", bindings),
+          altLabels = collectLanguageRankedValues("altLabel", bindings)
         )
       val classes = bindings.flatMap(_.get("class"))
       val propertyType = classes.toSeq.
@@ -187,6 +196,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
        |     OPTIONAL { ?p skos:definition ?def }
        |     OPTIONAL { ?p rdfs:domain ?domain }
        |     OPTIONAL { ?p rdfs:range ?range }
+       |     OPTIONAL { ?p skos:altLabel ?altLabel}
        |   }
        | }
       """.stripMargin

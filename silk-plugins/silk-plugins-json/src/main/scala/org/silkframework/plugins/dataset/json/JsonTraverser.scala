@@ -31,12 +31,17 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     * @param path Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  def collectPaths(path: Seq[PathOperator] = Nil): Seq[Seq[PathOperator]] = {
+  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean): Seq[Seq[PathOperator]] = {
     value match {
       case obj: JsObject =>
-        obj.keys.toSeq.flatMap(key => asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key)))
+        val childPaths = obj.keys.toSeq.flatMap(key => asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key), leafPathsOnly))
+        if(leafPathsOnly) {
+          childPaths
+        } else {
+          Seq(path) ++ childPaths
+        }
       case array: JsArray if array.value.nonEmpty =>
-        keepParent(array.value.head).collectPaths(path)
+        keepParent(array.value.head).collectPaths(path, leafPathsOnly)
       case _ => if (path.nonEmpty) Seq(path) else Seq()
     }
   }
@@ -100,25 +105,43 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
           case None =>
             Nil
         }
-      case (p@PropertyFilter(prop, _, _)) :: tail =>
-        this.value match {
-          case obj: JsObject if p.evaluate("\"" + nodeToString(obj.value(prop.uri)) + "\"") =>
-            evaluate(tail)
-          case array: JsArray if array.value.nonEmpty =>
-            array.value.flatMap(v => keepParent(v).evaluate(path))
-          case _ =>
-            Nil
-        }
+      case (p : PropertyFilter) :: tail =>
+        evaluatePropertyFilter(path, p, tail)
       case Nil =>
-        value match {
-          case array: JsArray =>
-            array.value.map(nodeToString)
-          case _ =>
-            Seq(nodeToString(value))
-        }
+        nodeToValue(value)
       case l: LanguageFilter =>
         throw new IllegalArgumentException("For JSON, language filters are not applicable.")
     }
+  }
+
+  private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator]) = {
+    this.value match {
+      case obj: JsObject if filter.evaluate("\"" + nodeToString(obj.value(filter.property.uri)) + "\"") =>
+        evaluate(tail)
+      case array: JsArray if array.value.nonEmpty =>
+        array.value.flatMap(v => keepParent(v).evaluate(path))
+      case _ =>
+        Nil
+    }
+  }
+
+  def nodeToValue(jsValue: JsValue): Seq[String] = {
+    jsValue match {
+      case array: JsArray =>
+        array.value.flatMap(nodeToValue)
+      case jsObject: JsObject =>
+        Seq(generateUri(parentOpt.map(_.property.uri).getOrElse(""), jsObject))
+      case other: JsValue =>
+        Seq(nodeToString(other))
+    }
+  }
+
+  def generateUri(path: String, value: JsObject): String = {
+    "urn:instance:" + path + nodeId(value)
+  }
+
+  def nodeId(value: JsValue): String = {
+    nodeToString(value).hashCode.toString
   }
 
   def evaluate(path: Path): Seq[String] = evaluate(path.operators)

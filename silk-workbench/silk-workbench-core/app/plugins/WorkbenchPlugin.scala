@@ -1,6 +1,6 @@
 package plugins
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.workspace.Project
 import play.api.routing.Router
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
@@ -50,7 +50,7 @@ object WorkbenchPlugin {
     def open(project: String, task: String): Option[String]
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    def properties(taskData: Any): Seq[(String, String)]
+    def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)]
 
     /** Retrieves all tasks of this type from a project*/
     def projectTasks(project: Project) = project.tasks[T]

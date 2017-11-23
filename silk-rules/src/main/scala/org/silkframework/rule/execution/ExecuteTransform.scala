@@ -3,15 +3,15 @@ package org.silkframework.rule.execution
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
-import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq[EntitySink]) extends Activity[TransformReport] {
+class ExecuteTransform(input: DataSource, transform: TransformSpec, output: EntitySink) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -28,55 +28,31 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, outputs: Seq
     isCanceled = false
 
     // Clear outputs before writing
-    for (output <- outputs) {
-      output.clear()
-    }
+    output.clear()
 
-    transformEntities(transform.inputSchema, transform.rules, transform.outputSchema, context)
+    try {
+      for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
+        transformEntities(ruleSchemata, context)
+        context.status.updateProgress((index + 1.0) / transform.ruleSchemata.size)
+      }
+    } finally {
+      output.close()
+    }
   }
 
-  private def transformEntities(inputSchema: EntitySchema, rules: Seq[TransformRule], outputSchema: EntitySchema,
-                                context: ActivityContext[TransformReport]): Unit = {
-    try {
-      for (output <- outputs) {
-        output.open(outputSchema.typeUri, outputSchema.typedPaths.map(_.property.get))
-      }
+  private def transformEntities(rule: RuleSchemata, context: ActivityContext[TransformReport]): Unit = {
+    output.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
-      val entities = input.retrieve(inputSchema)
-
-      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
-      for (entity <- transformedEntities) {
-        for (output <- outputs) {
-          output.writeEntity(entity.uri, entity.values)
-        }
-        if (isCanceled) {
-          return
-        }
-      }
-
-    } finally {
-      for (output <- outputs) {
-        output.close()
+    val entities = input.retrieve(rule.inputSchema)
+    val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+    for (entity <- transformedEntities) {
+      output.writeEntity(entity.uri, entity.values)
+      if (isCanceled) {
+        return
       }
     }
 
-    for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
-      val childInputSchema =
-        EntitySchema(
-          typeUri = inputSchema.typeUri,
-          typedPaths = childRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
-          subPath = relativePath
-        )
-      val childOutputSchema =
-        EntitySchema(
-          typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
-          typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
-        )
-
-      val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
-
-      transformEntities(childInputSchema, updatedChildRules, childOutputSchema, context)
-    }
+    output.closeTable()
   }
 
   override def cancelExecution(): Unit = {

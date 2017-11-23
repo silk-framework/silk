@@ -13,7 +13,7 @@ import org.silkframework.workspace.{RdfWorkspaceProvider, User}
 )
 case class RdfVocabularyManager() extends VocabularyManager {
 
-  private lazy val loader = new VocabularyLoader(workspaceSparqlEndpoint)
+  private def loader = new VocabularyLoader(workspaceSparqlEndpoint)
 
   override def get(uri: String, project: Identifier): Vocabulary = {
     loader.retrieveVocabulary(uri)

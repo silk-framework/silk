@@ -2,6 +2,7 @@ import org.silkframework.rule.TransformSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.rules.routes.Assets
+import org.silkframework.config.Prefixes
 
 case class TransformPlugin() extends WorkbenchPlugin {
 
@@ -44,7 +45,7 @@ case class TransformPlugin() extends WorkbenchPlugin {
       Some(s"transform/$project/$task/editor")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any): Seq[(String, String)] = {
+    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
       val transformSpec = task.asInstanceOf[TransformSpec]
       Seq(
         ("Source", transformSpec.selection.inputId.toString),

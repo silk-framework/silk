@@ -1,13 +1,13 @@
 package org.silkframework.rule
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -54,7 +54,7 @@ case class TransformSpec(selection: DatasetSelection,
 
 
   /**
-    * Output schemata of all object rules in the tree.
+    * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
     new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
@@ -69,10 +69,9 @@ case class TransformSpec(selection: DatasetSelection,
     // Add rule schemata for this rule
     schemata :+= RuleSchemata.create(rule, selection, subPath)
 
-    // Add rule schemata of all child rules
-    val objectMappings = rule.rules.allRules.collect { case m: ObjectMapping => m }
-    for (objectMapping <- objectMappings) {
-      schemata ++= collectSchemata(objectMapping, subPath ++ objectMapping.sourcePath)
+    // Add rule schemata of all child object rules
+    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _) <- rule.rules.allRules) {
+      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
     }
 
     schemata
@@ -126,6 +125,49 @@ case class TransformSpec(selection: DatasetSelection,
     mappingRule.id :: childRuleNames
   }
 
+  /** A list of relative source paths fetched recursively from the whole rule tree starting with the given rule by the rule id.
+    * Only source paths are considered that are used in value property mappings, i.e. that have a target property set and
+    * create a property value. Also, source paths from complex rules are only considered if they are the only source paths
+    * in that rule. */
+  def valueSourcePaths(ruleName: Identifier,
+                       maxPathDepth: Int = Int.MaxValue): Seq[Path] = {
+    nestedRuleAndSourcePath(ruleName) match {
+      case Some((rule, _)) =>
+        rule.children flatMap (child => valueSourcePathsRecursive(child, List.empty, maxPathDepth))
+      case None =>
+        throw new RuntimeException("No rule with name " + ruleName + " exists!")
+    }
+  }
+
+  private def valueSourcePathsRecursive(rule: Operator,
+                                        basePath: List[PathOperator],
+                                        maxPathDepth: Int): Seq[Path] = {
+    rule match {
+      case transformRule: TransformRule =>
+        transformRule match {
+          case dm: DirectMapping =>
+            listPath(basePath ++ dm.sourcePath.operators)
+          case cm: ComplexMapping =>
+            cm.sourcePaths match {
+              case oneInput :: Nil =>
+                listPath(basePath ++ oneInput.operators) // Only consider complex mapping with one single source path
+              case _ =>
+                List.empty
+            }
+          case om: ObjectMapping =>
+            val newBasePath = basePath ++ om.sourcePath.operators
+            om.children flatMap (c => valueSourcePathsRecursive(c, newBasePath, maxPathDepth))
+          case rm: RootMappingRule =>
+            rm.children flatMap (c => valueSourcePathsRecursive(c, List.empty, maxPathDepth)) // At the moment this branch is never taken
+          case _: UriMapping | _: TypeMapping =>
+            List.empty // Don't consider non-value mappings
+        }
+      case _ =>
+        List() // No transform rule, no path used
+    }
+  }
+
+  private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
 }
 
 /**
@@ -225,4 +267,12 @@ object TransformSpec {
     }
   }
 
+  /** Creates an ID generator pre-populated with IDs from the transform spec */
+  def identifierGenerator(transformSpec: TransformSpec): IdentifierGenerator = {
+    val identifierGenerator = new IdentifierGenerator()
+    for(id <- RuleTraverser(transformSpec.mappingRule).iterateAllChildren.map(_.operator.id)) {
+      identifierGenerator.add(id)
+    }
+    identifierGenerator
+  }
 }

@@ -1,15 +1,16 @@
 @import org.silkframework.config.CustomTask
-@import org.silkframework.workspace.Project
 @import org.silkframework.runtime.plugin.PluginRegistry
+@import org.silkframework.workspace.Project
 
-@(project: Project, taskName: String, taskPlugin: Option[CustomTask])
+@(project: Project, taskName: String, taskPlugin: Option[CustomTask], createDialog: Boolean)
 
-  @widgets.pluginDialog(
-    project.config.id,
-    name = taskName,
-    plugins = PluginRegistry.availablePlugins[CustomTask],
-    currentObj = taskPlugin,
-    resources = project.resources.list) {
+@widgets.pluginDialog(
+  project,
+  name = taskName,
+  plugins = PluginRegistry.availablePlugins[CustomTask],
+  currentObj = taskPlugin,
+  resources = project.resources.list,
+  createDialog = createDialog) {
 
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
@@ -31,4 +32,4 @@
         putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
       }
     </script>
-  }
+}

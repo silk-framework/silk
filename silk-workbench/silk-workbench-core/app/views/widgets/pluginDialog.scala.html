@@ -1,21 +1,19 @@
-@import org.silkframework.runtime.plugin.PluginDescription
-@import org.silkframework.runtime.plugin.Parameter
-@import org.silkframework.runtime.plugin.ParameterType
-@import org.silkframework.runtime.plugin.AnyPlugin
-@import  org.silkframework.dataset.DatasetPluginAutoConfigurable
+@import org.silkframework.dataset.DatasetPluginAutoConfigurable
 @import org.silkframework.runtime.plugin.ParameterType._
-@import controllers.core.routes.Assets
+@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
+@import org.silkframework.workspace.Project
 
-@(projectName: String,
-  name: String,
-  plugins: Seq[PluginDescription[_]],
-  currentObj: Option[AnyPlugin],
-  resources: List[String],
-  title: String = "Edit Properties",
-  submitLabel: String = "OK",
-  secondaryLabel: String = "Secondary")(contents: Html)
+@(project: Project,
+    name: String,
+    plugins: Seq[PluginDescription[_]],
+    currentObj: Option[AnyPlugin],
+    resources: List[String],
+    title: String = "Edit Properties",
+    submitLabel: String = "OK",
+    secondaryLabel: String = "Secondary",
+    createDialog: Boolean = false)(contents: Html)
 
-@dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500) {
+@dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500, createDialog = createDialog) {
   <div id="plugintabs">
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="resource_type_select" name="resource_type_select">
@@ -62,7 +60,52 @@
         $("#resource_type_select").prop("disabled", "true");
       }
 
+      // Add autocompletion for resources
+      $(".input-resource").each(addResourceAutocomplete);
+
     });
+
+    function addResourceAutocomplete(index, input) {
+      var originalName = $(input).attr("value");
+      $(input).autocomplete({
+        source: function( request, response ) {
+          const requestSearchTerm = request.term.toLowerCase();
+          var searchTerm = requestSearchTerm;
+          if(requestSearchTerm === originalName.toLowerCase()) {
+              // If no search term was entered. i.e. the original selection is present show complete list
+              searchTerm = "";
+          }
+          // Get list of all resources
+          $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
+            .done(function(json) {
+              // Convert list of resources to autocompletion values
+              var filteredData = json.filter(function(res) { return res.name.toLowerCase().includes(searchTerm) } );
+              var data = filteredData.map(function(resource) {
+                return {
+                  label: resource.name,
+                  value: resource.name
+                };
+              });
+              // Add original resource name to autocompletion
+              var included = false
+              for (var i = 0; i < data.length; i++) {
+                if(data[i].label === originalName) {
+                    included = true
+                }
+              }
+              if(! included) {
+                // Always add original selection
+                data.unshift({
+                  label: originalName,
+                  value: originalName
+                });
+              }
+              response(data);
+            });
+        },
+        minLength: 0
+      }).focus(function() { $(this).autocomplete("search"); });
+    }
 
     function submit() {
       console.log("submit");
@@ -177,7 +220,7 @@
 }
 
 @createSparqlEndpointDatasetField(pluginId: String, param: Parameter) = {
-  @widgets.sparqlDatasetSelect(projectName, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
+  @widgets.sparqlDatasetSelect(project.name, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 
 @createEnumerationField(pluginId: String, param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String]) = {
@@ -198,20 +241,13 @@
 
 @createResourceField(pluginId: String, param: Parameter) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
-    <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" @if(resources.isEmpty) { disabled }>
-      @for(resource <- resources) {
-        <option @if(resource == value(pluginId, param)) { selected="selected" }>@resource</option>
-      }
-    </select>
+    <input class="mdl-selectfield__select input-resource" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)" />
     <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
       Expected type: @param.dataType.description
     </div>
-    @if(resources.isEmpty) {
-      <span class="no-data-avaliable">No resources found!</span>
-    }
   </div>
 }
 
@@ -228,7 +264,8 @@
         param.defaultValue.flatMap(Option(_))
     }
   // Convert parameter value to string
+  implicit val prefixes = project.config.prefixes
   val paramType = param.dataType.asInstanceOf[ParameterType[AnyRef]]
-  val paramStr = paramObj.map(paramType.toString(_)).getOrElse("")
+  val paramStr = paramObj.map(paramType.toString).getOrElse("")
   paramStr
 }

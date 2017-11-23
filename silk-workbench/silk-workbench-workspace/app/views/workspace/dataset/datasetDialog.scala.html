@@ -1,17 +1,18 @@
-@import org.silkframework.workspace.Project
 @import org.silkframework.dataset.Dataset
+@import org.silkframework.workspace.Project
 
-@(project: Project, datasetName: String, dataset: Option[Dataset], title: String = "Edit Dataset")
+@(project: Project, datasetName: String, dataset: Option[Dataset], title: String = "Edit Dataset", createDialog: Boolean = false)
 
-  @widgets.pluginDialog(
-    project.config.id,
-    name = datasetName,
-    plugins = Dataset.availablePlugins,
-    currentObj = dataset,
-    resources = project.resources.listRecursive,
-    title = title,
-    submitLabel = "Save",
-    secondaryLabel = "Autoconfigure") {
+@widgets.pluginDialog(
+  project,
+  name = datasetName,
+  plugins = Dataset.availablePlugins,
+  currentObj = dataset,
+  resources = project.resources.listRecursive,
+  title = title,
+  submitLabel = "Save",
+  secondaryLabel = "Autoconfigure",
+  createDialog = createDialog) {
 
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {

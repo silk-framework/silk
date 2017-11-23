@@ -88,7 +88,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   private def detect(lines: Seq[String]): Option[DetectedSeparator] = {
-    SeparatorDetector.detectSeparatorChar(
+    CsvSeparatorDetector.detectSeparatorChar(
       new StringReader(lines.mkString("\n")),
       noSeparatorSettings,
       lines.size

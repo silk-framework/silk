@@ -1,18 +1,19 @@
 @import org.silkframework.runtime.plugin.PluginRegistry
 @import org.silkframework.workspace.activity.ProjectExecutor
+@import org.silkframework.workspace.Project
 @import controllers.workspace.routes
 
-@(project: String)
+@(project: Project)
 
 @widgets.pluginDialog(project,
-                      name = project,
+                      name = project.name,
                       plugins = PluginRegistry.availablePlugins[ProjectExecutor],
                       currentObj = None,
                       resources = Nil) {
 
   <script type="text/javascript">
     function submit(pluginId, name, parameters) {
-      $.post('@routes.WorkspaceApi.executeProject(project)');
+      $.post('@routes.WorkspaceApi.executeProject(project.name)');
       closeDialog();
     }
   </script>

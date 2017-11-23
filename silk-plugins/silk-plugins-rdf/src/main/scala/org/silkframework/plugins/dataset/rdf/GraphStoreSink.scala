@@ -27,7 +27,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var byteCount = 0L
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     init()
     this.properties = properties
   }
@@ -48,12 +48,11 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def init(): Unit = {
-    stmtCount = 0
-    byteCount = 0L
-    if (output.isDefined) {
-      log.warning("Calling init() on already initialized graph store output stream.")
+    if(output.isEmpty) {
+      stmtCount = 0
+      byteCount = 0L
+      output = initOutputStream
     }
-    output = initOutputStream
   }
 
   private def initOutputStream: Option[BufferedOutputStream] = {
@@ -95,6 +94,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
       graphStore.deleteGraph(graphUri)
     }
   }
+
+  override def closeTable(): Unit = {}
 
   override def close(): Unit = {
     output match {

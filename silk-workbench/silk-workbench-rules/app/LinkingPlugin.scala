@@ -2,6 +2,7 @@ import org.silkframework.rule.LinkSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.rules.routes.Assets
+import org.silkframework.config.Prefixes
 
 /**
  * The linking Workbench plugin.
@@ -52,7 +53,7 @@ case class LinkingPlugin() extends WorkbenchPlugin {
       Some(s"linking/$project/$task/editor")
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any): Seq[(String, String)] = {
+    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
       val linkSpec = task.asInstanceOf[LinkSpec]
       Seq(
         ("Source", linkSpec.dataSelections.source.inputId.toString),

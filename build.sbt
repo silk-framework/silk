@@ -45,7 +45,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    libraryDependencies += "commons-io" % "commons-io" % "2.4" % "test"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -80,8 +81,8 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "2.13.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "2.13.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "3.4.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "3.4.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -172,7 +173,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test")
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

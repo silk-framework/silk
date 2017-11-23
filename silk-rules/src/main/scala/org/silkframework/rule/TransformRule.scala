@@ -94,12 +94,26 @@ sealed trait TransformRule extends Operator {
   }
 }
 
-// Trait of classes that can have child rules
-trait ContainerTransformRule extends TransformRule
+/**
+  * Base trait for all rules that can have child rules.
+  */
+sealed trait ContainerTransformRule extends TransformRule
 
-trait ValueTransformRule extends TransformRule
+/**
+  * Base trait for all rule that generate a value and do not have any child rules.
+  */
+sealed trait ValueTransformRule extends TransformRule
 
-case class RootMappingRule(id: Identifier, override val rules: MappingRules, metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
+/**
+  * The root mapping rule.
+  *
+  * @param id        The identifier of this mapping.
+  * @param rules     The rules of this mapping.
+  * @param metaData  The metadata.
+  */
+case class RootMappingRule(id: Identifier,
+                           override val rules: MappingRules,
+                           metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
 
   /**
     * The children operators.
@@ -190,8 +204,10 @@ trait UriMapping extends ValueTransformRule
   * @param id      The name of this mapping
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
-case class PatternUriMapping(id: Identifier = "uri", pattern: String = "http://example.org/{ID}", metaData: MetaData = MetaData.empty)
-                     (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
+case class PatternUriMapping(id: Identifier = "uri",
+                             pattern: String = "http://example.org/{ID}",
+                             metaData: MetaData = MetaData.empty)
+                             (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
   override val operator: Input = UriPattern.parse(pattern)
 
@@ -207,7 +223,9 @@ case class PatternUriMapping(id: Identifier = "uri", pattern: String = "http://e
   * @param id      The name of this mapping
   * @param operator The operator tree that generates the URI.
   */
-case class ComplexUriMapping(id: Identifier = "complexUri", operator: Input, metaData: MetaData = MetaData.empty) extends UriMapping {
+case class ComplexUriMapping(id: Identifier = "complexUri",
+                             operator: Input,
+                             metaData: MetaData = MetaData.empty) extends UriMapping {
 
   override val target: Option[MappingTarget] = None
 
@@ -221,7 +239,9 @@ case class ComplexUriMapping(id: Identifier = "complexUri", operator: Input, met
   * @param id      The name of this mapping
   * @param typeUri The type URI.
   */
-case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing", metaData: MetaData = MetaData.empty) extends ValueTransformRule {
+case class TypeMapping(id: Identifier = "type",
+                       typeUri: Uri = "http://www.w3.org/2002/07/owl#Thing",
+                       metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
@@ -238,7 +258,10 @@ case class TypeMapping(id: Identifier = "type", typeUri: Uri = "http://www.w3.or
   * @param operator The input operator tree
   * @param target   The target property URI
   */
-case class ComplexMapping(id: Identifier = "mapping", operator: Input, target: Option[MappingTarget] = None, metaData: MetaData = MetaData.empty) extends ValueTransformRule {
+case class ComplexMapping(id: Identifier = "mapping",
+                          operator: Input,
+                          target: Option[MappingTarget] = None,
+                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
   override val typeString = "Complex"
 
@@ -267,18 +290,23 @@ case class ObjectMapping(id: Identifier = "mapping",
     target match {
       case Some(prop) =>
         rules.uriRule match {
-          case Some (rule) => Some(rule)
+          case Some (rule) => {
+            val rewrittenInput = Input.rewriteSourcePaths(rule.operator, path => {
+              Path(sourcePath.operators ++ path.operators)
+            })
+            Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
+          }
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}/$id"))
         }
       case None =>
         None
     }
   }
 
-  override val operator = {
+  override val operator: Input = {
     uriRule(sourcePath) match {
       case Some(rule) =>
         rule.operator
@@ -293,6 +321,10 @@ case class ObjectMapping(id: Identifier = "mapping",
   override def withChildren(newChildren: Seq[Operator]): Operator = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
+  }
+
+  def fillEmptyUriRule: ObjectMapping = {
+    copy(rules = rules.copy(uriRule = rules.uriRule.orElse(uriRule())))
   }
 
 }

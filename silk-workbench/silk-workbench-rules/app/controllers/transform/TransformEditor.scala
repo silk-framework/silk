@@ -1,15 +1,18 @@
 package controllers.transform
 
+import controllers.core.util.ControllerUtilsTrait
+import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import play.api.mvc.{Action, AnyContent, Controller}
 import plugins.Context
 
-class TransformEditor extends Controller {
+class TransformEditor extends Controller with ControllerUtilsTrait {
 
-  def start(project: String, task: String, rule: String) = Action { implicit request =>
+  def start(project: String, task: String, rule: String): Action[AnyContent] = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
 
@@ -28,7 +31,7 @@ class TransformEditor extends Controller {
     }
   }
 
-  def propertyDetails(project: String, task: String, property: String) = Action { implicit request =>
+  def propertyDetails(project: String, task: String, property: String): Action[AnyContent] = Action { implicit request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
     val uri = Uri.parse(property, context.project.config.prefixes)
@@ -36,7 +39,31 @@ class TransformEditor extends Controller {
     Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri), context.project.config.prefixes))
   }
 
-  def paths(projectName: String, taskName: String) = Action {
+  /** Fetch relative source paths for a specific rule and render widget. */
+  def rulePaths(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action {
+    val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
+    val sourceName = transformTask.data.selection.inputId.toString
+    val prefixes = project.config.prefixes
+    transformTask.data.nestedRuleAndSourcePath(ruleName) match {
+      case Some((_, sourcePath)) =>
+        val pathsCache = transformTask.activity[TransformPathsCache]
+        pathsCache.control.waitUntilFinished()
+        if(pathsCache.status.failed) {
+          Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true,
+            warning = pathsCache.status.message,  project = project))
+        } else {
+          val relativePaths = pathsCache.value.typedPaths.
+              filter(tp => tp.path.operators.startsWith(sourcePath) && tp.path.operators.size > sourcePath.size).
+              map(tp => Path(tp.path.operators.drop(sourcePath.size)))
+          val paths = DPair(relativePaths.map(_.serialize(prefixes)), Seq.empty)
+          Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
+        }
+      case None =>
+        throw new NotFoundException("No rule found with name " + ruleName)
+    }
+  }
+
+  def paths(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val pathsCache = task.activity[TransformPathsCache].control
@@ -54,7 +81,7 @@ class TransformEditor extends Controller {
     }
   }
 
-  def score(projectName: String, taskName: String) = Action {
+  def score(projectName: String, taskName: String): Action[AnyContent] = Action {
     Ok
   }
 }

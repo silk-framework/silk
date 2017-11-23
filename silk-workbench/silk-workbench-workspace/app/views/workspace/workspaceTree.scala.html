@@ -96,7 +96,7 @@
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
     <ul>
-      @for((key, value) <- taskActions.properties(task.data) if !value.isEmpty) {
+      @for((key, value) <- taskActions.properties(task.data)(project.config.prefixes) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
           @key: @value
         </li>

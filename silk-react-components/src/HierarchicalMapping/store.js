@@ -6,8 +6,11 @@ import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_URI,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
 } from './helpers';
+import {Suggestion} from './Suggestion';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -74,14 +77,14 @@ const datatypes = _.map(
             value: 'DateValueType',
             label: 'Date',
             description:
-                'Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth.'
+                'Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth.',
         },
         {
             value: 'DateTimeValueType',
             label: 'DateTime',
             description:
-                'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.'
-        }
+                'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.',
+        },
     ],
     datatype => ({
         ...datatype,
@@ -108,7 +111,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         breadcrumbs,
     };
 
-    if (element.id === id) {
+    if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
         let result = null;
@@ -138,6 +141,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
     }
     return null;
 }
+
 const handleCreatedSelectBoxValue = (data, path) => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
@@ -193,7 +197,7 @@ const prepareObjectMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            isBackwardProperty: data.entityConnection==='from',
+            isBackwardProperty: data.entityConnection,
             valueType: {
                 nodeType: 'UriValueType',
             },
@@ -220,23 +224,121 @@ const prepareObjectMappingPayload = data => {
     return payload;
 };
 
+const generateRule = (rule, parentId) =>
+    hierarchicalMappingChannel
+        .request({
+            topic: 'rule.createGeneratedMapping',
+            data: {...rule, parentId},
+        })
+        .catch(e => Rx.Observable.return({error: e, rule}));
+
+const createGeneratedRules = ({rules, parentId}) =>
+    Rx.Observable
+        .from(rules)
+        .flatMapWithMaxConcurrent(5, rule =>
+            Rx.Observable.defer(() => generateRule(rule, parentId))
+        )
+        .reduce((all, result, idx) => {
+            const total = _.size(rules);
+            const count = idx + 1;
+
+            hierarchicalMappingChannel
+                .subject('rule.suggestions.progress')
+                .onNext({
+                    progressNumber: _.round(count / total * 100, 0),
+                    lastUpdate: `Saved ${count} of ${total} rules.`,
+                });
+
+            all.push(result);
+
+            return all;
+        }, [])
+        .map(createdRules => {
+
+            const failedRules = _.filter(createdRules, 'error');
+
+            if (_.size(failedRules)) {
+                const error = new Error('Could not create rules.');
+                error.failedRules = failedRules;
+                throw error;
+            }
+
+            return createdRules;
+        });
+
 if (!__DEBUG__) {
     let rootId = null;
 
     const vocabularyCache = {};
 
     hierarchicalMappingChannel
+        .subject('rule.orderRule')
+        .subscribe(({data, replySubject}) => {
+            const {parentId, fromPos, toPos, reload} = data;
+            silkStore
+                .request({
+                    topic: 'transform.task.rules.get',
+                    data: {...apiDetails},
+                })
+                .map(returned => {
+                    const rules = returned.body;
+                    const searchId = parentId || rules.id;
+                    if (!_.isString(rootId)) {
+                        rootId = rules.id;
+                    }
+                    const swappedRule = findRule(
+                        _.cloneDeep(rules),
+                        searchId,
+                        true,
+                        []
+                    );
+                    const temp = swappedRule.rules.propertyRules[toPos];
+                    swappedRule.rules.propertyRules[toPos] =
+                        swappedRule.rules.propertyRules[fromPos];
+                    swappedRule.rules.propertyRules[fromPos] = temp;
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.put',
+                            data: {
+                                ...apiDetails,
+                                ruleId: parentId,
+                                payload: swappedRule,
+                            },
+                        })
+                        .subscribe(
+                            response => {
+                                if (reload) {
+                                    hierarchicalMappingChannel
+                                        .subject('reload')
+                                        .onNext(true);
+                                }
+                                replySubject.onNext(response);
+                                replySubject.onCompleted();
+                            },
+                            error => {
+                                replySubject.onError(error);
+                                replySubject.onCompleted();
+                            }
+                        );
+                })
+                .multicast(replySubject)
+                .connect();
+        });
+
+    hierarchicalMappingChannel
         .subject('rules.generate')
         .subscribe(({data, replySubject}) => {
-            const {correspondences, parentRuleId} = data;
+            const {correspondences, parentId} = data;
             silkStore
                 .request({
                     topic: 'transform.task.rule.generate',
-                    data: {...apiDetails, correspondences, parentRuleId},
+                    data: {...apiDetails, correspondences, parentId},
                 })
                 .map(returned => ({
                     rules: _.get(returned, ['body'], []),
+                    parentId,
                 }))
+                .flatMap(createGeneratedRules)
                 .multicast(replySubject)
                 .connect();
         });
@@ -281,25 +383,57 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.suggestions')
         .subscribe(({data, replySubject}) => {
-            silkStore
-                .request({
-                    topic: 'transform.task.rule.suggestions',
-                    data: {...apiDetails, ...data},
-                })
-                .map(returned => ({
-                    suggestions: returned.body,
-                }))
+            Rx.Observable
+                .forkJoin(
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.suggestions',
+                            data: {...apiDetails, ...data},
+                        })
+                        .catch(() => Rx.Observable.return(null))
+                        .map(returned => {
+                            const body = _.get(returned, 'body', []);
+
+                            const suggestions = [];
+
+                            _.forEach(body, (sources, target) => {
+                                _.forEach(sources, ({uri, confidence}) => {
+                                    suggestions.push(
+                                        new Suggestion(uri, target, confidence)
+                                    );
+                                });
+                            });
+                            return suggestions;
+                        }),
+                    silkStore
+                        .request({
+                            topic: 'transform.task.rule.valueSourcePaths',
+                            data: {unusedOnly: true, ...apiDetails, ...data},
+                        })
+                        .catch(() => Rx.Observable.return(null))
+                        .map(returned => {
+                            const body = _.get(returned, 'body', []);
+
+                            return _.map(body, path => new Suggestion(path));
+                        }),
+                    (arg1, arg2) => ({
+                        suggestions: _.concat([], arg1, arg2),
+                    })
+                )
                 .multicast(replySubject)
                 .connect();
         });
 
-    function mapPeakResult(returned){
-
-        if(_.get(returned, 'body.status.id') !== 'success'){
+    function mapPeakResult(returned) {
+        if (_.get(returned, 'body.status.id') !== 'success') {
             return {
                 title: 'Could not load preview',
-                detail: _.get(returned, 'body.status.msg', 'No details available')
-            }
+                detail: _.get(
+                    returned,
+                    'body.status.msg',
+                    'No details available'
+                ),
+            };
         }
 
         return {
@@ -311,26 +445,36 @@ if (!__DEBUG__) {
         .subject('rule.child.example')
         .subscribe(({data, replySubject}) => {
             const {ruleType, rawRule, id} = data;
-            if (id) {
-
-                const rule = ruleType === "value"
-                    ? prepareValueMappingPayload(rawRule)
-                    : prepareObjectMappingPayload(rawRule)
-                ;
+            const getRule = (rawRule, type) => {
+                switch (type) {
+                    case MAPPING_RULE_TYPE_DIRECT:
+                    case MAPPING_RULE_TYPE_COMPLEX:
+                        return prepareValueMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_OBJECT:
+                        return prepareObjectMappingPayload(rawRule);
+                    case MAPPING_RULE_TYPE_URI:
+                    case MAPPING_RULE_TYPE_COMPLEX_URI:
+                        return rawRule;
+                    default:
+                        throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+                }
+            };
+            const rule = getRule(rawRule, ruleType);
+            if (rule && id) {
                 silkStore
                     .request({
                         topic: 'transform.task.rule.child.peak',
-                        data: {...apiDetails, id, rule}
+                        data: {...apiDetails, id, rule},
                     })
-                    .subscribe((returned) => {
+                    .subscribe(returned => {
                         const result = mapPeakResult(returned);
-                        if(result.title){
-                            replySubject.onError(result)
+                        if (result.title) {
+                            replySubject.onError(result);
                         } else {
-                            replySubject.onNext(result)
+                            replySubject.onNext(result);
                         }
                         replySubject.onCompleted();
-                    })
+                    });
             }
         });
 
@@ -344,15 +488,15 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.peak',
                         data: {...apiDetails, id},
                     })
-                    .subscribe((returned) => {
+                    .subscribe(returned => {
                         const result = mapPeakResult(returned);
-                        if(result.title){
-                            replySubject.onError(result)
+                        if (result.title) {
+                            replySubject.onError(result);
                         } else {
-                            replySubject.onNext(result)
+                            replySubject.onNext(result);
                         }
                         replySubject.onCompleted();
-                    })
+                    });
             }
         });
 
@@ -512,6 +656,14 @@ if (!__DEBUG__) {
         });
 
     hierarchicalMappingChannel
+        .subject('rule.updateObjectMapping')
+        .subscribe(({data, replySubject}) => {
+            editMappingRule(data, data.id, parent)
+                .multicast(replySubject)
+                .connect();
+        });
+
+    hierarchicalMappingChannel
         .subject('rule.createGeneratedMapping')
         .subscribe(({data, replySubject}) => {
             const payload = data;
@@ -549,7 +701,7 @@ if (!__DEBUG__) {
         });
 } else {
     // eslint-disable-next-line
-  const rawMockStore = require("./retrieval2.json");
+    const rawMockStore = require("./retrieval2.json");
 
     let mockStore = null;
 
@@ -566,7 +718,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rules.generate')
         .subscribe(({data, replySubject}) => {
-            const {correspondences} = data;
+            const {correspondences, parentId} = data;
 
             const rules = [];
 
@@ -591,49 +743,80 @@ if (!__DEBUG__) {
                 });
             });
 
-            replySubject.onNext({rules});
-            replySubject.onCompleted();
+            Rx.Observable
+                .return({rules, parentId})
+                .flatMap(createGeneratedRules)
+                .multicast(replySubject)
+                .connect();
         });
 
     hierarchicalMappingChannel
         .subject('rule.suggestions')
         .subscribe(({data, replySubject}) => {
-            const paths = [
-                '/name',
-                '/city',
-                '/loan',
-                '/country',
-                '/lastname',
-                '/firstName',
+            const suggRaw = {
+                'https://spec.edmcouncil.org/fibo/ontology/FND/AgentsAndPeople/People/hasDateOfBirth': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.028520143597925807,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/surname': [
+                    {
+                        uri: '/surname',
+                        confidence: 0.21,
+                    },
+                    {
+                        uri: '/name',
+                        confidence: 0.0170975813177648,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/birthday': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.043659343420819535,
+                    },
+                ],
+                'http://xmlns.com/foaf/0.1/lastName': [
+                    {
+                        uri: '/surname',
+                        confidence: 0.001,
+                    },
+                    {
+                        uri: '/name',
+                        confidence: 0.00458715596330274,
+                    },
+                ],
+                'http://schema.org/birthDate': [
+                    {
+                        uri: '/birthdate',
+                        confidence: 0.07339449541284403,
+                    },
+                ],
+            };
+
+            const directRaw = [
+                '/birthdate',
                 '/address',
-                '/expected-error',
-            ];
-            const types = [
+                '/surname',
                 '/name',
-                '/city',
-                '/loan',
-                '/country',
-                '/lastname',
-                '/firstName',
-                '/address',
-                '/one-error',
+                '/error',
             ];
-            const suggestions = {};
-            _.forEach(data.targetClassUris, target => {
-                _.forEach(types, (type, key) => {
-                    const path = paths[key];
-                    suggestions[`${target}${type}`] = [
-                        {
-                            uri: path,
-                            confidence:
-                                Math.floor(100 - 0.1 * Math.random() * 100) /
-                                100,
-                        },
-                    ];
+
+            const suggestions = [];
+
+            _.forEach(suggRaw, (sources, target) => {
+                _.forEach(sources, ({uri, confidence}) => {
+                    suggestions.push(new Suggestion(uri, target, confidence));
                 });
             });
 
-            replySubject.onNext({suggestions});
+            _.forEach(directRaw, source => {
+                suggestions.push(new Suggestion(source));
+            });
+
+            replySubject.onNext({
+                suggestions,
+            });
             replySubject.onCompleted();
         });
 
@@ -813,8 +996,10 @@ if (!__DEBUG__) {
         }
     };
 
-    const saveMockStore = () => {
-        hierarchicalMappingChannel.subject('reload').onNext(true);
+    const saveMockStore = reload => {
+        if (reload) {
+            hierarchicalMappingChannel.subject('reload').onNext(true);
+        }
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
 
@@ -825,14 +1010,16 @@ if (!__DEBUG__) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
                 title: 'I am just a regular error',
-                detail: 'I am one error, but a tiny one that normal users never see',
+                detail:
+                    'I am one error, but a tiny one that normal users never see',
                 cause: [
                     {
                         title: 'I am just a regular error',
-                        detail: 'I am one error, but a tiny one that normal users never see',
-                        cause: []
+                        detail:
+                            'I am one error, but a tiny one that normal users never see',
+                        cause: [],
                     },
-                ]
+                ],
             });
 
             replySubject.onError(err);
@@ -847,7 +1034,7 @@ if (!__DEBUG__) {
 
         saveMockStore();
 
-        replySubject.onNext();
+        replySubject.onNext(data);
         replySubject.onCompleted();
     };
 
@@ -860,14 +1047,16 @@ if (!__DEBUG__) {
             const err = new Error('Could not save rule.');
             _.set(err, 'response.body', {
                 title: 'I am just a regular error',
-                detail: 'Comment can not contain error, that is not an error but it is an error',
+                detail:
+                    'Comment can not contain error, that is not an error but it is an error',
                 cause: [
                     {
                         title: 'I am just a forced error',
-                        detail: 'I am THE error, a big one that everyone would see',
-                        cause: []
+                        detail:
+                            'I am THE error, a big one that everyone would see',
+                        cause: [],
                     },
-                ]
+                ],
             });
             replySubject.onError(err);
             replySubject.onCompleted();
@@ -901,6 +1090,7 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.createGeneratedMapping')
         .subscribe(handleUpdatePreparedRule);
+
     const removeRule = (store, id) => {
         if (store.id === id) {
             return null;
@@ -954,15 +1144,15 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {pos, id} = data;
-            mockStore = orderRule(_.chain(mockStore).value(), id, pos);
-            saveMockStore();
+            const {toPos, id, reload} = data;
+            mockStore = orderRule(_.chain(mockStore).value(), id, toPos);
+            saveMockStore(reload);
             replySubject.onNext();
             replySubject.onCompleted();
         });
 
     // eslint-disable-next-line
-  const loremIpsum = require("lorem-ipsum");
+    const loremIpsum = require("lorem-ipsum");
 
     hierarchicalMappingChannel
         .subject('vocabularyInfo.get')

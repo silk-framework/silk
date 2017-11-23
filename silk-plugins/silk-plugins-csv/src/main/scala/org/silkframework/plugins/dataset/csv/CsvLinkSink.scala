@@ -13,12 +13,17 @@ class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink
     * Initialize the link sink
     */
   override def init(): Unit = {
-    open("",
+    openTable("",
       Seq(TypedProperty("link source", StringValueType, isBackwardProperty = false),
         TypedProperty("link target", StringValueType, isBackwardProperty = false)))
   }
 
   override def writeLink(link: Link, predicateUri: String) {
     write(Seq(link.source, link.target))
+  }
+
+  override def close(): Unit = {
+    closeTable()
+    super.close()
   }
 }

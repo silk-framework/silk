@@ -51,6 +51,12 @@
     }
 }
 
+ul.ecc-hierarchical-mapping-error-list {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none;
+}
+
 .ecc-silk-mapping__header {
     margin: 0.5rem 1rem;
 
@@ -286,6 +292,10 @@
         display: block;
         width: 50vw;
     }
+}
+
+.ecc-silk-mapping__ruleitem--dnd {
+    outline: none;
 }
 
 .ecc-silk-mapping__ruleitem--literal {
@@ -676,4 +686,10 @@
 
 .clickable {
     cursor: pointer;
+}
+
+.ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
+
+    margin: 0 0.5rem;
+
 }

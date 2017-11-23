@@ -1,5 +1,5 @@
 package org.silkframework.dataset
-import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.entity.{Entity, EntitySchema, Link, Path}
 import org.silkframework.util.Uri
 
 /**
@@ -11,8 +11,9 @@ case class MockDataset(name: String = "dummy") extends Dataset {
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}
   var writeEntityFn: (String, Seq[Seq[String]]) => Unit = (_, _) => {}
   var clearFn: () => Unit = () => {}
+  var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[Path] = (_, _, _) => { IndexedSeq.empty }
 
-  override def source: DataSource = DummyDataSource(retrieveFn, retrieveByUriFn)
+  override def source: DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
 
   override def linkSink: LinkSink = DummyLinkSink(writeLinkFn, clearFn)
 
@@ -20,13 +21,18 @@ case class MockDataset(name: String = "dummy") extends Dataset {
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
-                           retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity]) extends DataSource {
+                           retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
+                           retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[Path]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
     retrieveFn(entitySchema, limit)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
     retrieveByUriFn(entitySchema, entities)
+  }
+
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    retrievePathsFn(typeUri, depth, limit)
   }
 }
 
@@ -45,13 +51,15 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
-  override def open(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {}
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
     writeEntityFn(subject, values)
   }
 
   override def clear(): Unit = { clearFn() }
+
+  override def closeTable(): Unit = {}
 
   override def close(): Unit = {}
 }

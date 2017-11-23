@@ -10,7 +10,7 @@ import {
     RadioGroup,
     TextField,
     Spinner,
-    ScrollingMixin
+    ScrollingMixin,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -23,6 +23,8 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
+    MAPPING_RULE_TYPE_URI
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -47,7 +49,7 @@ const ObjectMappingRuleForm = React.createClass({
             _.get(this.state, 'loading', false) === false
         ) {
             this.scrollIntoView({
-                topOffset: 75
+                topOffset: 75,
             });
         }
     },
@@ -88,7 +90,12 @@ const ObjectMappingRuleForm = React.createClass({
                                 : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
-                            uriRuleType: _.get(rule, 'rules.uriRule.type', 'uri')
+                            uriRuleType: _.get(
+                                rule,
+                                'rules.uriRule.type',
+                                MAPPING_RULE_TYPE_URI
+                            ),
+                            uriRule: _.get(rule, 'rules.uriRule'),
                         };
 
                         this.setState({
@@ -189,6 +196,30 @@ const ObjectMappingRuleForm = React.createClass({
         hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
+    getExampleView() {
+        if (this.state.pattern){
+            return (
+                <ExampleView
+                    id={this.props.parentId || 'root'}
+                    rawRule={{
+                        type: MAPPING_RULE_TYPE_URI,
+                        pattern: this.state.pattern,
+                    }}
+                    ruleType={MAPPING_RULE_TYPE_URI}
+                />
+            );
+        }
+        else if (this.state.uriRule) {
+            return <ExampleView
+                id={this.props.parentId || 'root'}
+                rawRule={this.state.uriRule}
+                ruleType={this.state.uriRule.type}
+            />;
+        }
+        else {
+            return false;
+        }
+    },
     // template rendering
     render() {
         const {id, parentId} = this.props;
@@ -205,9 +236,15 @@ const ObjectMappingRuleForm = React.createClass({
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm =
-            type === MAPPING_RULE_TYPE_ROOT ? true : !_.isEmpty(this.state.targetProperty);
+            type === MAPPING_RULE_TYPE_ROOT
+                ? true
+                : !_.isEmpty(this.state.targetProperty);
 
-        const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
+        const errorMessage = error ? (
+            <ErrorView {...error.response.body} />
+        ) : (
+            false
+        );
 
         const title =
             // TODO: add source path if: parent, not edit, not root element
@@ -293,28 +330,24 @@ const ObjectMappingRuleForm = React.createClass({
                         label="URI pattern"
                         className="ecc-silk-mapping__ruleseditor__pattern"
                         value={this.state.pattern}
-                        onChange={this.handleChangeTextfield.bind(null, 'pattern')}
+                        onChange={this.handleChangeTextfield.bind(
+                            null,
+                            'pattern'
+                        )}
                     />
                 );
-            }
-            else {
+            } else {
                 patternInput = (
                     <TextField
                         disabled
-                        label="Complex Uri"
-                        value="This uri cannot be edited in the edit form."
+                        label="URI formula"
+                        value="This URI cannot be edited in the edit form."
                     />
-                )
+                );
             }
         }
 
-        const exampleView = !_.isEmpty(this.state.sourceProperty) ?(
-            <ExampleView
-                id={this.props.parentId || 'root'}
-                key={this.state.sourceProperty.value || this.state.sourceProperty}
-                rawRule={this.state}
-                ruleType={MAPPING_RULE_TYPE_OBJECT}
-            />) : false;
+        const exampleView = this.getExampleView();
 
         return (
             <div className="ecc-silk-mapping__ruleseditor">

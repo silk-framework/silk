@@ -1,0 +1,20 @@
+// Fixing problems with the rules learner pagination
+
+ul.navigation {
+    display: flex;
+    float: left;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+
+    .mdl-button {
+        &.mdl-button--pagination {
+            min-width: unset;
+            list-style-type: none;
+        }
+
+        &.mdl-button--active {
+            background-color: $button-hover-color;
+        }
+    }
+}

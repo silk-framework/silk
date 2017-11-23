@@ -45,10 +45,19 @@ case class Uri(uri: String) {
     if (!uri.contains(':')) {
       uri
     } else {
-      for ((id, namespace) <- prefixes if uri.startsWith(namespace)) {
+      for ((id, namespace) <- prefixes if uriMatchesNamespace(uri, namespace)) {
         return id + ":" + uri.substring(namespace.length)
       }
       "<" + uri + ">"
+    }
+  }
+
+  private def uriMatchesNamespace(uri: String, namespace: String): Boolean = {
+    uri.startsWith(namespace) && {
+      val localPart = uri.drop(namespace.size)
+      localPart.size > 0 &&
+          !localPart.contains("/") &&
+          !localPart.contains("#")
     }
   }
 

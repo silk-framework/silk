@@ -22,15 +22,16 @@ case class SubStringDistance(@Param("The minimum length of a possible substring 
                              granularity: String = "3") extends SimpleDistanceMeasure {
   private val n = granularity.toInt
 
-  override def evaluate(str1: String, str2: String, threshold: Double) = {
+  override def evaluate(str1: String, str2: String, threshold: Double): Double = {
     val score = SubStringDistance.score(str1, str2, n)
-    if (score < 0)
+    if (score < 0) {
       1.0
-    else
+    } else {
       1.0 - score
+    }
   }
 
-  override def indexValue(str: String, threshold: Double) = {
+  override def indexValue(str: String, threshold: Double): Index = {
     val nGrams = SubStringDistance.getNgrams(str, n)
     Index.oneDim(nGrams.map(a => a.hashCode()).toSet)
   }
@@ -122,9 +123,9 @@ object SubStringDistance {
     val suma = unmatchedS1 + unmatchedS2
     val product = unmatchedS1 * unmatchedS2
     val p = 0.6D
-    if (suma - product == 0.0D)
+    if (suma - product == 0.0D) {
       dissimilarity = 0.0D
-    else {
+    } else {
       dissimilarity = product / (p + (1.0D - p) * (suma - product))
     }
     dissimilarity
@@ -151,8 +152,9 @@ object SubStringDistance {
     val origStr1Len = s1.length()
     val origStr2Len = s2.length()
 
-    if ((origStr1Len == 0) && (origStr2Len == 0))
+    if ((origStr1Len == 0) && (origStr2Len == 0)) {
       return 0.0
+    }
     if ((origStr1Len == 0) || (origStr2Len == 0)) {
       return 1.0
     }
@@ -186,9 +188,9 @@ object SubStringDistance {
       s1 = removeSubString(s1, endS1, startS1)
       s2 = removeSubString(s2, endS2, startS2)
 
-      if (best >= granularity)
+      if (best >= granularity) {
         common += best
-      else {
+      } else {
         best = 0
       }
     }
@@ -215,8 +217,9 @@ object SubStringDistance {
     var i = 0
     val n = math.min(s1.length(), s2.length())
     while (i < n) {
-      if (s1(i) != s2(i))
+      if (s1(i) != s2(i)) {
         return i
+      }
       i += 1
     }
     n - 1
@@ -226,16 +229,18 @@ object SubStringDistance {
     val strBuf = new StringBuilder()
 
     for (character <- str)
-      if (character != removeChar)
+      if (character != removeChar) {
         strBuf.append(character)
+      }
 
     strBuf.toString()
   }
 
   def getNgrams(str: String, n: Int = 3): Seq[String] = {
     val normString = normalizeString(str).toLowerCase
-    if (normString.length <= n)
+    if (normString.length <= n) {
       return Seq(normString)
+    }
     for (i <- 0 to normString.length - n)
       yield normString.substring(i, i + n)
   }

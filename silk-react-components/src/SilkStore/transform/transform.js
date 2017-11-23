@@ -35,7 +35,7 @@ silkStore
     .subscribe(({data, replySubject}) => {
         const {
             correspondences,
-            parentRuleId,
+            parentId,
             baseUrl,
             project,
             transformTask,
@@ -43,7 +43,7 @@ silkStore
 
         superagent
             .post(
-                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentRuleId}`
+                `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentId}`
             )
             .accept('application/json')
             .send({
@@ -140,13 +140,33 @@ silkStore
     });
 
 silkStore
+    .subject('transform.task.rule.valueSourcePaths')
+    .subscribe(({data, replySubject}) => {
+        const {
+            baseUrl,
+            project,
+            transformTask,
+            ruleId,
+            unusedOnly = false,
+        } = data;
+
+        superagent
+            .get(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePaths`
+            )
+            .query({
+                unusedOnly,
+            })
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, rule, id} = data;
-        // mappingTarget.uri (aka. targetProperty) must be set:
-        if (!_.get(rule, 'mappingTarget.uri')){
-            _.set(rule, 'mappingTarget.uri', 'http://example.org');
-        }
         superagent
             .post(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`

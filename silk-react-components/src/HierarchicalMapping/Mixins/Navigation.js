@@ -7,27 +7,35 @@ const Navigation = {
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject('ruleId.change')
-            .onNext({newRuleId: id, parentRuleId: parent});
+            .onNext({newRuleId: id, parentId: parent});
 
         event.stopPropagation();
     },
 
     handleCreate(infoCreation) {
-        hierarchicalMappingChannel.subject('mapping.create').onNext(infoCreation);
+        hierarchicalMappingChannel
+            .subject('mapping.create')
+            .onNext(infoCreation);
     },
 
     handleShowSuggestions(event) {
         event.persist();
-        hierarchicalMappingChannel.subject('mapping.showSuggestions').onNext(event);
+        hierarchicalMappingChannel
+            .subject('mapping.showSuggestions')
+            .onNext(event);
     },
 
     handleToggleRuleDetails(stateExpand) {
-        hierarchicalMappingChannel.subject('list.toggleDetails').onNext(stateExpand);
+        hierarchicalMappingChannel
+            .subject('list.toggleDetails')
+            .onNext(stateExpand);
     },
 
     promoteToggleTreenavigation(stateVisibility) {
-        hierarchicalMappingChannel.subject('treenav.toggleVisibility').onNext(stateVisibility);
-    }
-}
+        hierarchicalMappingChannel
+            .subject('treenav.toggleVisibility')
+            .onNext(stateVisibility);
+    },
+};
 
 export default Navigation;

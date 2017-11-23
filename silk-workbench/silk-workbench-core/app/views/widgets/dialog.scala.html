@@ -1,4 +1,9 @@
-@(title: String, width: Int = 700, submitLabel: String = "OK", secondaryLabel: String = "Secondary Button")(content: Html)
+
+@(title: String,
+    width: Int = 700,
+    submitLabel: String = "OK",
+    secondaryLabel: String = "Secondary Button",
+    createDialog: Boolean = true)(content: Html)
 
 <div class="mdl-dialog__title">
   <strong class="mdl-dialog__title-text">@title</strong>
@@ -18,7 +23,11 @@
   <div class="mdl-dialog__actions">
     <button id="dialog-submit-button" type="submit" class="mdl-button mdl-js-button mdl-button--accent">@submitLabel</button>
     <button id="dialog-secondary-button" type="button" class="mdl-button mdl-js-button mdl-button--accent" style="display: none;">@secondaryLabel</button>
-    <button id="dialog-cancel-button" type="button" class="mdl-button mdl-js-button mdl-button--accent close">Cancel</button>
+    @if(createDialog) {
+      <button id="dialog-cancel-button" type="button" class="mdl-button mdl-js-button mdl-button--accent close">Cancel</button>
+    } else {
+      <button id="dialog-cancel-button" type="button" class="mdl-button mdl-js-button mdl-button--accent close" autofocus>Cancel</button>
+    }
   </div>
 </form>
 <script type="text/javascript">
