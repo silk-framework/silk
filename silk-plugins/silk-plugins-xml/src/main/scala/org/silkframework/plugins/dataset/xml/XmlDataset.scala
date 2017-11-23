@@ -1,8 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
-import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.validation.ValidationException
+
+import scala.xml.{Node, ProcInstr, XML}
 
 @Plugin(
   id = "xml",
@@ -10,7 +13,7 @@ import org.silkframework.runtime.resource.{WritableResource, Resource}
   description =
 """Retrieves all entities from an xml file.""",
   documentation =
-"""Typically, this dataset is used to transform an XML file to another format, e.g., to RDF. Currently, writing XML files is not supported.
+"""Typically, this dataset is used to transform an XML file to another format, e.g., to RDF.
 When this dataset is used as an input for another task (e.g., a transformation task), the input type of the consuming task selects the path where the entities to be read are located.
 
 Example:
@@ -51,13 +54,17 @@ Path examples:
 )
 case class XmlDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
-  file: Resource,
-  @Param(value = "Should no longer be used! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks. The path to the elements to be read, starting from the root element, e.g., '/Person'. Not that it does not include the root element itself. If left empty, all direct children of the root element will be read.", advanced = true)
+  file: WritableResource,
+  @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
+  @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
+  outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
   streaming: Boolean = true) extends Dataset {
+
+  validateOutputTemplate()
 
   override def source: DataSource = {
     if(streaming) {
@@ -67,7 +74,25 @@ case class XmlDataset(
     }
   }
 
-  override def linkSink: LinkSink = throw new NotImplementedError("XMLs cannot be written at the moment")
+  override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink: EntitySink = throw new NotImplementedError("XMLs cannot be written at the moment")
+  override def entitySink: EntitySink = new XmlSink(file, outputTemplate.str)
+
+  /**
+    * Validates the output template parameter
+    */
+  private def validateOutputTemplate(): Unit = {
+    val xml = XML.loadString(outputTemplate.str)
+    def collectProcInstructions(node: Node): Seq[ProcInstr] = {
+      node match {
+        case proc: ProcInstr => Seq(proc)
+        case _ => node.child.flatMap(collectProcInstructions)
+      }
+    }
+    val procInstructions = collectProcInstructions(xml)
+    if(procInstructions.size != 1) {
+      throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
+    }
+  }
+
 }

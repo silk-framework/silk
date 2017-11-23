@@ -15,14 +15,18 @@ class MappingTargetTest extends FlatSpec with MustMatchers {
   val mappingTarget = MappingTarget(propertyUri = Uri(PROP_URI), valueType = FloatValueType)
   val mappingTargetCustom = MappingTarget(propertyUri = Uri(PROP_URI), valueType = CustomValueType("http://RichString"))
   val mappingTargetBackward = MappingTarget(propertyUri = Uri(PROP_URI), valueType = UriValueType, isBackwardProperty = true)
+  val mappingTargetAttribute = MappingTarget(propertyUri = Uri(PROP_URI), valueType = UriValueType, isAttribute = true)
 
   it should "serialize and deserialize to/from XML" in {
+    roundTripTest(mappingTarget)
+    roundTripTest(mappingTargetCustom)
+    roundTripTest(mappingTargetBackward)
+    roundTripTest(mappingTargetAttribute)
+  }
+
+  private def roundTripTest(mappingTarget: MappingTarget): Unit = {
     implicit val readContext = ReadContext()
     val mappingTargetRoundTrip = XmlSerialization.fromXml[MappingTarget](XmlSerialization.toXml(mappingTarget))
-    val mappingTargetCustomRoundTrip = XmlSerialization.fromXml[MappingTarget](XmlSerialization.toXml(mappingTargetCustom))
-    val mappingTargetBackwardRoundTrip = XmlSerialization.fromXml[MappingTarget](XmlSerialization.toXml(mappingTargetBackward))
     mappingTarget mustBe mappingTargetRoundTrip
-    mappingTargetCustom mustBe mappingTargetCustomRoundTrip
-    mappingTargetBackwardRoundTrip mustBe mappingTargetBackward
   }
 }
