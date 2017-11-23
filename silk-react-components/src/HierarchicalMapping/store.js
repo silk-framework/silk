@@ -805,11 +805,17 @@ if (!__DEBUG__) {
 
             const suggestions = [];
 
-            _.forEach(suggRaw, (sources, target) => {
-                _.forEach(sources, ({uri, confidence}) => {
-                    suggestions.push(new Suggestion(uri, target, confidence));
+            for (let i = 0; i < 10; i++) {
+                _.forEach(suggRaw, (sources, target) => {
+                    _.forEach(sources, ({uri, confidence}) => {
+                        suggestions.push(new Suggestion(
+                            uri + (i < 1 ? '': i),
+                            target,
+                            confidence
+                        ));
+                    });
                 });
-            });
+            }
 
             _.forEach(directRaw, source => {
                 suggestions.push(new Suggestion(source));
