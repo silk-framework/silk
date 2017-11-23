@@ -37,10 +37,19 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     */
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
     if(atRoot) {
-      doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.parse(new InputSource(new StringReader(outputTemplate)))
-      entityTemplate = findEntityTemplate(doc)
-      entityRoot = entityTemplate.getParentNode
-      entityRoot.removeChild(entityTemplate)
+      val builder = DocumentBuilderFactory.newInstance.newDocumentBuilder
+      // Check if the output template is a single processing instruction
+      if(outputTemplate.matches("<\\?[^\\?]+\\?>")) {
+        val elementName = outputTemplate.substring(2, outputTemplate.length - 2)
+        doc = builder.newDocument()
+        entityTemplate = doc.createProcessingInstruction(elementName, "")
+        entityRoot = doc
+      } else {
+        doc = builder.parse(new InputSource(new StringReader(outputTemplate)))
+        entityTemplate = findEntityTemplate(doc)
+        entityRoot = entityTemplate.getParentNode
+        entityRoot.removeChild(entityTemplate)
+      }
     }
 
     this.properties = properties

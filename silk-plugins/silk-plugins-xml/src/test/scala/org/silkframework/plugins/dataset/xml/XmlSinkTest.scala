@@ -10,7 +10,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
 
   behavior of "XmlSink"
 
-  it should "write flat structures" in {
+  it should "write flat structures nested under root element" in {
     val schema =
       EntitySchema(
         typeUri = "",
@@ -33,6 +33,30 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
             <SecondTag>2</SecondTag>
           </Element>
         </Root>
+    )
+  }
+
+  it should "write entities as root element" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("FirstTag"), StringValueType),
+            TypedPath(Path("SecondTag"), StringValueType)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    test(
+      template = "<?Element?>",
+      entityTables = Seq(entities),
+      expected =
+        <Element>
+          <FirstTag>1</FirstTag>
+          <SecondTag>2</SecondTag>
+        </Element>
     )
   }
 
@@ -143,6 +167,55 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
             <Year>1990</Year>
           </Person>
         </Persons>
+    )
+  }
+
+  it should "write nested structure as root element" in {
+    val personSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("id"), StringValueType, isAttribute = true),
+            TypedPath(Path("Name"), UriValueType),
+            TypedPath(Path("Year"), StringValueType)
+          )
+      )
+
+    val persons = Seq(
+      Entity("urn:instance:Person1", IndexedSeq(Seq("001"), Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")), personSchema)
+    )
+
+    val nameSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("FirstName"), StringValueType),
+            TypedPath(Path("LastName"), StringValueType)
+          )
+      )
+
+    val names = Seq(
+      Entity("urn:instance:PersonName1a", IndexedSeq(Seq("John"), Seq("Doe")), nameSchema),
+      Entity("urn:instance:PersonName1b", IndexedSeq(Seq("Peter"), Seq("Stein")), nameSchema)
+    )
+
+    test(
+      template = "<?Person?>",
+      entityTables = Seq(persons, names),
+      expected =
+        <Person id="001">
+          <Name>
+            <FirstName>John</FirstName>
+            <LastName>Doe</LastName>
+          </Name>
+          <Name>
+            <FirstName>Peter</FirstName>
+            <LastName>Stein</LastName>
+          </Name>
+          <Year>1980</Year>
+        </Person>
     )
   }
 
