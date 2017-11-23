@@ -20,7 +20,7 @@ object XmlSerialization {
     NodeSeq.fromSeq(parameters.toSeq.map {
       case (name, v) =>
         val vPCdata = PCData(v)
-        <Param name={name}>{vPCdata}</Param>
+        <Param name={name} xml:space="preserve">{vPCdata}</Param>
     })
   }
 
