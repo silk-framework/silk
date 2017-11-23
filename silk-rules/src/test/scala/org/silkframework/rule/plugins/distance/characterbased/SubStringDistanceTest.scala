@@ -1,15 +1,15 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.test.PluginTest
 
 /**
-  * Created on 4/5/16.
+  * Substring distance measure. Compares overlap of substrings of two strings and factors in dissimilar substrings.
   */
 class SubStringDistanceTest extends PluginTest {
+  behavior of "Substring distance"
 
   lazy val substring = new SubStringDistance()
-  def eval(str1: String, str2: String) = substring.evaluate(str1, str2, 1.0)
+  def eval(str1: String, str2: String): Double = substring.evaluate(str1, str2, 1.0)
 
   it should "calculate correct relative distances " in {
     val str1 = "ABCDEF"
@@ -23,10 +23,17 @@ class SubStringDistanceTest extends PluginTest {
     val s = new SubStringDistance("2")
     val str1 = "AB12"
     val str2 = "12AB"
-    substring.indexValue(str1, 1.0) should not be (s.indexValue(str1, 1.0))
+    substring.indexValue(str1, 1.0) should not be s.indexValue(str1, 1.0)
     eval(str1, str2) shouldBe 1.0
     s.evaluate(str1, str2) shouldBe 0.0
   }
 
-  override def pluginObject = substring
+  it should "match strings smaller than 'granularity' if they match exactly" in {
+    val str1 = "id"
+    val str2 = "id"
+    substring.indexValue(str1, Double.MaxValue).size shouldBe 1
+    eval(str1, str2) shouldBe 0.0
+  }
+
+  override def pluginObject: SubStringDistance = substring
 }

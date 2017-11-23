@@ -26,8 +26,8 @@ POST          /:project/importExample                                           
 ############################################################################################################################################
 
 # Dialogs
-GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetApi.datasetDialog(project: String, task = "", title = "Create Dataset")
-GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetApi.datasetDialog(project: String, task: String, title = "Edit Dataset")
+GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetApi.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
+GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetApi.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
 GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetApi.datasetDialogAutoConfigured(project, task, pluginId)
 
 # Tabs
@@ -50,8 +50,8 @@ POST          /projects/:project/datasets/:name/mappingCoverage/values          
 ############################################################################################################################################
 
 # Dialogs
-GET           /customTasks/newTaskDialog/:project                                controllers.workspace.CustomTasks.taskDialog(project: String, task = "")
-GET           /customTasks/editTaskDialog/:project/:task                         controllers.workspace.CustomTasks.taskDialog(project: String, task: String)
+GET           /customTasks/newTaskDialog/:project                                controllers.workspace.CustomTasks.taskDialog(project: String, task = "", createDialog: Boolean = true)
+GET           /customTasks/editTaskDialog/:project/:task                         controllers.workspace.CustomTasks.taskDialog(project: String, task: String, createDialog: Boolean = false)
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)

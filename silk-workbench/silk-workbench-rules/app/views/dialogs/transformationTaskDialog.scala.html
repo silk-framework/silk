@@ -2,7 +2,7 @@
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.User
 
-@(project: String, task: String)
+@(project: String, task: String, createDialog: Boolean)
 
 @datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
 
@@ -20,7 +20,7 @@
   |?a foaf:knows <http://example.org/SomePerson>""".stripMargin
 }
 
-@widgets.dialog(title = "Transformation Task") {
+@widgets.dialog(title = "Transformation Task", createDialog = createDialog) {
 <div class="dialog-form" id="transFormationDialogForm">
   @if(task.isEmpty) {
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
