@@ -30,7 +30,7 @@
 </script>
 
 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-  <input class="mdl-textfield__input" type="text" id="workspaceSearch">
+  <input onfocus="$(this).parent().addClass('is-focused')" onblur="$(this).parent().removeClass('is-focused')" class="mdl-textfield__input" type="text" id="workspaceSearch">
   <label class="mdl-textfield__label" for="workspaceSearch">Search</label>
 </div>
 
