@@ -59,7 +59,7 @@ case class XmlDataset(
   basePath: String = "",
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
-  @Param(value = "The output template used for writing XML")
+  @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
   outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
   streaming: Boolean = true) extends Dataset {
