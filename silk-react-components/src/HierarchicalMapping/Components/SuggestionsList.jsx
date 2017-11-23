@@ -73,8 +73,10 @@ const SuggestionsList = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    count: 0,
     componentDidUpdate() {
-        if (_.get(this, 'state.data', false)) {
+        if (_.get(this, 'state.data', false) && this.count++ === 0) {
+            // Scroll should only happen once!
             this.scrollIntoView({
                 topOffset: 75,
             });
