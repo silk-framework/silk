@@ -94,7 +94,7 @@ const SuggestionsList = React.createClass({
         this.setState({data});
     },
     componentDidMount() {
-        this.loadData(this.state.showDefaultProperties);
+        this.loadData();
     },
     count: 0,
     componentDidUpdate() {
@@ -133,7 +133,6 @@ const SuggestionsList = React.createClass({
         this.setState({
             saving: true,
         });
-
 
         const correspondences = this.state.data.filter(v => v.checked).map(v => {return {
             sourcePath: v.sourcePath,
