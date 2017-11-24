@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.xml.{Node, ProcInstr, XML}

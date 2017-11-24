@@ -35157,8 +35157,9 @@
         componentDidMount: function() {
             this.loadData();
         },
+        count: 0,
         componentDidUpdate: function() {
-            _lodash2.default.get(this, "state.data", !1) && this.scrollIntoView({
+            _lodash2.default.get(this, "state.data", !1) && 0 == this.count++ && this.scrollIntoView({
                 topOffset: 75
             });
         },
