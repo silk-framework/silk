@@ -9,6 +9,7 @@ import {
     TextField,
     Spinner,
     ScrollingMixin,
+    Checkbox,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -73,6 +74,11 @@ const ValueMappingRuleForm = React.createClass({
                                 'AutoDetectValueType'
                             ),
                             sourceProperty: rule.sourcePath,
+                            isAttribute: _.get(
+                                rule,
+                                'mappingTarget.isAttribute',
+                                false
+                            ),
                         };
 
                         this.setState({
@@ -95,6 +101,7 @@ const ValueMappingRuleForm = React.createClass({
                 type: MAPPING_RULE_TYPE_DIRECT,
                 propertyType: 'AutoDetectValueType',
                 sourceProperty: '',
+                isAttribute: false,
                 initialValues: {},
             });
         }
@@ -116,6 +123,7 @@ const ValueMappingRuleForm = React.createClass({
                     targetProperty: this.state.targetProperty,
                     propertyType: this.state.propertyType,
                     sourceProperty: this.state.sourceProperty,
+                    isAttribute: this.state.isAttribute,
                 },
             })
             .subscribe(
@@ -250,6 +258,17 @@ const ValueMappingRuleForm = React.createClass({
                                 'targetProperty'
                             )}
                         />
+                        <Checkbox
+                            checked={this.state.isAttribute}
+                            className="ecc-silk-mapping__ruleseditor__isAttribute"
+                            onChange={this.handleChangeValue.bind(
+                                null,
+                                'isAttribute',
+                                !this.state.isAttribute
+                            )}>
+                            Write values as attributes (if supported by the
+                            target dataset)
+                        </Checkbox>
                         <AutoComplete
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
