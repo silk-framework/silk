@@ -7,13 +7,15 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
+import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
-import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
+import org.silkframework.workspace._
 import play.api.Application
 import play.api.libs.ws.{EmptyBody, WS, WSResponse}
 import play.api.mvc.Results
@@ -502,5 +504,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
           Null
       }
     }
+  }
+
+  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+    val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
+    control.reset()
+    control.start()
   }
 }
