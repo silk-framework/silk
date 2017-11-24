@@ -102,6 +102,7 @@ private class ActivityExecution[T](activity: Activity[T],
           throw ex
       } finally {
         startTimestamp = None
+        forkJoinRunner = None
       }
     }
   }
