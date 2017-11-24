@@ -509,6 +509,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
     control.reset()
-    control.start()
+    control.startBlocking()
   }
 }
