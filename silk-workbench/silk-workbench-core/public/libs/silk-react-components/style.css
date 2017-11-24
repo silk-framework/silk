@@ -13226,6 +13226,16 @@ ul.ecc-hierarchical-mapping-error-list {
   .ecc-silk-mapping__ruleslist:not(.ecc-silk-mapping__suggestionlist) .mdl-card__actions {
     background-color: transparent; }
 
+.ecc-silk-mapping__ruleslist .ecc-silk_select-ruletype {
+  margin-top: -8px;
+  min-width: 100px;
+  max-height: 24px; }
+  .ecc-silk-mapping__ruleslist .ecc-silk_select-ruletype .Select-value {
+    padding-left: 12px; }
+
+.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem.ecc-silk-mapping__ruleitem--literal.unselected .mdl-list__item-primary-content {
+  margin-right: 100px; }
+
 .ecc-silk-mapping__ruleslist .mdl-list {
   margin: 0;
   padding: 0; }

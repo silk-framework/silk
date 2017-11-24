@@ -258,6 +258,17 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
+    .ecc-silk_select-ruletype {
+        margin-top: -8px;
+        min-width: 100px;
+        max-height: 24px;
+        .Select-value {
+            padding-left: 12px;
+        }
+    }
+    .ecc-silk-mapping__ruleitem.ecc-silk-mapping__ruleitem--literal.unselected .mdl-list__item-primary-content{
+        margin-right: 100px;
+    }
     .mdl-list {
         margin: 0;
         padding: 0;
@@ -273,6 +284,8 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
 }
+
+
 
 .ecc-silk-mapping__ruleitem {
     @include typo-body-1();

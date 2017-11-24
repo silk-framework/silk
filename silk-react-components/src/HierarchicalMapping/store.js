@@ -9,6 +9,7 @@ import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
+    SUGGESTION_TYPES,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -724,24 +725,50 @@ if (!__DEBUG__) {
             const rules = [];
 
             _.map(correspondences, correspondence => {
-                rules.push({
-                    metadata: {
-                        description: _.includes(
-                            correspondence.sourcePath,
-                            'error'
-                        )
-                            ? 'error'
-                            : '',
-                    },
-                    mappingTarget: {
-                        uri: correspondence.targetProperty,
-                        valueType: {
-                            nodeType: 'AutoDetectValueType',
+                if (correspondence.type === SUGGESTION_TYPES[0]) {
+                    rules.push({
+                        metadata: {
+                            description: _.includes(
+                                correspondence.sourcePath,
+                                'error'
+                            )
+                                ? 'error'
+                                : '',
                         },
-                    },
-                    sourcePath: correspondence.sourcePath,
-                    type: MAPPING_RULE_TYPE_DIRECT,
-                });
+                        mappingTarget: {
+                            uri: correspondence.targetProperty,
+                            valueType: {
+                                nodeType: 'AutoDetectValueType',
+                            },
+                        },
+                        sourcePath: correspondence.sourcePath,
+                        type: MAPPING_RULE_TYPE_DIRECT,
+                    });
+                }
+                else if (correspondence.type === SUGGESTION_TYPES[1]) {
+                    rules.push({
+                        metadata: {
+                            description: _.includes(
+                                correspondence.sourcePath,
+                                'error'
+                            )
+                                ? 'error'
+                                : '',
+                        },
+                        type : MAPPING_RULE_TYPE_OBJECT,
+                        sourcePath : correspondence.sourcePath,
+                        mappingTarget : {
+                            uri: correspondence.targetProperty,
+                            valueType : {
+                                nodeType : "AutoDetectValueType"
+                            },
+                            isBackwardProperty: false
+                        },
+                    });
+                }
+                else {
+                    alert('holy crap!')
+                }
             });
 
             Rx.Observable
@@ -800,6 +827,7 @@ if (!__DEBUG__) {
                 '/address',
                 '/surname',
                 '/name',
+                '/fatal-error',
                 '/error',
             ];
 

@@ -60,7 +60,7 @@
     module.exports = __webpack_require__(317)();
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = __webpack_require__(13), warning = emptyFunction;
+    var emptyFunction = __webpack_require__(14), warning = emptyFunction;
     module.exports = warning;
 }, function(module, exports, __webpack_require__) {
     "use strict";
@@ -93,6 +93,8 @@
             return classNames;
         }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
     }();
+}, function(module, exports) {
+    module.exports = window._;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function toObject(val) {
@@ -129,8 +131,6 @@
         }
         return to;
     };
-}, function(module, exports) {
-    module.exports = window._;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function shouldPrecacheNode(node, nodeID) {
@@ -268,7 +268,7 @@
     }, function(module, exports) {
         module.exports = __webpack_require__(5);
     }, function(module, exports) {
-        module.exports = __webpack_require__(7);
+        module.exports = __webpack_require__(6);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         function _interopRequireDefault(obj) {
@@ -3081,7 +3081,7 @@
     }
     exports.__esModule = !0;
     var _stringify = __webpack_require__(374), _extends2 = (_interopRequireDefault(_stringify), 
-    __webpack_require__(10)), _extends3 = _interopRequireDefault(_extends2), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccMessagebus = __webpack_require__(192), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _helpers = __webpack_require__(17), _Suggestion = __webpack_require__(377), hierarchicalMappingChannel = _eccMessagebus2.default.channel("silk.hierarchicalMapping"), silkStore = _eccMessagebus2.default.channel("silk.api"), apiDetails = {
+    __webpack_require__(10)), _extends3 = _interopRequireDefault(_extends2), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccMessagebus = __webpack_require__(192), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _helpers = __webpack_require__(13), _Suggestion = __webpack_require__(377), hierarchicalMappingChannel = _eccMessagebus2.default.channel("silk.hierarchicalMapping"), silkStore = _eccMessagebus2.default.channel("silk.api"), apiDetails = {
         transformTask: !1,
         baseUrl: !1,
         project: !1
@@ -3492,6 +3492,15 @@
     module.exports = ExecutionEnvironment;
 }, function(module, exports, __webpack_require__) {
     "use strict";
+    exports.__esModule = !0;
+    var MAPPING_RULE_TYPE_ROOT = exports.MAPPING_RULE_TYPE_ROOT = "root", MAPPING_RULE_TYPE_OBJECT = exports.MAPPING_RULE_TYPE_OBJECT = "object";
+    exports.MAPPING_RULE_TYPE_DIRECT = "direct", exports.MAPPING_RULE_TYPE_COMPLEX = "complex", 
+    exports.MAPPING_RULE_TYPE_URI = "uri", exports.MAPPING_RULE_TYPE_COMPLEX_URI = "complexUri", 
+    exports.isObjectMappingRule = function(type) {
+        return MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
+    }, exports.SUGGESTION_TYPES = [ "value", "object" ];
+}, function(module, exports, __webpack_require__) {
+    "use strict";
     function makeEmptyFunction(arg) {
         return function() {
             return arg;
@@ -3562,7 +3571,7 @@
 }, function(module, exports, __webpack_require__) {
     "use strict";
     exports.__esModule = !0;
-    var _lodash = __webpack_require__(7), _lodash2 = function(obj) {
+    var _lodash = __webpack_require__(6), _lodash2 = function(obj) {
         return obj && obj.__esModule ? obj : {
             default: obj
         };
@@ -3603,15 +3612,6 @@
     };
     exports.default = UseMessageBus;
     module.exports = exports.default;
-}, function(module, exports, __webpack_require__) {
-    "use strict";
-    exports.__esModule = !0;
-    var MAPPING_RULE_TYPE_ROOT = exports.MAPPING_RULE_TYPE_ROOT = "root", MAPPING_RULE_TYPE_OBJECT = exports.MAPPING_RULE_TYPE_OBJECT = "object";
-    exports.MAPPING_RULE_TYPE_DIRECT = "direct", exports.MAPPING_RULE_TYPE_COMPLEX = "complex", 
-    exports.MAPPING_RULE_TYPE_URI = "uri", exports.MAPPING_RULE_TYPE_COMPLEX_URI = "complexUri", 
-    exports.isObjectMappingRule = function(type) {
-        return MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
-    };
 }, function(module, exports, __webpack_require__) {
     "use strict";
     var debugTool = null;
@@ -3693,7 +3693,7 @@
         asapCallbackQueue.enqueue(callback, context);
         asapEnqueued = !0;
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), CallbackQueue = __webpack_require__(142), PooledClass = __webpack_require__(35), ReactFeatureFlags = __webpack_require__(143), ReactReconciler = __webpack_require__(43), Transaction = __webpack_require__(69), invariant = __webpack_require__(1), dirtyComponents = [], updateBatchNumber = 0, asapCallbackQueue = CallbackQueue.getPooled(), asapEnqueued = !1, batchingStrategy = null, NESTED_UPDATES = {
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), CallbackQueue = __webpack_require__(142), PooledClass = __webpack_require__(35), ReactFeatureFlags = __webpack_require__(143), ReactReconciler = __webpack_require__(43), Transaction = __webpack_require__(69), invariant = __webpack_require__(1), dirtyComponents = [], updateBatchNumber = 0, asapCallbackQueue = CallbackQueue.getPooled(), asapEnqueued = !1, batchingStrategy = null, NESTED_UPDATES = {
         initialize: function() {
             this.dirtyComponentsLength = dirtyComponents.length;
         },
@@ -3795,7 +3795,7 @@
         this.isPropagationStopped = emptyFunction.thatReturnsFalse;
         return this;
     }
-    var _assign = __webpack_require__(6), PooledClass = __webpack_require__(35), emptyFunction = __webpack_require__(13), shouldBeReleasedProperties = (__webpack_require__(3), 
+    var _assign = __webpack_require__(7), PooledClass = __webpack_require__(35), emptyFunction = __webpack_require__(14), shouldBeReleasedProperties = (__webpack_require__(3), 
     [ "dispatchConfig", "_targetInst", "nativeEvent", "isDefaultPrevented", "isPropagationStopped", "_dispatchListeners", "_dispatchInstances" ]), EventInterface = {
         type: null,
         target: null,
@@ -3934,7 +3934,7 @@
     }
     exports.__esModule = !0;
     exports.InfoBox = exports.ParentStructure = exports.ParentElement = exports.ThingIcon = exports.PropertyTypeDescription = exports.PropertyTypeLabel = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(17), NO_TARGET_TYPE = _react2.default.createElement(_eccGuiElements.NotAvailable, null), NO_TARGET_PROPERTY = _react2.default.createElement(_eccGuiElements.NotAvailable, null), RuleTitle = function(_ref) {
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(13), NO_TARGET_TYPE = _react2.default.createElement(_eccGuiElements.NotAvailable, null), NO_TARGET_PROPERTY = _react2.default.createElement(_eccGuiElements.NotAvailable, null), RuleTitle = function(_ref) {
         var rule = _ref.rule, otherProps = (0, _objectWithoutProperties3.default)(_ref, [ "rule" ]), uri = void 0;
         switch (rule.type) {
           case _helpers.MAPPING_RULE_TYPE_ROOT:
@@ -4169,7 +4169,7 @@
         }
     });
 }, function(module, exports, __webpack_require__) {
-    var global = __webpack_require__(32), core = __webpack_require__(14), ctx = __webpack_require__(101), hide = __webpack_require__(45), $export = function(type, name, source) {
+    var global = __webpack_require__(32), core = __webpack_require__(15), ctx = __webpack_require__(101), hide = __webpack_require__(45), $export = function(type, name, source) {
         var key, own, out, IS_FORCED = type & $export.F, IS_GLOBAL = type & $export.G, IS_STATIC = type & $export.S, IS_PROTO = type & $export.P, IS_BIND = type & $export.B, IS_WRAP = type & $export.W, exports = IS_GLOBAL ? core : core[name] || (core[name] = {}), expProto = exports.prototype, target = IS_GLOBAL ? global : IS_STATIC ? global[name] : (global[name] || {}).prototype;
         IS_GLOBAL && (source = name);
         for (key in source) {
@@ -4351,7 +4351,7 @@
     exports.storeKey = prefix("store"), exports.droppableIdKey = prefix("droppable-id");
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var _assign = __webpack_require__(6), ReactBaseClasses = __webpack_require__(132), ReactChildren = __webpack_require__(220), ReactDOMFactories = __webpack_require__(225), ReactElement = __webpack_require__(41), ReactPropTypes = __webpack_require__(226), ReactVersion = __webpack_require__(229), createReactClass = __webpack_require__(230), onlyChild = __webpack_require__(232), createElement = ReactElement.createElement, createFactory = ReactElement.createFactory, cloneElement = ReactElement.cloneElement, __spread = _assign, createMixin = function(mixin) {
+    var _assign = __webpack_require__(7), ReactBaseClasses = __webpack_require__(132), ReactChildren = __webpack_require__(220), ReactDOMFactories = __webpack_require__(225), ReactElement = __webpack_require__(41), ReactPropTypes = __webpack_require__(226), ReactVersion = __webpack_require__(229), createReactClass = __webpack_require__(230), onlyChild = __webpack_require__(232), createElement = ReactElement.createElement, createFactory = ReactElement.createFactory, cloneElement = ReactElement.cloneElement, __spread = _assign, createMixin = function(mixin) {
         return mixin;
     }, React = {
         Children: {
@@ -4383,7 +4383,7 @@
     function hasValidKey(config) {
         return void 0 !== config.key;
     }
-    var _assign = __webpack_require__(6), ReactCurrentOwner = __webpack_require__(24), hasOwnProperty = (__webpack_require__(3), 
+    var _assign = __webpack_require__(7), ReactCurrentOwner = __webpack_require__(24), hasOwnProperty = (__webpack_require__(3), 
     __webpack_require__(134), Object.prototype.hasOwnProperty), REACT_ELEMENT_TYPE = __webpack_require__(135), RESERVED_PROPS = {
         key: !0,
         ref: !0,
@@ -5036,7 +5036,7 @@
         return obj && obj.__esModule ? obj : {
             default: obj
         };
-    }(_isWithin), _position = __webpack_require__(15), _spacing = __webpack_require__(81), getVisibleBounds = exports.getVisibleBounds = function(droppable) {
+    }(_isWithin), _position = __webpack_require__(16), _spacing = __webpack_require__(81), getVisibleBounds = exports.getVisibleBounds = function(droppable) {
         var _droppable$container = droppable.container, scroll = _droppable$container.scroll, containerBounds = _droppable$container.bounds, containerScrollDiff = (0, 
         _position.subtract)(scroll.initial, scroll.current), droppableBounds = (0, _spacing.offset)(droppable.page.withMargin, containerScrollDiff);
         return {
@@ -5067,7 +5067,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _position = __webpack_require__(15);
+    var _position = __webpack_require__(16);
     exports.default = function(_ref) {
         var source = _ref.source, sourceEdge = _ref.sourceEdge, destination = _ref.destination, destinationEdge = _ref.destinationEdge, destinationAxis = _ref.destinationAxis, getCorner = function(fragment) {
             return (0, _position.patch)(destinationAxis.line, fragment[destinationAxis[destinationEdge]], fragment[destinationAxis.crossAxisStart]);
@@ -5337,7 +5337,7 @@
         }
         return alreadyListeningTo[mountAt[topListenersIDKey]];
     }
-    var hasEventPageXY, _assign = __webpack_require__(6), EventPluginRegistry = __webpack_require__(84), ReactEventEmitterMixin = __webpack_require__(262), ViewportMetrics = __webpack_require__(146), getVendorPrefixedEventName = __webpack_require__(263), isEventSupported = __webpack_require__(88), alreadyListeningTo = {}, isMonitoringScrollValue = !1, reactTopListenersCounter = 0, topEventMapping = {
+    var hasEventPageXY, _assign = __webpack_require__(7), EventPluginRegistry = __webpack_require__(84), ReactEventEmitterMixin = __webpack_require__(262), ViewportMetrics = __webpack_require__(146), getVendorPrefixedEventName = __webpack_require__(263), isEventSupported = __webpack_require__(88), alreadyListeningTo = {}, isMonitoringScrollValue = !1, reactTopListenersCounter = 0, topEventMapping = {
         topAbort: "abort",
         topAnimationEnd: getVendorPrefixedEventName("animationend") || "animationend",
         topAnimationIteration: getVendorPrefixedEventName("animationiteration") || "animationiteration",
@@ -14571,7 +14571,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), ExampleView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), ExampleView = _react2.default.createClass({
         displayName: "ExampleView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -14675,7 +14675,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), ErrorCause = function ErrorCause(_ref) {
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), ErrorCause = function ErrorCause(_ref) {
         var errorCause = _ref.errorCause;
         return _react2.default.createElement("ul", {
             className: "ecc-hierarchical-mapping-error-list"
@@ -15351,7 +15351,7 @@
     module.exports = ReactUpdateQueue;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = (__webpack_require__(6), __webpack_require__(13)), validateDOMNesting = (__webpack_require__(3), 
+    var emptyFunction = (__webpack_require__(7), __webpack_require__(14)), validateDOMNesting = (__webpack_require__(3), 
     emptyFunction);
     module.exports = validateDOMNesting;
 }, function(module, exports, __webpack_require__) {
@@ -15519,7 +15519,7 @@
 }, function(module, exports, __webpack_require__) {
     exports.f = __webpack_require__(23);
 }, function(module, exports, __webpack_require__) {
-    var global = __webpack_require__(32), core = __webpack_require__(14), LIBRARY = __webpack_require__(112), wksExt = __webpack_require__(115), defineProperty = __webpack_require__(33).f;
+    var global = __webpack_require__(32), core = __webpack_require__(15), LIBRARY = __webpack_require__(112), wksExt = __webpack_require__(115), defineProperty = __webpack_require__(33).f;
     module.exports = function(name) {
         var $Symbol = core.Symbol || (core.Symbol = LIBRARY ? {} : global.Symbol || {});
         "_" == name.charAt(0) || name in $Symbol || defineProperty($Symbol, name, {
@@ -15736,7 +15736,7 @@
         value: !0
     });
     exports.lift = exports.dropAnimationFinished = exports.cancel = exports.drop = exports.completeDrop = exports.clean = exports.crossAxisMoveBackward = exports.crossAxisMoveForward = exports.moveForward = exports.moveBackward = exports.moveByWindowScroll = exports.move = exports.updateDroppableDimensionIsEnabled = exports.updateDroppableDimensionScroll = exports.publishDroppableDimension = exports.publishDraggableDimension = exports.requestDimensions = void 0;
-    var _noImpact = __webpack_require__(120), _noImpact2 = _interopRequireDefault(_noImpact), _getNewHomeClientCenter = __webpack_require__(451), _getNewHomeClientCenter2 = _interopRequireDefault(_getNewHomeClientCenter), _position = __webpack_require__(15), origin = {
+    var _noImpact = __webpack_require__(120), _noImpact2 = _interopRequireDefault(_noImpact), _getNewHomeClientCenter = __webpack_require__(451), _getNewHomeClientCenter2 = _interopRequireDefault(_getNewHomeClientCenter), _position = __webpack_require__(16), origin = {
         x: 0,
         y: 0
     }, getScrollDiff = function(_ref) {
@@ -16082,7 +16082,7 @@
         this.updater = updater || ReactNoopUpdateQueue;
     }
     function ComponentDummy() {}
-    var _prodInvariant = __webpack_require__(50), _assign = __webpack_require__(6), ReactNoopUpdateQueue = __webpack_require__(133), emptyObject = (__webpack_require__(134), 
+    var _prodInvariant = __webpack_require__(50), _assign = __webpack_require__(7), ReactNoopUpdateQueue = __webpack_require__(133), emptyObject = (__webpack_require__(134), 
     __webpack_require__(68));
     __webpack_require__(1), __webpack_require__(219);
     ReactComponent.prototype.isReactComponent = {};
@@ -16582,7 +16582,7 @@
         ReactUpdates.asap(updateOptionsIfPendingUpdateAndMounted, this);
         return returnValue;
     }
-    var _assign = __webpack_require__(6), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), didWarnValueDefaultValue = (__webpack_require__(3), 
+    var _assign = __webpack_require__(7), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), didWarnValueDefaultValue = (__webpack_require__(3), 
     !1), ReactDOMSelect = {
         getHostProps: function(inst, props) {
             return _assign({}, props, {
@@ -16647,7 +16647,7 @@
         instance._mountImage = null;
         return instance;
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), ReactCompositeComponent = __webpack_require__(270), ReactEmptyComponent = __webpack_require__(154), ReactHostComponent = __webpack_require__(155), ReactCompositeComponentWrapper = (__webpack_require__(271), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), ReactCompositeComponent = __webpack_require__(270), ReactEmptyComponent = __webpack_require__(154), ReactHostComponent = __webpack_require__(155), ReactCompositeComponentWrapper = (__webpack_require__(271), 
     __webpack_require__(1), __webpack_require__(3), function(element) {
         this.construct(element);
     });
@@ -16982,7 +16982,7 @@
     module.exports = ReactComponentTreeHook;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = __webpack_require__(13), EventListener = {
+    var emptyFunction = __webpack_require__(14), EventListener = {
         listen: function(target, eventType, callback) {
             if (target.addEventListener) {
                 target.addEventListener(eventType, callback, !1);
@@ -17365,7 +17365,7 @@
         return has(O, IE_PROTO) ? O[IE_PROTO] : "function" == typeof O.constructor && O instanceof O.constructor ? O.constructor.prototype : O instanceof Object ? ObjectProto : null;
     };
 }, function(module, exports, __webpack_require__) {
-    var $export = __webpack_require__(31), core = __webpack_require__(14), fails = __webpack_require__(47);
+    var $export = __webpack_require__(31), core = __webpack_require__(15), fails = __webpack_require__(47);
     module.exports = function(KEY, exec) {
         var fn = (core.Object || {})[KEY] || Object[KEY], exp = {};
         exp[KEY] = exec(fn);
@@ -18630,7 +18630,7 @@
         __webpack_require__.p = "";
         return __webpack_require__(__webpack_require__.s = 1);
     }([ function(module, exports) {
-        module.exports = __webpack_require__(7);
+        module.exports = __webpack_require__(6);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         function _interopRequireDefault(obj) {
@@ -19720,7 +19720,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(195), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(17), ObjectRule = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(195), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), ObjectRule = _react2.default.createClass({
         displayName: "ObjectRule",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -19999,7 +19999,7 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SharedComponents = __webpack_require__(30), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(196), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(197), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(17), ObjectMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SharedComponents = __webpack_require__(30), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(196), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(197), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ObjectMappingRuleForm = _react2.default.createClass({
         displayName: "ObjectMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
         propTypes: {
@@ -20229,7 +20229,7 @@
     "use strict";
     exports.__esModule = !0;
     exports.newValueIsIRI = exports.wasTouched = void 0;
-    var _lodash = __webpack_require__(7), _lodash2 = function(obj) {
+    var _lodash = __webpack_require__(6), _lodash2 = function(obj) {
         return obj && obj.__esModule ? obj : {
             default: obj
         };
@@ -20253,7 +20253,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _reactHighlightWords = __webpack_require__(382), _reactHighlightWords2 = _interopRequireDefault(_reactHighlightWords), _eccGuiElements = __webpack_require__(9), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), Highlight = function(props) {
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _reactHighlightWords = __webpack_require__(382), _reactHighlightWords2 = _interopRequireDefault(_reactHighlightWords), _eccGuiElements = __webpack_require__(9), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), Highlight = function(props) {
         var textToHighlight = props.textToHighlight, searchWord = props.searchWord;
         return !_lodash2.default.isString(textToHighlight) || _lodash2.default.isEmpty(textToHighlight) ? _react2.default.createElement(_eccGuiElements.Nothing, null) : !_lodash2.default.isString(searchWord) || _lodash2.default.isEmpty(searchWord) ? _react2.default.createElement("span", null, textToHighlight) : _react2.default.createElement(_reactHighlightWords2.default, {
             textToHighlight: textToHighlight,
@@ -20338,7 +20338,7 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(196), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(197), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(17), ValueMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(60), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(196), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(197), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ValueMappingRuleForm = _react2.default.createClass({
         displayName: "ValueMappingRuleForm",
         mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
         propTypes: {
@@ -21171,7 +21171,7 @@
         mapIntoWithKeyPrefixInternal(children, result, null, emptyFunction.thatReturnsArgument);
         return result;
     }
-    var PooledClass = __webpack_require__(221), ReactElement = __webpack_require__(41), emptyFunction = __webpack_require__(13), traverseAllChildren = __webpack_require__(222), twoArgumentPooler = PooledClass.twoArgumentPooler, fourArgumentPooler = PooledClass.fourArgumentPooler, userProvidedKeyEscapeRegex = /\/+/g;
+    var PooledClass = __webpack_require__(221), ReactElement = __webpack_require__(41), emptyFunction = __webpack_require__(14), traverseAllChildren = __webpack_require__(222), twoArgumentPooler = PooledClass.twoArgumentPooler, fourArgumentPooler = PooledClass.fourArgumentPooler, userProvidedKeyEscapeRegex = /\/+/g;
     ForEachBookKeeping.prototype.destructor = function() {
         this.func = null;
         this.context = null;
@@ -21472,7 +21472,7 @@
     module.exports = factory(isValidElement);
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = __webpack_require__(13), invariant = __webpack_require__(1), warning = __webpack_require__(3), assign = __webpack_require__(6), ReactPropTypesSecret = __webpack_require__(137), checkPropTypes = __webpack_require__(228);
+    var emptyFunction = __webpack_require__(14), invariant = __webpack_require__(1), warning = __webpack_require__(3), assign = __webpack_require__(7), ReactPropTypesSecret = __webpack_require__(137), checkPropTypes = __webpack_require__(228);
     module.exports = function(isValidElement, throwOnDirectAccess) {
         function getIteratorFn(maybeIterable) {
             var iteratorFn = maybeIterable && (ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL]);
@@ -21876,7 +21876,7 @@
         _assign(ReactClassComponent.prototype, ReactComponent.prototype, ReactClassMixin);
         return createClass;
     }
-    var _assign = __webpack_require__(6), emptyObject = __webpack_require__(68), _invariant = __webpack_require__(1), MIXINS_KEY = "mixins";
+    var _assign = __webpack_require__(7), emptyObject = __webpack_require__(68), _invariant = __webpack_require__(1), MIXINS_KEY = "mixins";
     ({});
     module.exports = factory;
 }, function(module, exports, __webpack_require__) {
@@ -22156,7 +22156,7 @@
         this._startText = this.getText();
         this._fallbackText = null;
     }
-    var _assign = __webpack_require__(6), PooledClass = __webpack_require__(35), getTextContentAccessor = __webpack_require__(141);
+    var _assign = __webpack_require__(7), PooledClass = __webpack_require__(35), getTextContentAccessor = __webpack_require__(141);
     _assign(FallbackCompositionState.prototype, {
         destructor: function() {
             this._root = null;
@@ -22597,7 +22597,7 @@
     module.exports = ReactComponentBrowserEnvironment;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var _prodInvariant = __webpack_require__(4), DOMLazyTree = __webpack_require__(44), ExecutionEnvironment = __webpack_require__(12), createNodesFromMarkup = __webpack_require__(248), emptyFunction = __webpack_require__(13), Danger = (__webpack_require__(1), 
+    var _prodInvariant = __webpack_require__(4), DOMLazyTree = __webpack_require__(44), ExecutionEnvironment = __webpack_require__(12), createNodesFromMarkup = __webpack_require__(248), emptyFunction = __webpack_require__(14), Danger = (__webpack_require__(1), 
     {
         dangerouslyReplaceNodeWithMarkup: function(oldChild, markup) {
             ExecutionEnvironment.canUseDOM || _prodInvariant("56");
@@ -22815,8 +22815,8 @@
         this._topLevelWrapper = null;
         this._flags = 0;
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), AutoFocusUtils = __webpack_require__(253), CSSPropertyOperations = __webpack_require__(254), DOMLazyTree = __webpack_require__(44), DOMNamespaces = __webpack_require__(91), DOMProperty = __webpack_require__(42), DOMPropertyOperations = __webpack_require__(150), EventPluginHub = __webpack_require__(52), EventPluginRegistry = __webpack_require__(84), ReactBrowserEventEmitter = __webpack_require__(73), ReactDOMComponentFlags = __webpack_require__(138), ReactDOMComponentTree = __webpack_require__(8), ReactDOMInput = __webpack_require__(264), ReactDOMOption = __webpack_require__(266), ReactDOMSelect = __webpack_require__(151), ReactDOMTextarea = __webpack_require__(267), ReactMultiChild = (__webpack_require__(18), 
-    __webpack_require__(268)), ReactServerRenderingTransaction = __webpack_require__(275), escapeTextContentForBrowser = (__webpack_require__(13), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), AutoFocusUtils = __webpack_require__(253), CSSPropertyOperations = __webpack_require__(254), DOMLazyTree = __webpack_require__(44), DOMNamespaces = __webpack_require__(91), DOMProperty = __webpack_require__(42), DOMPropertyOperations = __webpack_require__(150), EventPluginHub = __webpack_require__(52), EventPluginRegistry = __webpack_require__(84), ReactBrowserEventEmitter = __webpack_require__(73), ReactDOMComponentFlags = __webpack_require__(138), ReactDOMComponentTree = __webpack_require__(8), ReactDOMInput = __webpack_require__(264), ReactDOMOption = __webpack_require__(266), ReactDOMSelect = __webpack_require__(151), ReactDOMTextarea = __webpack_require__(267), ReactMultiChild = (__webpack_require__(18), 
+    __webpack_require__(268)), ReactServerRenderingTransaction = __webpack_require__(275), escapeTextContentForBrowser = (__webpack_require__(14), 
     __webpack_require__(72)), inputValueTracking = (__webpack_require__(1), __webpack_require__(88), 
     __webpack_require__(95), __webpack_require__(144)), Flags = (__webpack_require__(99), 
     __webpack_require__(3), ReactDOMComponentFlags), deleteListener = EventPluginHub.deleteListener, getNode = ReactDOMComponentTree.getNodeFromInstance, listenTo = ReactBrowserEventEmitter.listenTo, registrationNameModules = EventPluginRegistry.registrationNameModules, CONTENT_TYPES = {
@@ -23310,7 +23310,7 @@
         }
         return returnValue;
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), DOMPropertyOperations = __webpack_require__(150), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), ReactDOMInput = (__webpack_require__(1), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), DOMPropertyOperations = __webpack_require__(150), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), ReactDOMInput = (__webpack_require__(1), 
     __webpack_require__(3), {
         getHostProps: function(inst, props) {
             var value = LinkedValueUtils.getValue(props), checked = LinkedValueUtils.getChecked(props);
@@ -23390,7 +23390,7 @@
         });
         return content;
     }
-    var _assign = __webpack_require__(6), React = __webpack_require__(40), ReactDOMComponentTree = __webpack_require__(8), ReactDOMSelect = __webpack_require__(151), didWarnInvalidOptionChildren = (__webpack_require__(3), 
+    var _assign = __webpack_require__(7), React = __webpack_require__(40), ReactDOMComponentTree = __webpack_require__(8), ReactDOMSelect = __webpack_require__(151), didWarnInvalidOptionChildren = (__webpack_require__(3), 
     !1), ReactDOMOption = {
         mountWrapper: function(inst, props, hostParent) {
             var selectValue = null;
@@ -23443,7 +23443,7 @@
         ReactUpdates.asap(forceUpdateIfMounted, this);
         return returnValue;
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), ReactDOMTextarea = (__webpack_require__(1), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), LinkedValueUtils = __webpack_require__(93), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), ReactDOMTextarea = (__webpack_require__(1), 
     __webpack_require__(3), {
         getHostProps: function(inst, props) {
             null != props.dangerouslySetInnerHTML && _prodInvariant("91");
@@ -23553,7 +23553,7 @@
         ReactComponentEnvironment.processChildrenUpdates(inst, updateQueue);
     }
     var _prodInvariant = __webpack_require__(4), ReactComponentEnvironment = __webpack_require__(94), ReactReconciler = (__webpack_require__(54), 
-    __webpack_require__(18), __webpack_require__(24), __webpack_require__(43)), ReactChildReconciler = __webpack_require__(269), flattenChildren = (__webpack_require__(13), 
+    __webpack_require__(18), __webpack_require__(24), __webpack_require__(43)), ReactChildReconciler = __webpack_require__(269), flattenChildren = (__webpack_require__(14), 
     __webpack_require__(274)), ReactMultiChild = (__webpack_require__(1), {
         Mixin: {
             _reconcilerInstantiateChildren: function(nestedChildren, transaction, context) {
@@ -23705,7 +23705,7 @@
     function isPureComponent(Component) {
         return !(!Component.prototype || !Component.prototype.isPureReactComponent);
     }
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), React = __webpack_require__(40), ReactComponentEnvironment = __webpack_require__(94), ReactCurrentOwner = __webpack_require__(24), ReactErrorUtils = __webpack_require__(86), ReactInstanceMap = __webpack_require__(54), ReactNodeTypes = (__webpack_require__(18), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), React = __webpack_require__(40), ReactComponentEnvironment = __webpack_require__(94), ReactCurrentOwner = __webpack_require__(24), ReactErrorUtils = __webpack_require__(86), ReactInstanceMap = __webpack_require__(54), ReactNodeTypes = (__webpack_require__(18), 
     __webpack_require__(153)), ReactReconciler = __webpack_require__(43), emptyObject = __webpack_require__(68), shallowEqual = (__webpack_require__(1), 
     __webpack_require__(95)), shouldUpdateReactComponent = __webpack_require__(96), CompositeTypes = (__webpack_require__(3), 
     {
@@ -24019,7 +24019,7 @@
         this.useCreateElement = !1;
         this.updateQueue = new ReactServerUpdateQueue(this);
     }
-    var _assign = __webpack_require__(6), PooledClass = __webpack_require__(35), Transaction = __webpack_require__(69), ReactServerUpdateQueue = (__webpack_require__(18), 
+    var _assign = __webpack_require__(7), PooledClass = __webpack_require__(35), Transaction = __webpack_require__(69), ReactServerUpdateQueue = (__webpack_require__(18), 
     __webpack_require__(276)), TRANSACTION_WRAPPERS = [], noopCallbackQueue = {
         enqueue: function() {}
     }, Mixin = {
@@ -24070,7 +24070,7 @@
     module.exports = ReactServerUpdateQueue;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var _assign = __webpack_require__(6), DOMLazyTree = __webpack_require__(44), ReactDOMComponentTree = __webpack_require__(8), ReactDOMEmptyComponent = function(instantiate) {
+    var _assign = __webpack_require__(7), DOMLazyTree = __webpack_require__(44), ReactDOMComponentTree = __webpack_require__(8), ReactDOMEmptyComponent = function(instantiate) {
         this._currentElement = null;
         this._hostNode = null;
         this._hostParent = null;
@@ -24168,7 +24168,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(6), DOMChildrenOperations = __webpack_require__(90), DOMLazyTree = __webpack_require__(44), ReactDOMComponentTree = __webpack_require__(8), escapeTextContentForBrowser = __webpack_require__(72), ReactDOMTextComponent = (__webpack_require__(1), 
+    var _prodInvariant = __webpack_require__(4), _assign = __webpack_require__(7), DOMChildrenOperations = __webpack_require__(90), DOMLazyTree = __webpack_require__(44), ReactDOMComponentTree = __webpack_require__(8), escapeTextContentForBrowser = __webpack_require__(72), ReactDOMTextComponent = (__webpack_require__(1), 
     __webpack_require__(99), function(text) {
         this._currentElement = text;
         this._stringText = "" + text;
@@ -24234,7 +24234,7 @@
     function ReactDefaultBatchingStrategyTransaction() {
         this.reinitializeTransaction();
     }
-    var _assign = __webpack_require__(6), ReactUpdates = __webpack_require__(21), Transaction = __webpack_require__(69), emptyFunction = __webpack_require__(13), RESET_BATCHED_UPDATES = {
+    var _assign = __webpack_require__(7), ReactUpdates = __webpack_require__(21), Transaction = __webpack_require__(69), emptyFunction = __webpack_require__(14), RESET_BATCHED_UPDATES = {
         initialize: emptyFunction,
         close: function() {
             ReactDefaultBatchingStrategy.isBatchingUpdates = !1;
@@ -24283,7 +24283,7 @@
     function scrollValueMonitor(cb) {
         cb(getUnboundedScrollPosition(window));
     }
-    var _assign = __webpack_require__(6), EventListener = __webpack_require__(158), ExecutionEnvironment = __webpack_require__(12), PooledClass = __webpack_require__(35), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), getEventTarget = __webpack_require__(87), getUnboundedScrollPosition = __webpack_require__(282);
+    var _assign = __webpack_require__(7), EventListener = __webpack_require__(158), ExecutionEnvironment = __webpack_require__(12), PooledClass = __webpack_require__(35), ReactDOMComponentTree = __webpack_require__(8), ReactUpdates = __webpack_require__(21), getEventTarget = __webpack_require__(87), getUnboundedScrollPosition = __webpack_require__(282);
     _assign(TopLevelCallbackBookKeeping.prototype, {
         destructor: function() {
             this.topLevelType = null;
@@ -24360,7 +24360,7 @@
         this.reactMountReady = CallbackQueue.getPooled(null);
         this.useCreateElement = useCreateElement;
     }
-    var _assign = __webpack_require__(6), CallbackQueue = __webpack_require__(142), PooledClass = __webpack_require__(35), ReactBrowserEventEmitter = __webpack_require__(73), ReactInputSelection = __webpack_require__(159), Transaction = (__webpack_require__(18), 
+    var _assign = __webpack_require__(7), CallbackQueue = __webpack_require__(142), PooledClass = __webpack_require__(35), ReactBrowserEventEmitter = __webpack_require__(73), ReactInputSelection = __webpack_require__(159), Transaction = (__webpack_require__(18), 
     __webpack_require__(69)), ReactUpdateQueue = __webpack_require__(98), SELECTION_RESTORATION = {
         initialize: ReactInputSelection.getSelectionInformation,
         close: ReactInputSelection.restoreSelection
@@ -24898,7 +24898,7 @@
     function isInteractive(tag) {
         return "button" === tag || "input" === tag || "select" === tag || "textarea" === tag;
     }
-    var _prodInvariant = __webpack_require__(4), EventListener = __webpack_require__(158), EventPropagators = __webpack_require__(51), ReactDOMComponentTree = __webpack_require__(8), SyntheticAnimationEvent = __webpack_require__(293), SyntheticClipboardEvent = __webpack_require__(294), SyntheticEvent = __webpack_require__(25), SyntheticFocusEvent = __webpack_require__(295), SyntheticKeyboardEvent = __webpack_require__(296), SyntheticMouseEvent = __webpack_require__(70), SyntheticDragEvent = __webpack_require__(298), SyntheticTouchEvent = __webpack_require__(299), SyntheticTransitionEvent = __webpack_require__(300), SyntheticUIEvent = __webpack_require__(53), SyntheticWheelEvent = __webpack_require__(301), emptyFunction = __webpack_require__(13), getEventCharCode = __webpack_require__(100), eventTypes = (__webpack_require__(1), 
+    var _prodInvariant = __webpack_require__(4), EventListener = __webpack_require__(158), EventPropagators = __webpack_require__(51), ReactDOMComponentTree = __webpack_require__(8), SyntheticAnimationEvent = __webpack_require__(293), SyntheticClipboardEvent = __webpack_require__(294), SyntheticEvent = __webpack_require__(25), SyntheticFocusEvent = __webpack_require__(295), SyntheticKeyboardEvent = __webpack_require__(296), SyntheticMouseEvent = __webpack_require__(70), SyntheticDragEvent = __webpack_require__(298), SyntheticTouchEvent = __webpack_require__(299), SyntheticTransitionEvent = __webpack_require__(300), SyntheticUIEvent = __webpack_require__(53), SyntheticWheelEvent = __webpack_require__(301), emptyFunction = __webpack_require__(14), getEventCharCode = __webpack_require__(100), eventTypes = (__webpack_require__(1), 
     {}), topLevelEventsToDispatchConfig = {};
     [ "abort", "animationEnd", "animationIteration", "animationStart", "blur", "canPlay", "canPlayThrough", "click", "contextMenu", "copy", "cut", "doubleClick", "drag", "dragEnd", "dragEnter", "dragExit", "dragLeave", "dragOver", "dragStart", "drop", "durationChange", "emptied", "encrypted", "ended", "error", "focus", "input", "invalid", "keyDown", "keyPress", "keyUp", "load", "loadedData", "loadedMetadata", "loadStart", "mouseDown", "mouseMove", "mouseOut", "mouseOver", "mouseUp", "paste", "pause", "play", "playing", "progress", "rateChange", "reset", "scroll", "seeked", "seeking", "stalled", "submit", "suspend", "timeUpdate", "touchCancel", "touchEnd", "touchMove", "touchStart", "transitionEnd", "volumeChange", "waiting", "wheel" ].forEach(function(event) {
         var capitalizedEvent = event[0].toUpperCase() + event.slice(1), onEvent = "on" + capitalizedEvent, topEvent = "top" + capitalizedEvent, type = {
@@ -25301,7 +25301,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _eccUtils = __webpack_require__(188), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsTree = __webpack_require__(378), _MappingsTree2 = _interopRequireDefault(_MappingsTree), _MappingsWorkview = __webpack_require__(379), _MappingsWorkview2 = _interopRequireDefault(_MappingsWorkview), _helpers = __webpack_require__(17), HierarchicalMapping = _react2.default.createClass({
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _eccUtils = __webpack_require__(188), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsTree = __webpack_require__(378), _MappingsTree2 = _interopRequireDefault(_MappingsTree), _MappingsWorkview = __webpack_require__(379), _MappingsWorkview2 = _interopRequireDefault(_MappingsWorkview), _helpers = __webpack_require__(13), HierarchicalMapping = _react2.default.createClass({
         displayName: "HierarchicalMapping",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -25486,7 +25486,7 @@
     module.exports = exports.default;
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(311);
-    module.exports = __webpack_require__(14).Object.assign;
+    module.exports = __webpack_require__(15).Object.assign;
 }, function(module, exports, __webpack_require__) {
     var $export = __webpack_require__(31);
     $export($export.S + $export.F, "Object", {
@@ -25584,7 +25584,7 @@
     exports.default = Tooltip;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = __webpack_require__(13), invariant = __webpack_require__(1), ReactPropTypesSecret = __webpack_require__(137);
+    var emptyFunction = __webpack_require__(14), invariant = __webpack_require__(1), ReactPropTypesSecret = __webpack_require__(137);
     module.exports = function() {
         function shim(props, propName, componentName, location, propFullName, secret) {
             secret !== ReactPropTypesSecret && invariant(!1, "Calling PropTypes validators directly is not supported by the `prop-types` package. Use PropTypes.checkPropTypes() to call them. Read more at http://fb.me/use-check-prop-types");
@@ -25620,7 +25620,7 @@
     module.exports = window.componentHandler;
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(320);
-    module.exports = __webpack_require__(14).Object.getPrototypeOf;
+    module.exports = __webpack_require__(15).Object.getPrototypeOf;
 }, function(module, exports, __webpack_require__) {
     var toObject = __webpack_require__(59), $getPrototypeOf = __webpack_require__(170);
     __webpack_require__(171)("getPrototypeOf", function() {
@@ -27505,7 +27505,7 @@
     __webpack_require__(360);
     __webpack_require__(361);
     __webpack_require__(362);
-    module.exports = __webpack_require__(14).Symbol;
+    module.exports = __webpack_require__(15).Symbol;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     var global = __webpack_require__(32), has = __webpack_require__(37), DESCRIPTORS = __webpack_require__(36), $export = __webpack_require__(31), redefine = __webpack_require__(185), META = __webpack_require__(356).KEY, $fails = __webpack_require__(47), shared = __webpack_require__(107), setToStringTag = __webpack_require__(114), uid = __webpack_require__(74), wks = __webpack_require__(23), wksExt = __webpack_require__(115), wksDefine = __webpack_require__(116), enumKeys = __webpack_require__(357), isArray = __webpack_require__(358), anObject = __webpack_require__(46), toIObject = __webpack_require__(48), toPrimitive = __webpack_require__(102), createDesc = __webpack_require__(57), _create = __webpack_require__(113), gOPNExt = __webpack_require__(359), $GOPD = __webpack_require__(187), $DP = __webpack_require__(33), $keys = __webpack_require__(58), gOPD = $GOPD.f, dP = $DP.f, gOPN = gOPNExt.f, $Symbol = global.Symbol, $JSON = global.JSON, _stringify = $JSON && $JSON.stringify, HIDDEN = wks("_hidden"), TO_PRIMITIVE = wks("toPrimitive"), isEnum = {}.propertyIsEnumerable, SymbolRegistry = shared("symbol-registry"), AllSymbols = shared("symbols"), OPSymbols = shared("op-symbols"), ObjectProto = Object.prototype, USE_NATIVE = "function" == typeof $Symbol, QObject = global.QObject, setter = !QObject || !QObject.prototype || !QObject.prototype.findChild, setSymbolDesc = DESCRIPTORS && $fails(function() {
@@ -27721,7 +27721,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(365);
-    module.exports = __webpack_require__(14).Object.setPrototypeOf;
+    module.exports = __webpack_require__(15).Object.setPrototypeOf;
 }, function(module, exports, __webpack_require__) {
     var $export = __webpack_require__(31);
     $export($export.S, "Object", {
@@ -27756,7 +27756,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(369);
-    var $Object = __webpack_require__(14).Object;
+    var $Object = __webpack_require__(15).Object;
     module.exports = function(P, D) {
         return $Object.create(P, D);
     };
@@ -28997,7 +28997,7 @@
         __esModule: !0
     };
 }, function(module, exports, __webpack_require__) {
-    var core = __webpack_require__(14), $JSON = core.JSON || (core.JSON = {
+    var core = __webpack_require__(15), $JSON = core.JSON || (core.JSON = {
         stringify: JSON.stringify
     });
     module.exports = function(it) {
@@ -29400,7 +29400,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(17), MappingsTree = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), MappingsTree = _react2.default.createClass({
         displayName: "MappingsTree",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         propTypes: {
@@ -29528,7 +29528,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsHeader = __webpack_require__(380), _MappingsHeader2 = _interopRequireDefault(_MappingsHeader), _MappingsObject = __webpack_require__(381), _MappingsObject2 = _interopRequireDefault(_MappingsObject), _ObjectMappingRuleForm = __webpack_require__(195), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(198), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingsList = __webpack_require__(383), _MappingsList2 = _interopRequireDefault(_MappingsList), _SuggestionsList = __webpack_require__(474), _SuggestionsList2 = _interopRequireDefault(_SuggestionsList), _helpers = __webpack_require__(17), MappingsWorkview = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsHeader = __webpack_require__(380), _MappingsHeader2 = _interopRequireDefault(_MappingsHeader), _MappingsObject = __webpack_require__(381), _MappingsObject2 = _interopRequireDefault(_MappingsObject), _ObjectMappingRuleForm = __webpack_require__(195), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(198), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingsList = __webpack_require__(383), _MappingsList2 = _interopRequireDefault(_MappingsList), _SuggestionsList = __webpack_require__(474), _SuggestionsList2 = _interopRequireDefault(_SuggestionsList), _helpers = __webpack_require__(13), MappingsWorkview = _react2.default.createClass({
         displayName: "MappingsWorkview",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -29726,7 +29726,7 @@
                 return v.typeUri.replace("<", "").replace(">", "");
             }) : [], listSuggestions = !(createRuleForm || !this.state.showSuggestions || !_lodash2.default.has(this.state, "ruleData.rules.typeRules")) && _react2.default.createElement(_SuggestionsList2.default, {
                 key: _lodash2.default.join(types, ","),
-                ruleId: _lodash2.default.isUndefined(this.props.currentRuleId) ? "root" : this.props.currentRuleId,
+                ruleId: _lodash2.default.get(this, "state.ruleData.id", "root"),
                 onClose: this.handleCloseSuggestions,
                 parent: {
                     id: this.state.ruleData.id,
@@ -29761,7 +29761,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _SharedComponents = __webpack_require__(30), MappingsHeader = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _SharedComponents = __webpack_require__(30), MappingsHeader = _react2.default.createClass({
         displayName: "MappingsHeader",
         mixins: [ _Navigation2.default, _eccGuiElements.PerformanceMixin ],
         propTypes: {},
@@ -29839,7 +29839,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _eccGuiElements = __webpack_require__(9), _SharedComponents = __webpack_require__(30), _ObjectMappingRule = __webpack_require__(194), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(17), MappingsObject = _react2.default.createClass({
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _eccGuiElements = __webpack_require__(9), _SharedComponents = __webpack_require__(30), _ObjectMappingRule = __webpack_require__(194), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), MappingsObject = _react2.default.createClass({
         displayName: "MappingsObject",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         getInitialState: function() {
@@ -30643,7 +30643,7 @@
         };
     }
     exports.__esModule = !0;
-    var _React$createClass, _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _from = __webpack_require__(199), _from2 = _interopRequireDefault(_from), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _MappingRule = __webpack_require__(392), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(17), _reactBeautifulDnd = __webpack_require__(200), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass((_React$createClass = {
+    var _React$createClass, _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _from = __webpack_require__(199), _from2 = _interopRequireDefault(_from), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _MappingRule = __webpack_require__(392), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), _reactBeautifulDnd = __webpack_require__(200), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass((_React$createClass = {
         displayName: "MappingsList",
         mixins: [ _Navigation2.default ],
         propTypes: {
@@ -30774,7 +30774,7 @@
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(183);
     __webpack_require__(385);
-    module.exports = __webpack_require__(14).Array.from;
+    module.exports = __webpack_require__(15).Array.from;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     var ctx = __webpack_require__(101), $export = __webpack_require__(31), toObject = __webpack_require__(59), call = __webpack_require__(386), isArrayIter = __webpack_require__(387), toLength = __webpack_require__(168), createProperty = __webpack_require__(388), getIterFn = __webpack_require__(389);
@@ -30816,7 +30816,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     var classof = __webpack_require__(390), ITERATOR = __webpack_require__(23)("iterator"), Iterators = __webpack_require__(61);
-    module.exports = __webpack_require__(14).getIteratorMethod = function(it) {
+    module.exports = __webpack_require__(15).getIteratorMethod = function(it) {
         if (void 0 != it) return it[ITERATOR] || it["@@iterator"] || Iterators[classof(it)];
     };
 }, function(module, exports, __webpack_require__) {
@@ -30867,7 +30867,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _reactBeautifulDnd = __webpack_require__(200), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(473), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(194), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(17), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), MappingRule = _react2.default.createClass({
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _reactBeautifulDnd = __webpack_require__(200), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(473), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(194), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), _Navigation = __webpack_require__(62), _Navigation2 = _interopRequireDefault(_Navigation), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), MappingRule = _react2.default.createClass({
         displayName: "MappingRule",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         propTypes: {
@@ -31184,7 +31184,7 @@
     exports.default = DragDropContext;
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(396);
-    var $Object = __webpack_require__(14).Object;
+    var $Object = __webpack_require__(15).Object;
     module.exports = function(it, key, desc) {
         return $Object.defineProperty(it, key, desc);
     };
@@ -31195,7 +31195,7 @@
     });
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var emptyFunction = __webpack_require__(13), invariant = __webpack_require__(1), ReactPropTypesSecret = __webpack_require__(398);
+    var emptyFunction = __webpack_require__(14), invariant = __webpack_require__(1), ReactPropTypesSecret = __webpack_require__(398);
     module.exports = function() {
         function shim(props, propName, componentName, location, propFullName, secret) {
             secret !== ReactPropTypesSecret && invariant(!1, "Calling PropTypes validators directly is not supported by the `prop-types` package. Use PropTypes.checkPropTypes() to call them. Read more at http://fb.me/use-check-prop-types");
@@ -31456,7 +31456,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _defineProperty2 = __webpack_require__(63), _defineProperty3 = _interopRequireDefault(_defineProperty2), _extends6 = __webpack_require__(10), _extends7 = _interopRequireDefault(_extends6), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _getInitialImpact = __webpack_require__(418), _getInitialImpact2 = _interopRequireDefault(_getInitialImpact), _position = __webpack_require__(15), _getDragImpact = __webpack_require__(419), _getDragImpact2 = _interopRequireDefault(_getDragImpact), _moveToNextIndex = __webpack_require__(424), _moveToNextIndex2 = _interopRequireDefault(_moveToNextIndex), _moveCrossAxis = __webpack_require__(427), _moveCrossAxis2 = _interopRequireDefault(_moveCrossAxis), noDimensions = {
+    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _defineProperty2 = __webpack_require__(63), _defineProperty3 = _interopRequireDefault(_defineProperty2), _extends6 = __webpack_require__(10), _extends7 = _interopRequireDefault(_extends6), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _getInitialImpact = __webpack_require__(418), _getInitialImpact2 = _interopRequireDefault(_getInitialImpact), _position = __webpack_require__(16), _getDragImpact = __webpack_require__(419), _getDragImpact2 = _interopRequireDefault(_getDragImpact), _moveToNextIndex = __webpack_require__(424), _moveToNextIndex2 = _interopRequireDefault(_moveToNextIndex), _moveCrossAxis = __webpack_require__(427), _moveCrossAxis2 = _interopRequireDefault(_moveCrossAxis), noDimensions = {
         request: null,
         draggable: {},
         droppable: {}
@@ -31803,7 +31803,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(417);
-    module.exports = __webpack_require__(14).Object.keys;
+    module.exports = __webpack_require__(15).Object.keys;
 }, function(module, exports, __webpack_require__) {
     var toObject = __webpack_require__(59), $keys = __webpack_require__(58);
     __webpack_require__(171)("keys", function() {
@@ -31885,7 +31885,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _dimension = __webpack_require__(122), _getClientRect = __webpack_require__(123), _getClientRect2 = _interopRequireDefault(_getClientRect), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(15), _spacing = __webpack_require__(81), noBuffer = {
+    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _dimension = __webpack_require__(122), _getClientRect = __webpack_require__(123), _getClientRect2 = _interopRequireDefault(_getClientRect), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(16), _spacing = __webpack_require__(81), noBuffer = {
         x: 0,
         y: 0
     }, bufferDimensionFragment = function(buffer) {
@@ -31971,7 +31971,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _position = __webpack_require__(15);
+    var _position = __webpack_require__(16);
     exports.default = function(_ref) {
         var pageCenter = _ref.pageCenter, draggable = _ref.draggable, home = _ref.home, insideHome = _ref.insideHome, axis = home.axis, homeScrollDiff = (0, 
         _position.subtract)(home.container.scroll.current, home.container.scroll.initial), currentCenter = (0, 
@@ -32003,7 +32003,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _position = __webpack_require__(15);
+    var _position = __webpack_require__(16);
     exports.default = function(_ref) {
         var pageCenter = _ref.pageCenter, draggable = _ref.draggable, destination = _ref.destination, insideDestination = _ref.insideDestination, axis = destination.axis, destinationScrollDiff = (0, 
         _position.subtract)(destination.container.scroll.current, destination.container.scroll.initial), currentCenter = (0, 
@@ -32051,7 +32051,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _toConsumableArray2 = __webpack_require__(121), _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(15), _moveToEdge = __webpack_require__(65), _moveToEdge2 = _interopRequireDefault(_moveToEdge), getIndex = (0, 
+    var _toConsumableArray2 = __webpack_require__(121), _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2), _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(16), _moveToEdge = __webpack_require__(65), _moveToEdge2 = _interopRequireDefault(_moveToEdge), getIndex = (0, 
     _memoizeOne2.default)(function(draggables, target) {
         return draggables.indexOf(target);
     });
@@ -32105,7 +32105,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _toConsumableArray2 = __webpack_require__(121), _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(15), _moveToEdge = __webpack_require__(65), _moveToEdge2 = _interopRequireDefault(_moveToEdge);
+    var _toConsumableArray2 = __webpack_require__(121), _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2), _getDraggablesInsideDroppable = __webpack_require__(38), _getDraggablesInsideDroppable2 = _interopRequireDefault(_getDraggablesInsideDroppable), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64), _position = __webpack_require__(16), _moveToEdge = __webpack_require__(65), _moveToEdge2 = _interopRequireDefault(_moveToEdge);
     exports.default = function(_ref) {
         var isMovingForward = _ref.isMovingForward, draggableId = _ref.draggableId, impact = _ref.impact, droppable = _ref.droppable, draggables = _ref.draggables;
         if (!impact.destination) {
@@ -32192,7 +32192,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _position = __webpack_require__(15), _isWithin = __webpack_require__(207), _isWithin2 = _interopRequireDefault(_isWithin), _spacing = __webpack_require__(81), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64);
+    var _keys = __webpack_require__(80), _keys2 = _interopRequireDefault(_keys), _position = __webpack_require__(16), _isWithin = __webpack_require__(207), _isWithin2 = _interopRequireDefault(_isWithin), _spacing = __webpack_require__(81), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64);
     exports.default = function(_ref) {
         var isMovingForward = _ref.isMovingForward, pageCenter = _ref.pageCenter, source = _ref.source, droppables = _ref.droppables, axis = source.axis, sourceBounds = (0, 
         _isWithinVisibleBoundsOfDroppable.getVisibleBounds)(source), candidates = (0, _keys2.default)(droppables).map(function(id) {
@@ -32242,7 +32242,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _position = __webpack_require__(15), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64);
+    var _position = __webpack_require__(16), _isWithinVisibleBoundsOfDroppable = __webpack_require__(64);
     exports.default = function(_ref) {
         var axis = _ref.axis, pageCenter = _ref.pageCenter, destination = _ref.destination, insideDestination = _ref.insideDestination;
         if (!insideDestination.length) return null;
@@ -32263,7 +32263,7 @@
     Object.defineProperty(exports, "__esModule", {
         value: !0
     });
-    var _toHomeList = __webpack_require__(431), _toHomeList2 = _interopRequireDefault(_toHomeList), _toForeignList = __webpack_require__(432), _toForeignList2 = _interopRequireDefault(_toForeignList), _position = __webpack_require__(15);
+    var _toHomeList = __webpack_require__(431), _toHomeList2 = _interopRequireDefault(_toHomeList), _toForeignList = __webpack_require__(432), _toForeignList2 = _interopRequireDefault(_toForeignList), _position = __webpack_require__(16);
     exports.default = function(_ref) {
         var pageCenter = _ref.pageCenter, destination = _ref.destination, draggable = _ref.draggable, target = _ref.target, home = _ref.home, insideDestination = _ref.insideDestination, amount = (0, 
         _position.patch)(destination.axis.line, draggable.page.withMargin[destination.axis.size]);
@@ -33321,7 +33321,7 @@
         value: !0
     });
     exports.makeSelector = void 0;
-    var _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _reactRedux = __webpack_require__(82), _reselect = __webpack_require__(67), _selectors = __webpack_require__(212), _draggable = __webpack_require__(455), _draggable2 = _interopRequireDefault(_draggable), _contextKeys = __webpack_require__(39), _position = __webpack_require__(15), _actionCreators = __webpack_require__(126), origin = {
+    var _memoizeOne = __webpack_require__(19), _memoizeOne2 = _interopRequireDefault(_memoizeOne), _reactRedux = __webpack_require__(82), _reselect = __webpack_require__(67), _selectors = __webpack_require__(212), _draggable = __webpack_require__(455), _draggable2 = _interopRequireDefault(_draggable), _contextKeys = __webpack_require__(39), _position = __webpack_require__(16), _actionCreators = __webpack_require__(126), origin = {
         x: 0,
         y: 0
     }, defaultMapProps = {
@@ -34931,7 +34931,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRuleForm = __webpack_require__(198), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(17), RuleValueView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _ExampleView = __webpack_require__(78), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRuleForm = __webpack_require__(198), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), RuleValueView = _react2.default.createClass({
         displayName: "RuleValueView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -35109,7 +35109,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SuggestionsRule = __webpack_require__(475), _SuggestionsRule2 = _interopRequireDefault(_SuggestionsRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), SuggestionsListWrapper = function(props) {
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ErrorView = __webpack_require__(79), _ErrorView2 = _interopRequireDefault(_ErrorView), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SuggestionsRule = __webpack_require__(475), _SuggestionsRule2 = _interopRequireDefault(_SuggestionsRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), SuggestionsListWrapper = function(props) {
         return _react2.default.createElement("div", {
             className: "ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist"
         }, _react2.default.createElement(_eccGuiElements.Card, {
@@ -35118,16 +35118,28 @@
     }, SuggestionsList = _react2.default.createClass({
         displayName: "SuggestionsList",
         mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
+        defaultCheckValue: !1,
         propTypes: {
             targetClassUris: _react2.default.PropTypes.array
         },
-        check: function(suggestion) {
-            this.setState({
-                checked: _lodash2.default.includes(this.state.checked, suggestion.id) ? _lodash2.default.without(this.state.checked, suggestion.id) : _lodash2.default.concat(this.state.checked, suggestion.id)
-            });
+        getInitialState: function() {
+            return {
+                data: void 0,
+                error: !1,
+                showDefaultProperties: !0,
+                rawData: void 0,
+                askForDiscard: !1,
+                checked: this.defaultCheckValue
+            };
         },
-        isChecked: function(suggestion) {
-            return _lodash2.default.includes(this.state.checked, suggestion.id);
+        onChecked: function(v) {
+            var data = this.state.data, index = _lodash2.default.findIndex(data, function(d) {
+                return d.id === v.id;
+            });
+            data[index].checked = !data[index].checked;
+            this.setState({
+                data: data
+            });
         },
         loadData: function() {
             var _this = this;
@@ -35141,9 +35153,18 @@
                     ruleId: this.props.ruleId
                 }
             }).subscribe(function(response) {
+                var rawData = response.suggestions.map(function(v) {
+                    return (0, _extends3.default)({}, v, {
+                        checked: _this.defaultCheckValue,
+                        type: v.type || _helpers.SUGGESTION_TYPES[0]
+                    });
+                });
                 _this.setState({
                     loading: !1,
-                    data: response.suggestions
+                    rawData: rawData,
+                    data: _this.state.showDefaultProperties ? rawData : rawData.filter(function(v) {
+                        return !!v.targetProperty;
+                    })
                 });
             }, function(err) {
                 _this.setState({
@@ -35154,8 +35175,17 @@
                 });
             });
         },
+        onTypeChanged: function(v) {
+            var data = this.state.data;
+            data[_lodash2.default.findIndex(data, function(d) {
+                return d.id === v.id;
+            })].type = v.type;
+            this.setState({
+                data: data
+            });
+        },
         componentDidMount: function() {
-            this.loadData();
+            this.loadData(this.state.showDefaultProperties);
         },
         count: 0,
         componentDidUpdate: function() {
@@ -35163,18 +35193,34 @@
                 topOffset: 75
             });
         },
+        discardDialog: function() {
+            return _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+                active: !0,
+                modal: !0,
+                title: "Discard selection?",
+                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                    disabled: !1,
+                    onClick: this.onDiscard
+                }, "Discard"),
+                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                    onClick: this.onCancelDiscard
+                }, "Cancel")
+            }, _react2.default.createElement("p", null, "You currently selection will be lost."));
+        },
         handleAddSuggestions: function(event) {
             var _this2 = this;
             event.stopPropagation();
-            var correspondences = [];
             this.setState({
                 saving: !0
             });
-            _lodash2.default.forEach(this.state.data, function(suggestion) {
-                _this2.isChecked(suggestion) && correspondences.push({
-                    sourcePath: suggestion.sourcePath,
-                    targetProperty: suggestion.targetProperty
-                });
+            var correspondences = this.state.data.filter(function(v) {
+                return v.checked;
+            }).map(function(v) {
+                return {
+                    sourcePath: v.sourcePath,
+                    targetProperty: v.targetProperty,
+                    type: v.type
+                };
             });
             _store2.default.request({
                 topic: "rules.generate",
@@ -35199,31 +35245,60 @@
                 _store2.default.subject("reload").onNext(!0);
             });
         },
-        getInitialState: function() {
-            return {
-                data: void 0,
-                checked: [],
-                error: !1
-            };
+        toggleDefaultProperties: function() {
+            0 !== this.state.data.filter(function(v) {
+                return v.checked;
+            }).length ? this.setState({
+                askForDiscard: !0
+            }) : this.setState({
+                data: this.state.showDefaultProperties ? this.state.rawData.filter(function(v) {
+                    return !!v.targetProperty;
+                }) : this.state.rawData,
+                showDefaultProperties: !this.state.showDefaultProperties
+            });
         },
         checkAll: function(event) {
             event.stopPropagation && event.stopPropagation();
             this.setState({
-                checked: _lodash2.default.map(this.state.data, function(suggestion) {
-                    return suggestion.id;
-                })
+                data: this.state.data.map(function(a) {
+                    return (0, _extends3.default)({}, a, {
+                        checked: !0
+                    });
+                }),
+                checked: !0
             });
         },
         checkNone: function(event) {
             event.stopPropagation && event.stopPropagation();
             this.setState({
-                checked: []
+                data: this.state.data.map(function(a) {
+                    return (0, _extends3.default)({}, a, {
+                        checked: !1
+                    });
+                }),
+                checked: !1
+            });
+        },
+        onDiscard: function() {
+            this.setState({
+                data: this.state.showDefaultProperties ? this.state.rawData.filter(function(v) {
+                    return !!v.targetProperty;
+                }) : this.state.rawData,
+                showDefaultProperties: !this.state.showDefaultProperties,
+                askForDiscard: !1
+            });
+        },
+        onCancelDiscard: function() {
+            this.setState({
+                askForDiscard: !1
             });
         },
         render: function() {
             var _this3 = this;
             if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
-            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(this.state.checked), " rules you have selected are being created.")), _react2.default.createElement(_eccGuiElements.CardActions, {
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
+                return d.checked;
+            })), " rules you have selected are being created.")), _react2.default.createElement(_eccGuiElements.CardActions, {
                 fixed: !0
             }, _react2.default.createElement(_eccGuiElements.ProgressButton, {
                 progress: 0,
@@ -35256,7 +35331,7 @@
                     className: "ecc-hm-suggestions-cancel"
                 }, "Cancel")));
             }
-            var suggestionsList = !1, hasChecks = _lodash2.default.some(this.state.checked);
+            var suggestionsList = !1, hasChecks = _lodash2.default.get(this.state, "checked");
             if (0 === _lodash2.default.size(this.state.data)) suggestionsList = _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
                 vertSpacing: !0,
                 border: !0
@@ -35284,17 +35359,24 @@
                 }, "Target property")))), _lodash2.default.map(suggestions, function(suggestion) {
                     return _react2.default.createElement(_SuggestionsRule2.default, {
                         suggestion: suggestion,
-                        check: _this3.check,
-                        checked: _this3.isChecked(suggestion),
-                        key: suggestion.id
+                        onChecked: _this3.onChecked,
+                        onTypeChanged: _this3.onTypeChanged,
+                        pos: suggestion.id,
+                        key: suggestion.id + suggestion.checked + suggestion.type
                     });
                 }));
             }
-            return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
+            var suggestionsToBeSave = _lodash2.default.filter(this.state.data, function(entry) {
+                return entry.checked;
+            }), confirmDialog = !!this.state.askForDiscard && this.discardDialog();
+            return _react2.default.createElement(SuggestionsListWrapper, null, confirmDialog, _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
                 className: "mdl-card__title-text"
             }, "Add suggested mapping rules"), _react2.default.createElement(_eccGuiElements.CardMenu, null, _react2.default.createElement(_eccGuiElements.ContextMenu, {
                 className: "ecc-silk-mapping__ruleslistmenu"
             }, _react2.default.createElement(_eccGuiElements.MenuItem, {
+                className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
+                onClick: this.toggleDefaultProperties
+            }, this.state.showDefaultProperties ? "Hide" : "Show", " default properties"), _react2.default.createElement(_eccGuiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
                 onClick: this.checkAll
             }, "Select all"), _react2.default.createElement(_eccGuiElements.MenuItem, {
@@ -35306,7 +35388,7 @@
                 raised: !0,
                 className: "ecc-hm-suggestions-save",
                 onClick: this.handleAddSuggestions,
-                disabled: 0 === _lodash2.default.size(this.state.checked)
+                disabled: 0 === _lodash2.default.size(suggestionsToBeSave)
             }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
                 raised: !0,
                 onClick: this.props.onClose,
@@ -35324,16 +35406,31 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(16), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), SuggestionsRule = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(9), _UseMessageBusMixin = __webpack_require__(17), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _helpers = __webpack_require__(13), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), SuggestionsRule = _react2.default.createClass({
         displayName: "SuggestionsRule",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {},
         componentDidMount: function() {},
-        getInitialState: function() {
-            return {};
+        shouldComponentUpdate: function(nextProps, nextState) {
+            return !_lodash2.default.isEqual(nextProps.suggestion, this.props.suggestion);
+        },
+        preventPropagation: function(event) {
+            event.stopPropagation();
+        },
+        onChangeChecked: function() {
+            this.props.onChecked({
+                id: this.props.suggestion.id,
+                checked: !this.props.suggestion.checked
+            });
+        },
+        onChangeType: function(value) {
+            this.props.onTypeChanged({
+                id: this.props.suggestion.id,
+                type: value
+            });
         },
         render: function() {
-            var _props = this.props, suggestion = _props.suggestion, checked = _props.checked, togglFn = this.props.check.bind(null, suggestion), title = "Click to add the suggested value mapping:\n\nValue path: " + suggestion.sourcePath, targetProperty = void 0;
+            var suggestion = this.props.suggestion, title = "Click to add the suggested value mapping:\n\nValue path: " + suggestion.sourcePath, targetProperty = void 0;
             if (suggestion.targetProperty) {
                 targetProperty = suggestion.targetProperty;
                 title += "\nTarget property: " + suggestion.targetProperty;
@@ -35346,25 +35443,33 @@
             }
             suggestion.confidence && (title += "\nConfidence: " + suggestion.confidence);
             return _react2.default.createElement("li", {
-                className: "ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal"
+                className: "ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal " + (suggestion.checked ? "selected" : "unselected")
             }, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-summary"
             }, _react2.default.createElement("div", {
                 className: "mdl-list__item"
             }, _react2.default.createElement(_eccGuiElements.Checkbox, {
-                onChange: togglFn,
-                checked: checked,
+                onChange: this.onChangeChecked,
+                checked: suggestion.checked,
                 className: "ecc-silk-mapping__suggestitem-checkbox",
                 ripple: !0
             }), _react2.default.createElement("div", {
                 className: "mdl-list__item-primary-content clickable",
                 title: title,
-                onClick: togglFn
+                onClick: this.onChangeChecked
             }, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
             }, suggestion.sourcePath), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
-            }, targetProperty)))));
+            }, targetProperty)), !!suggestion.checked && _react2.default.createElement("div", {
+                className: "ecc-silk_select-ruletype",
+                onClick: this.preventPropagation
+            }, _react2.default.createElement(_eccGuiElements.SelectBox, {
+                options: _helpers.SUGGESTION_TYPES,
+                onChange: this.onChangeType,
+                value: suggestion.type,
+                clearable: !1
+            })))));
         }
     });
     exports.default = SuggestionsRule;
@@ -35388,7 +35493,7 @@
             default: obj
         };
     }
-    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _eccMessagebus = __webpack_require__(192), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _superagent = __webpack_require__(478), _superagent2 = _interopRequireDefault(_superagent), _lodash = __webpack_require__(7), _lodash2 = _interopRequireDefault(_lodash), silkStore = _eccMessagebus2.default.channel("silk.api");
+    var _extends2 = __webpack_require__(10), _extends3 = _interopRequireDefault(_extends2), _eccMessagebus = __webpack_require__(192), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _superagent = __webpack_require__(478), _superagent2 = _interopRequireDefault(_superagent), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), silkStore = _eccMessagebus2.default.channel("silk.api");
     silkStore.subject("transform.task.put").subscribe();
     silkStore.subject("transform.task.delete").subscribe();
     silkStore.subject("transform.task.rules.get").subscribe(function(_ref) {
@@ -35398,14 +35503,13 @@
     silkStore.subject("transform.task.rules.put").subscribe();
     silkStore.subject("transform.task.rule.get").subscribe();
     silkStore.subject("transform.task.rule.generate").subscribe(function(_ref2) {
-        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentId = data.parentId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask;
+        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentId = data.parentId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, newCorrespondences = _lodash2.default.map(correspondences, function(c) {
+            return (0, _extends3.default)({}, _lodash2.default.omit(c, "sourcePath"), {
+                sourcePath: _lodash2.default.last(_lodash2.default.split(c.sourcePath, "/"))
+            });
+        });
         _superagent2.default.post(baseUrl + "/ontologyMatching/rulesGenerator/" + project + "/" + transformTask + "/rule/" + parentId).accept("application/json").send({
-            correspondences: _lodash2.default.map(correspondences, function(c) {
-                return {
-                    sourcePath: _lodash2.default.last(_lodash2.default.split(c.sourcePath, "/")),
-                    targetProperty: c.targetProperty
-                };
-            })
+            correspondences: newCorrespondences
         }).observe().multicast(replySubject).connect();
     });
     silkStore.subject("transform.task.rule.suggestions").subscribe(function(_ref3) {
@@ -35529,7 +35633,7 @@
         __webpack_require__.p = "";
         return __webpack_require__(__webpack_require__.s = 1);
     }([ function(module, exports) {
-        module.exports = __webpack_require__(7);
+        module.exports = __webpack_require__(6);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         exports.__esModule = !0;

@@ -7,3 +7,8 @@ export const MAPPING_RULE_TYPE_COMPLEX_URI = 'complexUri';
 
 export const isObjectMappingRule = type =>
     MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
+
+export const SUGGESTION_TYPES = [
+  "value",
+  "object",
+];
