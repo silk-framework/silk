@@ -3300,8 +3300,8 @@
             var body = _lodash2.default.get(returned, "body", []), suggestions = [];
             _lodash2.default.forEach(body, function(sources, target) {
                 _lodash2.default.forEach(sources, function(_ref6) {
-                    var uri = _ref6.uri, confidence = _ref6.confidence;
-                    suggestions.push(new _Suggestion.Suggestion(uri, target, confidence));
+                    var uri = _ref6.uri, type = _ref6.type, confidence = _ref6.confidence;
+                    suggestions.push(new _Suggestion.Suggestion(uri, type, target, confidence));
                 });
             });
             return suggestions;
@@ -29383,14 +29383,15 @@
             default: obj
         };
     }(_classCallCheck2);
-    exports.Suggestion = function Suggestion(path) {
-        var target = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : null, confidence = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : null;
+    exports.Suggestion = function Suggestion(path, type) {
+        var target = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : null, confidence = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : null;
         (0, _classCallCheck3.default)(this, Suggestion);
         this.sourcePath = path;
         this.targetProperty = target;
         this.confidence = confidence;
         this.id = "" + this.sourcePath + this.targetProperty;
         this.order = this.confidence || 0;
+        this.type = type;
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
@@ -35185,7 +35186,7 @@
             });
         },
         componentDidMount: function() {
-            this.loadData(this.state.showDefaultProperties);
+            this.loadData();
         },
         count: 0,
         componentDidUpdate: function() {
@@ -35342,21 +35343,23 @@
                 suggestionsList = _react2.default.createElement("ol", {
                     className: "mdl-list"
                 }, _react2.default.createElement("li", {
-                    className: "ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal"
+                    className: "ecc-silk-mapping__ruleitem"
                 }, _react2.default.createElement("div", {
                     className: "ecc-silk-mapping__ruleitem-summary"
                 }, _react2.default.createElement("div", {
-                    className: "mdl-list__item"
+                    className: "mdl-list__item ecc-silk-mapping__ruleheader"
+                }, _react2.default.createElement("div", {
+                    className: "ecc-silk-mapping__suggestitem-checkbox"
                 }, _react2.default.createElement(_eccGuiElements.Checkbox, {
                     onChange: hasChecks ? this.checkNone : this.checkAll,
-                    checked: hasChecks,
-                    className: "ecc-silk-mapping__suggestitem-checkbox",
-                    ripple: !0
-                }), _react2.default.createElement("div", {
+                    checked: hasChecks
+                })), _react2.default.createElement("div", {
+                    className: "mdl-list__item-primary-content"
+                }, _react2.default.createElement("div", {
                     className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
                 }, "Value path"), _react2.default.createElement("div", {
                     className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
-                }, "Target property")))), _lodash2.default.map(suggestions, function(suggestion) {
+                }, "Target property"))))), _lodash2.default.map(suggestions, function(suggestion) {
                     return _react2.default.createElement(_SuggestionsRule2.default, {
                         suggestion: suggestion,
                         onChecked: _this3.onChecked,
@@ -35448,12 +35451,13 @@
                 className: "ecc-silk-mapping__ruleitem-summary"
             }, _react2.default.createElement("div", {
                 className: "mdl-list__item"
+            }, _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__suggestitem-checkbox"
             }, _react2.default.createElement(_eccGuiElements.Checkbox, {
                 onChange: this.onChangeChecked,
                 checked: suggestion.checked,
-                className: "ecc-silk-mapping__suggestitem-checkbox",
-                ripple: !0
-            }), _react2.default.createElement("div", {
+                title: "Select all"
+            })), _react2.default.createElement("div", {
                 className: "mdl-list__item-primary-content clickable",
                 title: title,
                 onClick: this.onChangeChecked
@@ -35461,15 +35465,15 @@
                 className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
             }, suggestion.sourcePath), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
-            }, targetProperty)), !!suggestion.checked && _react2.default.createElement("div", {
-                className: "ecc-silk_select-ruletype",
+            }, targetProperty), !!suggestion.checked && _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__suggestitem-typeselect",
                 onClick: this.preventPropagation
             }, _react2.default.createElement(_eccGuiElements.SelectBox, {
                 options: _helpers.SUGGESTION_TYPES,
                 onChange: this.onChangeType,
                 value: suggestion.type,
                 clearable: !1
-            })))));
+            }))))));
         }
     });
     exports.default = SuggestionsRule;

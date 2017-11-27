@@ -13226,16 +13226,6 @@ ul.ecc-hierarchical-mapping-error-list {
   .ecc-silk-mapping__ruleslist:not(.ecc-silk-mapping__suggestionlist) .mdl-card__actions {
     background-color: transparent; }
 
-.ecc-silk-mapping__ruleslist .ecc-silk_select-ruletype {
-  margin-top: -8px;
-  min-width: 100px;
-  max-height: 24px; }
-  .ecc-silk-mapping__ruleslist .ecc-silk_select-ruletype .Select-value {
-    padding-left: 12px; }
-
-.ecc-silk-mapping__ruleslist .ecc-silk-mapping__ruleitem.ecc-silk-mapping__ruleitem--literal.unselected .mdl-list__item-primary-content {
-  margin-right: 100px; }
-
 .ecc-silk-mapping__ruleslist .mdl-list {
   margin: 0;
   padding: 0; }
@@ -13244,6 +13234,9 @@ ul.ecc-hierarchical-mapping-error-list {
   .ecc-silk-mapping__ruleslist .mdl-list .mdl-card,
   .ecc-silk-mapping__ruleslist .mdl-list .mdl-data-table {
     background-color: transparent; }
+
+.ecc-silk-mapping__ruleslist.ecc-silk-mapping__suggestionlist .mdl-list > li:first-child {
+  background-color: transparent; }
 
 .ecc-silk-mapping__ruleitem {
   font-size: 14px;
@@ -13282,6 +13275,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__ruleitem-headline {
   font-size: 13px;
+  letter-spacing: 0;
   line-height: 1.39;
   white-space: nowrap;
   overflow: hidden;
@@ -13290,16 +13284,21 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__ruleitem-subline {
   font-size: 12px;
+  letter-spacing: 0;
   line-height: 1.39;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis; }
 
 .ecc-silk-mapping__suggestitem-checkbox {
-  align-self: center;
+  align-self: flex-start;
   flex-grow: 0;
-  flex-shrink: 0;
-  width: 0; }
+  flex-shrink: 0; }
+
+.ecc-silk-mapping__suggestitem-typeselect {
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 1.39; }
 
 .ecc-silk-mapping__ruleitem-summary {
   transition-duration: 0.28s;
@@ -13314,38 +13313,56 @@ ul.ecc-hierarchical-mapping-error-list {
   .ecc-silk-mapping__ruleitem-summary .mdl-list__item {
     padding: 1rem 1rem;
     overflow: visible; }
+  .ecc-silk-mapping__ruleitem-summary .Select-input,
+  .ecc-silk-mapping__ruleitem-summary .Select-control {
+    height: calc(48px - 2rem); }
+  .ecc-silk-mapping__ruleitem-summary .Select-placeholder, .ecc-silk-mapping__ruleitem-summary .Select--single > .Select-control .Select-value {
+    line-height: calc(48px - 2rem); }
+  .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-typeselect {
+    margin-top: 0.5rem; }
+  .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader {
+    background-color: transparent; }
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader:hover {
+      background-color: transparent; }
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader .ecc-silk-mapping__ruleitem-headline,
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader .ecc-silk-mapping__ruleitem-subline {
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 24px;
+      letter-spacing: 0;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.54); }
   @media (min-width: 840px) {
     .ecc-silk-mapping__ruleitem-summary .mdl-list__item-primary-content {
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
-      justify-content: space-between;
-      align-items: baseline; }
+      align-items: center; }
     .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleitem-headline,
-    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleitem-subline {
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleitem-subline,
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-typeselect {
       font-size: 13px;
       flex-grow: 1;
+      flex-shrink: 0;
       box-sizing: border-box;
       padding: 0.25em;
-      max-width: 33%; }
-    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__sug-ruleitem-headline,
-    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__sug-ruleitem-subline,
-    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__sug-ruleitem-lastline {
-      font-size: 13px;
-      flex-grow: 1;
-      box-sizing: border-box;
-      padding: 0.25em;
-      width: 31%; }
-    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__sug-ruleitem-lastline {
-      width: 7%; }
+      max-width: 33%;
+      margin-right: 0.333%; }
     .ecc-silk-mapping__ruleitem-summary .hide-in-table {
       display: none; }
     .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-headline {
-      width: 66%;
-      max-width: 66%; }
+      width: 40%;
+      max-width: 40%; }
     .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-subline {
-      width: 33%;
-      max-width: 33%; } }
+      width: 40%;
+      max-width: 40%; }
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-checkbox {
+      align-self: center; }
+    .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__suggestitem-typeselect {
+      margin-top: -4px;
+      width: 20%;
+      max-width: 20%;
+      margin-right: 0; } }
 
 .ecc-silk-mapping__ruleitem-reorderhandler {
   width: 1rem;

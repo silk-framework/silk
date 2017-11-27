@@ -399,9 +399,9 @@ if (!__DEBUG__) {
                             const suggestions = [];
 
                             _.forEach(body, (sources, target) => {
-                                _.forEach(sources, ({uri, confidence}) => {
+                                _.forEach(sources, ({uri, type, confidence}) => {
                                     suggestions.push(
-                                        new Suggestion(uri, target, confidence)
+                                        new Suggestion(uri, type, target, confidence)
                                     );
                                 });
                             });
@@ -786,38 +786,45 @@ if (!__DEBUG__) {
                     {
                         uri: '/birthdate',
                         confidence: 0.028520143597925807,
+                        type: 'object',
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/surname': [
                     {
                         uri: '/surname',
                         confidence: 0.21,
+                        type: 'object'
                     },
                     {
                         uri: '/name',
                         confidence: 0.0170975813177648,
+                        type: 'object'
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/birthday': [
                     {
                         uri: '/birthdate',
                         confidence: 0.043659343420819535,
+                        type: 'object'
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/lastName': [
                     {
                         uri: '/surname',
                         confidence: 0.001,
+                        type: 'value'
                     },
                     {
                         uri: '/name',
                         confidence: 0.00458715596330274,
+                        type: 'value'
                     },
                 ],
                 'http://schema.org/birthDate': [
                     {
                         uri: '/birthdate',
                         confidence: 0.07339449541284403,
+                        type: 'value'
                     },
                 ],
             };
@@ -835,9 +842,10 @@ if (!__DEBUG__) {
 
             for (let i = 0; i < 10; i++) {
                 _.forEach(suggRaw, (sources, target) => {
-                    _.forEach(sources, ({uri, confidence}) => {
+                    _.forEach(sources, ({uri, type, confidence}) => {
                         suggestions.push(new Suggestion(
                             uri + (i < 1 ? '': i),
+                            type,
                             target,
                             confidence
                         ));
