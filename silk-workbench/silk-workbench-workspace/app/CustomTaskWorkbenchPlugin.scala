@@ -22,6 +22,8 @@ case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
     /** Path to the task icon */
     override def icon: String = Assets.at("img/task.png").url
 
+    override def folderIcon: String = Assets.at("img/task-folder.png").url
+
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"workspace/customTasks/newTaskDialog/$project")

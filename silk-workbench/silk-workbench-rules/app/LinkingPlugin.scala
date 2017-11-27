@@ -38,6 +38,8 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     /** Path to the task icon */
     override def icon: String = Assets.at("img/arrow-join.png").url
 
+    override def folderIcon: String = Assets.at("img/linking-folder.png").url
+
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"linking/dialogs/newLinkingTask/$project")

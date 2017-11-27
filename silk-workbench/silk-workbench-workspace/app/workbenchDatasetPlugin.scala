@@ -42,6 +42,8 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     /** Path to the task icon */
     override def icon: String = Assets.at("img/server.png").url
 
+    override def folderIcon: String = Assets.at("img/dataset-folder.png").url
+
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"workspace/dialogs/newDataset/$project")

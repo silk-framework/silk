@@ -54,10 +54,22 @@ object SparqlEntitySchema {
     if(entitySchema.typeUri.uri.nonEmpty) {
       sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(variable, s"?$variable a <${entitySchema.typeUri}>")
     }
-    if(entitySchema.subPath.operators.nonEmpty) {
-      val subProperty = entitySchema.subPath.propertyUri.get.uri
-      sparqlRestriction= SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent <$subProperty> ?$variable")
+    val subPath = entitySchema.subPath
+
+    def rewriteRestrictionWithParentProperty(subPath: Path): Unit = {
+      val subProperty = subPath.propertyUri.get.uri
+      sparqlRestriction = SparqlRestriction.fromSparql(variable,
+        sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent <$subProperty> ?$variable")
     }
+
+    if(subPath.size == 1 && subPath.propertyUri.isDefined) {
+      rewriteRestrictionWithParentProperty(subPath)
+    } else if(subPath.size > 1) {
+      val lastOperatorPath = Path(List(subPath.operators.last))
+      if(lastOperatorPath.propertyUri.isDefined) {
+        rewriteRestrictionWithParentProperty(lastOperatorPath)
+      }
+    } // FIXME: Generate restriction for complete path of size > 1 instead of only the last property. Also support backward paths.
 
     SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
   }

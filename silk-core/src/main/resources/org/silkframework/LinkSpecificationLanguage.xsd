@@ -45,6 +45,7 @@
                 <xs:extension base="xs:string">
                     <xs:attribute name="name" type="xs:string" use="required"/>
                     <xs:attribute name="value" type="xs:string"/>
+                    <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" /> <!-- Allow xml:space -->
                 </xs:extension>
             </xs:simpleContent>
         </xs:complexType>
@@ -177,7 +178,8 @@
                 <xs:element ref="ValueType" />
             </xs:sequence>
             <xs:attribute name="uri" type="xs:string"/>
-            <xs:attribute name="isBackwardProperty" type="xs:string"/>
+            <xs:attribute name="isBackwardProperty" type="xs:boolean"/>
+            <xs:attribute name="isAttribute" type="xs:boolean"/>
         </xs:complexType>
     </xs:element>
 
