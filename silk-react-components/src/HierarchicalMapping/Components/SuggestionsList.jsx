@@ -306,24 +306,26 @@ const SuggestionsList = React.createClass({
 
             suggestionsList = (
                 <ol className="mdl-list">
-                    <li className="ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal">
+                    <li className="ecc-silk-mapping__ruleitem">
                         <div className="ecc-silk-mapping__ruleitem-summary">
-                            <div className="mdl-list__item">
-                                <Checkbox
-                                    onChange={
-                                        hasChecks
-                                            ? this.checkNone
-                                            : this.checkAll
-                                    }
-                                    checked={hasChecks}
-                                    className="ecc-silk-mapping__suggestitem-checkbox"
-                                    ripple
-                                />
-                                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
-                                    Value path
+                            <div className="mdl-list__item ecc-silk-mapping__ruleheader">
+                                <div className="ecc-silk-mapping__suggestitem-checkbox">
+                                    <Checkbox
+                                        onChange={
+                                            hasChecks
+                                                ? this.checkNone
+                                                : this.checkAll
+                                        }
+                                        checked={hasChecks}
+                                    />
                                 </div>
-                                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
-                                    Target property
+                                <div className="mdl-list__item-primary-content">
+                                    <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
+                                        Value path
+                                    </div>
+                                    <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
+                                        Target property
+                                    </div>
                                 </div>
                             </div>
                         </div>

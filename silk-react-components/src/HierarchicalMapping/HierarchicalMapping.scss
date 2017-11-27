@@ -258,17 +258,6 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
-    .ecc-silk_select-ruletype {
-        margin-top: -8px;
-        min-width: 100px;
-        max-height: 24px;
-        .Select-value {
-            padding-left: 12px;
-        }
-    }
-    .ecc-silk-mapping__ruleitem.ecc-silk-mapping__ruleitem--literal.unselected .mdl-list__item-primary-content{
-        margin-right: 100px;
-    }
     .mdl-list {
         margin: 0;
         padding: 0;
@@ -283,6 +272,13 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
+    &.ecc-silk-mapping__suggestionlist {
+        .mdl-list {
+            & > li:first-child {
+                background-color: transparent;
+            }
+        }
+    }
 }
 
 
@@ -340,6 +336,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__ruleitem-headline {
     font-size: $data-table-font-size;
+    letter-spacing: 0;
     line-height: 1.39;
     white-space: nowrap;
     overflow: hidden;
@@ -349,6 +346,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__ruleitem-subline {
     font-size: $input-text-floating-label-fontsize;
+    letter-spacing: 0;
     line-height: 1.39;
     white-space: nowrap;
     overflow: hidden;
@@ -356,10 +354,16 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__suggestitem-checkbox {
-    align-self: center;
+    align-self: flex-start;
     flex-grow: 0;
     flex-shrink: 0;
-    width: 0;
+    // width: 0;
+}
+
+.ecc-silk-mapping__suggestitem-typeselect {
+    font-size: $input-text-floating-label-fontsize;
+    letter-spacing: 0;
+    line-height: 1.39;
 }
 
 .ecc-silk-mapping__ruleitem-summary {
@@ -388,34 +392,52 @@ ul.ecc-hierarchical-mapping-error-list {
         //flex-direction: column;
     }
 
+    .Select-input,
+    .Select-control {
+        height: calc(48px - #{2 * $ecc-size-blockelement-margin-vertical});
+    }
+
+    .Select-placeholder, .Select--single > .Select-control .Select-value {
+        line-height: calc(48px - #{2 * $ecc-size-blockelement-margin-vertical});
+    }
+
+    .ecc-silk-mapping__suggestitem-typeselect {
+        margin-top: 0.5 * $ecc-size-blockelement-margin-vertical;
+    }
+
+    .ecc-silk-mapping__ruleheader {
+        background-color: transparent;
+
+        &:hover {
+            background-color: transparent;
+        }
+
+        .ecc-silk-mapping__ruleitem-headline,
+        .ecc-silk-mapping__ruleitem-subline {
+            @include typo-body-2();
+            font-size: $data-table-header-font-size;
+            color: $data-table-header-color;
+        }
+    }
+
     @media (min-width: $grid-desktop-breakpoint) {
         .mdl-list__item-primary-content {
             display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
-            justify-content: space-between;
-            align-items: baseline;
+            align-items: center;
         }
 
         .ecc-silk-mapping__ruleitem-headline,
-        .ecc-silk-mapping__ruleitem-subline {
+        .ecc-silk-mapping__ruleitem-subline,
+        .ecc-silk-mapping__suggestitem-typeselect {
             font-size: $data-table-font-size;
             flex-grow: 1;
+            flex-shrink: 0;
             box-sizing: border-box;
             padding: 0.25em;
             max-width: 33%;
-        }
-        .ecc-silk-mapping__sug-ruleitem-headline,
-        .ecc-silk-mapping__sug-ruleitem-subline,
-        .ecc-silk-mapping__sug-ruleitem-lastline {
-            font-size: $data-table-font-size;
-            flex-grow: 1;
-            box-sizing: border-box;
-            padding: 0.25em;
-            width: 31%;
-        }
-        .ecc-silk-mapping__sug-ruleitem-lastline {
-            width: 7%;
+            margin-right: 0.333%;
         }
         .hide-in-table {
             display: none;
@@ -428,13 +450,22 @@ ul.ecc-hierarchical-mapping-error-list {
         }
 
         .ecc-silk-mapping__suggestitem-headline {
-            width: 66%;
-            max-width: 66%;
+            width: 40%;
+            max-width: 40%;
         }
 
         .ecc-silk-mapping__suggestitem-subline {
-            width: 33%;
-            max-width: 33%;
+            width: 40%;
+            max-width: 40%;
+        }
+        .ecc-silk-mapping__suggestitem-checkbox {
+            align-self: center;
+        }
+        .ecc-silk-mapping__suggestitem-typeselect {
+            margin-top: -4px;
+            width: 20%;
+            max-width: 20%;
+            margin-right: 0;
         }
     }
 }

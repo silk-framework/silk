@@ -57,12 +57,13 @@ const SuggestionsRule = React.createClass({
             <li className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${suggestion.checked ? 'selected':'unselected'}`}>
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">
-                        <Checkbox
-                            onChange={this.onChangeChecked}
-                            checked={suggestion.checked}
-                            className="ecc-silk-mapping__suggestitem-checkbox"
-                            ripple
-                        />
+                        <div className="ecc-silk-mapping__suggestitem-checkbox">
+                            <Checkbox
+                                onChange={this.onChangeChecked}
+                                checked={suggestion.checked}
+                                title="Select all"
+                            />
+                        </div>
                         <div
                             className="mdl-list__item-primary-content clickable"
                             title={title}
@@ -73,17 +74,17 @@ const SuggestionsRule = React.createClass({
                             <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                 {targetProperty}
                             </div>
+                            {!suggestion.checked ? false :
+                                <div className={`ecc-silk-mapping__suggestitem-typeselect`} onClick={this.preventPropagation}>
+                                    <SelectBox
+                                        options={SUGGESTION_TYPES}
+                                        onChange={this.onChangeType}
+                                        value={suggestion.type}
+                                        clearable={false}
+                                    />
+                                </div>
+                            }
                         </div>
-                        {!suggestion.checked ? false :
-                            <div className={`ecc-silk_select-ruletype`} onClick={this.preventPropagation}>
-                                <SelectBox
-                                    options={SUGGESTION_TYPES}
-                                    onChange={this.onChangeType}
-                                    value={suggestion.type}
-                                    clearable={false}
-                                />
-                            </div>
-                        }
                     </div>
                 </div>
             </li>
