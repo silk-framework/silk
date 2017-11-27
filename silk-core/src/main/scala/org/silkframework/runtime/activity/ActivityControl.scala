@@ -73,4 +73,19 @@ trait ActivityControl[T] {
     * Waits until the activity finished execution. Throws an Exception if the activity execution failed.
     */
   def waitUntilFinished(): Unit
+
+  /**
+    * Returns the last execution result with execution meta data. Is replaced as soon as an execution finishes successfully
+    * or with error.
+    */
+  def lastResult: Option[ActivityExecutionResult] = lastCompletedResult
+
+  @volatile
+  private var lastCompletedResult: Option[ActivityExecutionResult] = None
+
+  case class ActivityExecutionResult(metaData: ActivityExecutionMetaData, resultValue: Option[T])
+
+  protected def lastResult_=(result: ActivityExecutionResult): Unit = {
+    lastCompletedResult = Some(result)
+  }
 }
