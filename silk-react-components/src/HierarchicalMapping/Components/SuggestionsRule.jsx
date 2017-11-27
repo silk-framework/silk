@@ -74,16 +74,15 @@ const SuggestionsRule = React.createClass({
                             <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                 {targetProperty}
                             </div>
-                            {!suggestion.checked ? false :
-                                <div className={`ecc-silk-mapping__suggestitem-typeselect`} onClick={this.preventPropagation}>
-                                    <SelectBox
-                                        options={SUGGESTION_TYPES}
-                                        onChange={this.onChangeType}
-                                        value={suggestion.type}
-                                        clearable={false}
-                                    />
-                                </div>
-                            }
+                            <div className={`ecc-silk-mapping__suggestitem-typeselect`} onClick={this.preventPropagation}>
+                                <SelectBox
+                                    disabled={!suggestion.checked}
+                                    options={SUGGESTION_TYPES}
+                                    onChange={this.onChangeType}
+                                    value={suggestion.type}
+                                    clearable={false}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

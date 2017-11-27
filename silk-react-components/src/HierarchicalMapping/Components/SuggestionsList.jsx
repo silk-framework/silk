@@ -326,6 +326,9 @@ const SuggestionsList = React.createClass({
                                     <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                         Target property
                                     </div>
+                                    <div className="ecc-silk-mapping__suggestitem-typeselect">
+                                        Property type
+                                    </div>
                                 </div>
                             </div>
                         </div>

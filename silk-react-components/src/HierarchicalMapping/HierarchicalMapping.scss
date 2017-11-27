@@ -401,6 +401,10 @@ ul.ecc-hierarchical-mapping-error-list {
         line-height: calc(48px - #{2 * $ecc-size-blockelement-margin-vertical});
     }
 
+    .Select.is-disabled .Select-value {
+        opacity: 0.61;
+    }
+
     .ecc-silk-mapping__suggestitem-typeselect {
         margin-top: 0.5 * $ecc-size-blockelement-margin-vertical;
     }
@@ -413,7 +417,8 @@ ul.ecc-hierarchical-mapping-error-list {
         }
 
         .ecc-silk-mapping__ruleitem-headline,
-        .ecc-silk-mapping__ruleitem-subline {
+        .ecc-silk-mapping__ruleitem-subline,
+        .ecc-silk-mapping__suggestitem-typeselect {
             @include typo-body-2();
             font-size: $data-table-header-font-size;
             color: $data-table-header-color;
