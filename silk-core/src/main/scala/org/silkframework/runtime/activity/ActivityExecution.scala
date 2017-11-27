@@ -68,6 +68,8 @@ private class ActivityExecution[T](activity: Activity[T],
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()
+      lastResult = activityExecutionResult
+      resetMetaData()
     }
   }
 
@@ -107,26 +109,34 @@ private class ActivityExecution[T](activity: Activity[T],
           status.update(Status.Finished(success = false, System.currentTimeMillis - startTimestamp.get, Some(ex)))
           throw ex
       } finally {
-        lastResult = ActivityExecutionResult(
-          metaData = ActivityExecutionMetaData(
-            startedByUser = startedByUser.user,
-            startedAt = startTimestamp,
-            finishedAt = Some(System.currentTimeMillis()),
-            cancelledAt = cancelTimestamp,
-            cancelledBy = cancelledByUser.user,
-            finishStatus = status.get
-          ),
-          resultValue = value.get
-        )
-        // Reset values
-        startTimestamp = None
-        startedByUser = UserContext.Empty
-        cancelTimestamp = None
-        cancelledByUser = UserContext.Empty
+        lastResult = activityExecutionResult
+        resetMetaData()
       }
     }
   }
 
+
+  private def activityExecutionResult: ActivityExecutionResult = {
+    ActivityExecutionResult(
+      metaData = ActivityExecutionMetaData(
+        startedByUser = startedByUser.user,
+        startedAt = startTimestamp,
+        finishedAt = Some(System.currentTimeMillis()),
+        cancelledAt = cancelTimestamp,
+        cancelledBy = cancelledByUser.user,
+        finishStatus = status.get
+      ),
+      resultValue = value.get
+    )
+  }
+
+  private def resetMetaData(): Unit = {
+    // Reset values
+    startTimestamp = None
+    startedByUser = UserContext.Empty
+    cancelTimestamp = None
+    cancelledByUser = UserContext.Empty
+  }
 
   /**
     * A fork join task that runs the activity.
