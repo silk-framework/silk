@@ -10,9 +10,9 @@ import scala.reflect.ClassTag
 
 class JsonSerializersTest  extends FlatSpec with Matchers {
 
-  "JsonDatasetTaskFormat" should "serialize JsonTaskFormats" in {
+  "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
-    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0), MetaData.empty))
+    verify(new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)))
   }
 
   private def verify[T: ClassTag](value: T) = {

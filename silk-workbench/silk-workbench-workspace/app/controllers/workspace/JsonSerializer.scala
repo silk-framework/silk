@@ -4,7 +4,7 @@ import java.io.File
 import java.util.logging.LogRecord
 
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status

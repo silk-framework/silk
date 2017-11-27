@@ -2,7 +2,7 @@ package controllers.workspace
 
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
@@ -25,7 +25,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
     val task = project.task[Dataset](sourceName)
-    serializeCompileTime(new DatasetTask(task.id, task.data))
+    serializeCompileTime(task)
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
@@ -35,7 +35,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
+        serializeCompileTime(PlainTask(task.id, DatasetSpec(autoConfDataset)))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
@@ -46,7 +46,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
-      deserializeCompileTime() { dataset: DatasetTask =>
+      deserializeCompileTime() { dataset: Task[DatasetSpec] =>
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.dataset.DatasetTask
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.Activity

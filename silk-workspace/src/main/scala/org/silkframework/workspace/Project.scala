@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager

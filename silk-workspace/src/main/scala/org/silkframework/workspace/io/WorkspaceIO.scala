@@ -3,7 +3,7 @@ package org.silkframework.workspace.io
 import java.util.logging.Logger
 
 import org.silkframework.config.{CustomTask, TaskSpec}
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
@@ -41,7 +41,7 @@ object WorkspaceIO {
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
     val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager))
-    copyTasks[Dataset](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[DatasetSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)

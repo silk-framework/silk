@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask, MockDataset}
+import org.silkframework.dataset.{Dataset, DatasetSpec, MockDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
@@ -77,9 +77,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       description = "Updated Task Description"
     )
 
-  val dataset = new DatasetTask(DATASET_ID, MockDataset("default"))
+  val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")))
 
-  val datasetUpdated = new DatasetTask(DATASET_ID, MockDataset("updated"))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated")))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 

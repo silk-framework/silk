@@ -16,8 +16,8 @@ package org.silkframework.rule
 
 import java.util.logging.Logger
 
-import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{DataSource, DatasetTask, LinkSink}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -38,11 +38,11 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
 
-  def findSources(datasets: Traversable[DatasetTask]): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).getOrElse(DatasetTask.empty).source))
+  def findSources(datasets: Traversable[Task[DatasetSpec]]): DPair[DataSource] = {
+    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
   }
 
-  def findOutputs(datasets: Traversable[DatasetTask]): Seq[LinkSink] = {
+  def findOutputs(datasets: Traversable[Task[DatasetSpec]]): Seq[LinkSink] = {
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
 

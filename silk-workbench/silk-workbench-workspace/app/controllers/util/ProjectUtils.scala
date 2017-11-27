@@ -4,7 +4,7 @@ import java.io.{File, StringWriter}
 
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
@@ -68,7 +68,7 @@ object ProjectUtils {
                      xmlElementTag: String)
                     (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
     val datasets = createAllDatasets(xmlRoot, xmlElementTag, datasetIds)
-    datasets.map { ds => (ds.id.toString, ds.data) }.toMap
+    datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
   /**
@@ -109,7 +109,7 @@ object ProjectUtils {
     //          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
     //      }
     //    }
-    datasets.map { ds => (ds.id.toString, ds.data) }.toMap
+    datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
   /**
@@ -122,7 +122,7 @@ object ProjectUtils {
     */
   private def createDataset(xmlRoot: NodeSeq,
                             datasetIdOpt: Option[String])
-                           (implicit resourceLoader: ResourceManager): DatasetTask = {
+                           (implicit resourceLoader: ResourceManager): DatasetSpec = {
     val dataSources = xmlRoot \ "DataSources" \ "_"
     val dataSource = datasetIdOpt match {
       case Some(datasetId) =>
@@ -134,7 +134,7 @@ object ProjectUtils {
       throw new IllegalArgumentException(s"No data source with id $datasetIdOpt specified")
     }
     implicit val readContext: ReadContext = ReadContext(resourceLoader)
-    val dataset = XmlSerialization.fromXml[DatasetTask](dataSource.head)
+    val dataset = XmlSerialization.fromXml[DatasetSpec](dataSource.head)
     dataset
   }
 
@@ -142,11 +142,11 @@ object ProjectUtils {
   private def createAllDatasets(xmlRoot: NodeSeq,
                                 xmlElementName: String,
                                 datasetIds: Option[Set[String]])
-                               (implicit resourceLoader: ResourceManager): Seq[DatasetTask] = {
+                               (implicit resourceLoader: ResourceManager): Seq[Task[DatasetSpec]] = {
     val dataSources = xmlRoot \ xmlElementName \ "_"
     implicit val readContext: ReadContext = ReadContext(resourceLoader)
     val datasets = for (dataSource <- dataSources) yield {
-      XmlSerialization.fromXml[DatasetTask](dataSource)
+      XmlSerialization.fromXml[Task[DatasetSpec]](dataSource)
     }
     datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
   }

@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.{Stream, Widgets}
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.User

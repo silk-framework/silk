@@ -16,8 +16,8 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{MetaData, Task}
-import org.silkframework.entity.Link
+import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.entity.{EntitySchema, Link}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -27,13 +27,9 @@ import scala.xml.{Node, Text}
 /**
   * A dataset of entities.
   */
-class DatasetTask(val id: Identifier,
-                  val plugin: Dataset,
-                  val metaData: MetaData = MetaData.empty,
-                  val minConfidence: Option[Double] = None,
-                  val maxConfidence: Option[Double] = None) extends Task[Dataset] with SinkTrait {
+case class DatasetSpec(plugin: Dataset) extends TaskSpec with SinkTrait {
 
-  private val log = Logger.getLogger(DatasetTask.getClass.getName)
+  private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
   def source = plugin.source
 
@@ -41,20 +37,11 @@ class DatasetTask(val id: Identifier,
 
   lazy val linkSink: LinkSink = new LinkSinkWrapper
 
-  override def equals(obj: Any): Boolean = obj match {
-    case ds: DatasetTask =>
-      id == ds.id &&
-      plugin == ds.plugin &&
-      metaData == ds.metaData &&
-      minConfidence == ds.minConfidence &&
-      maxConfidence == ds.maxConfidence
-    case _ =>
-      false
-  }
+  /** Datasets don't define input schemata, because any data can be written to them. */
+  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
 
-  override def toString = {
-    s"DatasetTask(id=$id, plugin=${plugin.toString}, metaData=${metaData.toString})"
-  }
+  /** Datasets don't have a static EntitySchema. It is defined by the following task. */
+  override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
   private class EntitySinkWrapper extends EntitySink {
 
@@ -130,11 +117,8 @@ class DatasetTask(val id: Identifier,
     override def writeLink(link: Link, predicateUri: String) {
       //require(isOpen, "Output must be opened before writing statements to it")
 
-      if ((minConfidence.isEmpty || link.confidence.getOrElse(-1.0) >= minConfidence.get) &&
-          (maxConfidence.isEmpty || link.confidence.getOrElse(-1.0) < maxConfidence.get)) {
-        writer.writeLink(link, predicateUri)
-        linkCount += 1
-      }
+      writer.writeLink(link, predicateUri)
+      linkCount += 1
     }
 
     /**
@@ -151,25 +135,20 @@ class DatasetTask(val id: Identifier,
       */
     override def clear(): Unit = writer.clear()
   }
-
-  /** The task specification that holds the actual task specification. */
-  override def data: Dataset = plugin
 }
 
-object DatasetTask {
-
-  implicit def fromTask(task: Task[Dataset]): DatasetTask = new DatasetTask(task.id, task.data, task.metaData)
+object DatasetSpec {
 
   def empty = {
-    new DatasetTask("empty", EmptyDataset,  MetaData.empty)
+    new DatasetSpec(EmptyDataset)
   }
 
   /**
     * XML serialization format.
     */
-  implicit object DatasetTaskFormat extends XmlFormat[DatasetTask] {
+  implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
 
-    def read(node: Node)(implicit readContext: ReadContext): DatasetTask = {
+    def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resources = readContext.resources
 
@@ -177,37 +156,25 @@ object DatasetTask {
       if (node.label == "DataSource" || node.label == "Output") {
         // Read old format
         val id = (node \ "@id").text
-        new DatasetTask(
-          id = if (id.nonEmpty) id else Identifier.random,
-          plugin = Dataset((node \ "@type").text, XmlSerialization.deserializeParameters(node)),
-          metaData = MetaData.empty,
-          minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
-          maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
+        new DatasetSpec(
+          plugin = Dataset((node \ "@type").text, XmlSerialization.deserializeParameters(node))
         )
       } else {
         // Read new format
         val id = (node \ "@id").text
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
-        new DatasetTask(
-          id = if (id.nonEmpty) id else Identifier.random,
-          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          metaData = (node \ "TaskMetaData").headOption.map(XmlSerialization.fromXml[MetaData]).getOrElse(MetaData.empty),
-          minConfidence = (node \ "@minConfidence").headOption.map(_.text.toDouble),
-          maxConfidence = (node \ "@maxConfidence").headOption.map(_.text.toDouble)
+        new DatasetSpec(
+          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode))
         )
       }
     }
 
-    def write(value: DatasetTask)(implicit writeContext: WriteContext[Node]): Node = {
-      val minConfidenceNode = value.minConfidence.map(c => Text(c.toString))
-      val maxConfidenceNode = value.maxConfidence.map(c => Text(c.toString))
-
+    def write(value: DatasetSpec)(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset id={value.id} type={pluginDesc.id} minConfidence={minConfidenceNode} maxConfidence={maxConfidenceNode}>
+          <Dataset type={pluginDesc.id}>
             {XmlSerialization.serializeParameter(params)}
-            {XmlSerialization.toXml[MetaData](value.metaData)}
           </Dataset>
       }
     }

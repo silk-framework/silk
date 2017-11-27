@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.dataset
 
-import org.silkframework.dataset.{DatasetTask, Dataset}
+import org.silkframework.dataset.{DatasetSpec, Dataset}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
