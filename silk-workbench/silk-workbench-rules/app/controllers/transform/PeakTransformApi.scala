@@ -4,7 +4,7 @@ import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
-import org.silkframework.dataset.{Dataset, EntityDatasource, PeakDataSource, PeakException}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -77,7 +77,7 @@ class PeakTransformApi extends Controller {
     implicit val prefixes: Prefixes = project.config.prefixes
 
     project.anyTask(inputTaskId).data match {
-      case dataset: Dataset =>
+      case dataset: DatasetSpec =>
         dataset.source match {
           case peakDataSource: PeakDataSource =>
             try {
@@ -86,12 +86,12 @@ class PeakTransformApi extends Controller {
             } catch {
               case pe: PeakException =>
                 Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-                  " of type " + dataset.plugin.label +
+                  " of type " + dataset.plugin.plugin.label +
                   " raised following issue:" + pe.msg))))
             }
           case _ =>
             Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-              " of type " + dataset.plugin.label +
+              " of type " + dataset.plugin.plugin.label +
               " does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
@@ -117,7 +117,7 @@ class PeakTransformApi extends Controller {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.plugin.label} " +
           s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
-      project.task[Dataset](sparqlDataset).data match {
+      project.task[DatasetSpec](sparqlDataset).data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
           val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, rdfDataset))
           val executor = LocalSparqlSelectExecutor()

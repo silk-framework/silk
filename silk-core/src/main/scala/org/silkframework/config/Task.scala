@@ -69,7 +69,7 @@ object Task {
   /**
     * XML serialization format.
     */
-  private class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
+  class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
 
     import XmlSerialization._
 

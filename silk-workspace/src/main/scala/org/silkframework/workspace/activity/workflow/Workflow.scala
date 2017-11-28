@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{Dataset, VariableDataset}
+import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -120,13 +120,13 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   def variableDatasets(project: Project): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetTask <- outputDatasets(project)
-           if datasetTask.data.isInstanceOf[VariableDataset]) yield {
+           if datasetTask.data.plugin.isInstanceOf[VariableDataset]) yield {
         datasetTask.id.toString
       }
 
     val variableDatasetsUsedInInput =
       for (datasetTask <- inputDatasets(project)
-           if datasetTask.data.isInstanceOf[VariableDataset]) yield {
+           if datasetTask.data.plugin.isInstanceOf[VariableDataset]) yield {
         datasetTask.id.toString
       }
     val bothInAndOut = variableDatasetsUsedInInput.toSet & variableDatasetsUsedInOutput.toSet
@@ -137,17 +137,17 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */
-  def inputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
+  def inputDatasets(project: Project): Seq[ProjectTask[DatasetSpec]] = {
     for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
-         dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {
+         dataset <- project.taskOption[DatasetSpec](nodeById(datasetNodeId).task)) yield {
       dataset
     }
   }
 
   /** Returns all Dataset tasks that are uesd as output in the workflow */
-  def outputDatasets(project: Project): Seq[ProjectTask[Dataset]] = {
+  def outputDatasets(project: Project): Seq[ProjectTask[DatasetSpec]] = {
     for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
-         dataset <- project.taskOption[Dataset](nodeById(datasetNodeId).task)) yield {
+         dataset <- project.taskOption[DatasetSpec](nodeById(datasetNodeId).task)) yield {
       dataset
     }
   }

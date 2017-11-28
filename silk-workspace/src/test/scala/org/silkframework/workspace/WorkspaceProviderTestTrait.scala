@@ -205,10 +205,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "read and write dataset tasks" in {
     PluginRegistry.registerPlugin(classOf[MockDataset])
-    project.addTask[Dataset](DUMMY_DATASET, dummyDataset)
+    project.addTask[DatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe dataset
     }
   }
@@ -216,7 +216,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   it should "update dataset tasks" in {
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe datasetUpdated
     }
   }
@@ -330,10 +330,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "delete dataset tasks" in {
     refreshProject(PROJECT_NAME)
-    workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe defined
-    workspaceProvider.deleteTask[Dataset](PROJECT_NAME, DATASET_ID)
+    workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
+    workspaceProvider.deleteTask[DatasetSpec](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
+      workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
     }
   }
 

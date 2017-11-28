@@ -213,7 +213,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: EntityTable)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    project.taskOption[Dataset](workflowDataset.task) match {
+    project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
         execute(resolvedDataset, Seq(entityTable), None)
@@ -225,7 +225,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
                      (implicit workflowRunContext: WorkflowRunContext): EntityTable = {
-    project.taskOption[Dataset](workflowDataset.task) match {
+    project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
         execute(resolvedDataset, Seq.empty, Some(entitySchema)) match {
@@ -284,9 +284,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
     * @return
     */
-  private def resolveDataset(datasetTask: Task[Dataset],
+  private def resolveDataset(datasetTask: Task[DatasetSpec],
                              replaceDatasets: Map[String, Dataset]): Task[Dataset] = {
-    val dataset = datasetTask.data match {
+    val dataset = datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {
           case Some(d) => d

@@ -1,7 +1,11 @@
 package controllers.util
 
+
+import org.silkframework.config.Task
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
@@ -180,6 +184,15 @@ object SerializationUtils {
         throw BadUserInputException(v.getMessage)
     }
   }
+
+//  def deserializeTask[T: ClassTag](formatters: Seq[SerializationFormat[T, _]]): Result = {
+//    val xmlFormat = Task.taskFormat[T]
+//    val jsonFormat = new TaskJsonFormat[T]
+//
+//
+//
+//    Ok
+//  }
 
   /**
     * Tries to deserialize the value found in the request. Uses the compile type instead of the runtime type.

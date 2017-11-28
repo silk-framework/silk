@@ -34,7 +34,7 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-      "dataset" -> tasksJson[Dataset](project),
+      "dataset" -> tasksJson[DatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),
       "linking" -> tasksJson[LinkSpec](project),
       "workflow" -> tasksJson[Workflow](project)

@@ -56,7 +56,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[Dataset]()
+  registerModule[DatasetSpec]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
   registerModule[Workflow]()

@@ -24,18 +24,18 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[Dataset](sourceName)
-    serializeCompileTime(task)
+    val task = project.task[DatasetSpec](sourceName)
+    serializeCompileTime[Task[DatasetSpec]](task)
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[Dataset](sourceName)
-    val datasetPlugin = task.data
+    val task = project.task[DatasetSpec](sourceName)
+    val datasetPlugin = task.data.plugin
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serializeCompileTime(PlainTask(task.id, DatasetSpec(autoConfDataset)))
+        serializeCompileTime[Task[DatasetSpec]](PlainTask(task.id, DatasetSpec(autoConfDataset)))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
@@ -50,7 +50,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
+              project.updateTask(dataset.id, dataset.copy(plugin = autoConfigurable.autoConfigured))
               Ok
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
@@ -148,7 +148,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getMappingValueCoverage(projectName: String, datasetId: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = User().workspace.project(projectName)
-      val datasetTask = project.task[Dataset](datasetId)
+      val datasetTask = project.task[DatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
       datasetTask.source match {
@@ -182,7 +182,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     try {
       val project = User().workspace.project(projectName)
       implicit val prefixes = project.config.prefixes
-      val datasetTask = project.task[Dataset](datasetId)
+      val datasetTask = project.task[DatasetSpec](datasetId)
       datasetTask.source match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)

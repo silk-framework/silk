@@ -16,6 +16,7 @@ package org.silkframework.dataset
 
 import java.util.logging.Logger
 
+import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity.{EntitySchema, Link}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -179,5 +180,7 @@ object DatasetSpec {
       }
     }
   }
+
+  implicit object DatasetTaskFormat extends TaskFormat[DatasetSpec]
 
 }
