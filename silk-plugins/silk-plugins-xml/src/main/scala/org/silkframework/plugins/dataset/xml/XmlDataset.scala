@@ -100,7 +100,10 @@ case class XmlDataset(
     // Case 1: <Root><?Entity?></Root>
     val case1 = Try(XML.loadString(s"<Root>$templateString</Root>"))
     // Case 2: <?Entity?>
-    case1.getOrElse(XML.loadString(templateString))
+    val case1or2 = case1.orElse(Try(XML.loadString(templateString)))
+    case1or2.getOrElse(
+      throw new ValidationException("outputTemplate must be valid XML containing a single processing instruction or a single processing instruction of the form <?Entity?>!")
+    )
   }
 
 }

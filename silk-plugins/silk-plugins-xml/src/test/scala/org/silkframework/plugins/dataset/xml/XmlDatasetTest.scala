@@ -20,7 +20,7 @@ class XmlDatasetTest extends FlatSpec with MustMatchers {
     intercept[ValidationException] {
       testOutputTemplate("<Root><?Entity?><?Entity2?></Root>")
     }
-    intercept[SAXParseException] {
+    intercept[ValidationException] {
       testOutputTemplate("<Root><?Entity?></Root2>")
     }
   }
