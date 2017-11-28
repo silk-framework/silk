@@ -1,7 +1,7 @@
 import React from 'react';
 import {SelectBox, Checkbox, NotAvailable} from 'ecc-gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import {SUGGESTION_TYPES} from "../helpers";
+import {SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES} from "../helpers";
 import _ from "lodash";
 
 const SuggestionsRule = React.createClass({
@@ -26,8 +26,7 @@ const SuggestionsRule = React.createClass({
             checked: !this.props.suggestion.checked,
         });
     },
-    onChangeType(value) {
-
+    onChangeType({value, label}) {
         this.props.onTypeChanged({
             id: this.props.suggestion.id,
             type: value,
@@ -77,9 +76,14 @@ const SuggestionsRule = React.createClass({
                             <div className={`ecc-silk-mapping__suggestitem-typeselect`} onClick={this.preventPropagation}>
                                 <SelectBox
                                     disabled={!suggestion.checked}
-                                    options={SUGGESTION_TYPES}
+                                    options={LABELED_SUGGESTION_TYPES}
                                     onChange={this.onChangeType}
-                                    value={suggestion.type}
+                                    value={{
+                                        value: suggestion.type,
+                                        label: LABELED_SUGGESTION_TYPES
+                                            .filter(v => v.value===suggestion.type)[0]
+                                            .label,
+                                    }}
                                     clearable={false}
                                 />
                             </div>

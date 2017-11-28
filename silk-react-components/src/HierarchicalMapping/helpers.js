@@ -12,3 +12,14 @@ export const SUGGESTION_TYPES = [
   "value",
   "object",
 ];
+
+export const LABELED_SUGGESTION_TYPES = [
+    {
+        value: SUGGESTION_TYPES[0],
+        label: "Value mapping",
+    },
+    {
+        value: SUGGESTION_TYPES[1],
+        label: "Object mapping",
+    }
+];
