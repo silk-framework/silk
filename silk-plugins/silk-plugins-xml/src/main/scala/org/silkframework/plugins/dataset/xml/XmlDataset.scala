@@ -5,7 +5,8 @@ import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
-import scala.xml.{Node, ProcInstr, XML}
+import scala.util.Try
+import scala.xml.{Elem, Node, ProcInstr, XML}
 
 @Plugin(
   id = "xml",
@@ -82,7 +83,7 @@ case class XmlDataset(
     * Validates the output template parameter
     */
   private def validateOutputTemplate(): Unit = {
-    val xml = XML.loadString(outputTemplate.str)
+    val xml = loadString(outputTemplate.str)
     def collectProcInstructions(node: Node): Seq[ProcInstr] = {
       node match {
         case proc: ProcInstr => Seq(proc)
@@ -93,6 +94,13 @@ case class XmlDataset(
     if(procInstructions.size != 1) {
       throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
     }
+  }
+
+  private def loadString(templateString: String): Elem = {
+    // Case 1: <Root><?Entity?></Root>
+    val case1 = Try(XML.loadString(s"<Root>$templateString</Root>"))
+    // Case 2: <?Entity?>
+    case1.getOrElse(XML.loadString(templateString))
   }
 
 }
