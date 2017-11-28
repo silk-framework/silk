@@ -19,15 +19,21 @@ trait WebUserManager {
 object WebUserManager {
   val log: Logger = Logger.getLogger(this.getClass.getName)
   final val WEB_USER_MANAGER_PARAMETER_KEY = "user.manager.web.plugin"
+  private var lastPlugin: String = ""
+  private var webUserManager: Option[WebUserManager] = None
 
-  lazy val instance: WebUserManager = {
+  def instance: WebUserManager = this.synchronized {
     val config = DefaultConfig.instance()
     try {
       if (config.hasPath(WEB_USER_MANAGER_PARAMETER_KEY)) {
         val userManagerPluginId = config.getString(WEB_USER_MANAGER_PARAMETER_KEY)
-        implicit val prefixes: Prefixes = Prefixes.empty
-        implicit val resourceManager: ResourceManager = EmptyResourceManager
-        PluginRegistry.create[WebUserManager](userManagerPluginId)
+        if(userManagerPluginId != lastPlugin || webUserManager.isEmpty) {
+          implicit val prefixes: Prefixes = Prefixes.empty
+          implicit val resourceManager: ResourceManager = EmptyResourceManager
+          webUserManager = Some(PluginRegistry.create[WebUserManager](userManagerPluginId))
+        }
+        lastPlugin = userManagerPluginId
+        webUserManager.get
       } else {
         EmptyWebUserManager
       }

@@ -74,4 +74,6 @@ class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None
   private def removeDoneChildren(): Unit = {
     childControls = childControls.filter(_.status().isRunning)
   }
+
+  override def userContext: UserContext = UserContext.Empty
 }
