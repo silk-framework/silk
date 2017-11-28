@@ -5,8 +5,8 @@ import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
-import scala.util.Try
-import scala.xml.{Elem, Node, ProcInstr, XML}
+import scala.util.{Failure, Success, Try}
+import scala.xml._
 
 @Plugin(
   id = "xml",
@@ -97,13 +97,18 @@ case class XmlDataset(
   }
 
   private def loadString(templateString: String): Elem = {
-    // Case 1: <Root><?Entity?></Root>
+    // Case 1: input <?Entity?>
     val case1 = Try(XML.loadString(s"<Root>$templateString</Root>"))
-    // Case 2: <?Entity?>
+    // Case 2: input <Root><?Entity?></Root>
     val case1or2 = case1.orElse(Try(XML.loadString(templateString)))
-    case1or2.getOrElse(
-      throw new ValidationException("outputTemplate must be valid XML containing a single processing instruction or a single processing instruction of the form <?Entity?>!")
-    )
+    case1or2 match {
+      case Success(elem) => elem
+      case Failure(ex: SAXParseException) =>
+        throw new ValidationException("outputTemplate could not be processed as valid XML. Error in line " + ex.getLineNumber + " column " + ex.getColumnNumber)
+      case _ =>
+        throw new ValidationException("outputTemplate must be valid XML containing a single processing instruction or a single processing " +
+            "instruction of the form <?Entity?>!")
+    }
   }
 
 }
