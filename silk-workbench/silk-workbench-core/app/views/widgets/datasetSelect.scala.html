@@ -2,10 +2,11 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.{ProjectTask, User}
+@import org.silkframework.dataset.DatasetSpec
 @(projectName: String, modifier: String, inputId: Option[String])
 
 @project = @{ User().workspace.project(projectName.toString) }
-@datasets = @{ project.tasks[Dataset] }
+@datasets = @{ project.tasks[DatasetSpec] }
 @transformTasks = @{ project.tasks[TransformSpec] }
 @customTasksWithOutputSchema = @{ project.tasks[CustomTask].filter(_.outputSchemaOpt.isDefined) }
 @generateOptions = @{ (tasks: Seq[ProjectTask[_]]) =>
