@@ -11,7 +11,7 @@ import org.silkframework.entity.UriValueType
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import org.w3c.dom.{Attr, Document, Element, Node, ProcessingInstruction}
+import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
 
 import scala.xml.InputSource
 
@@ -111,6 +111,10 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   private def getEntityNode(uri: String): Element = {
     if(atRoot) {
       val entityNode = doc.createElement(entityTemplate.getTarget)
+      if(entityRoot.getParentNode == null && entityRoot.getFirstChild != null) {
+        throw new ValidationException("Cannot insert more than one element at document root. Your output template definition " +
+            "only allows one entity. Either adapt sink input to be one entity or adapt output template.")
+      }
       entityRoot.appendChild(entityNode)
       entityNode
     } else {
