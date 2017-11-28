@@ -15,7 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
@@ -57,19 +57,27 @@ object SparqlEntitySchema {
     val subPath = entitySchema.subPath
 
     def rewriteRestrictionWithParentProperty(subPath: Path): Unit = {
-      val subProperty = subPath.propertyUri.get.uri
+      val sb = new StringBuilder()
+      var idx = 1
+      for(ForwardOperator(propertyURI) <- subPath.operators.reverse) {
+        if(idx == 1) {
+          sb.append(s"\n?${variable}_parent$idx <$propertyURI> ?$variable .")
+        } else {
+          sb.append(s"\n?${variable}_parent$idx <$propertyURI> ?${variable}_parent${idx-1} .")
+        }
+        idx += 1
+      }
       sparqlRestriction = SparqlRestriction.fromSparql(variable,
-        sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent <$subProperty> ?$variable")
+        sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent${idx-1}") + sb.toString())
     }
 
-    if(subPath.size == 1 && subPath.propertyUri.isDefined) {
-      rewriteRestrictionWithParentProperty(subPath)
-    } else if(subPath.size > 1) {
-      val lastOperatorPath = Path(List(subPath.operators.last))
-      if(lastOperatorPath.propertyUri.isDefined) {
-        rewriteRestrictionWithParentProperty(lastOperatorPath)
-      }
-    } // FIXME: Generate restriction for complete path of size > 1 instead of only the last property. Also support backward paths.
+    if(subPath.operators.nonEmpty) {
+      if(subPath.operators.forall(_.isInstanceOf[ForwardOperator])) {
+        rewriteRestrictionWithParentProperty(subPath)
+      } else {
+        throw new IllegalArgumentException("Only forward operators allowed in sub path.")
+      }// FIXME: Generate restriction for backward paths.
+    }
 
     SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
   }
