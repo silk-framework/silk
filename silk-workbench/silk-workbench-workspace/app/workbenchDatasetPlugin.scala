@@ -34,7 +34,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[Dataset] {
+  object DatasetActions extends TaskActions[DatasetSpec] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
