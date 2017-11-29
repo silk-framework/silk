@@ -57,14 +57,14 @@ object TransformTaskUtils {
       * Retrieves all entity sinks for this transform task.
       */
     def entitySinks = {
-      task.data.outputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.entitySink)
+      task.data.outputs.flatMap(o => task.project.taskOption[DatasetSpec](o)).map(_.data.entitySink)
     }
 
     /**
       * Retrieves all error entity sinks for this transform task.
       */
     def errorEntitySinks = {
-      task.data.errorOutputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.entitySink)
+      task.data.errorOutputs.flatMap(o => task.project.taskOption[DatasetSpec](o)).map(_.data.entitySink)
     }
   }
 
