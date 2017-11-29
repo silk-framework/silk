@@ -332,7 +332,7 @@ const SuggestionsList = React.createClass({
                                         Target property
                                     </div>
                                     <div className="ecc-silk-mapping__suggestitem-typeselect">
-                                        Property type
+                                        Mapping type
                                     </div>
                                 </div>
                             </div>
