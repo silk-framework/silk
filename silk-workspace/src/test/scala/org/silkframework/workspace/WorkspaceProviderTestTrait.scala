@@ -79,7 +79,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")))
 
-  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated")))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 

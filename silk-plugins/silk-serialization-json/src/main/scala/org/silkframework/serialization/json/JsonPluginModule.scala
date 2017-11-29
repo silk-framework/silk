@@ -1,15 +1,15 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetTaskFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskFormat}
-import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetTaskFormat, TransformRuleJsonFormat, VocabularyPropertyJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskFormat}
+import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, TransformRuleJsonFormat, VocabularyPropertyJsonFormat}
 import org.silkframework.serialization.json.InputJsonSerializer.InputJsonFormat
 import org.silkframework.serialization.json.JsonSerializers._
 
 class JsonPluginModule extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
-      JsonDatasetTaskFormat.getClass ::
+      JsonDatasetSpecFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::

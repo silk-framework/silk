@@ -150,7 +150,9 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonDatasetTaskFormat extends JsonFormat[DatasetSpec] {
+  implicit object JsonDatasetSpecFormat extends JsonFormat[DatasetSpec] {
+
+    private val URI_PROPERTY = "uriProperty"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
@@ -160,14 +162,16 @@ object JsonSerializers {
           Dataset(
             id = (value \ TYPE).as[JsString].value,
             params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
-          )
+          ),
+        uriProperty = stringValueOption(value, URI_PROPERTY).map(Uri(_))
       )
     }
 
     override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TYPE -> JsString(value.plugin.plugin.id.toString),
-        PARAMETERS -> Json.toJson(value.plugin.parameters)
+        PARAMETERS -> Json.toJson(value.plugin.parameters),
+        URI_PROPERTY -> value.uriProperty.map(_.uri)
       )
     }
   }

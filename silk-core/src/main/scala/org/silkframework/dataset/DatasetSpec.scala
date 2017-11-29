@@ -163,7 +163,7 @@ object DatasetSpec {
       } else {
         // Read new format
         val id = (node \ "@id").text
-        val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.isEmpty).map(Uri(_))
+        val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetSpec(
