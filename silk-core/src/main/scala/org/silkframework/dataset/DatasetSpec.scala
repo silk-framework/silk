@@ -28,7 +28,7 @@ import scala.xml.{Node, Text}
 /**
   * A dataset of entities.
   */
-case class DatasetSpec(plugin: Dataset) extends TaskSpec with SinkTrait {
+case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with SinkTrait {
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -163,10 +163,12 @@ object DatasetSpec {
       } else {
         // Read new format
         val id = (node \ "@id").text
+        val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.isEmpty).map(Uri(_))
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetSpec(
-          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode))
+          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
+          uriProperty = uriProperty
         )
       }
     }
@@ -174,7 +176,7 @@ object DatasetSpec {
     def write(value: DatasetSpec)(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset type={pluginDesc.id}>
+          <Dataset type={pluginDesc.id} uriProperty={value.uriProperty.map(_.uri).getOrElse("")}>
             {XmlSerialization.serializeParameter(params)}
           </Dataset>
       }

@@ -58,9 +58,16 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      taskData.asInstanceOf[DatasetSpec].plugin match {
-        case Dataset(_, params) => params.toSeq
+      val dataset = taskData.asInstanceOf[DatasetSpec]
+      var properties =
+        dataset.plugin match {
+          case Dataset(plugin, params) =>
+            Seq(("type", plugin.label)) ++ params
+        }
+      for(uriProperty <- dataset.uriProperty) {
+        properties :+= ("URI Property", uriProperty.uri)
       }
+      properties
     }
   }
 }
