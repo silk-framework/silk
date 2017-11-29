@@ -16,6 +16,7 @@ import {
     ScrollingMixin,
     Checkbox,
     ProgressButton,
+    Tooltip,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
@@ -310,14 +311,18 @@ const SuggestionsList = React.createClass({
                         <div className="ecc-silk-mapping__ruleitem-summary">
                             <div className="mdl-list__item ecc-silk-mapping__ruleheader">
                                 <div className="ecc-silk-mapping__suggestitem-checkbox">
-                                    <Checkbox
-                                        onChange={
-                                            hasChecks
-                                                ? this.checkNone
-                                                : this.checkAll
-                                        }
-                                        checked={hasChecks}
-                                    />
+                                    <Tooltip label="Select all">
+                                        <div>
+                                            <Checkbox
+                                                onChange={
+                                                    hasChecks
+                                                        ? this.checkNone
+                                                        : this.checkAll
+                                                }
+                                                checked={hasChecks}
+                                            />
+                                        </div>
+                                    </Tooltip>
                                 </div>
                                 <div className="mdl-list__item-primary-content">
                                     <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">

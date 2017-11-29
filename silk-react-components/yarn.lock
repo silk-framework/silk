@@ -2197,8 +2197,8 @@ ecc-dotfiles@^2.1.0:
     fs-extra "^4.0.0"
 
 ecc-gui-elements@^2.20.0:
-  version "2.23.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.23.2.tgz#c242c6f6942f63296f0dfbe661a4a6efbce0129e"
+  version "2.24.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.24.0.tgz#9974ab5786336a33b1ce667f9b0153f5031d8bf8"
   dependencies:
     "@eccenca/material-design-lite" "^1.3.0-beta3"
     classnames "^2.2.5"
@@ -5856,16 +5856,15 @@ react-highlight-words@^0.8.1:
     highlight-words-core "^1.0.2"
     prop-types "^15.5.8"
 
-react-input-autosize@^2.0.1:
-  version "2.0.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-input-autosize/-/react-input-autosize-2.0.1.tgz#e92190497b4026c2780ad0f2fd703c835ba03e33"
+react-input-autosize@^2.1.0:
+  version "2.1.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-input-autosize/-/react-input-autosize-2.1.2.tgz#a3dc11a5517c434db25229925541309de3f7a8f5"
   dependencies:
-    create-react-class "^15.5.2"
     prop-types "^15.5.8"
 
 react-mdl@^1.10.3:
-  version "1.10.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-mdl/-/react-mdl-1.10.3.tgz#f783e26a5eea4154a32129ab2562c09d5eeacf0d"
+  version "1.11.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-mdl/-/react-mdl-1.11.0.tgz#7e07ee1009dd9b358b616dc400ff2ae1845a2e67"
   dependencies:
     clamp "^1.0.1"
     classnames "^2.2.3"
@@ -5896,12 +5895,12 @@ react-redux@5.0.6:
     prop-types "^15.5.10"
 
 react-select@^1.0.0-rc.5:
-  version "1.0.0-rc.10"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.0.0-rc.10.tgz#f137346250f9255c979fbfa21860899928772350"
+  version "1.1.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.1.0.tgz#626a2de839fdea2ade74dd1b143a9bde34be6c82"
   dependencies:
     classnames "^2.2.4"
     prop-types "^15.5.8"
-    react-input-autosize "^2.0.1"
+    react-input-autosize "^2.1.0"
 
 react@^15.6.1:
   version "15.6.2"
@@ -6985,8 +6984,8 @@ typical@^2.6.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/typical/-/typical-2.6.1.tgz#5c080e5d661cbbe38259d2e70a3c7253e873881d"
 
 ua-parser-js@^0.7.9:
-  version "0.7.14"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ua-parser-js/-/ua-parser-js-0.7.14.tgz#110d53fa4c3f326c121292bbeac904d2e03387ca"
+  version "0.7.17"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ua-parser-js/-/ua-parser-js-0.7.17.tgz#e9ec5f9498b9ec910e7ae3ac626a805c4d09ecac"
 
 uglify-js@3.1.x:
   version "3.1.3"
