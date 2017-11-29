@@ -2196,13 +2196,15 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@^2.20.0:
-  version "2.20.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.20.0.tgz#f2dabe10fed78ae265c4ed40e6cf552632676d49"
+ecc-gui-elements@2.23.2:
+  version "2.23.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.23.2.tgz#c242c6f6942f63296f0dfbe661a4a6efbce0129e"
   dependencies:
     "@eccenca/material-design-lite" "^1.3.0-beta3"
     classnames "^2.2.5"
     lodash "^4.16.4"
+    moment "^2.19.2"
+    react-datetime "^2.11.0"
     react-mdl "^1.10.3"
     react-select "^1.0.0-rc.5"
     sassyjson "^1.1.8"
@@ -4792,6 +4794,10 @@ mocha@^3.4.2:
     mkdirp "0.5.1"
     supports-color "3.1.2"
 
+moment@^2.19.2:
+  version "2.19.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/moment/-/moment-2.19.2.tgz#8a7f774c95a64550b4c7ebd496683908f9419dbe"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -5691,7 +5697,7 @@ prop-types@15.5.10:
     fbjs "^0.8.9"
     loose-envify "^1.3.1"
 
-prop-types@^15.5.0, prop-types@^15.5.10, prop-types@^15.5.8:
+prop-types@^15.5.0, prop-types@^15.5.10, prop-types@^15.5.7, prop-types@^15.5.8:
   version "15.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -5825,6 +5831,15 @@ react-beautiful-dnd@^2.5.0:
     redux-thunk "2.2.0"
     reselect "3.0.1"
 
+react-datetime@^2.11.0:
+  version "2.11.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-datetime/-/react-datetime-2.11.0.tgz#6560a8e5b81f7e52986083dc2e8cb94bb74528ea"
+  dependencies:
+    create-react-class "^15.5.2"
+    object-assign "^3.0.0"
+    prop-types "^15.5.7"
+    react-onclickoutside "^6.5.0"
+
 react-dom@^15.6.1:
   version "15.6.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/react-dom/-/react-dom-15.6.2.tgz#41cfadf693b757faf2708443a1d1fd5a02bef730"
@@ -5864,6 +5879,10 @@ react-motion@0.5.0:
     performance-now "^0.2.0"
     prop-types "^15.5.8"
     raf "^3.1.0"
+
+react-onclickoutside@^6.5.0:
+  version "6.7.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-onclickoutside/-/react-onclickoutside-6.7.0.tgz#997a4d533114c9a0a104913638aa26afc084f75c"
 
 react-redux@5.0.6:
   version "5.0.6"
