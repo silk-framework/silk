@@ -88,7 +88,7 @@ object JsonSerializers {
   }
 
   def booleanValueOption(json: JsValue, attributeName: String): Option[Boolean] = {
-    (json \ attributeName).toOption match {
+    optionalValue(json, attributeName) match {
       case Some(jsBoolean: JsBoolean) =>
         Some(jsBoolean.value)
       case Some(_) =>
@@ -99,7 +99,7 @@ object JsonSerializers {
   }
 
   def stringValueOption(json: JsValue, attributeName: String): Option[String] = {
-    (json \ attributeName).toOption match {
+    optionalValue(json, attributeName) match {
       case Some(jsString: JsString) =>
         Some(jsString.value)
       case Some(_) =>
@@ -168,11 +168,15 @@ object JsonSerializers {
     }
 
     override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        TYPE -> JsString(value.plugin.plugin.id.toString),
-        PARAMETERS -> Json.toJson(value.plugin.parameters),
-        URI_PROPERTY -> value.uriProperty.map(_.uri)
-      )
+      var json =
+        Json.obj(
+          TYPE -> JsString(value.plugin.plugin.id.toString),
+          PARAMETERS -> Json.toJson(value.plugin.parameters)
+        )
+      for(property <- value.uriProperty) {
+        json += (URI_PROPERTY -> JsString(property.uri))
+      }
+      json
     }
   }
 

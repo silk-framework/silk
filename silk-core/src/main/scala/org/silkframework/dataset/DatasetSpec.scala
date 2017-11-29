@@ -17,13 +17,13 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.entity.{EntitySchema, Link}
+import org.silkframework.config.TaskSpec
+import org.silkframework.entity.{EntitySchema, Link, UriValueType}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Uri
 
 import scala.language.implicitConversions
-import scala.xml.{Node, Text}
+import scala.xml.Node
 
 /**
   * A dataset of entities.
@@ -61,14 +61,25 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
         isOpen = false
       }
 
-      writer.openTable(typeUri, properties)
+      val uriTypedProperty =
+        for(property <- uriProperty.toIndexedSeq) yield {
+          TypedProperty(property.uri, UriValueType, isBackwardProperty = false)
+        }
+
+      writer.openTable(typeUri, uriTypedProperty ++ properties)
       entityCount = 0
       isOpen = true
     }
 
     override def writeEntity(subject: String, values: Seq[Seq[String]]) {
       require(isOpen, "Output must be opened before writing statements to it")
-      writer.writeEntity(subject, values)
+      uriProperty match {
+        case Some(property) =>
+          writer.writeEntity(subject, Seq(subject) +: values)
+        case None =>
+          writer.writeEntity(subject, values)
+      }
+
       entityCount += 1
     }
 
