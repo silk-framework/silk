@@ -3,6 +3,7 @@ package org.silkframework.execution.local
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.EntitySinkWrapper
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -162,6 +163,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def writeTriples(sink: EntitySink, entities: Traversable[Entity]): Unit = {
     sink match {
       case tripleSink: TripleSink =>
+        writeTriples(entities, tripleSink)
+      case EntitySinkWrapper(tripleSink: TripleSink, __) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")
