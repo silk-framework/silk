@@ -170,7 +170,7 @@ object JsonSerializers {
     override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
-          TYPE -> JsString(value.plugin.plugin.id.toString),
+          TYPE -> JsString(value.plugin.pluginSpec.id.toString),
           PARAMETERS -> Json.toJson(value.plugin.parameters)
         )
       for(property <- value.uriProperty) {
@@ -235,7 +235,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString(TRANSFORM_INPUT),
           ID -> JsString(value.id),
-          FUNCTION -> JsString(value.transformer.plugin.id),
+          FUNCTION -> JsString(value.transformer.pluginSpec.id),
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
           PARAMETERS -> Json.toJson(value.transformer.parameters)
         )

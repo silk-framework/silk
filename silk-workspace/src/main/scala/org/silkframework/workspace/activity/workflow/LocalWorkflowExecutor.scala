@@ -295,8 +295,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
       case ds: InternalDataset =>
         executionContext.createInternalDataset(Some(datasetTask.id.toString))
-      case ds: Dataset =>
-        ds
+      case _: Dataset =>
+        datasetTask.data
     }
     PlainTask(datasetTask.id, dataset)
   }

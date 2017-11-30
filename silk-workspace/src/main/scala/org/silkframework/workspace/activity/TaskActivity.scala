@@ -26,7 +26,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
   @volatile
   private var currentFactory = initialFactory
 
-  override def name = currentFactory.plugin.id
+  override def name = currentFactory.pluginSpec.id
 
   override def project = task.project
 

@@ -18,7 +18,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.TaskSpec
-import org.silkframework.entity.{EntitySchema, Link, UriValueType}
+import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -28,11 +28,11 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   */
-case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with SinkTrait {
+case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
-  def source = plugin.source
+  lazy val source: DataSource = new EntitySourceWrapper
 
   lazy val entitySink: EntitySink = new EntitySinkWrapper
 
@@ -43,6 +43,66 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
+
+  private class EntitySourceWrapper extends DataSource {
+
+    /**
+      * Retrieves entities from this source which satisfy a specific entity schema.
+      *
+      * @param entitySchema The entity schema
+      * @param limit        Limits the maximum number of retrieved entities
+      * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+      */
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+      val adaptedSchema = adaptSchema(entitySchema)
+      val entities = plugin.source.retrieve(adaptedSchema, limit)
+      adaptUris(entities, adaptedSchema)
+    }
+
+    /**
+      * Retrieves a list of entities from this source.
+      *
+      * @param entitySchema The entity schema
+      * @param entities     The URIs of the entities to be retrieved.
+      * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
+      */
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+      val adaptedSchema = adaptSchema(entitySchema)
+      val retrievedEntities = plugin.source.retrieveByUri(adaptedSchema, entities)
+      adaptUris(retrievedEntities, adaptedSchema).toSeq
+    }
+
+    /**
+      * Adds the URI property to the schema.
+      */
+    private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
+      uriProperty match {
+        case Some(property) =>
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType))
+        case None =>
+          entitySchema
+      }
+    }
+
+    /**
+      * Rewrites the entity URIs if an URI property has been specified.
+      */
+    private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
+      uriProperty match {
+        case Some(property) =>
+          val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
+          for (entity <- entities) yield {
+            new Entity(
+              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri),
+              values = entity.values,
+              desc = entity.desc
+            )
+          }
+        case None =>
+          entities
+      }
+    }
+  }
 
   private class EntitySinkWrapper extends EntitySink {
 

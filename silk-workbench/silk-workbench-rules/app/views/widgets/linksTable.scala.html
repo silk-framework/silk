@@ -214,7 +214,7 @@
 @renderSimilarity(similarity: Confidence) = { @similarity match {
   case AggregatorConfidence(value, aggregation, children) => {
     <li>
-      <span class="aggregation">Aggregation:@aggregation.aggregator.plugin.id (@aggregation.id)</span>
+      <span class="aggregation">Aggregation:@aggregation.aggregator.pluginSpec.id (@aggregation.id)</span>
       @renderConfidence(value)
       <ul>
         @children.map(renderSimilarity)
@@ -223,7 +223,7 @@
   }
   case ComparisonConfidence(value, comparison, input1, input2) => {
     <li>
-      <span class="comparison">Comparison:@comparison.metric.plugin.id (@comparison.id)</span>
+      <span class="comparison">Comparison:@comparison.metric.pluginSpec.id (@comparison.id)</span>
       @renderConfidence(value)
       <ul>
         @renderValue(input1, "source")
@@ -240,7 +240,7 @@
   case TransformedValue(transform, values, children, error) => {
     <li>
       <span class="input">
-        Transform: @transform.transformer.plugin.id (@transform.id)
+        Transform: @transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
       </span>
       <ul>

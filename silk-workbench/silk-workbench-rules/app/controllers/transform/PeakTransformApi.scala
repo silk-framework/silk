@@ -86,12 +86,12 @@ class PeakTransformApi extends Controller {
             } catch {
               case pe: PeakException =>
                 Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-                  " of type " + dataset.plugin.plugin.label +
+                  " of type " + dataset.plugin.pluginSpec.label +
                   " raised following issue:" + pe.msg))))
             }
           case _ =>
             Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-              " of type " + dataset.plugin.plugin.label +
+              " of type " + dataset.plugin.pluginSpec.label +
               " does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
@@ -114,7 +114,7 @@ class PeakTransformApi extends Controller {
                                       (implicit prefixes: Prefixes): Result = {
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset.toString == "") {
-      Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.plugin.label} " +
+      Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
           s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
       project.task[DatasetSpec](sparqlDataset).data.plugin match {
@@ -129,7 +129,7 @@ class PeakTransformApi extends Controller {
           } catch {
             case pe: PeakException =>
               Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
-                  " of type " + sparqlSelectTask.plugin.label +
+                  " of type " + sparqlSelectTask.pluginSpec.label +
                   " raised following issue:" + pe.msg))))
           }
         case _ =>
