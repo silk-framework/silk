@@ -38,7 +38,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
    * Retrieves a list of properties which are defined on most entities.
    */
   def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): IndexedSeq[Path] = {
-    val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(100))
+    val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(200))
     val backwardPaths = getBackwardPaths(endpoint, graph, restrictions, 10)
 
     (forwardPaths ++ backwardPaths).toIndexedSeq.sortBy(-_._2).map(_._1)
@@ -88,7 +88,8 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         sparql ++= "GRAPH <" + graphUri + "> {\n"
 
       sparql ++= restrictions.toSparql + "\n"
-      sparql ++= "?s ?p ?" + variable + "\n"
+      sparql ++= "?s ?p ?" + variable + " .\n"
+      sparql ++= s"FILTER isIRI(?$variable)\n"
 
       for (graphUri <- graph if !graphUri.isEmpty)
         sparql ++= "}\n"
