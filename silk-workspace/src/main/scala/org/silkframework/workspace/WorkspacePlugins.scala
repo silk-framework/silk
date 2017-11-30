@@ -4,6 +4,7 @@ import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
 import org.silkframework.workspace.activity.linking._
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory, VocabularyCache, VocabularyCacheFactory}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, WorkflowExecutionReportJsonFormat}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
@@ -47,6 +48,7 @@ class WorkspacePlugins extends PluginModule {
   def formats = {
     TypesFormat.getClass ::
     VocabularyCache.ValueFormat.getClass ::
+    CachedEntitySchemaXmlFormat.getClass ::
     classOf[WorkflowExecutionReportJsonFormat] :: Nil
   }
 

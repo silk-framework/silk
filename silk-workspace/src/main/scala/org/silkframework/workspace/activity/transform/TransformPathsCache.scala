@@ -79,7 +79,7 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
 }
 
 object CachedEntitySchemata {
-  implicit object cachedEntitySchemaXmlFormat extends XmlFormat[CachedEntitySchemata] {
+  implicit object CachedEntitySchemaXmlFormat extends XmlFormat[CachedEntitySchemata] {
     override def read(value: Node)(implicit readContext: ReadContext): CachedEntitySchemata = {
       val configured = XmlSerialization.fromXml[EntitySchema]((value \ "ConfiguredEntitySchema" \ "EntityDescription").head)
       val untyped = (value \ "UnTypedEntitySchema" \ "EntityDescription").headOption.map(XmlSerialization.fromXml[EntitySchema])
