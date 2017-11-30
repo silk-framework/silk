@@ -16,7 +16,7 @@ case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpe
 
   override def autoRun: Boolean = true
 
-  def apply(task: ProjectTask[TransformSpec]): CachedActivity[EntitySchema] = {
+  def apply(task: ProjectTask[TransformSpec]): CachedActivity[CachedEntitySchemata] = {
     new CachedActivity(
       activity = new TransformPathsCache(task),
       resource = task.project.cacheResources.child("transform").child(task.id).get(s"pathsCache.xml")
