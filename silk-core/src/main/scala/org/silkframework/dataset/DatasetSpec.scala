@@ -44,6 +44,7 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
+  override def toString: String = DatasetSpec.toString
 
 }
 
