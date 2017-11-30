@@ -57,7 +57,7 @@ case class ParseDateTransformer(
   @Param("The date pattern used to parse the input values")
   format: String = "dd-MM-yyyy",
   @Param("If set to true, the parser tries to use heuristics to parse dates with invalid fields (such as a day of zero).")
-  lenient: Boolean = true) extends Transformer with Serializable {
+  lenient: Boolean = false) extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
