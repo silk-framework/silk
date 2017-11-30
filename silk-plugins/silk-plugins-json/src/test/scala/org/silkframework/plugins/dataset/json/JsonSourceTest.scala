@@ -7,9 +7,6 @@ import org.silkframework.util.Uri
 
 import scala.io.Codec
 
-/**
-  * Created on 12/22/16.
-  */
 class JsonSourceTest extends FlatSpec with MustMatchers {
   behavior of "Json Source"
 
@@ -17,6 +14,16 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
     val source = new JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
     source
+  }
+
+  it should "return all inner node types" in {
+    val types = jsonSource.retrieveTypes().map(_._1).toSet
+    types mustBe Set(
+      "",
+      "/persons",
+      "/persons/phoneNumbers",
+      "/organizations"
+    )
   }
 
   it should "not return an entity for an empty JSON array" in {
