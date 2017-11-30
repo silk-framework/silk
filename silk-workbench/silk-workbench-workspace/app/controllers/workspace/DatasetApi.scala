@@ -112,7 +112,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = Action { implicit request =>
     val context = Context.get[DatasetSpec](project, task, request.path)
 
-    context.task.data match {
+    context.task.data.plugin match {
       case rdf: RdfDataset =>
         val sparqlEndpoint = rdf.sparqlEndpoint
         var queryResults: Option[SparqlResults] = None
@@ -151,7 +151,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       val datasetTask = project.task[DatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
-      datasetTask.source match {
+      datasetTask.plugin.source match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
                inputPath <- coveragePathInput.paths
@@ -183,7 +183,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       val project = User().workspace.project(projectName)
       implicit val prefixes = project.config.prefixes
       val datasetTask = project.task[DatasetSpec](datasetId)
-      datasetTask.source match {
+      datasetTask.plugin.source match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>

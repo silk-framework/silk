@@ -20,7 +20,7 @@ import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.Uri
+import org.silkframework.util.{SampleUtil, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.Node
@@ -45,6 +45,20 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
   private class EntitySourceWrapper extends DataSource {
+
+    override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+      plugin.source.retrieveTypes(limit)
+    }
+
+    override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+      plugin.source.retrievePaths(typeUri, depth, limit)
+    }
+
+    override def sampleEntities(entityDesc: EntitySchema,
+                                size: Int,
+                                filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
+      sampleEntities(entityDesc, size, filterOpt)
+    }
 
     /**
       * Retrieves entities from this source which satisfy a specific entity schema.

@@ -78,7 +78,7 @@ class PeakTransformApi extends Controller {
 
     project.anyTask(inputTaskId).data match {
       case dataset: DatasetSpec =>
-        dataset.source match {
+        dataset.plugin.source match {
           case peakDataSource: PeakDataSource =>
             try {
               val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
