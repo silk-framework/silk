@@ -19,7 +19,7 @@ package org.silkframework.rule.plugins.transformer.date
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException;
 
 /**
@@ -53,7 +53,11 @@ import org.silkframework.runtime.validation.ValidationException;
     throwsException = "org.silkframework.runtime.validation.ValidationException"
   )
 ))
-case class ParseDateTransformer(format: String = "dd-MM-yyyy", lenient: Boolean = true) extends Transformer with Serializable {
+case class ParseDateTransformer(
+  @Param("The date pattern used to parse the input values")
+  format: String = "dd-MM-yyyy",
+  @Param("If set to true, the parser tries to use heuristics to parse dates with invalid fields (such as a day of zero).")
+  lenient: Boolean = true) extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
