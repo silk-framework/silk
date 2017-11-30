@@ -285,7 +285,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * @return
     */
   private def resolveDataset(datasetTask: Task[DatasetSpec],
-                             replaceDatasets: Map[String, Dataset]): Task[Dataset] = {
+                             replaceDatasets: Map[String, Dataset]): Task[DatasetSpec] = {
     val dataset = datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {
@@ -295,10 +295,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
       case ds: InternalDataset =>
         executionContext.createInternalDataset(Some(datasetTask.id.toString))
-      case _: Dataset =>
-        datasetTask.data
+      case ds: Dataset =>
+        ds
     }
-    PlainTask(datasetTask.id, dataset)
+    PlainTask(datasetTask.id, datasetTask.copy(plugin = dataset), metaData = datasetTask.metaData)
   }
 
   override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)

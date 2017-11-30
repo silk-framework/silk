@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
   */
-class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
+class LocalDatasetExecutor extends DatasetExecutor[DatasetSpec, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
 
   final val LANGUAGE_ENC_PREFIX = "lg"
@@ -23,7 +23,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): EntityTable = {
+  override def read(dataset: Task[DatasetSpec], schema: EntitySchema, execution: LocalExecution): EntityTable = {
     schema match {
       case TripleEntitySchema.schema =>
         handleTripleEntitySchema(dataset)
@@ -37,7 +37,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleMultiEntitySchema(dataset: Task[Dataset], schema: EntitySchema, multi: MultiEntitySchema) = {
+  private def handleMultiEntitySchema(dataset: Task[DatasetSpec], schema: EntitySchema, multi: MultiEntitySchema) = {
     MultiEntityTable(
       entities = dataset.source.retrieve(entitySchema = schema),
       entitySchema = schema,
@@ -48,8 +48,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     )
   }
 
-  private def handleTripleEntitySchema(dataset: Task[Dataset]): TripleEntityTable = {
-    dataset.data match {
+  private def handleTripleEntitySchema(dataset: Task[DatasetSpec]): TripleEntityTable = {
+    dataset.data.plugin match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
       case _ =>
@@ -57,8 +57,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleSparqlEndpointSchema(dataset: Task[Dataset]): SparqlEndpointEntityTable = {
-    dataset.data match {
+  private def handleSparqlEndpointSchema(dataset: Task[DatasetSpec]): SparqlEndpointEntityTable = {
+    dataset.data.plugin match {
       case rdfDataset: RdfDataset =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
@@ -66,7 +66,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def readTriples(dataset: Task[Dataset], rdfDataset: RdfDataset) = {
+  private def readTriples(dataset: Task[DatasetSpec], rdfDataset: RdfDataset) = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
@@ -88,7 +88,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     TripleEntityTable(tripleEntities, dataset)
   }
 
-  override protected def write(data: EntityTable, dataset: Task[Dataset], execution: LocalExecution): Unit = {
+  override protected def write(data: EntityTable, dataset: Task[DatasetSpec], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset) { linkSink =>
@@ -109,7 +109,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit): Unit = {
+  private def withLinkSink(dataset: DatasetSpec)(f: LinkSink => Unit): Unit = {
     val sink = dataset.linkSink
     try {
       f(sink)
@@ -118,7 +118,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withEntitySink(dataset: Dataset)(f: EntitySink => Unit): Unit = {
+  private def withEntitySink(dataset: DatasetSpec)(f: EntitySink => Unit): Unit = {
     val sink = dataset.entitySink
     try {
       f(sink)
