@@ -41,9 +41,19 @@ import org.silkframework.runtime.validation.ValidationException;
     parameters = Array("format", "dd.MM.yyyy"),
     input1 = Array("3.4.2015"),
     output = Array("2015-04-03")
+  ),
+  new TransformExample(
+    parameters = Array("format", "yyyyMMdd"),
+    input1 = Array("20150403"),
+    output = Array("2015-04-03")
+  ),
+  new TransformExample(
+    parameters = Array("format", "yyyyMMdd", "lenient", "false"),
+    input1 = Array("20150000"),
+    throwsException = "org.silkframework.runtime.validation.ValidationException"
   )
 ))
-case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transformer with Serializable {
+case class ParseDateTransformer(format: String = "dd-MM-yyyy", lenient: Boolean = true) extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
@@ -53,6 +63,7 @@ case class ParseDateTransformer(format: String = "dd-MM-yyyy") extends Transform
     try {
       // Parse date
       val dateFormat = new SimpleDateFormat(format)
+      dateFormat.setLenient(lenient)
       val date = dateFormat.parse(value)
 
       // Format as XSD date
