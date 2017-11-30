@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.execution.local.{EntityTable, LinksTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.execution._
@@ -50,6 +50,10 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
       Seq.empty
     }
+
+    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
+
+    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
   }
 
   private def updateSelection(linkSpec: LinkSpec, inputs: Seq[EntityTable]): LinkSpec = {

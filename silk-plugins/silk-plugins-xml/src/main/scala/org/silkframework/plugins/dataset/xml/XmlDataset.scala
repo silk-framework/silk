@@ -5,7 +5,8 @@ import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 
-import scala.xml.{Node, ProcInstr, XML}
+import scala.util.{Failure, Success, Try}
+import scala.xml._
 
 @Plugin(
   id = "xml",
@@ -82,7 +83,7 @@ case class XmlDataset(
     * Validates the output template parameter
     */
   private def validateOutputTemplate(): Unit = {
-    val xml = XML.loadString(outputTemplate.str)
+    val xml = loadString(outputTemplate.str)
     def collectProcInstructions(node: Node): Seq[ProcInstr] = {
       node match {
         case proc: ProcInstr => Seq(proc)
@@ -92,6 +93,21 @@ case class XmlDataset(
     val procInstructions = collectProcInstructions(xml)
     if(procInstructions.size != 1) {
       throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
+    }
+  }
+
+  private def loadString(templateString: String): Elem = {
+    // Case 1: input <?Entity?>
+    val case1 = Try(XML.loadString(s"<Root>$templateString</Root>"))
+    // Case 2: input <Root><?Entity?></Root>
+    val case1or2 = case1.orElse(Try(XML.loadString(templateString)))
+    case1or2 match {
+      case Success(elem) => elem
+      case Failure(ex: SAXParseException) =>
+        throw new ValidationException("outputTemplate could not be processed as valid XML. Error in line " + ex.getLineNumber + " column " + ex.getColumnNumber)
+      case _ =>
+        throw new ValidationException("outputTemplate must be valid XML containing a single processing instruction or a single processing " +
+            "instruction of the form <?Entity?>!")
     }
   }
 

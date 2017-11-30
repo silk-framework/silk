@@ -1248,8 +1248,6 @@ td.rdtYear:hover {
 /* ==========================================================================
    Base styles: opinionated defaults
    ========================================================================== */
-
-
 html {
   color: rgba(0, 0, 0, 0.87);
   font-size: 1em;
@@ -1780,9 +1778,9 @@ blockquote {
   blockquote:before {
     position: absolute;
     left: -0.5em;
-    content: '“'; }
+    content: '\201C'; }
   blockquote:after {
-    content: '”';
+    content: '\201D';
     margin-left: -0.05em; }
 
 mark {
@@ -5919,7 +5917,7 @@ input.mdl-button[type="submit"] {
         -webkit-font-feature-settings: 'liga';
         -webkit-font-smoothing: antialiased;
         font-size: 16px;
-        content: "\e5d8";
+        content: "\E5D8";
         margin-right: 5px;
         vertical-align: sub; }
       .mdl-data-table th.mdl-data-table__header--sorted-ascending:hover, .mdl-data-table th.mdl-data-table__header--sorted-descending:hover {
@@ -5927,7 +5925,7 @@ input.mdl-button[type="submit"] {
         .mdl-data-table th.mdl-data-table__header--sorted-ascending:hover:before, .mdl-data-table th.mdl-data-table__header--sorted-descending:hover:before {
           color: rgba(0, 0, 0, 0.26); }
     .mdl-data-table th.mdl-data-table__header--sorted-descending:before {
-      content: "\e5db"; }
+      content: "\E5DB"; }
 
 .mdl-data-table__select {
   width: 16px; }
@@ -12512,8 +12510,7 @@ textarea.mdl-textfield__input {
 .mdl-tooltip {
   will-change: unset;
   background: #484848;
-  border: 1px solid rgba(255, 255, 255, 0.39);
-  text-transform: none; }
+  border: 1px solid rgba(255, 255, 255, 0.39); }
 
 .mdl-tooltip.is-active {
   animation: none;
@@ -13126,7 +13123,7 @@ ul.ecc-hierarchical-mapping-error-list {
         box-sizing: border-box;
         position: relative; }
         .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-content > div + div:before {
-          content: '•';
+          content: '\2022';
           font-size: 1rem;
           width: 1rem;
           height: 1.39em;
