@@ -2,10 +2,10 @@ package org.silkframework.workspace
 
 import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
-import org.silkframework.workspace.activity.dataset.{Types, TypesCacheFactory}
+import org.silkframework.workspace.activity.dataset.TypesCacheFactory
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory, VocabularyCache, VocabularyCacheFactory}
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, WorkflowExecutionReportJsonFormat}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, WorkflowExecutionReportJsonFormat}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
 
 import scala.language.existentials
@@ -44,13 +44,15 @@ class WorkspacePlugins extends PluginModule {
     classOf[LocalWorkflowExecutorFactory] ::
         Nil
 
-  def formats = {
+  def formats: List[Class[_]] = {
     TypesFormat.getClass ::
     VocabularyCache.ValueFormat.getClass ::
     classOf[WorkflowExecutionReportJsonFormat] :: Nil
   }
 
-  def projectMarshaller = {
+  def projectMarshaller: List[Class[_]] = {
     classOf[XmlZipProjectMarshaling] :: Nil
   }
+
+  def provenancePlugins: List[Class[_]] = classOf[NopPersistWorkflowProvenance] :: Nil
 }

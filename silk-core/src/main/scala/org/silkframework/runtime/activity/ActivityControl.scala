@@ -78,14 +78,14 @@ trait ActivityControl[T] {
     * Returns the last execution result with execution meta data. Is replaced as soon as an execution finishes successfully
     * or with error.
     */
-  def lastResult: Option[ActivityExecutionResult] = lastCompletedResult
+  def lastResult: Option[ActivityExecutionResult[T]] = lastCompletedResult
 
   @volatile
-  private var lastCompletedResult: Option[ActivityExecutionResult] = None
+  private var lastCompletedResult: Option[ActivityExecutionResult[T]] = None
 
-  case class ActivityExecutionResult(metaData: ActivityExecutionMetaData, resultValue: Option[T])
-
-  protected def lastResult_=(result: ActivityExecutionResult): Unit = {
+  protected def lastResult_=(result: ActivityExecutionResult[T]): Unit = {
     lastCompletedResult = Some(result)
   }
 }
+
+case class ActivityExecutionResult[T](metaData: ActivityExecutionMetaData, resultValue: Option[T])

@@ -116,7 +116,7 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
 
-  private def activityExecutionResult: ActivityExecutionResult = {
+  private def activityExecutionResult: ActivityExecutionResult[T] = {
     ActivityExecutionResult(
       metaData = ActivityExecutionMetaData(
         startedByUser = startedByUser.user,
