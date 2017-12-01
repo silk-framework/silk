@@ -14,12 +14,13 @@ class WorkspacePlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
     workspaceProviders :::
-    datasetActivities :::
-    transformActivities :::
-    linkingActivities :::
-    workflowActivities :::
-    projectMarshaller :::
-    formats
+        datasetActivities :::
+        transformActivities :::
+        linkingActivities :::
+        workflowActivities :::
+        projectMarshaller :::
+        provenancePlugins :::
+        formats
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::
