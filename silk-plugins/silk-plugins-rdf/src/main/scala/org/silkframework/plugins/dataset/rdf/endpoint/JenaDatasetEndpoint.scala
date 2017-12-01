@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import java.io._
 import java.util.logging.Logger
 
-import org.apache.jena.query.{Dataset, QueryExecution, QueryExecutionFactory}
+import org.apache.jena.query.{Dataset, Query, QueryExecution, QueryExecutionFactory}
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
@@ -12,9 +12,9 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlPar
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
   */
-class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStoreTrait {
+class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = SparqlParams(pageSize = 0)) extends JenaEndpoint with GraphStoreTrait {
 
-  override protected def createQueryExecution(query: String): QueryExecution = {
+  override protected def createQueryExecution(query: Query): QueryExecution = {
     QueryExecutionFactory.create(query, dataset)
   }
 
@@ -53,17 +53,12 @@ class JenaDatasetEndpoint(dataset: Dataset) extends JenaEndpoint with GraphStore
   }
 
   /**
-    * @return the SPARQL related configuration of this SPARQL endpoint.
-    */
-  override def sparqlParams: SparqlParams = SparqlParams(pageSize = 0)
-
-  /**
     *
     * @param sparqlParams the new configuration of the SPARQL endpoint.
     * @return A SPARQL endpoint configured with the new parameters.
     */
   override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
-    this // SPARQL parameters have no effect on this type of endpoint
+    new JenaDatasetEndpoint(dataset, sparqlParams)
   }
 
   override def graphStoreHeaders(): Map[String, String] = Map.empty

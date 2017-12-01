@@ -23,6 +23,7 @@ import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
+import scala.util.Random
 import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
@@ -43,6 +44,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
+
+  override lazy val port: Int = 19000 + Random.nextInt(1000)
 
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"

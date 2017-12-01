@@ -5,11 +5,13 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.users.{WebUser, WebUserManager}
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, PersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
@@ -49,7 +51,8 @@ class WorkflowApi extends Controller {
     Ok
   }
 
-  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[LocalWorkflowExecutor].control
@@ -79,7 +82,13 @@ class WorkflowApi extends Controller {
     Ok(lines.mkString("\n"))
   }
 
-  def postVariableWorkflowInput(projectName: String, workflowTaskName: String): Action[AnyContent] = Action { request =>
+  /**
+    * Run a variable workflow, where some of the tasks are configured at request time and dataset payload may be
+    * delivered inside the request.
+    */
+  def postVariableWorkflowInput(projectName: String,
+                                workflowTaskName: String,
+                                persistProvenance: Boolean): Action[AnyContent] = Action { request =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -97,7 +106,8 @@ class WorkflowApi extends Controller {
         val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
         implicit val resourceManager: ResourceManager = sinkResourceManager
         val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
-        executeVariableWorkflow(workflowTask, dataSources, sinks)
+        val webUser = WebUserManager.instance.user(request)
+        executeVariableWorkflow(workflowTask, dataSources, sinks, persistProvenance, webUser)
         Ok(variableSinkResultXML(resultResourceManager, sink2ResourceMap))
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
@@ -117,8 +127,16 @@ class WorkflowApi extends Controller {
 
   private def executeVariableWorkflow(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, Dataset],
-                                      replaceSinks: Map[String, Dataset]): Unit = {
+                                      replaceSinks: Map[String, Dataset],
+                                      persistProvenance: Boolean,
+                                      webUser: Option[WebUser]): Unit = {
     val executor = LocalWorkflowExecutor(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
-    Activity(executor).startBlocking()
+    val activityExecution = Activity(executor)
+    implicit val userContext: UserContext = SimpleUserContext(webUser)
+    activityExecution.startBlocking()
+    activityExecution.lastResult foreach { lastResult =>
+      val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
+      persistProvenanceService.persistWorkflowProvenance(task, lastResult)
+    }
   }
 }

@@ -21,7 +21,6 @@ object VocabularyManager {
       lastPlugin = plugin
     }
     vocabularyManager.get
-
   }
 
   def apply(): VocabularyManager = instance
