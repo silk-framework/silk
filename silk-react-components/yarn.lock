@@ -2232,7 +2232,7 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@2.24.2:
+ecc-gui-elements@^2.24.2:
   version "2.24.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.24.2.tgz#6d23868d7cc6b46ffb10d18a88ab2a17c74419ae"
   dependencies:

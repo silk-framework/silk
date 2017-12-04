@@ -12146,27 +12146,55 @@ button.mdl-chip {
   background: white;
   color: black;
   border: none;
+  padding: 0;
   font-size: 1rem;
-  width: 21em;
-  padding: 0.5rem; }
-  .rdtPicker th, .rdtPicker td {
-    height: 2em; }
-  .rdtPicker th.rdtNext, .rdtPicker th.rdtPrev {
+  width: 21em; }
+  .rdtPicker table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: none;
+    font-size: 1rem;
+    width: 21em; }
+  .rdtPicker thead tr, .rdtPicker tbody tr, .rdtPicker tfoot tr {
+    transition: none;
+    height: auto; }
+    .rdtPicker thead tr:hover, .rdtPicker tbody tr:hover, .rdtPicker tfoot tr:hover {
+      background-color: transparent; }
+  .rdtPicker thead th, .rdtPicker thead td, .rdtPicker tbody th, .rdtPicker tbody td, .rdtPicker tfoot th, .rdtPicker tfoot td {
+    font-size: 1em;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+    height: 2.5em;
+    line-height: 1;
+    border: none;
+    color: black; }
+    .rdtPicker thead th:first-of-type, .rdtPicker thead th:last-of-type, .rdtPicker thead td:first-of-type, .rdtPicker thead td:last-of-type, .rdtPicker tbody th:first-of-type, .rdtPicker tbody th:last-of-type, .rdtPicker tbody td:first-of-type, .rdtPicker tbody td:last-of-type, .rdtPicker tfoot th:first-of-type, .rdtPicker tfoot th:last-of-type, .rdtPicker tfoot td:first-of-type, .rdtPicker tfoot td:last-of-type {
+      padding: 0; }
+  .rdtPicker thead th.rdtNext, .rdtPicker thead th.rdtPrev, .rdtPicker tbody th.rdtNext, .rdtPicker tbody th.rdtPrev, .rdtPicker tfoot th.rdtNext, .rdtPicker tfoot th.rdtPrev {
     font-size: 2em;
     height: 1em;
     vertical-align: middle;
     font-weight: 300; }
-  .rdtPicker td.rdtOld, .rdtPicker td.rdtNew {
+  .rdtPicker thead td.rdtOld, .rdtPicker thead td.rdtNew, .rdtPicker tbody td.rdtOld, .rdtPicker tbody td.rdtNew, .rdtPicker tfoot td.rdtOld, .rdtPicker tfoot td.rdtNew {
     color: rgba(0, 0, 0, 0.26); }
-  .rdtPicker td.rdtToday:before {
+  .rdtPicker thead td.rdtToday:before, .rdtPicker tbody td.rdtToday:before, .rdtPicker tfoot td.rdtToday:before {
     border-bottom-color: #0a67a3; }
-  .rdtPicker td.rdtActive.rdtToday:before {
+  .rdtPicker thead td.rdtActive.rdtToday:before, .rdtPicker tbody td.rdtActive.rdtToday:before, .rdtPicker tfoot td.rdtActive.rdtToday:before {
     border-bottom-color: white; }
-  .rdtPicker td.rdtDay:hover, .rdtPicker td.rdtDay:focus, .rdtPicker td.rdtHour:hover, .rdtPicker td.rdtHour:focus, .rdtPicker td.rdtMinute:hover, .rdtPicker td.rdtMinute:focus, .rdtPicker td.rdtSecond:hover, .rdtPicker td.rdtSecond:focus, .rdtPicker .rdtTimeToggle:hover, .rdtPicker .rdtTimeToggle:focus {
+  .rdtPicker thead td.rdtDay:hover, .rdtPicker thead td.rdtDay:focus, .rdtPicker thead td.rdtHour:hover, .rdtPicker thead td.rdtHour:focus, .rdtPicker thead td.rdtMinute:hover, .rdtPicker thead td.rdtMinute:focus, .rdtPicker thead td.rdtSecond:hover, .rdtPicker thead td.rdtSecond:focus, .rdtPicker thead .rdtTimeToggle:hover, .rdtPicker thead .rdtTimeToggle:focus, .rdtPicker tbody td.rdtDay:hover, .rdtPicker tbody td.rdtDay:focus, .rdtPicker tbody td.rdtHour:hover, .rdtPicker tbody td.rdtHour:focus, .rdtPicker tbody td.rdtMinute:hover, .rdtPicker tbody td.rdtMinute:focus, .rdtPicker tbody td.rdtSecond:hover, .rdtPicker tbody td.rdtSecond:focus, .rdtPicker tbody .rdtTimeToggle:hover, .rdtPicker tbody .rdtTimeToggle:focus, .rdtPicker tfoot td.rdtDay:hover, .rdtPicker tfoot td.rdtDay:focus, .rdtPicker tfoot td.rdtHour:hover, .rdtPicker tfoot td.rdtHour:focus, .rdtPicker tfoot td.rdtMinute:hover, .rdtPicker tfoot td.rdtMinute:focus, .rdtPicker tfoot td.rdtSecond:hover, .rdtPicker tfoot td.rdtSecond:focus, .rdtPicker tfoot .rdtTimeToggle:hover, .rdtPicker tfoot .rdtTimeToggle:focus {
     background-color: rgba(158, 158, 158, 0.2); }
-  .rdtPicker td.rdtActive, .rdtPicker td.rdtActive:hover {
+  .rdtPicker thead td.rdtActive, .rdtPicker thead td.rdtActive:hover, .rdtPicker tbody td.rdtActive, .rdtPicker tbody td.rdtActive:hover, .rdtPicker tfoot td.rdtActive, .rdtPicker tfoot td.rdtActive:hover {
     color: white;
     background-color: #0a67a3; }
+  .rdtPicker thead tr:first-child th {
+    height: 1em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12); }
+    .rdtPicker thead tr:first-child th.rdtSwitch {
+      height: 3em; }
+  .rdtPicker tfoot td {
+    height: 3em;
+    border-top: 1px solid rgba(0, 0, 0, 0.12); }
   .rdtStatic .rdtPicker {
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
 
@@ -12434,7 +12462,8 @@ hr.mdl-layout-spacer {
     caret-color: transparent; }
 
 .Select-menu-outer {
-  margin-top: 0; }
+  margin-top: 0;
+  z-index: 9999; }
   .Select--optionsontop .Select-menu-outer {
     top: auto;
     bottom: 100%;
@@ -12510,7 +12539,8 @@ textarea.mdl-textfield__input {
 .mdl-tooltip {
   will-change: unset;
   background: #484848;
-  border: 1px solid rgba(255, 255, 255, 0.39); }
+  border: 1px solid rgba(255, 255, 255, 0.39);
+  text-transform: none; }
 
 .mdl-tooltip.is-active {
   animation: none;
