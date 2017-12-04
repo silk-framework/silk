@@ -109,7 +109,7 @@ private class ActivityExecution[T](activity: Activity[T],
           status.update(Status.Finished(success = false, System.currentTimeMillis - startTimestamp.get, Some(ex)))
           throw ex
       } finally {
-		lastResult = activityExecutionResult
+        lastResult = activityExecutionResult
         resetMetaData()
         forkJoinRunner = None
       }
