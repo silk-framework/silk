@@ -39493,7 +39493,8 @@
             default: obj
         };
     }
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _eccMessagebus = __webpack_require__(200), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _superagent = __webpack_require__(495), _superagent2 = _interopRequireDefault(_superagent), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), silkStore = _eccMessagebus2.default.channel("silk.api");
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _eccMessagebus = __webpack_require__(200), _eccMessagebus2 = _interopRequireDefault(_eccMessagebus), _superagent = __webpack_require__(495), _superagent2 = _interopRequireDefault(_superagent), _lodash = __webpack_require__(6), silkStore = (_interopRequireDefault(_lodash), 
+    _eccMessagebus2.default.channel("silk.api"));
     silkStore.subject("transform.task.put").subscribe();
     silkStore.subject("transform.task.delete").subscribe();
     silkStore.subject("transform.task.rules.get").subscribe(function(_ref) {
@@ -39503,13 +39504,9 @@
     silkStore.subject("transform.task.rules.put").subscribe();
     silkStore.subject("transform.task.rule.get").subscribe();
     silkStore.subject("transform.task.rule.generate").subscribe(function(_ref2) {
-        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentId = data.parentId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask, newCorrespondences = _lodash2.default.map(correspondences, function(c) {
-            return (0, _extends3.default)({}, _lodash2.default.omit(c, "sourcePath"), {
-                sourcePath: _lodash2.default.last(_lodash2.default.split(c.sourcePath, "/"))
-            });
-        });
+        var data = _ref2.data, replySubject = _ref2.replySubject, correspondences = data.correspondences, parentId = data.parentId, baseUrl = data.baseUrl, project = data.project, transformTask = data.transformTask;
         _superagent2.default.post(baseUrl + "/ontologyMatching/rulesGenerator/" + project + "/" + transformTask + "/rule/" + parentId).accept("application/json").send({
-            correspondences: newCorrespondences
+            correspondences: correspondences
         }).observe().multicast(replySubject).connect();
     });
     silkStore.subject("transform.task.rule.suggestions").subscribe(function(_ref3) {
