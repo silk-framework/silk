@@ -41,16 +41,19 @@ silkStore
             transformTask,
         } = data;
 
+        // add default empty source path
+        const newCorrespondences = _.map(correspondences, c => ({
+            ..._.omit(c, 'sourcePath'),
+            sourcePath: _.last(_.split(c.sourcePath, '/')),
+        }));
+
         superagent
             .post(
                 `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentId}`
             )
             .accept('application/json')
             .send({
-                correspondences: _.map(correspondences, c => ({
-                    sourcePath: _.last(_.split(c.sourcePath, '/')),
-                    targetProperty: c.targetProperty,
-                })),
+                correspondences: newCorrespondences,
             })
             .observe()
             .multicast(replySubject)

@@ -355,12 +355,7 @@ const MappingsWorkview = React.createClass({
             _.has(this.state, 'ruleData.rules.typeRules') ? (
                 <SuggestionsList
                     key={_.join(types, ',')}
-                    ruleId={
-                        // TODO: Remove this non-sense
-                        _.isUndefined(this.props.currentRuleId)
-                            ? 'root'
-                            : this.props.currentRuleId
-                    }
+                    ruleId={_.get(this, 'state.ruleData.id', 'root')}
                     onClose={this.handleCloseSuggestions}
                     parent={{
                         id: this.state.ruleData.id,

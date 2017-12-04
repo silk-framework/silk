@@ -2,11 +2,13 @@ import React from 'react';
 import {
     AffirmativeButton,
     DismissiveButton,
+    DisruptiveButton,
     Card,
     CardTitle,
     CardMenu,
     CardContent,
     CardActions,
+    ConfirmationDialog,
     Info,
     ContextMenu,
     MenuItem,
@@ -14,6 +16,7 @@ import {
     ScrollingMixin,
     Checkbox,
     ProgressButton,
+    Tooltip,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
@@ -21,6 +24,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
+import {SUGGESTION_TYPES} from "../helpers";
 
 const SuggestionsListWrapper = props => (
     <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
@@ -30,21 +34,27 @@ const SuggestionsListWrapper = props => (
 
 const SuggestionsList = React.createClass({
     mixins: [UseMessageBus, ScrollingMixin],
-
+    defaultCheckValue: false,
     // define property types
     // FIXME: check propTypes
     propTypes: {
         targetClassUris: React.PropTypes.array,
     },
-    check(suggestion) {
-        this.setState({
-            checked: _.includes(this.state.checked, suggestion.id)
-                ? _.without(this.state.checked, suggestion.id)
-                : _.concat(this.state.checked, suggestion.id),
-        });
+    getInitialState() {
+        return {
+            data: undefined,
+            error: false,
+            showDefaultProperties: true,
+            rawData: undefined,
+            askForDiscard: false,
+            checked: this.defaultCheckValue,
+        };
     },
-    isChecked(suggestion) {
-        return _.includes(this.state.checked, suggestion.id);
+    onChecked(v) {
+        const data = this.state.data;
+        const index = _.findIndex(data, (d) => d.id === v.id);
+        data[index].checked = !data[index].checked;
+        this.setState({data});
     },
     loadData() {
         this.setState({
@@ -60,15 +70,29 @@ const SuggestionsList = React.createClass({
             })
             .subscribe(
                 response => {
+                    const rawData = response.suggestions.map(v => { return {
+                        ...v,
+                        checked: this.defaultCheckValue,
+                        type: v.type || SUGGESTION_TYPES[0],
+                    }})
                     this.setState({
                         loading: false,
-                        data: response.suggestions,
+                        rawData: rawData,
+                        data: this.state.showDefaultProperties ?
+                            rawData :
+                            rawData.filter(v => !!v.targetProperty)
                     });
                 },
                 err => {
                     this.setState({loading: false, error: [{error: err}]});
                 }
             );
+    },
+    onTypeChanged(v) {
+        const data = this.state.data;
+        const index = _.findIndex(data, (d) => d.id === v.id);
+        data[index].type = v.type;
+        this.setState({data});
     },
     componentDidMount() {
         this.loadData();
@@ -82,22 +106,40 @@ const SuggestionsList = React.createClass({
             });
         }
     },
+    discardDialog() {
+        return (
+            <ConfirmationDialog
+                active
+                modal
+                title="Discard selection?"
+                confirmButton={
+                    <DisruptiveButton
+                        disabled={false}
+                        onClick={this.onDiscard}>
+                        Discard
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton onClick={this.onCancelDiscard}>
+                        Cancel
+                    </DismissiveButton>
+                }>
+                <p>You currently selection will be lost.</p>
+            </ConfirmationDialog>
+        );
+    },
     handleAddSuggestions(event) {
         event.stopPropagation();
-        const correspondences = [];
+
         this.setState({
             saving: true,
         });
 
-        _.forEach(this.state.data, suggestion => {
-            if (this.isChecked(suggestion)) {
-                correspondences.push({
-                    sourcePath: suggestion.sourcePath,
-                    targetProperty: suggestion.targetProperty,
-                });
-            }
-        });
-
+        const correspondences = this.state.data.filter(v => v.checked).map(v => {return {
+            sourcePath: v.sourcePath,
+            targetProperty: v.targetProperty,
+            type: v.type,
+        }});
         hierarchicalMappingChannel
             .request({
                 topic: 'rules.generate',
@@ -127,19 +169,29 @@ const SuggestionsList = React.createClass({
                 }
             );
     },
-    getInitialState() {
-        return {
-            data: undefined,
-            checked: [],
-            error: false,
-        };
+    toggleDefaultProperties() {
+        if (this.state.data.filter(v => v.checked).length !== 0) {
+            this.setState({askForDiscard:true});
+        }
+        else {
+            this.setState({
+                data: !this.state.showDefaultProperties ?
+                    this.state.rawData :
+                    this.state.rawData.filter(v => !!v.targetProperty),
+                showDefaultProperties: !this.state.showDefaultProperties,
+            });
+        }
     },
     checkAll(event) {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
         this.setState({
-            checked: _.map(this.state.data, suggestion => suggestion.id),
+            data: this.state.data.map(a => {return {
+                ...a,
+                checked: true
+            }}),
+            checked: true,
         });
     },
     checkNone(event) {
@@ -147,22 +199,37 @@ const SuggestionsList = React.createClass({
             event.stopPropagation();
         }
         this.setState({
-            checked: [],
+            data: this.state.data.map(a => {return {
+                ...a,
+                checked: false
+            }}),
+            checked: false,
         });
+    },
+    onDiscard() {
+        this.setState({
+            data: !this.state.showDefaultProperties ?
+                this.state.rawData :
+                this.state.rawData.filter(v => !!v.targetProperty),
+            showDefaultProperties: !this.state.showDefaultProperties,
+            askForDiscard: false,
+        });
+    },
+    onCancelDiscard() {
+        this.setState({askForDiscard: false})
     },
     // template rendering
     render() {
         if (this.state.loading) {
             return <Spinner />;
         }
-
         if (this.state.saving) {
             return (
                 <SuggestionsListWrapper>
                     <CardTitle>Saving...</CardTitle>
                     <CardContent>
                         <p>
-                            The {_.size(this.state.checked)} rules you have
+                            The {_.size(_.filter(this.state.data, d => d.checked))} rules you have
                             selected are being created.
                         </p>
                     </CardContent>
@@ -220,7 +287,7 @@ const SuggestionsList = React.createClass({
         }
 
         let suggestionsList = false;
-        const hasChecks = _.some(this.state.checked);
+        const hasChecks = _.get(this.state, 'checked');
 
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
@@ -240,48 +307,67 @@ const SuggestionsList = React.createClass({
 
             suggestionsList = (
                 <ol className="mdl-list">
-                    <li className="ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal">
+                    <li className="ecc-silk-mapping__ruleitem">
                         <div className="ecc-silk-mapping__ruleitem-summary">
-                            <div className="mdl-list__item">
-                                <Checkbox
-                                    onChange={
-                                        hasChecks
-                                            ? this.checkNone
-                                            : this.checkAll
-                                    }
-                                    checked={hasChecks}
-                                    className="ecc-silk-mapping__suggestitem-checkbox"
-                                    ripple
-                                />
-                                <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
-                                    Value path
+                            <div className="mdl-list__item ecc-silk-mapping__ruleheader">
+                                <div className="ecc-silk-mapping__suggestitem-checkbox">
+                                    <Tooltip label="Select all">
+                                        <div>
+                                            <Checkbox
+                                                onChange={
+                                                    hasChecks
+                                                        ? this.checkNone
+                                                        : this.checkAll
+                                                }
+                                                checked={hasChecks}
+                                            />
+                                        </div>
+                                    </Tooltip>
                                 </div>
-                                <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
-                                    Target property
+                                <div className="mdl-list__item-primary-content">
+                                    <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
+                                        Value path
+                                    </div>
+                                    <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
+                                        Target property
+                                    </div>
+                                    <div className="ecc-silk-mapping__suggestitem-typeselect">
+                                        Mapping type
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </li>
-                    {_.map(suggestions, suggestion => (
-                        <SuggestionsRule
-                            suggestion={suggestion}
-                            check={this.check}
-                            checked={this.isChecked(suggestion)}
-                            key={suggestion.id}
-                        />
-                    ))}
+                    {_.map(suggestions, suggestion => {
+                        return (
+                            <SuggestionsRule
+                                suggestion={suggestion}
+                                onChecked={this.onChecked}
+                                onTypeChanged={this.onTypeChanged}
+                                pos={suggestion.id}
+                                key={suggestion.id+suggestion.checked+suggestion.type}
+                            />
+                    )})}
                 </ol>
             );
         }
 
+        const suggestionsToBeSave = _.filter(this.state.data, entry => entry.checked);
+        const confirmDialog = this.state.askForDiscard ? this.discardDialog() : false;
         return (
             <SuggestionsListWrapper>
+                {confirmDialog}
                 <CardTitle>
                     <div className="mdl-card__title-text">
                         Add suggested mapping rules
                     </div>
                     <CardMenu>
                         <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
+                            <MenuItem
+                                className="ecc-silk-mapping__ruleslistmenu__item-select-all"
+                                onClick={this.toggleDefaultProperties}>
+                                {this.state.showDefaultProperties ? "Hide" : "Show" } default properties
+                            </MenuItem>
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-all"
                                 onClick={this.checkAll}>
@@ -301,7 +387,7 @@ const SuggestionsList = React.createClass({
                         raised
                         className="ecc-hm-suggestions-save"
                         onClick={this.handleAddSuggestions}
-                        disabled={_.size(this.state.checked) === 0}>
+                        disabled={_.size(suggestionsToBeSave) === 0}>
                         Save
                     </AffirmativeButton>
                     <DismissiveButton
