@@ -8,6 +8,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{EntityTable, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.ProjectTask
 
 import scala.util.control.NonFatal
@@ -58,6 +59,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
       throw WorkflowException("Not all workflow nodes were executed! Executed " +
           workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+    }
+  }
+
+  override def runAfter(context: ActivityContext[WorkflowExecutionReport]): Unit = {
+    context.lastResult foreach { lastResult =>
+      val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
+      persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
     }
   }
 

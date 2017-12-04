@@ -1,14 +1,11 @@
 package org.silkframework.runtime.activity
 
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ForkJoinPool, ForkJoinWorkerThread, ThreadFactory}
+import java.util.concurrent.ForkJoinPool
 
 import org.silkframework.util.StringUtils._
 
-import scala.concurrent.ExecutionContext
-import scala.reflect.ClassTag
 import scala.math.max
+import scala.reflect.ClassTag
 
 /**
  * An activity is a unit of work that can be executed in the background.
@@ -47,6 +44,11 @@ trait Activity[T] extends HasValue {
    * The initial value of this activity, if any.
    */
   def initialValue: Option[T] = None
+
+  /**
+    * A block of code that is run after the activity execution, both successful, failed and cancelled.
+    */
+  def runAfter(context: ActivityContext[T]): Unit = {}
 
   /**
    * Captures the bound value type.

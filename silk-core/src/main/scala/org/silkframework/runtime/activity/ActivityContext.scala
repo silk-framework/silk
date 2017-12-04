@@ -38,4 +38,17 @@ trait ActivityContext[T] {
     * The user context the activity is executed in.
     */
   def userContext: UserContext
+
+  /**
+    * Returns the last execution result with execution meta data. Is replaced as soon as an execution finishes successfully
+    * or with error.
+    */
+  def lastResult: Option[ActivityExecutionResult[T]] = lastCompletedResult
+
+  @volatile
+  private var lastCompletedResult: Option[ActivityExecutionResult[T]] = None
+
+  protected def lastResult_=(result: ActivityExecutionResult[T]): Unit = {
+    lastCompletedResult = Some(result)
+  }
 }

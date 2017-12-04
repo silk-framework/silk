@@ -28,6 +28,6 @@ case class NopPersistWorkflowProvenance() extends PersistWorkflowProvenance {
   val log: Logger = Logger.getLogger(this.getClass.getName)
   override def persistWorkflowProvenance(workflowTask: ProjectTask[Workflow],
                                          activityResult: ActivityExecutionResult[WorkflowExecutionReport]): Unit = {
-    log.warning("Workflow provenance data ist not written. No valid plugin specified. Please set ")
+    log.fine("Workflow provenance data ist not written. No valid plugin specified. Please set provenance.persistWorkflowProvenancePlugin")
   }
 }

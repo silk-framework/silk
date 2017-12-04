@@ -4,6 +4,7 @@ import java.util.concurrent.ForkJoinTask
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 private class ActivityExecution[T](activity: Activity[T],
@@ -69,7 +70,17 @@ private class ActivityExecution[T](activity: Activity[T],
       children().foreach(_.cancel())
       activity.cancelExecution()
       lastResult = activityExecutionResult
+      runAfterActivityTask()
       resetMetaData()
+    }
+  }
+
+  private def runAfterActivityTask(): Unit = {
+    try {
+      activity.runAfter(this)
+    } catch {
+      case NonFatal(ex) =>
+        log.warning("After-activity execution failed for activity " + activity.name + ": " + ex.getMessage)
     }
   }
 
@@ -110,6 +121,7 @@ private class ActivityExecution[T](activity: Activity[T],
           throw ex
       } finally {
         lastResult = activityExecutionResult
+        runAfterActivityTask()
         resetMetaData()
         forkJoinRunner = None
       }
