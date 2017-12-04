@@ -88,7 +88,6 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
         "/Person/ID",
         "/Person/Name",
         "/Person/Events",
-        "/Person/Events/@count",
         "/Person/Events/Birth",
         "/Person/Events/Death",
         "/Person/Properties",

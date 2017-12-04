@@ -17,13 +17,19 @@ private class ActivityExecution[T](activity: Activity[T],
   override val name: String = activity.name
 
   @volatile
-  private var user: UserContext = UserContext.Empty
+  private var startedByUser: UserContext = UserContext.Empty
+
+  @volatile
+  private var cancelledByUser: UserContext = UserContext.Empty
 
   @volatile
   private var forkJoinRunner: Option[ForkJoinRunner] = None
 
   @volatile
   private var startTimestamp: Option[Long] = None
+
+  @volatile
+  private var cancelTimestamp: Option[Long] = None
 
   override def startTime: Option[Long] = startTimestamp
 
@@ -33,8 +39,6 @@ private class ActivityExecution[T](activity: Activity[T],
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     }
     // Execute activity
-    this.user = user
-    status.update(Status.Started())
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
     if (parent.isDefined) {
@@ -45,25 +49,27 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    this.user = user
-    status.update(Status.Started())
     runActivity()
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
-    this.user = user
-    status.update(Status.Started())
-    for (v <- initialValue)
-      value.update(v)
-    runActivity()
-    value()
+    synchronized {
+      for (v <- initialValue)
+        value.update(v)
+      runActivity()
+      value()
+    }
   }
 
-  override def cancel(): Unit = {
+  override def cancel()(implicit user: UserContext): Unit = {
     if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
+      this.cancelledByUser = user
+      this.cancelTimestamp = Some(System.currentTimeMillis())
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()
+      lastResult = activityExecutionResult
+      resetMetaData()
     }
   }
 
@@ -90,7 +96,9 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def underlying: Activity[T] = activity
 
-  private def runActivity(): Unit = synchronized {
+  private def runActivity()(implicit user: UserContext): Unit = synchronized {
+    this.startedByUser = user
+    status.update(Status.Started())
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
       startTimestamp = Some(System.currentTimeMillis)
       try {
@@ -101,26 +109,50 @@ private class ActivityExecution[T](activity: Activity[T],
           status.update(Status.Finished(success = false, System.currentTimeMillis - startTimestamp.get, Some(ex)))
           throw ex
       } finally {
-        startTimestamp = None
+        lastResult = activityExecutionResult
+        resetMetaData()
         forkJoinRunner = None
       }
     }
   }
 
 
+  private def activityExecutionResult: ActivityExecutionResult[T] = {
+    ActivityExecutionResult(
+      metaData = ActivityExecutionMetaData(
+        startedByUser = startedByUser.user,
+        startedAt = startTimestamp,
+        finishedAt = Some(System.currentTimeMillis()),
+        cancelledAt = cancelTimestamp,
+        cancelledBy = cancelledByUser.user,
+        finishStatus = status.get
+      ),
+      resultValue = value.get
+    )
+  }
+
+  private def resetMetaData(): Unit = {
+    // Reset values
+    startTimestamp = None
+    startedByUser = UserContext.Empty
+    cancelTimestamp = None
+    cancelledByUser = UserContext.Empty
+  }
+
   /**
     * A fork join task that runs the activity.
     */
-  private class ForkJoinRunner extends ForkJoinTask[Unit] {
+  private class ForkJoinRunner(implicit userContext: UserContext) extends ForkJoinTask[Unit] {
 
-    override def getRawResult = {}
+    override def getRawResult: Unit = {}
 
     override def setRawResult(value: Unit): Unit = {}
 
-    override def exec() = {
+    override def exec(): Boolean = {
       runActivity()
       true
     }
   }
 
+  override def userContext: UserContext = startedByUser
 }

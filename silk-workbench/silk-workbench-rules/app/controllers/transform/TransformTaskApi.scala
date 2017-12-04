@@ -9,9 +9,10 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -305,14 +306,20 @@ class TransformTaskApi extends Controller {
       case Some((_, sourcePath)) =>
         val pathCache = task.activity[TransformPathsCache]
         pathCache.control.waitUntilFinished()
-        val pathCacheSchema = pathCache.value
-        val matchingPaths = pathCacheSchema.typedPaths filter { p =>
+        val cachedPaths = pathCache.value.fetchCachedPaths(task, sourcePath)
+        val isRdfInput = pathCache.value.isRdfInput(task)
+        val matchingPaths = cachedPaths filter { p =>
           val pathSize = p.path.operators.size
-          p.path.operators.startsWith(sourcePath) &&
-              pathSize > sourcePath.size &&
-              pathSize - sourcePath.size <= maxDepth
+          isRdfInput ||
+              p.path.operators.startsWith(sourcePath) &&
+                  pathSize > sourcePath.size &&
+                  pathSize - sourcePath.size <= maxDepth
         } map { p =>
-          Path(p.path.operators.drop(sourcePath.size))
+            if(isRdfInput) {
+              p.path
+            } else {
+              Path(p.path.operators.drop(sourcePath.size))
+            }
         }
         val filteredPaths = if(unusedOnly) {
           val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
