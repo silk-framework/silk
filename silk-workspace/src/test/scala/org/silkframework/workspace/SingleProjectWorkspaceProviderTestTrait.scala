@@ -44,9 +44,10 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     User.userManager = () => rdfWorkspaceUser
   }
 
-  it should "return the expected user" in {
+  it should "return the expected user and project" in {
     assert(Option(expectedUser).isDefined && expectedUser == User(),
       "User was different! Try changing the mixin order of SingleProjectWorkspaceProviderTestTrait.")
+    assert(project.config.id.toString == projectId)
   }
 
   override protected def afterAll(): Unit = {

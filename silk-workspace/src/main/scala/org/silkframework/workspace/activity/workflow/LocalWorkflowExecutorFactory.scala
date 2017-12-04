@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 @Plugin(
   id = "ExecuteLocalWorkflow",
   label = "Execute local Workflow",
-  categories = Array("LinkSpecification"),
+  categories = Array("Workflow"),
   description = "Executes the workflow locally."
 )
 case class LocalWorkflowExecutorFactory() extends TaskActivityFactory[Workflow, LocalWorkflowExecutor] {

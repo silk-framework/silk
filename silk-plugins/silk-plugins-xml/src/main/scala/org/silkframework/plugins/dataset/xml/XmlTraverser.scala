@@ -1,7 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.net.URLEncoder
+
 import org.silkframework.entity._
+
 import scala.xml.{Node, Text}
 
 /**
@@ -66,8 +68,9 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param onlyLeafNodes Only return leaf nodes
     * @return Sequence of all found paths
     */
-  def collectPaths(onlyLeafNodes: Boolean): Seq[Path] = {
-    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, prefix = Seq.empty) if pathOperators.size > 1) yield {
+  def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): Seq[Path] = {
+    assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
+    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty) if pathOperators.size > 1) yield {
       Path(pathOperators.tail.toList)
     }
   }.distinct
@@ -76,22 +79,25 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * Recursively collects all direct and indirect paths for this node.
     * Initially called by [[XmlTraverser.collectPaths]]
     *
-    * @param onlyLeafNodes Only return leaf nodes
-    * @param prefix Path prefix to be prepended to all found paths
+    * @param onlyLeafNodes  Only return leaf nodes
+    * @param onlyInnerNodes Only return inner nodes
+    * @param prefix         Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  private def collectPathsRecursive(onlyLeafNodes: Boolean, prefix: Seq[PathOperator]): Seq[Seq[PathOperator]] = {
+  private def collectPathsRecursive(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, prefix: Seq[PathOperator]): Seq[Seq[PathOperator]] = {
     // Generate a path from the xml node itself
     val path = prefix :+ ForwardOperator(node.label)
     // Generate paths for all children nodes
-    val childPaths = children.flatMap(_.collectPathsRecursive(onlyLeafNodes, path))
+    val childPaths = children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path))
     // Generate paths for all attributes
     val attributes = node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
 
-    if(!onlyLeafNodes) {
+    if(onlyInnerNodes) {
+      Seq(path) ++ childPaths
+    } else if(!onlyLeafNodes) {
       Seq(path) ++ attributesPaths ++ childPaths
-    } else if (childPaths.isEmpty) {
+    } else if (onlyLeafNodes && childPaths.isEmpty) {
       Seq(path) ++ attributesPaths
     } else {
       attributesPaths ++ childPaths
