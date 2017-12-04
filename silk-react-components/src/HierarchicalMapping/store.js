@@ -854,9 +854,13 @@ if (!__DEBUG__) {
             }
 
             _.forEach(directRaw, source => {
-                suggestions.push(new Suggestion(source));
+                suggestions.push(new Suggestion(
+                    source,
+                    "value",
+                    null,
+                    0,
+                ));
             });
-
             replySubject.onNext({
                 suggestions,
             });

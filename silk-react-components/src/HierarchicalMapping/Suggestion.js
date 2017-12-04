@@ -1,5 +1,5 @@
 export class Suggestion {
-    constructor(path, type, target = null, confidence = null) {
+    constructor(path, type = "value", target = null, confidence = null) {
         this.sourcePath = path;
         this.targetProperty = target;
         this.confidence = confidence;
