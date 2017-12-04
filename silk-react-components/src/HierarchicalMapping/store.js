@@ -614,6 +614,11 @@ if (!__DEBUG__) {
 
     const editMappingRule = (payload, id, parent) => {
         if (id) {
+            _.set(payload, 'rules.propertyRules', undefined);
+            // if uriRule is null it's and object mapping -> we set it to undefined to prevent overwriting
+            if (_.get(payload, 'rules.uriRule') === null) {
+                _.set(payload, 'rules.uriRule', undefined);
+            }
             return silkStore.request({
                 topic: 'transform.task.rule.put',
                 data: {
