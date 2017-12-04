@@ -2232,9 +2232,9 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@2.23.2:
-  version "2.23.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.23.2.tgz#c242c6f6942f63296f0dfbe661a4a6efbce0129e"
+ecc-gui-elements@2.24.2:
+  version "2.24.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.24.2.tgz#6d23868d7cc6b46ffb10d18a88ab2a17c74419ae"
   dependencies:
     "@eccenca/material-design-lite" "^1.3.0-beta3"
     classnames "^2.2.5"

@@ -25,7 +25,7 @@
     "classnames": "^2.2.5",
     "create-react-class": "^15.6.0",
     "dialog-polyfill": "0.4.4",
-    "ecc-gui-elements": "2.23.2",
+    "ecc-gui-elements": "^2.24.2",
     "ecc-messagebus": "^3.6.0",
     "ecc-utils": "^1.4.0",
     "jquery": "1.12.4",
