@@ -100,13 +100,14 @@ private class ActivityExecution[T](activity: Activity[T],
     this.startedByUser = user
     status.update(Status.Started())
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
-      startTimestamp = Some(System.currentTimeMillis)
+      val startTime = System.currentTimeMillis()
+      startTimestamp = Some(startTime)
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTimestamp.get))
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
       } catch {
         case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTimestamp.get, Some(ex)))
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
           throw ex
       } finally {
         lastResult = activityExecutionResult
