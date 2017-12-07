@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity._
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -71,7 +71,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   }
 
   it should "generate correct URIs for non-leaf nodes when the URI pattern is empty" in {
-    (persons withUriPattern "" atPath "Person" valuesAt "Properties/Property").head shouldBe
+    (persons withUriPattern "" atPath "Person" entityURIsAt  "Properties/Property").head shouldBe
     (persons withUriPattern "" atPath "Person/Properties/Property").uris
   }
 
@@ -152,18 +152,23 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     def valuesAt(pathStr: String): Seq[Seq[String]] = {
       val path = Path.parse(pathStr)
-      retrieve(IndexedSeq(path)).map(_.evaluate(path))
+      retrieve(IndexedSeq(path.asStringTypedPath)).map(_.evaluate(path))
+    }
+
+    def entityURIsAt(pathStr: String): Seq[Seq[String]] = {
+      val path = Path.parse(pathStr)
+      retrieve(IndexedSeq(TypedPath(path, UriValueType))).map(_.evaluate(path))
     }
 
     def subPaths: Seq[String] = {
       xmlSource.retrievePaths(basePath).map(_.serialize())
     }
 
-    private def retrieve(paths: IndexedSeq[Path]): Seq[Entity] = {
+    private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {
       val entityDesc =
         EntitySchema(
           typeUri = Uri(basePath),
-          typedPaths = paths.map(_.asStringTypedPath)
+          typedPaths = paths
         )
       xmlSource.retrieve(entityDesc, entityLimit).toSeq
     }
