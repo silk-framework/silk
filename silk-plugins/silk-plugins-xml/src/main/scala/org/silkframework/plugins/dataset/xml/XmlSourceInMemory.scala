@@ -74,7 +74,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
       // Enumerate entities
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri = traverser.generateUri(uriPattern)
-        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
+        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
         f(new Entity(uri, values, entityDesc))
       }
     }

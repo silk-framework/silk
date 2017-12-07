@@ -82,7 +82,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val traverser = XmlTraverser(node)
 
             val uri = traverser.generateUri(uriPattern)
-            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
+            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
 
             f(new Entity(uri, values, entitySchema))
 

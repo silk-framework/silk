@@ -120,9 +120,10 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePathAsString(path: Path, uriPattern: String): Seq[String] = {
-    val xml = evaluatePath(path)
-    xml.map(_.formatNode(uriPattern))
+  def evaluatePathAsString(path: TypedPath, uriPattern: String): Seq[String] = {
+    val fetchEntityUri = path.valueType == UriValueType
+    val xml = evaluatePath(path.path)
+    xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
   }
 
   /**
@@ -130,12 +131,14 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * For leaf nodes, the text inside the node is returned.
     * For non-leaf nodes, a URI is generated.
     */
-  private def formatNode(uriPattern: String): String = {
+  private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
     // Check if this is a leaf node
-    if(node.isInstanceOf[Text] || (node.child.size == 1 && node.child.head.isInstanceOf[Text])) {
-      node.text
+    if(!fetchEntityUri && (node.isInstanceOf[Text] || (node.child.size == 1 && node.child.head.isInstanceOf[Text]))) {
+      Some(node.text)
+    } else if(uriPattern.nonEmpty || fetchEntityUri) {
+      Some(generateUri(uriPattern))
     } else {
-      generateUri(uriPattern)
+      None
     }
   }
 
