@@ -2,7 +2,7 @@ package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 /**
   * Tests the SPARQL select task in a workflow.
@@ -21,7 +21,7 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
   it should "produce the correct result" in {
     checkOutputResource("sparqlOutput.csv", "s,v")
     val workflowTask = project.task[Workflow](workflow)
-    val executeActivity = workflowTask.activity[LocalWorkflowExecutor]
+    val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()
     val expectedResult = """s,v
       |http://ns.eccenca.com/unemployment20,7.2

@@ -68,8 +68,6 @@ private class ActivityExecution[T](activity: Activity[T],
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()
-      lastResult = activityExecutionResult
-      resetMetaData()
     }
   }
 
@@ -97,6 +95,7 @@ private class ActivityExecution[T](activity: Activity[T],
   override def underlying: Activity[T] = activity
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
+    resetMetaData()
     this.startedByUser = user
     status.update(Status.Started())
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
