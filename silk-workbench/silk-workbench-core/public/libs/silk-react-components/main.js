@@ -3361,7 +3361,7 @@
                 uriRule: data.pattern ? {
                     type: _helpers.MAPPING_RULE_TYPE_URI,
                     pattern: data.pattern
-                } : null,
+                } : void 0,
                 typeRules: typeRules
             }
         };
@@ -3623,18 +3623,13 @@
         }).multicast(replySubject).connect();
     });
     var editMappingRule = function(payload, id, parent) {
-        if (id) {
-            _lodash2.default.set(payload, "rules.propertyRules", void 0);
-            null === _lodash2.default.get(payload, "rules.uriRule") && _lodash2.default.set(payload, "rules.uriRule", void 0);
-            return silkStore.request({
-                topic: "transform.task.rule.put",
-                data: (0, _extends3.default)({}, apiDetails, {
-                    ruleId: id,
-                    payload: payload
-                })
-            });
-        }
-        return silkStore.request({
+        return id ? silkStore.request({
+            topic: "transform.task.rule.put",
+            data: (0, _extends3.default)({}, apiDetails, {
+                ruleId: id,
+                payload: payload
+            })
+        }) : silkStore.request({
             topic: "transform.task.rule.rules.append",
             data: (0, _extends3.default)({}, apiDetails, {
                 ruleId: parent,
