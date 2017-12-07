@@ -10,9 +10,9 @@ import org.silkframework.runtime.users.User
   * @param cancelledAt
   * @param cancelledBy
   */
-case class ActivityExecutionMetaData(startedByUser: Option[User],
-                                     startedAt: Option[Long],
-                                     finishedAt: Option[Long],
-                                     cancelledAt: Option[Long],
-                                     cancelledBy: Option[User],
-                                     finishStatus: Option[Status])
+case class ActivityExecutionMetaData(startedByUser: Option[User] = None,
+                                     startedAt: Option[Long] = None,
+                                     finishedAt: Option[Long] = None,
+                                     cancelledAt: Option[Long] = None,
+                                     cancelledBy: Option[User] = None,
+                                     finishStatus: Option[Status] = None)

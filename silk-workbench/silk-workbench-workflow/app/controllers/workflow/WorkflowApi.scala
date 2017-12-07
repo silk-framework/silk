@@ -11,7 +11,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.users.{WebUser, WebUserManager}
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, PersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, PersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
@@ -55,7 +55,7 @@ class WorkflowApi extends Controller {
     implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val activity = workflow.activity[LocalWorkflowExecutor].control
+    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].control
     if (activity.status().isRunning) {
       PreconditionFailed
     } else {
@@ -67,13 +67,13 @@ class WorkflowApi extends Controller {
   def status(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[LocalWorkflowExecutor].value
+    val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
 
     for {
-      (name, res: TransformReport) <- report.taskReports
+      (name, res: TransformReport) <- report.report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
       lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"
@@ -87,8 +87,7 @@ class WorkflowApi extends Controller {
     * delivered inside the request.
     */
   def postVariableWorkflowInput(projectName: String,
-                                workflowTaskName: String,
-                                persistProvenance: Boolean): Action[AnyContent] = Action { request =>
+                                workflowTaskName: String): Action[AnyContent] = Action { request =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -107,7 +106,7 @@ class WorkflowApi extends Controller {
         implicit val resourceManager: ResourceManager = sinkResourceManager
         val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
         val webUser = WebUserManager.instance.user(request)
-        executeVariableWorkflow(workflowTask, dataSources, sinks, persistProvenance, webUser)
+        executeVariableWorkflow(workflowTask, dataSources, sinks, webUser)
         Ok(variableSinkResultXML(resultResourceManager, sink2ResourceMap))
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
@@ -128,15 +127,10 @@ class WorkflowApi extends Controller {
   private def executeVariableWorkflow(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, Dataset],
                                       replaceSinks: Map[String, Dataset],
-                                      persistProvenance: Boolean,
                                       webUser: Option[WebUser]): Unit = {
-    val executor = LocalWorkflowExecutor(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
+    val executor = LocalWorkflowExecutorGeneratingProvenance(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
     val activityExecution = Activity(executor)
     implicit val userContext: UserContext = SimpleUserContext(webUser)
     activityExecution.startBlocking()
-    activityExecution.lastResult foreach { lastResult =>
-      val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
-      persistProvenanceService.persistWorkflowProvenance(task, lastResult)
-    }
   }
 }
