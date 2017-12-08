@@ -38,6 +38,9 @@ private class ActivityExecution[T](activity: Activity[T],
     if (status().isRunning) {
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     }
+    // FIXME: Here is a mini race condition if two threads call start() at the same time, see CMEM-934
+    status.update(Status.Started())
+    this.startedByUser = user
     // Execute activity
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
@@ -48,17 +51,19 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
-  override def startBlocking()(implicit user: UserContext): Unit = {
+  override def startBlocking()(implicit user: UserContext): Unit = synchronized {
+    status.update(Status.Started())
+    this.startedByUser = user
     runActivity()
   }
 
-  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
-    synchronized {
-      for (v <- initialValue)
-        value.update(v)
-      runActivity()
-      value()
-    }
+  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = synchronized {
+    status.update(Status.Started())
+    this.startedByUser = user
+    for (v <- initialValue)
+      value.update(v)
+    runActivity()
+    value()
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
@@ -96,8 +101,6 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
     resetMetaData()
-    this.startedByUser = user
-    status.update(Status.Started())
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
       startTimestamp = Some(startTime)
