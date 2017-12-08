@@ -34,6 +34,8 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     retrievePathsFn(typeUri, depth, limit)
   }
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
 }
 
 case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,

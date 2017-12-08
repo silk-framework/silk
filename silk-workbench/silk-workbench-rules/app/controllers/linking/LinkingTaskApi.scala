@@ -12,6 +12,7 @@ import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation._
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
@@ -270,7 +271,8 @@ class LinkingTaskApi extends Controller {
     Ok
   }
 
-  def stopGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def stopGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    val user = WebUserManager.instance.user(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val generateLinksActivity = task.activity[GenerateLinksActivity].control

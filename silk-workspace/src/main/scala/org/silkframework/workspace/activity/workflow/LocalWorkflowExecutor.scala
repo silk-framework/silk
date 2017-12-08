@@ -13,7 +13,7 @@ import org.silkframework.workspace.ProjectTask
 import scala.util.control.NonFatal
 
 /**
-  * A local workflow executor. This is not thread safe.
+  * A local workflow executor. This is not thread safe. Usually this should not be executed directly, but instead via [[LocalWorkflowExecutorGeneratingProvenance]].
   *
   * It first builds a dependency graph based on the method from [[Workflow]]. This graph can contain
   * multiple connected components (The dependency graph is double linked). For each end node,
@@ -52,12 +52,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     clearOutputDatasets()
 
     val DAG = workflow.workflowDependencyGraph
-    for (endNode <- DAG.endNodes) {
-      executeWorkflowNode(endNode, entitySchemaOpt = None)
-    }
-    if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-      throw WorkflowException("Not all workflow nodes were executed! Executed " +
-          workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+    try {
+      for (endNode <- DAG.endNodes) {
+        executeWorkflowNode(endNode, entitySchemaOpt = None)
+      }
+      if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
+        throw WorkflowException("Not all workflow nodes were executed! Executed " +
+            workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+      }
+    } catch {
+      case e: WorkflowException =>
+        if(!canceled) {
+          throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
+        }
     }
   }
 

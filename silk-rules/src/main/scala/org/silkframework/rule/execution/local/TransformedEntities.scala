@@ -2,12 +2,11 @@ package org.silkframework.rule.execution.local
 
 import java.util.logging.Logger
 
-import org.silkframework.entity.{AutoDetectValueType, Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, UriValueType}
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.runtime.activity.ActivityContext
-import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
 
@@ -43,17 +42,30 @@ class TransformedEntities(entities: Traversable[Entity],
       }
 
       for(uri <- uriOption) {
+        lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
+          val uriTypePaths = entity.desc.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
+          val typedPaths = uriTypePaths.map(_._1)
+          val values = uriTypePaths.map(_._2)
+          Entity(entity.uri, values, entity.desc.copy(typedPaths = typedPaths))
+        }
+        def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
+          if(rule.representsDefaultUriRule) {
+            evaluateRule(objectEntity, rule)
+          } else {
+            evaluateRule(entity, rule) // This works even though there are still object paths mixed in, because they all are at the end
+          }
+        }
         val values =
           for (rules <- rulesPerPath) yield {
-            rules.flatMap(evaluateRule(entity))
+            rules.flatMap(evalRule)
           }
 
         f(new Entity(uri, values, outputSchema))
 
         report.incrementEntityCounter()
-        if (errorFlag)
+        if (errorFlag) {
           report.incrementEntityErrorCounter()
-
+        }
         count += 1
         if (count % 1000 == 0) {
           context.value.update(report.build())
@@ -61,11 +73,10 @@ class TransformedEntities(entities: Traversable[Entity],
         }
       }
     }
-
     context.value() = report.build()
   }
 
-  private def evaluateRule(entity: Entity)(rule: TransformRule): Seq[String] = {
+  private def evaluateRule(entity: Entity, rule: TransformRule): Seq[String] = {
     try {
       rule(entity)
     } catch {

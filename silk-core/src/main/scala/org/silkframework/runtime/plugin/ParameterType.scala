@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 
-import org.silkframework.config.{Prefixes, TaskReference}
+import org.silkframework.config.{Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
@@ -77,7 +77,7 @@ object ParameterType {
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
-      WritableResourceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType)
+      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType)
   }
 
   /**
@@ -242,11 +242,27 @@ object ParameterType {
 
   }
 
+  object ProjectReferenceType extends ParameterType[ProjectReference] {
+
+    override def name: String = "project"
+
+    override def description: String = "The identifier of a project in the workspace."
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ProjectReference = {
+      ProjectReference(Identifier(str))
+    }
+
+    override def toString(value: ProjectReference)(implicit prefixes: Prefixes): String = {
+      value.id
+    }
+
+  }
+
   object TaskReferenceType extends ParameterType[TaskReference] {
 
     override def name: String = "task"
 
-    override def description: String = "The name of a task in the same project."
+    override def description: String = "The identifier of a task in the same project."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
       TaskReference(Identifier(str))

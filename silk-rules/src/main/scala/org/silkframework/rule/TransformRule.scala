@@ -92,6 +92,10 @@ sealed trait TransformRule extends Operator {
       throw new IllegalArgumentException(s"$this cannot have any children")
     }
   }
+
+  def representsDefaultUriRule: Boolean = {
+    false
+  }
 }
 
 /**
@@ -327,6 +331,7 @@ case class ObjectMapping(id: Identifier = "mapping",
     copy(rules = rules.copy(uriRule = rules.uriRule.orElse(uriRule())))
   }
 
+  override def representsDefaultUriRule: Boolean = rules.uriRule.isEmpty
 }
 
 /**

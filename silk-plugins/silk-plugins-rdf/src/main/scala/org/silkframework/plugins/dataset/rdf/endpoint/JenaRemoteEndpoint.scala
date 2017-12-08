@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.{QueryExecution, QueryExecutionFactory}
+import org.apache.jena.query.{Query, QueryExecution, QueryExecutionFactory}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 
@@ -9,7 +9,7 @@ import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
  */
 class JenaRemoteEndpoint(endpointUri: String) extends JenaEndpoint {
 
-  override protected def createQueryExecution(query: String): QueryExecution = {
+  override protected def createQueryExecution(query: Query): QueryExecution = {
     QueryExecutionFactory.sparqlService(endpointUri, query)
   }
 

@@ -7,7 +7,7 @@ trait SparqlTypesCollector {
 }
 
 object SparqlTypesCollector {
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int]) = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int]): Traversable[(String, Double)] = {
     SparqlAggregateTypesCollector(endpoint, graph, limit)
   }
 }

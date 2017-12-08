@@ -4,6 +4,7 @@
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.ParameterType._
 
+@import org.silkframework.workspace.User
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
@@ -54,6 +55,12 @@
     case ResourceType | WritableResourceType =>
       val resources = project.resources.listRecursive
       enumParameter(param, resources, resources, value)
+    case ProjectReferenceType =>
+      val projectNames = User().workspace.projects.map(_.name.toString)
+      enumParameter(param, projectNames, projectNames, value)
+    case TaskReferenceType =>
+      val taskNames = project.allTasks.map(_.id.toString)
+      enumParameter(param, taskNames, taskNames, value)
 //    case MultilineStringParameterType =>
 //      multilineParameter(param, value)
     case _ =>

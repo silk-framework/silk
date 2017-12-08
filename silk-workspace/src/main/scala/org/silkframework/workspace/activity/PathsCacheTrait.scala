@@ -7,6 +7,7 @@ import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 
 /**
   * Defines methods useful to all paths caches.
@@ -15,7 +16,7 @@ trait PathsCacheTrait {
   def retrievePathsOfInput(taskId: Identifier,
                            dataSelection: Option[DatasetSelection],
                            task: ProjectTask[_],
-                           context: ActivityContext[EntitySchema]): IndexedSeq[TypedPath] = {
+                           context: ActivityContext[CachedEntitySchemata]): IndexedSeq[TypedPath] = {
     task.project.anyTask(taskId).data match {
       case dataset: DatasetSpec =>
         val source = dataset.source

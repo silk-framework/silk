@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.net.URLEncoder
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
@@ -31,7 +30,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       reader.nextTag()
-      val paths = Path.empty +: collectPaths(reader, Path.empty, onlyLeafNodes = false)
+      val paths = Path.empty +: collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true)
       for (path <- paths) yield {
         (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
       }
@@ -52,7 +51,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     try {
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
-      collectPaths(reader, Path.empty, onlyLeafNodes = false).toIndexedSeq
+      collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = false).toIndexedSeq
 
     } finally {
       inputStream.close()
@@ -83,7 +82,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val traverser = XmlTraverser(node)
 
             val uri = traverser.generateUri(uriPattern)
-            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
+            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
 
             f(new Entity(uri, values, entitySchema))
 
@@ -162,8 +161,9 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * Collects all paths inside the current element.
     * The parser must be positioned on the start element when calling this method.
     */
-  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean): Seq[Path] = {
+  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): Seq[Path] = {
     assert(reader.isStartElement)
+    assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
 
     // Collect attribute paths
     val attributePaths =
@@ -181,7 +181,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       if(!startElements.contains(reader.getLocalName)) {
         // Get paths from tags and children
         val tagPath = path ++ Path(reader.getLocalName)
-        val childPaths = collectPaths(reader, tagPath, onlyLeafNodes)
+        val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes)
 
         // Collect all wanted paths
         var newPaths = childPaths
@@ -200,7 +200,11 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       nextStartOrEndTag(reader)
     }
 
-    attributePaths ++ paths
+    if(onlyInnerNodes) {
+      paths
+    } else {
+      attributePaths ++ paths
+    }
   }
 
   /**

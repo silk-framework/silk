@@ -29,9 +29,7 @@ trait DataSource {
    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
    *
    */
-  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    Traversable.empty
-  }
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -44,9 +42,7 @@ trait DataSource {
    *
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
-  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    IndexedSeq.empty
-  }
+  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path]
 
   /**
    * Retrieves entities from this source which satisfy a specific entity schema.

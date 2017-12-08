@@ -9,6 +9,7 @@ import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
+    SUGGESTION_TYPES,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -212,7 +213,7 @@ const prepareObjectMappingPayload = data => {
                       type: MAPPING_RULE_TYPE_URI,
                       pattern: data.pattern,
                   }
-                : null,
+                : undefined,
             typeRules,
         },
     };
@@ -398,9 +399,9 @@ if (!__DEBUG__) {
                             const suggestions = [];
 
                             _.forEach(body, (sources, target) => {
-                                _.forEach(sources, ({uri, confidence}) => {
+                                _.forEach(sources, ({uri, type, confidence}) => {
                                     suggestions.push(
-                                        new Suggestion(uri, target, confidence)
+                                        new Suggestion(uri, type, target, confidence)
                                     );
                                 });
                             });
@@ -724,24 +725,50 @@ if (!__DEBUG__) {
             const rules = [];
 
             _.map(correspondences, correspondence => {
-                rules.push({
-                    metadata: {
-                        description: _.includes(
-                            correspondence.sourcePath,
-                            'error'
-                        )
-                            ? 'error'
-                            : '',
-                    },
-                    mappingTarget: {
-                        uri: correspondence.targetProperty,
-                        valueType: {
-                            nodeType: 'AutoDetectValueType',
+                if (correspondence.type === SUGGESTION_TYPES[0]) {
+                    rules.push({
+                        metadata: {
+                            description: _.includes(
+                                correspondence.sourcePath,
+                                'error'
+                            )
+                                ? 'error'
+                                : '',
                         },
-                    },
-                    sourcePath: correspondence.sourcePath,
-                    type: MAPPING_RULE_TYPE_DIRECT,
-                });
+                        mappingTarget: {
+                            uri: correspondence.targetProperty,
+                            valueType: {
+                                nodeType: 'AutoDetectValueType',
+                            },
+                        },
+                        sourcePath: correspondence.sourcePath,
+                        type: MAPPING_RULE_TYPE_DIRECT,
+                    });
+                }
+                else if (correspondence.type === SUGGESTION_TYPES[1]) {
+                    rules.push({
+                        metadata: {
+                            description: _.includes(
+                                correspondence.sourcePath,
+                                'error'
+                            )
+                                ? 'error'
+                                : '',
+                        },
+                        type : MAPPING_RULE_TYPE_OBJECT,
+                        sourcePath : correspondence.sourcePath,
+                        mappingTarget : {
+                            uri: correspondence.targetProperty,
+                            valueType : {
+                                nodeType : "AutoDetectValueType"
+                            },
+                            isBackwardProperty: false
+                        },
+                    });
+                }
+                else {
+                    alert('holy crap!')
+                }
             });
 
             Rx.Observable
@@ -759,38 +786,45 @@ if (!__DEBUG__) {
                     {
                         uri: '/birthdate',
                         confidence: 0.028520143597925807,
+                        type: 'object',
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/surname': [
                     {
                         uri: '/surname',
                         confidence: 0.21,
+                        type: 'object'
                     },
                     {
                         uri: '/name',
                         confidence: 0.0170975813177648,
+                        type: 'object'
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/birthday': [
                     {
                         uri: '/birthdate',
                         confidence: 0.043659343420819535,
+                        type: 'object'
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/lastName': [
                     {
                         uri: '/surname',
                         confidence: 0.001,
+                        type: 'value'
                     },
                     {
                         uri: '/name',
                         confidence: 0.00458715596330274,
+                        type: 'value'
                     },
                 ],
                 'http://schema.org/birthDate': [
                     {
                         uri: '/birthdate',
                         confidence: 0.07339449541284403,
+                        type: 'value'
                     },
                 ],
             };
@@ -800,6 +834,7 @@ if (!__DEBUG__) {
                 '/address',
                 '/surname',
                 '/name',
+                '/fatal-error',
                 '/error',
             ];
 
@@ -807,9 +842,10 @@ if (!__DEBUG__) {
 
             for (let i = 0; i < 10; i++) {
                 _.forEach(suggRaw, (sources, target) => {
-                    _.forEach(sources, ({uri, confidence}) => {
+                    _.forEach(sources, ({uri, type, confidence}) => {
                         suggestions.push(new Suggestion(
                             uri + (i < 1 ? '': i),
+                            type,
                             target,
                             confidence
                         ));
@@ -818,9 +854,13 @@ if (!__DEBUG__) {
             }
 
             _.forEach(directRaw, source => {
-                suggestions.push(new Suggestion(source));
+                suggestions.push(new Suggestion(
+                    source,
+                    "value",
+                    null,
+                    0,
+                ));
             });
-
             replySubject.onNext({
                 suggestions,
             });

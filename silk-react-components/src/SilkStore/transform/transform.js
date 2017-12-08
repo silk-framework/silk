@@ -47,10 +47,7 @@ silkStore
             )
             .accept('application/json')
             .send({
-                correspondences: _.map(correspondences, c => ({
-                    sourcePath: _.last(_.split(c.sourcePath, '/')),
-                    targetProperty: c.targetProperty,
-                })),
+                correspondences,
             })
             .observe()
             .multicast(replySubject)
