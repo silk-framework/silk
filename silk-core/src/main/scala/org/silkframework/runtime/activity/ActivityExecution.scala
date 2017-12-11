@@ -39,8 +39,7 @@ private class ActivityExecution[T](activity: Activity[T],
       throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
     }
     // FIXME: Here is a mini race condition if two threads call start() at the same time, see CMEM-934
-    status.update(Status.Started())
-    this.startedByUser = user
+    setStartMetaData(user)
     // Execute activity
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
@@ -52,14 +51,18 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = synchronized {
-    status.update(Status.Started())
-    this.startedByUser = user
+    setStartMetaData(user)
     runActivity()
   }
 
-  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = synchronized {
+  private def setStartMetaData(user: UserContext) = {
+    resetMetaData()
     status.update(Status.Started())
     this.startedByUser = user
+  }
+
+  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = synchronized {
+    setStartMetaData(user)
     for (v <- initialValue)
       value.update(v)
     runActivity()
@@ -100,7 +103,6 @@ private class ActivityExecution[T](activity: Activity[T],
   override def underlying: Activity[T] = activity
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
-    resetMetaData()
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
       startTimestamp = Some(startTime)
