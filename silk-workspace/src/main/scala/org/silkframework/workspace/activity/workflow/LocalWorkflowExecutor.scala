@@ -305,7 +305,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ds: Dataset =>
         ds
     }
-    PlainTask(datasetTask.id, datasetTask.copy(plugin = dataset), metaData = datasetTask.metaData)
+    PlainTask(datasetTask.id, datasetTask.data.copy(plugin = dataset), metaData = datasetTask.metaData)
   }
 
   override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)
