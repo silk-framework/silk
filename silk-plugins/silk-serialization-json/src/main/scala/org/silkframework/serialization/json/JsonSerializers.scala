@@ -712,6 +712,11 @@ object JsonSerializers {
   }
 
   /**
+    * Dataset Task
+    */
+  implicit object DatasetSpecTaskFormat extends TaskJsonFormat[DatasetSpec]
+
+  /**
     * Transform Task
     */
   implicit object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
