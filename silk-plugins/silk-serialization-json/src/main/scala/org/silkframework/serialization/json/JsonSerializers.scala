@@ -1,8 +1,9 @@
 package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
+
 import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
@@ -712,16 +713,6 @@ object JsonSerializers {
   }
 
   /**
-    * Dataset Task
-    */
-  implicit object DatasetSpecTaskFormat extends TaskJsonFormat[DatasetSpec]
-
-  /**
-    * Transform Task
-    */
-  implicit object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
-
-  /**
     * Task
     */
   class TaskJsonFormat[T <: TaskSpec](implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
@@ -742,6 +733,32 @@ object JsonSerializers {
       Json.obj(
         ID -> JsString(value.id.toString)
       ) ++ toJson(value.data).as[JsObject]
+    }
+  }
+
+  /**
+    * Dataset Task
+    */
+  implicit object DatasetTaskFormat extends JsonFormat[DatasetTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
+      val task = new TaskJsonFormat[DatasetSpec].read(value)
+      DatasetTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[DatasetSpec].write(value)
+    }
+  }
+
+  /**
+    * Transform Task
+    */
+  implicit object TransformTaskFormat extends JsonFormat[TransformTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
+      val task = new TaskJsonFormat[TransformSpec].read(value)
+      TransformTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[TransformSpec].write(value)
     }
   }
 

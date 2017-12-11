@@ -17,10 +17,10 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{SampleUtil, Uri}
+import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.Node
@@ -47,6 +47,8 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   override def toString: String = DatasetSpec.toString
 
 }
+
+case class DatasetTask(id: Identifier, data: DatasetSpec, metaData: MetaData = MetaData.empty) extends Task[DatasetSpec]
 
 object DatasetSpec {
 

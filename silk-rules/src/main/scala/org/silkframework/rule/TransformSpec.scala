@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -169,6 +169,8 @@ case class TransformSpec(selection: DatasetSelection,
 
   private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
 }
+
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
 
 /**
   * Static functions for the TransformSpecification class.

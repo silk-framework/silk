@@ -13,7 +13,7 @@ class JsonPluginModule extends PluginModule {
       TransformSpecJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
-      DatasetSpecTaskFormat.getClass ::
+      DatasetTaskFormat.getClass ::
       TransformTaskFormat.getClass ::
       RootMappingRuleJsonFormat.getClass ::
       VocabularyPropertyJsonFormat.getClass ::

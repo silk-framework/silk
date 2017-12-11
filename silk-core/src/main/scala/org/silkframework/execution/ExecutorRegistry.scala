@@ -10,6 +10,7 @@ import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.ClassUtil
 
 trait ExecutorRegistry {
 
@@ -46,11 +47,11 @@ trait ExecutorRegistry {
     */
   private def isSuitable(task: TaskSpec, execution: ExecutionType, plugin: PluginDescription[Executor[_, _]]): Option[Class[_]] = {
     try {
-      // Get executor interface
-      val (executorInterface, inheritanceTrail) = findExecutorInterface(plugin.pluginClass).get
+      // Get executor interface parameters
+      val genericTypes = ClassUtil.getInterfaceTypeParameters(plugin.pluginClass, classOf[Executor[_, _]])
       // Get task and execution type
-      val taskType = getTypeArgument(executorInterface, 0, inheritanceTrail)
-      val executionType = getTypeArgument(executorInterface, 1, inheritanceTrail)
+      val taskType = genericTypes(0)
+      val executionType = genericTypes(1)
       // Check if suitable
       val isAbstract = Modifier.isAbstract(plugin.pluginClass.getModifiers)
       val suitableTaskType = taskType.isAssignableFrom(task.getClass)

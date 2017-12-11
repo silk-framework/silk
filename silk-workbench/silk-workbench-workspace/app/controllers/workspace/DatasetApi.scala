@@ -46,11 +46,11 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
-      deserializeCompileTime() { dataset: Task[DatasetSpec] =>
+      deserializeCompileTime() { dataset: DatasetTask =>
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, dataset.copy(plugin = autoConfigurable.autoConfigured))
+              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
               Ok
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
