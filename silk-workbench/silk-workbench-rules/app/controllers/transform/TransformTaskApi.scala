@@ -61,7 +61,7 @@ class TransformTaskApi extends Controller {
         Ok
       case _ =>
         catchExceptions {
-          deserializeCompileTime[Task[TransformSpec]]() { task =>
+          deserializeCompileTime[TransformTask]() { task =>
             project.updateTask(task.id, task.data)
             Ok
           }

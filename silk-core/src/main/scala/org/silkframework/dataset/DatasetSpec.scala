@@ -52,6 +52,8 @@ case class DatasetTask(id: Identifier, data: DatasetSpec, metaData: MetaData = M
 
 object DatasetSpec {
 
+  implicit def toTransformTask(task: Task[DatasetSpec]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
+
   def empty = {
     new DatasetSpec(EmptyDataset)
   }
@@ -273,6 +275,14 @@ object DatasetSpec {
     }
   }
 
-  implicit object DatasetTaskFormat extends TaskFormat[DatasetSpec]
+  implicit object DatasetTaskXmlFormat extends XmlFormat[DatasetTask] {
+    override def read(value: Node)(implicit readContext: ReadContext): DatasetTask = {
+      new TaskFormat[DatasetSpec].read(value)
+    }
+
+    override def write(value: DatasetTask)(implicit writeContext: WriteContext[Node]): Node = {
+      new TaskFormat[DatasetSpec].write(value)
+    }
+  }
 
 }

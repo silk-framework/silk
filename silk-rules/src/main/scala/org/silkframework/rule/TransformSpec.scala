@@ -177,6 +177,8 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   */
 object TransformSpec {
 
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
 
   /**
