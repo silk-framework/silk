@@ -1,0 +1,34 @@
+@prefix :     <https://ns.eccenca.com/source/> .
+
+:Person1
+  a :Person ;
+  :name "John Doe" ;
+  :age 23 ;
+  :address :Address1 ;
+  :address :Address2 ;
+.
+
+:Address1
+  a :Address ;
+  :city "Berlin" ;
+  :country "Germany" ;
+.
+
+:Address2
+  a :Address ;
+  :city "Stuttgart" ;
+  :country "Germany" ;
+.
+
+:Person2
+  a :Person ;
+  :name "Max Power" ;
+  :age 55 ;
+  :address :Address3 ;
+.
+
+:Address3
+  a :Address ;
+  :city "Leipzig" ;
+  :country "Germany" ;
+.
