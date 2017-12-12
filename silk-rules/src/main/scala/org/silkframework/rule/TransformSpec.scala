@@ -11,6 +11,7 @@ import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 import scala.util.Try
 import scala.xml.{Node, Null}
+import scala.language.implicitConversions
 
 /**
   * This class contains all the required parameters to execute a transform task.

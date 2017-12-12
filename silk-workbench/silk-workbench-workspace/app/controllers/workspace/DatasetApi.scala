@@ -56,7 +56,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data)
+          project.updateTask(dataset.id, dataset.data, dataset.metaData)
           Ok
         }
       }

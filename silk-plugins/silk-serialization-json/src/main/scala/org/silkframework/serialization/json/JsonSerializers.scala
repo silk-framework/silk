@@ -722,7 +722,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
       PlainTask(
         id = stringValue(value, ID),
-        data = fromJson[T](value)
+        data = fromJson[T](value),
+        metaData = metaData(value)
       )
     }
 
@@ -731,7 +732,8 @@ object JsonSerializers {
       */
     override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        ID -> JsString(value.id.toString)
+        ID -> JsString(value.id.toString),
+        METADATA -> toJson(value.metaData)
       ) ++ toJson(value.data).as[JsObject]
     }
   }
@@ -739,7 +741,7 @@ object JsonSerializers {
   /**
     * Dataset Task
     */
-  implicit object DatasetTaskFormat extends JsonFormat[DatasetTask] {
+  implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
       val task = new TaskJsonFormat[DatasetSpec].read(value)
       DatasetTask(task.id, task.data, task.metaData)
@@ -752,7 +754,7 @@ object JsonSerializers {
   /**
     * Transform Task
     */
-  implicit object TransformTaskFormat extends JsonFormat[TransformTask] {
+  implicit object TransformTaskJsonFormat extends JsonFormat[TransformTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
       val task = new TaskJsonFormat[TransformSpec].read(value)
       TransformTask(task.id, task.data, task.metaData)
