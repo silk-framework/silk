@@ -91,6 +91,12 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     * Makes sure that the next write will start from an empty dataset.
     */
   override def clear(): Unit = {
+    doc = null
+    entityTemplate = null
+    entityRoot = null
+    atRoot = true
+    properties = Seq.empty
+    uriMap = Map.empty
   }
 
   private def findEntityTemplate(node: Node): ProcessingInstruction = {
