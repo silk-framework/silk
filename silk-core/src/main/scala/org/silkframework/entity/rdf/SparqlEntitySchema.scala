@@ -17,6 +17,7 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.Uri
 
 import scala.xml.Node
 
@@ -49,14 +50,14 @@ object SparqlEntitySchema {
    */
   def empty: SparqlEntitySchema = SparqlEntitySchema(variable, SparqlRestriction.empty, IndexedSeq.empty)
 
-  def fromSchema(entitySchema: EntitySchema): SparqlEntitySchema = {
+  def fromSchema(entitySchema: EntitySchema, entityUris: Seq[Uri]): SparqlEntitySchema = {
     var sparqlRestriction = new SparqlRestrictionBuilder(variable)(Prefixes.empty).apply(entitySchema.filter)
     if(entitySchema.typeUri.uri.nonEmpty) {
       sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(variable, s"?$variable a <${entitySchema.typeUri}>")
     }
     val subPath = entitySchema.subPath
 
-    def rewriteRestrictionWithParentProperty(subPath: Path): Unit = {
+    def rewriteRestrictionWithParentProperty(subPath: Path): String = {
       val sb = new StringBuilder()
       var idx = 1
       for(ForwardOperator(propertyURI) <- subPath.operators.reverse) {
@@ -67,16 +68,25 @@ object SparqlEntitySchema {
         }
         idx += 1
       }
+      val rootEntity = s"?${variable}_parent${idx-1}"
       sparqlRestriction = SparqlRestriction.fromSparql(variable,
-        sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent${idx-1}") + sb.toString())
+        sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sb.toString())
+      rootEntity
     }
 
-    if(subPath.operators.nonEmpty) {
+    val rootVariable = if(subPath.operators.nonEmpty) {
       if(subPath.operators.forall(_.isInstanceOf[ForwardOperator])) {
         rewriteRestrictionWithParentProperty(subPath)
       } else {
         throw new IllegalArgumentException("Only forward operators allowed in sub path.")
       }// FIXME: Generate restriction for backward paths.
+    } else {
+      s"?$variable"
+    }
+    if(entityUris.nonEmpty) {
+      val entityFilter = s"\nFILTER ($rootVariable IN (${entityUris.map(e => s"<$e>").mkString(", ")}))"
+      sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql + entityFilter)
+      SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
     }
 
     SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))

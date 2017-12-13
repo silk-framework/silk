@@ -20,12 +20,27 @@ case class SparqlParams(uri: String = "", user: String = null, password: String 
   /**
    * The login as option pair of user and password.
    */
-  val login = {
+  val login: Option[(String, String)] = {
     if (user != null && user != "") {
       require(password != null, "No password provided for login '" + user + "'. Please set the 'password' parameter.")
       Some((user, password))
     } else {
       None
+    }
+  }
+
+  /** Restrict entities to following URIs. If empty, then no restriction should apply. */
+  def entityRestriction: Seq[String] = SparqlParams.splitEntityList(entityList)
+}
+
+object SparqlParams {
+  /** Splits entities on whitespace */
+  def splitEntityList(entityList: String): Seq[String] = {
+    lazy val trimmedEntityList = entityList.trim
+    if(entityList == null || trimmedEntityList == "") {
+      Seq()
+    } else {
+      trimmedEntityList.split("\\s+")
     }
   }
 }

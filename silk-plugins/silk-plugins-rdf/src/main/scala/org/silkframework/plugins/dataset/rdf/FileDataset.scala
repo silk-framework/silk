@@ -2,14 +2,14 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
 
@@ -29,7 +29,9 @@ case class FileDataset(
   graph: String = "",
   @Param(label = "Max. read size (MB)",
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
-  maxReadSize: Long = 10) extends RdfDataset with TripleSinkDataset {
+  maxReadSize: Long = 10,
+  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset {
 
   /** The RDF format of the given resource. */
   private val lang = {
@@ -77,6 +79,9 @@ case class FileDataset(
 
   override def entitySink: FormattedEntitySink = new FormattedEntitySink(file, formatter)
 
+  // restrict the fetched entities to following URIs
+  private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
+
   object FileSource extends DataSource with PeakDataSource {
 
     // Load dataset
@@ -85,7 +90,7 @@ case class FileDataset(
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
       load()
-      EntityRetriever(endpoint).retrieve(entitySchema, Seq.empty, None)
+      EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
