@@ -6,32 +6,34 @@ package org.silkframework.config
 object SilkVocab {
   val namespace = "http://silkframework.org/vocab/"
 
-  val taskSpecNamespace = namespace + "taskSpec/"
+  val taskSpecNamespace: String = namespace + "taskSpec/"
 
   // REST Task vocabulary
 
-  val RestTaskData = taskSpecNamespace + "RestTaskData"
+  val RestTaskData: String = taskSpecNamespace + "RestTaskData"
 
-  val RestTaskPropertyURL = RestTaskData + "/propertyURL"
+  val RestTaskPropertyURL: String = RestTaskData + "/propertyURL"
 
-  val RestTaskPropertyContent = RestTaskData + "/propertyContent"
+  val RestTaskPropertyContent: String = RestTaskData + "/propertyContent"
 
-  val RestTaskResult = taskSpecNamespace + "RestTaskResult"
+  val RestTaskResult: String = taskSpecNamespace + "RestTaskResult"
 
-  val RestTaskResultContentType = RestTaskResult + "/propertyContentType"
+  val RestTaskResultContentType: String = RestTaskResult + "/propertyContentType"
 
-  val RestTaskResultUrl = RestTaskResult + "/url"
+  val RestTaskResultUrl: String = RestTaskResult + "/url"
 
-  val RestTaskResultResponseBody = RestTaskResult + "/responseBody"
+  val RestTaskResultResponseBody: String = RestTaskResult + "/responseBody"
 
   // Triple input/output schema vocabulary
 
-  val TripleSchemaType = namespace + "/TripleSchemaType"
+  val TripleSchemaType: String = namespace + "/TripleSchemaType"
 
-  val SparqlEndpointSchemaType = namespace + "/SparqlEndpointSchemaType"
+  val SparqlEndpointSchemaType: String = namespace + "/SparqlEndpointSchemaType"
 
-  val tripleSubject = namespace + "tripleSubject"
-  val triplePredicate = namespace + "triplePredicate"
-  val tripleObject = namespace + "tripleObject"
-  val tripleObjectValueType = namespace + "tripleObjectValueType"
+  val DatasetResourceSchemaType: String = namespace + "/DatasetResourceSchemaType"
+
+  val tripleSubject: String = namespace + "tripleSubject"
+  val triplePredicate: String = namespace + "triplePredicate"
+  val tripleObject: String = namespace + "tripleObject"
+  val tripleObjectValueType: String = namespace + "tripleObjectValueType"
 }

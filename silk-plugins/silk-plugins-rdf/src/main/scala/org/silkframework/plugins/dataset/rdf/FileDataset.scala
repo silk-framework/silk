@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
+import org.silkframework.dataset._
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
@@ -29,7 +29,7 @@ case class FileDataset(
   graph: String = "",
   @Param(label = "Max. read size (MB)",
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
-  maxReadSize: Long = 10) extends RdfDataset with TripleSinkDataset {
+  maxReadSize: Long = 10) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset {
 
   /** The RDF format of the given resource. */
   private val lang = {
