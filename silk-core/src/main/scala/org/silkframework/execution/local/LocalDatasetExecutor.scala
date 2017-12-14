@@ -34,20 +34,25 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case multi: MultiEntitySchema =>
         handleMultiEntitySchema(dataset, schema, multi)
       case DatasetResourceEntitySchema.schema =>
-        dataset.data match {
-          case datasetSpec: DatasetSpec =>
-           datasetSpec.plugin match {
-             case dsr: ResourceBasedDataset =>
-               new DatasetResourceEntityTable(dsr.file, dataset)
-             case _: Dataset =>
-               throw new ValidationException(s"Dataset task ${dataset.id} of type ${dataset.data.asInstanceOf[DatasetSpec].plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
-           }
-          case _ =>
-            throw new ValidationException("No dataset spec found!")
-        }
+        handleDatasetResourceEntitySchema(dataset)
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
+    }
+  }
+
+  private def handleDatasetResourceEntitySchema(dataset: Task[Dataset]) = {
+    dataset.data match {
+      case datasetSpec: DatasetSpec =>
+        datasetSpec.plugin match {
+          case dsr: ResourceBasedDataset =>
+            new DatasetResourceEntityTable(dsr.file, dataset)
+          case _: Dataset =>
+            throw new ValidationException(s"Dataset task ${dataset.id} of type " +
+                s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
+        }
+      case _ =>
+        throw new ValidationException("No dataset spec found!")
     }
   }
 
@@ -129,6 +134,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
+  // Write the resource from the resource entity table to the dataset's resource
   private def writeDatasetResource(dataset: Task[Dataset], datasetResource: DatasetResourceEntityTable): Unit = {
     val inputResource = datasetResource.datasetResource
     dataset.data match {
@@ -139,11 +145,11 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
               case Some(wr) =>
                 wr.writeStream(inputResource.inputStream)
               case None =>
-                throw new ValidationException(s"Dataset task ${dataset.id} of type ${dataset.data.asInstanceOf[DatasetSpec].plugin.pluginSpec.label} " +
+                throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")
             }
           case _: Dataset =>
-            throw new ValidationException(s"Dataset task ${dataset.id} of type ${dataset.data.asInstanceOf[DatasetSpec].plugin.pluginSpec.label} " +
+            throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                 s"has no resource (file) or does not support the required interface!")
         }
       case _ =>
