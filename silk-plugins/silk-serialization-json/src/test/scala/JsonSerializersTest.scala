@@ -18,7 +18,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
   private def verify[T: ClassTag](value: T) = {
     val mime = "application/json"
     implicit val readContext = ReadContext()
-    implicit val writeContext = WriteContext[Any]()
+    implicit val writeContext = WriteContext[Any](projectId = None)
     val format = Serialization.formatForMime[T](mime)
     val serialized = format.toString(value, mime)
     val deserialized = format.fromString(serialized, mime)

@@ -1,18 +1,15 @@
 package controllers.util
 
 
-import org.silkframework.config.Task
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
-import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
-import play.api.libs.json.{JsArray, JsValue}
-import play.api.mvc._
-import play.api.mvc.Results.Ok
 import play.api.http.Status._
+import play.api.libs.json.{JsArray, JsValue}
+import play.api.mvc.Results.Ok
+import play.api.mvc._
 
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
@@ -45,7 +42,7 @@ object SerializationUtils {
   }
 
   private def createWriteContext(project: Project) = {
-    WriteContext[Any](prefixes = project.config.prefixes)
+    WriteContext[Any](prefixes = project.config.prefixes, projectId = Some(project.config.id))
   }
 
   /**

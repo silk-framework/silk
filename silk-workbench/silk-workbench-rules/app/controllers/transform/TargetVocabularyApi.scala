@@ -112,7 +112,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
   case class Relation(property: VocabularyProperty, targetClass: VocabularyClass)
 
   /** Json serializers */
-  implicit private val writeContext = WriteContext[JsValue]()
+  implicit private val writeContext = WriteContext[JsValue](projectId = None)
   implicit private object vocabularyClassFormat extends Writes[VocabularyClass] {
     override def writes(vocabularyClass: VocabularyClass): JsValue = {
       JsonSerializers.VocabularyClassJsonFormat.write(vocabularyClass)
