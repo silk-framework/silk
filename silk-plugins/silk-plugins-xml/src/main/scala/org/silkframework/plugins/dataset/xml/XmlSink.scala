@@ -2,10 +2,11 @@ package org.silkframework.plugins.dataset.xml
 
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
-import javax.xml.transform.{OutputKeys, TransformerFactory}
 
+import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.UriValueType
 import org.silkframework.runtime.resource.WritableResource
@@ -77,7 +78,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   }
 
   override def close(): Unit = {
-    val transformerFactory = TransformerFactory.newInstance
+    val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
     val transformer = transformerFactory.newTransformer
 
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")

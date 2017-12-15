@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
-import org.silkframework.dataset.{DataSource, PeakDataSource, TripleSink, TripleSinkDataset}
+import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset._
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
