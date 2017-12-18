@@ -149,7 +149,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
         }
       case _ if property.isAttribute =>
         setAttribute(entityNode, property.propertyUri, value)
-      case _ if property.propertyUri.isEmpty =>
+      case _ if property.propertyUri == "#text" =>
         entityNode.setTextContent(value)
       case _ =>
         val valueNode = newElement(property.propertyUri)

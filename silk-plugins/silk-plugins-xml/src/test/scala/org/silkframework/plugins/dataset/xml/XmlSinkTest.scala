@@ -91,7 +91,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
           IndexedSeq(
             TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
             TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true),
-            TypedPath(Path(""), StringValueType, isAttribute = false)
+            TypedPath(Path("#text"), StringValueType, isAttribute = false)
           )
       )
 
