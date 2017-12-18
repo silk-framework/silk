@@ -31,7 +31,7 @@ class TransformTaskApi extends Controller {
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    serializeCompileTime[TransformSpec](task)
+    serializeCompileTime[TransformTask](task)
   }
 
   def putTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
