@@ -83,6 +83,30 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
   }
 
+  it should "write elements with attributes" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
+            TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true),
+            TypedPath(Path(""), StringValueType, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102"), Seq("Value")), schema))
+
+    test(
+      template = "<Root><?Element?></Root>",
+      entityTables = Seq(entities),
+      expected =
+        <Root xmlns="urn:schema:">
+          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102">Value</Element>
+        </Root>
+    )
+  }
+
   it should "use existing namespaces from the template" in {
     val schema =
       EntitySchema(
