@@ -275,7 +275,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -287,7 +288,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }

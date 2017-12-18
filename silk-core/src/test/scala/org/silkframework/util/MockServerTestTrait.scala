@@ -13,11 +13,19 @@ trait MockServerTestTrait {
   // The start port where to look for open ports to start the mock server
   final val START_PORT = 10600
 
+  final val OK = 200
   final val INTERNAL_SERVER_ERROR_CODE = 500
   final val BAD_REQUEST_ERROR_CODE = 400
+  var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
   def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
+    val port = startServer(servedContent)
+    withPort(port)
+  }
+
+  /** Starts a server that delivers the specified content and returns the port the server runs on. */
+  def startServer(servedContent: Traversable[ServedContent]): Int = {
     val server: HttpServer = createHttpServer
     for (responseContent <- servedContent) {
       val handler = new HttpHandler {
@@ -35,7 +43,14 @@ trait MockServerTestTrait {
     }
     server.setExecutor(null) // creates a default executor
     server.start()
-    withPort(server.getAddress.getPort)
+    servers ::= server
+    server.getAddress.getPort
+  }
+
+  def stopAllRegisteredServers(): Unit = {
+    for(server <- servers) {
+      Try(server.stop(0))
+    }
   }
 
   private def createHttpServer: HttpServer = {
