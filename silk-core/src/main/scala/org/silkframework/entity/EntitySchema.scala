@@ -15,7 +15,7 @@ import scala.xml.Node
 case class EntitySchema(typeUri: Uri,
                         typedPaths: IndexedSeq[TypedPath],
                         filter: Restriction = Restriction.empty,
-                        subPath: Path = Path.empty) {
+                        subPath: Path = Path.empty) extends Serializable {
   //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
