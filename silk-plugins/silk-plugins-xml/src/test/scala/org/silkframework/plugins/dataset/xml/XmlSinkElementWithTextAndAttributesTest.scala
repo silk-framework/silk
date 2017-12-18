@@ -12,6 +12,7 @@ import scala.xml.{Elem, Utility, XML}
   * value to the text node of the parent element.
   */
 class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+  behavior of "XML Sink #text feature"
   private final val TRANSFORM = "personTransform"
   private final val OUTPUT_RESOURCE = "person.xml"
 
@@ -24,7 +25,7 @@ class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers
     </Persons>
   }
 
-  it should "run the XSLT workflow and generate the correct result" in {
+  it should "run the workflow and generate the correct result" in {
     project.task[TransformSpec](TRANSFORM).activity[ExecuteTransform].control.startBlocking()
     val result = project.resources.get(OUTPUT_RESOURCE).loadAsString
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)
