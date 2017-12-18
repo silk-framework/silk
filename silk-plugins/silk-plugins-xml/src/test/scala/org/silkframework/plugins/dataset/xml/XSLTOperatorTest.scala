@@ -6,9 +6,6 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 
 import scala.xml.{Elem, Utility, XML}
 
-/**
-  *
-  */
 class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"

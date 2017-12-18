@@ -147,12 +147,14 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
           uriMap += ((value, valueNode.asInstanceOf[Element]))
           entityNode.appendChild(valueNode)
         }
-      case _ if !property.isAttribute =>
+      case _ if property.isAttribute =>
+        setAttribute(entityNode, property.propertyUri, value)
+      case _ if property.propertyUri == "#text" =>
+        entityNode.setTextContent(value)
+      case _ =>
         val valueNode = newElement(property.propertyUri)
         valueNode.setTextContent(value)
         entityNode.appendChild(valueNode)
-      case _  =>
-        setAttribute(entityNode, property.propertyUri, value)
     }
   }
 
