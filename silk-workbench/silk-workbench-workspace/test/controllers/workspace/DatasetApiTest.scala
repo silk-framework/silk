@@ -44,6 +44,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
             "label" -> "label 2",
             "description" -> "description 2"
           ),
+        "uriProperty" -> "URI",
         "type" -> "internal",
         "parameters" ->
           Json.obj(
@@ -82,6 +83,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     val xml = response.xml
 
     (xml \ "@id").text mustBe dataset
+    (xml \ "@uriProperty").text mustBe "URI"
     (xml \ "MetaData" \ "Label").text mustBe "label 2"
     (xml \ "MetaData" \ "Description").text mustBe "description 2"
     (xml \ "Param").text mustBe "urn:dataset2"

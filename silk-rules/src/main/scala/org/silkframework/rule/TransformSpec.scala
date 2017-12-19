@@ -1,5 +1,6 @@
 package org.silkframework.rule
 
+import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
@@ -238,7 +239,7 @@ object TransformSpec {
     valuePaths ++ objectPaths
   }
 
-  implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
+  implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
     /**
       * Deserialize a value from XML.
       */
@@ -282,6 +283,16 @@ object TransformSpec {
         }}
       </TargetVocabularies>
       </TransformSpec>
+    }
+  }
+
+  implicit object TransformTaskXmlFormat extends XmlFormat[TransformTask] {
+    override def read(value: Node)(implicit readContext: ReadContext): TransformTask = {
+      new TaskFormat[TransformSpec].read(value)
+    }
+
+    override def write(value: TransformTask)(implicit writeContext: WriteContext[Node]): Node = {
+      new TaskFormat[TransformSpec].write(value)
     }
   }
 

@@ -97,7 +97,7 @@ object PluginRegistry {
    * Returns a list of all available plugins of a specific type.
    */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
-    pluginType[T].availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
+    pluginType[T].availablePlugins.asInstanceOf[Seq[PluginDescription[T]]].sortBy(_.label)
   }
 
   /**
