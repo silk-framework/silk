@@ -11,19 +11,28 @@ import {
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import UseMessageBus from '../UseMessageBusMixin';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import hierarchicalMappingChannel from '../store';
 
 const MappingsList = React.createClass({
-    mixins: [Navigation],
+    mixins: [Navigation, UseMessageBus],
     // define property types
     propTypes: {
         rules: React.PropTypes.array.isRequired,
+        // currentRuleId actually the current object mapping rule id we are viewing
     },
     getInitialState() {
         return {
             items: this.getItems(this.props.rules),
         };
+    },
+    componentDidMount() {
+        // process reorder requests from single MappingRules
+        this.subscribe(
+            hierarchicalMappingChannel.subject('request.rule.orderRule'),
+            this.orderRules
+        );
     },
     getDefaultProps() {
         return {
@@ -37,6 +46,31 @@ const MappingsList = React.createClass({
 
         return result;
     },
+    orderRules({fromPos, toPos, reload}) {
+        const childrenRules = this.state.items.map(a => a.key);
+        const oldItem = childrenRules[toPos];
+        childrenRules[toPos] = childrenRules[fromPos];
+        childrenRules[fromPos] = oldItem;
+        hierarchicalMappingChannel.request({
+            topic: 'rule.orderRule',
+            data: {
+                reload,
+                childrenRules,
+                fromPos,
+                toPos,
+                id: this.props.currentRuleId,
+            },
+        });
+
+        const items = this.reorder(
+            this.state.items,
+            fromPos,
+            toPos,
+        );
+        this.setState({
+            items,
+        });
+    },
     onDragEnd(result) {
         // dropped outside the list
         if (!result.destination) {
@@ -48,25 +82,10 @@ const MappingsList = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        hierarchicalMappingChannel.request({
-            topic: 'rule.orderRule',
-            data: {
-                reload: false,
-                toPos,
-                fromPos,
-                parentId: this.props.currentRuleId,
-                id: this.props.rules[result.source.index].id,
-            },
-        });
-
-        const items = this.reorder(
-            this.state.items,
-            result.source.index,
-            result.destination.index
-        );
-        this.setState({
-            items,
-        });
+        const reload = false;
+        this.orderRules({
+            fromPos, toPos, reload
+        })
     },
     getItems(rules) {
         return _.map(rules, (rule, i) => ({

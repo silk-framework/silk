@@ -276,52 +276,11 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {parentId, fromPos, toPos, reload} = data;
+            const {childrenRules, id} = data;
             silkStore
                 .request({
-                    topic: 'transform.task.rules.get',
-                    data: {...apiDetails},
-                })
-                .map(returned => {
-                    const rules = returned.body;
-                    const searchId = parentId || rules.id;
-                    if (!_.isString(rootId)) {
-                        rootId = rules.id;
-                    }
-                    const swappedRule = findRule(
-                        _.cloneDeep(rules),
-                        searchId,
-                        true,
-                        []
-                    );
-                    const temp = swappedRule.rules.propertyRules[toPos];
-                    swappedRule.rules.propertyRules[toPos] =
-                        swappedRule.rules.propertyRules[fromPos];
-                    swappedRule.rules.propertyRules[fromPos] = temp;
-                    silkStore
-                        .request({
-                            topic: 'transform.task.rule.put',
-                            data: {
-                                ...apiDetails,
-                                ruleId: parentId,
-                                payload: swappedRule,
-                            },
-                        })
-                        .subscribe(
-                            response => {
-                                if (reload) {
-                                    hierarchicalMappingChannel
-                                        .subject('reload')
-                                        .onNext(true);
-                                }
-                                replySubject.onNext(response);
-                                replySubject.onCompleted();
-                            },
-                            error => {
-                                replySubject.onError(error);
-                                replySubject.onCompleted();
-                            }
-                        );
+                    topic: 'transform.task.rule.rules.reorder',
+                    data: {id, childrenRules, ...apiDetails},
                 })
                 .multicast(replySubject)
                 .connect();
@@ -1160,30 +1119,20 @@ if (!__DEBUG__) {
             replySubject.onCompleted();
         });
 
-    const orderRule = (store, id, pos) => {
+    const orderRule = (store, id, childrenRules) => {
         if (_.has(store, 'rules.propertyRules')) {
-            const match = _.remove(
-                store.rules.propertyRules,
-                children => children.id === id
-            );
-
-            if (_.isEmpty(match)) {
-                store.rules.propertyRules = _.map(
-                    store.rules.propertyRules,
-                    child => orderRule(child, id, pos)
-                );
-            } else {
-                const spliceAt = _.max([
-                    0,
-                    _.min([pos, _.size(store.rules.propertyRules)]),
-                ]);
-
-                store.rules.propertyRules = [
-                    ..._.slice(store.rules.propertyRules, 0, spliceAt),
-                    ...match,
-                    ..._.slice(store.rules.propertyRules, spliceAt),
-                ];
+            if (id === store.id) {
+                store.rules.propertyRules = _.map(childrenRules, ruleId =>
+                    _.find(store.rules.propertyRules, rule =>
+                        rule.id === ruleId)
+                )
             }
+            else {
+                store.rules.propertyRules = store.rules.propertyRules.map(
+                    rule => orderRule(rule, id, fromPos, toPos)
+                )
+            }
+
         }
         return store;
     };
@@ -1191,8 +1140,8 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
-            const {toPos, id, reload} = data;
-            mockStore = orderRule(_.chain(mockStore).value(), id, toPos);
+            const {id, childrenRules, reload} = data;
+            mockStore = orderRule(_.chain(mockStore).value(), id, childrenRules);
             saveMockStore(reload);
             replySubject.onNext();
             replySubject.onCompleted();

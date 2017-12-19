@@ -129,27 +129,9 @@ const MappingRule = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        this.setState({
-            loading: true,
-        });
-        event.stopPropagation();
-        hierarchicalMappingChannel
-            .request({
-                topic: 'rule.orderRule',
-                data: {toPos, fromPos, parentId, id, reload: true},
-            })
-            .subscribe(
-                (/* data */) => {
-                    this.setState({
-                        loading: false,
-                    });
-                },
-                (/* err */) => {
-                    this.setState({
-                        loading: false,
-                    });
-                }
-            );
+        hierarchicalMappingChannel.subject('request.rule.orderRule')
+            .onNext({toPos, fromPos, reload: true})
+
     },
     // template rendering
     render() {
