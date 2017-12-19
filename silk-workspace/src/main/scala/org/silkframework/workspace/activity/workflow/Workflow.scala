@@ -41,6 +41,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     while (operatorsToSort.nonEmpty) {
       layer += 1
       val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
+      assert(satisfied.size + unsatisfied.size == operatorsToSort.size)
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }
