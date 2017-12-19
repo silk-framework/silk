@@ -66,7 +66,7 @@ object JsonSerializer {
 
   def resourceProperties(resource: Resource, pathPrefix: String = "") = {
     val sizeValue = resource.size match {
-      case Some(size) => JsNumber(BigDecimal.decimal(size))
+      case Some(size) => JsNumber(BigDecimal(size))
       case None => JsNull
     }
 

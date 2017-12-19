@@ -119,7 +119,7 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       var groupedBindings: Vector[SortedMap[String, RdfNode]] = Vector.empty
       for(binding <- bindings if !binding("c").isInstanceOf[BlankNode]) {
         val uri = binding("c").value
-        if(!currentUri.contains(uri)) {
+        if(currentUri != Some(uri)) {
           emitIfExists(emit, currentUri, groupedBindings)
           currentUri = Some(uri)
           groupedBindings = Vector.empty

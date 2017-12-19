@@ -61,7 +61,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for(typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.path))
+        transformRule.rules.allRules.filter(_.target.map(_.asPath()) == Some(typedPath.path))
       }
 
     val allRules = (subjectRule ++ pathRules.flatten).toSeq
