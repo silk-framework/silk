@@ -42,7 +42,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
-  var oldUserManager: () => User = null
+  private var oldUserManager: () => User = null
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
