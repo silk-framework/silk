@@ -108,10 +108,10 @@ private class ActivityExecution[T](activity: Activity[T],
       startTimestamp = Some(startTime)
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+        status.update(Status.Finished(success = true, runtime = System.currentTimeMillis - startTime))
       } catch {
         case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
+          status.update(Status.Finished(success = false, runtime = System.currentTimeMillis - startTime, Some(ex)))
           throw ex
       } finally {
         lastResult = activityExecutionResult

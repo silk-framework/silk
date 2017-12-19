@@ -30,13 +30,13 @@ trait ExecutorRegistry {
       case Nil =>
         throw new ValidationException(s"No executor found for task type ${task.getClass.getSimpleName} " +
             s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
-      case (plugin, _) :: Nil =>
-        plugin()
+      case (plugin, executor) :: Nil =>
+        plugin(Map.empty)
       case _ =>
         // Found multiple suitable executors => Choose the most specific one
         val sortedExecutors = suitableExecutors.sortWith((p1, p2) => p2._2.isAssignableFrom(p1._2))
         val mostSpecificPlugin = sortedExecutors.head._1
-        mostSpecificPlugin()
+        mostSpecificPlugin(Map.empty)
     }
   }
 
