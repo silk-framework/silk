@@ -60,8 +60,14 @@ const MappingsList = React.createClass({
                 toPos,
                 id: this.props.currentRuleId,
             },
-        });
-
+        }).subscribe(
+            () => {
+                // reload mapping tree
+                hierarchicalMappingChannel.subject('reload').onNext();
+            },
+        );
+        // FIXME: this should be in success part of request in case of error but results in content flickering than
+        // manage ordering local
         const items = this.reorder(
             this.state.items,
             fromPos,

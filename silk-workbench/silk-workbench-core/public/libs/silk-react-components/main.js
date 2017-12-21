@@ -33541,10 +33541,8 @@
                     type: _lodash2.default.get(this, "state.ruleData.rules.typeRules[0].typeUri")
                 },
                 targetClassUris: types
-            });
-            console.warn(this.state, this.props);
-            var listMappings = !createRuleForm && !listSuggestions && _react2.default.createElement(_MappingsList2.default, {
-                currentRuleId: _lodash2.default.get(this.state, "ruleData.id", "root"),
+            }), listMappings = !createRuleForm && !listSuggestions && _react2.default.createElement(_MappingsList2.default, {
+                currentRuleId: _lodash2.default.get(this.props, "currentRuleId", "root"),
                 rules: _lodash2.default.get(rules, "propertyRules", [])
             });
             return _react2.default.createElement("div", {
@@ -34491,6 +34489,8 @@
                     toPos: toPos,
                     id: this.props.currentRuleId
                 }
+            }).subscribe(function() {
+                _store2.default.subject("reload").onNext();
             });
             var items = this.reorder(this.state.items, fromPos, toPos);
             this.setState({
