@@ -39,12 +39,15 @@ const MappingsList = React.createClass({
             rules: [],
         };
     },
-    reorder(list, startIndex, endIndex) {
-        const result = Array.from(list);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
+    componentWillReceiveProps(nextProps) {
+        if (_.isEqual(this.props, nextProps)) return;
 
-        return result;
+        this.setState({
+            items: this.getItems(nextProps.rules),
+        });
+    },
+    shouldComponentUpdate(nextProps) {
+        return !_.isEqual(this.props, nextProps);
     },
     orderRules({fromPos, toPos, reload}) {
         const childrenRules = this.state.items.map(a => a.key);
@@ -77,6 +80,8 @@ const MappingsList = React.createClass({
             items,
         });
     },
+    onDragStart(result) {},
+    // template rendering
     onDragEnd(result) {
         // dropped outside the list
         if (!result.destination) {
@@ -110,24 +115,13 @@ const MappingsList = React.createClass({
                     : false,
         }));
     },
-    onDragStart(result) {},
-    componentWillReceiveProps(nextProps) {
-        if (_.isEqual(this.props, nextProps)) return;
-
-        this.setState({
-            items: this.getItems(nextProps.rules),
-        });
-    },
-    shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.props, nextProps);
-    },
     reorder(list, startIndex, endIndex) {
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
+
         return result;
     },
-    // template rendering
     render() {
         const {rules} = this.props;
 

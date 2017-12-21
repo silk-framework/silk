@@ -34450,7 +34450,7 @@
         };
     }
     exports.__esModule = !0;
-    var _React$createClass, _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _from = __webpack_require__(207), _from2 = _interopRequireDefault(_from), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _MappingRule = __webpack_require__(410), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _reactBeautifulDnd = __webpack_require__(208), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass((_React$createClass = {
+    var _from = __webpack_require__(207), _from2 = _interopRequireDefault(_from), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _MappingRule = __webpack_require__(410), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _reactBeautifulDnd = __webpack_require__(208), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass({
         displayName: "MappingsList",
         mixins: [ _Navigation2.default, _UseMessageBusMixin2.default ],
         propTypes: {
@@ -34469,10 +34469,13 @@
                 rules: []
             };
         },
-        reorder: function(list, startIndex, endIndex) {
-            var result = (0, _from2.default)(list), _result$splice = result.splice(startIndex, 1), removed = _result$splice[0];
-            result.splice(endIndex, 0, removed);
-            return result;
+        componentWillReceiveProps: function(nextProps) {
+            _lodash2.default.isEqual(this.props, nextProps) || this.setState({
+                items: this.getItems(nextProps.rules)
+            });
+        },
+        shouldComponentUpdate: function(nextProps) {
+            return !_lodash2.default.isEqual(this.props, nextProps);
         },
         orderRules: function(_ref) {
             var fromPos = _ref.fromPos, toPos = _ref.toPos, reload = _ref.reload, childrenRules = this.state.items.map(function(a) {
@@ -34497,6 +34500,7 @@
                 items: items
             });
         },
+        onDragStart: function(result) {},
         onDragEnd: function(result) {
             if (result.destination) {
                 var fromPos = result.source.index, toPos = result.destination.index;
@@ -34525,74 +34529,67 @@
                 };
             });
         },
-        onDragStart: function(result) {},
-        componentWillReceiveProps: function(nextProps) {
-            _lodash2.default.isEqual(this.props, nextProps) || this.setState({
-                items: this.getItems(nextProps.rules)
-            });
+        reorder: function(list, startIndex, endIndex) {
+            var result = (0, _from2.default)(list), _result$splice = result.splice(startIndex, 1), removed = _result$splice[0];
+            result.splice(endIndex, 0, removed);
+            return result;
         },
-        shouldComponentUpdate: function(nextProps, nextState) {
-            return !_lodash2.default.isEqual(this.props, nextProps);
+        render: function() {
+            var _this2 = this, rules = this.props.rules, listTitle = _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
+                className: "mdl-card__title-text"
+            }, "Mapping rules ", "(" + rules.length + ")")), listItem = function(index, item, provided, snapshot) {
+                return _react2.default.createElement(_MappingRule2.default, (0, _extends3.default)({}, item.props, {
+                    provided: !0,
+                    snapshot: !0
+                }));
+            }, listItems = _lodash2.default.isEmpty(rules) ? _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
+                vertSpacing: !0,
+                border: !0
+            }, "No existing mapping rules.")) : _react2.default.createElement(_reactBeautifulDnd.DragDropContext, {
+                onDragStart: this.onDragStart,
+                onDragEnd: this.onDragEnd
+            }, _react2.default.createElement(_reactBeautifulDnd.Droppable, {
+                droppableId: "droppable"
+            }, function(provided, snapshot) {
+                return _react2.default.createElement("ol", {
+                    className: "mdl-list",
+                    ref: provided.innerRef
+                }, _lodash2.default.map(_this2.state.items, function(item, index) {
+                    return listItem(0, item);
+                }), provided.placeholder);
+            })), listActions = _react2.default.createElement(_eccGuiElements.FloatingActionList, {
+                fabSize: "large",
+                fixed: !0,
+                iconName: "add",
+                actions: [ {
+                    icon: "insert_drive_file",
+                    label: "Add value mapping",
+                    handler: function() {
+                        _this2.handleCreate({
+                            type: _helpers.MAPPING_RULE_TYPE_DIRECT
+                        });
+                    }
+                }, {
+                    icon: "folder",
+                    label: "Add object mapping",
+                    handler: function() {
+                        _this2.handleCreate({
+                            type: _helpers.MAPPING_RULE_TYPE_OBJECT
+                        });
+                    }
+                }, {
+                    icon: "lightbulb_outline",
+                    label: "Suggest mappings",
+                    handler: this.handleShowSuggestions
+                } ]
+            });
+            return _react2.default.createElement("div", {
+                className: "ecc-silk-mapping__ruleslist"
+            }, _react2.default.createElement(_eccGuiElements.Card, {
+                shadow: 0
+            }, listTitle, listItems, listActions));
         }
-    }, _React$createClass.reorder = function(list, startIndex, endIndex) {
-        var result = (0, _from2.default)(list), _result$splice2 = result.splice(startIndex, 1), removed = _result$splice2[0];
-        result.splice(endIndex, 0, removed);
-        return result;
-    }, _React$createClass.render = function() {
-        var _this2 = this, rules = this.props.rules, listTitle = _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
-            className: "mdl-card__title-text"
-        }, "Mapping rules ", "(" + rules.length + ")")), listItem = function(index, item, provided, snapshot) {
-            return _react2.default.createElement(_MappingRule2.default, (0, _extends3.default)({}, item.props, {
-                provided: !0,
-                snapshot: !0
-            }));
-        }, listItems = _lodash2.default.isEmpty(rules) ? _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
-            vertSpacing: !0,
-            border: !0
-        }, "No existing mapping rules.")) : _react2.default.createElement(_reactBeautifulDnd.DragDropContext, {
-            onDragStart: this.onDragStart,
-            onDragEnd: this.onDragEnd
-        }, _react2.default.createElement(_reactBeautifulDnd.Droppable, {
-            droppableId: "droppable"
-        }, function(provided, snapshot) {
-            return _react2.default.createElement("ol", {
-                className: "mdl-list",
-                ref: provided.innerRef
-            }, _lodash2.default.map(_this2.state.items, function(item, index) {
-                return listItem(0, item);
-            }), provided.placeholder);
-        })), listActions = _react2.default.createElement(_eccGuiElements.FloatingActionList, {
-            fabSize: "large",
-            fixed: !0,
-            iconName: "add",
-            actions: [ {
-                icon: "insert_drive_file",
-                label: "Add value mapping",
-                handler: function() {
-                    _this2.handleCreate({
-                        type: _helpers.MAPPING_RULE_TYPE_DIRECT
-                    });
-                }
-            }, {
-                icon: "folder",
-                label: "Add object mapping",
-                handler: function() {
-                    _this2.handleCreate({
-                        type: _helpers.MAPPING_RULE_TYPE_OBJECT
-                    });
-                }
-            }, {
-                icon: "lightbulb_outline",
-                label: "Suggest mappings",
-                handler: this.handleShowSuggestions
-            } ]
-        });
-        return _react2.default.createElement("div", {
-            className: "ecc-silk-mapping__ruleslist"
-        }, _react2.default.createElement(_eccGuiElements.Card, {
-            shadow: 0
-        }, listTitle, listItems, listActions));
-    }, _React$createClass));
+    });
     exports.default = MappingsList;
     module.exports = exports.default;
 }, function(module, exports, __webpack_require__) {
