@@ -219,8 +219,7 @@ const prepareObjectMappingPayload = data => {
             typeRules,
         },
     };
-    console.warn(data, payload)
-
+    
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
