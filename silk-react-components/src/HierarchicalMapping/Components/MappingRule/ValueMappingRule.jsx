@@ -275,6 +275,24 @@ const RuleValueView = React.createClass({
                         ) : (
                             false
                         )}
+                        {_.get(this.props, 'metadata.label', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__label">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Label
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        {_.get(
+                                            this.props,
+                                            'metadata.label',
+                                            ''
+                                        )}
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                         {_.get(this, 'props.metadata.description', false) ? (
                             <div className="ecc-silk-mapping__rulesviewer__comment">
                                 <dl className="ecc-silk-mapping__rulesviewer__attribute">

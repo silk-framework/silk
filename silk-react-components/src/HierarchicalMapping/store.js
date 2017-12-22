@@ -160,6 +160,7 @@ const prepareValueMappingPayload = data => {
     const payload = {
         metadata: {
             description: data.comment,
+            label: data.label,
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
@@ -196,6 +197,7 @@ const prepareObjectMappingPayload = data => {
     const payload = {
         metadata: {
             description: data.comment,
+            label: data.label,
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
@@ -217,6 +219,7 @@ const prepareObjectMappingPayload = data => {
             typeRules,
         },
     };
+    console.warn(data, payload)
 
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
