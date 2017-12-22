@@ -156,9 +156,11 @@ const MappingRule = React.createClass({
             rules,
             pos,
             count,
+            metadata,
             errorInfo,
         } = this.props;
 
+        const label = _.get(metadata, 'label', '');
         const loading = this.state.loading ? <Spinner /> : false;
         const discardView = this.state.askForDiscard ? (
             <ConfirmationDialog
@@ -218,13 +220,8 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                <ThingName id={mappingTarget.uri} />
+                {label || (<ThingName id={mappingTarget.uri} />)}
             </div>,
-            /*
-                <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
-                    {type} mapping
-                </div>,
-            */
             <div
                 key={'sl3'}
                 className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
