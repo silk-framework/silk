@@ -42,7 +42,7 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
       throw new ValidationException("Query is not a SELECT query!")
     }
     val typedPaths = query.getResultVars.asScala map { v =>
-      TypedPath(Path(v), AutoDetectValueType)
+      TypedPath(Path(v), AutoDetectValueType, isAttribute = false)
     }
     EntitySchema(
       typeUri = Uri(""),

@@ -55,7 +55,7 @@ object EntitySchema {
       }
       val paths = if(typedPaths.isEmpty) {
         for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-          TypedPath(Path.parse(pathNode.text.trim), StringValueType)
+          TypedPath(Path.parse(pathNode.text.trim), StringValueType, isAttribute = false)
         }
       } else {
         typedPaths

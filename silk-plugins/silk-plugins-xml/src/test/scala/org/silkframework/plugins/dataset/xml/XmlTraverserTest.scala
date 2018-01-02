@@ -33,5 +33,5 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
     traverser.evaluatePathAsString(typedPath(pathStr, valueType), "")
   }
 
-  def typedPath(path: String, valueType: ValueType): TypedPath = TypedPath(Path.parse(path), valueType)
+  def typedPath(path: String, valueType: ValueType): TypedPath = TypedPath(Path.parse(path), valueType, isAttribute = false)
 }

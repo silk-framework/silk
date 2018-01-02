@@ -17,7 +17,7 @@ class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
     val subject = "http://subject.com/uri"
     val entities = Seq("http://domain.com/entity/1", "http://domain.com/entity/2")
     val paths = IndexedSeq(
-      TypedPath(Path.parse(s"\\$propertyUri"), UriValueType)
+      TypedPath(Path.parse(s"\\$propertyUri"), UriValueType, isAttribute = false)
     )
     val entitySink = dataset.entitySink
     entitySink.openTableWithPaths("", paths)
