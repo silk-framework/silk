@@ -106,7 +106,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
         case None =>
           entitySchema
       }

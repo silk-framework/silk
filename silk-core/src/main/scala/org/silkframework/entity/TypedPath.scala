@@ -12,7 +12,7 @@ import scala.xml.Node
   * @param path      the path
   * @param valueType the type that has to be considered during processing.
   */
-case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean = false) {
+case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
 
   def propertyUri: Option[Uri] = path.propertyUri
 

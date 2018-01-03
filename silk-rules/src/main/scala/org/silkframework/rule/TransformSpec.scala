@@ -229,8 +229,8 @@ object TransformSpec {
   private def extractTypedPaths(rule: TransformRule): IndexedSeq[TypedPath] = {
     val rules = rule.rules.allRules
     val (objectRulesWithDefaultPattern, valueRules) = rules.partition ( _.representsDefaultUriRule )
-    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq
-    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p, UriValueType)).distinct.toIndexedSeq
+    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType, isAttribute = false)).distinct.toIndexedSeq
+    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p, UriValueType, isAttribute = false)).distinct.toIndexedSeq
 
     /** Value paths must come before object paths to not, because later algorithms rely on this order, e.g. PathInput only considers the Path not the value type.
       * If an object type path would come before the value path, the path input would take the wrong values. The other way round

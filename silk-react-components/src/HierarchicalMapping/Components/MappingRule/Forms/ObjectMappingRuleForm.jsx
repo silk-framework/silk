@@ -77,6 +77,7 @@ const ObjectMappingRuleForm = React.createClass({
                                 undefined
                             ),
                             comment: _.get(rule, 'metadata.description', ''),
+                            label: _.get(rule, 'metadata.label', ''),
                             targetEntityType: _.chain(rule)
                                 .get('rules.typeRules', [])
                                 .map('typeUri')
@@ -136,6 +137,7 @@ const ObjectMappingRuleForm = React.createClass({
                     parentId: this.props.parentId,
                     type: this.state.type,
                     comment: this.state.comment,
+                    label: this.state.label,
                     sourceProperty: this.state.sourceProperty,
                     targetProperty: this.state.targetProperty,
                     targetEntityType: this.state.targetEntityType,
@@ -376,6 +378,15 @@ const ObjectMappingRuleForm = React.createClass({
                         {patternInput}
                         {sourcePropertyInput}
                         {exampleView}
+                        <TextField
+                            label="Label"
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            value={this.state.label}
+                            onChange={this.handleChangeTextfield.bind(
+                                null,
+                                'label'
+                            )}
+                        />
                         <TextField
                             multiline
                             label="Description"
