@@ -32,11 +32,11 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
-  lazy val source: DataSource = new DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
-  lazy val entitySink: EntitySink = new DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 
-  lazy val linkSink: LinkSink = new DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink: LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
