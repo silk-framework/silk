@@ -242,6 +242,7 @@ class TransformTaskApi extends Controller {
   private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
     val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
     val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    updatedRoot.validate()
     task.project.updateTask(task.id, updatedTask)
   }
 

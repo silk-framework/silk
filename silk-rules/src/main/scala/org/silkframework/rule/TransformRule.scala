@@ -1,12 +1,14 @@
 package org.silkframework.rule
 
-import org.silkframework.config.{MetaData, Prefixes}
+import java.net.URI
+
 import org.silkframework.config.MetaData.MetaDataFormat
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
-import org.silkframework.rule.TransformRule.TransformRuleFormat.write
+import org.silkframework.rule.TransformRule.RDF_TYPE
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
@@ -14,9 +16,9 @@ import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, Co
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
-import TransformRule.RDF_TYPE
 
 import scala.language.implicitConversions
+import scala.util.Try
 import scala.xml.{Node, Null}
 
 /**
@@ -77,6 +79,23 @@ sealed trait TransformRule extends Operator {
     collectPaths(operator).distinct
   }
 
+  /** Throws ValidationException if this transform rule is not valid. */
+  def validate(): Unit = {
+    validateTargetUri()
+    rules.foreach(_.validate())
+  }
+
+  private def validateTargetUri(): Unit = {
+    target foreach { mt =>
+      val failure = Try {
+        new URI(mt.propertyUri.uri)
+      }.isFailure
+      if(failure) {
+        throw new ValidationException("Not a valid mapping target property: '" + mt.propertyUri.toString + "'")
+      }
+    }
+  }
+
   /**
     * The children operators.
     */
@@ -118,6 +137,11 @@ sealed trait ValueTransformRule extends TransformRule
 case class RootMappingRule(id: Identifier,
                            override val rules: MappingRules,
                            metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
+  /** Fails on the first rule it encounters that's invalid */
+  override def validate(): Unit = {
+    rules.allRules foreach (_.validate())
+  }
+
 
   /**
     * The children operators.
