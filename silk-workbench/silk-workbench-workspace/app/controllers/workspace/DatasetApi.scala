@@ -41,7 +41,17 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     }
   }
 
-  def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
+  def postDataset(projectName: String): Action[AnyContent] = Action { implicit request => {
+    val project = User().workspace.project(projectName)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+
+    deserializeCompileTime() { dataset: DatasetTask =>
+      project.addTask(dataset.id, dataset.data, dataset.metaData)
+      Ok
+    }
+  }}
+
+  def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
@@ -64,8 +74,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       case ex: Exception =>
         ErrorResult(BadUserInputException(ex))
     }
-  }
-  }
+  }}
 
   def deleteDataset(project: String, source: String): Action[AnyContent] = Action {
     User().workspace.project(project).removeTask[DatasetSpec](source)

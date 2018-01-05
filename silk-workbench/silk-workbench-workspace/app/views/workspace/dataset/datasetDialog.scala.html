@@ -39,7 +39,11 @@
         var xmlString = new XMLSerializer().serializeToString(xml);
 
         // Submit data source
-        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xmlString, callbacks);
+        @if(createDialog) {
+          postTask('@config.baseUrl/workspace/projects/@project.name/datasets', xmlString, callbacks);
+        } else {
+          putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xmlString, callbacks);
+        }
       }
 
       function autoConfigure(pluginId, name, parameters) {

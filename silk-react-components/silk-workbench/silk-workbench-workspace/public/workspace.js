@@ -161,6 +161,45 @@ function putTask(
     });
 }
 
+function postTask(
+    path,
+    xml,
+    callbacks = {
+      success() {},
+      error() {},
+    }
+) {
+  $.ajax({
+    type: 'POST',
+    url: path,
+    contentType: 'text/xml;charset=UTF-8',
+    processData: false,
+    data: xml,
+    error(request) {
+      const responseJson = JSON.parse(request.responseText);
+      var responseMessage = responseJson.message; // Old format
+      if (responseMessage === undefined) {
+        if (responseJson.title === 'Bad Request') {
+          responseMessage = 'Task could not be saved! Details: ';
+        } else {
+          responseMessage = '';
+        }
+        var finestDetail = responseJson;
+        while (finestDetail.cause !== null) {
+          finestDetail = finestDetail.cause;
+        }
+        responseMessage = `${responseMessage +
+        finestDetail.title}: ${finestDetail.detail}`;
+      }
+      callbacks.error(responseMessage);
+    },
+    success() {
+      reloadWorkspace();
+      callbacks.success();
+    },
+  });
+}
+
 /* exported deleteProject
 silk-workbench/silk-workbench-workspace/app/views/workspace/removeProjectDialog.scala.html
  */
