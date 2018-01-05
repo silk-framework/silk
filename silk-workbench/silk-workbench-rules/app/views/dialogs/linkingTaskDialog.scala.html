@@ -126,7 +126,7 @@
     }
 
     $.ajax({
-      type: 'PUT',
+      type: @if(createDialog) {'POST'} else {'PUT'},
       url: '@config.baseUrl/linking/tasks/@project/' + values.name,
       data: values,
       success: function(data) {

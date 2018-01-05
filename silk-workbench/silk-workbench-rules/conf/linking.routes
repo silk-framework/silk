@@ -39,7 +39,8 @@ POST          /:project/:task/activeLearn/reset                                 
 
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)
-PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.putLinkingTask(project: String, task: String)
+POST          /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = true)
+PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = false)
 DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)
 GET           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.getRule(project: String, task: String)
 PUT           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.putRule(project: String, task: String)
