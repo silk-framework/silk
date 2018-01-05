@@ -16,6 +16,8 @@ trait MockServerTestTrait {
   final val OK = 200
   final val INTERNAL_SERVER_ERROR_CODE = 500
   final val BAD_REQUEST_ERROR_CODE = 400
+  final val UNAUTHORIZED = 401
+  final val FORBIDDEN = 403
   var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
@@ -25,11 +27,17 @@ trait MockServerTestTrait {
   }
 
   /** Starts a server that delivers the specified content and returns the port the server runs on. */
-  def startServer(servedContent: Traversable[ServedContent]): Int = {
+  def startServer(servedContents: Traversable[ContentHandler]): Int = {
     val server: HttpServer = createHttpServer
-    for (responseContent <- servedContent) {
+    for (servedContent <- servedContents) {
       val handler = new HttpHandler {
         override def handle(httpExchange: HttpExchange): Unit = {
+          val responseContent = servedContent match {
+            case s: ServedContent =>
+              s
+            case DynamicContent(_, contentFN) =>
+              contentFN()
+          }
           val response = responseContent.content
           val responseHeaders = httpExchange.getResponseHeaders
           responseHeaders.add("content-type", responseContent.contentType)
@@ -39,7 +47,7 @@ trait MockServerTestTrait {
           os.close()
         }
       }
-      server.createContext(responseContent.contextPath, handler)
+      server.createContext(servedContent.contextPath, handler)
     }
     server.setExecutor(null) // creates a default executor
     server.start()
@@ -70,4 +78,20 @@ trait MockServerTestTrait {
   }
 }
 
-case class ServedContent(contextPath: String, content: String, contentType: String, statusCode: Int)
+sealed trait ContentHandler {
+  def contextPath: String
+}
+
+/**
+  * Static content that is served by the mock server.
+  * @param contextPath The context path of the endpoint serving the content.
+  * @param content     The text content that should be returned.
+  * @param contentType The content type of the response.
+  * @param statusCode  The status code of the response.
+  */
+case class ServedContent(contextPath: String = "/",
+                         content: String = "",
+                         contentType: String = "text/plain",
+                         statusCode: Int = 200) extends ContentHandler
+
+case class DynamicContent(contextPath: String = "/", content: () => ServedContent) extends ContentHandler
