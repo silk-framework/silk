@@ -5,6 +5,7 @@ import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
+import controllers.util.SerializationUtils
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -14,12 +15,13 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonSerializers.JsonMetaDataFormat
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsBoolean, JsObject}
+import play.api.libs.json.{JsArray, JsBoolean, JsObject, JsValue}
 import play.api.mvc._
 
 import scala.language.existentials
@@ -229,6 +231,17 @@ class WorkspaceApi extends Controller {
     val task = project.anyTask(taskName)
     Ok(JsonSerializer.taskMetadata(task))
   }
+
+  def putTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    implicit val readContext = ReadContext()
+
+    SerializationUtils.deserializeCompileTime[MetaData](defaultMimeType = "application/json") { metaData =>
+      task.updateMetaData(metaData)
+      Ok
+    }
+  }}
 
   def cachesLoaded(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)

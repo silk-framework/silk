@@ -9,6 +9,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 class JsonPluginModule extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
+      JsonMetaDataFormat.getClass ::
       JsonDatasetSpecFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
