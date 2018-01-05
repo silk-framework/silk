@@ -172,8 +172,10 @@ object PluginDescription {
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
+      val advanced = pluginParam exists (_.advanced())
+
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced)
     }
   }
 
