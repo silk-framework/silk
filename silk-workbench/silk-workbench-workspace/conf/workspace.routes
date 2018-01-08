@@ -56,7 +56,8 @@ GET           /customTasks/editTaskDialog/:project/:task                        
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
-PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.putTask(project: String, name: String)
+POST           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
+PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = false)
 DELETE        /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.deleteTask(project: String, name: String)
 
 ############################################################################################################################################
