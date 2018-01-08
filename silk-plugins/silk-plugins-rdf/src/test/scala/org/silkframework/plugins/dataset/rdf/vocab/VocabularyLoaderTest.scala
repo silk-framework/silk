@@ -36,7 +36,7 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
   }
 
   it should "load properties" in {
-    properties.size shouldBe 2
+    properties.size shouldBe 3
     properties.head shouldBe
       VocabularyProperty(
         info = GenericInfo(uri("hasDate"), Some("release date"), None),
@@ -51,6 +51,16 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
         range = Some(classMap(uri(PERSON))),
         propertyType = ObjectPropertyType
       )
+  }
+
+  it should "load all kinds of alternative labels and comments" in {
+    properties(2) shouldBe
+        VocabularyProperty(
+          info = GenericInfo(uri("label"), Some("label"), Some("dc description"), Seq("dc identifier", "dc title", "foaf name", "pref label", "skos notation")),
+          domain = Some(classMap(uri(MOVIE))),
+          range = Some(VocabularyClass(GenericInfo("http://www.w3.org/2001/XMLSchema#string"), Seq())),
+          propertyType = DatatypePropertyType
+        )
   }
 
   private def load(resource: String): VocabularyLoader = {
