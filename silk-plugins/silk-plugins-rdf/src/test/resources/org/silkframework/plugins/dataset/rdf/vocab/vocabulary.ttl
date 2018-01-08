@@ -7,7 +7,8 @@
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix void: <http://rdfs.org/ns/void#> .
 @prefix vann: <http://purl.org/vocab/vann/> .
-@prefix skos: <http://www.w3.org/2004/02/skos/core#>
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
 
 : a owl:Ontology ;
   rdfs:label "Test Ontology"@en ;
@@ -17,6 +18,7 @@
   a owl:Class ;
   rdfs:label "Film"@de ;
   rdfs:label "Movie"@en ;
+  dc:description "A film (dc:description)" ;
   rdfs:isDefinedBy : ;
 .
 
@@ -48,13 +50,29 @@
    rdfs:isDefinedBy : ;
 .
 
+:label
+  a owl:DatatypeProperty ;
+  rdfs:label "label"@en ;
+  skos:prefLabel "pref label"@en ;
+  dct:title "dc title"@en ;
+  dc:identifier "dc identifier"@en ;
+  foaf:name "foaf name"@en ;
+  skos:notation "skos notation"@en ;
+  skos:definition "skos definition"@en ;
+  dct:description "dc description"@en ;
+  skos:scopeNote "skos scopeNote"@en ;
+  rdfs:domain :Movie ;
+  rdfs:range xsd:string ;
+  rdfs:isDefinedBy : ;
+.
+
 :Employee
   a owl:Class ;
   rdfs:label "employé"@fr ;
   rdfs:label "Angestellter"@de-DE ;
   rdfs:label "empleado"@es ;
   rdfs:comment "Angestellter einer Firma"@de ;
-  rdfs:comment "Employee of a company"@en ;
+  skos:scopeNote "Employee of a company"@en ;
   rdfs:subClassOf :Person ;
   rdfs:isDefinedBy : ;
 .
