@@ -40,7 +40,8 @@ object TaskSpec {
 
     // Holds all XML formats for sub classes of TaskSpec.
     private lazy val taskSpecFormats: Seq[XmlFormat[TaskSpec]] = {
-      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType)).map(_.asInstanceOf[XmlFormat[TaskSpec]])
+      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+        .map(_.asInstanceOf[XmlFormat[TaskSpec]])
     }
 
     override def read(value: Node)(implicit readContext: ReadContext): TaskSpec = {

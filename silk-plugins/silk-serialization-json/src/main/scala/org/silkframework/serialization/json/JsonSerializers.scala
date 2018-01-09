@@ -158,6 +158,8 @@ object JsonSerializers {
 
     private val URI_PROPERTY = "uriProperty"
 
+    override def typeNames: Set[String] = Set("Dataset")
+
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
@@ -690,6 +692,8 @@ object JsonSerializers {
     final val OUTPUTS: String = "outputs"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
+    override def typeNames: Set[String] = Set("Transform")
+
     /**
       * Deserializes a value.
       */
@@ -707,6 +711,7 @@ object JsonSerializers {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
+        TASKTYPE -> "Transform",
         SELECTION -> toJson(value.selection),
         RULES_PROPERTY -> toJson(value.mappingRule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
@@ -723,16 +728,17 @@ object JsonSerializers {
 
     // Holds all JSON formats for sub classes of TaskSpec.
     private lazy val taskSpecFormats: Seq[JsonFormat[TaskSpec]] = {
-      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType)).map(_.asInstanceOf[JsonFormat[TaskSpec]])
+      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+        .map(_.asInstanceOf[JsonFormat[TaskSpec]])
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
-      val tagName = stringValue(value, TASKTYPE)
-      taskSpecFormats.find(_.typeNames.contains(tagName)) match {
+      val taskType = stringValue(value, TASKTYPE)
+      taskSpecFormats.find(_.typeNames.contains(taskType)) match {
         case Some(format) =>
           format.read(value)
         case None =>
-          throw new ValidationException(s"The encountered tag name $tagName does not correspond to a known task type")
+          throw new ValidationException(s"The encountered task type $taskType does not correspond to a known task type")
       }
     }
 
