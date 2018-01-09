@@ -225,7 +225,10 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
 
 object Workflow {
 
-  implicit object TransformSpecificationFormat extends XmlFormat[Workflow] {
+  implicit object WorkflowXmlFormat extends XmlFormat[Workflow] {
+
+    override def tagNames: Set[String] = Set("Workflow")
+
     /**
       * Deserialize a value from XML.
       */

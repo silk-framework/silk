@@ -241,6 +241,8 @@ object DatasetSpec {
     */
   implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
 
+    override def tagNames: Set[String] = Set("Dataset")
+
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resources = readContext.resources

@@ -221,6 +221,26 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
+    * Updates a task of any type in this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) =>
+        module.taskOption(name) match {
+          case Some(task) =>
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+          case None =>
+            addAnyTask(name, taskData, metaData)
+        }
+      case None =>
+        throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
    * Removes a task of a specific type.
    * Note that the named task will be deleted, even if it is referenced by another task.
    *

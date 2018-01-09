@@ -9,13 +9,15 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.{RequestException, ValidationException}
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat.readTransformRule
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
+
+import scala.xml.Node
 
 /**
   * Serializers for JSON.
@@ -24,6 +26,7 @@ object JsonSerializers {
 
   final val ID = "id"
   final val TYPE = "type"
+  final val TASKTYPE = "taskType"
   final val PARAMETERS = "parameters"
   final val URI = "uri"
   final val METADATA = "metadata"
@@ -171,6 +174,7 @@ object JsonSerializers {
     override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
+          TASKTYPE -> JsString("Dataset"),
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
           PARAMETERS -> Json.toJson(value.plugin.parameters)
         )
@@ -715,6 +719,36 @@ object JsonSerializers {
   /**
     * Task
     */
+  implicit object TaskSpecJsonFormat extends JsonFormat[TaskSpec] {
+
+    // Holds all JSON formats for sub classes of TaskSpec.
+    private lazy val taskSpecFormats: Seq[JsonFormat[TaskSpec]] = {
+      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType)).map(_.asInstanceOf[JsonFormat[TaskSpec]])
+    }
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
+      val tagName = stringValue(value, TASKTYPE)
+      taskSpecFormats.find(_.typeNames.contains(tagName)) match {
+        case Some(format) =>
+          format.read(value)
+        case None =>
+          throw new ValidationException(s"The encountered tag name $tagName does not correspond to a known task type")
+      }
+    }
+
+    override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+        case Some(format) =>
+          format.write(value)
+        case None =>
+          throw new ValidationException(s"No serialization format found for class ${value.getClass.getName}")
+      }
+    }
+  }
+
+  /**
+    * Task
+    */
   class TaskJsonFormat[T <: TaskSpec](implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
     /**
       * Deserializes a value.
@@ -761,6 +795,18 @@ object JsonSerializers {
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)
+    }
+  }
+
+  /**
+    * Generic Task
+    */
+  implicit object GenericTaskJsonFormat extends JsonFormat[Task[TaskSpec]] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): Task[TaskSpec] = {
+      new TaskJsonFormat[TaskSpec].read(value)
+    }
+    override def write(value: Task[TaskSpec])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[TaskSpec].write(value)
     }
   }
 

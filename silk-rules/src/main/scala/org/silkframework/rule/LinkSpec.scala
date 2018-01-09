@@ -115,6 +115,8 @@ object LinkSpec {
 
     private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
 
+    override def tagNames: Set[String] = Set("Interlink")
+
     /**
      * Deserialize a value from XML.
      */
