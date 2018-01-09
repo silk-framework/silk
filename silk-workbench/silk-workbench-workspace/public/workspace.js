@@ -159,39 +159,39 @@ function putTask(path, xml) {
 }
 
 function postTask(path, xml) {
-  var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
-    success: function success() {},
-    error: function error() {}
-  };
+    var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+        success: function success() {},
+        error: function error() {}
+    };
 
-  $.ajax({
-    type: 'POST',
-    url: path,
-    contentType: 'text/xml;charset=UTF-8',
-    processData: false,
-    data: xml,
-    error: function error(request) {
-      var responseJson = JSON.parse(request.responseText);
-      var responseMessage = responseJson.message; // Old format
-      if (responseMessage === undefined) {
-        if (responseJson.title === 'Bad Request') {
-          responseMessage = 'Task could not be saved! Details: ';
-        } else {
-          responseMessage = '';
+    $.ajax({
+        type: 'POST',
+        url: path,
+        contentType: 'text/xml;charset=UTF-8',
+        processData: false,
+        data: xml,
+        error: function error(request) {
+            var responseJson = JSON.parse(request.responseText);
+            var responseMessage = responseJson.message; // Old format
+            if (responseMessage === undefined) {
+                if (responseJson.title === 'Bad Request') {
+                    responseMessage = 'Task could not be saved! Details: ';
+                } else {
+                    responseMessage = '';
+                }
+                var finestDetail = responseJson;
+                while (finestDetail.cause !== null) {
+                    finestDetail = finestDetail.cause;
+                }
+                responseMessage = responseMessage + finestDetail.title + ': ' + finestDetail.detail;
+            }
+            callbacks.error(responseMessage);
+        },
+        success: function success() {
+            reloadWorkspace();
+            callbacks.success();
         }
-        var finestDetail = responseJson;
-        while (finestDetail.cause !== null) {
-          finestDetail = finestDetail.cause;
-        }
-        responseMessage = responseMessage + finestDetail.title + ': ' + finestDetail.detail;
-      }
-      callbacks.error(responseMessage);
-    },
-    success: function success() {
-      reloadWorkspace();
-      callbacks.success();
-    }
-  });
+    });
 }
 
 /* exported deleteProject

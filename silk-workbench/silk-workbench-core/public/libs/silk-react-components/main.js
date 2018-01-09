@@ -23200,8 +23200,8 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: this.state.sourceProperty,
-                    targetProperty: this.state.targetProperty,
+                    sourceProperty: this.state.sourceProperty.trim(),
+                    targetProperty: this.state.targetProperty.trim(),
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: "to" === this.state.entityConnection
@@ -23547,9 +23547,9 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty,
+                    targetProperty: this.state.targetProperty.trim(),
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty,
+                    sourceProperty: this.state.sourceProperty.trim(),
                     isAttribute: this.state.isAttribute
                 }
             }).subscribe(function() {
