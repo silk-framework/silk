@@ -94,6 +94,7 @@ class TransformTaskApi extends Controller {
         deserializeCompileTime[RootMappingRule]() { updatedRules =>
           //Update transformation task
           val updatedTask = task.data.copy(mappingRule = updatedRules)
+          updatedTask.mappingRule.validate()
           project.updateTask(taskName, updatedTask)
           Ok
         }

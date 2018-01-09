@@ -115,6 +115,8 @@ sealed trait TransformRule extends Operator {
   def representsDefaultUriRule: Boolean = {
     false
   }
+
+  def ids: List[Identifier] = id :: rules.allRules.toList.flatMap(_.ids)
 }
 
 /**
@@ -140,8 +142,17 @@ case class RootMappingRule(id: Identifier,
   /** Fails on the first rule it encounters that's invalid */
   override def validate(): Unit = {
     rules.allRules foreach (_.validate())
+    validateIDs
   }
 
+
+  private def validateIDs: Unit = {
+    val allIds = ids
+    val duplicateIds = allIds.groupBy(_.toString).filter(_._2.size > 1).keys
+    if (duplicateIds.nonEmpty) {
+      throw new ValidationException("Duplicate IDs in nested mapping rule found: " + duplicateIds.mkString(", "))
+    }
+  }
 
   /**
     * The children operators.
