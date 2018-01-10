@@ -23200,8 +23200,8 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: this.state.sourceProperty,
-                    targetProperty: this.state.targetProperty,
+                    sourceProperty: this.state.sourceProperty ? _lodash2.default.trim(this.state.sourceProperty) : void 0,
+                    targetProperty: this.state.targetProperty ? _lodash2.default.trim(this.state.targetProperty) : void 0,
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: "to" === this.state.entityConnection
@@ -23547,9 +23547,9 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty,
+                    targetProperty: this.state.targetProperty ? _lodash2.default.trim(this.state.targetProperty) : void 0,
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty,
+                    sourceProperty: this.state.sourceProperty ? _lodash2.default.trim(this.state.sourceProperty) : void 0,
                     isAttribute: this.state.isAttribute
                 }
             }).subscribe(function() {
