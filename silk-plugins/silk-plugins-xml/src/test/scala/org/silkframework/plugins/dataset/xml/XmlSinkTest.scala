@@ -36,6 +36,36 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
   }
 
+  it should "write flat structures in complex XML template" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+            IndexedSeq(
+              TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
+              TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
+            )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    test(
+      template = """<Root><OtherElement id="other">Other Element</OtherElement><NestedElement><ID>1</ID><?Element?></NestedElement></Root>""",
+      entityTables = Seq(entities),
+      expected =
+          <Root>
+            <OtherElement id="other">Other Element</OtherElement>
+            <NestedElement>
+              <ID>1</ID>
+              <Element>
+                <FirstTag>1</FirstTag>
+                <SecondTag>2</SecondTag>
+              </Element>
+            </NestedElement>
+          </Root>
+    )
+  }
+
   it should "write entities as root element" in {
     val schema =
       EntitySchema(
