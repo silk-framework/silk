@@ -2,6 +2,8 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json.{JsString, Json}
 import play.api.libs.ws.WS
@@ -20,7 +22,12 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   private val linkTaskId = "testLinkTask"
 
+  private val workflowId = "testWorkflow"
+
+  private val customTaskId = "testCustomTask"
+
   "setup" in {
+    PluginRegistry.registerPlugin(classOf[TestCustomTask])
     createProject(project)
   }
 
@@ -169,6 +176,44 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
     (response.xml \ "@id").text mustBe linkTaskId
     (response.xml \ "TargetDataset" \ "@dataSource").text mustBe datasetId
+  }
+
+  "post workflow task" in {
+    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val response = request.post(
+      <Workflow id={workflowId}>
+      </Workflow>
+    )
+    checkResponse(response)
+  }
+
+  "get workflow task" in {
+    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$workflowId")
+    request = request.withHeaders("Accept" -> "application/xml")
+    val response = checkResponse(request.get())
+
+    (response.xml \ "@id").text mustBe workflowId
+  }
+
+  "post custom task" in {
+    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val response = request.post(
+      <CustomTask id={customTaskId} type="test">
+        <Param name="stringParam" value="someValue"/>
+        <Param name="numberParam" value="1"/>
+      </CustomTask>
+    )
+    checkResponse(response)
+  }
+
+  "get custom task" in {
+    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$customTaskId")
+    request = request.withHeaders("Accept" -> "application/xml")
+    val response = checkResponse(request.get())
+
+    (response.xml \ "@id").text mustBe customTaskId
+    (response.xml \ "@type").text mustBe "test"
+    (response.xml \ "Param").filter(p => (p \ "@name").text == "stringParam").text mustBe "someValue"
   }
 
 }

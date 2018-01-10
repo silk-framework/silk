@@ -14,6 +14,7 @@
 
 package org.silkframework.plugins
 
+import org.silkframework.config.CustomTask.CustomTaskFormat
 import org.silkframework.config.Task.GenericTaskFormat
 import org.silkframework.config.TaskSpec.TaskSpecXmlFormat
 import org.silkframework.dataset.VariableDataset
@@ -41,5 +42,6 @@ class CorePlugins extends PluginModule {
     GenericTaskFormat.getClass ::
     DatasetSpecFormat.getClass ::
     DatasetTaskXmlFormat.getClass ::
+    CustomTaskFormat.getClass ::
     EntitySchemaFormat.getClass :: Nil
 }
