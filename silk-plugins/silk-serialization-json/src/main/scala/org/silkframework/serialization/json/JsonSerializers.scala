@@ -195,7 +195,7 @@ object JsonSerializers {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
       CustomTask(
-        id = (value \ ID).as[JsString].value,
+        id = (value \ TYPE).as[JsString].value,
         params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
       )
     }
@@ -203,7 +203,7 @@ object JsonSerializers {
     override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> JsString("CustomTask"),
-        ID -> JsString(value.pluginSpec.id.toString),
+        TYPE -> JsString(value.pluginSpec.id.toString),
         PARAMETERS -> Json.toJson(value.parameters)
       )
     }
