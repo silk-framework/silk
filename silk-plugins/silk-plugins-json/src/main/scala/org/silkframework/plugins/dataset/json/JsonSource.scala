@@ -56,11 +56,15 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
    * Retrieves the most frequent paths in this source.
    */
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false)
+  }
+
+  def retrieveJsonPaths(t: Uri, depth: Int, limit: Option[Int], leafPathsOnly: Boolean, innerPathsOnly: Boolean): IndexedSeq[Path] = {
     val json = JsonTraverser(file)(codec)
     val selectedElements = json.select(basePathParts)
     val subSelectedElements = selectedElements.flatMap(_.select(Path.parse(t.uri).operators))
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = false, depth = depth) if path.nonEmpty) yield {
+         path <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth) if path.nonEmpty) yield {
       Path(path.toList)
     }
   }

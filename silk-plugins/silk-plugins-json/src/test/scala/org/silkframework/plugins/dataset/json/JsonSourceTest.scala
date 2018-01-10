@@ -95,6 +95,21 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     paths.map(_.serializeSimplified) mustBe Seq("type", "number")
   }
 
+  it should "list all leaf paths of the root" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri(""), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("persons/id", "persons/name", "persons/phoneNumbers/type", "persons/phoneNumbers/number", "organizations/name")
+  }
+
+  it should "list all leaf paths of a sub path" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri("persons"), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name", "phoneNumbers/type", "phoneNumbers/number")
+  }
+
+  it should "list all leaf paths of depth 1 of a sub path" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri("persons"), depth = 1, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name")
+  }
+
   it should "return valid URIs for resource paths" in {
     val result = jsonSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons").asStringTypedPath)))
     val uris = result.flatMap(_.values.flatten).toSeq
