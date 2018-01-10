@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import java.io.InputStream
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
@@ -28,8 +29,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val inputStream = file.inputStream
     try {
-      val reader = xmlFactory.createXMLStreamReader(inputStream)
-      reader.nextTag()
+      val reader: XMLStreamReader = initStreamReader(inputStream)
       val paths = Path.empty +: collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true)
       for (path <- paths) yield {
         (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
@@ -37,6 +37,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     } finally {
       inputStream.close()
     }
+  }
+
+  // Create and init stream reader, positions the stream reader on the first tag
+  private def initStreamReader(inputStream: InputStream) = {
+    val reader = xmlFactory.createXMLStreamReader(inputStream)
+    var foundStartElement = false
+    while(reader.hasNext && !foundStartElement) {
+      reader.next()
+      foundStartElement = reader.isStartElement
+    }
+    reader
   }
 
   /**
@@ -49,7 +60,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     val inputStream = file.inputStream
     try {
-      val reader = xmlFactory.createXMLStreamReader(inputStream)
+      val reader: XMLStreamReader = initStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
       collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = false).toIndexedSeq
 
@@ -74,7 +85,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       override def foreach[U](f: (Entity) => U): Unit = {
         val inputStream = file.inputStream
         try {
-          val reader = xmlFactory.createXMLStreamReader(inputStream)
+          val reader: XMLStreamReader = initStreamReader(inputStream)
           goToPath(reader, Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
           var count = 0
           do {
@@ -119,7 +130,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
     var remainingOperators = path.operators
-    reader.nextTag()
     while(reader.hasNext && remainingOperators.nonEmpty) {
       reader.next()
       val tagName = remainingOperators.head.asInstanceOf[ForwardOperator].property.uri
