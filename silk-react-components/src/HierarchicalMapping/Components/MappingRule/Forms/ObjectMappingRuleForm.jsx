@@ -123,7 +123,7 @@ const ObjectMappingRuleForm = React.createClass({
             });
         }
     },
-    handleConfirm: function (event) {
+    handleConfirm(event) {
         event.stopPropagation();
         event.persist();
         this.setState({

@@ -113,7 +113,6 @@ const ValueMappingRuleForm = React.createClass({
         this.setState({
             loading: true,
         });
-        console.warn('debug createValueMapping', this.state.sourceProperty, this.state.targetProperty);
         hierarchicalMappingChannel
             .request({
                 topic: 'rule.createValueMapping',

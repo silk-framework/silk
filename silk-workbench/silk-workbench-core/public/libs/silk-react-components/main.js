@@ -23539,7 +23539,6 @@
             this.setState({
                 loading: !0
             });
-            console.warn("debug createValueMapping", this.state.sourceProperty, this.state.targetProperty);
             _store2.default.request({
                 topic: "rule.createValueMapping",
                 data: {
