@@ -10,7 +10,7 @@ import scala.languageFeature.postfixOps
 
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
-  def xmlSource(uriPattern: String): DataSource
+  def xmlSource(uriPattern: String): DataSource with XmlSourceTrait
 
   val persons = XmlDoc("persons.xml")
 
@@ -85,28 +85,57 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       Seq(
         "",
         "/Person",
-        "/Person/ID",
-        "/Person/Name",
         "/Person/Events",
-        "/Person/Events/Birth",
-        "/Person/Events/Death",
         "/Person/Properties",
         "/Person/Properties/Property",
-        "/Person/Properties/Property/Key",
-        "/Person/Properties/Property/Value")
+        "/Person/Properties/Property/Key")
   }
 
   it should "list all paths of the root node" in {
     (persons atPath "").subPaths shouldBe
     Seq("/Person", "/Person/ID", "/Person/Name", "/Person/Events", "/Person/Events/@count", "/Person/Events/Birth",
-      "/Person/Events/Death", "/Person/Properties", "/Person/Properties/Property", "/Person/Properties/Property/Key", "/Person/Properties/Property/Value")
+      "/Person/Events/Death", "/Person/Properties", "/Person/Properties/Property", "/Person/Properties/Property/Key",
+      "/Person/Properties/Property/Key/@id", "/Person/Properties/Property/Value")
+  }
+
+  it should "list all paths of the root node of depth 1" in {
+    (persons atPath "").subPathsDepth(1) shouldBe
+        Seq("/Person")
+  }
+
+  it should "list all paths of the root node of depth 2" in {
+    (persons atPath "").subPathsDepth(2) shouldBe
+        Seq("/Person", "/Person/ID", "/Person/Name", "/Person/Events", "/Person/Properties")
   }
 
   it should "list all paths, given a base path" in {
     (persons atPath "Person").subPaths shouldBe
       Seq("/ID", "/Name", "/Events", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties",
-        "/Properties/Property", "/Properties/Property/Key", "/Properties/Property/Value")
+        "/Properties/Property", "/Properties/Property/Key", "/Properties/Property/Key/@id", "/Properties/Property/Value")
   }
+
+  it should "list all paths of depth 1, given a base path" in {
+    (persons atPath "Person").subPathsDepth(1) shouldBe
+        Seq("/ID", "/Name", "/Events", "/Properties")
+  }
+
+  it should "list all paths of depth 2, given a base path" in {
+    (persons atPath "Person").subPathsDepth(2) shouldBe
+        Seq("/ID", "/Name", "/Events", "/Events/@count", "/Events/Birth", "/Events/Death", "/Properties",
+          "/Properties/Property")
+  }
+
+  it should "list all leaf paths of the root" in {
+    (persons atPath "").leafPaths(Int.MaxValue) shouldBe
+        Seq("/Person/ID", "/Person/Name", "/Person/Events/@count", "/Person/Events/Birth", "/Person/Events/Death",
+          "/Person/Properties/Property/Key", "/Person/Properties/Property/Key/@id", "/Person/Properties/Property/Value")
+  }
+
+  it should "list all leaf paths of a subpath" in {
+    (persons atPath "Person/Properties").leafPaths(Int.MaxValue) shouldBe
+        Seq("/Property/Key", "/Property/Key/@id", "/Property/Value")
+  }
+
 
   it should "respect the limit when reading entities" in {
     (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
@@ -140,7 +169,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   /**
     * References entities in a specified XML document at a specified path.
     */
-  case class Entities(xmlSource: DataSource, basePath: String, entityLimit: Option[Int] = None) {
+  case class Entities(xmlSource: DataSource with XmlSourceTrait, basePath: String, entityLimit: Option[Int] = None) {
 
     def limit(maxCount: Int): Entities = {
       copy(entityLimit = Some(maxCount))
@@ -161,7 +190,15 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def subPaths: Seq[String] = {
-      xmlSource.retrievePaths(basePath).map(_.serialize())
+      xmlSource.retrievePaths(basePath, depth = Int.MaxValue).map(_.serialize())
+    }
+
+    def subPathsDepth(depth: Int): Seq[String] = {
+      xmlSource.retrievePaths(basePath, depth = depth).map(_.serialize())
+    }
+
+    def leafPaths(depth: Int): Seq[String] = {
+      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.serialize)
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

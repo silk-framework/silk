@@ -58,8 +58,9 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     val json = JsonTraverser(file)(codec)
     val selectedElements = json.select(basePathParts)
-    for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = false)) yield {
+    val subSelectedElements = selectedElements.flatMap(_.select(Path.parse(t.uri).operators))
+    for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
+         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = false, depth = depth) if path.nonEmpty) yield {
       Path(path.toList)
     }
   }
@@ -68,7 +69,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     val json = JsonTraverser(file)(codec)
     val selectedElements = json.select(basePathParts)
     (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true)) yield {
+         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
       Path(path.toList).serialize
     }) map  (p => (p, 1.0))
   }
