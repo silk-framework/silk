@@ -113,6 +113,7 @@ const ValueMappingRuleForm = React.createClass({
         this.setState({
             loading: true,
         });
+        console.warn('debug createValueMapping', this.state.sourceProperty, this.state.targetProperty);
         hierarchicalMappingChannel
             .request({
                 topic: 'rule.createValueMapping',
@@ -122,9 +123,9 @@ const ValueMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty.trim(),
+                    targetProperty: this.state.targetProperty ? _.trim(this.state.targetProperty) : undefined,
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty.trim(),
+                    sourceProperty: this.state.sourceProperty ? _.trim(this.state.sourceProperty) : undefined,
                     isAttribute: this.state.isAttribute,
                 },
             })

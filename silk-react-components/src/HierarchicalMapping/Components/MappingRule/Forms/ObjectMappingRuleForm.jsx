@@ -123,7 +123,7 @@ const ObjectMappingRuleForm = React.createClass({
             });
         }
     },
-    handleConfirm(event) {
+    handleConfirm: function (event) {
         event.stopPropagation();
         event.persist();
         this.setState({
@@ -138,8 +138,8 @@ const ObjectMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: this.state.sourceProperty.trim(),
-                    targetProperty: this.state.targetProperty.trim(),
+                    sourceProperty: this.state.sourceProperty ? _.trim(this.state.sourceProperty) : undefined,
+                    targetProperty: this.state.targetProperty ? _.trim(this.state.targetProperty) : undefined,
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: this.state.entityConnection === 'to',
