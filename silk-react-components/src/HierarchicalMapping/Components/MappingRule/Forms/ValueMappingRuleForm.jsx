@@ -122,9 +122,9 @@ const ValueMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty.trim(),
+                    targetProperty: this.state.targetProperty ? _.trim(this.state.targetProperty) : undefined,
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty.trim(),
+                    sourceProperty: this.state.sourceProperty ? _.trim(this.state.sourceProperty) : undefined,
                     isAttribute: this.state.isAttribute,
                 },
             })
