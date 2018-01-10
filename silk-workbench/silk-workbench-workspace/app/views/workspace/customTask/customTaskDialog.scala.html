@@ -14,25 +14,19 @@
 
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
-        // Build dataset xml
-        var ctDoc = document.implementation.createDocument("", "CustomTask", null);
-        var ct = ctDoc.documentElement;
-        ct.setAttribute('id', name);
-        ct.setAttribute('type', pluginId);
-        for(var i in parameters) {
-          var param = ctDoc.createElement('Param');
-          param.setAttribute('name', parameters[i].name);
-          param.appendChild(ctDoc.createCDATASection(parameters[i].value));
-          ct.appendChild(param);
-        }
-        var oSerializer = new XMLSerializer();
-        var xml = oSerializer.serializeToString(ctDoc);
+        // Build task json
+        var json = {
+          taskType: "CustomTask",
+          id: name,
+          type: pluginId,
+          parameters: parameters
+        };
 
         // Submit task
         @if(createDialog) {
-          postTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
+          postTask('@project.name', json, callbacks);
         } else {
-          putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
+          putTask('@project.name', name, json, callbacks);
         }
       }
     </script>

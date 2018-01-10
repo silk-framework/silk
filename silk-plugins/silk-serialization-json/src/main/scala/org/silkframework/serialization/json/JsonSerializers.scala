@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
 
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -184,6 +184,28 @@ object JsonSerializers {
         json += (URI_PROPERTY -> JsString(property.uri))
       }
       json
+    }
+  }
+
+  implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
+
+    override def typeNames: Set[String] = Set("CustomTask")
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resource = readContext.resources
+      CustomTask(
+        id = (value \ ID).as[JsString].value,
+        params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
+      )
+    }
+
+    override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> JsString("CustomTask"),
+        ID -> JsString(value.pluginSpec.id.toString),
+        PARAMETERS -> Json.toJson(value.parameters)
+      )
     }
   }
 
@@ -666,7 +688,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
       DatasetSelection(
         inputId = stringValue(value, INPUT_ID),
-        typeUri = stringValue(value, TYPE_URI),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
         restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
       )
     }
@@ -677,7 +699,7 @@ object JsonSerializers {
     override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.uri,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
         RESTRICTION -> value.restriction.serialize
       )
     }
@@ -701,7 +723,7 @@ object JsonSerializers {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
+        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }

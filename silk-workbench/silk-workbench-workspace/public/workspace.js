@@ -122,18 +122,19 @@ function workspaceDialog(relativePath) {
 silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
-function putTask(path, xml) {
-    var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+function putTask(project, task, json) {
+    var callbacks = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
         success: function success() {},
         error: function error() {}
     };
 
     $.ajax({
         type: 'PUT',
-        url: path,
-        contentType: 'text/xml;charset=UTF-8',
+        url: baseUrl + "/workspace/projects/" + project + "/tasks/" + task,
+        contentType: 'application/json;charset=UTF-8',
         processData: false,
-        data: xml,
+        data: JSON.stringify(json),
+        dataType: 'json',
         error: function error(request) {
             var responseJson = JSON.parse(request.responseText);
             var responseMessage = responseJson.message; // Old format
@@ -158,7 +159,7 @@ function putTask(path, xml) {
     });
 }
 
-function postTask(path, xml) {
+function postTask(project, json) {
   var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
     success: function success() {},
     error: function error() {}
@@ -166,10 +167,11 @@ function postTask(path, xml) {
 
   $.ajax({
     type: 'POST',
-    url: path,
-    contentType: 'text/xml;charset=UTF-8',
+    url: baseUrl + "/workspace/projects/" + project + "/tasks",
+    contentType: 'application/json;charset=UTF-8',
     processData: false,
-    data: xml,
+    data: JSON.stringify(json),
+    dataType: 'json',
     error: function error(request) {
       var responseJson = JSON.parse(request.responseText);
       var responseMessage = responseJson.message; // Old format
