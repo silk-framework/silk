@@ -219,7 +219,7 @@ const prepareObjectMappingPayload = data => {
             typeRules,
         },
     };
-    
+
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
@@ -915,7 +915,7 @@ if (!__DEBUG__) {
         .subject('rule.child.example')
         .subscribe(({replySubject}) => {
             const example = {
-                sourcePaths: [['/name'], ['/birthdate']],
+                sourcePaths: [['/name'], ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']],
                 results: [
                     {
                         sourceValues: [['Abigale Purdy'], ['7/21/1977']],
@@ -940,7 +940,7 @@ if (!__DEBUG__) {
         .subject('rule.example')
         .subscribe(({replySubject}) => {
             const example = {
-                sourcePaths: [['/name'], ['/birthdate']],
+                sourcePaths: [['/name'], ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']],
                 results: [
                     {
                         sourceValues: [['Abigale Purdy'], ['7/21/1977']],

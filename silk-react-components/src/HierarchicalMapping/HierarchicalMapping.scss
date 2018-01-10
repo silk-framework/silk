@@ -679,6 +679,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
     border: 0;
     width: 100%;
+    table-layout: fixed;
 
     th, td {
         text-align: left;
@@ -694,6 +695,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
         &.ecc-silk-mapping__rulesviewer__examples-table__path {
             max-width: 33%;
+
+            .mdl-chip {
+                direction: rtl;
+            }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__value {
             max-width: 33%;
