@@ -13,24 +13,24 @@ import org.silkframework.util.Uri
 class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   behavior of "XML Source"
 
+  implicit val prefixes: Prefixes = Prefixes(Map.empty)
+
   it should "return 0% mapping coverage if there is no mapping" in {
     val source = xmlSource
-    implicit val prefixes = Prefixes(Map.empty)
     val result = source.pathCoverage(Seq(
       CoveragePathInput("Person/Properties/Property", Seq())
     ))
-    result.paths.size mustBe 11
+    result.paths.size mustBe 12
     result.paths.forall(!_.covered) mustBe true
   }
 
   it should "return correct mapping coverage if there are inputs" in {
     val source = xmlSource
-    implicit val prefixes = Prefixes(Map.empty)
     val result = source.pathCoverage(Seq(
       CoveragePathInput("Person/Properties/Property", paths("Key")),
       CoveragePathInput("", paths("""Person[ID="1"]/Name""", "Person/Events/@count"))
     ))
-    result.paths.size mustBe 11
+    result.paths.size mustBe 12
     result.paths.count(_.covered) mustBe 3
     result.paths.count(_.fully) mustBe 2
   }

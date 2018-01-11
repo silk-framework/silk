@@ -101,14 +101,29 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   }
 
   private def findEntityTemplate(node: Node): ProcessingInstruction = {
+    findEntityTemplateRecursive(node) match {
+      case Some(pi) =>
+        pi
+      case None =>
+        throw new ValidationException("Could not find template entity of the form <?Entity?>")
+    }
+  }
+
+  private def findEntityTemplateRecursive(node: Node): Option[ProcessingInstruction] = {
     if(node.isInstanceOf[ProcessingInstruction]) {
-      node.asInstanceOf[ProcessingInstruction]
-    } else if(node.getFirstChild != null) {
-      findEntityTemplate(node.getFirstChild)
-    } else if(node.getNextSibling != null) {
-      findEntityTemplate(node.getNextSibling)
+      Some(node.asInstanceOf[ProcessingInstruction])
+    } else if(node.hasChildNodes) {
+      val children = node.getChildNodes
+      for(i <- 0 until children.getLength) {
+        findEntityTemplateRecursive(children.item(i)) match {
+          case pi @ Some(_) =>
+            return pi
+          case None => // Do nothing
+        }
+      }
+      None
     } else {
-      throw new ValidationException("Could not find template entity of the form <?Entity?>")
+      None
     }
   }
 
