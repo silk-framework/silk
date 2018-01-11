@@ -690,21 +690,21 @@ ul.ecc-hierarchical-mapping-error-list {
 
         &:first-of-type,
         &:last-of-type {
-            padding: 0.5em 1em;
+            padding: inherit;
         }
 
         &.ecc-silk-mapping__rulesviewer__examples-table__path {
-            max-width: 33%;
+            padding: 0.5em 1em 0.5em 0;
 
             .mdl-chip {
                 direction: rtl;
             }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__value {
-            max-width: 33%;
+            padding: 0.5em 0;
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__result {
-            max-width: 33%;
+            padding: 0.5em 0em 0.5em 1em;
         }
     }
 
