@@ -198,7 +198,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
 
   private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri): Unit = {
     val startTime = System.currentTimeMillis()
-    sink.writeLinks(links, linkType.uri)
+    sink.init()
+    for (link <- links) sink.writeLink(link, linkType.uri)
     val time = (System.currentTimeMillis - startTime) / 1000.0
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
