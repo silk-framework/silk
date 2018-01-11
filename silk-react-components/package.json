@@ -41,13 +41,12 @@
     "twbs-pagination": "^1.4.1"
   },
   "devDependencies": {
+    "@eccenca/dotfiles": "^2.3.1",
+    "@eccenca/gulp-tasks": "^3.14.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^7.2.3",
-    "ecc-dotfiles": "^2.1.0",
-    "ecc-gulp-tasks": "^3.10.0",
     "ecc-license-checker": "^2.5.2",
     "gulp": "^3.9.1",
-    "lorem-ipsum": "^1.0.4",
-    "prettier": "^1.5.3"
+    "lorem-ipsum": "^1.0.4"
   }
 }

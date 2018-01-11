@@ -349,7 +349,7 @@ Silk:
 
         THE SOFTWARE.
     - name: core-js
-      version: 2.5.1
+      version: 2.5.3
       url: 'https://github.com/zloirock/core-js#readme'
       spdx: MIT
       licenseFile: >
@@ -886,6 +886,66 @@ Silk:
 
         SOFTWARE.
 
+    - name: hoist-non-react-statics
+      version: 2.3.1
+      url: 'https://github.com/mridgway/hoist-non-react-statics#readme'
+      spdx: BSD-3-Clause
+      licenseFile: >
+        ---
+
+        Software License Agreement (BSD License)
+
+        ========================================
+
+
+        Copyright (c) 2015, Yahoo! Inc. All rights reserved.
+
+        ----------------------------------------------------
+
+
+        Redistribution and use of this software in source and binary forms, with
+        or
+
+        without modification, are permitted provided that the following
+        conditions are
+
+        met:
+
+          * Redistributions of source code must retain the above copyright notice, this
+            list of conditions and the following disclaimer.
+          * Redistributions in binary form must reproduce the above copyright notice,
+            this list of conditions and the following disclaimer in the documentation
+            and/or other materials provided with the distribution.
+          * Neither the name of Yahoo! Inc. nor the names of YUI's contributors may be
+            used to endorse or promote products derived from this software without
+            specific prior written permission of Yahoo! Inc.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+        IS" AND
+
+        ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+        IMPLIED
+
+        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+
+        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+        LIABLE FOR
+
+        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        DAMAGES
+
+        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+        SERVICES;
+
+        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+        AND ON
+
+        ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+
+        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+        THIS
+
+        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     - name: iconv-lite
       version: 0.4.19
       url: 'https://github.com/ashtuchkin/iconv-lite'
@@ -948,6 +1008,65 @@ Silk:
 
         PERFORMANCE OF THIS SOFTWARE.
 
+    - name: invariant
+      version: 2.2.2
+      url: 'https://github.com/zertosh/invariant#readme'
+      spdx: BSD-3-Clause
+      licenseFile: >
+        ---
+
+        Copyright (c) 2016, Andres Suarez
+
+        All rights reserved.
+
+
+        Redistribution and use in source and binary forms, with or without
+
+        modification, are permitted provided that the following conditions are
+        met:
+
+
+        * Redistributions of source code must retain the above copyright notice,
+        this
+          list of conditions and the following disclaimer.
+
+        * Redistributions in binary form must reproduce the above copyright
+        notice,
+          this list of conditions and the following disclaimer in the documentation
+          and/or other materials provided with the distribution.
+
+        * Neither the name of invariant nor the names of its
+          contributors may be used to endorse or promote products derived from
+          this software without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+        IS"
+
+        AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+        THE
+
+        IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+        PURPOSE ARE
+
+        DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+        LIABLE
+
+        FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+        CONSEQUENTIAL
+
+        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+        OR
+
+        SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+        HOWEVER
+
+        CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+        LIABILITY,
+
+        OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+        THE USE
+
+        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     - name: is-stream
       version: 1.1.0
       url: 'https://github.com/sindresorhus/is-stream#readme'
@@ -1186,6 +1305,95 @@ Silk:
     - name: lodash
       version: 4.17.4
       url: 'https://lodash.com/'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        Copyright JS Foundation and other contributors <https://js.foundation/>
+
+
+        Based on Underscore.js, copyright Jeremy Ashkenas,
+
+        DocumentCloud and Investigative Reporters & Editors
+        <http://underscorejs.org/>
+
+
+        This software consists of voluntary contributions made by many
+
+        individuals. For exact contribution history, see the revision history
+
+        available at https://github.com/lodash/lodash
+
+
+        The following license applies to all parts of this software except as
+
+        documented below:
+
+
+        ====
+
+
+        Permission is hereby granted, free of charge, to any person obtaining
+
+        a copy of this software and associated documentation files (the
+
+        "Software"), to deal in the Software without restriction, including
+
+        without limitation the rights to use, copy, modify, merge, publish,
+
+        distribute, sublicense, and/or sell copies of the Software, and to
+
+        permit persons to whom the Software is furnished to do so, subject to
+
+        the following conditions:
+
+
+        The above copyright notice and this permission notice shall be
+
+        included in all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+
+        EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+
+        NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+
+        LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+
+        OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+
+        WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+        ====
+
+
+        Copyright and related rights for sample code are waived via CC0. Sample
+
+        code is defined as all source code displayed within the prose of the
+
+        documentation.
+
+
+        CC0: http://creativecommons.org/publicdomain/zero/1.0/
+
+
+        ====
+
+
+        Files located in the node_modules and vendor directories are externally
+
+        maintained libraries used by this software which have their own
+
+        licenses; we recommend you read them, as their terms may differ from the
+
+        terms above.
+    - name: lodash-es
+      version: 4.17.4
+      url: 'https://lodash.com/custom-builds'
       spdx: MIT
       licenseFile: >
         ---
@@ -1748,6 +1956,59 @@ Silk:
 
         SOFTWARE.
 
+    - name: memoize-one
+      version: 3.0.1
+      url: 'https://github.com/alexreardon/memoize-one#readme'
+      spdx: MIT
+      licenseFile: >-
+        ---
+
+        MIT License
+
+
+        Copyright (c) 2017 Alexander Reardon
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
     - name: methods
       version: 1.1.2
       url: 'https://github.com/jshttp/methods'
@@ -1797,7 +2058,7 @@ Silk:
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     - name: mime
-      version: 2.0.3
+      version: 1.6.0
       url: 'https://github.com/broofa/node-mime#readme'
       spdx: MIT
       licenseFile: >
@@ -1932,6 +2193,34 @@ Silk:
         CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
         TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    - name: moment
+      version: 2.20.1
+      url: 'http://momentjs.com'
+      spdx: MIT
+      licenseFile: |
+        ---
+        Copyright (c) JS Foundation and other contributors
+
+        Permission is hereby granted, free of charge, to any person
+        obtaining a copy of this software and associated documentation
+        files (the "Software"), to deal in the Software without
+        restriction, including without limitation the rights to use,
+        copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the
+        Software is furnished to do so, subject to the following
+        conditions:
+
+        The above copyright notice and this permission notice shall be
+        included in all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+        EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+        OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+        NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+        HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+        WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+        OTHER DEALINGS IN THE SOFTWARE.
     - name: ms
       version: 2.0.0
       url: 'https://github.com/zeit/ms#readme'
@@ -2040,6 +2329,59 @@ Silk:
         SOFTWARE.
 
     - name: object-assign
+      version: 3.0.0
+      url: 'https://github.com/sindresorhus/object-assign#readme'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in
+
+        all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN
+
+        THE SOFTWARE.
+    - name: object-assign
       version: 4.1.1
       url: 'https://github.com/sindresorhus/object-assign#readme'
       spdx: MIT
@@ -2092,6 +2434,66 @@ Silk:
         IN
 
         THE SOFTWARE.
+    - name: performance-now
+      version: 0.2.0
+      url: 'https://github.com/meryn/performance-now'
+      spdx: MIT
+      licenseFile: >-
+        ---
+
+        Copyright (c) 2013 Meryn Stol
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files (the
+        "Software"), to deal in the Software without restriction, including
+        without limitation the rights to use, copy, modify, merge, publish,
+        distribute, sublicense, and/or sell copies of the Software, and to
+        permit persons to whom the Software is furnished to do so, subject to
+        the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    - name: performance-now
+      version: 2.1.0
+      url: 'https://github.com/braveg1rl/performance-now'
+      spdx: MIT
+      licenseFile: >-
+        ---
+
+        Copyright (c) 2013 Braveg1rl
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files (the
+        "Software"), to deal in the Software without restriction, including
+        without limitation the rights to use, copy, modify, merge, publish,
+        distribute, sublicense, and/or sell copies of the Software, and to
+        permit persons to whom the Software is furnished to do so, subject to
+        the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     - name: process-nextick-args
       version: 1.0.7
       url: 'https://github.com/calvinmetcalf/process-nextick-args'
@@ -2302,6 +2704,14 @@ Silk:
 
         The complete list of contributors can be found at:
         https://github.com/hapijs/qs/graphs/contributors
+    - name: raf
+      version: 3.4.0
+      url: 'https://github.com/chrisdickinson/raf#readme'
+      spdx: MIT
+    - name: raf-schd
+      version: 2.1.0
+      url: 'https://github.com/alexreardon/raf-schd#readme'
+      spdx: MIT
     - name: react
       version: 15.6.2
       url: 'https://facebook.github.io/react/'
@@ -2313,6 +2723,78 @@ Silk:
 
 
         Copyright (c) 2013-present, Facebook, Inc.
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
+    - name: react-beautiful-dnd
+      version: 2.6.4
+      url: 'https://github.com/atlassian/react-beautiful-dnd#readme'
+      spdx: Apache-2.0
+      licenseFile: |
+        ---
+        Copyright 2017 Atlassian Pty Ltd
+
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+    - name: react-datetime
+      version: 2.11.1
+      url: 'https://github.com/YouCanBookMe/react-datetime'
+      spdx: MIT
+      licenseFile: >-
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2017 Javier Marquez
 
 
         Permission is hereby granted, free of charge, to any person obtaining a
@@ -2463,7 +2945,7 @@ Silk:
         SOFTWARE.
 
     - name: react-input-autosize
-      version: 2.1.2
+      version: 2.2.1
       url: 'https://github.com/JedWatson/react-input-autosize#readme'
       spdx: MIT
       licenseFile: >
@@ -2472,7 +2954,7 @@ Silk:
         The MIT License (MIT)
 
 
-        Copyright (c) 2017 Jed Watson
+        Copyright (c) 2018 Jed Watson
 
 
         Permission is hereby granted, free of charge, to any person obtaining a
@@ -2568,6 +3050,117 @@ Silk:
         IN
 
         THE SOFTWARE.
+    - name: react-motion
+      version: 0.5.2
+      url: 'https://github.com/chenglou/react-motion#readme'
+      spdx: MIT
+      licenseFile: >+
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2015 React Motion authors
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
+
+    - name: react-onclickoutside
+      version: 6.7.0
+      url: 'https://github.com/Pomax/react-onclickoutside'
+      spdx: MIT
+    - name: react-redux
+      version: 5.0.6
+      url: 'https://github.com/gaearon/react-redux'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2015-present Dan Abramov
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
     - name: react-select
       version: 1.0.1
       url: 'https://github.com/JedWatson/react-select#readme'
@@ -2729,16 +3322,175 @@ Silk:
         IN THE SOFTWARE.
 
         """
+    - name: redux
+      version: 3.7.2
+      url: 'http://redux.js.org'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2015-present Dan Abramov
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
+    - name: redux-thunk
+      version: 2.2.0
+      url: 'https://github.com/gaearon/redux-thunk'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2015 Dan Abramov
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
     - name: regenerator-runtime
       version: 0.10.5
       url: >-
         https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime
       spdx: MIT
     - name: regenerator-runtime
-      version: 0.11.0
+      version: 0.11.1
       url: >-
         https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime
       spdx: MIT
+    - name: reselect
+      version: 3.0.1
+      url: 'https://github.com/reactjs/reselect#readme'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) 2015-2016 Reselect Contributors
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in all
+
+        copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE
+
+        SOFTWARE.
     - name: roboto
       version: '2.137'
       url: 'https://github.com/google/roboto'
@@ -3089,7 +3841,7 @@ Silk:
         """
 
     - name: superagent
-      version: 3.8.1
+      version: 3.8.2
       url: 'https://github.com/visionmedia/superagent#readme'
       spdx: MIT
       licenseFile: |
@@ -3120,6 +3872,61 @@ Silk:
       version: 0.3.0
       url: 'https://github.com/yamalight/superagent-rx#readme'
       spdx: MIT
+    - name: symbol-observable
+      version: 1.1.0
+      url: 'https://github.com/blesh/symbol-observable#readme'
+      spdx: MIT
+      licenseFile: >
+        ---
+
+        The MIT License (MIT)
+
+
+        Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+
+        Copyright (c) Ben Lesh <ben@benlesh.com>
+
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy
+
+        of this software and associated documentation files (the "Software"), to
+        deal
+
+        in the Software without restriction, including without limitation the
+        rights
+
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell
+
+        copies of the Software, and to permit persons to whom the Software is
+
+        furnished to do so, subject to the following conditions:
+
+
+        The above copyright notice and this permission notice shall be included
+        in
+
+        all copies or substantial portions of the Software.
+
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR
+
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+        THE
+
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM,
+
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN
+
+        THE SOFTWARE.
     - name: twbs-pagination
       version: 1.4.1
       url: 'https://github.com/esimakin/twbs-pagination'
@@ -3151,7 +3958,7 @@ Silk:
 
         limitations under the License.
     - name: ua-parser-js
-      version: 0.7.14
+      version: 0.7.17
       url: 'http://github.com/faisalman/ua-parser-js'
       licenses:
         - name: (GPL-2.0 OR MIT)
