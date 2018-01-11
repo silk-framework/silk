@@ -65,9 +65,49 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "return all paths including intermediate paths for retrieve paths" in {
-    val paths = jsonSource.retrievePaths(Uri(""))
-    paths.size mustBe 9
+    val paths = jsonSource.retrievePaths(Uri(""), depth = Int.MaxValue)
+    paths.size mustBe 8
     paths must contain allOf(Path.parse("/persons"), Path.parse("/persons/phoneNumbers"))
+  }
+
+  it should "return all paths of depth 1" in {
+    val paths = jsonSource.retrievePaths(Uri(""), depth = 1)
+    paths.map(_.serializeSimplified) mustBe Seq("persons", "organizations")
+  }
+
+  it should "return all paths of depth 2" in {
+    val paths = jsonSource.retrievePaths(Uri(""), depth = 2)
+    paths.map(_.serializeSimplified) mustBe Seq("persons", "persons/id", "persons/name", "persons/phoneNumbers", "organizations", "organizations/name")
+  }
+
+  it should "return all paths of depth 1 of sub path" in {
+    val paths = jsonSource.retrievePaths(Uri("/persons"), depth = 1)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name", "phoneNumbers")
+  }
+
+  it should "return all paths of depth 2 of sub path" in {
+    val paths = jsonSource.retrievePaths(Uri("/persons"), depth = 2)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name", "phoneNumbers", "phoneNumbers/type", "phoneNumbers/number")
+  }
+
+  it should "return all paths of depth 1 of sub path of length 2" in {
+    val paths = jsonSource.retrievePaths(Uri("/persons/phoneNumbers"), depth = 1)
+    paths.map(_.serializeSimplified) mustBe Seq("type", "number")
+  }
+
+  it should "list all leaf paths of the root" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri(""), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("persons/id", "persons/name", "persons/phoneNumbers/type", "persons/phoneNumbers/number", "organizations/name")
+  }
+
+  it should "list all leaf paths of a sub path" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri("persons"), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name", "phoneNumbers/type", "phoneNumbers/number")
+  }
+
+  it should "list all leaf paths of depth 1 of a sub path" in {
+    val paths = jsonSource.retrieveJsonPaths(Uri("persons"), depth = 1, limit = None, leafPathsOnly = true, innerPathsOnly = false)
+    paths.map(_.serializeSimplified) mustBe Seq("id", "name")
   }
 
   it should "return valid URIs for resource paths" in {

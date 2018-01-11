@@ -31,24 +31,30 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     * @param path Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean): Seq[Seq[PathOperator]] = {
+  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[Seq[PathOperator]] = {
     assert(!(leafPathsOnly && innerPathsOnly), "Cannot set leafPathsOnly and innerPathsOnly to true at the same time!")
+
+    def fetchChildPaths(obj: JsObject) = {
+      obj.keys.toSeq.flatMap(key =>
+        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key), leafPathsOnly, innerPathsOnly, depth - 1))
+    }
+
     value match {
       case obj: JsObject =>
-        val childPaths = obj.keys.toSeq.flatMap( key =>
-          asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key), leafPathsOnly, innerPathsOnly))
+        val childPaths = if(depth == 0) Seq() else fetchChildPaths(obj)
         if(leafPathsOnly) {
           childPaths
         } else {
           Seq(path) ++ childPaths
         }
       case array: JsArray if array.value.nonEmpty =>
-        keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly)
-      case _ => if (path.nonEmpty && !innerPathsOnly) {
-        Seq(path)
-      } else {
-        Seq()
-      }
+        keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
+      case _ =>
+        if (path.nonEmpty && !innerPathsOnly || innerPathsOnly && path.isEmpty) {
+          Seq(path)
+        } else {
+          Seq() // also return root path, since this is a valid type in JSON
+        }
     }
   }
 

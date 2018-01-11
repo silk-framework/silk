@@ -16,7 +16,7 @@ import scala.xml._
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -30,7 +30,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
-      val paths = Path.empty +: collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true)
+      val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
       for (path <- paths) yield {
         (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
       }
@@ -54,16 +54,23 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * Retrieves the most frequent paths in this source.
     *
     * @param typeUri The entity type, which provides the base path from which paths shall be collected.
-    * @param depth Only retrieve paths up to a certain length. Currently ignored on this dataset.
+    * @param depth Only retrieve paths up to a certain length.
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
+  }
+
+  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[Path] = {
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
       goToPath(reader, Path.parse(typeUri.uri))
-      collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = false).toIndexedSeq
-
+      val paths = collectPaths(reader, Path.empty, onlyLeafNodes = onlyLeafNodes, onlyInnerNodes = onlyInnerNodes, depth).toIndexedSeq
+      limit match {
+        case Some(value) => paths.take(value)
+        case None => paths
+      }
     } finally {
       inputStream.close()
     }
@@ -171,15 +178,12 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * Collects all paths inside the current element.
     * The parser must be positioned on the start element when calling this method.
     */
-  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): Seq[Path] = {
+  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
     assert(reader.isStartElement)
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
 
     // Collect attribute paths
-    val attributePaths =
-      for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-        path ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
-      }
+    val attributePaths = fetchAttributePaths(reader, path)
 
     // Move to first child
     nextStartOrEndTag(reader)
@@ -189,15 +193,14 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     var startElements = Set[String]()
     while(reader.isStartElement) {
       if(!startElements.contains(reader.getLocalName)) {
-        // Get paths from tags and children
+        // Get paths from children
         val tagPath = path ++ Path(reader.getLocalName)
-        val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes)
+        val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes, depth - 1)
 
+        // The depth check has to be done after collecting paths of the child, because all tags must be consumed by the reader
+        val depthAdjustedChildPaths = if(depth == 0) Seq() else childPaths
         // Collect all wanted paths
-        var newPaths = childPaths
-        if (!(onlyLeafNodes && childPaths.nonEmpty)) {
-          newPaths = tagPath +: newPaths
-        }
+        val newPaths = choosePaths(onlyLeafNodes, onlyInnerNodes, childPaths, depthAdjustedChildPaths)
 
         // Append new paths
         paths ++= newPaths
@@ -210,10 +213,42 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       nextStartOrEndTag(reader)
     }
 
-    if(onlyInnerNodes) {
-      paths
+    val depthAdjustedAttributePaths = if(depth == 0) Seq() else attributePaths
+
+    if(onlyInnerNodes && startElements.isEmpty && attributePaths.isEmpty) {
+      Seq() // An inner node has at least an attribute or child elements
+    } else if(onlyInnerNodes) {
+      path +: paths // The paths are already depth adjusted and only contain inner nodes
+    } else if(onlyLeafNodes && startElements.isEmpty) {
+      Seq(path) ++ depthAdjustedAttributePaths // A leaf node is a node without children, but may have attributes
+    } else if(onlyLeafNodes) {
+      depthAdjustedAttributePaths ++ paths
     } else {
-      attributePaths ++ paths
+      path +: (depthAdjustedAttributePaths ++ paths)
+    }
+  }
+
+  private def choosePaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, childPaths: Seq[Path], depthAdjustedChildPaths: Seq[Path]) = {
+    if (onlyInnerNodes) {
+      if (childPaths.isEmpty) {
+        Seq()
+      } else {
+        depthAdjustedChildPaths
+      }
+    } else if (onlyLeafNodes) {
+      if (childPaths.nonEmpty) {
+        depthAdjustedChildPaths
+      } else {
+        Seq()
+      }
+    } else {
+      depthAdjustedChildPaths
+    }
+  }
+
+  private def fetchAttributePaths(reader: XMLStreamReader, path: Path) = {
+    for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+      path ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
     }
   }
 
