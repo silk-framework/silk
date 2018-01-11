@@ -21,6 +21,7 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
+    trimValueLabelObject,
 } from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
@@ -122,9 +123,9 @@ const ValueMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty ? _.trim(this.state.targetProperty) : undefined,
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty ? _.trim(this.state.sourceProperty) : undefined,
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
                     isAttribute: this.state.isAttribute,
                 },
             })
