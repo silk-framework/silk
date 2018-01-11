@@ -833,7 +833,7 @@ Silk:
         TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     - name: highlight-words-core
-      version: 1.0.3
+      version: 1.1.2
       url: github.com/bvaughn/highlight-words-core
       spdx: MIT
       licenseFile: >+
@@ -2409,7 +2409,7 @@ Silk:
 
         SOFTWARE.
     - name: react-highlight-words
-      version: 0.8.1
+      version: 0.10.0
       url: 'https://github.com/bvaughn/react-highlight-words#readme'
       spdx: MIT
       licenseFile: >+
@@ -2463,7 +2463,7 @@ Silk:
         SOFTWARE.
 
     - name: react-input-autosize
-      version: 2.0.1
+      version: 2.1.2
       url: 'https://github.com/JedWatson/react-input-autosize#readme'
       spdx: MIT
       licenseFile: >
@@ -2516,7 +2516,7 @@ Silk:
 
         SOFTWARE.
     - name: react-mdl
-      version: 1.10.3
+      version: 1.11.0
       url: 'https://github.com/tleunen/react-mdl#readme'
       spdx: MIT
       licenseFile: >
@@ -2569,7 +2569,7 @@ Silk:
 
         THE SOFTWARE.
     - name: react-select
-      version: 1.0.0-rc.10
+      version: 1.0.1
       url: 'https://github.com/JedWatson/react-select#readme'
       spdx: MIT
       licenseFile: >
@@ -2740,7 +2740,7 @@ Silk:
         https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime
       spdx: MIT
     - name: roboto
-      version: '2.136'
+      version: '2.137'
       url: 'https://github.com/google/roboto'
       spdx: Apache-2.0
       licenses:
@@ -3089,7 +3089,7 @@ Silk:
         """
 
     - name: superagent
-      version: 3.6.2
+      version: 3.8.1
       url: 'https://github.com/visionmedia/superagent#readme'
       spdx: MIT
       licenseFile: |
@@ -3158,7 +3158,7 @@ Silk:
           url: >-
             https://raw.githubusercontent.com/faisalman/ua-parser-js/0.7.11/readme.md
     - name: urijs
-      version: 1.18.12
+      version: 1.19.0
       url: 'http://medialize.github.io/URI.js/'
       spdx: MIT
       licenseFile: >-

@@ -25,7 +25,7 @@
     "classnames": "^2.2.5",
     "create-react-class": "^15.6.0",
     "dialog-polyfill": "0.4.4",
-    "ecc-gui-elements": "^2.24.2",
+    "ecc-gui-elements": "^2.28.0",
     "ecc-messagebus": "^3.6.0",
     "ecc-utils": "^1.4.0",
     "jquery": "1.12.4",
@@ -38,7 +38,6 @@
     "react": "^15.6.1",
     "react-beautiful-dnd": "^2.5.0",
     "react-dom": "^15.6.1",
-    "react-highlight-words": "^0.8.1",
     "twbs-pagination": "^1.4.1"
   },
   "devDependencies": {

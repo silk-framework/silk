@@ -893,9 +893,9 @@ if (!__DEBUG__) {
                 options: _.filter(
                     result,
                     ({value, label, description}) =>
-                        _.includes(value.toLocaleLowerCase(), search) ||
-                        _.includes(label.toLocaleLowerCase(), search) ||
-                        _.includes(description.toLocaleLowerCase(), search)
+                        _.includes((value || '').toLocaleLowerCase(), search) ||
+                        _.includes((label || '').toLocaleLowerCase(), search) ||
+                        _.includes((description || '').toLocaleLowerCase(), search)
                 ),
             });
 

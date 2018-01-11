@@ -1046,7 +1046,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0, babel-runtime@^6.9.2:
+babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0, babel-runtime@^6.9.2:
   version "6.26.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -2232,17 +2232,18 @@ ecc-dotfiles@^2.1.0:
   dependencies:
     fs-extra "^4.0.0"
 
-ecc-gui-elements@^2.24.2:
-  version "2.24.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.24.2.tgz#6d23868d7cc6b46ffb10d18a88ab2a17c74419ae"
+ecc-gui-elements@^2.28.0:
+  version "2.28.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-gui-elements/-/ecc-gui-elements-2.28.0.tgz#eab6f2ede2b284f8a41e9dd6004a54e65bff31aa"
   dependencies:
     "@eccenca/material-design-lite" "^1.3.0-beta3"
     classnames "^2.2.5"
     lodash "^4.16.4"
     moment "^2.19.2"
     react-datetime "^2.11.0"
+    react-highlight-words "^0.10.0"
     react-mdl "^1.10.3"
-    react-select "^1.0.0-rc.5"
+    react-select "1.0.1"
     sassyjson "^1.1.8"
     scroll-into-view "^1.9.0"
 
@@ -3574,11 +3575,9 @@ he@1.1.1, he@1.1.x:
   version "1.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/he/-/he-1.1.1.tgz#93410fd21b009735151f8868c2f271f3427e23fd"
 
-highlight-words-core@^1.0.2:
-  version "1.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/highlight-words-core/-/highlight-words-core-1.1.0.tgz#6ca35f256b1be72857963eafe97c255a2168c7ff"
-  dependencies:
-    babel-runtime "^6.11.6"
+highlight-words-core@^1.1.0:
+  version "1.1.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/highlight-words-core/-/highlight-words-core-1.1.2.tgz#5c2717c4f6c6e7ea2462ab85b43ff8b24f58ec3e"
 
 hmac-drbg@^1.0.0:
   version "1.0.1"
@@ -6038,11 +6037,11 @@ react-dom@^15.6.1:
     object-assign "^4.1.0"
     prop-types "^15.5.10"
 
-react-highlight-words@^0.8.1:
-  version "0.8.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-highlight-words/-/react-highlight-words-0.8.1.tgz#072fa0a5e52810aae8428686d50ba05f94b1d6dc"
+react-highlight-words@^0.10.0:
+  version "0.10.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-highlight-words/-/react-highlight-words-0.10.0.tgz#2e905c76c11635237f848ecad00600f1b6f6f4a8"
   dependencies:
-    highlight-words-core "^1.0.2"
+    highlight-words-core "^1.1.0"
     prop-types "^15.5.8"
 
 react-input-autosize@^2.1.0:
@@ -6083,9 +6082,9 @@ react-redux@^5.0.6:
     loose-envify "^1.1.0"
     prop-types "^15.5.10"
 
-react-select@^1.0.0-rc.5:
-  version "1.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.1.0.tgz#626a2de839fdea2ade74dd1b143a9bde34be6c82"
+react-select@1.0.1:
+  version "1.0.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-select/-/react-select-1.0.1.tgz#27431bcd40c920b9d36a9282141bc245e47a43aa"
   dependencies:
     classnames "^2.2.4"
     prop-types "^15.5.8"
