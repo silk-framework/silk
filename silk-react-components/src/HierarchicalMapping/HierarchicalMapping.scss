@@ -734,6 +734,14 @@ ul.ecc-hierarchical-mapping-error-list {
             tr {
                 opacity: 0.39;
             }
+
+            .mdl-chip {
+                display: none;
+
+                &:nth-child(-n+7) {
+                    display: inline-flex;
+                }
+            }
         }
     }
 }

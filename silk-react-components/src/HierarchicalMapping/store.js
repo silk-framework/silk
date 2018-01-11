@@ -915,7 +915,15 @@ if (!__DEBUG__) {
         .subject('rule.child.example')
         .subscribe(({replySubject}) => {
             const example = {
-                sourcePaths: [['/name'], ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']],
+                sourcePaths: [
+                    [
+                        '/name',
+                        '/otherProperty',
+                        '/evenLongerProperty',
+                        '/another:urn:Very+long+property+from+a+column-header'
+                    ],
+                    ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']
+                ],
                 results: [
                     {
                         sourceValues: [['Abigale Purdy'], ['7/21/1977']],
@@ -940,10 +948,45 @@ if (!__DEBUG__) {
         .subject('rule.example')
         .subscribe(({replySubject}) => {
             const example = {
-                sourcePaths: [['/name'], ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']],
+                sourcePaths: [
+                    [
+                        '/name'
+                    ],
+                    [
+                        '/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate'
+                    ]
+                ],
                 results: [
                     {
-                        sourceValues: [['Abigale Purdy'], ['7/21/1977']],
+                        sourceValues: [
+                            [
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                                'Abigale Purdy',
+                                '2',
+                                'fibo-whatever-1',
+                                'fibo-another-stuff',
+                            ],
+                            ['7/21/1977']
+                        ],
                         transformedValues: ['abigale purdy7/21/1977'],
                     },
                     {
