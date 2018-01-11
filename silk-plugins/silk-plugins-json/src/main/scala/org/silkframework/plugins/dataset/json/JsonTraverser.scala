@@ -81,7 +81,10 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
       case _: JsObject if path.nonEmpty =>
         selectOnObject(path)
       case array: JsArray if array.value.nonEmpty =>
-        array.value.flatMap(value => keepParent(value).select(path))
+        val t = array.value.map(value => keepParent(value).select(path))
+        t.flatten
+      case JsNull =>
+        Seq() // JsNull is a JsValue, so it has to be handled before JsValue
       case _: JsValue if path.isEmpty =>
         Seq(this)
       case _ =>
@@ -143,6 +146,8 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
         array.value.flatMap(nodeToValue)
       case jsObject: JsObject =>
         Seq(generateUri(parentOpt.map(_.property.uri).getOrElse(""), jsObject))
+      case JsNull =>
+        Seq()
       case other: JsValue =>
         Seq(nodeToString(other))
     }
@@ -170,9 +175,9 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     }
   }
 
-  def asNewParent(prop: Uri, value: JsValue) = JsonTraverser(parentOpt = Some(ParentTraverser(this, prop)), value)
+  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(parentOpt = Some(ParentTraverser(this, prop)), value)
 
-  def keepParent(value: JsValue) = JsonTraverser(parentOpt = parentOpt, value)
+  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(parentOpt = parentOpt, value)
 }
 
 object JsonTraverser {
