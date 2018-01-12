@@ -107,6 +107,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
+    * Updates the meta data of this task.
+    */
+  def updateMetaData(newMetaData: MetaData): Unit = {
+    update(currentData, Some(newMetaData))
+  }
+
+  /**
     * Flushes this project task. i.e., the data of this task is written to the workspace provider immediately.
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.

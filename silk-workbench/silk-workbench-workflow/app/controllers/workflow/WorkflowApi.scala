@@ -31,10 +31,13 @@ class WorkflowApi extends Controller {
 
   private def fetchProject(projectName: String) = User().workspace.project(projectName)
 
-  def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def postWorkflow(projectName: String): Action[AnyContent] = Action { request =>
     val project = fetchProject(projectName)
-    val workflow = project.task[Workflow](taskName)
-    Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
+    project.addTask[Workflow](workflow.id, workflow)
+
+    Ok
   }
 
   def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
@@ -44,6 +47,12 @@ class WorkflowApi extends Controller {
     project.updateTask[Workflow](taskName, workflow)
 
     Ok
+  }
+
+  def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = fetchProject(projectName)
+    val workflow = project.task[Workflow](taskName)
+    Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
   def deleteWorkflow(project: String, task: String): Action[AnyContent] = Action {

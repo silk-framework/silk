@@ -24,7 +24,8 @@ import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
     MAPPING_RULE_TYPE_COMPLEX_URI,
-    MAPPING_RULE_TYPE_URI
+    MAPPING_RULE_TYPE_URI,
+    trimValueLabelObject,
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -138,8 +139,8 @@ const ObjectMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: this.state.sourceProperty ? _.trim(this.state.sourceProperty) : undefined,
-                    targetProperty: this.state.targetProperty ? _.trim(this.state.targetProperty) : undefined,
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: this.state.entityConnection === 'to',

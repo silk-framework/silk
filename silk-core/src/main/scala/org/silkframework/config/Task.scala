@@ -94,4 +94,6 @@ object Task {
       node
     }
   }
+
+  implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
 }
