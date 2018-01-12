@@ -13124,6 +13124,9 @@ ul.ecc-hierarchical-mapping-error-list {
       font-weight: 300;
       margin-bottom: 0; }
 
+.ecc-silk-mapping__rulesviewer__sourcePath code {
+  word-wrap: break-word; }
+
 .ecc-silk-mapping__rulesviewer__infobox {
   display: flex; }
   .ecc-silk-mapping__rulesviewer__infobox.is-narrowed .ecc-silk-mapping__rulesviewer__infobox-main,
@@ -13190,7 +13193,8 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__rulesviewer__examples-table {
   border: 0;
-  width: 100%; }
+  width: 100%;
+  table-layout: fixed; }
   .ecc-silk-mapping__rulesviewer__examples-table th, .ecc-silk-mapping__rulesviewer__examples-table td {
     text-align: left;
     padding: 0.5em 1em;
@@ -13198,13 +13202,15 @@ ul.ecc-hierarchical-mapping-error-list {
     height: auto;
     border-bottom-color: rgba(0, 0, 0, 0.06); }
     .ecc-silk-mapping__rulesviewer__examples-table th:first-of-type, .ecc-silk-mapping__rulesviewer__examples-table th:last-of-type, .ecc-silk-mapping__rulesviewer__examples-table td:first-of-type, .ecc-silk-mapping__rulesviewer__examples-table td:last-of-type {
-      padding: 0.5em 1em; }
+      padding: inherit; }
     .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__path, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__path {
-      max-width: 33%; }
+      padding: 0.5em 1em 0.5em 0; }
+      .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__path .mdl-chip, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__path .mdl-chip {
+        direction: rtl; }
     .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__value, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__value {
-      max-width: 33%; }
+      padding: 0.5em 0; }
     .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__result, .ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__result {
-      max-width: 33%; }
+      padding: 0.5em 0em 0.5em 1em; }
   .ecc-silk-mapping__rulesviewer__examples-table tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
   .ecc-silk-mapping__rulesviewer__examples-table tr:last-of-type td {
     border-bottom-color: rgba(0, 0, 0, 0.12); }
@@ -13218,6 +13224,10 @@ ul.ecc-hierarchical-mapping-error-list {
       display: table-row-group; }
     .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody tr {
       opacity: 0.39; }
+    .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody .mdl-chip {
+      display: none; }
+      .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody .mdl-chip:nth-child(-n+7) {
+        display: inline-flex; }
 
 .clickable {
   cursor: pointer; }

@@ -1,7 +1,6 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
-import org.silkframework.entity._
+import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
@@ -11,13 +10,9 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext}
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: DataSource, transform: TransformSpec, output: EntitySink) extends Activity[TransformReport] {
+class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: => EntitySink) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
-
-  private val subjectRule = transform.rules.find(_.target.isEmpty)
-
-  private val propertyRules = transform.rules.filter(_.target.isDefined)
 
   @volatile
   private var isCanceled: Boolean = false
@@ -26,33 +21,39 @@ class ExecuteTransform(input: DataSource, transform: TransformSpec, output: Enti
 
   def run(context: ActivityContext[TransformReport]): Unit = {
     isCanceled = false
+    // Get fresh data source and entity sink
+    val dataSource = input
+    val entitySink = output
 
     // Clear outputs before writing
-    output.clear()
+    entitySink.clear()
 
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
-        transformEntities(ruleSchemata, context)
+        transformEntities(dataSource, ruleSchemata, entitySink, context)
         context.status.updateProgress((index + 1.0) / transform.ruleSchemata.size)
       }
     } finally {
-      output.close()
+      entitySink.close()
     }
   }
 
-  private def transformEntities(rule: RuleSchemata, context: ActivityContext[TransformReport]): Unit = {
-    output.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
+  private def transformEntities(dataSource: DataSource,
+                                rule: RuleSchemata,
+                                entitySink: EntitySink,
+                                context: ActivityContext[TransformReport]): Unit = {
+    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
-    val entities = input.retrieve(rule.inputSchema)
+    val entities = dataSource.retrieve(rule.inputSchema)
     val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
     for (entity <- transformedEntities) {
-      output.writeEntity(entity.uri, entity.values)
+      entitySink.writeEntity(entity.uri, entity.values)
       if (isCanceled) {
         return
       }
     }
 
-    output.closeTable()
+    entitySink.closeTable()
   }
 
   override def cancelExecution(): Unit = {

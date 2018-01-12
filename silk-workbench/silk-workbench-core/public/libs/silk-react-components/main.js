@@ -3666,7 +3666,12 @@
 }, function(module, exports, __webpack_require__) {
     "use strict";
     exports.__esModule = !0;
-    var MAPPING_RULE_TYPE_ROOT = exports.MAPPING_RULE_TYPE_ROOT = "root", MAPPING_RULE_TYPE_OBJECT = exports.MAPPING_RULE_TYPE_OBJECT = "object", SUGGESTION_TYPES = (exports.MAPPING_RULE_TYPE_DIRECT = "direct", 
+    exports.trimValueLabelObject = exports.LABELED_SUGGESTION_TYPES = exports.SUGGESTION_TYPES = exports.isObjectMappingRule = exports.MAPPING_RULE_TYPE_COMPLEX_URI = exports.MAPPING_RULE_TYPE_URI = exports.MAPPING_RULE_TYPE_COMPLEX = exports.MAPPING_RULE_TYPE_DIRECT = exports.MAPPING_RULE_TYPE_OBJECT = exports.MAPPING_RULE_TYPE_ROOT = void 0;
+    var _lodash = __webpack_require__(6), _lodash2 = function(obj) {
+        return obj && obj.__esModule ? obj : {
+            default: obj
+        };
+    }(_lodash), MAPPING_RULE_TYPE_ROOT = exports.MAPPING_RULE_TYPE_ROOT = "root", MAPPING_RULE_TYPE_OBJECT = exports.MAPPING_RULE_TYPE_OBJECT = "object", SUGGESTION_TYPES = (exports.MAPPING_RULE_TYPE_DIRECT = "direct", 
     exports.MAPPING_RULE_TYPE_COMPLEX = "complex", exports.MAPPING_RULE_TYPE_URI = "uri", 
     exports.MAPPING_RULE_TYPE_COMPLEX_URI = "complexUri", exports.isObjectMappingRule = function(type) {
         return MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
@@ -3677,7 +3682,11 @@
     }, {
         value: SUGGESTION_TYPES[1],
         label: "Object mapping"
-    } ];
+    } ], exports.trimValueLabelObject = function(object) {
+        _lodash2.default.has(object, "value") && _lodash2.default.isString(object.value) && (object.value = _lodash2.default.trim(object.value));
+        _lodash2.default.has(object, "label") && (object.label = _lodash2.default.trim(object.label));
+        return object;
+    };
 }, function(module, exports) {
     var core = module.exports = {
         version: "2.5.1"
@@ -15033,7 +15042,7 @@
                     }, _react2.default.createElement("td", {
                         key: "path",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__path"
-                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, sourcePath)), _react2.default.createElement("td", {
+                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, "‎", sourcePath)), _react2.default.createElement("td", {
                         key: "value",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, _lodash2.default.map(result.sourceValues[i], function(value, valueIndex) {
@@ -23200,8 +23209,8 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: this.state.sourceProperty ? _lodash2.default.trim(this.state.sourceProperty) : void 0,
-                    targetProperty: this.state.targetProperty ? _lodash2.default.trim(this.state.targetProperty) : void 0,
+                    sourceProperty: (0, _helpers2.trimValueLabelObject)(this.state.sourceProperty),
+                    targetProperty: (0, _helpers2.trimValueLabelObject)(this.state.targetProperty),
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: "to" === this.state.entityConnection
@@ -23547,9 +23556,9 @@
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: this.state.targetProperty ? _lodash2.default.trim(this.state.targetProperty) : void 0,
+                    targetProperty: (0, _helpers2.trimValueLabelObject)(this.state.targetProperty),
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty ? _lodash2.default.trim(this.state.sourceProperty) : void 0,
+                    sourceProperty: (0, _helpers2.trimValueLabelObject)(this.state.sourceProperty),
                     isAttribute: this.state.isAttribute
                 }
             }).subscribe(function() {
