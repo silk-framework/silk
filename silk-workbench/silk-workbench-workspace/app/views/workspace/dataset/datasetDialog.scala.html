@@ -25,25 +25,20 @@
 
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
-        // Build dataset xml
-        var xmlDoc = document.implementation.createDocument('', 'root', null);
-        var xml = xmlDoc.createElement("Dataset");
-        xml.setAttribute("id", name);
-        xml.setAttribute("type", pluginId);
-        xml.setAttribute("uriProperty", $('#dataset_uriProperty').val());
-        for(var i in parameters) {
-          var param = xmlDoc.createElement("Param");
-          param.setAttribute('name', parameters[i].name);
-          param.appendChild(xmlDoc.createCDATASection(parameters[i].value));
-          xml.appendChild(param);
-        }
-        var xmlString = new XMLSerializer().serializeToString(xml);
+        // Build dataset json
+        var json = {
+          taskType: "Dataset",
+          id: name,
+          type: pluginId,
+          uriProperty: $('#dataset_uriProperty').val(),
+          parameters: parameters
+        };
 
         // Submit data source
         @if(createDialog) {
-          postTask('@config.baseUrl/workspace/projects/@project.name/datasets', xmlString, callbacks);
+          postTask('@project.name', json, callbacks);
         } else {
-          putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xmlString, callbacks);
+          putTask('@project.name', name, json, callbacks);
         }
       }
 

@@ -240,6 +240,9 @@ object TransformSpec {
   }
 
   implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
+
+    override def tagNames: Set[String] = Set("TransformSpec")
+
     /**
       * Deserialize a value from XML.
       */

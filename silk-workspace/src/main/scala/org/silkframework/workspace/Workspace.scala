@@ -35,7 +35,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
   def project(name: Identifier): Project = {
-    findProject(name).getOrElse(throw new ProjectNotFoundException(name))
+    findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
   private def findProject(name: Identifier): Option[Project] = {
@@ -43,8 +43,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   def createProject(config: ProjectConfig): Project = {
-    require(!cachedProjects.exists(_.name == config.id), "A project with the name '" + config.id + "' already exists")
-
+    if(cachedProjects.exists(_.name == config.id)) {
+      throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
+    }
     provider.putProject(config)
     val newProject = new Project(config, provider, repository.get(config.id))
     cachedProjects :+= newProject
@@ -81,7 +82,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                     marshaller: ProjectMarshallingTrait) {
     findProject(name) match {
       case Some(_) =>
-        throw new IllegalArgumentException("Project " + name.toString + " does already exist!")
+        throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
         marshaller.unmarshalProject(name, provider, repository.get(name), inputStream)
         reload()
