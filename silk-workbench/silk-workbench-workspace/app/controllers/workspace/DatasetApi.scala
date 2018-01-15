@@ -41,16 +41,6 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     }
   }
 
-  def postDataset(projectName: String): Action[AnyContent] = Action { implicit request => {
-    val project = User().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
-
-    deserializeCompileTime() { dataset: DatasetTask =>
-      project.addTask(dataset.id, dataset.data, dataset.metaData)
-      Ok
-    }
-  }}
-
   def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
