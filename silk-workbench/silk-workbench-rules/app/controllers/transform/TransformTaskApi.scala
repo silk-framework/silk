@@ -34,7 +34,7 @@ class TransformTaskApi extends Controller {
     serializeCompileTime[TransformTask](task)
   }
 
-  def pushTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
+  def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
