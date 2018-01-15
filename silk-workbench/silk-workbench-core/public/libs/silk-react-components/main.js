@@ -15042,7 +15042,7 @@
                     }, _react2.default.createElement("td", {
                         key: "path",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__path"
-                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, sourcePath)), _react2.default.createElement("td", {
+                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, "‎", sourcePath)), _react2.default.createElement("td", {
                         key: "value",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, _lodash2.default.map(result.sourceValues[i], function(value, valueIndex) {
@@ -34512,11 +34512,9 @@
             return !_lodash2.default.isEqual(this.props, nextProps);
         },
         orderRules: function(_ref) {
-            var fromPos = _ref.fromPos, toPos = _ref.toPos, reload = _ref.reload, childrenRules = this.state.items.map(function(a) {
+            var fromPos = _ref.fromPos, toPos = _ref.toPos, reload = _ref.reload, childrenRules = this.reorder(this.state.items.map(function(a) {
                 return a.key;
-            }), oldItem = childrenRules[toPos];
-            childrenRules[toPos] = childrenRules[fromPos];
-            childrenRules[fromPos] = oldItem;
+            }), fromPos, toPos);
             _store2.default.request({
                 topic: "rule.orderRule",
                 data: {

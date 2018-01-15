@@ -50,10 +50,11 @@ const MappingsList = React.createClass({
         return !_.isEqual(this.props, nextProps);
     },
     orderRules({fromPos, toPos, reload}) {
-        const childrenRules = this.state.items.map(a => a.key);
-        const oldItem = childrenRules[toPos];
-        childrenRules[toPos] = childrenRules[fromPos];
-        childrenRules[fromPos] = oldItem;
+        const childrenRules = this.reorder(
+            this.state.items.map(a => a.key),
+            fromPos,
+            toPos,
+        );
         hierarchicalMappingChannel.request({
             topic: 'rule.orderRule',
             data: {

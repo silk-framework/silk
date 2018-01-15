@@ -27,6 +27,9 @@ import scala.xml.Node
 
 /**
   * A dataset of entities.
+  *
+  * @param uriProperty Setting this URI will generate an additional property for each entity.
+                       The additional property contains the URI of each entity.
   */
 case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
 

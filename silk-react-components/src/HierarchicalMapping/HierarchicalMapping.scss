@@ -579,6 +579,12 @@ ul.ecc-hierarchical-mapping-error-list {
 
 }
 
+.ecc-silk-mapping__rulesviewer__sourcePath {
+    code {
+        word-wrap: break-word;
+    }
+}
+
 .ecc-silk-mapping__rulesviewer__infobox {
 
     display: flex;
@@ -679,6 +685,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
     border: 0;
     width: 100%;
+    table-layout: fixed;
 
     th, td {
         text-align: left;
@@ -689,17 +696,21 @@ ul.ecc-hierarchical-mapping-error-list {
 
         &:first-of-type,
         &:last-of-type {
-            padding: 0.5em 1em;
+            padding: inherit;
         }
 
         &.ecc-silk-mapping__rulesviewer__examples-table__path {
-            max-width: 33%;
+            padding: 0.5em 1em 0.5em 0;
+
+            .mdl-chip {
+                direction: rtl;
+            }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__value {
-            max-width: 33%;
+            padding: 0.5em 0;
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__result {
-            max-width: 33%;
+            padding: 0.5em 0em 0.5em 1em;
         }
     }
 
@@ -728,6 +739,14 @@ ul.ecc-hierarchical-mapping-error-list {
 
             tr {
                 opacity: 0.39;
+            }
+
+            .mdl-chip {
+                display: none;
+
+                &:nth-child(-n+7) {
+                    display: inline-flex;
+                }
             }
         }
     }

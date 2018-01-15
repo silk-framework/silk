@@ -18,7 +18,8 @@
       <input class="mdl-textfield__input" type="text" id="dataset_uriProperty" name="dataset_uriProperty" value="@dataset.flatMap(_.uriProperty.map(_.uri)).getOrElse("")"/>
       <label class="mdl-textfield__label" for="dataset_uriProperty">URI property</label>
       <div class="mdl-tooltip mdl-tooltip--right" for="dataset_uriProperty">
-        The URI property that should be generated for each entity.
+        Setting this URI will generate an additional property for each entity.
+        The additional property contains the URI of each entity.
       </div>
     </div>
 
