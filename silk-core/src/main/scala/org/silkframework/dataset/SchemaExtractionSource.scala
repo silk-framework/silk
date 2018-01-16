@@ -7,6 +7,9 @@ import org.silkframework.entity.Path
   */
 trait SchemaExtractionSource {
   this: DataSource =>
+
+  final val DEFAULT_VALUE_SAMPLE_LIMIT = 20
+
   /** Extract the schema of the data source quickly.
     * This should be a much quicker method than using retrieveTypes and subsequently retrievePaths on every class,
     * which would need #types passes over the underlying resource for some datasets.

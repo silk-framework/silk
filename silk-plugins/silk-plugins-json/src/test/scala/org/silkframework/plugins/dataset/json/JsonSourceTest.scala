@@ -156,7 +156,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "collect paths via streaming" in {
     val source = jsonSource(jsonComplex)
     val paths = source.collectPaths()
-    paths mustBe Seq("object", "object/blah", "objects", "objects/value", "objects/nestedObject", "objects/nestedObject/nestedValue",
+    paths.map(_.mkString("/")) mustBe Seq("", "object", "object/blah", "objects", "objects/value", "objects/nestedObject", "objects/nestedObject/nestedValue",
       "objects/boolean", "objects/int", "objects/float", "objects/emptyObject", "objects/emptyArray", "objects/array",
       "objects/objectArray", "objects/objectArray/v", "values")
   }
