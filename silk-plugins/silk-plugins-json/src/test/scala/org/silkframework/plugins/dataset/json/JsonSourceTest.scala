@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
@@ -153,6 +153,43 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     val source: DataSource = jsonSource(jsonWithNullObject)
     val entities = source.retrieve(EntitySchema("nestedObject", typedPaths = IndexedSeq(Path.parse("nestedValue").asStringTypedPath), subPath = Path("objects")))
     entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
+  }
+
+  class TestAnalyzer extends ValueAnalyzer[String] {
+    private var maxString: Option[String] = None
+
+    override def result: Option[String] = maxString
+
+    override def update(value: String): Unit = maxString match {
+      case Some(current) if current > value =>
+        // Do nothing
+      case _ =>
+        maxString = Some(value)
+    }
+  }
+
+  class TestAnalyzerFactory extends ValueAnalyzerFactory[String] {
+    override def analyzer(): ValueAnalyzer[String] = new TestAnalyzer()
+  }
+
+  it should "extract schema" in {
+    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), sampleLimit = None)
+    schema.classes.size mustBe 4
+    val classes = schema.classes
+    classes.head mustBe ExtractedSchemaClass("", Seq())
+    classes(1) mustBe ExtractedSchemaClass("/persons", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
+    classes(2) mustBe ExtractedSchemaClass("/persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
+    classes(3) mustBe ExtractedSchemaClass("/organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+  }
+
+  it should "extract schema with value sample limit" in {
+    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), sampleLimit = Some(1))
+    schema.classes.size mustBe 4
+    val classes = schema.classes
+    classes.head mustBe ExtractedSchemaClass("", Seq())
+    classes(1) mustBe ExtractedSchemaClass("/persons", Seq(ExtractedSchemaProperty(Path("id"),Some("0")), ExtractedSchemaProperty(Path("name"),Some("John"))))
+    classes(2) mustBe ExtractedSchemaClass("/persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("home")), ExtractedSchemaProperty(Path("number"),Some("123"))))
+    classes(3) mustBe ExtractedSchemaClass("/organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
   }
 
   private def jsonSource(json: String): JsonSource = {
