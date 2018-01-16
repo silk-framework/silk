@@ -5,7 +5,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.libs.ws.WS
 
 class TaskApiTest extends PlaySpec with IntegrationTestTrait {
@@ -32,7 +32,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "post dataset task" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <Dataset id={datasetId} type="internal">
         <MetaData>
@@ -46,7 +46,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "post dataset task with existing identifier" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <Dataset id={datasetId} type="internal">
         <MetaData>
@@ -116,7 +116,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "post transform task" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <TransformSpec id={transformId}>
         <SourceDataset dataSource={datasetId} var="a" typeUri="" />
@@ -130,18 +130,46 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     checkResponse(response)
   }
 
-  "get transform task" in {
+  private def checkTransformTask(typeUri: String): Unit = {
     var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
     request = request.withHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
+    val json = response.json
+    (json \ "id").get mustBe JsString(transformId)
+    (json \ "taskType").get mustBe JsString("Transform")
+    (json \ "selection" \ "inputId").get mustBe JsString(datasetId)
+    (json \ "selection" \ "typeUri").as[String] mustBe typeUri
+    (json \ "root" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
+        """{"type":"transformInput","id":"constant","function":"constant","inputs":[],"parameters":{"value":"http://example.org/"}}"""
+  }
 
-    (response.json \ "id").get mustBe JsString(transformId)
-    (response.json \ "taskType").get mustBe JsString("Transform")
-    (response.json \ "selection" \ "inputId").get mustBe JsString(datasetId)
+  "get transform task" in {
+   checkTransformTask("")
+  }
+
+  "update transform task" in {
+    val updateJson = s"""{
+                       |    "id": "$transformId",
+                       |    "outputs": [],
+                       |    "selection": {
+                       |        "inputId": "$datasetId",
+                       |        "restriction": "",
+                       |        "typeUri": "someType"
+                       |    },
+                       |    "targetVocabularies": [],
+                       |    "taskType": "Transform"
+                       |}""".stripMargin
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
+    val response = request.put(Json.parse(updateJson))
+    checkResponse(response)
+  }
+
+  "check that task was updated correctly" in {
+    checkTransformTask("someType")
   }
 
   "post linking task" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <Interlink id={linkTaskId}>
         <SourceDataset dataSource={datasetId} var="a" typeUri="http://dbpedia.org/ontology/Film">
@@ -179,7 +207,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "post workflow task" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <Workflow id={workflowId}>
       </Workflow>
@@ -196,7 +224,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "post custom task" in {
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
       <CustomTask id={customTaskId} type="test">
         <Param name="stringParam" value="someValue"/>
