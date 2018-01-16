@@ -6,6 +6,7 @@ import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
 
+import scala.collection.mutable
 import scala.io.Codec
 
 class JsonSourceTest extends FlatSpec with MustMatchers {
@@ -140,6 +141,45 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
     val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(Path.parse("objects/value").asStringTypedPath)))
     entities.map(_.values) mustBe Seq(Seq(Seq("val", "val2")))
+  }
+
+  private val jsonComplex =
+    """{ "object": {"blah": 3},
+      |  "objects": [
+      |    {"value":"val", "nestedObject": {"nestedValue": "nested"}},
+      |    null,
+      |    {"value": "val2", "boolean": true, "int": 3, "float": 3.41, "emptyObject": {}, "emptyArray": [], "array": [1,2,3], "objectArray": [{"v": 2}]}
+      |  ],
+      |  "values": ["arr1", "arr2"]
+      |}""".stripMargin
+
+  it should "collect paths via streaming" in {
+    val source = jsonSource(jsonComplex)
+    val paths = source.collectPaths()
+    paths mustBe Seq("object", "object/blah", "objects", "objects/value", "objects/nestedObject", "objects/nestedObject/nestedValue",
+      "objects/boolean", "objects/int", "objects/float", "objects/emptyObject", "objects/emptyArray", "objects/array",
+      "objects/objectArray", "objects/objectArray/v", "values")
+  }
+
+  it should "collect values of path" in {
+    val pathValues = mutable.HashMap[List[String], mutable.HashSet[String]]()
+    val collectValues: (List[String], String) => Unit = (path, value) => {
+      val values = pathValues.getOrElseUpdate(path, mutable.HashSet.empty[String])
+      values.add(value)
+    }
+    val source = jsonSource(jsonComplex)
+    source.collectPaths(collectValues)
+    pathValues.map{case (k, v) => (k.reverse.mkString("/"), v)} mustBe Map(
+      "objects/array" -> Set("1", "2", "3"),
+      "object/blah" -> Set("3"),
+      "objects/float" -> Set("3.41"),
+      "objects/int" -> Set("3"),
+      "objects/boolean" -> Set("true"),
+      "objects/nestedObject/nestedValue" -> Set("nested"),
+      "objects/value" -> Set("val", "val2"),
+      "objects/objectArray/v" -> Set("2"),
+      "values" -> Set("arr1", "arr2")
+    )
   }
 
   it should "ignore nulls for objects on base path" in {

@@ -3,11 +3,13 @@ package org.silkframework.plugins.dataset.json
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
+import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
 
+import scala.collection.mutable
 import scala.io.Codec
 
 /**
@@ -109,6 +111,56 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
+  }
+
+  /**
+    * Collects all paths from the JSON.
+    *
+    * @param collectValues A function to collect values of a path.
+    * @return all collected paths
+    */
+  def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[String] = {
+    val factory = new JsonFactory()
+    val jParser = factory.createParser(file.inputStream)
+    val paths = mutable.HashMap[List[String], Int]()
+    var idx = 0
+    var currentPath = List[String]()
+
+    def stepBack = { // Remove last path segment if this is the end of a field value
+      if (jParser.getCurrentName != null) {
+        currentPath = currentPath.tail
+      }
+    }
+
+    try {
+      while (jParser.nextToken() != null) {
+        val token = jParser.currentToken()
+        token match {
+          case JsonToken.START_ARRAY => // Nothing to be done here
+          case JsonToken.END_ARRAY =>
+            stepBack
+          case JsonToken.FIELD_NAME =>
+            currentPath ::= jParser.getCurrentName
+            if (!paths.contains(currentPath)) {
+              paths.put(currentPath, idx)
+              idx += 1
+            }
+          case JsonToken.START_OBJECT => // Nothing to be done here
+          case JsonToken.END_OBJECT =>
+            stepBack
+          case jsonValue: JsonToken =>
+            jsonValue match { // Collect JSON value
+              case JsonToken.VALUE_FALSE | JsonToken.VALUE_TRUE | JsonToken.VALUE_NUMBER_FLOAT | JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_STRING =>
+                collectValues(currentPath, jParser.getValueAsString)
+              case _ => // Ignore all other values
+            }
+            stepBack
+        }
+      }
+    } finally {
+      jParser.close()
+    }
+    paths.toSeq.sortBy(_._2).map(p => p._1.reverse.mkString("/"))
   }
 
   override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
