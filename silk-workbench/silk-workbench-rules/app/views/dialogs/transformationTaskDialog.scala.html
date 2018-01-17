@@ -87,7 +87,8 @@
 
   function submit() {
     var values = {
-      taskType: "Transform",
+      // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
+/*      taskType: "Transform",
       id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
       selection: {
         inputId: $("#source_dataset").val(),
@@ -95,13 +96,33 @@
         restriction: $("#source").val()
       },
       outputs: $("#output_dataset").val().split(" ").filter(String),
-      targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+      targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String) */
+      name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
+      source: $("#source_dataset").val(),
+      sourceType: $("#transformation_type").val(),
+      restriction: $("#source").val(),
+      output: $("#output_dataset").val(),
+      targetVocabularies: $("#target_vocabularies").val()
     };
 
-    if(values.id.length === 0) {
+    // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
+    if(values.name.length === 0) {
       alert("Task name is empty.");
       return;
     }
+
+    postIt = function() { $.ajax({
+      type: @if(createDialog) { 'POST' } else { 'PUT' },
+      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
+      data: values,
+      success: function(data) {
+        closeDialog();
+        reloadWorkspace();
+      },
+      error: function(request) {
+        alert(request.responseText);
+      }
+    })};
 
     var callbacks = {
       success: function() {
@@ -116,7 +137,9 @@
     @if(createDialog) {
       postTask('@project', values, callbacks);
     } else {
-      putTask('@project', values.id, values, callbacks);
+      postIt();
+      // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
+      // putTask('@project', values.id, values, callbacks);
     }
   }
 </script>
