@@ -2,11 +2,12 @@ package controllers.workspace
 
 import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.User
-import play.api.libs.json.JsBoolean
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.libs.json.{JsBoolean, JsObject, JsValue}
+import play.api.mvc._
 
 class TaskApi  extends Controller {
 
@@ -29,6 +30,27 @@ class TaskApi  extends Controller {
       project.updateAnyTask(task.id, task.data, task.metaData)
       Ok
     }
+  }}
+
+  def patchTask(projectName: String, taskName: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request => {
+    // Load current task
+    val project = User().workspace.project(projectName)
+    val currentTask = project.anyTask(taskName)
+
+    // Update task JSON
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
+    val updatedJson = currentJson.deepMerge(request.body.as[JsObject])
+
+    // Update task
+    implicit val writeContext = WriteContext(prefixes = project.config.prefixes, projectId = None)
+    val updatedTask = fromJson[Task[TaskSpec]](updatedJson)
+    if(updatedTask.id.toString != taskName) {
+      throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")
+    }
+    project.updateAnyTask(updatedTask.id, updatedTask.data, updatedTask.metaData)
+
+    Ok
   }}
 
   def getTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {

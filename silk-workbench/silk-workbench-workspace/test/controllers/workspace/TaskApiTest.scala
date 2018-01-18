@@ -147,7 +147,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
    checkTransformTask("")
   }
 
-  "update transform task" in {
+  "patch transform task" in {
     val updateJson = s"""{
                        |    "id": "$transformId",
                        |    "outputs": [],
@@ -160,12 +160,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
                        |    "taskType": "Transform"
                        |}""".stripMargin
     val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
-    val response = request.put(Json.parse(updateJson))
+    val response = request.patch(Json.parse(updateJson))
     checkResponse(response)
   }
 
-  // TODO: Fix the task API PUT endpoint to make this green
-  "check that task was updated correctly" ignore {
+  "check that task was updated correctly" in {
     checkTransformTask("someType")
   }
 
