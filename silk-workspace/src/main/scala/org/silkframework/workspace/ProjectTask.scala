@@ -204,6 +204,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
     metaDataFields
   }
+
+  def taskLabel: String = {
+    if(metaData.label.trim != "") {
+      metaData.label.trim
+    } else {
+      id.toString
+    }
+  }
 }
 
 object ProjectTask {

@@ -78,4 +78,4 @@
   <div id="links_stream_wrapper" style="display: none;"/>
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel)(header)(toolbar)(content)

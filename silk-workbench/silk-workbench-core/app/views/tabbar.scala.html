@@ -1,10 +1,18 @@
 @import plugins.{Context, WorkbenchPlugins}
 
-@(context: Option[Context[_]], selectedTab: String)
+@(context: Option[Context[_]], selectedTab: String, titleLabel: String)
+
+@pluginTabs = {
+@for(cont <- context.toSeq;
+plugin <- WorkbenchPlugins();
+tab <- plugin.tabs(cont)) {
+  <a id=@{"tab-link-" + tab.title.replaceAll(" ", "-")} href="@config.baseUrl/@tab.path" onclick="window.location='@config.baseUrl/@tab.path'" class="mdl-tabs__tab @if(cont.path.contains(tab.path)) {is-active}">@tab.title</a>
+}
+}
 
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-  <span class="di_task_title" style="position: absolute; top:50%; height:20px; margin-top:-5px">Test</span>
   <div class="mdl-tabs__tab-bar">
+    <span class="di_tab_task_title">@titleLabel</span>
     <a id="start-screen-link" href="@config.baseUrl/" onclick="window.location='@config.baseUrl/'" class="mdl-tabs__tab @if(selectedTab == "start") {is-active}">Start</a>
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
     <a id="allActivities-view-link" href="@config.baseUrl/workspace/allActivities" onclick="window.location='@config.baseUrl/workspace/allActivities'" class="mdl-tabs__tab @if(selectedTab == "activities") {is-active}">Activities</a>
@@ -12,11 +20,3 @@
   </div>
 
 </div>
-
-@pluginTabs = {
-  @for(cont <- context.toSeq;
-       plugin <- WorkbenchPlugins();
-       tab <- plugin.tabs(cont)) {
-    <a id=@{"tab-link-" + tab.title.replaceAll(" ", "-")} href="@config.baseUrl/@tab.path" onclick="window.location='@config.baseUrl/@tab.path'" class="mdl-tabs__tab @if(cont.path.contains(tab.path)) {is-active}">@tab.title</a>
-  }
-}
