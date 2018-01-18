@@ -132,7 +132,7 @@ function putTask(
     }
 ) {
     $.ajax({
-        type: 'PUT',
+        type: 'PATCH',
         url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
         contentType: 'text/xml;charset=UTF-8',
         processData: false,
