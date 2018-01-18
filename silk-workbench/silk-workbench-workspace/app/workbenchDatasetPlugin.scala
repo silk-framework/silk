@@ -1,6 +1,6 @@
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.workspace.routes.Assets
@@ -22,7 +22,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     val p = context.project.name
     val t = context.task.id
     context.task.data match {
-      case dataset: DatasetTask =>
+      case dataset: DatasetSpec =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
         if (dataset.plugin.isInstanceOf[RdfDataset] ) {
           tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
@@ -34,13 +34,15 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[Dataset] {
+  object DatasetActions extends TaskActions[DatasetSpec] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
 
     /** Path to the task icon */
     override def icon: String = Assets.at("img/server.png").url
+
+    override def folderIcon: String = Assets.at("img/dataset-folder.png").url
 
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
@@ -56,9 +58,16 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
 
     /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
     override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      taskData.asInstanceOf[Dataset] match {
-        case Dataset(_, params) => params.toSeq
+      val dataset = taskData.asInstanceOf[DatasetSpec]
+      var properties =
+        dataset.plugin match {
+          case Dataset(plugin, params) =>
+            Seq(("type", plugin.label)) ++ params
+        }
+      for(uriProperty <- dataset.uriProperty) {
+        properties :+= ("URI Property", uriProperty.uri)
       }
+      properties
     }
   }
 }

@@ -12,17 +12,30 @@
  * limitations under the License.
  */
 
-package org.silkframework.plugins.dataset.rdf.sparql
+package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 
 /**
- * Builds a SPARQL pattern from Paths.
+ * Builds SPARQL patterns from paths.
  */
 object SparqlPathBuilder {
+
   /**
-   * Builds a SPARQL pattern from Paths.
+    * Builds a SPARQL pattern for a single path.
+    *
+    * @param path The path
+    * @param subject The subject e.g. ?s or <uri>
+    * @param value The value
+    */
+  def path(path: Path, subject: String = "?s", value: String = "?v"): String = {
+    val vars = new Vars(subject, value)
+    buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, value)
+  }
+
+  /**
+   * Builds a SPARQL pattern from a sequence of paths.
    *
    * @param paths The paths
    * @param subject The subject e.g. ?s or <uri>

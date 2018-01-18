@@ -1,20 +1,23 @@
 package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetTask}
+
+import org.silkframework.config._
+import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.{RequestException, ValidationException}
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat.readTransformRule
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
+
+import scala.xml.Node
 
 /**
   * Serializers for JSON.
@@ -23,6 +26,7 @@ object JsonSerializers {
 
   final val ID = "id"
   final val TYPE = "type"
+  final val TASKTYPE = "taskType"
   final val PARAMETERS = "parameters"
   final val URI = "uri"
   final val METADATA = "metadata"
@@ -88,7 +92,7 @@ object JsonSerializers {
   }
 
   def booleanValueOption(json: JsValue, attributeName: String): Option[Boolean] = {
-    (json \ attributeName).toOption match {
+    optionalValue(json, attributeName) match {
       case Some(jsBoolean: JsBoolean) =>
         Some(jsBoolean.value)
       case Some(_) =>
@@ -99,7 +103,7 @@ object JsonSerializers {
   }
 
   def stringValueOption(json: JsValue, attributeName: String): Option[String] = {
-    (json \ attributeName).toOption match {
+    optionalValue(json, attributeName) match {
       case Some(jsString: JsString) =>
         Some(jsString.value)
       case Some(_) =>
@@ -150,29 +154,58 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonDatasetTaskFormat extends JsonFormat[DatasetTask] {
+  implicit object JsonDatasetSpecFormat extends JsonFormat[DatasetSpec] {
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
+    private val URI_PROPERTY = "uriProperty"
+
+    override def typeNames: Set[String] = Set("Dataset")
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
-      new DatasetTask(
-        id = (value \ ID).as[JsString].value,
+      new DatasetSpec(
         plugin =
           Dataset(
             id = (value \ TYPE).as[JsString].value,
             params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
           ),
-        metaData = metaData(value))
+        uriProperty = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
+      )
     }
 
-    override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        ID -> JsString(value.id.toString),
-        TYPE -> JsString(value.plugin.plugin.id.toString),
-        PARAMETERS -> Json.toJson(value.plugin.parameters),
-        METADATA -> toJson(value.metaData)
-      )
+    override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var json =
+        Json.obj(
+          TASKTYPE -> JsString("Dataset"),
+          TYPE -> JsString(value.plugin.pluginSpec.id.toString),
+          PARAMETERS -> Json.toJson(value.plugin.parameters)
+        )
+      for(property <- value.uriProperty) {
+        json += (URI_PROPERTY -> JsString(property.uri))
+      }
+      json
+    }
+  }
 
+  implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
+
+    override def typeNames: Set[String] = Set("CustomTask")
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resource = readContext.resources
+      CustomTask(
+        id = (value \ TYPE).as[JsString].value,
+        params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
+      )
+    }
+
+    override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> JsString("CustomTask"),
+        TYPE -> JsString(value.pluginSpec.id.toString),
+        PARAMETERS -> Json.toJson(value.parameters)
+      )
     }
   }
 
@@ -231,7 +264,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString(TRANSFORM_INPUT),
           ID -> JsString(value.id),
-          FUNCTION -> JsString(value.transformer.plugin.id),
+          FUNCTION -> JsString(value.transformer.pluginSpec.id),
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
           PARAMETERS -> Json.toJson(value.transformer.parameters)
         )
@@ -295,12 +328,14 @@ object JsonSerializers {
   implicit object MappingTargetJsonFormat extends JsonFormat[MappingTarget] {
     final val VALUE_TYPE = "valueType"
     final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
+    final val IS_ATTRIBUTE = "isAttribute"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
       val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
       val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
-      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty = isBackwardProperty)
+      val isAttribute = booleanValueOption(value, IS_ATTRIBUTE).getOrElse(false)
+      MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty, isAttribute)
     }
 
     override def write(value: MappingTarget)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -308,7 +343,8 @@ object JsonSerializers {
         Seq(
           URI -> JsString(value.propertyUri.serialize(writeContext.prefixes)),
           VALUE_TYPE -> toJson(value.valueType),
-          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty)
+          IS_BACKWARD_PROPERTY -> JsBoolean(value.isBackwardProperty),
+          IS_ATTRIBUTE -> JsBoolean(value.isAttribute)
         )
       )
     }
@@ -652,7 +688,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
       DatasetSelection(
         inputId = stringValue(value, INPUT_ID),
-        typeUri = stringValue(value, TYPE_URI),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
         restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
       )
     }
@@ -663,7 +699,7 @@ object JsonSerializers {
     override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.uri,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
         RESTRICTION -> value.restriction.serialize
       )
     }
@@ -678,6 +714,8 @@ object JsonSerializers {
     final val OUTPUTS: String = "outputs"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
+    override def typeNames: Set[String] = Set("Transform")
+
     /**
       * Deserializes a value.
       */
@@ -685,7 +723,7 @@ object JsonSerializers {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
+        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }
@@ -695,6 +733,7 @@ object JsonSerializers {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
+        TASKTYPE -> "Transform",
         SELECTION -> toJson(value.selection),
         RULES_PROPERTY -> toJson(value.mappingRule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
@@ -705,9 +744,35 @@ object JsonSerializers {
   }
 
   /**
-    * Transform Task
+    * Task
     */
-  implicit object TransformTaskFormat extends TaskJsonFormat[TransformSpec]
+  implicit object TaskSpecJsonFormat extends JsonFormat[TaskSpec] {
+
+    // Holds all JSON formats for sub classes of TaskSpec.
+    private lazy val taskSpecFormats: Seq[JsonFormat[TaskSpec]] = {
+      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+        .map(_.asInstanceOf[JsonFormat[TaskSpec]])
+    }
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
+      val taskType = stringValue(value, TASKTYPE)
+      taskSpecFormats.find(_.typeNames.contains(taskType)) match {
+        case Some(format) =>
+          format.read(value)
+        case None =>
+          throw new ValidationException(s"The encountered task type $taskType does not correspond to a known task type")
+      }
+    }
+
+    override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+        case Some(format) =>
+          format.write(value)
+        case None =>
+          throw new ValidationException(s"No serialization format found for class ${value.getClass.getName}")
+      }
+    }
+  }
 
   /**
     * Task
@@ -719,7 +784,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
       PlainTask(
         id = stringValue(value, ID),
-        data = fromJson[T](value)
+        data = fromJson[T](value),
+        metaData = metaData(value)
       )
     }
 
@@ -728,8 +794,47 @@ object JsonSerializers {
       */
     override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        ID -> JsString(value.id.toString)
+        ID -> JsString(value.id.toString),
+        METADATA -> toJson(value.metaData)
       ) ++ toJson(value.data).as[JsObject]
+    }
+  }
+
+  /**
+    * Dataset Task
+    */
+  implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
+      val task = new TaskJsonFormat[DatasetSpec].read(value)
+      DatasetTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[DatasetSpec].write(value)
+    }
+  }
+
+  /**
+    * Transform Task
+    */
+  implicit object TransformTaskJsonFormat extends JsonFormat[TransformTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
+      val task = new TaskJsonFormat[TransformSpec].read(value)
+      TransformTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[TransformSpec].write(value)
+    }
+  }
+
+  /**
+    * Generic Task
+    */
+  implicit object GenericTaskJsonFormat extends JsonFormat[Task[TaskSpec]] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): Task[TaskSpec] = {
+      new TaskJsonFormat[TaskSpec].read(value)
+    }
+    override def write(value: Task[TaskSpec])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[TaskSpec].write(value)
     }
   }
 
@@ -737,16 +842,23 @@ object JsonSerializers {
   implicit object GenericInfoJsonFormat extends JsonFormat[GenericInfo] {
     final val DESCRIPTION: String = "description"
     final val LABEL: String = "label"
+    final val ALT_LABELS: String = "altLabels"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericInfo = {
       GenericInfo(
         uri = stringValue(value, URI),
         label = stringValueOption(value, LABEL),
-        description = stringValueOption(value, DESCRIPTION)
+        description = stringValueOption(value, DESCRIPTION),
+        altLabels = optionalValue(value, ALT_LABELS).toSeq.flatMap { array =>
+          mustBeJsArray(array) { jsArray =>
+            jsArray.value.map(_.as[String])
+          }
+        }
       )
     }
 
     override def write(value: GenericInfo)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val altLabels = JsArray(value.altLabels.map(l => JsString(l)))
       JsObject(
         Seq(
           URI -> UriJsonFormat.write(value.uri)
@@ -754,7 +866,9 @@ object JsonSerializers {
           LABEL -> JsString(l)
         } ++ value.description.map { d =>
           DESCRIPTION -> JsString(d)
-        }
+        } ++ Seq(
+          ALT_LABELS -> altLabels
+        ).filter(_._2.value.nonEmpty)
       )
     }
   }
@@ -794,7 +908,7 @@ object JsonSerializers {
     }
   }
 
-  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext[JsValue]()): JsValue = {
+  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = None)): JsValue = {
     format.write(value)
   }
 

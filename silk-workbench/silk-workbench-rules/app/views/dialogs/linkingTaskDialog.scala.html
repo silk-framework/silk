@@ -1,9 +1,10 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.rule.{LinkSpec, TransformSpec}
 @import org.silkframework.workspace.User
-@(project: String, task: String)
+@import org.silkframework.dataset.DatasetSpec
+@(project: String, task: String, createDialog: Boolean)
 
-@datasets = @{ User().workspace.project(project).tasks[Dataset] }
+@datasets = @{ User().workspace.project(project).tasks[DatasetSpec] }
 
 @transformTasks = @{ User().workspace.project(project).tasks[TransformSpec] }
 
@@ -21,7 +22,7 @@
   |?a foaf:knows <http://example.org/SomePerson>""".stripMargin
 }
 
-@widgets.dialog(title = "Linking Task") {
+@widgets.dialog(title = "Linking Task", createDialog = createDialog) {
   <div class="dialog-form" id="linkingTaskDialogForm">
     @if(task.isEmpty) {
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -125,7 +126,7 @@
     }
 
     $.ajax({
-      type: 'PUT',
+      type: @if(createDialog) {'POST'} else {'PUT'},
       url: '@config.baseUrl/linking/tasks/@project/' + values.name,
       data: values,
       success: function(data) {

@@ -37,6 +37,9 @@ object WorkbenchPlugin {
     /** Path to the task icon */
     def icon: String
 
+    /** Path to the task folder icon */
+    def folderIcon: String = icon
+
     /** The path to the dialog for creating a new task. */
     def createDialog(project: String): Option[String]
 

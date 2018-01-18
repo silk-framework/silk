@@ -47,10 +47,7 @@ silkStore
             )
             .accept('application/json')
             .send({
-                correspondences: _.map(correspondences, c => ({
-                    sourcePath: _.last(_.split(c.sourcePath, '/')),
-                    targetProperty: c.targetProperty,
-                })),
+                correspondences,
             })
             .observe()
             .multicast(replySubject)
@@ -167,10 +164,6 @@ silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, rule, id} = data;
-        // mappingTarget.uri (aka. targetProperty) must be set:
-        if (!_.get(rule, 'mappingTarget.uri')) {
-            _.set(rule, 'mappingTarget.uri', 'http://example.org');
-        }
         superagent
             .post(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`
@@ -199,8 +192,26 @@ silkStore
             .connect();
     });
 
-// TODO: Implement once needed
-silkStore.subject('transform.task.rule.rules.reorder').subscribe();
+silkStore.subject('transform.task.rule.rules.reorder').subscribe( ({data, replySubject}) => {
+
+    const {
+        baseUrl,
+        project,
+        transformTask,
+        id,
+        childrenRules,
+    } = data;
+    superagent
+        .post(
+            `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${id}/rules/reorder`
+        )
+        .accept('application/json')
+        .send(childrenRules)
+        .type('application/json')
+        .observe()
+        .multicast(replySubject)
+        .connect();
+});
 
 silkStore
     .subject('transform.task.rule.completions.sourcePaths')

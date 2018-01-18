@@ -6,6 +6,7 @@ import play.api.libs.ws.WS
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.xml.XML
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
@@ -21,6 +22,20 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(Map("source" -> Seq("dataset")))
     checkResponse(response)
+  }
+
+  "Check that we can GET the transform task as JSON" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
+        withHeaders("ACCEPT" -> "application/json")
+    val response = request.get()
+    (Json.parse(checkResponse(response).body) \ "root" \ "id").as[String] mustBe "root"
+  }
+
+  "Check that we can GET the transform task as XML" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
+        withHeaders("ACCEPT" -> "application/xml")
+    val response = request.get()
+    (XML.loadString(checkResponse(response).body) \ "RootMappingRule" \ "@id").toString mustBe "root"
   }
 
   "Set root mapping parameters: URI pattern and type" in {
@@ -143,7 +158,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "valueType" : {
                   "nodeType" : "StringValueType"
                 },
-                "isBackwardProperty" : false
+                "isBackwardProperty" : false,
+                "isAttribute": false
               },
               "metadata" : {
                 "label" : "updated direct rule label",
@@ -158,7 +174,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
                 "valueType" : {
                   "nodeType" : "UriValueType"
                 },
-                "isBackwardProperty" : false
+                "isBackwardProperty" : false,
+                "isAttribute": false
               },
               "rules" : {
                 "uriRule" : null,
@@ -193,7 +210,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "valueType" : {
               "nodeType" : "UriValueType"
             },
-            "isBackwardProperty" : false
+            "isBackwardProperty" : false,
+            "isAttribute": false
           },
           "rules" : {
             "uriRule" : null,
@@ -252,7 +270,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         {
           "sourcePath": "/source:firstName",
           "mappingTarget": {
-            "uri": "target:firstName"
+            "uri": "target:firstName",
+            "isAttribute": true
           }
         }
       """
@@ -270,7 +289,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "valueType": {
               "nodeType": "StringValueType"
             },
-            "isBackwardProperty": false
+            "isBackwardProperty": false,
+            "isAttribute": true
           },
           "metadata" : {
             "label" : "updated direct rule label",

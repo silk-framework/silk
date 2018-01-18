@@ -10,15 +10,15 @@ import scala.reflect.ClassTag
 
 class JsonSerializersTest  extends FlatSpec with Matchers {
 
-  "JsonDatasetTaskFormat" should "serialize JsonTaskFormats" in {
+  "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
-    verify(new DatasetTask("taskId", SomeDatasetPlugin("stringValue", 6.0), MetaData.empty))
+    verify(new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)))
   }
 
   private def verify[T: ClassTag](value: T) = {
     val mime = "application/json"
     implicit val readContext = ReadContext()
-    implicit val writeContext = WriteContext[Any]()
+    implicit val writeContext = WriteContext[Any](projectId = None)
     val format = Serialization.formatForMime[T](mime)
     val serialized = format.toString(value, mime)
     val deserialized = format.fromString(serialized, mime)

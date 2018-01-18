@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.dataset
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 
 /**
  * Holds the most frequent types.
  */
-class TypesCache(dataset: Task[Dataset]) extends Activity[Types] {
+class TypesCache(dataset: Task[DatasetSpec]) extends Activity[Types] {
 
   override def name = s"Types cache ${dataset.id}"
 

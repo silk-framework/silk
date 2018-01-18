@@ -5,7 +5,8 @@ import java.util.logging.{LogRecord, Logger}
 import controllers.core.{Stream, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.activity.WorkspaceActivity
@@ -32,6 +33,7 @@ class ActivityApi extends Controller {
   def startActivity(projectName: String, taskName: String, activityName: String, blocking: Boolean): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
     val config = activityConfig(request)
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val activityControl =
       if (taskName.nonEmpty) {
         val activity = project.anyTask(taskName).activity(activityName)
@@ -56,13 +58,15 @@ class ActivityApi extends Controller {
     }
   }
 
-  def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val activity = activityControl(projectName, taskName, activityName)
     activity.cancel()
     Ok
   }
 
-  def restartActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def restartActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val activity = activityControl(projectName, taskName, activityName)
     activity.reset()
     activity.start()
@@ -111,7 +115,7 @@ class ActivityApi extends Controller {
   }
 
   def getActivityValue(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project = User().workspace.project(projectName)
+    implicit val project: Project = User().workspace.project(projectName)
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)

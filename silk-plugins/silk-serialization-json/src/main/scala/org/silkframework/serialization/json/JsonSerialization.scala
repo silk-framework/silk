@@ -9,7 +9,7 @@ import play.api.libs.json.JsValue
   */
 object JsonSerialization {
 
-  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext[JsValue]()): JsValue = {
+  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = None)): JsValue = {
     format.write(value)
   }
 

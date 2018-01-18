@@ -72,7 +72,7 @@ object TransformInput {
     }
 
     def write(value: TransformInput)(implicit writeContext: WriteContext[Node]): Node = {
-      val plugin = value.transformer.plugin
+      val plugin = value.transformer.pluginSpec
       val params = value.transformer.parameters
 
       <TransformInput id={value.id} function={plugin.id}>

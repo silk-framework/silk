@@ -29,9 +29,7 @@ trait DataSource {
    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
    *
    */
-  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
-    Traversable.empty
-  }
+  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -39,14 +37,15 @@ trait DataSource {
    * The default implementation returns an empty traversable.
    *
    * @param typeUri The entity type for which paths shall be retrieved
-   * @param depth Only retrieve paths up to a certain length. If not given, only paths of length 1 are returned.
+   * @param depth Only retrieve paths up to a certain length. If not given, only paths of length 1 are returned. Since
+    *              this value can be set to Int.MaxValue, the source has to make sure that it returns a result that
+    *              can still be handled, e.g. it is Ok for XML and JSON to return all paths, for GRAPH data models this
+    *              would be infeasible.
    * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
    *
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
-  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
-    IndexedSeq.empty
-  }
+  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path]
 
   /**
    * Retrieves entities from this source which satisfy a specific entity schema.

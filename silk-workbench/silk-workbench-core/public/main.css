@@ -264,3 +264,10 @@ div#newproject {
   margin-left: 24px;
   display: none;
 }
+
+.ui-autocomplete {
+  max-height: 200px;
+  overflow-y: auto;
+  /* prevent horizontal scrollbar */
+  overflow-x: hidden;
+}

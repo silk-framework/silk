@@ -15,8 +15,9 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{BackwardOperator, EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.Uri
 
 import scala.xml.Node
 
@@ -49,14 +50,29 @@ object SparqlEntitySchema {
    */
   def empty: SparqlEntitySchema = SparqlEntitySchema(variable, SparqlRestriction.empty, IndexedSeq.empty)
 
-  def fromSchema(entitySchema: EntitySchema): SparqlEntitySchema = {
+  def fromSchema(entitySchema: EntitySchema, entityUris: Seq[Uri]): SparqlEntitySchema = {
     var sparqlRestriction = new SparqlRestrictionBuilder(variable)(Prefixes.empty).apply(entitySchema.filter)
     if(entitySchema.typeUri.uri.nonEmpty) {
       sparqlRestriction = sparqlRestriction merge SparqlRestriction.fromSparql(variable, s"?$variable a <${entitySchema.typeUri}>")
     }
-    if(entitySchema.subPath.operators.nonEmpty) {
-      val subProperty = entitySchema.subPath.propertyUri.get.uri
-      sparqlRestriction= SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", s"?${variable}_parent") + s"\n?${variable}_parent <$subProperty> ?$variable")
+    val subPath = entitySchema.subPath
+
+    def rewriteRestrictionWithParentProperty(subPath: Path): String = {
+      val rootEntity = "?root"
+      val sparql = SparqlPathBuilder.path(subPath, rootEntity, "?" + variable)
+      sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sparql)
+      rootEntity
+    }
+
+    val rootVariable = if(subPath.operators.nonEmpty) {
+      rewriteRestrictionWithParentProperty(subPath)
+    } else {
+      s"?$variable"
+    }
+    if(entityUris.nonEmpty) {
+      val entityFilter = s"\nFILTER ($rootVariable IN (${entityUris.map(e => s"<$e>").mkString(", ")}))"
+      sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql + entityFilter)
+      SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))
     }
 
     SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.path))

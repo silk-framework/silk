@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
+import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 
 @Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
@@ -17,8 +17,8 @@ case class SparqlDataset(
   graph: String = null,
   @Param("The number of solutions to be retrieved per SPARQL query.")
   pageSize: Int = 1000,
-  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by a space.")
-  entityList: String = null,
+  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param("The number of milliseconds to wait between subsequent query")
   pauseTime: Int = 0,
   @Param("The number of retries if a query fails")
@@ -42,7 +42,7 @@ case class SparqlDataset(
       password = password,
       graph = Option(graph).filterNot(_.isEmpty),
       pageSize = pageSize,
-      entityList = entityList,
+      entityList = entityList.str,
       pauseTime = pauseTime,
       retryCount = retryCount,
       retryPause = retryPause,
@@ -51,7 +51,7 @@ case class SparqlDataset(
       useOrderBy = useOrderBy
     )
 
-  override val sparqlEndpoint = {
+  override val sparqlEndpoint: RemoteSparqlEndpoint = {
     RemoteSparqlEndpoint(params)
   }
 

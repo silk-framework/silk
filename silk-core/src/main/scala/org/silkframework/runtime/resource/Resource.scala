@@ -47,7 +47,7 @@ trait Resource {
 
   /**
     * Reads the input stream with a provided read function.
-    * This method should usually be preferred over load() as it takes care of closing the input stream after reading is done.
+    * This method should usually be preferred over requesting an inputStream as it takes care of closing the stream after reading is done.
     */
   def read[T](reader: InputStream => T): T = {
     val is = inputStream

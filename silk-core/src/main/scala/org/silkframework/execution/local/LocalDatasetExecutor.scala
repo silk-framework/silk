@@ -3,10 +3,12 @@ package org.silkframework.execution.local
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.EntitySinkWrapper
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 /**
@@ -31,9 +33,26 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
         handleMultiEntitySchema(dataset, schema, multi)
+      case DatasetResourceEntitySchema.schema =>
+        handleDatasetResourceEntitySchema(dataset)
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
+    }
+  }
+
+  private def handleDatasetResourceEntitySchema(dataset: Task[Dataset]) = {
+    dataset.data match {
+      case datasetSpec: DatasetSpec =>
+        datasetSpec.plugin match {
+          case dsr: ResourceBasedDataset =>
+            new DatasetResourceEntityTable(dsr.file, dataset)
+          case _: Dataset =>
+            throw new ValidationException(s"Dataset task ${dataset.id} of type " +
+                s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
+        }
+      case _ =>
+        throw new ValidationException("No dataset spec found!")
     }
   }
 
@@ -52,6 +71,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
+      case DatasetSpec(rdfDataset: RdfDataset, _) =>
+        readTriples(dataset, rdfDataset)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
@@ -60,6 +81,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def handleSparqlEndpointSchema(dataset: Task[Dataset]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+      case DatasetSpec(rdfDataset: RdfDataset, _) =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
@@ -102,10 +125,35 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         withEntitySink(dataset) { entitySink =>
           writeMultiTables(entitySink, tables)
         }
+      case datasetResource: DatasetResourceEntityTable =>
+        writeDatasetResource(dataset, datasetResource)
       case et: EntityTable =>
         withEntitySink(dataset) { entitySink =>
           writeEntities(entitySink, et)
         }
+    }
+  }
+
+  // Write the resource from the resource entity table to the dataset's resource
+  private def writeDatasetResource(dataset: Task[Dataset], datasetResource: DatasetResourceEntityTable): Unit = {
+    val inputResource = datasetResource.datasetResource
+    dataset.data match {
+      case datasetSpec: DatasetSpec =>
+        datasetSpec.plugin match {
+          case dsr: ResourceBasedDataset =>
+            dsr.writableResource match {
+              case Some(wr) =>
+                wr.writeStream(inputResource.inputStream)
+              case None =>
+                throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
+                    s"does not have a writable resource!")
+            }
+          case _: Dataset =>
+            throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
+                s"has no resource (file) or does not support the required interface!")
+        }
+      case _ =>
+        throw new ValidationException("No dataset spec found!")
     }
   }
 
@@ -150,7 +198,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
 
   private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri): Unit = {
     val startTime = System.currentTimeMillis()
-    sink.writeLinks(links, linkType.uri)
+    sink.init()
+    for (link <- links) sink.writeLink(link, linkType.uri)
     val time = (System.currentTimeMillis - startTime) / 1000.0
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
@@ -158,6 +207,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def writeTriples(sink: EntitySink, entities: Traversable[Entity]): Unit = {
     sink match {
       case tripleSink: TripleSink =>
+        writeTriples(entities, tripleSink)
+      case EntitySinkWrapper(tripleSink: TripleSink, __) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")

@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.Task.TaskFormat
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -11,6 +12,7 @@ import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 import scala.util.Try
 import scala.xml.{Node, Null}
+import scala.language.implicitConversions
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -170,10 +172,14 @@ case class TransformSpec(selection: DatasetSelection,
   private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
 }
 
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
+
 /**
   * Static functions for the TransformSpecification class.
   */
 object TransformSpec {
+
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
 
@@ -203,7 +209,7 @@ object TransformSpec {
     def create(rule: TransformRule, selection: DatasetSelection, subPath: Path): RuleSchemata = {
       val inputSchema = EntitySchema(
         typeUri = selection.typeUri,
-        typedPaths = rule.rules.allRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+        typedPaths = extractTypedPaths(rule),
         filter = selection.restriction,
         subPath = subPath
       )
@@ -212,7 +218,7 @@ object TransformSpec {
         typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
           val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
-          TypedPath(Path(List(path)), mt.valueType)
+          TypedPath(Path(List(path)), mt.valueType, mt.isAttribute)
         }.distinct.toIndexedSeq
       )
 
@@ -220,7 +226,23 @@ object TransformSpec {
     }
   }
 
-  implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
+  private def extractTypedPaths(rule: TransformRule): IndexedSeq[TypedPath] = {
+    val rules = rule.rules.allRules
+    val (objectRulesWithDefaultPattern, valueRules) = rules.partition ( _.representsDefaultUriRule )
+    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType, isAttribute = false)).distinct.toIndexedSeq
+    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p, UriValueType, isAttribute = false)).distinct.toIndexedSeq
+
+    /** Value paths must come before object paths to not, because later algorithms rely on this order, e.g. PathInput only considers the Path not the value type.
+      * If an object type path would come before the value path, the path input would take the wrong values. The other way round
+      * is taken care of.
+      */
+    valuePaths ++ objectPaths
+  }
+
+  implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
+
+    override def tagNames: Set[String] = Set("TransformSpec")
+
     /**
       * Deserialize a value from XML.
       */
@@ -264,6 +286,16 @@ object TransformSpec {
         }}
       </TargetVocabularies>
       </TransformSpec>
+    }
+  }
+
+  implicit object TransformTaskXmlFormat extends XmlFormat[TransformTask] {
+    override def read(value: Node)(implicit readContext: ReadContext): TransformTask = {
+      new TaskFormat[TransformSpec].read(value)
+    }
+
+    override def write(value: TransformTask)(implicit writeContext: WriteContext[Node]): Node = {
+      new TaskFormat[TransformSpec].write(value)
     }
   }
 

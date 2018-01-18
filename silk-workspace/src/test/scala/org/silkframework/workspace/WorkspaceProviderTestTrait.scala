@@ -3,14 +3,14 @@ package org.silkframework.workspace
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask, MockDataset}
+import org.silkframework.dataset.{Dataset, DatasetSpec, MockDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
@@ -77,9 +77,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       description = "Updated Task Description"
     )
 
-  val dataset = new DatasetTask(DATASET_ID, MockDataset("default"))
+  val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")))
 
-  val datasetUpdated = new DatasetTask(DATASET_ID, MockDataset("updated"))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
 
@@ -205,10 +205,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "read and write dataset tasks" in {
     PluginRegistry.registerPlugin(classOf[MockDataset])
-    project.addTask[Dataset](DUMMY_DATASET, dummyDataset)
+    project.addTask[DatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe dataset
     }
   }
@@ -216,7 +216,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   it should "update dataset tasks" in {
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe datasetUpdated
     }
   }
@@ -330,10 +330,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "delete dataset tasks" in {
     refreshProject(PROJECT_NAME)
-    workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).headOption shouldBe defined
-    workspaceProvider.deleteTask[Dataset](PROJECT_NAME, DATASET_ID)
+    workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
+    workspaceProvider.deleteTask[DatasetSpec](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspaceProvider.readTasks[Dataset](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
+      workspaceProvider.readTasks[DatasetSpec](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
     }
   }
 
@@ -409,6 +409,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   }
 }
 
+@Plugin(id = "test", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
   override def outputSchemaOpt: Option[EntitySchema] = None

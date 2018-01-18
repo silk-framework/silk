@@ -14,6 +14,8 @@ import scala.xml.{Elem, Node, NodeSeq}
   */
 object PagingSparqlTraversable {
 
+  val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+
   private val logger = Logger.getLogger(getClass.getName)
 
   /**
@@ -37,8 +39,6 @@ object PagingSparqlTraversable {
     private var blankNodeCount = 0
 
     private var lastQueryTime = 0L
-
-    private val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
 
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)

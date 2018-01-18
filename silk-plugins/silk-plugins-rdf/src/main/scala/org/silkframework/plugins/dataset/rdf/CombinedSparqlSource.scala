@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
 /**
-  * Created on 6/9/16.
+  * A helper data source to combine several SPARQL sources in order to retrieve entities from them.
+  * The sources are not merged, but instead are queries one by one.
   */
 case class CombinedSparqlSource(sparqlSources: SparqlSource*) extends DataSource {
   /**
@@ -39,4 +40,8 @@ case class CombinedSparqlSource(sparqlSources: SparqlSource*) extends DataSource
     }
     results.flatten
   }
+
+  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
+
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
 }

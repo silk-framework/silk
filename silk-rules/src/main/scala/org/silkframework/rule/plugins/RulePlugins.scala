@@ -14,16 +14,18 @@
 
 package org.silkframework.rule.plugins
 
+import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
+import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
 import org.silkframework.rule.plugins.distance.numeric._
 import org.silkframework.rule.plugins.distance.tokenbased._
 import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
-import org.silkframework.rule.plugins.transformer.conditional.{IfContains, IfExists, IfMatchesRegexTransformer}
+import org.silkframework.rule.plugins.transformer.conditional._
 import org.silkframework.rule.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.rule.plugins.transformer.date._
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
@@ -97,6 +99,8 @@ class RulePlugins extends PluginModule {
         classOf[IfContains] ::
         classOf[IfExists] ::
         classOf[IfMatchesRegexTransformer] ::
+        classOf[ContainsAllOf] ::
+        classOf[ContainsAnyOf] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
@@ -159,8 +163,11 @@ class RulePlugins extends PluginModule {
         classOf[GeometricMeanAggregator] :: Nil
 
   private def serializers =
+    TransformSpecFormat.getClass ::
+    TransformTaskXmlFormat.getClass ::
     TransformRuleFormat.getClass ::
     MappingRulesFormat.getClass ::
     RootMappingRuleFormat.getClass ::
+    LinkSpecificationFormat.getClass ::
     Nil
 }

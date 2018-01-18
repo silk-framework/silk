@@ -9,6 +9,7 @@ import {
     TextField,
     Spinner,
     ScrollingMixin,
+    Checkbox,
 } from 'ecc-gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -20,6 +21,7 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
+    trimValueLabelObject,
 } from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
@@ -62,6 +64,7 @@ const ValueMappingRuleForm = React.createClass({
                         const initialValues = {
                             type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
+                            label: _.get(rule, 'metadata.label', ''),
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
@@ -73,6 +76,11 @@ const ValueMappingRuleForm = React.createClass({
                                 'AutoDetectValueType'
                             ),
                             sourceProperty: rule.sourcePath,
+                            isAttribute: _.get(
+                                rule,
+                                'mappingTarget.isAttribute',
+                                false
+                            ),
                         };
 
                         this.setState({
@@ -95,6 +103,7 @@ const ValueMappingRuleForm = React.createClass({
                 type: MAPPING_RULE_TYPE_DIRECT,
                 propertyType: 'AutoDetectValueType',
                 sourceProperty: '',
+                isAttribute: false,
                 initialValues: {},
             });
         }
@@ -113,9 +122,11 @@ const ValueMappingRuleForm = React.createClass({
                     parentId: this.props.parentId,
                     type: this.state.type,
                     comment: this.state.comment,
-                    targetProperty: this.state.targetProperty,
+                    label: this.state.label,
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty,
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
+                    isAttribute: this.state.isAttribute,
                 },
             })
             .subscribe(
@@ -218,7 +229,6 @@ const ValueMappingRuleForm = React.createClass({
                 />
             );
         }
-
         const exampleView = !_.isEmpty(this.state.sourceProperty) ? (
             <ExampleView
                 id={this.props.parentId || 'root'}
@@ -226,7 +236,7 @@ const ValueMappingRuleForm = React.createClass({
                     this.state.sourceProperty.value || this.state.sourceProperty
                 }
                 rawRule={this.state}
-                ruleType="value"
+                ruleType={type}
             />
         ) : (
             false
@@ -251,6 +261,17 @@ const ValueMappingRuleForm = React.createClass({
                                 'targetProperty'
                             )}
                         />
+                        <Checkbox
+                            checked={this.state.isAttribute}
+                            className="ecc-silk-mapping__ruleseditor__isAttribute"
+                            onChange={this.handleChangeValue.bind(
+                                null,
+                                'isAttribute',
+                                !this.state.isAttribute
+                            )}>
+                            Write values as attributes (if supported by the
+                            target dataset)
+                        </Checkbox>
                         <AutoComplete
                             placeholder={'Data type'}
                             className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -265,6 +286,15 @@ const ValueMappingRuleForm = React.createClass({
                         />
                         {sourcePropertyInput}
                         {exampleView}
+                        <TextField
+                            label="Label"
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            value={this.state.label}
+                            onChange={this.handleChangeTextfield.bind(
+                                null,
+                                'label'
+                            )}
+                        />
                         <TextField
                             multiline
                             label="Description"

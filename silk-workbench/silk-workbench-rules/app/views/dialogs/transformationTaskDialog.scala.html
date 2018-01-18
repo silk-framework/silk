@@ -1,10 +1,10 @@
-@import org.silkframework.dataset.Dataset
+@import org.silkframework.dataset.DatasetSpec
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.User
 
-@(project: String, task: String)
+@(project: String, task: String, createDialog: Boolean)
 
-@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[DatasetSpec].toSeq }
 
 @transformationTask = @{ User().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
 
@@ -20,7 +20,7 @@
   |?a foaf:knows <http://example.org/SomePerson>""".stripMargin
 }
 
-@widgets.dialog(title = "Transformation Task") {
+@widgets.dialog(title = "Transformation Task", createDialog = createDialog) {
 <div class="dialog-form" id="transFormationDialogForm">
   @if(task.isEmpty) {
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -86,7 +86,19 @@
   });
 
   function submit() {
-    var values = {
+    const values = {
+      taskType: "Transform",
+      id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
+      selection: {
+        inputId: $("#source_dataset").val(),
+        typeUri: $("#transformation_type").val(),
+        restriction: $("#source").val()
+      },
+      outputs: $("#output_dataset").val().split(" ").filter(String),
+      targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+    };
+
+    const putValues = {
       name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
       source: $("#source_dataset").val(),
       sourceType: $("#transformation_type").val(),
@@ -95,15 +107,16 @@
       targetVocabularies: $("#target_vocabularies").val()
     };
 
-    if(values.name.length === 0) {
+    if(values.id.length === 0) {
       alert("Task name is empty.");
       return;
     }
 
-    $.ajax({
+    // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
+    const putIt = function() { $.ajax({
       type: 'PUT',
-      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
-      data: values,
+      url: '@config.baseUrl/transform/tasks/@project/' + putValues.name,
+      data: putValues,
       success: function(data) {
         closeDialog();
         reloadWorkspace();
@@ -111,6 +124,24 @@
       error: function(request) {
         alert(request.responseText);
       }
-    });
+    })};
+
+    var callbacks = {
+      success: function() {
+        closeDialog();
+      },
+      error: function(msg) {
+        $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+        $("#primary_dialog .dialog__error-msg").fadeIn();
+      }
+    };
+
+    @if(createDialog) {
+      postTask('@project', values, callbacks);
+    } else {
+      putIt();
+      // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
+      // putTask('@project', values.id, values, callbacks);
+    }
   }
 </script>

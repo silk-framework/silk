@@ -7,15 +7,17 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
+import org.silkframework.workspace._
+import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
-import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.Application
-import play.api.libs.ws.{EmptyBody, WS, WSResponse}
+import play.api.libs.ws.{WS, WSResponse}
 import play.api.mvc.Results
 import play.api.test.FakeApplication
 
@@ -23,6 +25,7 @@ import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
+import scala.util.Random
 import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
@@ -43,6 +46,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
+
+  override lazy val port: Int = 19000 + Random.nextInt(1000)
 
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"
@@ -270,7 +275,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -282,7 +288,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -502,5 +509,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
           Null
       }
     }
+  }
+
+  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+    val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
+    control.reset()
+    control.startBlocking()
   }
 }

@@ -150,6 +150,19 @@ const RuleValueView = React.createClass({
                                                 />
                                             </div>
                                         </InfoBox>
+                                        {_.get(
+                                            this.props,
+                                            'mappingTarget.isAttribute',
+                                            false
+                                        ) ? (
+                                            <div>
+                                                Values will be written as
+                                                attributes if the target dataset
+                                                supports it.
+                                            </div>
+                                        ) : (
+                                            false
+                                        )}
                                     </dd>
                                 </dl>
                             </div>
@@ -256,6 +269,24 @@ const RuleValueView = React.createClass({
                                     </dt>
                                     <dd>
                                         <ExampleView id={this.props.id} />
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
+                        {_.get(this.props, 'metadata.label', false) ? (
+                            <div className="ecc-silk-mapping__rulesviewer__label">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        Label
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        {_.get(
+                                            this.props,
+                                            'metadata.label',
+                                            ''
+                                        )}
                                     </dd>
                                 </dl>
                             </div>

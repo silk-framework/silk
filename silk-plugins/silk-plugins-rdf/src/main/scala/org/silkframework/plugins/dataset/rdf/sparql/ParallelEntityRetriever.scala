@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
@@ -26,7 +26,7 @@ import org.silkframework.util.Uri
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
  */
 class ParallelEntityRetriever(endpoint: SparqlEndpoint,
-                              pageSize: Int = 1000,
+                              pageSize: Int = SimpleEntityRetriever.DEFAULT_PAGE_SIZE,
                               graphUri: Option[String] = None,
                               useOrderBy: Boolean = false) extends EntityRetriever {
   private val varPrefix = "v"
@@ -46,10 +46,11 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
     canceled = false
-    if(entitySchema.typedPaths.size <= 1)
+    if(entitySchema.typedPaths.size <= 1) {
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
-    else
+    } else {
       new EntityTraversable(entitySchema, entities, limit)
+    }
   }
 
   /**
@@ -60,7 +61,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema), path.path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path.path)
 
       pathRetrievers.foreach(_.start())
 
@@ -80,14 +81,12 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
       }
       catch {
-        case ex: InterruptedException => {
+        case ex: InterruptedException =>
           logger.log(Level.INFO, "Canceled retrieving entities for '" + entitySchema.typeUri + "'")
           canceled = true
-        }
-        case ex: Exception => {
+        case ex: Exception =>
           logger.log(Level.WARNING, "Failed to execute query for '" + entitySchema.typeUri + "'", ex)
           canceled = true
-        }
       }
 
       if (inconsistentOrder) {
@@ -95,7 +94,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    private def handleInconsistentOrder[U](f: (Entity) => U, counter: Int) = {
+    private def handleInconsistentOrder[U](f: (Entity) => U, counter: Int): Unit = {
       if (!useOrderBy) {
         logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
         val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
@@ -103,7 +102,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         entities.drop(counter).foreach(f)
       }
       else {
-        logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the results in different orders even when using order-by. Falling back to serial querying.")
+        logger.warning("Cannot execute queries in parallel on '" + endpoint + "' because the endpoint returned the " +
+            "results in different orders even when using order-by. Falling back to serial querying.")
         val simpleEntityRetriever = new SimpleEntityRetriever(endpoint, pageSize, graphUri)
         val entities = simpleEntityRetriever.retrieve(entitySchema, entityUris, limit)
         entities.drop(counter).foreach(f)
@@ -137,60 +137,45 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
     override def run() {
       try {
-        if (entityUris.isEmpty) {
-          //Query for all entities
-          val sparqlResults = queryPath()
-          parseResults(sparqlResults.bindings)
-        }
-        else {
-          //Query for a list of entities
-          for (entityUri <- entityUris) {
-            val sparqlResults = queryPath(Some(entityUri))
-            parseResults(sparqlResults.bindings, Some(entityUri))
-          }
-        }
+        //Query for all entities
+        val sparqlResults = queryPath()
+        parseResults(sparqlResults.bindings)
       }
       catch {
         case ex: Throwable => exception = ex
       }
     }
 
-    private def queryPath(fixedSubject: Option[Uri] = None) = {
+    private def queryPath() = {
       //Select
-      var sparql = "SELECT DISTINCT "
-      if (fixedSubject.isEmpty) {
-        sparql += "?" + entityDesc.variable + " "
-      }
-      sparql += "?" + varPrefix + "0\n"
+      val sparql = new StringBuilder
+      sparql append "SELECT "
+      sparql append "?" + entityDesc.variable + " "
+      sparql append "?" + varPrefix + "0\n"
 
       //Body
-      sparql += "WHERE {\n"
+      sparql append "WHERE {\n"
       //Graph
-      for (graph <- graphUri if !graph.isEmpty) sparql += "GRAPH <" + graph + "> {\n"
+      for (graph <- graphUri if !graph.isEmpty) sparql append "GRAPH <" + graph + "> {\n"
 
-      fixedSubject match {
-        case Some(subjectUri) => {
-          sparql += SparqlPathBuilder(path :: Nil, "<" + subjectUri + ">", "?" + varPrefix)
-        }
-        case None => {
-          if (entityDesc.restrictions.toSparql.isEmpty)
-            sparql += "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
-          else
-            sparql += entityDesc.restrictions.toSparql + "\n"
-          sparql += SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
-        }
+      if (entityDesc.restrictions.toSparql.isEmpty) {
+        sparql append "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
+      } else {
+        sparql append entityDesc.restrictions.toSparql + "\n"
       }
-      for (graph <- graphUri if !graph.isEmpty) sparql += "}\n"
-      sparql += "}" // END WHERE
+      sparql append SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
 
-      if (useOrderBy && fixedSubject.isEmpty) {
-        sparql += " ORDER BY " + "?" + entityDesc.variable
+      for (graph <- graphUri if !graph.isEmpty) sparql append "}\n"
+      sparql append "}" // END WHERE
+
+      if (useOrderBy) {
+        sparql append " ORDER BY " + "?" + entityDesc.variable
       }
 
-      endpoint.select(sparql)
+      endpoint.select(sparql.toString())
     }
 
-    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None) {
+    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None): Unit = {
       var currentSubject: Option[String] = fixedSubject.map(_.uri)
       var currentValues: Seq[String] = Seq.empty
 

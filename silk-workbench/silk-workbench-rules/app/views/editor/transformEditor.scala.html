@@ -100,6 +100,15 @@
         The target type.
       </div>
     </li>
+    <li style="display: none">
+      <label>As Attribute:</label>
+      <div id="input_isAttribute" class="mdl-textfield mdl-js-textfield">
+        <input id="targetattribute" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.exists(_.isAttribute)" disabled/>
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_isAttribute">
+        Write as attribute.
+      </div>
+    </li>
   </ul>
 
   @status()

@@ -1,6 +1,6 @@
 # Dialogs
-GET           /dialogs/newLinkingTask/:project                                              controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task = "")
-GET           /dialogs/editLinkingTask/:project/:task                                       controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task: String)
+GET           /dialogs/newLinkingTask/:project                                              controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task = "", createDialog: Boolean = true)
+GET           /dialogs/editLinkingTask/:project/:task                                       controllers.linking.LinkingDialogs.linkingTaskDialog(project: String, task: String, createDialog: Boolean = false)
 
 # Linkage Rule Editor
 GET           /:project/:task/editor                                                        controllers.linking.LinkingEditor.editor(project: String, task: String)
@@ -39,7 +39,8 @@ POST          /:project/:task/activeLearn/reset                                 
 
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)
-PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.putLinkingTask(project: String, task: String)
+POST          /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = true)
+PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = false)
 DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)
 GET           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.getRule(project: String, task: String)
 PUT           /tasks/:project/:task/rule                                            controllers.linking.LinkingTaskApi.putRule(project: String, task: String)

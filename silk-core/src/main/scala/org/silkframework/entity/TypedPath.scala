@@ -12,15 +12,15 @@ import scala.xml.Node
   * @param path      the path
   * @param valueType the type that has to be considered during processing.
   */
-case class TypedPath(path: Path, valueType: ValueType) {
+case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
 
   def propertyUri: Option[Uri] = path.propertyUri
 
   def property: Option[TypedProperty] = path.operators match {
     case ForwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false))
+      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
     case BackwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true))
+      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
 }
@@ -34,11 +34,12 @@ object TypedPath {
     override def read(node: Node)(implicit readContext: ReadContext): TypedPath = {
       val pathNode = (node \ "Path").headOption
       val valueTypeNode = (node \ "ValueType").headOption
+      val isAttribute = (node \ "@isAttribute").headOption.exists(_.text == "true")
       (pathNode, valueTypeNode) match {
         case (Some(p), Some(vt)) =>
           val path = Path.parse(p.text.trim)(readContext.prefixes)
           val valueType = XmlSerialization.fromXml[ValueType](vt)
-          TypedPath(path, valueType)
+          TypedPath(path, valueType, isAttribute)
         case _ =>
           throw new RuntimeException("TypedPath needs both a Path and ValueType element.")
       }
@@ -49,7 +50,7 @@ object TypedPath {
       */
     override def write(typedPath: TypedPath)(implicit writeContext: WriteContext[Node]): Node = {
       implicit val p = writeContext.prefixes
-      <TypedPath>
+      <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
           {typedPath.path.serialize}
         </Path>{XmlSerialization.toXml(typedPath.valueType)}

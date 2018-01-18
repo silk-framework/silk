@@ -11,11 +11,26 @@
 <script type="text/javascript" >
   $(function () {
     $('#workspace_root').jstree({
+      "plugins": [ "search", "state" ],
       "state": { "key" : "workspace_state" },
-      "plugins": [ "state" ]
+      "search": { "show_only_matches": true }
+    });
+
+    var to = false;
+    $('#workspaceSearch').keyup(function () {
+      if(to) { clearTimeout(to); }
+      to = setTimeout(function () {
+        var v = $('#workspaceSearch').val();
+        $('#workspace_root').jstree(true).search(v);
+      }, 250);
     });
   });
 </script>
+
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+  <input onfocus="$(this).parent().addClass('is-focused')" onblur="$(this).parent().removeClass('is-focused')" class="mdl-textfield__input" type="text" id="workspaceSearch">
+  <label class="mdl-textfield__label" for="workspaceSearch">Search</label>
+</div>
 
 <div id="workspace_root">
   <ul  class="filetree">
@@ -30,11 +45,6 @@
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
-    @for(plugin <- WorkbenchPlugins();
-         taskActions <- plugin.tasks;
-         path <- taskActions.createDialog(project.name)) {
-      @button(taskActions.name.takeWhile(_ != ' '), "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
-    }
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
     @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
@@ -44,9 +54,8 @@
     @button("Remove", "Remove project", "cross.png", s"deleteProjectConfirm('${project.name}')")
     <ul>
       @for(plugin <- WorkbenchPlugins();
-           taskActions <- plugin.tasks;
-           t <- taskActions.projectTasks(project)) {
-        @task(project, t, taskActions)
+           taskActions <- plugin.tasks) {
+        @taskType(project, taskActions)
       }
     </ul>
   </li>
@@ -57,6 +66,20 @@
     "img/project.png"
   else
    "img/project-error.png"
+}
+
+@taskType(project: Project, taskActions: TaskActions[_ <: TaskSpec]) = {
+  <li id="tasktype_@{project.name}_@taskActions.name.filter(_.isLetter)" data-jstree='{"icon":"@taskActions.folderIcon"}' >
+    @{taskActions.name}s
+    @for(path <- taskActions.createDialog(project.name)) {
+      @button("Add", "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
+    }
+    <ul>
+      @for(t <- taskActions.projectTasks(project)) {
+        @task(project, t, taskActions)
+      }
+    </ul>
+  </li>
 }
 
 @task(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_ <: TaskSpec]) = {

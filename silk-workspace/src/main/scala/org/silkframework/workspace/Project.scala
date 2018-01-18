@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -56,7 +56,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[Dataset]()
+  registerModule[DatasetSpec]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
   registerModule[Workflow]()
@@ -185,7 +185,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @tparam T The task type.
     */
   def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     module[T].add(name, taskData, metaData)
   }
 
@@ -196,7 +198,9 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     */
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
@@ -217,6 +221,26 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
         task.update(taskData, Some(metaData))
       case None =>
         addTask[T](name, taskData, metaData)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) =>
+        module.taskOption(name) match {
+          case Some(task) =>
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+          case None =>
+            addAnyTask(name, taskData, metaData)
+        }
+      case None =>
+        throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 

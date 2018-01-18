@@ -1,7 +1,5 @@
 package org.silkframework.runtime.activity
 
-import org.silkframework.runtime.activity.Status.Finished
-
 /**
  * Holds the current state of the activity.
  */
@@ -59,7 +57,7 @@ trait ActivityControl[T] {
    * Activities need to override cancelExecution() to allow cancellation.
    * Calls cancelExecution() on child activities recursively
    */
-  def cancel()
+  def cancel()(implicit user: UserContext = UserContext.Empty)
 
   /**
    * Resets the value of this activity to its initial value.
@@ -75,4 +73,19 @@ trait ActivityControl[T] {
     * Waits until the activity finished execution. Throws an Exception if the activity execution failed.
     */
   def waitUntilFinished(): Unit
+
+  /**
+    * Returns the last execution result with execution meta data. Is replaced as soon as an execution finishes successfully
+    * or with error.
+    */
+  def lastResult: Option[ActivityExecutionResult[T]] = lastCompletedResult
+
+  @volatile
+  private var lastCompletedResult: Option[ActivityExecutionResult[T]] = None
+
+  protected def lastResult_=(result: ActivityExecutionResult[T]): Unit = {
+    lastCompletedResult = Some(result)
+  }
 }
+
+case class ActivityExecutionResult[T](metaData: ActivityExecutionMetaData, resultValue: Option[T])

@@ -102,7 +102,7 @@
                                     "nodeType": "StringValueType"
                                 }
                             },
-                            "sourcePath": "zip code",
+                            "sourcePath": "/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+zip+code",
                             "id": "valueMapping34",
                             "type": "direct"
                         },

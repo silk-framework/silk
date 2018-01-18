@@ -19,7 +19,7 @@ import java.io.File
 import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.dataset.{DataSource, Dataset}
-import org.silkframework.entity.{Entity, EntitySchema, Index}
+import org.silkframework.entity.{Entity, EntitySchema, Index, Path}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Uri
 
@@ -42,5 +42,9 @@ case class CacheDataset(dir: String) extends Dataset {
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = Seq.empty
+
+    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
+
+    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
   }
 }

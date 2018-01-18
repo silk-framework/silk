@@ -73,7 +73,7 @@
   case TransformedValue(transform, values, children, error) => {
     <li>
       <span class="input">
-    Transform:@transform.transformer.plugin.id (@transform.id)
+    Transform:@transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
         @renderError(error)
       </span>

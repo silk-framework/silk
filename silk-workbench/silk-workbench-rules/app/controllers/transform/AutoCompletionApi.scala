@@ -5,7 +5,8 @@ import java.util.logging.Logger
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
+import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.TaskActivity
@@ -28,20 +29,21 @@ class AutoCompletionApi extends Controller {
     */
   def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
     task.nestedRuleAndSourcePath(ruleName) match {
       case Some((_, sourcePath)) =>
         val simpleSourcePath = sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
         val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
-        val allPaths = pathsCacheCompletions(task)
+        val allPaths = pathsCacheCompletions(task, simpleSourcePath)
+        val isRdfInput = task.activity[TransformPathsCache].value.isRdfInput(task)
         // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-        val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths)
+        val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
         // Add known paths
         completions += relativeForwardPaths
         // Return filtered result
-        Ok(completions.filter(term, maxResults).toJson)
+        Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
       case None =>
         throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
     }
@@ -51,16 +53,20 @@ class AutoCompletionApi extends Controller {
     * rewrite the auto-completion to a relative path from the full paths. */
   private def relativePaths(simpleSourcePath: List[PathOperator],
                             forwardOnlySourcePath: List[PathOperator],
-                            pathCacheCompletions: Completions)
-                           (implicit prefixes: Prefixes) = {
+                            pathCacheCompletions: Completions,
+                            isRdfInput: Boolean)
+                           (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = Path.parse(p.value)
+      isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
       path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
           path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
     } map { completion =>
       val path = Path.parse(completion.value)
       val truncatedOps = if (path.operators.startsWith(forwardOnlySourcePath)) {
         path.operators.drop(forwardOnlySourcePath.size)
+      } else if(isRdfInput) {
+        path.operators
       } else {
         path.operators.drop(simpleSourcePath.size)
       }
@@ -104,7 +110,7 @@ class AutoCompletionApi extends Controller {
     var completions = vocabularyPropertyCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filter(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults).toJson)
   }
 
   /**
@@ -121,7 +127,7 @@ class AutoCompletionApi extends Controller {
     var completions = vocabularyTypeCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filter(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults).toJson)
   }
 
   /**
@@ -143,10 +149,10 @@ class AutoCompletionApi extends Controller {
     )
   }
 
-  private def pathsCacheCompletions(task: ProjectTask[TransformSpec]): Completions = {
+  private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
-      val paths = task.activity[TransformPathsCache].value.typedPaths
-      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted
+      val paths = fetchCachedPaths(task, sourcePath)
+      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,
@@ -159,6 +165,11 @@ class AutoCompletionApi extends Controller {
     } else {
       Completions()
     }
+  }
+
+  private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): IndexedSeq[TypedPath] = {
+    val cachedSchemata = task.activity[TransformPathsCache].value
+    cachedSchemata.fetchCachedPaths(task, sourcePath)
   }
 
   private def vocabularyTypeCompletions(task: ProjectTask[TransformSpec]): Completions = {
@@ -224,10 +235,11 @@ class AutoCompletionApi extends Controller {
     /**
       * Filters and ranks all completions using a search term.
       */
-    def filter(term: String, maxResults: Int): Completions = {
+    def filterAndSort(term: String, maxResults: Int, sortEmptyTermResult: Boolean = true): Completions = {
       if (term.isEmpty) {
         // If the term is empty, return some completions anyway
-        Completions(values.sortBy(_.labelOrGenerated.length).take(maxResults))
+        val sortedValues = if(sortEmptyTermResult) values.sortBy(_.labelOrGenerated.length) else values
+        Completions(sortedValues.take(maxResults))
       } else {
         // Filter all completions that match the search term and sort them by score
         val normalizedTerm = normalizeTerm(term)
