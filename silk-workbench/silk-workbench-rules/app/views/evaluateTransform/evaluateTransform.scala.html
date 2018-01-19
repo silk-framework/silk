@@ -15,4 +15,4 @@
   <iframe id="generatedEntitiesIFrame" src="evaluate/generatedEntities?offset=@offset&limit=@limit" frameborder="0"></iframe>
 }
 
-@main(Some(context), titleLabel = context.task.taskLabel)(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)
