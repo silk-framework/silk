@@ -864,7 +864,7 @@ object JsonSerializers {
           ),
         rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
-        referenceLinks = fromJson[ReferenceLinks](mustBeDefined(value, REFERENCE_LINKS))
+        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty)
       )
     }
 
