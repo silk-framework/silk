@@ -199,11 +199,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get linking task" in {
     var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
-    request = request.withHeaders("Accept" -> "application/xml")
+    request = request.withHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
-    (response.xml \ "@id").text mustBe linkTaskId
-    (response.xml \ "TargetDataset" \ "@dataSource").text mustBe datasetId
+    (response.json \ "id").get mustBe JsString(linkTaskId)
+    (response.json \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "post workflow task" in {
