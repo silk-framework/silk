@@ -121,7 +121,7 @@
         typeUri: $("#target_type").val(),
         restriction: $("#target").val()
       },
-      outputs: [ $("#output_dataset").val() ]
+      outputs: [ $("#output_dataset").val().split(" ").filter(String) ]
     };
 
     if(values.id.length === 0) {
