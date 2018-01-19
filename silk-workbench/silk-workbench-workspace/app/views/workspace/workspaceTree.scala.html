@@ -43,10 +43,12 @@
     </div>
   } else {
     <div class="workspace_button" title="@tooltip" onclick="@onClick">
-      <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
-      <span>
-        <a href="@linkUrl" target="_blank">@title</a>
-      </span>
+      <a href="@linkUrl" target="_blank" style="height:100%; width:100%">
+          <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+          <span>
+            @title
+          </span>
+      </a>
     </div>
   }
 }
@@ -100,7 +102,7 @@
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
     @for(path <- taskActions.open(project.name, task.id)) {
-      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + path)
+      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + "/" + path)
     }
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
