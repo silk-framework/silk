@@ -34,13 +34,22 @@
   <label class="mdl-textfield__label" for="workspaceSearch">Search</label>
 </div>
 
-<div id="workspace_root">
-  <ul  class="filetree">
-    @for(p <- workspace.projects) {
-      @project(p)
-    }
-  </ul>
-</div>
+@* Either a link opening a new tab if linkUrl is set or a button executing the onClick JavaScript *@
+@button(title: String, tooltip: String, icon: String, onClick: String, linkUrl: String = "") = {
+  @if(linkUrl.trim.isEmpty) {
+    <div class="workspace_button" title="@tooltip" onclick="@onClick">
+      <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+      <span>@title</span>
+    </div>
+  } else {
+    <div class="workspace_button" title="@tooltip" onclick="@onClick">
+      <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+      <span>
+        <a href="@linkUrl" target="_blank">@title</a>
+      </span>
+    </div>
+  }
+}
 
 @project(project: Project) = {
   <li id="project_@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
@@ -91,7 +100,7 @@
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
     @for(path <- taskActions.open(project.name, task.id)) {
-      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
+      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + path)
     }
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
@@ -105,9 +114,10 @@
   </li>
 }
 
-@button(title: String, tooltip: String, icon: String, onClick: String) = {
-  <div class="workspace_button" title="@tooltip" onclick="@onClick">
-    <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
-    <span>@title</span>
-  </div>
-}
+<div id="workspace_root">
+  <ul  class="filetree">
+  @for(p <- workspace.projects) {
+    @project(p)
+  }
+  </ul>
+</div>

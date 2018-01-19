@@ -36,6 +36,10 @@
   color: #575757;
 }
 
+.workspace_button a {
+  color: #575757;
+}
+
 .ui-progressbar {
   position: relative;
 }
