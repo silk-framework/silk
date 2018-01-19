@@ -702,6 +702,9 @@ object JsonSerializers {
     final val METRIC = "metric"
     final val SOURCEINPUT = "sourceInput"
     final val TARGETINPUT = "targetInput"
+    final val COMPARISON_TYPE = "Comparison"
+
+    override def typeNames: Set[String] = Set(COMPARISON_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
       implicit val prefixes = readContext.prefixes
@@ -726,6 +729,7 @@ object JsonSerializers {
     override def write(value: Comparison)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         ID -> value.id.toString,
+        TYPE -> COMPARISON_TYPE,
         REQUIRED -> value.required,
         WEIGHT -> value.weight,
         THRESHOLD -> value.threshold,
@@ -742,13 +746,16 @@ object JsonSerializers {
     final val REQUIRED = "required"
     final val WEIGHT = "weight"
     final val AGGREGATOR = "aggregator"
-    final val INPUTS = "inputs"
+    final val OPERATORS = "inputs"
+    final val AGGREGATION_TYPE = "Aggregation"
+
+    override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
       val aggregator = Aggregator(stringValue(value, AGGREGATOR), readParameters(value))
-      val inputs = mustBeJsArray(mustBeDefined(value, INPUTS)) { jsArray =>
+      val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
         jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))
       }
 
@@ -764,10 +771,12 @@ object JsonSerializers {
     override def write(value: Aggregation)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         ID -> value.id.toString,
+        TYPE -> AGGREGATION_TYPE,
         REQUIRED -> value.required,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
-        PARAMETERS -> Json.toJson(value.aggregator.parameters)
+        PARAMETERS -> Json.toJson(value.aggregator.parameters),
+        OPERATORS -> value.operators.map(toJson(_))
       )
     }
   }
@@ -775,14 +784,13 @@ object JsonSerializers {
   implicit object SimilarityOperatorJsonFormat extends JsonFormat[SimilarityOperator] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): SimilarityOperator = {
-      val typeName = stringValue(value, TYPE)
-
-      if(ComparisonJsonFormat.typeNames.contains(typeName)) {
-        ComparisonJsonFormat.read(value)
-      } else if(AggregationJsonFormat.typeNames.contains(typeName)) {
-        AggregationJsonFormat.read(value)
-      } else {
-        throw JsonParseException(s"Invalid type name $typeName")
+      stringValue(value, TYPE) match {
+        case ComparisonJsonFormat.COMPARISON_TYPE =>
+          ComparisonJsonFormat.read(value)
+        case AggregationJsonFormat.AGGREGATION_TYPE =>
+          AggregationJsonFormat.read(value)
+        case typeName =>
+          throw JsonParseException(s"Invalid type name $typeName")
       }
     }
 
