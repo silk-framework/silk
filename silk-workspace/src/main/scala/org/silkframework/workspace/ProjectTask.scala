@@ -191,6 +191,41 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   override def toString: String = {
     s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
   }
+
+  // Returns all non-empty meta data fields as key value pairs
+  def metaDataFields(): Seq[(String, String)] = {
+    // ID is part of the metaData
+    var metaDataFields: Vector[(String, String)] = Vector(("Task identifier", id.toString))
+    if(metaData.label.trim != "") {
+      metaDataFields = metaDataFields :+ "Label" -> metaData.label
+    }
+    if(metaData.description.trim != "") {
+      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    }
+    metaDataFields
+  }
+
+  private val dotDotDot = '…'
+  private val DEFAULT_MAX_LENGTH = 50
+
+  /**
+    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
+    * @param maxLength the max length in characters
+    */
+  def taskLabel(maxLength: Int = DEFAULT_MAX_LENGTH): String = {
+    assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
+    val label = if(metaData.label.trim != "") {
+      metaData.label.trim
+    } else {
+      id.toString
+    }
+    if(label.length > maxLength) {
+      val sideLength = (maxLength - 2) / 2
+      label.take(sideLength) + s" $dotDotDot " + label.takeRight(sideLength)
+    } else {
+      label
+    }
+  }
 }
 
 object ProjectTask {
