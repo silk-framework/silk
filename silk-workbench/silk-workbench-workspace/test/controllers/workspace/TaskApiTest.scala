@@ -147,7 +147,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
    checkTransformTask("")
   }
 
-  "update transform task" in {
+  "patch transform task" in {
     val updateJson = s"""{
                        |    "id": "$transformId",
                        |    "outputs": [],
@@ -160,12 +160,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
                        |    "taskType": "Transform"
                        |}""".stripMargin
     val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
-    val response = request.put(Json.parse(updateJson))
+    val response = request.patch(Json.parse(updateJson))
     checkResponse(response)
   }
 
-  // TODO: Fix the task API PUT endpoint to make this green
-  "check that task was updated correctly" ignore {
+  "check that transform task has been updated correctly" in {
     checkTransformTask("someType")
   }
 
@@ -200,11 +199,46 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get linking task" in {
     var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
-    request = request.withHeaders("Accept" -> "application/xml")
+    request = request.withHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
-    (response.xml \ "@id").text mustBe linkTaskId
-    (response.xml \ "TargetDataset" \ "@dataSource").text mustBe datasetId
+    (response.json \ "id").get mustBe JsString(linkTaskId)
+    (response.json \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
+    (response.json \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
+    (response.json \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+  }
+
+  "patch linking task" in {
+    val updateJson =
+      s"""
+         | {
+         |  "id": "$linkTaskId",
+         |  "source": {
+         |    "inputId": "$datasetId",
+         |    "typeUri": "owl:Class",
+         |    "restriction": ""
+         |  },
+         |  "target": {
+         |    "inputId": "$datasetId",
+         |    "typeUri": "<urn:schema:targetType>",
+         |    "restriction": ""
+         |  }
+         | }
+       """.stripMargin
+    val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
+    val response = request.patch(Json.parse(updateJson))
+    checkResponse(response)
+  }
+
+  "check that linking task has been updated correctly" in {
+    var request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
+    request = request.withHeaders("Accept" -> "application/json")
+    val response = checkResponse(request.get())
+
+    (response.json \ "id").get mustBe JsString(linkTaskId)
+    (response.json \ "source" \ "typeUri").get mustBe JsString("owl:Class")
+    (response.json \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
+    (response.json \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "post workflow task" in {

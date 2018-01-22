@@ -122,14 +122,14 @@ function workspaceDialog(relativePath) {
 silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
-function putTask(project, task, json) {
+function putTask(project, task,  json) {
     var callbacks = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
         success: function success() {},
         error: function error() {}
     };
 
     $.ajax({
-        type: 'PUT',
+        type: 'PATCH',
         url: baseUrl + "/workspace/projects/" + project + "/tasks/" + task,
         contentType: 'application/json;charset=UTF-8',
         processData: false,

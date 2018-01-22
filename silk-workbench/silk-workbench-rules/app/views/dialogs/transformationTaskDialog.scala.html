@@ -98,33 +98,10 @@
       targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
     };
 
-    const putValues = {
-      name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
-      source: $("#source_dataset").val(),
-      sourceType: $("#transformation_type").val(),
-      restriction: $("#source").val(),
-      output: $("#output_dataset").val(),
-      targetVocabularies: $("#target_vocabularies").val()
-    };
-
     if(values.id.length === 0) {
       alert("Task name is empty.");
       return;
     }
-
-    // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
-    const putIt = function() { $.ajax({
-      type: 'PUT',
-      url: '@config.baseUrl/transform/tasks/@project/' + putValues.name,
-      data: putValues,
-      success: function(data) {
-        closeDialog();
-        reloadWorkspace();
-      },
-      error: function(request) {
-        alert(request.responseText);
-      }
-    })};
 
     var callbacks = {
       success: function() {
@@ -139,9 +116,7 @@
     @if(createDialog) {
       postTask('@project', values, callbacks);
     } else {
-      putIt();
-      // TODO: Task API PUT endpoint is buggy, fix first, then revert changes
-      // putTask('@project', values.id, values, callbacks);
+      putTask('@project', values.id, values, callbacks);
     }
   }
 </script>
