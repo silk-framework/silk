@@ -6,7 +6,7 @@ import java.net.HttpURLConnection
   * Super class for all more specific 'not found' exceptions. This will automatically lead to a 404 response if thrown inside
   * a controller.
   */
-class NotFoundException(msg: String, ex: Option[Throwable] = None) extends RequestException(msg, None) {
+class NotFoundException(msg: String, ex: Option[Throwable] = None) extends RequestException(msg, ex) {
 
   /**
     * The HTTP error code. Typically in the 4xx range.

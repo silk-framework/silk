@@ -33701,11 +33701,9 @@
             return !_lodash2.default.isEqual(this.props, nextProps);
         },
         orderRules: function(_ref) {
-            var fromPos = _ref.fromPos, toPos = _ref.toPos, reload = _ref.reload, childrenRules = this.state.items.map(function(a) {
+            var fromPos = _ref.fromPos, toPos = _ref.toPos, reload = _ref.reload, childrenRules = this.reorder(this.state.items.map(function(a) {
                 return a.key;
-            }), oldItem = childrenRules[toPos];
-            childrenRules[toPos] = childrenRules[fromPos];
-            childrenRules[fromPos] = oldItem;
+            }), fromPos, toPos);
             _store2.default.request({
                 topic: "rule.orderRule",
                 data: {

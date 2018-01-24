@@ -161,13 +161,10 @@
       }
 
       // Retrieve all plugin parameters
-      var parameters = [
-        @for(param <- plugin.parameters) {
-          { name: '@param.name',
-            value: $('[name=\'@(plugin.id)_@(param.name)\']').val()
-          },
-        }
-      ];
+      var parameters = {};
+      @for(param <- plugin.parameters) {
+        parameters['@param.name'] = $('[name=\'@(plugin.id)_@(param.name)\']').val();
+      }
 
       // Submit dialog
       if(!onlyAutoConfigure) {

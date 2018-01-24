@@ -3,13 +3,15 @@ package controllers.workspace
 import java.io.File
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{CustomTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.JsonSerializers.JsonMetaDataFormat
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -37,7 +39,8 @@ object JsonSerializer {
       "dataset" -> tasksJson[DatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),
       "linking" -> tasksJson[LinkSpec](project),
-      "workflow" -> tasksJson[Workflow](project)
+      "workflow" -> tasksJson[Workflow](project),
+      "custom" -> tasksJson[CustomTask](project)
       )
     )
   }
@@ -126,7 +129,14 @@ object JsonSerializer {
     )
   }
 
+  /**
+    * Serializes the meta data of this task.
+    * In addition it also adds some non-user data, such as the input and output schemata, which could also be split into a separate endpoint/object in the future.
+    */
   def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
+    implicit val writeContext = WriteContext[JsValue](projectId = Some(task.project.name))
+    val metaDataJson = JsonMetaDataFormat.write(task.metaData).as[JsObject]
+
     val inputSchemata = task.data.inputSchemataOpt match {
       case Some(schemata) => JsArray(schemata.map(entitySchema))
       case None => JsNull
@@ -136,13 +146,14 @@ object JsonSerializer {
     val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
     val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
 
-    Json.obj(
-      "id" -> JsString(task.id),
-      "inputSchemata" -> inputSchemata,
-      "outputSchema" -> outputSchema,
-      "referencedTasks" -> referencedTasks,
-      "dependentTasks" -> dependentTasks
-    )
+    metaDataJson ++
+      Json.obj(
+        "id" -> JsString(task.id),
+        "inputSchemata" -> inputSchemata,
+        "outputSchema" -> outputSchema,
+        "referencedTasks" -> referencedTasks,
+        "dependentTasks" -> dependentTasks
+      )
   }
 
   def entitySchema(schema: EntitySchema) = {

@@ -24,7 +24,7 @@ GET           /:project/:task/execute/statusStream                              
 
 # API
 GET           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.getTransformTask(project: String, task: String)
-PUT           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String)
+PUT           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String, createOnly: Boolean = false)
 DELETE        /tasks/:project/:task                                                controllers.transform.TransformTaskApi.deleteTransformTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 GET           /tasks/:project/:task/rules                                          controllers.transform.TransformTaskApi.getRules(project: String, task: String)
 PUT           /tasks/:project/:task/rules                                          controllers.transform.TransformTaskApi.putRules(project: String, task: String)

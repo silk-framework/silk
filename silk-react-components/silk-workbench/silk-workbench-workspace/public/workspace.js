@@ -123,19 +123,21 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTas
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
 function putTask(
-    path,
-    xml,
+    project,
+    task,
+    json,
     callbacks = {
         success() {},
         error() {},
     }
 ) {
     $.ajax({
-        type: 'PUT',
-        url: path,
+        type: 'PATCH',
+        url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
         contentType: 'text/xml;charset=UTF-8',
         processData: false,
-        data: xml,
+        data: JSON.stringify(json),
+        dataType: 'json',
         error(request) {
             const responseJson = JSON.parse(request.responseText);
             var responseMessage = responseJson.message; // Old format
@@ -162,8 +164,8 @@ function putTask(
 }
 
 function postTask(
-    path,
-    xml,
+    project,
+    json,
     callbacks = {
       success() {},
       error() {},
@@ -171,10 +173,11 @@ function postTask(
 ) {
   $.ajax({
     type: 'POST',
-    url: path,
+    url: `${baseUrl}/workspace/projects/${project}/tasks`,
     contentType: 'text/xml;charset=UTF-8',
     processData: false,
-    data: xml,
+    data: JSON.stringify(json),
+    dataType: 'json',
     error(request) {
       const responseJson = JSON.parse(request.responseText);
       var responseMessage = responseJson.message; // Old format

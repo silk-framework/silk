@@ -1,9 +1,8 @@
-@import controllers.core.routes.Assets
-@import plugins.Context
-@import controllers.core.Start
 @import config.WorkbenchConfig
+@import controllers.core.Start
+@import plugins.Context
 
-@(context: Option[Context[_]], selectedTab: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
+@(context: Option[Context[_]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 
 @frame(header) {
     <dialog id="primary_dialog" class="mdl-dialog mdl-dialog--modal">
@@ -78,7 +77,7 @@
         </div>
       </header>
       }
-      @tabbar(context, selectedTab)
+      @tabbar(context, selectedTab, titleLabel)
       @if(toolbar != null) {
         <div id="toolbar" class="clearfix">
         @toolbar

@@ -25,9 +25,14 @@
       return;
     }
 
+    var url = '@config.baseUrl/workflow/workflows/@project';
+    @if(!task.isEmpty) {
+      url = url + '/' + values.name;
+    }
+
     $.ajax({
-      type: 'PUT',
-      url: '@config.baseUrl/workflow/workflows/@project/' + values.name,
+      type: @if(task.isEmpty) {'POST'} else {'PUT'},
+      url: url,
       contentType: 'text/xml;charset=UTF-8',
       processData: false,
       data: '<Workflow id="' + values.name + '"></Workflow>',

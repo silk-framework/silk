@@ -14,6 +14,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
 
+import scala.collection.mutable
 import scala.xml.InputSource
 
 class XmlSink(resource: WritableResource, outputTemplate: String) extends EntitySink {
@@ -28,7 +29,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
 
   private var properties: Seq[TypedProperty] = Seq.empty
 
-  private var uriMap: Map[String, Element] = Map.empty
+  private var uriMap: mutable.HashMap[String, mutable.HashSet[Element]] = mutable.HashMap()
 
 
   /**
@@ -59,15 +60,16 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   /**
     * Writes a new entity.
     *
-    * @param subject The subject URI of the entity.
+    * @param subjectURI The subject URI of the entity.
     * @param values  The list of values of the entity. For each property that has been provided
     *                when opening this writer, it must contain a set of values.
     */
-  override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
-    val entityNode = getEntityNode(subject)
+  override def writeEntity(subjectURI: String, values: Seq[Seq[String]]): Unit = {
+    val entityNodes = getEntityNodes(subjectURI)
     for {
       (property, valueSeq) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
       value <- valueSeq
+      entityNode <- entityNodes
     } {
       addValue(entityNode, property, value)
     }
@@ -97,7 +99,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     entityRoot = null
     atRoot = true
     properties = Seq.empty
-    uriMap = Map.empty
+    uriMap = mutable.HashMap()
   }
 
   private def findEntityTemplate(node: Node): ProcessingInstruction = {
@@ -128,9 +130,9 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   }
 
   /**
-    * Gets the XML node for an entity.
+    * Gets the XML nodes for the given entity URI
     */
-  private def getEntityNode(uri: String): Element = {
+  private def getEntityNodes(entityURI: String): Set[Element] = {
     if(atRoot) {
       val entityNode = doc.createElement(entityTemplate.getTarget)
       if(entityRoot.getParentNode == null && entityRoot.getFirstChild != null) {
@@ -138,13 +140,13 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
             "only allows one entity. Either adapt sink input to be one entity or adapt output template.")
       }
       entityRoot.appendChild(entityNode)
-      entityNode
+      Set(entityNode)
     } else {
-      uriMap.get(uri) match {
+      uriMap.get(entityURI) match {
         case Some(parentNode) =>
-          parentNode
+          parentNode.toSet
         case None =>
-          throw new ValidationException("Could not find parent for " + uri)
+          throw new ValidationException("Could not find parent for " + entityURI)
       }
     }
   }
@@ -155,11 +157,12 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   private def addValue(entityNode: Element, property: TypedProperty, value: String): Unit = {
     property.valueType match {
       case UriValueType =>
+        val elements = uriMap.getOrElseUpdate(value, mutable.HashSet.empty[Element])
         if(property.propertyUri.isEmpty) { // Empty target on object mapping, stay on same target node
-          uriMap += ((value, entityNode))
+          elements += entityNode
         } else {
           val valueNode = newElement(property.propertyUri)
-          uriMap += ((value, valueNode.asInstanceOf[Element]))
+          elements += valueNode.asInstanceOf[Element]
           entityNode.appendChild(valueNode)
         }
       case _ if property.isAttribute =>

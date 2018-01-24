@@ -17,14 +17,18 @@ class CustomTasks extends Controller {
     Ok(xml)
   }
 
-  def putTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
+  def pushTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources)
     request.body.asXml match {
       case Some(xml) =>
         try {
           val task = XmlSerialization.fromXml[Task[CustomTask]](xml.head)
-          project.updateTask(task.id, task.data)
+          if(createOnly) {
+            project.addTask(task.id, task.data)
+          } else {
+            project.updateTask(task.id, task.data)
+          }
           Ok
         } catch {
           case ex: Exception =>

@@ -37,11 +37,10 @@ GET           /datasets/:project/:task/sparql                                   
 GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search)
 
 # API
-GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
-GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
-POST          /projects/:project/datasets                                       controllers.workspace.DatasetApi.postDataset(project: String)
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
+GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
 GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
 POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
@@ -56,7 +55,8 @@ GET           /customTasks/editTaskDialog/:project/:task                        
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
-PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.putTask(project: String, name: String)
+POST           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
+PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = false)
 DELETE        /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.deleteTask(project: String, name: String)
 
 ############################################################################################################################################
@@ -92,10 +92,15 @@ DELETE        /projects/:project/resources/:name                                
 GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
-DELETE        /projects/:project/tasks/:task                                    controllers.workspace.WorkspaceApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
-GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.WorkspaceApi.getTaskMetadata(project: String, task: String)
-POST          /projects/:project/tasks/:task/clone                              controllers.workspace.WorkspaceApi.cloneTask(project, task, newTask)
-GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.WorkspaceApi.cachesLoaded(project: String, task: String)
+POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
+PUT           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.putTask(project: String, task: String)
+PATCH         /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.patchTask(project: String, task: String)
+GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String)
+DELETE        /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
+PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
+GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
+POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
+GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

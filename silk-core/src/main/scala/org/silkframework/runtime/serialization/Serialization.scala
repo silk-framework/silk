@@ -10,11 +10,16 @@ import scala.reflect.ClassTag
   */
 object Serialization {
 
+  /**
+    * Holds all registered serialization formats.
+    */
   private lazy val serializationFormats: Seq[SerializationFormat[Any, Any]] = {
     implicit val prefixes = Prefixes.empty
     val formatTypes = PluginRegistry.availablePlugins[SerializationFormat[Any, Any]]
     formatTypes.map(_.apply())
   }
+
+  def availableFormats: Seq[SerializationFormat[Any, Any]] = serializationFormats
 
   def hasSerialization(classToSerialize: Class[_],
                        mimeType: String): Boolean = {

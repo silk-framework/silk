@@ -182,15 +182,6 @@ object SerializationUtils {
     }
   }
 
-//  def deserializeTask[T: ClassTag](formatters: Seq[SerializationFormat[T, _]]): Result = {
-//    val xmlFormat = Task.taskFormat[T]
-//    val jsonFormat = new TaskJsonFormat[T]
-//
-//
-//
-//    Ok
-//  }
-
   /**
     * Tries to deserialize the value found in the request. Uses the compile type instead of the runtime type.
     *

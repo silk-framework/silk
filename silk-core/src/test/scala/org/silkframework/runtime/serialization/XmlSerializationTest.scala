@@ -2,7 +2,7 @@ package org.silkframework.runtime.serialization
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.CustomTask
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 
 /**
   *

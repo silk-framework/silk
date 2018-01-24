@@ -27,6 +27,9 @@ import scala.xml.Node
 
 /**
   * A dataset of entities.
+  *
+  * @param uriProperty Setting this URI will generate an additional property for each entity.
+                       The additional property contains the URI of each entity.
   */
 case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
 
@@ -240,6 +243,8 @@ object DatasetSpec {
     * XML serialization format.
     */
   implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
+
+    override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes

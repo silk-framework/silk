@@ -10,7 +10,7 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
@@ -409,6 +409,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   }
 }
 
+@Plugin(id = "test", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
   override def outputSchemaOpt: Option[EntitySchema] = None

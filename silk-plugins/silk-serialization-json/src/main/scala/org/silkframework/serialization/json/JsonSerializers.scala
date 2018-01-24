@@ -2,20 +2,21 @@ package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
 
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
-import org.silkframework.rule._
+import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.similarity._
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
-import org.silkframework.rule.{MappingTarget, TransformRule}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.rule.{MappingTarget, TransformRule, _}
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{RequestException, ValidationException}
 import org.silkframework.serialization.json.InputJsonSerializer._
-import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat.readTransformRule
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{DPair, Identifier, Uri}
 import play.api.libs.json._
+import JsonHelpers._
 
 /**
   * Serializers for JSON.
@@ -24,6 +25,7 @@ object JsonSerializers {
 
   final val ID = "id"
   final val TYPE = "type"
+  final val TASKTYPE = "taskType"
   final val PARAMETERS = "parameters"
   final val URI = "uri"
   final val METADATA = "metadata"
@@ -65,95 +67,11 @@ object JsonSerializers {
     }
   }
 
-  def mustBeJsObject[T](jsValue: JsValue)(block: JsObject => T): T = {
-    jsValue match {
-      case jsObject: JsObject => block(jsObject)
-      case _ => throw JsonParseException("Error while parsing. JSON value is not JSON object!")
-    }
-  }
-
-  def mustBeJsArray[T](jsValue: JsValue)(block: JsArray => T): T = {
-    jsValue match {
-      case jsArray: JsArray => block(jsArray)
-      case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array!")
-    }
-  }
-
-  def stringValue(json: JsValue, attributeName: String): String = {
-    stringValueOption(json, attributeName) match {
-      case Some(value) =>
-        value
-      case None =>
-        throw JsonParseException("Attribute '" + attributeName + "' not found!")
-    }
-  }
-
-  def booleanValueOption(json: JsValue, attributeName: String): Option[Boolean] = {
-    optionalValue(json, attributeName) match {
-      case Some(jsBoolean: JsBoolean) =>
-        Some(jsBoolean.value)
-      case Some(_) =>
-        throw JsonParseException("Value for attribute '" + attributeName + "' is not a boolean!")
-      case None =>
-        None
-    }
-  }
-
-  def stringValueOption(json: JsValue, attributeName: String): Option[String] = {
-    optionalValue(json, attributeName) match {
-      case Some(jsString: JsString) =>
-        Some(jsString.value)
-      case Some(_) =>
-        throw JsonParseException("Value for attribute '" + attributeName + "' is not a String!")
-      case None =>
-        None
-    }
-  }
-
-  def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
-    (json \ attributeName).toOption.filterNot(_ == JsNull)
-  }
-
-  def requiredValue(json: JsValue, attributeName: String): JsValue = {
-    json \ attributeName match {
-      case JsDefined(value) if value != JsNull =>
-        value
-      case _ =>
-        throw JsonParseException("Attribute '" + attributeName + "' not found!")
-    }
-  }
-
-  def silkPath(id: String, pathStr: String)(implicit readContext: ReadContext): Path = {
-    try {
-      Path.parse(pathStr)(readContext.prefixes)
-    } catch {
-      case ex: Exception => throw new ValidationException(ex.getMessage, id, "path")
-    }
-  }
-
-  def identifier(json: JsValue, defaultId: String)(implicit readContext: ReadContext): Identifier = {
-    optionalValue(json, ID) match {
-      case Some(JsString(id)) =>
-        id
-      case Some(_) =>
-        throw JsonParseException("Value for attribute '" + ID + "' is not a String!")
-      case None =>
-        readContext.identifierGenerator.generate(defaultId)
-    }
-  }
-
-  def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
-    optionalValue(json, METADATA) match {
-      case Some(metaDataJson) =>
-        JsonMetaDataFormat.read(metaDataJson)
-      case None =>
-        MetaData.empty
-    }
-  }
-
   implicit object JsonDatasetSpecFormat extends JsonFormat[DatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
+
+    override def typeNames: Set[String] = Set("Dataset")
 
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes
@@ -164,13 +82,14 @@ object JsonSerializers {
             id = (value \ TYPE).as[JsString].value,
             params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
           ),
-        uriProperty = stringValueOption(value, URI_PROPERTY).map(Uri(_))
+        uriProperty = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
     }
 
     override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
+          TASKTYPE -> JsString("Dataset"),
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
           PARAMETERS -> Json.toJson(value.plugin.parameters)
         )
@@ -178,6 +97,28 @@ object JsonSerializers {
         json += (URI_PROPERTY -> JsString(property.uri))
       }
       json
+    }
+  }
+
+  implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
+
+    override def typeNames: Set[String] = Set("CustomTask")
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resource = readContext.resources
+      CustomTask(
+        id = (value \ TYPE).as[JsString].value,
+        params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
+      )
+    }
+
+    override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> JsString("CustomTask"),
+        TYPE -> JsString(value.pluginSpec.id.toString),
+        PARAMETERS -> Json.toJson(value.parameters)
+      )
     }
   }
 
@@ -202,11 +143,6 @@ object JsonSerializers {
         )
       )
     }
-  }
-
-  def mustBeDefined(value: JsValue, attributeName: String): JsValue = {
-    (value \ attributeName).toOption.
-        getOrElse(throw JsonParseException("No attribute with name " + attributeName + " found!"))
   }
 
   /**
@@ -660,7 +596,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
       DatasetSelection(
         inputId = stringValue(value, INPUT_ID),
-        typeUri = stringValue(value, TYPE_URI),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
         restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
       )
     }
@@ -671,7 +607,7 @@ object JsonSerializers {
     override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.uri,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
         RESTRICTION -> value.restriction.serialize
       )
     }
@@ -686,6 +622,8 @@ object JsonSerializers {
     final val OUTPUTS: String = "outputs"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
+    override def typeNames: Set[String] = Set("Transform")
+
     /**
       * Deserializes a value.
       */
@@ -693,7 +631,7 @@ object JsonSerializers {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.toString()))),
+        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }
@@ -703,12 +641,273 @@ object JsonSerializers {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
+        TASKTYPE -> "Transform",
         SELECTION -> toJson(value.selection),
         RULES_PROPERTY -> toJson(value.mappingRule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
         TARGET_VOCABULARIES -> JsArray(value.targetVocabularies.toSeq.map(JsString))
-
       )
+    }
+  }
+
+  implicit object LinkJsonFormat extends JsonFormat[Link] {
+    final val SOURCE = "source"
+    final val TARGET = "target"
+    final val CONFIDENCE = "confidence"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
+      new Link(
+        source = stringValue(value, SOURCE),
+        target = stringValue(value, TARGET),
+        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue)
+      )
+    }
+
+    override def write(value: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SOURCE -> value.source,
+        TARGET -> value.target,
+        CONFIDENCE -> value.confidence.map(JsNumber(_))
+      )
+    }
+  }
+
+  implicit object ReferenceLinksJsonFormat extends JsonFormat[ReferenceLinks] {
+    final val POSITIVE = "positive"
+    final val NEGATIVE = "negative"
+    final val UNLABELED = "unlabeled"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
+      ReferenceLinks(
+        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
+        negative = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
+        unlabeled = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet
+      )
+    }
+
+    override def write(value: ReferenceLinks)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        POSITIVE -> JsArray(value.positive.toSeq.map(toJson(_))),
+        NEGATIVE -> JsArray(value.negative.toSeq.map(toJson(_))),
+        UNLABELED -> JsArray(value.unlabeled.toSeq.map(toJson(_)))
+      )
+    }
+  }
+
+  implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
+    final val REQUIRED = "required"
+    final val WEIGHT = "weight"
+    final val THRESHOLD = "threshold"
+    final val INDEXING = "indexing"
+    final val METRIC = "metric"
+    final val SOURCEINPUT = "sourceInput"
+    final val TARGETINPUT = "targetInput"
+    final val COMPARISON_TYPE = "Comparison"
+
+    override def typeNames: Set[String] = Set(COMPARISON_TYPE)
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resourceManager = readContext.resources
+      val metric = DistanceMeasure(stringValue(value, METRIC), readParameters(value))
+
+      Comparison(
+        id = identifier(value, "comparison"),
+        required = booleanValue(value, REQUIRED),
+        weight = numberValue(value, WEIGHT).intValue,
+        threshold = numberValue(value, THRESHOLD).doubleValue,
+        indexing = booleanValue(value, INDEXING),
+        metric = metric,
+        inputs =
+          DPair(
+            fromJson[Input](mustBeDefined(value, SOURCEINPUT)),
+            fromJson[Input](mustBeDefined(value, TARGETINPUT))
+          )
+      )
+    }
+
+    override def write(value: Comparison)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        TYPE -> COMPARISON_TYPE,
+        REQUIRED -> value.required,
+        WEIGHT -> value.weight,
+        THRESHOLD -> value.threshold,
+        INDEXING -> value.indexing,
+        METRIC -> value.metric.pluginSpec.id.toString,
+        PARAMETERS -> Json.toJson(value.metric.parameters),
+        SOURCEINPUT -> toJson(value.inputs.source),
+        TARGETINPUT -> toJson(value.inputs.target)
+      )
+    }
+  }
+
+  implicit object AggregationJsonFormat extends JsonFormat[Aggregation] {
+    final val REQUIRED = "required"
+    final val WEIGHT = "weight"
+    final val AGGREGATOR = "aggregator"
+    final val OPERATORS = "inputs"
+    final val AGGREGATION_TYPE = "Aggregation"
+
+    override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
+      implicit val prefixes = readContext.prefixes
+      implicit val resourceManager = readContext.resources
+      val aggregator = Aggregator(stringValue(value, AGGREGATOR), readParameters(value))
+      val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
+        jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))
+      }
+
+      Aggregation(
+        id = identifier(value, "aggregation"),
+        required = booleanValue(value, REQUIRED),
+        weight = numberValue(value, WEIGHT).intValue,
+        aggregator = aggregator,
+        operators = inputs
+      )
+    }
+
+    override def write(value: Aggregation)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        TYPE -> AGGREGATION_TYPE,
+        REQUIRED -> value.required,
+        WEIGHT -> value.weight,
+        AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
+        PARAMETERS -> Json.toJson(value.aggregator.parameters),
+        OPERATORS -> value.operators.map(toJson(_))
+      )
+    }
+  }
+
+  implicit object SimilarityOperatorJsonFormat extends JsonFormat[SimilarityOperator] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): SimilarityOperator = {
+      stringValue(value, TYPE) match {
+        case ComparisonJsonFormat.COMPARISON_TYPE =>
+          ComparisonJsonFormat.read(value)
+        case AggregationJsonFormat.AGGREGATION_TYPE =>
+          AggregationJsonFormat.read(value)
+        case typeName =>
+          throw JsonParseException(s"Invalid type name $typeName")
+      }
+    }
+
+    override def write(value: SimilarityOperator)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      value match {
+        case comparison: Comparison => toJson(comparison)
+        case aggregation: Aggregation => toJson(aggregation)
+      }
+    }
+  }
+
+  implicit object LinkFilterJsonFormat extends JsonFormat[LinkFilter] {
+    final val LIMIT = "limit"
+    final val THRESHOLD = "threshold"
+    final val UNAMBIGUOUS = "unambiguous"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): LinkFilter = {
+      LinkFilter(
+        limit = numberValueOption(value, LIMIT).map(_.intValue),
+        threshold = numberValueOption(value, THRESHOLD).map(_.doubleValue),
+        unambiguous = booleanValueOption(value, UNAMBIGUOUS)
+      )
+    }
+
+    override def write(value: LinkFilter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        LIMIT -> value.limit.map(JsNumber(_)),
+        THRESHOLD -> value.threshold.map(JsNumber(_)),
+        UNAMBIGUOUS -> value.unambiguous.map(JsBoolean)
+      )
+    }
+  }
+
+  implicit object LinkageRuleJsonFormat extends JsonFormat[LinkageRule] {
+    final val OPERATOR = "operator"
+    final val FILTER = "filter"
+    final val LINKTYPE = "linkType"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
+      LinkageRule(
+        operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
+        filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
+        linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE))
+      )
+    }
+
+    override def write(value: LinkageRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        OPERATOR -> value.operator.map(toJson(_)),
+        FILTER -> toJson(value.filter),
+        LINKTYPE -> toJson(value.linkType)
+      )
+    }
+  }
+
+  implicit object LinkSpecJsonFormat extends JsonFormat[LinkSpec] {
+    final val SOURCE = "source"
+    final val TARGET = "target"
+    final val RULE = "rule"
+    final val OUTPUTS = "outputs"
+    final val REFERENCE_LINKS = "referenceLinks"
+
+    override def typeNames: Set[String] = Set("Linking")
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
+      LinkSpec(
+        dataSelections =
+          DPair(
+            fromJson[DatasetSelection](mustBeDefined(value, SOURCE)),
+            fromJson[DatasetSelection](mustBeDefined(value, TARGET))
+          ),
+        rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
+        outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
+        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty)
+      )
+    }
+
+    override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> "Linking",
+        SOURCE -> toJson(value.dataSelections.source),
+        TARGET -> toJson(value.dataSelections.target),
+        RULE -> toJson(value.rule),
+        OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
+        REFERENCE_LINKS -> toJson(value.referenceLinks)
+      )
+    }
+  }
+
+  /**
+    * Task
+    */
+  implicit object TaskSpecJsonFormat extends JsonFormat[TaskSpec] {
+
+    // Holds all JSON formats for sub classes of TaskSpec.
+    private lazy val taskSpecFormats: Seq[JsonFormat[TaskSpec]] = {
+      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+        .map(_.asInstanceOf[JsonFormat[TaskSpec]])
+    }
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
+      val taskType = stringValue(value, TASKTYPE)
+      taskSpecFormats.find(_.typeNames.contains(taskType)) match {
+        case Some(format) =>
+          format.read(value)
+        case None =>
+          throw new ValidationException(s"The encountered task type $taskType does not correspond to a known task type")
+      }
+    }
+
+    override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+        case Some(format) =>
+          format.write(value)
+        case None =>
+          throw new ValidationException(s"No serialization format found for class ${value.getClass.getName}")
+      }
     }
   }
 
@@ -761,6 +960,18 @@ object JsonSerializers {
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)
+    }
+  }
+
+  /**
+    * Generic Task
+    */
+  implicit object GenericTaskJsonFormat extends JsonFormat[Task[TaskSpec]] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): Task[TaskSpec] = {
+      new TaskJsonFormat[TaskSpec].read(value)
+    }
+    override def write(value: Task[TaskSpec])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[TaskSpec].write(value)
     }
   }
 
@@ -873,16 +1084,4 @@ object InputJsonSerializer {
     }
   }
 
-}
-
-case class JsonParseException(msg: String, cause: Option[Throwable] = None) extends RequestException(msg, cause) {
-  /**
-    * A short description of the error type.
-    */
-  override def errorTitle: String = "Could not parse JSON"
-
-  /**
-    * The HTTP error code that fits best to the given error type.
-    */
-  override def httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_BAD_REQUEST)
 }
