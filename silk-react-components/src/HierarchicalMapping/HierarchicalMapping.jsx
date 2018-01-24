@@ -10,7 +10,7 @@ import {
     MenuItem,
     ConfirmationDialog,
     Spinner,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import {URI} from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';

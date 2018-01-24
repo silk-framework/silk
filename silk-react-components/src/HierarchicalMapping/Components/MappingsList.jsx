@@ -7,7 +7,7 @@ import {
     CardContent,
     FloatingActionList,
     Info,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';

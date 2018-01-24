@@ -17,7 +17,7 @@ import {
     Checkbox,
     ProgressButton,
     Tooltip,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';

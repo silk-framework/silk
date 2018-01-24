@@ -11,7 +11,7 @@ import {
     Card,
     CardTitle,
     CardContent,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 
 import Navigation from '../Mixins/Navigation';
 import UseMessageBus from '../UseMessageBusMixin';

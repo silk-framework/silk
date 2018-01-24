@@ -1,5 +1,5 @@
 import React from 'react';
-import {SelectBox, Checkbox, NotAvailable} from 'ecc-gui-elements';
+import {SelectBox, Checkbox, NotAvailable} from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import {SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES} from "../helpers";
 import _ from "lodash";

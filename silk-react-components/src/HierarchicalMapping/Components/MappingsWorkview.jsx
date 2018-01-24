@@ -17,7 +17,7 @@ import {
     ConfirmationDialog,
     Info,
     Spinner,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import MappingsHeader from './MappingsHeader';

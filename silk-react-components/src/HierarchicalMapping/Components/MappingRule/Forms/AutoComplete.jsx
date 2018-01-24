@@ -1,5 +1,5 @@
 import React from 'react';
-import {AutoCompleteBox} from 'ecc-gui-elements';
+import {AutoCompleteBox} from '@eccenca/gui-elements';
 import hierarchicalMappingChannel from '../../../store';
 
 const AutoComplete = React.createClass({

@@ -14,7 +14,7 @@ import {
     Spinner,
     DisruptiveButton,
     DismissiveButton,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';

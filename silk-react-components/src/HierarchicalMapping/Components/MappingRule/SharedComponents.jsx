@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
+import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
 
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;

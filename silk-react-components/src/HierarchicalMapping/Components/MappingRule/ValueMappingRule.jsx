@@ -6,7 +6,7 @@ import {
     CardTitle,
     CardContent,
     CardActions,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import ExampleView from './ExampleView';
