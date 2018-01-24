@@ -2397,9 +2397,9 @@ dezalgo@^1.0.0:
     asap "^2.0.0"
     wrappy "1"
 
-dialog-polyfill@0.4.9:
-  version "0.4.9"
-  resolved "https://registry.npmjs.org/dialog-polyfill/-/dialog-polyfill-0.4.9.tgz#c690b3727c3d82e0f947bd5b910b32af8a2ef57d"
+dialog-polyfill@0.4.4:
+  version "0.4.4"
+  resolved "https://registry.npmjs.org/dialog-polyfill/-/dialog-polyfill-0.4.4.tgz#924b5acbf7a587c50de84c174fd5d0f317efa881"
 
 diff@3.2.0:
   version "3.2.0"
