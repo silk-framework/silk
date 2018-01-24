@@ -263,7 +263,7 @@
     }, function(module, exports) {
         module.exports = __webpack_require__(9);
     }, function(module, exports) {
-        module.exports = __webpack_require__(62);
+        module.exports = __webpack_require__(61);
     }, function(module, exports, __webpack_require__) {
         "use strict";
         function _interopRequireDefault(obj) {
@@ -2850,7 +2850,7 @@
     };
 }, function(module, exports) {
     var core = module.exports = {
-        version: "2.5.1"
+        version: "2.5.3"
     };
     "number" == typeof __e && (__e = core);
 }, function(module, exports, __webpack_require__) {
@@ -3283,7 +3283,7 @@
     }
     exports.__esModule = !0;
     exports.InfoBox = exports.ParentStructure = exports.ParentElement = exports.ThingIcon = exports.PropertyTypeDescription = exports.PropertyTypeLabel = exports.ThingDescription = exports.ThingName = exports.RuleTreeTypes = exports.RuleTreeTitle = exports.SourcePath = exports.RuleTypes = exports.RuleTitle = void 0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(62), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(13), NO_TARGET_TYPE = _react2.default.createElement(_eccGuiElements.NotAvailable, null), NO_TARGET_PROPERTY = _react2.default.createElement(_eccGuiElements.NotAvailable, null), RuleTitle = function(_ref) {
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(61), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(13), NO_TARGET_TYPE = _react2.default.createElement(_guiElements.NotAvailable, null), NO_TARGET_PROPERTY = _react2.default.createElement(_guiElements.NotAvailable, null), RuleTitle = function(_ref) {
         var rule = _ref.rule, otherProps = (0, _objectWithoutProperties3.default)(_ref, [ "rule" ]), uri = void 0, label = _lodash2.default.get(rule, "metadata.label", "");
         if (label) return _react2.default.createElement("span", null, label);
         switch (rule.type) {
@@ -3331,7 +3331,7 @@
     };
     exports.RuleTypes = RuleTypes;
     var URIInfo = (exports.SourcePath = function(_ref4) {
-        var rule = _ref4.rule, path = _lodash2.default.get(rule, "sourcePath", _react2.default.createElement(_eccGuiElements.NotAvailable, {
+        var rule = _ref4.rule, path = _lodash2.default.get(rule, "sourcePath", _react2.default.createElement(_guiElements.NotAvailable, {
             inline: !0
         }));
         return _react2.default.createElement("span", null, _lodash2.default.isArray(path) ? path.join(", ") : path);
@@ -3388,7 +3388,7 @@
                     var lastHash = uri.lastIndexOf("#"), lastSlash = -1 === lastHash ? uri.lastIndexOf("/") : lastHash;
                     noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, "");
                 }
-            } else noInfo = _react2.default.createElement(_eccGuiElements.NotAvailable, null);
+            } else noInfo = _react2.default.createElement(_guiElements.NotAvailable, null);
             return _react2.default.createElement("span", otherProps, noInfo);
         }
     })), PropertyTypeInfo = _react2.default.createClass({
@@ -3430,7 +3430,7 @@
     };
     exports.ThingName = ThingName;
     var ParentElement = (exports.ThingDescription = function(_ref9) {
-        var id = _ref9.id, fallbackInfo = _react2.default.createElement(_eccGuiElements.NotAvailable, {
+        var id = _ref9.id, fallbackInfo = _react2.default.createElement(_guiElements.NotAvailable, {
             inline: !0,
             label: "No description available.",
             description: !1
@@ -3469,7 +3469,7 @@
           default:
             iconName = "help_outline";
         }
-        return _react2.default.createElement(_eccGuiElements.Icon, {
+        return _react2.default.createElement(_guiElements.Icon, {
             className: "ecc-silk-mapping__ruleitem-icon",
             name: "error" === status ? "warning" : iconName,
             tooltip: "error" === status ? tooltip + " (" + message + ")" : tooltip
@@ -3508,7 +3508,7 @@
         render: function() {
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__infobox" + (this.state.expanded ? "" : " is-narrowed")
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement(_guiElements.Button, {
                 className: "ecc-silk-mapping__rulesviewer__infobox-toggler",
                 iconName: this.state.expanded ? "expand_more" : "chevron_right",
                 tooltip: this.state.expanded ? "Show less" : "Show more",
@@ -3658,7 +3658,7 @@
     };
     module.exports = PooledClass;
 }, function(module, exports, __webpack_require__) {
-    module.exports = !__webpack_require__(48)(function() {
+    module.exports = !__webpack_require__(49)(function() {
         return 7 != Object.defineProperty({}, "a", {
             get: function() {
                 return 7;
@@ -3945,7 +3945,7 @@
     DOMLazyTree.queueText = queueText;
     module.exports = DOMLazyTree;
 }, function(module, exports, __webpack_require__) {
-    var dP = __webpack_require__(33), createDesc = __webpack_require__(59);
+    var dP = __webpack_require__(33), createDesc = __webpack_require__(58);
     module.exports = __webpack_require__(36) ? function(object, key, value) {
         return dP.f(object, key, createDesc(1, value));
     } : function(object, key, value) {
@@ -3953,10 +3953,14 @@
         return object;
     };
 }, function(module, exports, __webpack_require__) {
-    var isObject = __webpack_require__(58);
+    var isObject = __webpack_require__(48);
     module.exports = function(it) {
         if (!isObject(it)) throw TypeError(it + " is not an object!");
         return it;
+    };
+}, function(module, exports) {
+    module.exports = function(it) {
+        return "object" == typeof it ? null !== it : "function" == typeof it;
     };
 }, function(module, exports) {
     module.exports = function(exec) {
@@ -3977,17 +3981,6 @@
     if (void 0 === React) throw Error("create-react-class could not find the React object. If you are using script tags, make sure that React is being loaded before create-react-class.");
     var ReactNoopUpdateQueue = new React.Component().updater;
     module.exports = factory(React.Component, React.isValidElement, ReactNoopUpdateQueue);
-}, function(module, exports) {
-    var g;
-    g = function() {
-        return this;
-    }();
-    try {
-        g = g || Function("return this")() || (0, eval)("this");
-    } catch (e) {
-        "object" == typeof window && (g = window);
-    }
-    module.exports = g;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function reactProdInvariant(code) {
@@ -4307,10 +4300,6 @@
         return 0;
     };
 }, function(module, exports) {
-    module.exports = function(it) {
-        return "object" == typeof it ? null !== it : "function" == typeof it;
-    };
-}, function(module, exports) {
     module.exports = function(bitmap, value) {
         return {
             enumerable: !(1 & bitmap),
@@ -4339,6 +4328,17 @@
     };
 }, function(module, exports) {
     module.exports = {};
+}, function(module, exports) {
+    var g;
+    g = function() {
+        return this;
+    }();
+    try {
+        g = g || Function("return this")() || (0, eval)("this");
+    } catch (e) {
+        "object" == typeof window && (g = window);
+    }
+    module.exports = g;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     exports.__esModule = !0;
@@ -5894,6 +5894,13 @@
     function clickedScrollbar(evt) {
         return document.documentElement.clientWidth <= evt.clientX || document.documentElement.clientHeight <= evt.clientY;
     }
+    function getEventHandlerOptions(instance, eventName) {
+        var handlerOptions = null;
+        -1 !== touchEvents.indexOf(eventName) && passiveEventSupport && (handlerOptions = {
+            passive: !instance.props.preventDefault
+        });
+        return handlerOptions;
+    }
     function onClickOutsideHOC(WrappedComponent, config) {
         var _class, _temp;
         return _temp = _class = function(_Component) {
@@ -5925,11 +5932,7 @@
                             }
                         };
                         events.forEach(function(eventName) {
-                            var handlerOptions = null;
-                            -1 !== touchEvents.indexOf(eventName) && passiveEventSupport && (handlerOptions = {
-                                passive: !_this.props.preventDefault
-                            });
-                            document.addEventListener(eventName, handlersMap[_this._uid], handlerOptions);
+                            document.addEventListener(eventName, handlersMap[_this._uid], getEventHandlerOptions(_this, eventName));
                         });
                     }
                 };
@@ -5940,7 +5943,7 @@
                         var events = _this.props.eventTypes;
                         events.forEach || (events = [ events ]);
                         events.forEach(function(eventName) {
-                            return document.removeEventListener(eventName, fn);
+                            return document.removeEventListener(eventName, fn, getEventHandlerOptions(_this, eventName));
                         });
                         delete handlersMap[_this._uid];
                     }
@@ -14113,7 +14116,7 @@
             }.call(exports, __webpack_require__, exports, module)) !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__);
             var rEndingLine = captureLine();
         }).call(this);
-    }).call(exports, __webpack_require__(78)(module), __webpack_require__(51), __webpack_require__(57));
+    }).call(exports, __webpack_require__(78)(module), __webpack_require__(63), __webpack_require__(57));
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function _interopRequireDefault(obj) {
@@ -14122,7 +14125,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), ExampleView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), ExampleView = _react2.default.createClass({
         displayName: "ExampleView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -14195,11 +14198,11 @@
                     }, _react2.default.createElement("td", {
                         key: "path",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__path"
-                    }, !!sourcePath && _react2.default.createElement(_eccGuiElements.Chip, null, "‎", sourcePath)), _react2.default.createElement("td", {
+                    }, !!sourcePath && _react2.default.createElement(_guiElements.Chip, null, "‎", sourcePath)), _react2.default.createElement("td", {
                         key: "value",
                         className: "ecc-silk-mapping__rulesviewer__examples-table__value"
                     }, _lodash2.default.map(result.sourceValues[i], function(value, valueIndex) {
-                        return _react2.default.createElement(_eccGuiElements.Chip, {
+                        return _react2.default.createElement(_guiElements.Chip, {
                             key: index + "_" + sourcePath + "_" + i + "_" + valueIndex
                         }, value);
                     })), !(i > 0) && _react2.default.createElement("td", {
@@ -14207,7 +14210,7 @@
                         className: "ecc-silk-mapping__rulesviewer__examples-table__result",
                         rowSpan: pathsCount
                     }, _lodash2.default.map(_this2.state.example.results[index].transformedValues, function(transformedValue, row) {
-                        return _react2.default.createElement(_eccGuiElements.Chip, {
+                        return _react2.default.createElement(_guiElements.Chip, {
                             key: "value_" + index + "_" + i + "_" + row,
                             id: "value_" + index + "_" + i + "_" + row
                         }, transformedValue);
@@ -14226,7 +14229,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), ErrorCause = function ErrorCause(_ref) {
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), ErrorCause = function ErrorCause(_ref) {
         var errorCause = _ref.errorCause;
         return _react2.default.createElement("ul", {
             className: "ecc-hierarchical-mapping-error-list"
@@ -14273,7 +14276,7 @@
                 errorCause: this.props.issues
             }));
             var detail = this.props.title !== this.props.detail && _react2.default.createElement("p", null, this.props.detail);
-            return _react2.default.createElement(_eccGuiElements.Error, {
+            return _react2.default.createElement(_guiElements.Error, {
                 border: !0,
                 className: errorClassName,
                 handlerDismiss: this.toggleExpansion,
@@ -14963,7 +14966,7 @@
         };
     };
 }, function(module, exports, __webpack_require__) {
-    var isObject = __webpack_require__(58);
+    var isObject = __webpack_require__(48);
     module.exports = function(it, S) {
         if (!isObject(it)) return it;
         var fn, val;
@@ -15964,7 +15967,7 @@
                 return config._useUTC ? [ nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate() ] : [ nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate() ];
             }
             function configFromArray(config) {
-                var i, date, currentDate, yearToUse, input = [];
+                var i, date, currentDate, expectedWeekday, yearToUse, input = [];
                 if (!config._d) {
                     currentDate = currentDateArray(config);
                     config._w && null == config._a[DATE] && null == config._a[MONTH] && dayOfYearFromWeekInfo(config);
@@ -15982,9 +15985,10 @@
                         config._a[HOUR] = 0;
                     }
                     config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
+                    expectedWeekday = config._useUTC ? config._d.getUTCDay() : config._d.getDay();
                     null != config._tzm && config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
                     config._nextDay && (config._a[HOUR] = 24);
-                    config._w && void 0 !== config._w.d && config._w.d !== config._d.getDay() && (getParsingFlags(config).weekdayMismatch = !0);
+                    config._w && void 0 !== config._w.d && config._w.d !== expectedWeekday && (getParsingFlags(config).weekdayMismatch = !0);
                 }
             }
             function dayOfYearFromWeekInfo(config) {
@@ -16574,10 +16578,10 @@
             function toString() {
                 return this.clone().locale("en").format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
             }
-            function toISOString() {
+            function toISOString(keepOffset) {
                 if (!this.isValid()) return null;
-                var m = this.clone().utc();
-                return m.year() < 0 || m.year() > 9999 ? formatMoment(m, "YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]") : isFunction(Date.prototype.toISOString) ? this.toDate().toISOString() : formatMoment(m, "YYYY-MM-DD[T]HH:mm:ss.SSS[Z]");
+                var utc = !0 !== keepOffset, m = utc ? this.clone().utc() : this;
+                return m.year() < 0 || m.year() > 9999 ? formatMoment(m, utc ? "YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]" : "YYYYYY-MM-DD[T]HH:mm:ss.SSSZ") : isFunction(Date.prototype.toISOString) ? utc ? this.toDate().toISOString() : new Date(this._d.valueOf()).toISOString().replace("Z", formatMoment(m, "Z")) : formatMoment(m, utc ? "YYYY-MM-DD[T]HH:mm:ss.SSS[Z]" : "YYYY-MM-DD[T]HH:mm:ss.SSSZ");
             }
             function inspect() {
                 if (!this.isValid()) return "moment.invalid(/* " + this._i + " */)";
@@ -17019,7 +17023,7 @@
                 MM: "%d months",
                 y: "a year",
                 yy: "%d years"
-            }, aliases = {}, priorities = {}, formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g, localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g, formatFunctions = {}, formatTokenFunctions = {}, match1 = /\d/, match2 = /\d\d/, match3 = /\d{3}/, match4 = /\d{4}/, match6 = /[+-]?\d{6}/, match1to2 = /\d\d?/, match3to4 = /\d\d\d\d?/, match5to6 = /\d\d\d\d\d\d?/, match1to3 = /\d{1,3}/, match1to4 = /\d{1,4}/, match1to6 = /[+-]?\d{1,6}/, matchUnsigned = /\d+/, matchSigned = /[+-]?\d+/, matchOffset = /Z|[+-]\d\d:?\d\d/gi, matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi, matchTimestamp = /[+-]?\d+(\.\d{1,3})?/, matchWord = /[0-9]{0,256}['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{1,256}|[\u0600-\u06FF\/]{1,256}(\s*?[\u0600-\u06FF]{1,256}){1,2}/i, regexes = {}, tokens = {}, YEAR = 0, MONTH = 1, DATE = 2, HOUR = 3, MINUTE = 4, SECOND = 5, MILLISECOND = 6, WEEK = 7, WEEKDAY = 8;
+            }, aliases = {}, priorities = {}, formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g, localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g, formatFunctions = {}, formatTokenFunctions = {}, match1 = /\d/, match2 = /\d\d/, match3 = /\d{3}/, match4 = /\d{4}/, match6 = /[+-]?\d{6}/, match1to2 = /\d\d?/, match3to4 = /\d\d\d\d?/, match5to6 = /\d\d\d\d\d\d?/, match1to3 = /\d{1,3}/, match1to4 = /\d{1,4}/, match1to6 = /[+-]?\d{1,6}/, matchUnsigned = /\d+/, matchSigned = /[+-]?\d+/, matchOffset = /Z|[+-]\d\d:?\d\d/gi, matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi, matchTimestamp = /[+-]?\d+(\.\d{1,3})?/, matchWord = /[0-9]{0,256}['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFF07\uFF10-\uFFEF]{1,256}|[\u0600-\u06FF\/]{1,256}(\s*?[\u0600-\u06FF]{1,256}){1,2}/i, regexes = {}, tokens = {}, YEAR = 0, MONTH = 1, DATE = 2, HOUR = 3, MINUTE = 4, SECOND = 5, MILLISECOND = 6, WEEK = 7, WEEKDAY = 8;
             addFormatToken("Y", 0, 0, function() {
                 var y = this.year();
                 return y <= 9999 ? "" + y : "+" + y;
@@ -17310,7 +17314,7 @@
             });
             addParseToken([ "D", "DD" ], DATE);
             addParseToken("Do", function(input, array) {
-                array[DATE] = toInt(input.match(match1to2)[0], 10);
+                array[DATE] = toInt(input.match(match1to2)[0]);
             });
             var getSetDayOfMonth = makeGetSet("Date", !0);
             addFormatToken("DDD", [ "DDDD", 3 ], "DDDo", "dayOfYear");
@@ -17534,7 +17538,7 @@
             addParseToken("x", function(input, array, config) {
                 config._d = new Date(toInt(input));
             });
-            hooks.version = "2.19.3";
+            hooks.version = "2.20.1";
             !function(callback) {
                 hookCallback = callback;
             }(createLocal);
@@ -17565,6 +17569,17 @@
             hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;
             hooks.calendarFormat = getCalendarFormat;
             hooks.prototype = proto;
+            hooks.HTML5_FMT = {
+                DATETIME_LOCAL: "YYYY-MM-DDTHH:mm",
+                DATETIME_LOCAL_SECONDS: "YYYY-MM-DDTHH:mm:ss",
+                DATETIME_LOCAL_MS: "YYYY-MM-DDTHH:mm:ss.SSS",
+                DATE: "YYYY-MM-DD",
+                TIME: "HH:mm",
+                TIME_SECONDS: "HH:mm:ss",
+                TIME_MS: "HH:mm:ss.SSS",
+                WEEK: "YYYY-[W]WW",
+                MONTH: "YYYY-MM"
+            };
             return hooks;
         });
     }).call(exports, __webpack_require__(78)(module));
@@ -18061,7 +18076,7 @@
             object.requestAnimationFrame = raf;
             object.cancelAnimationFrame = caf;
         };
-    }).call(exports, __webpack_require__(51));
+    }).call(exports, __webpack_require__(63));
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function shouldStopAnimation(currentStyle, style, currentVelocity) {
@@ -19491,7 +19506,7 @@
         __esModule: !0
     };
 }, function(module, exports, __webpack_require__) {
-    module.exports = !__webpack_require__(36) && !__webpack_require__(48)(function() {
+    module.exports = !__webpack_require__(36) && !__webpack_require__(49)(function() {
         return 7 != Object.defineProperty(__webpack_require__(172)("div"), "a", {
             get: function() {
                 return 7;
@@ -19499,12 +19514,12 @@
         }).a;
     });
 }, function(module, exports, __webpack_require__) {
-    var isObject = __webpack_require__(58), document = __webpack_require__(32).document, is = isObject(document) && isObject(document.createElement);
+    var isObject = __webpack_require__(48), document = __webpack_require__(32).document, is = isObject(document) && isObject(document.createElement);
     module.exports = function(it) {
         return is ? document.createElement(it) : {};
     };
 }, function(module, exports, __webpack_require__) {
-    var has = __webpack_require__(37), toIObject = __webpack_require__(49), arrayIndexOf = __webpack_require__(324)(!1), IE_PROTO = __webpack_require__(110)("IE_PROTO");
+    var has = __webpack_require__(37), toIObject = __webpack_require__(50), arrayIndexOf = __webpack_require__(324)(!1), IE_PROTO = __webpack_require__(110)("IE_PROTO");
     module.exports = function(object, names) {
         var key, O = toIObject(object), i = 0, result = [];
         for (key in O) key != IE_PROTO && has(O, key) && result.push(key);
@@ -19542,7 +19557,7 @@
     });
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var LIBRARY = __webpack_require__(116), $export = __webpack_require__(31), redefine = __webpack_require__(178), hide = __webpack_require__(46), has = __webpack_require__(37), Iterators = __webpack_require__(63), $iterCreate = __webpack_require__(330), setToStringTag = __webpack_require__(118), getPrototypeOf = __webpack_require__(179), ITERATOR = __webpack_require__(23)("iterator"), BUGGY = !([].keys && "next" in [].keys()), returnThis = function() {
+    var LIBRARY = __webpack_require__(116), $export = __webpack_require__(31), redefine = __webpack_require__(178), hide = __webpack_require__(46), has = __webpack_require__(37), Iterators = __webpack_require__(62), $iterCreate = __webpack_require__(330), setToStringTag = __webpack_require__(118), getPrototypeOf = __webpack_require__(179), ITERATOR = __webpack_require__(23)("iterator"), BUGGY = !([].keys && "next" in [].keys()), returnThis = function() {
         return this;
     };
     module.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
@@ -19559,7 +19574,7 @@
             return function() {
                 return new Constructor(this, kind);
             };
-        }, TAG = NAME + " Iterator", DEF_VALUES = "values" == DEFAULT, VALUES_BUG = !1, proto = Base.prototype, $native = proto[ITERATOR] || proto["@@iterator"] || DEFAULT && proto[DEFAULT], $default = $native || getMethod(DEFAULT), $entries = DEFAULT ? DEF_VALUES ? getMethod("entries") : $default : void 0, $anyNative = "Array" == NAME ? proto.entries || $native : $native;
+        }, TAG = NAME + " Iterator", DEF_VALUES = "values" == DEFAULT, VALUES_BUG = !1, proto = Base.prototype, $native = proto[ITERATOR] || proto["@@iterator"] || DEFAULT && proto[DEFAULT], $default = !BUGGY && $native || getMethod(DEFAULT), $entries = DEFAULT ? DEF_VALUES ? getMethod("entries") : $default : void 0, $anyNative = "Array" == NAME ? proto.entries || $native : $native;
         if ($anyNative) {
             IteratorPrototype = getPrototypeOf($anyNative.call(new Base()));
             if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
@@ -19589,7 +19604,7 @@
 }, function(module, exports, __webpack_require__) {
     module.exports = __webpack_require__(46);
 }, function(module, exports, __webpack_require__) {
-    var has = __webpack_require__(37), toObject = __webpack_require__(61), IE_PROTO = __webpack_require__(110)("IE_PROTO"), ObjectProto = Object.prototype;
+    var has = __webpack_require__(37), toObject = __webpack_require__(60), IE_PROTO = __webpack_require__(110)("IE_PROTO"), ObjectProto = Object.prototype;
     module.exports = Object.getPrototypeOf || function(O) {
         O = toObject(O);
         return has(O, IE_PROTO) ? O[IE_PROTO] : "function" == typeof O.constructor && O instanceof O.constructor ? O.constructor.prototype : O instanceof Object ? ObjectProto : null;
@@ -19600,7 +19615,7 @@
         return $keys(O, hiddenKeys);
     };
 }, function(module, exports, __webpack_require__) {
-    var pIE = __webpack_require__(76), createDesc = __webpack_require__(59), toIObject = __webpack_require__(49), toPrimitive = __webpack_require__(106), has = __webpack_require__(37), IE8_DOM_DEFINE = __webpack_require__(171), gOPD = Object.getOwnPropertyDescriptor;
+    var pIE = __webpack_require__(76), createDesc = __webpack_require__(58), toIObject = __webpack_require__(50), toPrimitive = __webpack_require__(106), has = __webpack_require__(37), IE8_DOM_DEFINE = __webpack_require__(171), gOPD = Object.getOwnPropertyDescriptor;
     exports.f = __webpack_require__(36) ? gOPD : function(O, P) {
         O = toIObject(O);
         P = toPrimitive(P, !0);
@@ -19682,7 +19697,7 @@
         recursive: _propTypes2.default.bool
     };
 }, function(module, exports, __webpack_require__) {
-    var $export = __webpack_require__(31), core = __webpack_require__(14), fails = __webpack_require__(48);
+    var $export = __webpack_require__(31), core = __webpack_require__(14), fails = __webpack_require__(49);
     module.exports = function(KEY, exec) {
         var fn = (core.Object || {})[KEY] || Object[KEY], exp = {};
         exp[KEY] = exec(fn);
@@ -21248,7 +21263,7 @@
                 return punycode;
             }.call(exports, __webpack_require__, exports, module)) && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__);
         }();
-    }).call(exports, __webpack_require__(78)(module), __webpack_require__(51));
+    }).call(exports, __webpack_require__(78)(module), __webpack_require__(63));
 }, function(module, exports, __webpack_require__) {
     var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;
     !function(root, factory) {
@@ -21995,7 +22010,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(203), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), ObjectRule = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _ObjectMappingRuleForm = __webpack_require__(203), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), ObjectRule = _react2.default.createClass({
         displayName: "ObjectRule",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -22126,7 +22141,7 @@
                 uriPatternLabel = "URI formula";
                 uriPattern = _react2.default.createElement("span", null, "URI uses ", paths.length, " value", " ", paths.length > 1 ? "paths" : "path", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, "  operator ", operators.length > 1 ? "functions" : "function", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".");
                 tooltipText = "Edit URI formula";
-                removeButton = _react2.default.createElement(_eccGuiElements.Button, {
+                removeButton = _react2.default.createElement(_guiElements.Button, {
                     raised: !0,
                     iconName: "delete",
                     className: "ecc-silk-mapping__ruleseditor__actionrow-complex-delete",
@@ -22134,7 +22149,7 @@
                     tooltip: "Remove URI formula"
                 });
             } else {
-                uriPattern = _react2.default.createElement(_eccGuiElements.NotAvailable, {
+                uriPattern = _react2.default.createElement(_guiElements.NotAvailable, {
                     label: "automatic default pattern",
                     inline: !0
                 });
@@ -22150,7 +22165,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, uriPatternLabel), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, uriPattern, _react2.default.createElement(_eccGuiElements.Button, {
+            }, uriPattern, _react2.default.createElement(_guiElements.Button, {
                 raised: !0,
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
@@ -22176,22 +22191,22 @@
                 }, _react2.default.createElement(_SharedComponents.ThingDescription, {
                     id: _lodash2.default.get(this.props, "mappingTarget.uri", void 0)
                 }))))));
-                entityRelation = _react2.default.createElement(_eccGuiElements.RadioGroup, {
+                entityRelation = _react2.default.createElement(_guiElements.RadioGroup, {
                     value: _lodash2.default.get(this.props, "mappingTarget.isBackwardProperty", !1) ? "to" : "from",
                     name: "",
                     disabled: !0
-                }, _react2.default.createElement(_eccGuiElements.Radio, {
+                }, _react2.default.createElement(_guiElements.Radio, {
                     value: "from",
                     label: _react2.default.createElement("div", null, "Connect from", " ", _react2.default.createElement(_SharedComponents.ParentElement, {
                         parent: this.props.parent
                     }))
-                }), _react2.default.createElement(_eccGuiElements.Radio, {
+                }), _react2.default.createElement(_guiElements.Radio, {
                     value: "to",
                     label: _react2.default.createElement("div", null, "Connect to", " ", _react2.default.createElement(_SharedComponents.ParentElement, {
                         parent: this.props.parent
                     }))
                 }));
-                deleteButton = _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                deleteButton = _react2.default.createElement(_guiElements.DisruptiveButton, {
                     className: "ecc-silk-mapping__rulesviewer__actionrow-remove",
                     raised: !0,
                     onClick: function() {
@@ -22206,7 +22221,7 @@
             }
             return _react2.default.createElement("div", null, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer"
-            }, _react2.default.createElement(_eccGuiElements.CardContent, null, targetProperty, entityRelation, !!_lodash2.default.get(this.props, "rules.typeRules[0].typeUri", !1) && _react2.default.createElement("div", {
+            }, _react2.default.createElement(_guiElements.CardContent, null, targetProperty, entityRelation, !!_lodash2.default.get(this.props, "rules.typeRules[0].typeUri", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__targetEntityType"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -22263,9 +22278,9 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Description"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, _lodash2.default.get(this.props, "metadata.description", ""))))), _react2.default.createElement(_eccGuiElements.CardActions, {
+            }, _lodash2.default.get(this.props, "metadata.description", ""))))), _react2.default.createElement(_guiElements.CardActions, {
                 className: "ecc-silk-mapping__rulesviewer__actionrow"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement(_guiElements.Button, {
                 className: "ecc-silk-mapping__rulesviewer__actionrow-edit",
                 raised: !0,
                 onClick: this.handleEdit
@@ -22282,9 +22297,9 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(62), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SharedComponents = __webpack_require__(30), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(204), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(205), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ObjectMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(61), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SharedComponents = __webpack_require__(30), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(204), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(205), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ObjectMappingRuleForm = _react2.default.createClass({
         displayName: "ObjectMappingRuleForm",
-        mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
+        mixins: [ _UseMessageBusMixin2.default, _guiElements.ScrollingMixin ],
         propTypes: {
             id: _react2.default.PropTypes.string
         },
@@ -22423,8 +22438,8 @@
         },
         render: function() {
             var _props = this.props, id = _props.id, parentId = _props.parentId, autoCompleteRuleId = id || parentId, error = this.state.error, type = this.state.type;
-            if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
-            var allowConfirm = type === _helpers2.MAPPING_RULE_TYPE_ROOT || !_lodash2.default.isEmpty(this.state.targetProperty), errorMessage = !!error && _react2.default.createElement(_ErrorView2.default, error.response.body), title = !id && _react2.default.createElement(_eccGuiElements.CardTitle, null, "Add object mapping"), targetPropertyInput = !1, entityRelationInput = !1, sourcePropertyInput = !1;
+            if (this.state.loading) return _react2.default.createElement(_guiElements.Spinner, null);
+            var allowConfirm = type === _helpers2.MAPPING_RULE_TYPE_ROOT || !_lodash2.default.isEmpty(this.state.targetProperty), errorMessage = !!error && _react2.default.createElement(_ErrorView2.default, error.response.body), title = !id && _react2.default.createElement(_guiElements.CardTitle, null, "Add object mapping"), targetPropertyInput = !1, entityRelationInput = !1, sourcePropertyInput = !1;
             if (type !== _helpers2.MAPPING_RULE_TYPE_ROOT) {
                 targetPropertyInput = _react2.default.createElement(_AutoComplete2.default, {
                     placeholder: "Target property",
@@ -22436,17 +22451,17 @@
                     value: this.state.targetProperty,
                     onChange: this.handleChangeSelectBox.bind(null, "targetProperty")
                 });
-                entityRelationInput = _react2.default.createElement(_eccGuiElements.RadioGroup, {
+                entityRelationInput = _react2.default.createElement(_guiElements.RadioGroup, {
                     onChange: this.handleChangeRadio.bind(null, "entityConnection"),
                     value: _lodash2.default.isEmpty(this.state.entityConnection) ? "from" : this.state.entityConnection,
                     name: "",
                     disabled: !1
-                }, _react2.default.createElement(_eccGuiElements.Radio, {
+                }, _react2.default.createElement(_guiElements.Radio, {
                     value: "from",
                     label: _react2.default.createElement("div", null, "Connect from", " ", _react2.default.createElement(_SharedComponents.ParentElement, {
                         parent: this.props.parent
                     }))
-                }), _react2.default.createElement(_eccGuiElements.Radio, {
+                }), _react2.default.createElement(_guiElements.Radio, {
                     value: "to",
                     label: _react2.default.createElement("div", null, "Connect to", " ", _react2.default.createElement(_SharedComponents.ParentElement, {
                         parent: this.props.parent
@@ -22463,12 +22478,12 @@
                 });
             }
             var patternInput = !1;
-            id && (patternInput = "uri" === this.state.uriRuleType ? _react2.default.createElement(_eccGuiElements.TextField, {
+            id && (patternInput = "uri" === this.state.uriRuleType ? _react2.default.createElement(_guiElements.TextField, {
                 label: "URI pattern",
                 className: "ecc-silk-mapping__ruleseditor__pattern",
                 value: this.state.pattern,
                 onChange: this.handleChangeTextfield.bind(null, "pattern")
-            }) : _react2.default.createElement(_eccGuiElements.TextField, {
+            }) : _react2.default.createElement(_guiElements.TextField, {
                 disabled: !0,
                 label: "URI formula",
                 value: "This URI cannot be edited in the edit form."
@@ -22476,9 +22491,9 @@
             var exampleView = this.getExampleView();
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
+            }, _react2.default.createElement(_guiElements.Card, {
                 shadow: id ? 0 : 1
-            }, title, _react2.default.createElement(_eccGuiElements.CardContent, null, errorMessage, targetPropertyInput, entityRelationInput, _react2.default.createElement(_AutoComplete2.default, {
+            }, title, _react2.default.createElement(_guiElements.CardContent, null, errorMessage, targetPropertyInput, entityRelationInput, _react2.default.createElement(_AutoComplete2.default, {
                 placeholder: "Target entity type",
                 className: "ecc-silk-mapping__ruleseditor__targetEntityType",
                 entity: "targetEntityType",
@@ -22488,25 +22503,25 @@
                 multi: !0,
                 creatable: !0,
                 onChange: this.handleChangeSelectBox.bind(null, "targetEntityType")
-            }), patternInput, sourcePropertyInput, exampleView, _react2.default.createElement(_eccGuiElements.TextField, {
+            }), patternInput, sourcePropertyInput, exampleView, _react2.default.createElement(_guiElements.TextField, {
                 label: "Label",
                 className: "ecc-silk-mapping__ruleseditor__label",
                 value: this.state.label,
                 onChange: this.handleChangeTextfield.bind(null, "label")
-            }), _react2.default.createElement(_eccGuiElements.TextField, {
+            }), _react2.default.createElement(_guiElements.TextField, {
                 multiline: !0,
                 label: "Description",
                 className: "ecc-silk-mapping__ruleseditor__comment",
                 value: this.state.comment,
                 onChange: this.handleChangeTextfield.bind(null, "comment")
-            })), _react2.default.createElement(_eccGuiElements.CardActions, {
+            })), _react2.default.createElement(_guiElements.CardActions, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow"
-            }, _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
+            }, _react2.default.createElement(_guiElements.AffirmativeButton, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-save",
                 raised: !0,
                 onClick: this.handleConfirm,
                 disabled: !allowConfirm || !this.state.changed
-            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+            }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-cancel",
                 raised: !0,
                 onClick: this.handleClose
@@ -22543,7 +22558,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(62), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), AutoComplete = _react2.default.createClass({
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(61), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), AutoComplete = _react2.default.createClass({
         displayName: "AutoComplete",
         render: function() {
             var _props = this.props, entity = _props.entity, ruleId = _props.ruleId, otherProps = (0, 
@@ -22563,7 +22578,7 @@
                     });
                 });
             };
-            return _react2.default.createElement(_eccGuiElements.AutoCompleteBox, (0, _extends3.default)({}, otherProps, {
+            return _react2.default.createElement(_guiElements.AutoCompleteBox, (0, _extends3.default)({}, otherProps, {
                 filterOption: function() {
                     return !0;
                 },
@@ -22582,9 +22597,9 @@
         };
     }
     exports.__esModule = !0;
-    var _objectWithoutProperties2 = __webpack_require__(62), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(204), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(205), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ValueMappingRuleForm = _react2.default.createClass({
+    var _objectWithoutProperties2 = __webpack_require__(61), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _helpers = __webpack_require__(204), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _AutoComplete = __webpack_require__(205), _AutoComplete2 = _interopRequireDefault(_AutoComplete), _helpers2 = __webpack_require__(13), ValueMappingRuleForm = _react2.default.createClass({
         displayName: "ValueMappingRuleForm",
-        mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
+        mixins: [ _UseMessageBusMixin2.default, _guiElements.ScrollingMixin ],
         propTypes: {
             id: _react2.default.PropTypes.string
         },
@@ -22705,8 +22720,8 @@
         },
         render: function() {
             var _props = this.props, id = _props.id, parentId = _props.parentId, autoCompleteRuleId = id || parentId, _state2 = this.state, type = _state2.type, error = _state2.error;
-            if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
-            var errorMessage = !!error && _react2.default.createElement(_ErrorView2.default, error.response.body), allowConfirm = !_lodash2.default.isEmpty(this.state.targetProperty), title = !id && _react2.default.createElement(_eccGuiElements.CardTitle, null, "Add value mapping"), sourcePropertyInput = !1;
+            if (this.state.loading) return _react2.default.createElement(_guiElements.Spinner, null);
+            var errorMessage = !!error && _react2.default.createElement(_ErrorView2.default, error.response.body), allowConfirm = !_lodash2.default.isEmpty(this.state.targetProperty), title = !id && _react2.default.createElement(_guiElements.CardTitle, null, "Add value mapping"), sourcePropertyInput = !1;
             type === _helpers2.MAPPING_RULE_TYPE_DIRECT ? sourcePropertyInput = _react2.default.createElement(_AutoComplete2.default, {
                 placeholder: "Value path",
                 className: "ecc-silk-mapping__ruleseditor__sourcePath",
@@ -22715,7 +22730,7 @@
                 value: this.state.sourceProperty,
                 ruleId: autoCompleteRuleId,
                 onChange: this.handleChangeSelectBox.bind(null, "sourceProperty")
-            }) : type === _helpers2.MAPPING_RULE_TYPE_COMPLEX && (sourcePropertyInput = _react2.default.createElement(_eccGuiElements.TextField, {
+            }) : type === _helpers2.MAPPING_RULE_TYPE_COMPLEX && (sourcePropertyInput = _react2.default.createElement(_guiElements.TextField, {
                 disabled: !0,
                 label: "Value formula",
                 value: "The value formula cannot be modified in the edit form."
@@ -22728,9 +22743,9 @@
             });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleseditor"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
+            }, _react2.default.createElement(_guiElements.Card, {
                 shadow: id ? 0 : 1
-            }, title, _react2.default.createElement(_eccGuiElements.CardContent, null, errorMessage, _react2.default.createElement(_AutoComplete2.default, {
+            }, title, _react2.default.createElement(_guiElements.CardContent, null, errorMessage, _react2.default.createElement(_AutoComplete2.default, {
                 placeholder: "Target property",
                 className: "ecc-silk-mapping__ruleseditor__targetProperty",
                 entity: "targetProperty",
@@ -22739,7 +22754,7 @@
                 value: this.state.targetProperty,
                 ruleId: autoCompleteRuleId,
                 onChange: this.handleChangeSelectBox.bind(null, "targetProperty")
-            }), _react2.default.createElement(_eccGuiElements.Checkbox, {
+            }), _react2.default.createElement(_guiElements.Checkbox, {
                 checked: this.state.isAttribute,
                 className: "ecc-silk-mapping__ruleseditor__isAttribute",
                 onChange: this.handleChangeValue.bind(null, "isAttribute", !this.state.isAttribute)
@@ -22751,25 +22766,25 @@
                 value: this.state.propertyType,
                 clearable: !1,
                 onChange: this.handleChangeSelectBox.bind(null, "propertyType")
-            }), sourcePropertyInput, exampleView, _react2.default.createElement(_eccGuiElements.TextField, {
+            }), sourcePropertyInput, exampleView, _react2.default.createElement(_guiElements.TextField, {
                 label: "Label",
                 className: "ecc-silk-mapping__ruleseditor__label",
                 value: this.state.label,
                 onChange: this.handleChangeTextfield.bind(null, "label")
-            }), _react2.default.createElement(_eccGuiElements.TextField, {
+            }), _react2.default.createElement(_guiElements.TextField, {
                 multiline: !0,
                 label: "Description",
                 className: "ecc-silk-mapping__ruleseditor__comment",
                 value: this.state.comment,
                 onChange: this.handleChangeTextfield.bind(null, "comment")
-            })), _react2.default.createElement(_eccGuiElements.CardActions, {
+            })), _react2.default.createElement(_guiElements.CardActions, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow"
-            }, _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
+            }, _react2.default.createElement(_guiElements.AffirmativeButton, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-save",
                 raised: !0,
                 onClick: this.handleConfirm,
                 disabled: !allowConfirm || !this.state.changed
-            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+            }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
                 className: "ecc-silk-mapping__ruleseditor___actionrow-cancel",
                 raised: !0,
                 onClick: this.handleClose
@@ -27431,7 +27446,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _eccUtils = __webpack_require__(196), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsTree = __webpack_require__(397), _MappingsTree2 = _interopRequireDefault(_MappingsTree), _MappingsWorkview = __webpack_require__(398), _MappingsWorkview2 = _interopRequireDefault(_MappingsWorkview), _helpers = __webpack_require__(13), HierarchicalMapping = _react2.default.createClass({
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _eccUtils = __webpack_require__(196), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsTree = __webpack_require__(397), _MappingsTree2 = _interopRequireDefault(_MappingsTree), _MappingsWorkview = __webpack_require__(398), _MappingsWorkview2 = _interopRequireDefault(_MappingsWorkview), _helpers = __webpack_require__(13), HierarchicalMapping = _react2.default.createClass({
         displayName: "HierarchicalMapping",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -27574,31 +27589,31 @@
         render: function() {
             var navigationTree = !!this.state.showNavigation && _react2.default.createElement(_MappingsTree2.default, {
                 currentRuleId: this.state.currentRuleId
-            }), loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), deleteView = !!this.state.elementToDelete && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }), loading = !!this.state.loading && _react2.default.createElement(_guiElements.Spinner, null), deleteView = !!this.state.elementToDelete && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 className: "ecc-hm-delete-dialog",
                 active: !0,
                 modal: !0,
                 title: "Remove mapping rule?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     className: "ecc-hm-delete-accept",
                     disabled: !1,
                     onClick: this.handleConfirmRemove
                 }, "Remove"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     className: "ecc-hm-delete-cancel",
                     onClick: this.handleCancelRemove
                 }, "Cancel")
-            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : " ", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }, _react2.default.createElement("p", null, "When you click REMOVE the mapping rule", this.state.elementToDelete.type === _helpers.MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : " ", "will be deleted permanently.")), discardView = !!this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 className: "ecc-hm-discard-dialog",
                 title: "Discard changes?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     disabled: !1,
                     className: "ecc-hm-accept-discard",
                     onClick: this.handleDiscardChanges
                 }, "Discard"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     className: "ecc-hm-cancel-discard",
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
@@ -27629,8 +27644,8 @@
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var getKeys = __webpack_require__(60), gOPS = __webpack_require__(113), pIE = __webpack_require__(76), toObject = __webpack_require__(61), IObject = __webpack_require__(174), $assign = Object.assign;
-    module.exports = !$assign || __webpack_require__(48)(function() {
+    var getKeys = __webpack_require__(59), gOPS = __webpack_require__(113), pIE = __webpack_require__(76), toObject = __webpack_require__(60), IObject = __webpack_require__(174), $assign = Object.assign;
+    module.exports = !$assign || __webpack_require__(49)(function() {
         var A = {}, B = {}, S = Symbol(), K = "abcdefghijklmnopqrst";
         A[S] = 7;
         K.split("").forEach(function(k) {
@@ -27642,7 +27657,7 @@
         return T;
     } : $assign;
 }, function(module, exports, __webpack_require__) {
-    var toIObject = __webpack_require__(49), toLength = __webpack_require__(175), toAbsoluteIndex = __webpack_require__(325);
+    var toIObject = __webpack_require__(50), toLength = __webpack_require__(175), toAbsoluteIndex = __webpack_require__(325);
     module.exports = function(IS_INCLUDES) {
         return function($this, el, fromIndex) {
             var value, O = toIObject($this), length = toLength(O.length), index = toAbsoluteIndex(fromIndex, length);
@@ -27714,7 +27729,7 @@
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var create = __webpack_require__(117), descriptor = __webpack_require__(59), setToStringTag = __webpack_require__(118), IteratorPrototype = {};
+    var create = __webpack_require__(117), descriptor = __webpack_require__(58), setToStringTag = __webpack_require__(118), IteratorPrototype = {};
     __webpack_require__(46)(IteratorPrototype, __webpack_require__(23)("iterator"), function() {
         return this;
     });
@@ -27725,7 +27740,7 @@
         setToStringTag(Constructor, NAME + " Iterator");
     };
 }, function(module, exports, __webpack_require__) {
-    var dP = __webpack_require__(33), anObject = __webpack_require__(47), getKeys = __webpack_require__(60);
+    var dP = __webpack_require__(33), anObject = __webpack_require__(47), getKeys = __webpack_require__(59);
     module.exports = __webpack_require__(36) ? Object.defineProperties : function(O, Properties) {
         anObject(O);
         for (var P, keys = getKeys(Properties), length = keys.length, i = 0; length > i; ) dP.f(O, P = keys[i++], Properties[P]);
@@ -27736,14 +27751,14 @@
     module.exports = document && document.documentElement;
 }, function(module, exports, __webpack_require__) {
     __webpack_require__(334);
-    for (var global = __webpack_require__(32), hide = __webpack_require__(46), Iterators = __webpack_require__(63), TO_STRING_TAG = __webpack_require__(23)("toStringTag"), DOMIterables = "CSSRuleList,CSSStyleDeclaration,CSSValueList,ClientRectList,DOMRectList,DOMStringList,DOMTokenList,DataTransferItemList,FileList,HTMLAllCollection,HTMLCollection,HTMLFormElement,HTMLSelectElement,MediaList,MimeTypeArray,NamedNodeMap,NodeList,PaintRequestList,Plugin,PluginArray,SVGLengthList,SVGNumberList,SVGPathSegList,SVGPointList,SVGStringList,SVGTransformList,SourceBufferList,StyleSheetList,TextTrackCueList,TextTrackList,TouchList".split(","), i = 0; i < DOMIterables.length; i++) {
+    for (var global = __webpack_require__(32), hide = __webpack_require__(46), Iterators = __webpack_require__(62), TO_STRING_TAG = __webpack_require__(23)("toStringTag"), DOMIterables = "CSSRuleList,CSSStyleDeclaration,CSSValueList,ClientRectList,DOMRectList,DOMStringList,DOMTokenList,DataTransferItemList,FileList,HTMLAllCollection,HTMLCollection,HTMLFormElement,HTMLSelectElement,MediaList,MimeTypeArray,NamedNodeMap,NodeList,PaintRequestList,Plugin,PluginArray,SVGLengthList,SVGNumberList,SVGPathSegList,SVGPointList,SVGStringList,SVGTransformList,SourceBufferList,StyleSheetList,TextTrackCueList,TextTrackList,TouchList".split(","), i = 0; i < DOMIterables.length; i++) {
         var NAME = DOMIterables[i], Collection = global[NAME], proto = Collection && Collection.prototype;
         proto && !proto[TO_STRING_TAG] && hide(proto, TO_STRING_TAG, NAME);
         Iterators[NAME] = Iterators.Array;
     }
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var addToUnscopables = __webpack_require__(335), step = __webpack_require__(336), Iterators = __webpack_require__(63), toIObject = __webpack_require__(49);
+    var addToUnscopables = __webpack_require__(335), step = __webpack_require__(336), Iterators = __webpack_require__(62), toIObject = __webpack_require__(50);
     module.exports = __webpack_require__(177)(Array, "Array", function(iterated, kind) {
         this._t = toIObject(iterated);
         this._i = 0;
@@ -27782,7 +27797,7 @@
     module.exports = __webpack_require__(14).Symbol;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var global = __webpack_require__(32), has = __webpack_require__(37), DESCRIPTORS = __webpack_require__(36), $export = __webpack_require__(31), redefine = __webpack_require__(178), META = __webpack_require__(340).KEY, $fails = __webpack_require__(48), shared = __webpack_require__(111), setToStringTag = __webpack_require__(118), uid = __webpack_require__(75), wks = __webpack_require__(23), wksExt = __webpack_require__(119), wksDefine = __webpack_require__(120), enumKeys = __webpack_require__(341), isArray = __webpack_require__(342), anObject = __webpack_require__(47), toIObject = __webpack_require__(49), toPrimitive = __webpack_require__(106), createDesc = __webpack_require__(59), _create = __webpack_require__(117), gOPNExt = __webpack_require__(343), $GOPD = __webpack_require__(181), $DP = __webpack_require__(33), $keys = __webpack_require__(60), gOPD = $GOPD.f, dP = $DP.f, gOPN = gOPNExt.f, $Symbol = global.Symbol, $JSON = global.JSON, _stringify = $JSON && $JSON.stringify, HIDDEN = wks("_hidden"), TO_PRIMITIVE = wks("toPrimitive"), isEnum = {}.propertyIsEnumerable, SymbolRegistry = shared("symbol-registry"), AllSymbols = shared("symbols"), OPSymbols = shared("op-symbols"), ObjectProto = Object.prototype, USE_NATIVE = "function" == typeof $Symbol, QObject = global.QObject, setter = !QObject || !QObject.prototype || !QObject.prototype.findChild, setSymbolDesc = DESCRIPTORS && $fails(function() {
+    var global = __webpack_require__(32), has = __webpack_require__(37), DESCRIPTORS = __webpack_require__(36), $export = __webpack_require__(31), redefine = __webpack_require__(178), META = __webpack_require__(340).KEY, $fails = __webpack_require__(49), shared = __webpack_require__(111), setToStringTag = __webpack_require__(118), uid = __webpack_require__(75), wks = __webpack_require__(23), wksExt = __webpack_require__(119), wksDefine = __webpack_require__(120), enumKeys = __webpack_require__(341), isArray = __webpack_require__(342), anObject = __webpack_require__(47), isObject = __webpack_require__(48), toIObject = __webpack_require__(50), toPrimitive = __webpack_require__(106), createDesc = __webpack_require__(58), _create = __webpack_require__(117), gOPNExt = __webpack_require__(343), $GOPD = __webpack_require__(181), $DP = __webpack_require__(33), $keys = __webpack_require__(59), gOPD = $GOPD.f, dP = $DP.f, gOPN = gOPNExt.f, $Symbol = global.Symbol, $JSON = global.JSON, _stringify = $JSON && $JSON.stringify, HIDDEN = wks("_hidden"), TO_PRIMITIVE = wks("toPrimitive"), isEnum = {}.propertyIsEnumerable, SymbolRegistry = shared("symbol-registry"), AllSymbols = shared("symbols"), OPSymbols = shared("op-symbols"), ObjectProto = Object.prototype, USE_NATIVE = "function" == typeof $Symbol, QObject = global.QObject, setter = !QObject || !QObject.prototype || !QObject.prototype.findChild, setSymbolDesc = DESCRIPTORS && $fails(function() {
         return 7 != _create(dP({}, "a", {
             get: function() {
                 return dP(this, "a", {
@@ -27907,12 +27922,11 @@
         }) || "{}" != _stringify(Object(S));
     })), "JSON", {
         stringify: function(it) {
-            if (void 0 !== it && !isSymbol(it)) {
-                for (var replacer, $replacer, args = [ it ], i = 1; arguments.length > i; ) args.push(arguments[i++]);
-                replacer = args[1];
-                "function" == typeof replacer && ($replacer = replacer);
-                !$replacer && isArray(replacer) || (replacer = function(key, value) {
-                    $replacer && (value = $replacer.call(this, key, value));
+            for (var replacer, $replacer, args = [ it ], i = 1; arguments.length > i; ) args.push(arguments[i++]);
+            $replacer = replacer = args[1];
+            if ((isObject(replacer) || void 0 !== it) && !isSymbol(it)) {
+                isArray(replacer) || (replacer = function(key, value) {
+                    "function" == typeof $replacer && (value = $replacer.call(this, key, value));
                     if (!isSymbol(value)) return value;
                 });
                 args[1] = replacer;
@@ -27925,9 +27939,9 @@
     setToStringTag(Math, "Math", !0);
     setToStringTag(global.JSON, "JSON", !0);
 }, function(module, exports, __webpack_require__) {
-    var META = __webpack_require__(75)("meta"), isObject = __webpack_require__(58), has = __webpack_require__(37), setDesc = __webpack_require__(33).f, id = 0, isExtensible = Object.isExtensible || function() {
+    var META = __webpack_require__(75)("meta"), isObject = __webpack_require__(48), has = __webpack_require__(37), setDesc = __webpack_require__(33).f, id = 0, isExtensible = Object.isExtensible || function() {
         return !0;
-    }, FREEZE = !__webpack_require__(48)(function() {
+    }, FREEZE = !__webpack_require__(49)(function() {
         return isExtensible(Object.preventExtensions({}));
     }), setMeta = function(it) {
         setDesc(it, META, {
@@ -27962,7 +27976,7 @@
         onFreeze: onFreeze
     };
 }, function(module, exports, __webpack_require__) {
-    var getKeys = __webpack_require__(60), gOPS = __webpack_require__(113), pIE = __webpack_require__(76);
+    var getKeys = __webpack_require__(59), gOPS = __webpack_require__(113), pIE = __webpack_require__(76);
     module.exports = function(it) {
         var result = getKeys(it), getSymbols = gOPS.f;
         if (getSymbols) for (var key, symbols = getSymbols(it), isEnum = pIE.f, i = 0; symbols.length > i; ) isEnum.call(it, key = symbols[i++]) && result.push(key);
@@ -27974,7 +27988,7 @@
         return "Array" == cof(arg);
     };
 }, function(module, exports, __webpack_require__) {
-    var toIObject = __webpack_require__(49), gOPN = __webpack_require__(180).f, toString = {}.toString, windowNames = "object" == typeof window && window && Object.getOwnPropertyNames ? Object.getOwnPropertyNames(window) : [], getWindowNames = function(it) {
+    var toIObject = __webpack_require__(50), gOPN = __webpack_require__(180).f, toString = {}.toString, windowNames = "object" == typeof window && window && Object.getOwnPropertyNames ? Object.getOwnPropertyNames(window) : [], getWindowNames = function(it) {
         try {
             return gOPN(it);
         } catch (e) {
@@ -28002,7 +28016,7 @@
         setPrototypeOf: __webpack_require__(350).set
     });
 }, function(module, exports, __webpack_require__) {
-    var isObject = __webpack_require__(58), anObject = __webpack_require__(47), check = function(O, proto) {
+    var isObject = __webpack_require__(48), anObject = __webpack_require__(47), check = function(O, proto) {
         anObject(O);
         if (!isObject(proto) && null !== proto) throw TypeError(proto + ": can't set as prototype!");
     };
@@ -28164,7 +28178,7 @@
     __webpack_require__(358);
     module.exports = __webpack_require__(14).Object.getPrototypeOf;
 }, function(module, exports, __webpack_require__) {
-    var toObject = __webpack_require__(61), $getPrototypeOf = __webpack_require__(179);
+    var toObject = __webpack_require__(60), $getPrototypeOf = __webpack_require__(179);
     __webpack_require__(183)("getPrototypeOf", function() {
         return function(it) {
             return $getPrototypeOf(toObject(it));
@@ -28804,7 +28818,7 @@
         height: 0,
         overflow: "scroll",
         whiteSpace: "pre"
-    }, INPUT_PROPS_BLACKLIST = [ "injectStyles", "inputClassName", "inputRef", "inputStyle", "minWidth", "onAutosize", "placeholderIsMinWidth" ], cleanInputProps = function(inputProps) {
+    }, INPUT_PROPS_BLACKLIST = [ "extraWidth", "injectStyles", "inputClassName", "inputRef", "inputStyle", "minWidth", "onAutosize", "placeholderIsMinWidth" ], cleanInputProps = function(inputProps) {
         INPUT_PROPS_BLACKLIST.forEach(function(field) {
             return delete inputProps[field];
         });
@@ -28816,7 +28830,7 @@
         node.style.fontStyle = styles.fontStyle;
         node.style.letterSpacing = styles.letterSpacing;
         node.style.textTransform = styles.textTransform;
-    }, isIE = "undefined" != typeof window && /MSIE |Trident\/|Edge\//.test(window.navigator.userAgent), generateId = function() {
+    }, isIE = !("undefined" == typeof window || !window.navigator) && /MSIE |Trident\/|Edge\//.test(window.navigator.userAgent), generateId = function() {
         return isIE ? "_" + Math.random().toString(36).substr(2, 12) : void 0;
     }, AutosizeInput = function(_Component) {
         function AutosizeInput(props) {
@@ -28882,7 +28896,7 @@
                 if (this.mounted && this.sizer && void 0 !== this.sizer.scrollWidth) {
                     var newInputWidth = void 0;
                     newInputWidth = this.props.placeholder && (!this.props.value || this.props.value && this.props.placeholderIsMinWidth) ? Math.max(this.sizer.scrollWidth, this.placeHolderSizer.scrollWidth) + 2 : this.sizer.scrollWidth + 2;
-                    "number" === this.props.type && (newInputWidth += 16);
+                    newInputWidth += "number" === this.props.type && void 0 === this.props.extraWidth ? 16 : parseInt(this.props.extraWidth) || 0;
                     newInputWidth < this.props.minWidth && (newInputWidth = this.props.minWidth);
                     newInputWidth !== this.state.inputWidth && this.setState({
                         inputWidth: newInputWidth
@@ -28953,6 +28967,7 @@
     AutosizeInput.propTypes = {
         className: _propTypes2.default.string,
         defaultValue: _propTypes2.default.any,
+        extraWidth: _propTypes2.default.oneOfType([ _propTypes2.default.number, _propTypes2.default.string ]),
         id: _propTypes2.default.string,
         injectStyles: _propTypes2.default.bool,
         inputClassName: _propTypes2.default.string,
@@ -30682,7 +30697,7 @@
     exports.default = (0, _mdlUpgrade2.default)(Textfield);
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var assign = __webpack_require__(195), PropTypes = __webpack_require__(2), createClass = __webpack_require__(50), moment = __webpack_require__(121), React = __webpack_require__(0), CalendarContainer = __webpack_require__(384), TYPES = PropTypes, Datetime = createClass({
+    var assign = __webpack_require__(195), PropTypes = __webpack_require__(2), createClass = __webpack_require__(51), moment = __webpack_require__(121), React = __webpack_require__(0), CalendarContainer = __webpack_require__(384), TYPES = PropTypes, Datetime = createClass({
         propTypes: {
             onFocus: TYPES.func,
             onBlur: TYPES.func,
@@ -30758,7 +30773,7 @@
         componentWillReceiveProps: function(nextProps) {
             var formats = this.getFormats(nextProps), updatedState = {};
             nextProps.value === this.props.value && formats.datetime === this.getFormats(this.props).datetime || (updatedState = this.getStateFromProps(nextProps));
-            void 0 === updatedState.open && (this.props.closeOnSelect && "time" !== this.state.currentView ? updatedState.open = !1 : updatedState.open = this.state.open);
+            void 0 === updatedState.open && (void 0 !== nextProps.open ? updatedState.open = nextProps.open : this.props.closeOnSelect && "time" !== this.state.currentView ? updatedState.open = !1 : updatedState.open = this.state.open);
             nextProps.viewMode !== this.props.viewMode && (updatedState.currentView = nextProps.viewMode);
             if (nextProps.locale !== this.props.locale) {
                 if (this.state.viewDate) {
@@ -30963,7 +30978,7 @@
     webpackEmptyContext.id = 383;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var React = __webpack_require__(0), createClass = __webpack_require__(50), DaysView = __webpack_require__(385), MonthsView = __webpack_require__(386), YearsView = __webpack_require__(387), TimeView = __webpack_require__(388), CalendarContainer = createClass({
+    var React = __webpack_require__(0), createClass = __webpack_require__(51), DaysView = __webpack_require__(385), MonthsView = __webpack_require__(386), YearsView = __webpack_require__(387), TimeView = __webpack_require__(388), CalendarContainer = createClass({
         viewComponents: {
             days: DaysView,
             months: MonthsView,
@@ -30977,7 +30992,7 @@
     module.exports = CalendarContainer;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var React = __webpack_require__(0), createClass = __webpack_require__(50), moment = __webpack_require__(121), onClickOutside = __webpack_require__(79).default, DateTimePickerDays = onClickOutside(createClass({
+    var React = __webpack_require__(0), createClass = __webpack_require__(51), moment = __webpack_require__(121), onClickOutside = __webpack_require__(79).default, DateTimePickerDays = onClickOutside(createClass({
         render: function() {
             var tableChildren, footer = this.renderFooter(), date = this.props.viewDate, locale = date.localeData();
             tableChildren = [ React.createElement("thead", {
@@ -31078,7 +31093,7 @@
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
-    var React = __webpack_require__(0), createClass = __webpack_require__(50), onClickOutside = __webpack_require__(79).default, DateTimePickerMonths = onClickOutside(createClass({
+    var React = __webpack_require__(0), createClass = __webpack_require__(51), onClickOutside = __webpack_require__(79).default, DateTimePickerMonths = onClickOutside(createClass({
         render: function() {
             return React.createElement("div", {
                 className: "rdtMonths"
@@ -31159,7 +31174,7 @@
     module.exports = DateTimePickerMonths;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var React = __webpack_require__(0), createClass = __webpack_require__(50), onClickOutside = __webpack_require__(79).default, DateTimePickerYears = onClickOutside(createClass({
+    var React = __webpack_require__(0), createClass = __webpack_require__(51), onClickOutside = __webpack_require__(79).default, DateTimePickerYears = onClickOutside(createClass({
         render: function() {
             var year = 10 * parseInt(this.props.viewDate.year() / 10, 10);
             return React.createElement("div", {
@@ -31240,7 +31255,7 @@
     module.exports = DateTimePickerYears;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var React = __webpack_require__(0), createClass = __webpack_require__(50), assign = __webpack_require__(195), onClickOutside = __webpack_require__(79).default, DateTimePickerTime = onClickOutside(createClass({
+    var React = __webpack_require__(0), createClass = __webpack_require__(51), assign = __webpack_require__(195), onClickOutside = __webpack_require__(79).default, DateTimePickerTime = onClickOutside(createClass({
         getInitialState: function() {
             return this.calculateState(this.props);
         },
@@ -31453,7 +31468,7 @@
     function v4(options, buf, offset) {
         var i = buf && offset || 0;
         if ("string" == typeof options) {
-            buf = "binary" == options ? new Array(16) : null;
+            buf = "binary" === options ? new Array(16) : null;
             options = null;
         }
         options = options || {};
@@ -31465,28 +31480,24 @@
     }
     var rng = __webpack_require__(390), bytesToUuid = __webpack_require__(391);
     module.exports = v4;
-}, function(module, exports, __webpack_require__) {
-    (function(global) {
-        var rng, crypto = global.crypto || global.msCrypto;
-        if (crypto && crypto.getRandomValues) {
-            var rnds8 = new Uint8Array(16);
-            rng = function() {
-                crypto.getRandomValues(rnds8);
-                return rnds8;
-            };
-        }
-        if (!rng) {
-            var rnds = new Array(16);
-            rng = function() {
-                for (var r, i = 0; i < 16; i++) {
-                    0 == (3 & i) && (r = 4294967296 * Math.random());
-                    rnds[i] = r >>> ((3 & i) << 3) & 255;
-                }
-                return rnds;
-            };
-        }
-        module.exports = rng;
-    }).call(exports, __webpack_require__(51));
+}, function(module, exports) {
+    var getRandomValues = "undefined" != typeof crypto && crypto.getRandomValues.bind(crypto) || "undefined" != typeof msCrypto && msCrypto.getRandomValues.bind(msCrypto);
+    if (getRandomValues) {
+        var rnds8 = new Uint8Array(16);
+        module.exports = function() {
+            getRandomValues(rnds8);
+            return rnds8;
+        };
+    } else {
+        var rnds = new Array(16);
+        module.exports = function() {
+            for (var r, i = 0; i < 16; i++) {
+                0 == (3 & i) && (r = 4294967296 * Math.random());
+                rnds[i] = r >>> ((3 & i) << 3) & 255;
+            }
+            return rnds;
+        };
+    }
 }, function(module, exports) {
     function bytesToUuid(buf, offset) {
         var i = offset || 0, bth = byteToHex;
@@ -33102,7 +33113,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), MappingsTree = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), MappingsTree = _react2.default.createClass({
         displayName: "MappingsTree",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         propTypes: {
@@ -33179,11 +33190,11 @@
                 }).value();
                 return _react2.default.createElement("div", null, _react2.default.createElement("div", {
                     className: "ecc-silk-mapping__treenav--item" + (isHighlighted ? " ecc-silk-mapping__treenav--item-active" : "")
-                }, _lodash2.default.isEmpty(childs) ? _react2.default.createElement(_eccGuiElements.Icon, {
+                }, _lodash2.default.isEmpty(childs) ? _react2.default.createElement(_guiElements.Icon, {
                     className: "ecc-silk-mapping__treenav--item-toggler",
                     name: "radio_button_unchecked",
                     tooltip: ""
-                }) : _react2.default.createElement(_eccGuiElements.Button, {
+                }) : _react2.default.createElement(_guiElements.Button, {
                     className: "ecc-silk-mapping__treenav--item-toggler",
                     iconName: expanded ? "expand_more" : "arrow_nextpage",
                     tooltip: expanded ? "Hide sub tree" : "Open sub tree",
@@ -33214,10 +33225,10 @@
                 })));
             }({
                 parent: tree
-            }))), loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null);
+            }))), loading = !!this.state.loading && _react2.default.createElement(_guiElements.Spinner, null);
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__treenav"
-            }, _react2.default.createElement(_eccGuiElements.Card, null, _react2.default.createElement(_eccGuiElements.CardContent, null, loading, content)));
+            }, _react2.default.createElement(_guiElements.Card, null, _react2.default.createElement(_guiElements.CardContent, null, loading, content)));
         }
     });
     exports.default = MappingsTree;
@@ -33230,7 +33241,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsHeader = __webpack_require__(399), _MappingsHeader2 = _interopRequireDefault(_MappingsHeader), _MappingsObject = __webpack_require__(400), _MappingsObject2 = _interopRequireDefault(_MappingsObject), _ObjectMappingRuleForm = __webpack_require__(203), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(206), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingsList = __webpack_require__(401), _MappingsList2 = _interopRequireDefault(_MappingsList), _SuggestionsList = __webpack_require__(491), _SuggestionsList2 = _interopRequireDefault(_SuggestionsList), _helpers = __webpack_require__(13), MappingsWorkview = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _MappingsHeader = __webpack_require__(399), _MappingsHeader2 = _interopRequireDefault(_MappingsHeader), _MappingsObject = __webpack_require__(400), _MappingsObject2 = _interopRequireDefault(_MappingsObject), _ObjectMappingRuleForm = __webpack_require__(203), _ObjectMappingRuleForm2 = _interopRequireDefault(_ObjectMappingRuleForm), _ValueMappingRuleForm = __webpack_require__(206), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _MappingsList = __webpack_require__(401), _MappingsList2 = _interopRequireDefault(_MappingsList), _SuggestionsList = __webpack_require__(491), _SuggestionsList2 = _interopRequireDefault(_SuggestionsList), _helpers = __webpack_require__(13), MappingsWorkview = _react2.default.createClass({
         displayName: "MappingsWorkview",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -33398,15 +33409,15 @@
             return !_lodash2.default.isEmpty(nextState.ruleData);
         },
         render: function() {
-            var _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), discardView = !1 !== this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            var _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, loading = !!this.state.loading && _react2.default.createElement(_guiElements.Spinner, null), discardView = !1 !== this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 title: "Discard changes?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
                 }, "Discard"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "You currently have unsaved changes", 1 === this.state.editing.length ? "" : " in " + this.state.editing.length + " mapping rules", ".")), createType = _lodash2.default.get(this.state, "ruleEditView.type", !1), createRuleForm = !!createType && _react2.default.createElement("div", {
@@ -33463,9 +33474,9 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _SharedComponents = __webpack_require__(30), MappingsHeader = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _SharedComponents = __webpack_require__(30), MappingsHeader = _react2.default.createClass({
         displayName: "MappingsHeader",
-        mixins: [ _Navigation2.default, _eccGuiElements.PerformanceMixin ],
+        mixins: [ _Navigation2.default, _guiElements.PerformanceMixin ],
         propTypes: {},
         getInitialState: function() {
             return {
@@ -33484,14 +33495,14 @@
             if (_lodash2.default.isEmpty(this.props.rule)) return !1;
             var breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), navBack = !!_lodash2.default.has(parent, "id") && _react2.default.createElement("div", {
                 className: "mdl-card__title-back"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement(_guiElements.Button, {
                 iconName: "arrow_back",
                 tooltip: "Navigate back to parent",
                 onClick: function(event) {
                     _this.handleNavigate(parent.id, _this.props.rule.id, event);
                 }
-            })), self = this, navBreadcrumbs = _react2.default.createElement(_eccGuiElements.BreadcrumbList, null, breadcrumbs.length > 0 && breadcrumbs.map(function(crumb) {
-                return _react2.default.createElement(_eccGuiElements.BreadcrumbItem, {
+            })), self = this, navBreadcrumbs = _react2.default.createElement(_guiElements.BreadcrumbList, null, breadcrumbs.length > 0 && breadcrumbs.map(function(crumb) {
+                return _react2.default.createElement(_guiElements.BreadcrumbItem, {
                     onClick: function(event) {
                         self.handleNavigate(crumb.id, self.props.rule.id, event);
                     },
@@ -33499,22 +33510,22 @@
                 }, _react2.default.createElement(_SharedComponents.ParentStructure, {
                     parent: crumb
                 }));
-            }), _react2.default.createElement(_eccGuiElements.BreadcrumbItem, null, _react2.default.createElement(_SharedComponents.RuleTitle, {
+            }), _react2.default.createElement(_guiElements.BreadcrumbItem, null, _react2.default.createElement(_SharedComponents.RuleTitle, {
                 rule: _lodash2.default.get(this.props, "rule", {})
-            }))), navMenu = _react2.default.createElement(_eccGuiElements.CardMenu, null, _react2.default.createElement(_eccGuiElements.ContextMenu, {
+            }))), navMenu = _react2.default.createElement(_guiElements.CardMenu, null, _react2.default.createElement(_guiElements.ContextMenu, {
                 className: "ecc-silk-mapping__ruleslistmenu",
                 iconName: "tune"
-            }, _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-toggletree",
                 onClick: this.handleToggleTreenavigation
-            }, this.state.showTreenavigation ? "Hide tree navigation" : "Show tree navigation"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, this.state.showTreenavigation ? "Hide tree navigation" : "Show tree navigation"), _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-expand",
                 onClick: function() {
                     _this.handleToggleRuleDetails({
                         expanded: !0
                     });
                 }
-            }, "Expand all"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, "Expand all"), _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-reduce",
                 onClick: function() {
                     _this.handleToggleRuleDetails({
@@ -33524,9 +33535,9 @@
             }, "Reduce all")));
             return _react2.default.createElement("header", {
                 className: "ecc-silk-mapping__navheader"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
+            }, _react2.default.createElement(_guiElements.Card, {
                 shadow: 2
-            }, _react2.default.createElement(_eccGuiElements.CardTitle, {
+            }, _react2.default.createElement(_guiElements.CardTitle, {
                 className: "ecc-silk-mapping__navheader-row"
             }, navBack, navBreadcrumbs), navMenu));
         }
@@ -33541,7 +33552,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _eccGuiElements = __webpack_require__(10), _SharedComponents = __webpack_require__(30), _ObjectMappingRule = __webpack_require__(202), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), MappingsObject = _react2.default.createClass({
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _guiElements = __webpack_require__(10), _SharedComponents = __webpack_require__(30), _ObjectMappingRule = __webpack_require__(202), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), MappingsObject = _react2.default.createClass({
         displayName: "MappingsObject",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         getInitialState: function() {
@@ -33602,15 +33613,15 @@
         render: function() {
             var _this2 = this;
             if (_lodash2.default.isEmpty(this.props.rule)) return !1;
-            var discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            var discardView = !!this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 title: "Discard changes?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
                 }, "Discard"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "You currently have unsaved changes.")), breadcrumbs = _lodash2.default.get(this.props, "rule.breadcrumbs", []), parent = _lodash2.default.last(breadcrumbs), content = !1;
@@ -33621,15 +33632,15 @@
                 edit: !1
             })));
             var uriPattern = void 0, uriRuleType = _lodash2.default.get(this.props.rule.rules, "uriRule.type", !1);
-            uriPattern = uriRuleType === _helpers.MAPPING_RULE_TYPE_URI ? _lodash2.default.get(this, "props.rule.rules.uriRule.pattern") : uriRuleType === _helpers.MAPPING_RULE_TYPE_COMPLEX_URI ? "URI formula" : _react2.default.createElement(_eccGuiElements.NotAvailable, {
+            uriPattern = uriRuleType === _helpers.MAPPING_RULE_TYPE_URI ? _lodash2.default.get(this, "props.rule.rules.uriRule.pattern") : uriRuleType === _helpers.MAPPING_RULE_TYPE_COMPLEX_URI ? "URI formula" : _react2.default.createElement(_guiElements.NotAvailable, {
                 label: "automatic default pattern",
                 inline: !0
             });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesobject"
-            }, discardView, _react2.default.createElement(_eccGuiElements.Card, {
+            }, discardView, _react2.default.createElement(_guiElements.Card, {
                 shadow: 0
-            }, _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
+            }, _react2.default.createElement(_guiElements.CardTitle, null, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem"
             }, _react2.default.createElement("div", {
                 className: (0, _classnames2.default)("ecc-silk-mapping__ruleitem-summary", {
@@ -33655,7 +33666,7 @@
             }, uriPattern)), _react2.default.createElement("div", {
                 className: "mdl-list__item-secondary-content",
                 key: "action"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement(_guiElements.Button, {
                 iconName: this.state.expanded ? "expand_less" : "expand_more",
                 onClick: function(ev) {
                     _this2.handleToggleExpand();
@@ -33673,7 +33684,7 @@
         };
     }
     exports.__esModule = !0;
-    var _from = __webpack_require__(207), _from2 = _interopRequireDefault(_from), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _MappingRule = __webpack_require__(410), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _reactBeautifulDnd = __webpack_require__(208), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass({
+    var _from = __webpack_require__(207), _from2 = _interopRequireDefault(_from), _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _MappingRule = __webpack_require__(410), _MappingRule2 = _interopRequireDefault(_MappingRule), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _helpers = __webpack_require__(13), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _reactBeautifulDnd = __webpack_require__(208), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), MappingsList = _react2.default.createClass({
         displayName: "MappingsList",
         mixins: [ _Navigation2.default, _UseMessageBusMixin2.default ],
         propTypes: {
@@ -33756,14 +33767,14 @@
             return result;
         },
         render: function() {
-            var _this2 = this, rules = this.props.rules, listTitle = _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
+            var _this2 = this, rules = this.props.rules, listTitle = _react2.default.createElement(_guiElements.CardTitle, null, _react2.default.createElement("div", {
                 className: "mdl-card__title-text"
             }, "Mapping rules ", "(" + rules.length + ")")), listItem = function(index, item, provided, snapshot) {
                 return _react2.default.createElement(_MappingRule2.default, (0, _extends3.default)({}, item.props, {
                     provided: !0,
                     snapshot: !0
                 }));
-            }, listItems = _lodash2.default.isEmpty(rules) ? _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
+            }, listItems = _lodash2.default.isEmpty(rules) ? _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement(_guiElements.Info, {
                 vertSpacing: !0,
                 border: !0
             }, "No existing mapping rules.")) : _react2.default.createElement(_reactBeautifulDnd.DragDropContext, {
@@ -33778,7 +33789,7 @@
                 }, _lodash2.default.map(_this2.state.items, function(item, index) {
                     return listItem(0, item);
                 }), provided.placeholder);
-            })), listActions = _react2.default.createElement(_eccGuiElements.FloatingActionList, {
+            })), listActions = _react2.default.createElement(_guiElements.FloatingActionList, {
                 fabSize: "large",
                 fixed: !0,
                 iconName: "add",
@@ -33806,7 +33817,7 @@
             });
             return _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleslist"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
+            }, _react2.default.createElement(_guiElements.Card, {
                 shadow: 0
             }, listTitle, listItems, listActions));
         }
@@ -33819,7 +33830,7 @@
     module.exports = __webpack_require__(14).Array.from;
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var ctx = __webpack_require__(105), $export = __webpack_require__(31), toObject = __webpack_require__(61), call = __webpack_require__(404), isArrayIter = __webpack_require__(405), toLength = __webpack_require__(175), createProperty = __webpack_require__(406), getIterFn = __webpack_require__(407);
+    var ctx = __webpack_require__(105), $export = __webpack_require__(31), toObject = __webpack_require__(60), call = __webpack_require__(404), isArrayIter = __webpack_require__(405), toLength = __webpack_require__(175), createProperty = __webpack_require__(406), getIterFn = __webpack_require__(407);
     $export($export.S + $export.F * !__webpack_require__(409)(function(iter) {
         Array.from(iter);
     }), "Array", {
@@ -33846,18 +33857,18 @@
         }
     };
 }, function(module, exports, __webpack_require__) {
-    var Iterators = __webpack_require__(63), ITERATOR = __webpack_require__(23)("iterator"), ArrayProto = Array.prototype;
+    var Iterators = __webpack_require__(62), ITERATOR = __webpack_require__(23)("iterator"), ArrayProto = Array.prototype;
     module.exports = function(it) {
         return void 0 !== it && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
     };
 }, function(module, exports, __webpack_require__) {
     "use strict";
-    var $defineProperty = __webpack_require__(33), createDesc = __webpack_require__(59);
+    var $defineProperty = __webpack_require__(33), createDesc = __webpack_require__(58);
     module.exports = function(object, index, value) {
         index in object ? $defineProperty.f(object, index, createDesc(0, value)) : object[index] = value;
     };
 }, function(module, exports, __webpack_require__) {
-    var classof = __webpack_require__(408), ITERATOR = __webpack_require__(23)("iterator"), Iterators = __webpack_require__(63);
+    var classof = __webpack_require__(408), ITERATOR = __webpack_require__(23)("iterator"), Iterators = __webpack_require__(62);
     module.exports = __webpack_require__(14).getIteratorMethod = function(it) {
         if (void 0 != it) return it[ITERATOR] || it["@@iterator"] || Iterators[classof(it)];
     };
@@ -33909,7 +33920,7 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _reactBeautifulDnd = __webpack_require__(208), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _eccGuiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(490), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(202), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), MappingRule = _react2.default.createClass({
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _reactBeautifulDnd = __webpack_require__(208), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _guiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRule = __webpack_require__(490), _ValueMappingRule2 = _interopRequireDefault(_ValueMappingRule), _ObjectMappingRule = __webpack_require__(202), _ObjectMappingRule2 = _interopRequireDefault(_ObjectMappingRule), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), _Navigation = __webpack_require__(64), _Navigation2 = _interopRequireDefault(_Navigation), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), MappingRule = _react2.default.createClass({
         displayName: "MappingRule",
         mixins: [ _UseMessageBusMixin2.default, _Navigation2.default ],
         propTypes: {
@@ -33999,15 +34010,15 @@
                     opacity: "1",
                     zIndex: isDragging ? "1" : "inherit"
                 }, draggableStyle);
-            }, _props = this.props, id = _props.id, type = _props.type, parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, pos = _props.pos, count = _props.count, metadata = _props.metadata, errorInfo = _props.errorInfo, label = _lodash2.default.get(metadata, "label", ""), loading = !!this.state.loading && _react2.default.createElement(_eccGuiElements.Spinner, null), discardView = !!this.state.askForDiscard && _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            }, _props = this.props, id = _props.id, type = _props.type, parentId = _props.parentId, sourcePath = _props.sourcePath, sourcePaths = _props.sourcePaths, mappingTarget = _props.mappingTarget, rules = _props.rules, pos = _props.pos, count = _props.count, metadata = _props.metadata, errorInfo = _props.errorInfo, label = _lodash2.default.get(metadata, "label", ""), loading = !!this.state.loading && _react2.default.createElement(_guiElements.Spinner, null), discardView = !!this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 title: "Discard changes?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.handleDiscardChanges
                 }, "Discard"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     onClick: this.handleCancelDiscard
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "You currently have unsaved changes.")), mainAction = function(event) {
@@ -34015,7 +34026,7 @@
                     force: !0
                 });
                 event.stopPropagation();
-            }, action = _react2.default.createElement(_eccGuiElements.Button, {
+            }, action = _react2.default.createElement(_guiElements.Button, {
                 iconName: type === _helpers.MAPPING_RULE_TYPE_OBJECT ? "arrow_nextpage" : this.state.expanded ? "expand_less" : "expand_more",
                 tooltip: type === _helpers.MAPPING_RULE_TYPE_OBJECT ? "Navigate to" : void 0,
                 onClick: mainAction
@@ -34062,32 +34073,32 @@
                 edit: !1
             }))), reorderHandleButton = !this.state.expanded && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__ruleitem-reorderhandler"
-            }, _react2.default.createElement(_eccGuiElements.ContextMenu, {
+            }, _react2.default.createElement(_guiElements.ContextMenu, {
                 iconName: "reorder",
                 align: "left",
                 valign: "top"
-            }, _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, _react2.default.createElement(_guiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
                     toPos: 0,
                     id: id
                 })
-            }, "Move to top"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, "Move to top"), _react2.default.createElement(_guiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
                     toPos: Math.max(0, pos - 1),
                     id: id
                 })
-            }, "Move up"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, "Move up"), _react2.default.createElement(_guiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
                     toPos: Math.min(pos + 1, count - 1),
                     id: id
                 })
-            }, "Move down"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, "Move down"), _react2.default.createElement(_guiElements.MenuItem, {
                 onClick: this.handleMoveElement.bind(null, {
                     parentId: parentId,
                     fromPos: pos,
@@ -34245,7 +34256,7 @@
     (function(global) {
         var freeGlobal = "object" == typeof global && global && global.Object === Object && global;
         module.exports = freeGlobal;
-    }).call(exports, __webpack_require__(51));
+    }).call(exports, __webpack_require__(63));
 }, function(module, exports, __webpack_require__) {
     function getRawTag(value) {
         var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
@@ -34296,7 +34307,7 @@
         root = "undefined" != typeof self ? self : "undefined" != typeof window ? window : void 0 !== global ? global : module;
         var result = (0, _ponyfill2.default)(root);
         exports.default = result;
-    }).call(exports, __webpack_require__(51), __webpack_require__(78)(module));
+    }).call(exports, __webpack_require__(63), __webpack_require__(78)(module));
 }, function(module, exports, __webpack_require__) {
     "use strict";
     function symbolObservablePonyfill(root) {
@@ -34788,7 +34799,7 @@
     __webpack_require__(433);
     module.exports = __webpack_require__(14).Object.keys;
 }, function(module, exports, __webpack_require__) {
-    var toObject = __webpack_require__(61), $keys = __webpack_require__(60);
+    var toObject = __webpack_require__(60), $keys = __webpack_require__(59);
     __webpack_require__(183)("keys", function() {
         return function(it) {
             return $keys(toObject(it));
@@ -38111,7 +38122,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRuleForm = __webpack_require__(206), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), RuleValueView = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _ExampleView = __webpack_require__(81), _ExampleView2 = _interopRequireDefault(_ExampleView), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _ValueMappingRuleForm = __webpack_require__(206), _ValueMappingRuleForm2 = _interopRequireDefault(_ValueMappingRuleForm), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), RuleValueView = _react2.default.createClass({
         displayName: "RuleValueView",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {
@@ -38178,9 +38189,9 @@
                 parentId: this.props.parentId
             }) : _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer"
-            }, _react2.default.createElement(_eccGuiElements.Card, {
+            }, _react2.default.createElement(_guiElements.Card, {
                 shadow: 0
-            }, _react2.default.createElement(_eccGuiElements.CardContent, null, !!_lodash2.default.get(this.props, "mappingTarget.uri", !1) && _react2.default.createElement("div", {
+            }, _react2.default.createElement(_guiElements.CardContent, null, !!_lodash2.default.get(this.props, "mappingTarget.uri", !1) && _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__rulesviewer__targetProperty"
             }, _react2.default.createElement("dl", {
                 className: "ecc-silk-mapping__rulesviewer__attribute"
@@ -38220,7 +38231,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Value path"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, _react2.default.createElement("code", null, this.props.sourcePath), _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement("code", null, this.props.sourcePath), _react2.default.createElement(_guiElements.Button, {
                 raised: !0,
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
@@ -38235,7 +38246,7 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Value formula"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, "Formula uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".", _react2.default.createElement(_eccGuiElements.Button, {
+            }, "Formula uses ", paths.length, " value path", paths.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, paths.join(", ")), " and ", operators.length, " operator function", operators.length > 1 ? "s" : "", ": ", _react2.default.createElement("code", null, operators.join(", ")), ".", _react2.default.createElement(_guiElements.Button, {
                 raised: !0,
                 iconName: "edit",
                 className: "ecc-silk-mapping__ruleseditor__actionrow-complex-edit",
@@ -38266,13 +38277,13 @@
                 className: "ecc-silk-mapping__rulesviewer__attribute-label"
             }, "Description"), _react2.default.createElement("dd", {
                 className: "ecc-silk-mapping__rulesviewer__attribute-info"
-            }, this.props.metadata.description)))), _react2.default.createElement(_eccGuiElements.CardActions, {
+            }, this.props.metadata.description)))), _react2.default.createElement(_guiElements.CardActions, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow"
-            }, _react2.default.createElement(_eccGuiElements.Button, {
+            }, _react2.default.createElement(_guiElements.Button, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-edit",
                 raised: !0,
                 onClick: this.handleEdit
-            }, "Edit"), _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+            }, "Edit"), _react2.default.createElement(_guiElements.DisruptiveButton, {
                 className: "ecc-silk-mapping__ruleseditor__actionrow-remove",
                 raised: !0,
                 onClick: function() {
@@ -38297,15 +38308,15 @@
         };
     }
     exports.__esModule = !0;
-    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SuggestionsRule = __webpack_require__(492), _SuggestionsRule2 = _interopRequireDefault(_SuggestionsRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), SuggestionsListWrapper = function(props) {
+    var _extends2 = __webpack_require__(9), _extends3 = _interopRequireDefault(_extends2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), _ErrorView = __webpack_require__(82), _ErrorView2 = _interopRequireDefault(_ErrorView), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _SuggestionsRule = __webpack_require__(492), _SuggestionsRule2 = _interopRequireDefault(_SuggestionsRule), _store = __webpack_require__(11), _store2 = _interopRequireDefault(_store), _SharedComponents = __webpack_require__(30), _helpers = __webpack_require__(13), SuggestionsListWrapper = function(props) {
         return _react2.default.createElement("div", {
             className: "ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist"
-        }, _react2.default.createElement(_eccGuiElements.Card, {
+        }, _react2.default.createElement(_guiElements.Card, {
             fixedActions: !0
         }, props.children));
     }, SuggestionsList = _react2.default.createClass({
         displayName: "SuggestionsList",
-        mixins: [ _UseMessageBusMixin2.default, _eccGuiElements.ScrollingMixin ],
+        mixins: [ _UseMessageBusMixin2.default, _guiElements.ScrollingMixin ],
         defaultCheckValue: !1,
         propTypes: {
             targetClassUris: _react2.default.PropTypes.array
@@ -38382,15 +38393,15 @@
             });
         },
         discardDialog: function() {
-            return _react2.default.createElement(_eccGuiElements.ConfirmationDialog, {
+            return _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
                 modal: !0,
                 title: "Discard selection?",
-                confirmButton: _react2.default.createElement(_eccGuiElements.DisruptiveButton, {
+                confirmButton: _react2.default.createElement(_guiElements.DisruptiveButton, {
                     disabled: !1,
                     onClick: this.onDiscard
                 }, "Discard"),
-                cancelButton: _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                cancelButton: _react2.default.createElement(_guiElements.DismissiveButton, {
                     onClick: this.onCancelDiscard
                 }, "Cancel")
             }, _react2.default.createElement("p", null, "You currently selection will be lost."));
@@ -38483,16 +38494,16 @@
         },
         render: function() {
             var _this3 = this;
-            if (this.state.loading) return _react2.default.createElement(_eccGuiElements.Spinner, null);
-            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
+            if (this.state.loading) return _react2.default.createElement(_guiElements.Spinner, null);
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
                 return d.checked;
-            })), " rules you have selected are being created.")), _react2.default.createElement(_eccGuiElements.CardActions, {
+            })), " rules you have selected are being created.")), _react2.default.createElement(_guiElements.CardActions, {
                 fixed: !0
-            }, _react2.default.createElement(_eccGuiElements.ProgressButton, {
+            }, _react2.default.createElement(_guiElements.ProgressButton, {
                 progress: 0,
                 progressTopic: _store2.default.subject("rule.suggestions.progress"),
                 tooltip: "Progress"
-            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+            }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
                 raised: !0,
                 disabled: !0,
                 className: "ecc-hm-suggestions-cancel"
@@ -38511,16 +38522,16 @@
                         className: "ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-subline"
                     }, _react2.default.createElement(_ErrorView2.default, err.error))));
                 });
-                return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_eccGuiElements.CardTitle, null, "Saving suggestions returned errors"), _react2.default.createElement("ol", {
+                return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving suggestions returned errors"), _react2.default.createElement("ol", {
                     className: "mdl-list"
-                }, errorsList), _react2.default.createElement(_eccGuiElements.CardActions, null, _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+                }, errorsList), _react2.default.createElement(_guiElements.CardActions, null, _react2.default.createElement(_guiElements.DismissiveButton, {
                     raised: !0,
                     onClick: this.props.onClose,
                     className: "ecc-hm-suggestions-cancel"
                 }, "Cancel")));
             }
             var suggestionsList = !1, hasChecks = _lodash2.default.get(this.state, "checked");
-            if (0 === _lodash2.default.size(this.state.data)) suggestionsList = _react2.default.createElement(_eccGuiElements.CardContent, null, _react2.default.createElement(_eccGuiElements.Info, {
+            if (0 === _lodash2.default.size(this.state.data)) suggestionsList = _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement(_guiElements.Info, {
                 vertSpacing: !0,
                 border: !0
             }, "No suggestions found for", " ", _react2.default.createElement(_SharedComponents.ParentElement, {
@@ -38537,9 +38548,9 @@
                     className: "mdl-list__item ecc-silk-mapping__ruleheader"
                 }, _react2.default.createElement("div", {
                     className: "ecc-silk-mapping__suggestitem-checkbox"
-                }, _react2.default.createElement(_eccGuiElements.Tooltip, {
+                }, _react2.default.createElement(_guiElements.Tooltip, {
                     label: "Select all"
-                }, _react2.default.createElement("div", null, _react2.default.createElement(_eccGuiElements.Checkbox, {
+                }, _react2.default.createElement("div", null, _react2.default.createElement(_guiElements.Checkbox, {
                     onChange: hasChecks ? this.checkNone : this.checkAll,
                     checked: hasChecks
                 })))), _react2.default.createElement("div", {
@@ -38563,27 +38574,27 @@
             var suggestionsToBeSave = _lodash2.default.filter(this.state.data, function(entry) {
                 return entry.checked;
             }), confirmDialog = !!this.state.askForDiscard && this.discardDialog();
-            return _react2.default.createElement(SuggestionsListWrapper, null, confirmDialog, _react2.default.createElement(_eccGuiElements.CardTitle, null, _react2.default.createElement("div", {
+            return _react2.default.createElement(SuggestionsListWrapper, null, confirmDialog, _react2.default.createElement(_guiElements.CardTitle, null, _react2.default.createElement("div", {
                 className: "mdl-card__title-text"
-            }, "Add suggested mapping rules"), _react2.default.createElement(_eccGuiElements.CardMenu, null, _react2.default.createElement(_eccGuiElements.ContextMenu, {
+            }, "Add suggested mapping rules"), _react2.default.createElement(_guiElements.CardMenu, null, _react2.default.createElement(_guiElements.ContextMenu, {
                 className: "ecc-silk-mapping__ruleslistmenu"
-            }, _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
                 onClick: this.toggleDefaultProperties
-            }, this.state.showDefaultProperties ? "Hide" : "Show", " default properties"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, this.state.showDefaultProperties ? "Hide" : "Show", " default properties"), _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
                 onClick: this.checkAll
-            }, "Select all"), _react2.default.createElement(_eccGuiElements.MenuItem, {
+            }, "Select all"), _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-none",
                 onClick: this.checkNone
-            }, "Select none")))), suggestionsList, _react2.default.createElement(_eccGuiElements.CardActions, {
+            }, "Select none")))), suggestionsList, _react2.default.createElement(_guiElements.CardActions, {
                 fixed: !0
-            }, _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
+            }, _react2.default.createElement(_guiElements.AffirmativeButton, {
                 raised: !0,
                 className: "ecc-hm-suggestions-save",
                 onClick: this.handleAddSuggestions,
                 disabled: 0 === _lodash2.default.size(suggestionsToBeSave)
-            }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
+            }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
                 raised: !0,
                 onClick: this.props.onClose,
                 className: "ecc-hm-suggestions-cancel"
@@ -38600,7 +38611,7 @@
         };
     }
     exports.__esModule = !0;
-    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _eccGuiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _helpers = __webpack_require__(13), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), SuggestionsRule = _react2.default.createClass({
+    var _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _guiElements = __webpack_require__(10), _UseMessageBusMixin = __webpack_require__(15), _UseMessageBusMixin2 = _interopRequireDefault(_UseMessageBusMixin), _helpers = __webpack_require__(13), _lodash = __webpack_require__(6), _lodash2 = _interopRequireDefault(_lodash), SuggestionsRule = _react2.default.createClass({
         displayName: "SuggestionsRule",
         mixins: [ _UseMessageBusMixin2.default ],
         propTypes: {},
@@ -38631,7 +38642,7 @@
                 targetProperty = suggestion.targetProperty;
                 title += "\nTarget property: " + suggestion.targetProperty;
             } else {
-                targetProperty = _react2.default.createElement(_eccGuiElements.NotAvailable, {
+                targetProperty = _react2.default.createElement(_guiElements.NotAvailable, {
                     label: "(default mapping)",
                     inline: !0
                 });
@@ -38646,7 +38657,7 @@
                 className: "mdl-list__item"
             }, _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__suggestitem-checkbox"
-            }, _react2.default.createElement(_eccGuiElements.Checkbox, {
+            }, _react2.default.createElement(_guiElements.Checkbox, {
                 onChange: this.onChangeChecked,
                 checked: suggestion.checked,
                 title: "Select all"
@@ -38661,7 +38672,7 @@
             }, targetProperty), _react2.default.createElement("div", {
                 className: "ecc-silk-mapping__suggestitem-typeselect",
                 onClick: this.preventPropagation
-            }, _react2.default.createElement(_eccGuiElements.SelectBox, {
+            }, _react2.default.createElement(_guiElements.SelectBox, {
                 disabled: !suggestion.checked,
                 options: _helpers.LABELED_SUGGESTION_TYPES,
                 onChange: this.onChangeType,
@@ -39042,7 +39053,7 @@
         return fields;
     }
     function isJSON(mime) {
-        return /[\/+]json\b/.test(mime);
+        return /[\/+]json($|[^-\w])/.test(mime);
     }
     function Response(req) {
         this.req = req;
