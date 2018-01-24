@@ -122,7 +122,7 @@ function workspaceDialog(relativePath) {
 silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
-function putTask(project, task,  json) {
+function putTask(project, task, json) {
     var callbacks = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
         success: function success() {},
         error: function error() {}
@@ -130,7 +130,7 @@ function putTask(project, task,  json) {
 
     $.ajax({
         type: 'PATCH',
-        url: baseUrl + "/workspace/projects/" + project + "/tasks/" + task,
+        url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
@@ -160,40 +160,40 @@ function putTask(project, task,  json) {
 }
 
 function postTask(project, json) {
-  var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
-    success: function success() {},
-    error: function error() {}
-  };
+    var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+        success: function success() {},
+        error: function error() {}
+    };
 
-  $.ajax({
-    type: 'POST',
-    url: baseUrl + "/workspace/projects/" + project + "/tasks",
-    contentType: 'application/json;charset=UTF-8',
-    processData: false,
-    data: JSON.stringify(json),
-    dataType: 'json',
-    error: function error(request) {
-      var responseJson = JSON.parse(request.responseText);
-      var responseMessage = responseJson.message; // Old format
-      if (responseMessage === undefined) {
-        if (responseJson.title === 'Bad Request') {
-          responseMessage = 'Task could not be saved! Details: ';
-        } else {
-          responseMessage = '';
+    $.ajax({
+        type: 'POST',
+        url: baseUrl + '/workspace/projects/' + project + '/tasks',
+        contentType: 'application/json;charset=UTF-8',
+        processData: false,
+        data: JSON.stringify(json),
+        dataType: 'json',
+        error: function error(request) {
+            var responseJson = JSON.parse(request.responseText);
+            var responseMessage = responseJson.message; // Old format
+            if (responseMessage === undefined) {
+                if (responseJson.title === 'Bad Request') {
+                    responseMessage = 'Task could not be saved! Details: ';
+                } else {
+                    responseMessage = '';
+                }
+                var finestDetail = responseJson;
+                while (finestDetail.cause !== null) {
+                    finestDetail = finestDetail.cause;
+                }
+                responseMessage = responseMessage + finestDetail.title + ': ' + finestDetail.detail;
+            }
+            callbacks.error(responseMessage);
+        },
+        success: function success() {
+            reloadWorkspace();
+            callbacks.success();
         }
-        var finestDetail = responseJson;
-        while (finestDetail.cause !== null) {
-          finestDetail = finestDetail.cause;
-        }
-        responseMessage = responseMessage + finestDetail.title + ': ' + finestDetail.detail;
-      }
-      callbacks.error(responseMessage);
-    },
-    success: function success() {
-      reloadWorkspace();
-      callbacks.success();
-    }
-  });
+    });
 }
 
 /* exported deleteProject

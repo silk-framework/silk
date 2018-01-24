@@ -134,7 +134,7 @@ function putTask(
     $.ajax({
         type: 'PATCH',
         url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
-        contentType: 'text/xml;charset=UTF-8',
+        contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
         dataType: 'json',
@@ -174,7 +174,7 @@ function postTask(
   $.ajax({
     type: 'POST',
     url: `${baseUrl}/workspace/projects/${project}/tasks`,
-    contentType: 'text/xml;charset=UTF-8',
+    contentType: 'application/json;charset=UTF-8',
     processData: false,
     data: JSON.stringify(json),
     dataType: 'json',
