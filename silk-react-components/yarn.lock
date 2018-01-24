@@ -4499,15 +4499,11 @@ jest-validate@^21.1.0:
     leven "^2.1.0"
     pretty-format "^21.2.1"
 
-jquery-migrate@1.4.1:
-  version "1.4.1"
-  resolved "https://registry.npmjs.org/jquery-migrate/-/jquery-migrate-1.4.1.tgz#85152f3ec99a95625f4f7d0bcf62e9b8638f5a76"
+jquery-migrate@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.npmjs.org/jquery-migrate/-/jquery-migrate-3.0.1.tgz#141de3abfe6d301baaa4130b0ec7b9a839845e72"
 
-jquery@1.12.4:
-  version "1.12.4"
-  resolved "https://registry.npmjs.org/jquery/-/jquery-1.12.4.tgz#01e1dfba290fe73deba77ceeacb0f9ba2fec9e0c"
-
-jquery@>=1.7, jquery@>=1.9.1:
+jquery@3.3.1, jquery@>=1.7, jquery@>=1.9.1:
   version "3.3.1"
   resolved "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
 
