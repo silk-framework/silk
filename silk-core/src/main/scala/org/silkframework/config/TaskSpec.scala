@@ -1,7 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 

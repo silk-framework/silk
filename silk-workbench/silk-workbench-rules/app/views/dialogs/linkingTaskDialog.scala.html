@@ -109,33 +109,41 @@
   });
 
   function submit() {
-    var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
-      source: $("#source_dataset").val(),
-      sourceType: $("#source_type").val(),
-      sourceRestriction: $("#source").val(),
-      target: $("#target_dataset").val(),
-      targetType: $("#target_type").val(),
-      targetRestriction: $("#target").val(),
-      output: $("#output_dataset").val()
+    const values = {
+      taskType: "Linking",
+      id: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
+      source: {
+        inputId: $("#source_dataset").val(),
+        typeUri: $("#source_type").val(),
+        restriction: $("#source").val()
+      },
+      target: {
+        inputId: $("#target_dataset").val(),
+        typeUri: $("#target_type").val(),
+        restriction: $("#target").val()
+      },
+      outputs: $("#output_dataset").val().split(" ").filter(String)
     };
 
-    if(values.name.length === 0) {
+    if(values.id.length === 0) {
       alert("Task name is empty.");
       return;
     }
 
-    $.ajax({
-      type: @if(createDialog) {'POST'} else {'PUT'},
-      url: '@config.baseUrl/linking/tasks/@project/' + values.name,
-      data: values,
-      success: function(data) {
+    var callbacks = {
+      success: function() {
         closeDialog();
-        reloadWorkspace();
       },
-      error: function(request) {
-        alert(request.responseText);
+      error: function(msg) {
+        $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+        $("#primary_dialog .dialog__error-msg").fadeIn();
       }
-    });
+    };
+
+    @if(createDialog) {
+      postTask('@project', values, callbacks);
+    } else {
+      putTask('@project', values.id, values, callbacks);
+    }
   }
 </script>
