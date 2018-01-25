@@ -24,7 +24,7 @@ trait PathsCacheTrait {
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
           case Some(selection) =>
-            source.retrievePaths(selection.typeUri, 1).map(_.asStringTypedPath)
+            source.retrievePaths(selection.typeUri, Int.MaxValue).map(_.asStringTypedPath)
           case None =>
             IndexedSeq()
         }

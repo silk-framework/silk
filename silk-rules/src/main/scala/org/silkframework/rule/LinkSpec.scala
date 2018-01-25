@@ -80,7 +80,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
   private def collectPathsFromInput(param: Input): Set[TypedPath] = param match {
     case p: PathInput if p.path.operators.nonEmpty =>
       // FIXME: LinkSpecs do not support input type definitions, support other types than Strings?
-      val typedPath = TypedPath(p.path, StringValueType)
+      val typedPath = TypedPath(p.path, StringValueType, isAttribute = false)
       Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
     case _ => Set()
@@ -114,6 +114,8 @@ object LinkSpec {
   implicit object LinkSpecificationFormat extends XmlFormat[LinkSpec] {
 
     private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
+
+    override def tagNames: Set[String] = Set("Interlink")
 
     /**
      * Deserialize a value from XML.

@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 

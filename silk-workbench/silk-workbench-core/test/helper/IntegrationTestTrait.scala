@@ -12,12 +12,12 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
+import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
-import org.silkframework.workspace._
 import play.api.Application
-import play.api.libs.ws.{EmptyBody, WS, WSResponse}
+import play.api.libs.ws.{WS, WSResponse}
 import play.api.mvc.Results
 import play.api.test.FakeApplication
 
@@ -275,7 +275,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -287,7 +288,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }

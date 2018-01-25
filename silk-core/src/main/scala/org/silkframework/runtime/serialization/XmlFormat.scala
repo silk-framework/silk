@@ -9,6 +9,11 @@ import scala.xml.{Node, XML}
 abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
 
   /**
+    * The XML tag names that are generated and read by this format.
+    */
+  def tagNames: Set[String] = Set.empty
+
+  /**
     * The MIME types that can be formatted.
     */
   def mimeTypes = Set("text/xml", "application/xml")

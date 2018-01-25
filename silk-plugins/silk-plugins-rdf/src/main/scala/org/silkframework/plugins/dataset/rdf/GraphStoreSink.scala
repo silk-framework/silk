@@ -104,7 +104,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
         o.close()
         output = None
       case None =>
-        throw new IllegalStateException("Called close() on non-open graph store output stream!")
+        // no effect
     }
   }
 }

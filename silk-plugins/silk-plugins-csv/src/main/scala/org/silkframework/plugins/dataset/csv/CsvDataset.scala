@@ -40,7 +40,7 @@ case class CsvDataset
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
-  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait {
+  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset {
 
   override def source: DataSource = csvSource
 

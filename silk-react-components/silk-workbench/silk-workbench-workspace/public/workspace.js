@@ -123,19 +123,21 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTas
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
 function putTask(
-    path,
-    xml,
+    project,
+    task,
+    json,
     callbacks = {
         success() {},
         error() {},
     }
 ) {
     $.ajax({
-        type: 'PUT',
-        url: path,
+        type: 'PATCH',
+        url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
         contentType: 'text/xml;charset=UTF-8',
         processData: false,
-        data: xml,
+        data: JSON.stringify(json),
+        dataType: 'json',
         error(request) {
             const responseJson = JSON.parse(request.responseText);
             var responseMessage = responseJson.message; // Old format
@@ -159,6 +161,46 @@ function putTask(
             callbacks.success();
         },
     });
+}
+
+function postTask(
+    project,
+    json,
+    callbacks = {
+      success() {},
+      error() {},
+    }
+) {
+  $.ajax({
+    type: 'POST',
+    url: `${baseUrl}/workspace/projects/${project}/tasks`,
+    contentType: 'text/xml;charset=UTF-8',
+    processData: false,
+    data: JSON.stringify(json),
+    dataType: 'json',
+    error(request) {
+      const responseJson = JSON.parse(request.responseText);
+      var responseMessage = responseJson.message; // Old format
+      if (responseMessage === undefined) {
+        if (responseJson.title === 'Bad Request') {
+          responseMessage = 'Task could not be saved! Details: ';
+        } else {
+          responseMessage = '';
+        }
+        var finestDetail = responseJson;
+        while (finestDetail.cause !== null) {
+          finestDetail = finestDetail.cause;
+        }
+        responseMessage = `${responseMessage +
+        finestDetail.title}: ${finestDetail.detail}`;
+      }
+      callbacks.error(responseMessage);
+    },
+    success() {
+      reloadWorkspace();
+      callbacks.success();
+    },
+  });
 }
 
 /* exported deleteProject

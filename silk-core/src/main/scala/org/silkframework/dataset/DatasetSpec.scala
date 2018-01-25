@@ -27,16 +27,19 @@ import scala.xml.Node
 
 /**
   * A dataset of entities.
+  *
+  * @param uriProperty Setting this URI will generate an additional property for each entity.
+                       The additional property contains the URI of each entity.
   */
 case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
-  lazy val source: DataSource = new DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
-  lazy val entitySink: EntitySink = new DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 
-  lazy val linkSink: LinkSink = new DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink: LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -106,7 +109,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -240,6 +243,8 @@ object DatasetSpec {
     * XML serialization format.
     */
   implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
+
+    override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
       implicit val prefixes = readContext.prefixes

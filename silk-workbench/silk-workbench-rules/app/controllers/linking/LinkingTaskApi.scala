@@ -32,7 +32,7 @@ class LinkingTaskApi extends Controller {
     Ok(xml)
   }
 
-  def putLinkingTask(project: String, task: String): Action[AnyContent] = Action { implicit request => {
+  def pushLinkingTask(project: String, task: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
     val values = request.body.asFormUrlEncoded.getOrElse(request.queryString).mapValues(_.head)
 
     val proj: Project = User().workspace.project(project)
@@ -45,12 +45,12 @@ class LinkingTaskApi extends Controller {
 
     proj.tasks[LinkSpec].find(_.id == task) match {
       //Update existing task
-      case Some(oldTask) => {
+      case Some(oldTask) if !createOnly => {
         val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task
-      case None => {
+      case _ => {
         val linkSpec =
           LinkSpec(
             dataSelections = datasets,
@@ -58,7 +58,7 @@ class LinkingTaskApi extends Controller {
             outputs = outputs
           )
 
-        proj.updateTask(task, linkSpec)
+        proj.addTask(task, linkSpec)
       }
     }
     Ok

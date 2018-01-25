@@ -1,3 +1,4 @@
+import _ from 'lodash';
 export const MAPPING_RULE_TYPE_ROOT = 'root';
 export const MAPPING_RULE_TYPE_OBJECT = 'object';
 export const MAPPING_RULE_TYPE_DIRECT = 'direct';
@@ -23,3 +24,13 @@ export const LABELED_SUGGESTION_TYPES = [
         label: "Object mapping",
     }
 ];
+
+export const trimValueLabelObject = (object) => {
+    if (_.has(object, 'value') && _.isString(object.value)) {
+        object.value = _.trim(object.value);
+    }
+    if (_.has(object, 'label')) {
+        object.label = _.trim(object.label);
+    }
+    return object;
+};

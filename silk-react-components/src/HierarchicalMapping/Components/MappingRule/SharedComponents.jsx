@@ -14,7 +14,10 @@ import {
 
 export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
-
+    const label = _.get(rule, 'metadata.label', '');
+    if (label) {
+        return (<span>{label}</span>);
+    }
     switch (rule.type) {
         case MAPPING_RULE_TYPE_ROOT:
             uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
@@ -72,6 +75,7 @@ export const SourcePath = ({rule}) => {
 };
 
 export const RuleTreeTitle = ({rule}) => {
+
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
 
     return (

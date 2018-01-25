@@ -68,9 +68,9 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param onlyLeafNodes Only return leaf nodes
     * @return Sequence of all found paths
     */
-  def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): Seq[Path] = {
+  def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
-    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty) if pathOperators.size > 1) yield {
+    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if pathOperators.size > 1) yield {
       Path(pathOperators.tail.toList)
     }
   }.distinct
@@ -84,21 +84,23 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param prefix         Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  private def collectPathsRecursive(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, prefix: Seq[PathOperator]): Seq[Seq[PathOperator]] = {
+  private def collectPathsRecursive(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, prefix: Seq[PathOperator], depth: Int): Seq[Seq[PathOperator]] = {
     // Generate a path from the xml node itself
     val path = prefix :+ ForwardOperator(node.label)
     // Generate paths for all children nodes
-    val childPaths = children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path))
+    val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
-    val attributes = node.attributes.asAttrMap.keys.toSeq
+    val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
 
-    if(onlyInnerNodes) {
+    if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
+      Seq() // An inner node has at least an attribute or child elements
+    } else if(onlyInnerNodes) {
       Seq(path) ++ childPaths
     } else if(!onlyLeafNodes) {
       Seq(path) ++ attributesPaths ++ childPaths
-    } else if (onlyLeafNodes && childPaths.isEmpty) {
-      Seq(path) ++ attributesPaths
+    } else if (onlyLeafNodes && children.isEmpty) {
+      Seq(path) ++ attributesPaths // An XML element with a possible Text Element inside and attributes, but no child elements
     } else {
       attributesPaths ++ childPaths
     }

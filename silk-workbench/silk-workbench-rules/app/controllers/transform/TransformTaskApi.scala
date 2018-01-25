@@ -31,10 +31,10 @@ class TransformTaskApi extends Controller {
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    serializeCompileTime[Task[TransformSpec]](task)
+    serializeCompileTime[TransformTask](task)
   }
 
-  def putTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
+  def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
@@ -49,13 +49,13 @@ class TransformTaskApi extends Controller {
 
         project.tasks[TransformSpec].find(_.id == taskName) match {
           //Update existing task
-          case Some(oldTask) =>
+          case Some(oldTask) if !createOnly =>
             val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
-          case None =>
+          case _ =>
             val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-            project.updateTask(taskName, transformSpec)
+            project.addTask(taskName, transformSpec)
         }
 
         Ok
@@ -67,8 +67,7 @@ class TransformTaskApi extends Controller {
           }
         }
     }
-  }
-  }
+  }}
 
   def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
     val project = getProject(projectName)
@@ -95,6 +94,7 @@ class TransformTaskApi extends Controller {
         deserializeCompileTime[RootMappingRule]() { updatedRules =>
           //Update transformation task
           val updatedTask = task.data.copy(mappingRule = updatedRules)
+          updatedTask.mappingRule.validate()
           project.updateTask(taskName, updatedTask)
           Ok
         }
@@ -242,6 +242,7 @@ class TransformTaskApi extends Controller {
   private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
     val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
     val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    updatedRoot.validate()
     task.project.updateTask(task.id, updatedTask)
   }
 

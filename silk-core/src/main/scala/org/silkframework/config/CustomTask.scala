@@ -16,6 +16,8 @@ object CustomTask extends PluginFactory[CustomTask] {
     */
   implicit object CustomTaskFormat extends XmlFormat[CustomTask] {
 
+    override def tagNames: Set[String] = Set("CustomTask")
+
     def read(node: Node)(implicit readContext: ReadContext): CustomTask = {
       val pluginType = (node \ "@type").text
       val params = XmlSerialization.deserializeParameters(node)

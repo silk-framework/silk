@@ -15,7 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, ForwardOperator, Path}
+import org.silkframework.entity.{BackwardOperator, EntitySchema, ForwardOperator, Path}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -58,28 +58,14 @@ object SparqlEntitySchema {
     val subPath = entitySchema.subPath
 
     def rewriteRestrictionWithParentProperty(subPath: Path): String = {
-      val sb = new StringBuilder()
-      var idx = 1
-      for(ForwardOperator(propertyURI) <- subPath.operators.reverse) {
-        if(idx == 1) {
-          sb.append(s"\n?${variable}_parent$idx <$propertyURI> ?$variable .")
-        } else {
-          sb.append(s"\n?${variable}_parent$idx <$propertyURI> ?${variable}_parent${idx-1} .")
-        }
-        idx += 1
-      }
-      val rootEntity = s"?${variable}_parent${idx-1}"
-      sparqlRestriction = SparqlRestriction.fromSparql(variable,
-        sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sb.toString())
+      val rootEntity = "?root"
+      val sparql = SparqlPathBuilder.path(subPath, rootEntity, "?" + variable)
+      sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sparql)
       rootEntity
     }
 
     val rootVariable = if(subPath.operators.nonEmpty) {
-      if(subPath.operators.forall(_.isInstanceOf[ForwardOperator])) {
-        rewriteRestrictionWithParentProperty(subPath)
-      } else {
-        throw new IllegalArgumentException("Only forward operators allowed in sub path.")
-      }// FIXME: Generate restriction for backward paths.
+      rewriteRestrictionWithParentProperty(subPath)
     } else {
       s"?$variable"
     }

@@ -124,7 +124,11 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @task.id
+    @if(task.metaData.label.trim != "") {
+      @task.metaData.label.trim (@task.id)
+    } else {
+      @task.id
+    }
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)

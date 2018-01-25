@@ -8,7 +8,7 @@
     </Events>
     <Properties>
       <Property>
-        <Key>1</Key>
+        <Key id="id3">1</Key>
         <Value>V1</Value>
       </Property>
       <Property>

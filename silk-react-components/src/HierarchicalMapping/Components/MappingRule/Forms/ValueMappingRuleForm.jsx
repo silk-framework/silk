@@ -21,6 +21,7 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
+    trimValueLabelObject,
 } from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
@@ -63,6 +64,7 @@ const ValueMappingRuleForm = React.createClass({
                         const initialValues = {
                             type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
+                            label: _.get(rule, 'metadata.label', ''),
                             targetProperty: _.get(
                                 rule,
                                 'mappingTarget.uri',
@@ -120,9 +122,10 @@ const ValueMappingRuleForm = React.createClass({
                     parentId: this.props.parentId,
                     type: this.state.type,
                     comment: this.state.comment,
-                    targetProperty: this.state.targetProperty,
+                    label: this.state.label,
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     propertyType: this.state.propertyType,
-                    sourceProperty: this.state.sourceProperty,
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
                     isAttribute: this.state.isAttribute,
                 },
             })
@@ -283,6 +286,15 @@ const ValueMappingRuleForm = React.createClass({
                         />
                         {sourcePropertyInput}
                         {exampleView}
+                        <TextField
+                            label="Label"
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            value={this.state.label}
+                            onChange={this.handleChangeTextfield.bind(
+                                null,
+                                'label'
+                            )}
+                        />
                         <TextField
                             multiline
                             label="Description"
