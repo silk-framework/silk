@@ -27,7 +27,9 @@ object PluginRegistry {
 
   // Register all plugins at instantiation of this singleton object.
   registerFromClasspath()
-  registerJars(new File(System.getProperty("user.home") + "/.silk/plugins/"))
+  if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
+    registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
+  }
 
   /**
    * Creates a new instance of a specific plugin.
