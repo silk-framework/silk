@@ -181,7 +181,7 @@ object PluginDescription {
 
   private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
     try {
-      val clazz = Class.forName(pluginClass.getName + "$")
+      val clazz = Class.forName(pluginClass.getName + "$", true, pluginClass.getClassLoader)
       val module = clazz.getField("MODULE$").get(null)
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 

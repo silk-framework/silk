@@ -33,7 +33,7 @@
     "jsplumb": "2.5.1",
     "jstree": "3.2.1",
     "lodash": "^4.17.4",
-    "mark.js": "https://github.com/julmot/mark.js/archive/7.0.0.tar.gz",
+    "mark.js": "^8.11.1",
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",
     "react-beautiful-dnd": "^2.5.0",
