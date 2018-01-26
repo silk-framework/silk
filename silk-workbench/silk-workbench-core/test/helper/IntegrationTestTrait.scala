@@ -7,13 +7,13 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
-import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
-import org.silkframework.workspace.activity.transform.VocabularyCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
@@ -52,11 +52,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"
 
+  def workspaceProject(projectId: String): Project = User().workspace.project(projectId)
+
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
 
   override implicit lazy val app: Application = {
-    var routerConf = routes.map(r => "play.http.router" -> r).toMap
+    val routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
   }
 
@@ -318,27 +320,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   /**
-    * Generate a default mapping for a dataset.
-    *
-    * @param projectId
-    * @param datasetId
-    * @param uriPrefix    The URI prefix for the generated target property URIs of the mapping. This should be the same
-    *                     as the prefix used for the schema extraction.
-    * @param propertyUris A sequence of URIs to select the properties for the default mapping.
-    */
-  def createDefaultMapping(projectId: String,
-                           datasetId: String,
-                           uriPrefix: String,
-                           propertyUris: Traversable[String] = Seq()): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DefaultMappingGenerator/startBlocking")
-    val response = request.post(Map(
-      "pathSelection" -> Seq(propertyUris.mkString(" ")),
-      "uriPrefix" -> Seq(uriPrefix)
-    ))
-    checkResponse(response)
-  }
-
-  /**
     * Create a linking task.
     *
     * @param projectId
@@ -351,6 +332,28 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
     val response = request.withQueryString("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
     checkResponse(response)
+  }
+
+  /**
+    * Create an empty transform task.
+    * @param projectId
+    * @param transformTaskId ID of the transform task to create.
+    * @param sourceId
+    * @param targetId
+    * @return
+    */
+  def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    checkResponse(response)
+    workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
+  }
+
+  /** Updates the root mapping rule with new mapping rules */
+  def updateTransformRules(projectId: String, transformTaskId: String, mappingRules: MappingRules): Unit = {
+    val oldTransformSpec = workspaceProject(projectId).task[TransformSpec](transformTaskId).data
+    val newTransformTask = oldTransformSpec.copy(mappingRule = oldTransformSpec.mappingRule.copy(rules = mappingRules))
+    workspaceProject(projectId).updateTask(transformTaskId, newTransformTask)
   }
 
   /**

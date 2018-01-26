@@ -1,15 +1,14 @@
 package org.silkframework.entity
 
-import java.net.URI
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.ValueType.XSD
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
 import scala.util.Try
 import scala.xml.Node
-import ValueType.XSD
 
 /**
   * The type of a value.

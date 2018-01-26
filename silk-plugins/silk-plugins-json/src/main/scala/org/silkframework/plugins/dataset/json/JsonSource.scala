@@ -128,7 +128,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     var idx = 1
     var currentPath = List[String]()
 
-    def stepBack: Unit = { // Remove last path segment if this is the end of a field value
+    def stepBack(): Unit = { // Remove last path segment if this is the end of a field value
       if (jParser.getCurrentName != null) {
         currentPath = currentPath.tail
       }
@@ -138,7 +138,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
       token match {
         case JsonToken.START_ARRAY => // Nothing to be done here
         case JsonToken.END_ARRAY =>
-          stepBack
+          stepBack()
         case JsonToken.FIELD_NAME =>
           currentPath ::= jParser.getCurrentName
           if (!paths.contains(currentPath)) {
@@ -147,20 +147,20 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
           }
         case JsonToken.START_OBJECT => // Nothing to be done here
         case JsonToken.END_OBJECT =>
-          stepBack
+          stepBack()
         case jsonValue: JsonToken =>
           jsonValue match { // Collect JSON value
             case JsonToken.VALUE_FALSE | JsonToken.VALUE_TRUE | JsonToken.VALUE_NUMBER_FLOAT | JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_STRING =>
               collectValues(currentPath, jParser.getValueAsString)
             case _ => // Ignore all other values
           }
-          stepBack
+          stepBack()
       }
     }
 
     try {
       while (jParser.nextToken() != null) {
-        val token = jParser.currentToken()
+        val token = jParser.getCurrentToken()
         handleCurrentToken(token)
       }
     } finally {
