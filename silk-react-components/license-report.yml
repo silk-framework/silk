@@ -595,7 +595,7 @@ Silk:
 
         THE SOFTWARE.
     - name: dialog-polyfill
-      version: 0.4.9
+      version: 0.4.4
       url: 'https://github.com/GoogleChrome/dialog-polyfill'
       spdx: BSD-3-Clause
       licenseFile: >
@@ -1660,17 +1660,16 @@ Silk:
 
         THE SOFTWARE.
     - name: mark.js
-      version: 7.0.0
+      version: 8.11.1
       url: 'https://markjs.io/'
       spdx: MIT
-      downloadUrl: 'https://github.com/julmot/mark.js/archive/{version}.tar.gz'
-      licenseFile: >-
+      licenseFile: >
         ---
 
         The MIT License (MIT)
 
 
-        Copyright (c) 2014–2016 Julian Motz
+        Copyright (c) 2014–2018 Julian Kühnel
 
 
         Permission is hereby granted, free of charge, to any person obtaining a
