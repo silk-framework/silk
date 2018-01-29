@@ -262,11 +262,16 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     *                   application must supply a meaningful resource URI.
     * @return
     */
-  def executeSchemaExtractionAndDataProfiling(projectId: String, datasetId: String, datasetUri: String, uriPrefix: String): WSResponse = {
+  def executeSchemaExtractionAndDataProfiling(projectId: String,
+                                              datasetId: String,
+                                              datasetUri: String,
+                                              uriPrefix: String,
+                                              classProfilingLimit: Int = 10): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri),
-      "uriPrefix" -> Seq(uriPrefix)
+      "uriPrefix" -> Seq(uriPrefix),
+      "classProfilingLimit" -> Seq(classProfilingLimit.toString)
     ))
     checkResponse(response)
   }

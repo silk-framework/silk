@@ -2,6 +2,7 @@ package org.silkframework.workspace
 
 import org.scalatest._
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.workspace.resources.InMemoryResourceRepository
@@ -42,6 +43,15 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     expectedUser = rdfWorkspaceUser
     oldUserManager = User.userManager
     User.userManager = () => rdfWorkspaceUser
+  }
+
+  def workspaceEndpoint: SparqlEndpoint = {
+    User().workspace.provider match {
+      case rdfWorkspace: RdfWorkspaceProvider =>
+        rdfWorkspace.endpoint
+      case _ =>
+        throw new RuntimeException("Not an RDF workspace provider configured!")
+    }
   }
 
   it should "return the expected user and project" in {
