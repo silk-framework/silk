@@ -9,10 +9,9 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -20,8 +19,11 @@ import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json._
 import play.api.mvc._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TransformTaskApi extends Controller {
 
@@ -260,6 +262,25 @@ class TransformTaskApi extends Controller {
     val activity = task.activity[ExecuteTransform].control
     activity.start()
     Ok
+  }
+
+  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+
+    task.data.outputs.headOption match {
+      case Some(outputId) =>
+        project.taskOption[DatasetSpec](outputId).map(_.data.plugin) match {
+          case Some(ds: ResourceBasedDataset) =>
+            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+          case Some(_) =>
+            ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
+          case None =>
+            ErrorResult(BAD_REQUEST, "Output dataset not found", s"The specified output dataset '$outputId' has not been found.")
+        }
+      case None =>
+        ErrorResult(BAD_REQUEST, "No output dataset", "The transform task does not specify an output dataset.")
+    }
   }
 
   /**
