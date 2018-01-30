@@ -21,7 +21,7 @@ import scala.io.Codec
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource with PeakDataSource with SchemaExtractionSource {
+case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource with PeakDataSource with SchemaExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -38,14 +38,18 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     new Entities(subPathElements, entitySchema, Set.empty)
   }
 
-  private def basePathParts: Array[String] = {
+  private val basePathParts: List[String] = {
     val pureBasePath = basePath.stripPrefix("/").trim
     if (pureBasePath == "") {
-      Array.empty[String]
+      List.empty[String]
     } else {
-      pureBasePath.split('/')
+      pureBasePath.split('/').toList
     }
   }
+
+  private val basePathPartsReversed = basePathParts.reverse
+
+  private val basePathLength = basePathParts.length
 
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
@@ -141,8 +145,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
           stepBack()
         case JsonToken.FIELD_NAME =>
           currentPath ::= jParser.getCurrentName
-          if (!paths.contains(currentPath)) {
-            paths.put(currentPath, idx)
+          if (basePathMatches(currentPath) && !paths.contains(currentPath.dropRight(basePathLength))) {
+            paths.put(if(basePathLength == 0) currentPath else currentPath.dropRight(basePathLength), idx)
             idx += 1
           }
         case JsonToken.START_OBJECT => // Nothing to be done here
@@ -151,7 +155,9 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
         case jsonValue: JsonToken =>
           jsonValue match { // Collect JSON value
             case JsonToken.VALUE_FALSE | JsonToken.VALUE_TRUE | JsonToken.VALUE_NUMBER_FLOAT | JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_STRING =>
-              collectValues(currentPath, jParser.getValueAsString)
+              if(basePathMatches(currentPath)) {
+                collectValues(if(basePathLength == 0) currentPath else currentPath.dropRight(basePathLength), jParser.getValueAsString)
+              }
             case _ => // Ignore all other values
           }
           stepBack()
@@ -166,8 +172,12 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     } finally {
       jParser.close()
     }
-    // Sort paths by first occurrence and serialize
+    // Sort paths by first occurrence
     paths.toSeq.sortBy(_._2).map(p => p._1.reverse)
+  }
+
+  private def basePathMatches(currentPath: List[String]) = {
+    basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
   }
 
   override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],

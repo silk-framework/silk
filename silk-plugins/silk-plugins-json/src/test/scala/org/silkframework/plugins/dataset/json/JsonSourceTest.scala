@@ -14,7 +14,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   private def jsonExampleSource: JsonSource = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
-    val source = new JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
+    val source = JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
     source
   }
 
@@ -35,7 +35,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       """
         |{"data":[]}
       """.stripMargin)
-    val source = new JsonSource(resource, "data", "http://blah", Codec.UTF8)
+    val source = JsonSource(resource, "data", "http://blah", Codec.UTF8)
     val entities = source.retrieve(EntitySchema.empty)
     entities mustBe empty
   }
@@ -47,7 +47,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       """
         |{"data":{"entities":[{"id":"ID"}]}}
       """.stripMargin)
-    val source = new JsonSource(resource, "data/entities", "http://blah/{id}", Codec.UTF8)
+    val source = JsonSource(resource, "data/entities", "http://blah/{id}", Codec.UTF8)
     val entities = source.retrieve(EntitySchema.empty)
     entities.size mustBe 1
     entities.head.uri mustBe "http://blah/ID"
@@ -230,6 +230,17 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     classes(1) mustBe ExtractedSchemaClass("/persons", Seq(ExtractedSchemaProperty(Path("id"),Some("0")), ExtractedSchemaProperty(Path("name"),Some("John"))))
     classes(2) mustBe ExtractedSchemaClass("/persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("home")), ExtractedSchemaProperty(Path("number"),Some("123"))))
     classes(3) mustBe ExtractedSchemaClass("/organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+  }
+
+  it should "extract schema with base path set" in {
+    for(basePath <- Seq("/persons", "persons")) {
+      val schema = jsonExampleSource.copy(basePath = basePath).extractSchema(new TestAnalyzerFactory(), sampleLimit = None)
+      schema.classes.size mustBe 2
+      val classes = schema.classes
+      classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
+      classes(1) mustBe ExtractedSchemaClass("/phoneNumbers",
+        Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
+    }
   }
 
   private def jsonSource(json: String): JsonSource = {
