@@ -6,11 +6,12 @@ import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import scala.util.control.Breaks._
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: => EntitySink) extends Activity[TransformReport] {
+class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: => EntitySink, limit: Option[Int] = None) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -46,13 +47,16 @@ class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: =
 
     val entities = dataSource.retrieve(rule.inputSchema)
     val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
-    for (entity <- transformedEntities) {
-      entitySink.writeEntity(entity.uri, entity.values)
-      if (isCanceled) {
-        return
+    var count = 0
+    breakable {
+      for (entity <- transformedEntities) {
+        entitySink.writeEntity(entity.uri, entity.values)
+        count += 1
+        if (isCanceled || limit.exists(_ <= count)) {
+          break
+        }
       }
     }
-
     entitySink.closeTable()
   }
 
