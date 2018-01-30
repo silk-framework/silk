@@ -1,22 +1,24 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
+import scala.collection.mutable
+import scala.util.Try
 import scala.xml._
 
 /**
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with SampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -49,6 +51,19 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
     reader
   }
+
+  private val basePathParts: List[String] = {
+    val pureBasePath = basePath.stripPrefix("/").trim
+    if (pureBasePath == "") {
+      List.empty[String]
+    } else {
+      pureBasePath.split('/').toList
+    }
+  }
+
+  private val basePathPartsReversed = basePathParts.reverse
+
+  private val basePathLength = basePathParts.length
 
   /**
     * Retrieves the most frequent paths in this source.
@@ -320,4 +335,53 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 
+  private def basePathMatches(currentPath: List[String]) = {
+    basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
+  }
+
+  def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
+    val paths = mutable.HashMap[List[String], Int]()
+    paths.put(Nil, 0)
+    var idx = 1
+    var currentPath = List[String]()
+
+    val inputStream = file.inputStream
+    try {
+      val reader: XMLStreamReader = initStreamReader(inputStream)
+      var readNext = true
+      var eventId = reader.getEventType
+      while(reader.hasNext) {
+        if(readNext) {
+          reader.next()
+          eventId = reader.getEventType
+        } else {
+          eventId = reader.getEventType
+          readNext = true
+        }
+        eventId match {
+          case XMLStreamConstants.START_ELEMENT =>
+            currentPath ::= reader.getLocalName
+            if (basePathMatches(currentPath) && !paths.contains(currentPath.dropRight(basePathLength))) {
+              paths.put(if (basePathLength == 0) currentPath else currentPath.dropRight(basePathLength), idx)
+              idx += 1
+            } // TODO: Handle attributes
+            val text = Try(reader.getElementText)
+            text foreach { elemText =>
+              collectValues(currentPath, elemText)
+            }
+            readNext = false // Do not read next event, already placed on the next one
+          case XMLStreamConstants.END_ELEMENT =>
+            if (currentPath.nonEmpty) { // needs to be done since we don't read the root element, but it appears as end element
+              currentPath = currentPath.tail
+            }
+          case _ =>
+          // TODO
+        }
+      }
+    } finally {
+      inputStream.close()
+    }
+    // Sort paths by first occurrence
+    paths.toSeq.sortBy(_._2).map(p => p._1.reverse)
+  }
 }

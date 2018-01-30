@@ -21,7 +21,8 @@ import scala.io.Codec
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource with PeakDataSource with SchemaExtractionSource {
+case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource
+    with PeakDataSource with SampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -180,37 +181,6 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
   }
 
-  override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
-                                sampleLimit: Option[Int],
-                                progress: (Double) => Unit = (_) => {}): ExtractedSchema[T] = {
-    val sampleValueAnalyzer = SampleValueAnalyzer(sampleLimit.getOrElse(DEFAULT_VALUE_SAMPLE_LIMIT), analyzerFactory)
-    val collectValues: (List[String], String) => Unit = (path, value) => { sampleValueAnalyzer.addValue(path, value) }
-    val allPaths = collectPaths(collectValues)
-    progress(0.1)
-    val pathAnalyzerResults = sampleValueAnalyzer.result.map { case (k, v) => (k.reverse, v)} // Analyzed paths are still reversed
-    progress(0.7)
-    sampleValueAnalyzer.clear()
-    val types = allPaths.filter(!pathAnalyzerResults.contains(_))
-    val typeMap: Map[List[String], ArrayBuffer[List[String]]] = types.map(t => (t, ArrayBuffer[List[String]]())).toMap // types to its value paths
-    for(path <- allPaths) {
-      if(pathAnalyzerResults.contains(path)) {
-        val typePath = path.dropRight(1)
-        val paths = typeMap(typePath)
-        paths.append(path)
-      }
-    }
-    progress(0.8)
-    val schemaClasses = for(typ <- types) yield {
-      val extractedSchemaPaths = for(path <- typeMap(typ)) yield {
-        val analyzerResult = pathAnalyzerResults(path)
-        ExtractedSchemaProperty(Path(path.last), analyzerResult)
-      }
-      ExtractedSchemaClass(Path(typ.map(ForwardOperator(_))).serialize, extractedSchemaPaths)
-    }
-    progress(1.0)
-    ExtractedSchema(schemaClasses)
-  }
-
   /** Stops analyzing when the sample limit is reached */
   private def analyzeValuePath[T](traversers: Seq[JsonTraverser],
                                   path: Path,
@@ -222,54 +192,5 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
       analyzer.update(values)
       analyzedValues += values.size
     }
-  }
-}
-
-/**
-  * Executes the analyzer as soon as enough values have been gathered. Does not add more values for already analyzed paths.
-  * @param sampleLimit     The value sample limit. The maximum number of values when the analyzer should be run. Only
-  *                        this many values are stored at most.
-  * @param analyzerFactory The analyzer factory to do the analysis.
-  */
-case class SampleValueAnalyzer[T](sampleLimit: Int,
-                                  analyzerFactory: ValueAnalyzerFactory[T]) {
-  // Stores the path values
-  private val pathValues = mutable.HashMap[List[String], mutable.ArrayBuffer[String]]()
-  // Stores analyzer results
-  private val analyzerResults = mutable.HashMap[List[String], Option[T]]()
-
-  /** Add a value for a path. */
-  def addValue(path: List[String], value: String): Unit = {
-    if(!analyzerResults.contains(path)) {
-      val values = pathValues.getOrElseUpdate(path, mutable.ArrayBuffer[String]())
-      values += value
-      if(values.size >= sampleLimit) {
-        // Calculate analyzer result if enough sample data collected
-        analyzePath(path, values)
-      }
-    }
-  }
-
-  private def analyzePath(path: List[String], values: ArrayBuffer[String]) = {
-    val analyzer = analyzerFactory.analyzer()
-    analyzer.update(values)
-    analyzerResults.put(path, analyzer.result)
-    pathValues.remove(path)
-  }
-
-  /** Get the analyzer results for all paths having at least one sample value. */
-  def result: Map[List[String], Option[T]] = {
-    if(pathValues.nonEmpty) { // If analyzer results are still missing, calculate them now
-      for(path <- pathValues.keys) {
-        val values = pathValues(path)
-        analyzePath(path, values)
-      }
-    }
-    analyzerResults.toMap
-  }
-
-  def clear(): Unit = {
-    pathValues.clear()
-    analyzerResults.clear()
   }
 }
