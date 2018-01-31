@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
 import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
 import org.silkframework.config.Prefixes
@@ -342,7 +343,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
     val paths = mutable.HashMap[List[String], Int]()
     paths.put(Nil, 0)
-    var idx = 1
+    val idx = new AtomicInteger(1)
     var currentPath = List[String]()
 
     val inputStream = file.inputStream
@@ -361,10 +362,14 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         eventId match {
           case XMLStreamConstants.START_ELEMENT =>
             currentPath ::= reader.getLocalName
-            if (basePathMatches(currentPath) && !paths.contains(currentPath.dropRight(basePathLength))) {
-              paths.put(if (basePathLength == 0) currentPath else currentPath.dropRight(basePathLength), idx)
-              idx += 1
-            } // TODO: Handle attributes
+            if (basePathMatches(currentPath)) {
+              addIfNotExists(paths, idx, currentPath)
+              for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+                val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
+                addIfNotExists(paths, idx, attributePath)
+                collectValues(attributePath, reader.getAttributeValue(attributeIndex))
+              }
+            }
             val text = Try(reader.getElementText)
             text foreach { elemText =>
               collectValues(currentPath, elemText)
@@ -375,7 +380,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
               currentPath = currentPath.tail
             }
           case _ =>
-          // TODO
+          // Nothing to be done for other events
         }
       }
     } finally {
@@ -383,5 +388,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
     // Sort paths by first occurrence
     paths.toSeq.sortBy(_._2).map(p => p._1.reverse)
+  }
+
+  private def addIfNotExists(paths: mutable.HashMap[List[String], Int],
+                             idx: AtomicInteger,
+                             path: List[String]) = {
+    if (!paths.contains(path.dropRight(basePathLength))) {
+      paths.put(if (basePathLength == 0) path else path.dropRight(basePathLength), idx.getAndIncrement())
+    }
   }
 }

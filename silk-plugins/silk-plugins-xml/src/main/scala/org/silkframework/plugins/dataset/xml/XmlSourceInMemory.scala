@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with SampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -95,6 +95,11 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
+  }
+
+  override def collectPaths(collectValues: (List[String], String) => Unit): Seq[List[String]] = {
+    // Re-use implementation of streaming based XML source
+    new XmlSourceStreaming(file, basePath, uriPattern).collectPaths(collectValues)
   }
 }
 

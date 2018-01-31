@@ -76,8 +76,10 @@ trait SampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
     val pathAnalyzerResults = sampleValueAnalyzer.result.map { case (k, v) => (k.reverse, v)} // Analyzed paths are still reversed
     progress(0.7)
     sampleValueAnalyzer.clear()
-    val types = allPaths.filter(!pathAnalyzerResults.contains(_))
-    val typeMap: Map[List[String], ArrayBuffer[List[String]]] = types.map(t => (t, ArrayBuffer[List[String]]())).toMap // types to its value paths
+    val pathAnalyzerDerivedTypes = pathAnalyzerResults.keys.map(_.dropRight(1)).toSet
+    val types = allPaths.filter(p => !pathAnalyzerResults.contains(p) || pathAnalyzerDerivedTypes.contains(p))
+    // Map from types (path) to its value paths
+    val typeMap: Map[List[String], ArrayBuffer[List[String]]] = types.map(t => (t, ArrayBuffer[List[String]]())).toMap
     for(path <- allPaths) {
       if(pathAnalyzerResults.contains(path)) {
         val typePath = path.dropRight(1)
