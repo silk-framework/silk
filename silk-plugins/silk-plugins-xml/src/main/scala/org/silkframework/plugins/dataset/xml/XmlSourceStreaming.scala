@@ -340,7 +340,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
   }
 
-  def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
+  def collectPaths(limit: Int, collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
     val paths = mutable.HashMap[List[String], Int]()
     paths.put(Nil, 0)
     val idx = new AtomicInteger(1)
@@ -351,7 +351,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       val reader: XMLStreamReader = initStreamReader(inputStream)
       var readNext = true
       var eventId = reader.getEventType
-      while(reader.hasNext) {
+      while(reader.hasNext && paths.size < limit) {
         if(readNext) {
           reader.next()
           eventId = reader.getEventType

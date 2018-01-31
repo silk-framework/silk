@@ -125,7 +125,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     * @param collectValues A function to collect values of a path.
     * @return all collected paths
     */
-  def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
+  def collectPaths(limit: Int, collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
     val factory = new JsonFactory()
     val jParser = factory.createParser(file.inputStream)
     val paths = mutable.HashMap[List[String], Int]()
@@ -166,7 +166,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     }
 
     try {
-      while (jParser.nextToken() != null) {
+      while (jParser.nextToken() != null && paths.size < limit) {
         val token = jParser.getCurrentToken()
         handleCurrentToken(token)
       }

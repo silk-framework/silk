@@ -97,9 +97,9 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 
-  override def collectPaths(collectValues: (List[String], String) => Unit): Seq[List[String]] = {
+  override def collectPaths(limit: Int, collectValues: (List[String], String) => Unit): Seq[List[String]] = {
     // Re-use implementation of streaming based XML source
-    new XmlSourceStreaming(file, basePath, uriPattern).collectPaths(collectValues)
+    new XmlSourceStreaming(file, basePath, uriPattern).collectPaths(limit, collectValues)
   }
 }
 

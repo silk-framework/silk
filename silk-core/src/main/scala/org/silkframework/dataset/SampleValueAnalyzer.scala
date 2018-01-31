@@ -61,17 +61,19 @@ trait SampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
   /**
     * Collects all paths from the JSON.
     *
+    * @param limit         The number of paths after which no more paths should be collected.
     * @param collectValues A function to collect values of a path.
     * @return all collected paths
     */
-  def collectPaths(collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]]
+  def collectPaths(limit: Int, collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]]
 
   override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                pathLimit: Int,
                                 sampleLimit: Option[Int],
                                 progress: (Double) => Unit = (_) => {}): ExtractedSchema[T] = {
     val sampleValueAnalyzer = SampleValueAnalyzer(sampleLimit.getOrElse(DEFAULT_VALUE_SAMPLE_LIMIT), analyzerFactory)
     val collectValues: (List[String], String) => Unit = (path, value) => { sampleValueAnalyzer.addValue(path, value) }
-    val allPaths = collectPaths(collectValues)
+    val allPaths = collectPaths(pathLimit, collectValues)
     progress(0.1)
     val pathAnalyzerResults = sampleValueAnalyzer.result.map { case (k, v) => (k.reverse, v)} // Analyzed paths are still reversed
     progress(0.7)

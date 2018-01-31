@@ -15,12 +15,14 @@ trait SchemaExtractionSource {
     * which would need #types passes over the underlying resource for some datasets.
     *
     * @param analyzerFactory The analyzers that should be executed against the sample values of the value paths.
+    * @param pathLimit       The overall max. number of schema elements (classes and paths) that should be extracted
     * @param sampleLimit     If defined then only this many values will be analyzed with the given analyzer before
     *                        calculating the result.
     * @param progressFN      A function that takes a double between 0.0 and 1.0 where the progress can be indicated to
     *                        the caller, >= 1.0 meaning the extraction has finished.
     * */
   def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                       pathLimit: Int,
                        sampleLimit: Option[Int],
                        progressFN: (Double) => Unit = (_) => {}): ExtractedSchema[T]
 }

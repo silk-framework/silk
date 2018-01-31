@@ -155,10 +155,16 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "collect paths via streaming" in {
     val source = jsonSource(jsonComplex)
-    val paths = source.collectPaths()
+    val paths = source.collectPaths(limit = Int.MaxValue)
     paths.map(_.mkString("/")) mustBe Seq("", "object", "object/blah", "objects", "objects/value", "objects/nestedObject", "objects/nestedObject/nestedValue",
       "objects/boolean", "objects/int", "objects/float", "objects/emptyObject", "objects/emptyArray", "objects/array",
       "objects/objectArray", "objects/objectArray/v", "values")
+  }
+
+  it should "collect limited paths via streaming" in {
+    val source = jsonSource(jsonComplex)
+    val paths = source.collectPaths(limit = 5)
+    paths.map(_.mkString("/")) mustBe Seq("", "object", "object/blah", "objects", "objects/value")
   }
 
   it should "collect values of path" in {
@@ -168,7 +174,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       values.add(value)
     }
     val source = jsonSource(jsonComplex)
-    source.collectPaths(collectValues)
+    source.collectPaths(Int.MaxValue, collectValues)
     pathValues.map{case (k, v) => (k.reverse.mkString("/"), v)} mustBe Map(
       "objects/array" -> Set("1", "2", "3"),
       "object/blah" -> Set("3"),
@@ -213,7 +219,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "extract schema" in {
-    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), sampleLimit = None)
+    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = None)
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
@@ -223,7 +229,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "extract schema with value sample limit" in {
-    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), sampleLimit = Some(1))
+    val schema = jsonExampleSource.extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = Some(1))
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
@@ -234,7 +240,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "extract schema with base path set" in {
     for(basePath <- Seq("/persons", "persons")) {
-      val schema = jsonExampleSource.copy(basePath = basePath).extractSchema(new TestAnalyzerFactory(), sampleLimit = None)
+      val schema = jsonExampleSource.copy(basePath = basePath).extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = None)
       schema.classes.size mustBe 2
       val classes = schema.classes
       classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
