@@ -17,6 +17,7 @@ import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
+import play.api.libs.json.JsValue
 import play.api.libs.ws.{WS, WSResponse}
 import play.api.mvc.Results
 import play.api.test.FakeApplication
@@ -338,6 +339,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     checkResponse(response)
   }
 
+  def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
+    val response = request.put(taskJson)
+    checkResponse(response)
+  }
+
   /**
     * Create a linking task.
     *
@@ -363,6 +370,27 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   def setLinkingRule(projectId: String, linkingTaskId: String, ruleXml: Elem): WSResponse = {
     val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId/rule")
     val response = request.put(ruleXml)
+    checkResponse(response)
+  }
+
+  /**
+    * Executes a transform task. This is a blocking request.
+    */
+  def executeTransformTask(projectId: String, transformTaskId: String, parameters: Map[String, String] = Map.empty): WSResponse = {
+    var request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$transformTaskId/activities/ExecuteTransform/startBlocking")
+    if(parameters.nonEmpty) {
+      request = request.withQueryString(parameters.toSeq: _*)
+    }
+    val response = request.post("")
+    checkResponse(response)
+  }
+
+  /**
+    * Downloads the transform output.
+    */
+  def downloadTransformOutput(projectId: String, transformTaskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId/downloadOutput")
+    val response = request.get()
     checkResponse(response)
   }
 
