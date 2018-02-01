@@ -93,8 +93,13 @@ silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.s
 silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
 */
 function reloadWorkspace() {
+    // Get the scroll position of the content container and set it after reloading
+    const contentScrollTop = document.getElementsByClassName("mdl-layout__content")[0].scrollTop;
     $.get(`${baseUrl}/workspace/tree`, function(data) {
         $('#workspace_tree').html(data);
+        if(contentScrollTop > 50) {
+            setTimeout(function(){ document.getElementsByClassName("mdl-layout__content")[0].scrollTop = contentScrollTop; }, 200);
+        }
     }).fail(function(request) {
         alert(`Error reloading workspace: ${request.responseText}`);
     });
@@ -134,7 +139,7 @@ function putTask(
     $.ajax({
         type: 'PATCH',
         url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
-        contentType: 'text/xml;charset=UTF-8',
+        contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
         dataType: 'json',
@@ -174,7 +179,7 @@ function postTask(
   $.ajax({
     type: 'POST',
     url: `${baseUrl}/workspace/projects/${project}/tasks`,
-    contentType: 'text/xml;charset=UTF-8',
+    contentType: 'application/json;charset=UTF-8',
     processData: false,
     data: JSON.stringify(json),
     dataType: 'json',
