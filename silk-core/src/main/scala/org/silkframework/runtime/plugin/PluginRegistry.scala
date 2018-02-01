@@ -26,8 +26,11 @@ object PluginRegistry {
   private var pluginTypes = Map[String, PluginType]()
 
   // Register all plugins at instantiation of this singleton object.
-  registerFromClasspath()
-  registerJars(new File(System.getProperty("user.home") + "/.silk/plugins/"))
+  if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
+    registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
+  } else {
+    registerFromClasspath()
+  }
 
   /**
    * Creates a new instance of a specific plugin.
@@ -139,6 +142,7 @@ object PluginRegistry {
 
   /**
    * Registers all plugins from a directory of jar files.
+   * Also registers all plugins on the classpath.
    */
   def registerJars(jarDir: File) {
     //Collect all jar file in the specified directory
