@@ -22,20 +22,24 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   /**
     * Retrieves known types in this source.
-    * Each path from the root corresponse to one type.
+    * Each path from the root corresponds to one type.
     *
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val inputStream = file.inputStream
-    try {
-      val reader: XMLStreamReader = initStreamReader(inputStream)
-      val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
-      for (path <- paths) yield {
-        (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
+    if(file.nonEmpty) {
+      val inputStream = file.inputStream
+      try {
+        val reader: XMLStreamReader = initStreamReader(inputStream)
+        val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
+        for (path <- paths) yield {
+          (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
+        }
+      } finally {
+        inputStream.close()
       }
-    } finally {
-      inputStream.close()
+    } else {
+      Traversable.empty
     }
   }
 
