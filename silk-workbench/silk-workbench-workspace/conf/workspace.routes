@@ -4,7 +4,7 @@
 
 GET           /                                                                 controllers.workspace.WorkspaceController.index
 GET           /tree                                                             controllers.workspace.WorkspaceController.tree
-GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities
+GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities(project: Option[String], task: Option[String])
 
 GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
@@ -101,6 +101,7 @@ PUT           /projects/:project/tasks/:task/metadata                           
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
+POST          /projects/:project/tasks/:task/reloadCaches                       controllers.workspace.TaskApi.reloadCaches(project: String, task: String)
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

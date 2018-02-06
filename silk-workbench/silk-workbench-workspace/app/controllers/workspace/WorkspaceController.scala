@@ -17,8 +17,8 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.workspaceTree(User().workspace))
   }
 
-  def activities: Action[AnyContent] = Action { implicit request =>
-    Ok(views.html.workspace.activities())
+  def activities(project: Option[String], task: Option[String]): Action[AnyContent] = Action { implicit request =>
+    Ok(views.html.workspace.activities(project, task))
   }
 
   def newProjectDialog(): Action[AnyContent] = Action {

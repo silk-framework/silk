@@ -14,7 +14,7 @@
 @**
  * Overview page of all activities and their status
  *@
-@()(implicit session: play.api.mvc.Session)
+@(project: Option[String], task: Option[String])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
@@ -40,7 +40,7 @@
     });
 
     function loadCometStream() {
-      $('#statusCometIFrame').html('<iframe src="@ActivityApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
+      $('#statusCometIFrame').html('<iframe src="@ActivityApi.activityUpdates(project.getOrElse(""), task.getOrElse(""), "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
     }
 
     function updateStatus(status) {
@@ -107,7 +107,7 @@
 @workspaceActivities(workspace: Workspace) = {
   <div id="workspace_root">
     <ul class="filetree">
-    @for(project <- workspace.projects) {
+    @for(project <- projects(workspace)) {
       @projectActivities(project)
     }
     </ul>
@@ -117,14 +117,16 @@
 @projectActivities(project: Project) = {
   <li id="project_@project.name" class="jstree-open" >
     @project.name
-    <ul>
-    Project Activities
-    @for(activity <- project.activities) {
-      @projectActivityStatus(project, activity)
+    @if(task.isEmpty) {
+      <ul>
+        Project Activities
+        @for(activity <- project.activities) {
+          @projectActivityStatus(project, activity)
+        }
+      </ul>
     }
-    </ul>
     <ul>
-    @for(task <- project.allTasks) {
+    @for(task <- tasks(project)) {
       @taskActivities(project, task)
     }
     </ul>
@@ -200,6 +202,20 @@
 
 @id(project: String, task: String, activity: String) = @{
   "progress_" + project + "_" + task + "_" + helper.urlEncode(activity)
+}
+
+@projects(workspace: Workspace) = @{
+  project match {
+    case Some(name) => Seq(workspace.project(name))
+    case None => workspace.projects
+  }
+}
+
+@tasks(project: Project) = @{
+  task match {
+    case Some(name) => Seq(project.anyTask(name))
+    case None => project.allTasks
+  }
 }
 
 @main(None, "activities")(header)(toolbar)(content)
