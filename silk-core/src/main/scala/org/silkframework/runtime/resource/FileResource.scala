@@ -4,6 +4,8 @@ import java.io._
 import java.nio.file.Files
 import java.time.Instant
 
+import org.silkframework.util.SafeBufferedOutputStream
+
 /**
   * A resource on the file system.
   *
@@ -32,12 +34,15 @@ case class FileResource(file: File) extends WritableResource {
    */
   override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
     val baseDir = file.getParentFile
-    if(!baseDir.exists && !baseDir.mkdirs())
+    if(!baseDir.exists && !baseDir.mkdirs()) {
       throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
-    write(outputStream)
-    outputStream.flush()
-    outputStream.close()
+    }
+    val outputStream = new SafeBufferedOutputStream(new FileOutputStream(file, append))
+    try {
+      write(outputStream)
+    } finally {
+      outputStream.close()
+    }
   }
 
   /**

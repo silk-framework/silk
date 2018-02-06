@@ -11,7 +11,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
-import org.silkframework.util.StreamUtils
+import org.silkframework.util.{SafeBufferedOutputStream, StreamUtils}
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -225,10 +225,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
     val out = loadRdfIntoGraph(graph, contentType)
-    val outWriter = new BufferedOutputStream(out)
-    outWriter.write(rdfString.getBytes())
-    outWriter.flush()
-    outWriter.close()
+    val outWriter = new SafeBufferedOutputStream(out)
+    try {
+      outWriter.write(rdfString.getBytes("UTF8"))
+    } finally {
+      outWriter.close()
+    }
   }
 
   def loadRdfAsInputStreamIntoGraph(input: InputStream, graph: String, contentType: String = "application/n-triples"): Unit = {

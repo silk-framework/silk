@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.BufferedOutputStream
+import java.io.{BufferedOutputStream, OutputStream}
 import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.GraphStoreTrait
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
-import org.silkframework.util.Uri
+import org.silkframework.util.{SafeBufferedOutputStream, Uri}
 
 /**
   * An RDF sink based on the graph store protocol.
@@ -21,7 +21,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           dropGraphOnClear: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private var properties = Seq[TypedProperty]()
-  private var output: Option[BufferedOutputStream] = None
+  private var output: Option[OutputStream] = None
   private val log = Logger.getLogger(classOf[SparqlSink].getName)
   private var stmtCount = 0
   private var byteCount = 0L
@@ -55,11 +55,10 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     }
   }
 
-  private def initOutputStream: Option[BufferedOutputStream] = {
+  private def initOutputStream: Option[OutputStream] = {
     // Always use N-Triples because of stream-ability
     val out = graphStore.postDataToGraph(graphUri, comment = comment)
-    val bufferedOut = new BufferedOutputStream(out)
-    Some(bufferedOut)
+    Some(out)
   }
 
   override def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
@@ -100,9 +99,11 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   override def close(): Unit = {
     output match {
       case Some(o) =>
-        o.flush()
-        o.close()
-        output = None
+        try {
+          o.close()
+        } finally {
+          output = None
+        }
       case None =>
         // no effect
     }

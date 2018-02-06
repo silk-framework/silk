@@ -1,11 +1,12 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{InputStream, OutputStream}
+import java.io.{BufferedOutputStream, InputStream, OutputStream}
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.util.HttpURLConnectionUtils._
+import org.silkframework.util.SafeBufferedOutputStream
 
 import scala.util.control.NonFatal
 
@@ -40,7 +41,7 @@ trait GraphStoreTrait {
     *
     * @param graph
    * @param contentType
-   * @return
+   * @return A buffered output stream
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
@@ -97,7 +98,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   private lazy val outputStream = {
     connection.connect()
-    connection.getOutputStream()
+    new SafeBufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {
@@ -106,7 +107,6 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   override def close(): Unit = {
     try {
-      outputStream.flush()
       outputStream.close()
       val responseCode = connection.getResponseCode
       if(responseCode / 100 == 2) {
