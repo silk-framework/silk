@@ -6,7 +6,6 @@ import java.util.logging.Logger
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
-import org.silkframework.util.SafeBufferedOutputStream
 
 /**
  * A link sink that writes formatted links to an output stream of a resource.
@@ -37,7 +36,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     formattedLinkWriter = javaFile match {
       case Some(file) =>
         file.getParentFile.mkdirs()
-        Some(new OutputStreamWriter(new SafeBufferedOutputStream(new FileOutputStream(file, true)), "UTF-8")))
+        Some(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8"))
       case None =>
         Some(new StringWriter())
     }

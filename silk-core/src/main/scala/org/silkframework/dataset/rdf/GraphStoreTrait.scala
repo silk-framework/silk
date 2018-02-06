@@ -6,7 +6,6 @@ import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.util.HttpURLConnectionUtils._
-import org.silkframework.util.SafeBufferedOutputStream
 
 import scala.util.control.NonFatal
 
@@ -98,7 +97,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   private lazy val outputStream = {
     connection.connect()
-    new SafeBufferedOutputStream(connection.getOutputStream)
+    new BufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {

@@ -1,10 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io._
-import java.nio.file.Files
 import java.time.Instant
-
-import org.silkframework.util.SafeBufferedOutputStream
 
 /**
   * A resource on the file system.
@@ -37,7 +34,7 @@ case class FileResource(file: File) extends WritableResource {
     if(!baseDir.exists && !baseDir.mkdirs()) {
       throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
     }
-    val outputStream = new SafeBufferedOutputStream(new FileOutputStream(file, append))
+    val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
     try {
       write(outputStream)
     } finally {

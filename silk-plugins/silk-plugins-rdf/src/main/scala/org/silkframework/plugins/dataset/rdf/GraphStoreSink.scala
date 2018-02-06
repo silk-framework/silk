@@ -7,7 +7,7 @@ import org.silkframework.dataset.rdf.GraphStoreTrait
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
-import org.silkframework.util.{SafeBufferedOutputStream, Uri}
+import org.silkframework.util.Uri
 
 /**
   * An RDF sink based on the graph store protocol.
