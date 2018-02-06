@@ -28,13 +28,9 @@ trait RdfSink {
       case Some(formatter) =>
         val model = formatter.formatAsRDF(link, predicateUri)
         val outputStream = new ByteArrayOutputStream()
-        try {
-          RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
-          val result = outputStream.toString("UTF-8")
-          (result, result.split("\n").length)
-        } finally {
-          outputStream.close()
-        }
+        RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
+        val result = outputStream.toString("UTF-8")
+        (result, result.split("\n").length)
       case None =>
         val result = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
         (result, 1)
