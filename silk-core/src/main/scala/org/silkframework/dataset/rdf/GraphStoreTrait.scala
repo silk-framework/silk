@@ -111,7 +111,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        errorHandler(connection, s"Could not write to HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -133,7 +133,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       connection.getInputStream
     } catch {
       case NonFatal(_) =>
-        errorHandler(connection, s"Could not read from HTTP connection. Got ${connection.getResponseCode} response code.")
+        errorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
     }
   }
 
@@ -146,7 +146,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        errorHandler(connection, s"Could not read from HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
       }
     } finally {
       connection.disconnect()
