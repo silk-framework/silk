@@ -446,7 +446,7 @@ Silk:
 
         IN THE SOFTWARE.
     - name: create-react-class
-      version: 15.6.2
+      version: 15.6.3
       url: 'https://facebook.github.io/react/'
       spdx: MIT
       licenseFile: >
@@ -1340,7 +1340,7 @@ Silk:
       spdx: MIT
       licenseFile: "---\nCopyright (c) 2014 Ivan Bozhanov\r\n\r\nPermission is hereby granted, free of charge, to any person\r\nobtaining a copy of this software and associated documentation\r\nfiles (the \"Software\"), to deal in the Software without\r\nrestriction, including without limitation the rights to use,\r\ncopy, modify, merge, publish, distribute, sublicense, and/or sell\r\ncopies of the Software, and to permit persons to whom the\r\nSoftware is furnished to do so, subject to the following\r\nconditions:\r\n\r\nThe above copyright notice and this permission notice shall be\r\nincluded in all copies or substantial portions of the Software.\r\n\r\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\r\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES\r\nOF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\r\nNONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT\r\nHOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\r\nWHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\r\nFROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR\r\nOTHER DEALINGS IN THE SOFTWARE.\r\n"
     - name: lodash
-      version: 4.17.4
+      version: 4.17.5
       url: 'https://lodash.com/'
       spdx: MIT
       licenseFile: >
@@ -1429,7 +1429,7 @@ Silk:
 
         terms above.
     - name: lodash-es
-      version: 4.17.4
+      version: 4.17.5
       url: 'https://lodash.com/custom-builds'
       spdx: MIT
       licenseFile: >
@@ -2821,7 +2821,7 @@ Silk:
         See the License for the specific language governing permissions and
         limitations under the License.
     - name: react-datetime
-      version: 2.11.1
+      version: 2.12.0
       url: 'https://github.com/YouCanBookMe/react-datetime'
       spdx: MIT
       licenseFile: >-
@@ -3909,7 +3909,7 @@ Silk:
       url: 'https://github.com/yamalight/superagent-rx#readme'
       spdx: MIT
     - name: symbol-observable
-      version: 1.1.0
+      version: 1.2.0
       url: 'https://github.com/blesh/symbol-observable#readme'
       spdx: MIT
       licenseFile: >

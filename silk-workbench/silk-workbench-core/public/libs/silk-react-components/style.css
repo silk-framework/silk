@@ -11922,6 +11922,40 @@ _:-ms-input-placeholder, :root .mdl-slider.mdl-slider.is-upgraded {
 .mdl-card--full-width {
   width: auto; }
 
+.mdl-card--reduced .mdl-card__title {
+  padding: 0.25rem 0;
+  margin-bottom: 0.5rem; }
+
+.mdl-card--reduced .mdl-card__menu {
+  top: 0; }
+
+.mdl-card--reduced .mdl-card__content {
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0; }
+
+.mdl-card__title .mdl-card__menu {
+  position: relative;
+  top: -6px;
+  right: -8px;
+  height: 1px;
+  overflow: visible;
+  white-space: nowrap;
+  flex-shrink: 0;
+  flex-grow: 0;
+  align-self: flex-start; }
+  .mdl-card--reduced .mdl-card__title .mdl-card__menu {
+    right: 8px; }
+
+.mdl-card__menu {
+  right: 8px;
+  top: 12px; }
+
+.mdl-card__title-text {
+  flex-grow: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis; }
+
 .mdl-card__content {
   margin: 1rem 1rem;
   padding: 0; }
@@ -11947,15 +11981,6 @@ _:-ms-input-placeholder, :root .mdl-slider.mdl-slider.is-upgraded {
   bottom: 0; }
   .mdl-card__title ~ .mdl-card__actions--fixed {
     margin-top: 56px; }
-
-.mdl-card--reduced .mdl-card__title {
-  padding: 0;
-  margin-bottom: 1rem; }
-
-.mdl-card--reduced .mdl-card__content {
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 0; }
 
 .ecc-floatingactionlist {
   position: absolute;
