@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,63 +23,63 @@ $(document).ready(function () {
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
 */
 function newProject() {
-    showDialog(baseUrl + "/workspace/dialogs/newproject");
+    showDialog(baseUrl + '/workspace/dialogs/newproject');
 }
 
 /* exported importProject
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
 */
 function importProject() {
-    showDialog(baseUrl + "/workspace/dialogs/importproject");
+    showDialog(baseUrl + '/workspace/dialogs/importproject');
 }
 
 /* exported cloneProject
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function cloneProject(project) {
-    showDialog(baseUrl + "/workspace/dialogs/cloneProject?project=" + project);
+    showDialog(baseUrl + '/workspace/dialogs/cloneProject?project=' + project);
 }
 
 /* exported cloneTask
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function cloneTask(project, task) {
-    showDialog(baseUrl + "/workspace/dialogs/cloneTask?project=" + project + "&task=" + task);
+    showDialog(baseUrl + '/workspace/dialogs/cloneTask?project=' + project + '&task=' + task);
 }
 
 /* exported importLinkSpec
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function importLinkSpec(project) {
-    showDialog(baseUrl + "/workspace/dialogs/importlinkspec/" + project);
+    showDialog(baseUrl + '/workspace/dialogs/importlinkspec/' + project);
 }
 
 /* exported exportProject
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function exportProject(project) {
-    window.location = baseUrl + "/workspace/projects/" + project + "/export";
+    window.location = baseUrl + '/workspace/projects/' + project + '/export';
 }
 
 /* exported executeProject
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function executeProject(project) {
-    showDialog(baseUrl + "/workspace/dialogs/executeProject/" + project);
+    showDialog(baseUrl + '/workspace/dialogs/executeProject/' + project);
 }
 
 /* exported editPrefixes
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function editPrefixes(project) {
-    showDialog(baseUrl + "/workspace/dialogs/prefixes/" + project);
+    showDialog(baseUrl + '/workspace/dialogs/prefixes/' + project);
 }
 
 /* exported editResources
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
 */
 function editResources(project) {
-    showDialog(baseUrl + "/workspace/dialogs/resources/" + project);
+    showDialog(baseUrl + '/workspace/dialogs/resources/' + project);
 }
 
 /* exported reloadWorkspace
@@ -94,16 +94,16 @@ silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.sca
 */
 function reloadWorkspace() {
     // Get the scroll position of the content container and set it after reloading
-    var contentScrollTop = document.getElementsByClassName("mdl-layout__content")[0].scrollTop;
-    $.get(baseUrl + "/workspace/tree", function (data) {
+    var contentScrollTop = document.getElementsByClassName('mdl-layout__content')[0].scrollTop;
+    $.get(baseUrl + '/workspace/tree', function (data) {
         $('#workspace_tree').html(data);
         if (contentScrollTop > 50) {
             setTimeout(function () {
-                document.getElementsByClassName("mdl-layout__content")[0].scrollTop = contentScrollTop;
+                document.getElementsByClassName('mdl-layout__content')[0].scrollTop = contentScrollTop;
             }, 200);
         }
     }).fail(function (request) {
-        alert("Error reloading workspace: " + request.responseText);
+        alert('Error reloading workspace: ' + request.responseText);
     });
 }
 
@@ -111,10 +111,10 @@ function reloadWorkspace() {
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspace.scala.html
  */
 function reloadWorkspaceInBackend() {
-    $.post(baseUrl + "/workspace/reload", function () {
+    $.post(baseUrl + '/workspace/reload', function () {
         reloadWorkspace();
     }).fail(function (request) {
-        alert("Error reloading workspace: " + request.responseText);
+        alert('Error reloading workspace: ' + request.responseText);
     });
 }
 
@@ -122,7 +122,26 @@ function reloadWorkspaceInBackend() {
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
  */
 function workspaceDialog(relativePath) {
-    showDialog(baseUrl + "/" + relativePath);
+    showDialog(baseUrl + '/' + relativePath);
+}
+
+function handleError(request, callback) {
+    var responseJson = JSON.parse(request.responseText);
+    var responseMessage = responseJson.message; // Old format
+    if (responseMessage === undefined) {
+        if (responseJson.title === 'Bad Request') {
+            responseMessage = 'Task could not be saved! Details: ';
+        } else {
+            responseMessage = '';
+        }
+        var finestDetail = responseJson;
+        while (finestDetail.cause !== null) {
+            finestDetail = finestDetail.cause;
+        }
+        responseMessage += finestDetail.title;
+        responseMessage = responseMessage + ': ' + finestDetail.detail;
+    }
+    callback(responseMessage);
 }
 
 /* exported putTask
@@ -137,27 +156,13 @@ function putTask(project, task, json) {
 
     $.ajax({
         type: 'PATCH',
-        url: baseUrl + "/workspace/projects/" + project + "/tasks/" + task,
+        url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
         dataType: 'json',
         error: function error(request) {
-            var responseJson = JSON.parse(request.responseText);
-            var responseMessage = responseJson.message; // Old format
-            if (responseMessage === undefined) {
-                if (responseJson.title === 'Bad Request') {
-                    responseMessage = 'Task could not be saved! Details: ';
-                } else {
-                    responseMessage = '';
-                }
-                var finestDetail = responseJson;
-                while (finestDetail.cause !== null) {
-                    finestDetail = finestDetail.cause;
-                }
-                responseMessage = responseMessage + finestDetail.title + ": " + finestDetail.detail;
-            }
-            callbacks.error(responseMessage);
+            handleError(request, callbacks.error);
         },
         success: function success() {
             reloadWorkspace();
@@ -174,27 +179,13 @@ function postTask(project, json) {
 
     $.ajax({
         type: 'POST',
-        url: baseUrl + "/workspace/projects/" + project + "/tasks",
+        url: baseUrl + '/workspace/projects/' + project + '/tasks',
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
         dataType: 'json',
         error: function error(request) {
-            var responseJson = JSON.parse(request.responseText);
-            var responseMessage = responseJson.message; // Old format
-            if (responseMessage === undefined) {
-                if (responseJson.title === 'Bad Request') {
-                    responseMessage = 'Task could not be saved! Details: ';
-                } else {
-                    responseMessage = '';
-                }
-                var finestDetail = responseJson;
-                while (finestDetail.cause !== null) {
-                    finestDetail = finestDetail.cause;
-                }
-                responseMessage = responseMessage + finestDetail.title + ": " + finestDetail.detail;
-            }
-            callbacks.error(responseMessage);
+            handleError(request, callbacks.error);
         },
         success: function success() {
             reloadWorkspace();
@@ -209,12 +200,12 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/removeProjectDialog.
 function deleteProject(project) {
     $.ajax({
         type: 'DELETE',
-        url: baseUrl + "/workspace/projects/" + project,
+        url: baseUrl + '/workspace/projects/' + project,
         success: function success() {
             reloadWorkspace();
         },
         error: function error(request) {
-            alert("Error deleting:" + request.responseText);
+            alert('Error deleting:' + request.responseText);
         }
     });
 }
@@ -225,12 +216,12 @@ silk-workbench/silk-workbench-workspace/app/views/workspace/removeTaskDialog.sca
 function deleteTask(project, task) {
     $.ajax({
         type: 'DELETE',
-        url: baseUrl + "/workspace/projects/" + project + "/tasks/" + task,
+        url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
         success: function success() {
             reloadWorkspace();
         },
         error: function error(request) {
-            alert("Error deleting:" + request.responseText);
+            alert('Error deleting:' + request.responseText);
         }
     });
 }
@@ -239,19 +230,19 @@ function deleteTask(project, task) {
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
  */
 function deleteProjectConfirm(project) {
-    showDialog(baseUrl + "/workspace/dialogs/removeproject/" + project);
+    showDialog(baseUrl + '/workspace/dialogs/removeproject/' + project);
 }
 
 /* exported deleteTaskConfirm
 silk-workbench/silk-workbench-workspace/app/views/workspace/workspaceTree.scala.html
  */
 function deleteTaskConfirm(project, task) {
-    showDialog(baseUrl + "/workspace/dialogs/removetask/" + project + "/" + task);
+    showDialog(baseUrl + '/workspace/dialogs/removetask/' + project + '/' + task);
 }
 
 /* exported deleteResourceConfirm
 silk-workbench/silk-workbench-workspace/app/views/workspace/resourcesDialog.scala.html
  */
 function deleteResourceConfirm(name, path) {
-    showDialog(baseUrl + "/workspace/dialogs/removeresource/" + name + "?path=" + encodeURIComponent(path), 'secondary');
+    showDialog(baseUrl + '/workspace/dialogs/removeresource/' + name + '?path=' + encodeURIComponent(path), 'secondary');
 }

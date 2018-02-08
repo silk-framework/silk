@@ -38506,9 +38506,9 @@
         render: function() {
             var _this3 = this;
             if (this.state.loading) return _react2.default.createElement(_guiElements.Spinner, null);
-            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement("p", null, "The ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement("p", null, "The", " ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
                 return d.checked;
-            })), " rules you have selected are being created.")), _react2.default.createElement(_guiElements.CardActions, {
+            })), " ", "rules you have selected are being created.")), _react2.default.createElement(_guiElements.CardActions, {
                 fixed: !0
             }, _react2.default.createElement(_guiElements.ProgressButton, {
                 progress: 0,
@@ -38592,7 +38592,7 @@
             }, _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
                 onClick: this.toggleDefaultProperties
-            }, this.state.showDefaultProperties ? "Hide" : "Show", " default properties"), _react2.default.createElement(_guiElements.MenuItem, {
+            }, this.state.showDefaultProperties ? "Hide" : "Show", " ", "default properties"), _react2.default.createElement(_guiElements.MenuItem, {
                 className: "ecc-silk-mapping__ruleslistmenu__item-select-all",
                 onClick: this.checkAll
             }, "Select all"), _react2.default.createElement(_guiElements.MenuItem, {

@@ -242,10 +242,15 @@ const RuleValueView = React.createClass({
                                         Value formula
                                     </dt>
                                     <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                        Formula uses {paths.length} value path{paths.length > 1 ? 's' : ''}:&nbsp;
+                                        Formula uses {paths.length} value path{paths.length >
+                                        1
+                                            ? 's'
+                                            : ''}:&nbsp;
                                         <code>{paths.join(', ')}</code>
                                         &nbsp;and {operators.length} operator
-                                        function{operators.length > 1 ? 's' : ''}:&nbsp;
+                                        function{operators.length > 1
+                                            ? 's'
+                                            : ''}:&nbsp;
                                         <code>{operators.join(', ')}</code>.
                                         <Button
                                             raised
@@ -326,7 +331,8 @@ const RuleValueView = React.createClass({
                                         uri: this.props.mappingTarget.uri,
                                         type: this.props.type,
                                         parent: this.props.parentId,
-                                    })}
+                                    })
+                            }
                             disabled={false}>
                             Remove
                         </DisruptiveButton>

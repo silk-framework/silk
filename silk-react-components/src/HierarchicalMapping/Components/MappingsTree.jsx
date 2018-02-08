@@ -161,9 +161,11 @@ const MappingsTree = React.createClass({
             return (
                 <div>
                     <div
-                        className={`ecc-silk-mapping__treenav--item${isHighlighted
-                            ? ' ecc-silk-mapping__treenav--item-active'
-                            : ''}`}>
+                        className={`ecc-silk-mapping__treenav--item${
+                            isHighlighted
+                                ? ' ecc-silk-mapping__treenav--item-active'
+                                : ''
+                        }`}>
                         {!_.isEmpty(childs) ? (
                             <Button
                                 className="ecc-silk-mapping__treenav--item-toggler"

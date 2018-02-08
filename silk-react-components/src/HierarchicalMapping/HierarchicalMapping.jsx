@@ -281,8 +281,9 @@ const HierarchicalMapping = React.createClass({
                     You currently have unsaved changes{this.state
                         .editingElements.length === 1
                         ? ''
-                        : ` in ${this.state.editingElements
-                              .length} mapping rules`}.
+                        : ` in ${
+                              this.state.editingElements.length
+                          } mapping rules`}.
                 </p>
             </ConfirmationDialog>
         ) : (
