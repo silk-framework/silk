@@ -39,8 +39,11 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     * Closes this writer.
     */
   def close(): Unit = {
-    csvWriter.close()
-    writer.close()
+    try {
+      csvWriter.close()
+    } finally {
+      writer.close()
+    }
     // If we are using a string writer, we still need to write the data to the resource
     writer match {
       case stringWriter: StringWriter =>

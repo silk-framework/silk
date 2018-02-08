@@ -35,6 +35,7 @@ POST          /tasks/:project/:task/rule/:rule/rules                            
 POST          /tasks/:project/:task/rule/:rule/rules/reorder                       controllers.transform.TransformTaskApi.reorderRules(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/reloadCache                                    controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
+GET           /tasks/:project/:task/downloadOutput                                 controllers.transform.TransformTaskApi.downloadOutput(project: String, task: String)
 
 POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/peak/:rule/childRule                           controllers.transform.PeakTransformApi.peakChildRule(project: String, task: String, rule: String)

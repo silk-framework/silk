@@ -29,8 +29,6 @@ trait RdfSink {
         val model = formatter.formatAsRDF(link, predicateUri)
         val outputStream = new ByteArrayOutputStream()
         RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
-        outputStream.flush()
-        outputStream.close()
         val result = outputStream.toString("UTF-8")
         (result, result.split("\n").length)
       case None =>

@@ -60,8 +60,12 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse( """?a\ex:prop[rdf:type = <http://www.example.org/Car>]""") should equal(Path(BackwardOperator("http://www.example.org/prop") :: PropertyFilter("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "=", "<http://www.example.org/Car>") :: Nil))
   }
 
-  it should "parse language filterss" in {
+  it should "parse language filters" in {
     p.parse( """?a/ex:prop[@lang = 'en']""") should equal(Path(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
+  }
+
+  it should "parse a simplified relative URI forward path" in {
+    p.parse("<relative>") shouldBe Path(List(ForwardOperator("relative")))
   }
 
   it should "parse a path with conflicting prefixes with /" in {
