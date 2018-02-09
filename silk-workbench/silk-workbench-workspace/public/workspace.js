@@ -126,20 +126,29 @@ function workspaceDialog(relativePath) {
 }
 
 function handleError(request, callback) {
-    var responseJson = JSON.parse(request.responseText);
-    var responseMessage = responseJson.message; // Old format
-    if (responseMessage === undefined) {
-        if (responseJson.title === 'Bad Request') {
-            responseMessage = 'Task could not be saved! Details: ';
-        } else {
-            responseMessage = '';
+    var responseMessage = void 0;
+    try {
+        var responseJson = JSON.parse(request.responseText);
+        responseMessage = responseJson.message; // Old format
+        if (responseMessage === undefined) {
+            if (responseJson.title === 'Bad Request') {
+                responseMessage = 'Task could not be saved! Details: ';
+            } else {
+                responseMessage = '';
+            }
+            var finestDetail = responseJson;
+            while (finestDetail.cause !== null) {
+                finestDetail = finestDetail.cause;
+            }
+            responseMessage += finestDetail.title;
+            responseMessage = responseMessage + ': ' + finestDetail.detail;
         }
-        var finestDetail = responseJson;
-        while (finestDetail.cause !== null) {
-            finestDetail = finestDetail.cause;
+    } catch (e) {
+        responseMessage = 'Task could not be saved!';
+
+        if (request.responseText && request.responseText.length > 0) {
+            responseMessage += ' Details: ' + request.responseText;
         }
-        responseMessage += finestDetail.title;
-        responseMessage = responseMessage + ': ' + finestDetail.detail;
     }
     callback(responseMessage);
 }
@@ -160,7 +169,6 @@ function putTask(project, task, json) {
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
-        dataType: 'json',
         error: function error(request) {
             handleError(request, callbacks.error);
         },
@@ -183,7 +191,6 @@ function postTask(project, json) {
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
-        dataType: 'json',
         error: function error(request) {
             handleError(request, callbacks.error);
         },

@@ -130,20 +130,29 @@ function workspaceDialog(relativePath) {
 }
 
 function handleError(request, callback) {
-    const responseJson = JSON.parse(request.responseText);
-    let responseMessage = responseJson.message; // Old format
-    if (responseMessage === undefined) {
-        if (responseJson.title === 'Bad Request') {
-            responseMessage = 'Task could not be saved! Details: ';
-        } else {
-            responseMessage = '';
+    let responseMessage;
+    try {
+        const responseJson = JSON.parse(request.responseText);
+        responseMessage = responseJson.message; // Old format
+        if (responseMessage === undefined) {
+            if (responseJson.title === 'Bad Request') {
+                responseMessage = 'Task could not be saved! Details: ';
+            } else {
+                responseMessage = '';
+            }
+            let finestDetail = responseJson;
+            while (finestDetail.cause !== null) {
+                finestDetail = finestDetail.cause;
+            }
+            responseMessage += finestDetail.title;
+            responseMessage = `${responseMessage}: ${finestDetail.detail}`;
         }
-        let finestDetail = responseJson;
-        while (finestDetail.cause !== null) {
-            finestDetail = finestDetail.cause;
+    } catch (e) {
+        responseMessage = 'Task could not be saved!';
+
+        if (request.responseText && request.responseText.length > 0) {
+            responseMessage += ` Details: ${request.responseText}`;
         }
-        responseMessage += finestDetail.title;
-        responseMessage = `${responseMessage}: ${finestDetail.detail}`;
     }
     callback(responseMessage);
 }
@@ -167,7 +176,6 @@ function putTask(
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
-        dataType: 'json',
         error(request) {
             handleError(request, callbacks.error);
         },
@@ -192,7 +200,6 @@ function postTask(
         contentType: 'application/json;charset=UTF-8',
         processData: false,
         data: JSON.stringify(json),
-        dataType: 'json',
         error(request) {
             handleError(request, callbacks.error);
         },
