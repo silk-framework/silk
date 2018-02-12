@@ -15,7 +15,7 @@ import {
     PerformanceMixin,
     BreadcrumbList,
     BreadcrumbItem,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 
 import Navigation from '../Mixins/Navigation';
 import {

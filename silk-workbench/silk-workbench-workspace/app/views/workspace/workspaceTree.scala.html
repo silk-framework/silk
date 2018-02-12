@@ -17,7 +17,7 @@
     });
 
     var to = false;
-    $('#workspaceSearch').keyup(function () {
+    $('#workspaceSearch').on('keyup', function () {
       if(to) { clearTimeout(to); }
       to = setTimeout(function () {
         var v = $('#workspaceSearch').val();

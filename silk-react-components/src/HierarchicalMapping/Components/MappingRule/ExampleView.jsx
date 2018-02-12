@@ -1,5 +1,5 @@
 import React from 'react';
-import {Spinner, Chip} from 'ecc-gui-elements';
+import {Spinner, Chip} from '@eccenca/gui-elements';
 import ErrorView from './ErrorView';
 import _ from 'lodash';
 

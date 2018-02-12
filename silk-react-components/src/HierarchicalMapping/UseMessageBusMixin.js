@@ -15,15 +15,17 @@ const UseMessageBus = {
             switch (action) {
                 case 'onNext':
                     console.log(
-                        `UseMessageBus: ${this.constructor
-                            .displayName} sent on ${channel}:${subjName}`,
+                        `UseMessageBus: ${
+                            this.constructor.displayName
+                        } sent on ${channel}:${subjName}`,
                         ...args
                     );
                     break;
                 case 'subscribe':
                     console.log(
-                        `UseMessageBus: ${this.constructor
-                            .displayName} subscribed on ${channel}:${subjName}`
+                        `UseMessageBus: ${
+                            this.constructor.displayName
+                        } subscribed on ${channel}:${subjName}`
                     );
                     break;
                 default:

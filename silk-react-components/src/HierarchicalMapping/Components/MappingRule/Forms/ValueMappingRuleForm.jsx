@@ -10,7 +10,7 @@ import {
     Spinner,
     ScrollingMixin,
     Checkbox,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
@@ -123,9 +123,13 @@ const ValueMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: trimValueLabelObject(this.state.targetProperty),
+                    targetProperty: trimValueLabelObject(
+                        this.state.targetProperty
+                    ),
                     propertyType: this.state.propertyType,
-                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
+                    sourceProperty: trimValueLabelObject(
+                        this.state.sourceProperty
+                    ),
                     isAttribute: this.state.isAttribute,
                 },
             })

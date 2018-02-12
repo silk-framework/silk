@@ -7,7 +7,7 @@ import {
     Radio,
     RadioGroup,
     NotAvailable,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
@@ -235,9 +235,9 @@ const ObjectRule = React.createClass({
                     URI uses {paths.length} value{' '}
                     {paths.length > 1 ? 'paths' : 'path'}:&nbsp;
                     <code>{paths.join(', ')}</code>&nbsp;and {operators.length}&nbsp;
-                    operator {operators.length > 1
-                        ? 'functions'
-                        : 'function'}:&nbsp;<code>{operators.join(', ')}</code>.
+                    operator {operators.length > 1 ? 'functions' : 'function'}:&nbsp;<code>
+                        {operators.join(', ')}
+                    </code>.
                 </span>
             );
             tooltipText = 'Edit URI formula';
@@ -372,7 +372,8 @@ const ObjectRule = React.createClass({
                                 uri: this.props.mappingTarget.uri,
                                 type: this.props.type,
                                 parent: this.props.parentId,
-                            })}>
+                            })
+                    }>
                     Remove
                 </DisruptiveButton>
             );

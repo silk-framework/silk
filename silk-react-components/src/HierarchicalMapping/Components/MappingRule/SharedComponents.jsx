@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon, Button, NotAvailable} from 'ecc-gui-elements';
+import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
 
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
@@ -16,7 +16,7 @@ export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
     const label = _.get(rule, 'metadata.label', '');
     if (label) {
-        return (<span>{label}</span>);
+        return <span>{label}</span>;
     }
     switch (rule.type) {
         case MAPPING_RULE_TYPE_ROOT:
@@ -75,7 +75,6 @@ export const SourcePath = ({rule}) => {
 };
 
 export const RuleTreeTitle = ({rule}) => {
-
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
 
     return (
@@ -188,9 +187,9 @@ const PropertyTypeInfo = React.createClass({
                 () => {
                     if (__DEBUG__) {
                         console.warn(
-                            `No ${this.props
-                                .option} found for the property type ${this
-                                .props.name}`
+                            `No ${
+                                this.props.option
+                            } found for the property type ${this.props.name}`
                         );
                     }
                     this.setState({
@@ -290,10 +289,9 @@ export const InfoBox = React.createClass({
     render() {
         return (
             <div
-                className={`ecc-silk-mapping__rulesviewer__infobox${!this.state
-                    .expanded
-                    ? ' is-narrowed'
-                    : ''}`}>
+                className={`ecc-silk-mapping__rulesviewer__infobox${
+                    !this.state.expanded ? ' is-narrowed' : ''
+                }`}>
                 <Button
                     className="ecc-silk-mapping__rulesviewer__infobox-toggler"
                     iconName={

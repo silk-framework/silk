@@ -1,8 +1,8 @@
 import React from 'react';
-import {SelectBox, Checkbox, NotAvailable} from 'ecc-gui-elements';
+import {SelectBox, Checkbox, NotAvailable} from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import {SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES} from "../helpers";
-import _ from "lodash";
+import {SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES} from '../helpers';
+import _ from 'lodash';
 
 const SuggestionsRule = React.createClass({
     mixins: [UseMessageBus],
@@ -11,11 +11,8 @@ const SuggestionsRule = React.createClass({
     // FIXME: check propTypes
     propTypes: {},
     componentDidMount() {},
-    shouldComponentUpdate(nextProps, nextState){
-        return !_.isEqual(
-            nextProps.suggestion,
-            this.props.suggestion
-        )
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(nextProps.suggestion, this.props.suggestion);
     },
     preventPropagation(event) {
         event.stopPropagation();
@@ -31,12 +28,13 @@ const SuggestionsRule = React.createClass({
             id: this.props.suggestion.id,
             type: value,
         });
-
     },
     // template rendering
     render() {
         const {suggestion} = this.props;
-        let title = `Click to add the suggested value mapping:\n\nValue path: ${suggestion.sourcePath}`;
+        let title = `Click to add the suggested value mapping:\n\nValue path: ${
+            suggestion.sourcePath
+        }`;
 
         let targetProperty;
 
@@ -53,7 +51,10 @@ const SuggestionsRule = React.createClass({
         }
 
         return (
-            <li className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${suggestion.checked ? 'selected':'unselected'}`}>
+            <li
+                className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${
+                    suggestion.checked ? 'selected' : 'unselected'
+                }`}>
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">
                         <div className="ecc-silk-mapping__suggestitem-checkbox">
@@ -73,16 +74,18 @@ const SuggestionsRule = React.createClass({
                             <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                 {targetProperty}
                             </div>
-                            <div className={`ecc-silk-mapping__suggestitem-typeselect`} onClick={this.preventPropagation}>
+                            <div
+                                className={`ecc-silk-mapping__suggestitem-typeselect`}
+                                onClick={this.preventPropagation}>
                                 <SelectBox
                                     disabled={!suggestion.checked}
                                     options={LABELED_SUGGESTION_TYPES}
                                     onChange={this.onChangeType}
                                     value={{
                                         value: suggestion.type,
-                                        label: LABELED_SUGGESTION_TYPES
-                                            .filter(v => v.value===suggestion.type)[0]
-                                            .label,
+                                        label: LABELED_SUGGESTION_TYPES.filter(
+                                            v => v.value === suggestion.type
+                                        )[0].label,
                                     }}
                                     clearable={false}
                                 />
