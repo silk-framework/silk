@@ -20,9 +20,11 @@ import java.util.logging.Logger
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
+import scala.util.control.NonFatal
+
 class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
-  private val logger = Logger.getLogger(classOf[Workspace].getName)
+  private val log = Logger.getLogger(classOf[Workspace].getName)
 
   @volatile
   private var cachedProjects = loadProjects()
@@ -99,7 +101,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       project <- projects
       task <- project.allTasks
     } {
-      task.flush()
+      try {
+        task.flush()
+      } catch {
+        case NonFatal(ex) =>
+          log.warning(s"Could not persist task ${task.id} of project ${project.config.id} to workspace provider. Reason: " + ex.getMessage)
+      }
     }
   }
 
@@ -134,7 +141,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   private def loadProjects(): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
-      logger.info("Loading project: " + projectConfig.id)
+      log.info("Loading project: " + projectConfig.id)
       new Project(projectConfig, provider, repository.get(projectConfig.id))
     }
   }
