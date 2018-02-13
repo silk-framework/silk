@@ -1,6 +1,6 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{InputStream, OutputStream}
+import java.io.{BufferedOutputStream, InputStream, OutputStream}
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
@@ -40,7 +40,7 @@ trait GraphStoreTrait {
     *
     * @param graph
    * @param contentType
-   * @return
+   * @return A buffered output stream
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
@@ -97,7 +97,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   private lazy val outputStream = {
     connection.connect()
-    connection.getOutputStream()
+    new BufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {
@@ -106,13 +106,12 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   override def close(): Unit = {
     try {
-      outputStream.flush()
       outputStream.close()
       val responseCode = connection.getResponseCode
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        errorHandler(connection, s"Could not write to HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -134,7 +133,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       connection.getInputStream
     } catch {
       case NonFatal(_) =>
-        errorHandler(connection, s"Could not read from HTTP connection. Got ${connection.getResponseCode} response code.")
+        errorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
     }
   }
 
@@ -147,7 +146,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        errorHandler(connection, s"Could not read from HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
       }
     } finally {
       connection.disconnect()

@@ -7,7 +7,7 @@ import {
     CardContent,
     FloatingActionList,
     Info,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
@@ -53,30 +53,26 @@ const MappingsList = React.createClass({
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
             fromPos,
-            toPos,
+            toPos
         );
-        hierarchicalMappingChannel.request({
-            topic: 'rule.orderRule',
-            data: {
-                reload,
-                childrenRules,
-                fromPos,
-                toPos,
-                id: this.props.currentRuleId,
-            },
-        }).subscribe(
-            () => {
+        hierarchicalMappingChannel
+            .request({
+                topic: 'rule.orderRule',
+                data: {
+                    reload,
+                    childrenRules,
+                    fromPos,
+                    toPos,
+                    id: this.props.currentRuleId,
+                },
+            })
+            .subscribe(() => {
                 // reload mapping tree
                 hierarchicalMappingChannel.subject('reload').onNext();
-            },
-        );
+            });
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
-        const items = this.reorder(
-            this.state.items,
-            fromPos,
-            toPos,
-        );
+        const items = this.reorder(this.state.items, fromPos, toPos);
         this.setState({
             items,
         });
@@ -96,8 +92,10 @@ const MappingsList = React.createClass({
         }
         const reload = false;
         this.orderRules({
-            fromPos, toPos, reload
-        })
+            fromPos,
+            toPos,
+            reload,
+        });
     },
     getItems(rules) {
         return _.map(rules, (rule, i) => ({

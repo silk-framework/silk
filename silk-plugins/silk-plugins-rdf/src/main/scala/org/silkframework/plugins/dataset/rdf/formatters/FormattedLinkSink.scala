@@ -11,6 +11,7 @@ import org.silkframework.runtime.resource.{FileResource, WritableResource}
  * A link sink that writes formatted links to an output stream of a resource.
  */
 class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) extends LinkSink {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   // We optimize cases in which the resource is a file resource
@@ -19,14 +20,14 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     case _ => None
   }
 
-  private var formattedLinkWriter: Writer = null
+  private var formattedLinkWriter: Option[Writer] = None
 
   private def write(s: String): Unit = {
     formattedLinkWriter match {
-      case writer: Writer =>
+      case Some(writer) =>
         writer.write(s)
-      case _ =>
-        log.warning("Not initialized!")
+      case None =>
+        log.warning("Tried to write to a link sink that is not open")
     }
   }
 
@@ -35,9 +36,9 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     formattedLinkWriter = javaFile match {
       case Some(file) =>
         file.getParentFile.mkdirs()
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
+        Some(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8"))
       case None =>
-        new StringWriter()
+        Some(new StringWriter())
     }
     //Write header
     write(formatter.header)
@@ -49,15 +50,17 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
 
   override def close() {
     formattedLinkWriter match {
-      case writer: Writer =>
+      case Some(writer: StringWriter) =>
         write(formatter.footer)
-        writer.flush()
-        writer.close()
-        if(writer.isInstanceOf[StringWriter]) {
-          resource.writeString(writer.asInstanceOf[StringWriter].toString, append = true)
+        resource.writeString(writer.toString, append = true)
+      case Some(writer: Writer) =>
+        try {
+          write(formatter.footer)
+        } finally {
+          writer.close()
         }
-      case _ =>
-        log.warning("Not initialized!")
+      case None =>
+        log.warning("Closing link sink that is already closed")
         // Nothing to be done
     }
     formattedLinkWriter = null

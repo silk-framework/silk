@@ -11,7 +11,7 @@ import {
     TextField,
     Spinner,
     ScrollingMixin,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
@@ -139,8 +139,12 @@ const ObjectMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
-                    targetProperty: trimValueLabelObject(this.state.targetProperty),
+                    sourceProperty: trimValueLabelObject(
+                        this.state.sourceProperty
+                    ),
+                    targetProperty: trimValueLabelObject(
+                        this.state.targetProperty
+                    ),
                     targetEntityType: this.state.targetEntityType,
                     pattern: this.state.pattern,
                     entityConnection: this.state.entityConnection === 'to',
@@ -200,7 +204,7 @@ const ObjectMappingRuleForm = React.createClass({
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
     getExampleView() {
-        if (this.state.pattern){
+        if (this.state.pattern) {
             return (
                 <ExampleView
                     id={this.props.parentId || 'root'}
@@ -211,17 +215,17 @@ const ObjectMappingRuleForm = React.createClass({
                     ruleType={MAPPING_RULE_TYPE_URI}
                 />
             );
+        } else if (this.state.uriRule) {
+            return (
+                <ExampleView
+                    id={this.props.parentId || 'root'}
+                    rawRule={this.state.uriRule}
+                    ruleType={this.state.uriRule.type}
+                />
+            );
         }
-        else if (this.state.uriRule) {
-            return <ExampleView
-                id={this.props.parentId || 'root'}
-                rawRule={this.state.uriRule}
-                ruleType={this.state.uriRule.type}
-            />;
-        }
-        else {
-            return false;
-        }
+
+        return false;
     },
     // template rendering
     render() {

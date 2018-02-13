@@ -37,6 +37,6 @@
   primary_dialog.querySelector('#dialog-secondary-button').addEventListener('click', function() {
     dialog_secondary();
   });
-  $(".dialog__error-msg").click(function() { $(this).fadeToggle(); });
+  $(".dialog__error-msg").on('click', function() { $(this).fadeToggle(); });
 </script>
 

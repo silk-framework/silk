@@ -76,7 +76,7 @@ object ParameterType {
     * All available static parameter types.
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, StringMapType, UriType, ResourceType,
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType)
   }
 
@@ -172,6 +172,26 @@ object ParameterType {
         case "false" | "0" => false
         case _ => throw new ValidationException("Value must be either 'true' or 'false'")
       }
+    }
+
+  }
+
+  object IntOptionType extends ParameterType[Option[Int]] {
+
+    override def name: String = "option[int]"
+
+    override def description: String = "An optional integer number."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Option[Int] = {
+      if(str.trim.isEmpty) {
+        None
+      } else {
+        Some(str.toInt)
+      }
+    }
+
+    override def toString(value: Option[Int])(implicit prefixes: Prefixes): String = {
+      value.map(_.toString).getOrElse("")
     }
 
   }

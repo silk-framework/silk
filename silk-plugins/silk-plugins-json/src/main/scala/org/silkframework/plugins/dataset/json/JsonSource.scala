@@ -70,12 +70,16 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   }
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val json = JsonTraverser(file)(codec)
-    val selectedElements = json.select(basePathParts)
-    (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
-      Path(path.toList).serialize
-    }) map  (p => (p, 1.0))
+    if(file.nonEmpty) {
+      val json = JsonTraverser(file)(codec)
+      val selectedElements = json.select(basePathParts)
+      (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
+            path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
+        Path(path.toList).serialize
+      }) map (p => (p, 1.0))
+    } else {
+      Traversable.empty
+    }
   }
 
   private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {

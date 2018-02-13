@@ -237,8 +237,7 @@ const generateRule = (rule, parentId) =>
         .catch(e => Rx.Observable.return({error: e, rule}));
 
 const createGeneratedRules = ({rules, parentId}) =>
-    Rx.Observable
-        .from(rules)
+    Rx.Observable.from(rules)
         .flatMapWithMaxConcurrent(5, rule =>
             Rx.Observable.defer(() => generateRule(rule, parentId))
         )
@@ -258,7 +257,6 @@ const createGeneratedRules = ({rules, parentId}) =>
             return all;
         }, [])
         .map(createdRules => {
-
             const failedRules = _.filter(createdRules, 'error');
 
             if (_.size(failedRules)) {
@@ -346,43 +344,47 @@ if (!__DEBUG__) {
     hierarchicalMappingChannel
         .subject('rule.suggestions')
         .subscribe(({data, replySubject}) => {
-            Rx.Observable
-                .forkJoin(
-                    silkStore
-                        .request({
-                            topic: 'transform.task.rule.suggestions',
-                            data: {...apiDetails, ...data},
-                        })
-                        .catch(() => Rx.Observable.return(null))
-                        .map(returned => {
-                            const body = _.get(returned, 'body', []);
-
-                            const suggestions = [];
-
-                            _.forEach(body, (sources, target) => {
-                                _.forEach(sources, ({uri, type, confidence}) => {
-                                    suggestions.push(
-                                        new Suggestion(uri, type, target, confidence)
-                                    );
-                                });
-                            });
-                            return suggestions;
-                        }),
-                    silkStore
-                        .request({
-                            topic: 'transform.task.rule.valueSourcePaths',
-                            data: {unusedOnly: true, ...apiDetails, ...data},
-                        })
-                        .catch(() => Rx.Observable.return(null))
-                        .map(returned => {
-                            const body = _.get(returned, 'body', []);
-
-                            return _.map(body, path => new Suggestion(path));
-                        }),
-                    (arg1, arg2) => ({
-                        suggestions: _.concat([], arg1, arg2),
+            Rx.Observable.forkJoin(
+                silkStore
+                    .request({
+                        topic: 'transform.task.rule.suggestions',
+                        data: {...apiDetails, ...data},
                     })
-                )
+                    .catch(() => Rx.Observable.return(null))
+                    .map(returned => {
+                        const body = _.get(returned, 'body', []);
+
+                        const suggestions = [];
+
+                        _.forEach(body, (sources, target) => {
+                            _.forEach(sources, ({uri, type, confidence}) => {
+                                suggestions.push(
+                                    new Suggestion(
+                                        uri,
+                                        type,
+                                        target,
+                                        confidence
+                                    )
+                                );
+                            });
+                        });
+                        return suggestions;
+                    }),
+                silkStore
+                    .request({
+                        topic: 'transform.task.rule.valueSourcePaths',
+                        data: {unusedOnly: true, ...apiDetails, ...data},
+                    })
+                    .catch(() => Rx.Observable.return(null))
+                    .map(returned => {
+                        const body = _.get(returned, 'body', []);
+
+                        return _.map(body, path => new Suggestion(path));
+                    }),
+                (arg1, arg2) => ({
+                    suggestions: _.concat([], arg1, arg2),
+                })
+            )
                 .multicast(replySubject)
                 .connect();
         });
@@ -419,7 +421,9 @@ if (!__DEBUG__) {
                     case MAPPING_RULE_TYPE_COMPLEX_URI:
                         return rawRule;
                     default:
-                        throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
+                        throw new Error(
+                            'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")'
+                        );
                 }
             };
             const rule = getRule(rawRule, ruleType);
@@ -705,8 +709,7 @@ if (!__DEBUG__) {
                         sourcePath: correspondence.sourcePath,
                         type: MAPPING_RULE_TYPE_DIRECT,
                     });
-                }
-                else if (correspondence.type === SUGGESTION_TYPES[1]) {
+                } else if (correspondence.type === SUGGESTION_TYPES[1]) {
                     rules.push({
                         metadata: {
                             description: _.includes(
@@ -716,24 +719,22 @@ if (!__DEBUG__) {
                                 ? 'error'
                                 : '',
                         },
-                        type : MAPPING_RULE_TYPE_OBJECT,
-                        sourcePath : correspondence.sourcePath,
-                        mappingTarget : {
+                        type: MAPPING_RULE_TYPE_OBJECT,
+                        sourcePath: correspondence.sourcePath,
+                        mappingTarget: {
                             uri: correspondence.targetProperty,
-                            valueType : {
-                                nodeType : "AutoDetectValueType"
+                            valueType: {
+                                nodeType: 'AutoDetectValueType',
                             },
-                            isBackwardProperty: false
+                            isBackwardProperty: false,
                         },
                     });
-                }
-                else {
-                    alert('holy crap!')
+                } else {
+                    alert('holy crap!');
                 }
             });
 
-            Rx.Observable
-                .return({rules, parentId})
+            Rx.Observable.return({rules, parentId})
                 .flatMap(createGeneratedRules)
                 .multicast(replySubject)
                 .connect();
@@ -754,38 +755,38 @@ if (!__DEBUG__) {
                     {
                         uri: '/surname',
                         confidence: 0.21,
-                        type: 'object'
+                        type: 'object',
                     },
                     {
                         uri: '/name',
                         confidence: 0.0170975813177648,
-                        type: 'object'
+                        type: 'object',
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/birthday': [
                     {
                         uri: '/birthdate',
                         confidence: 0.043659343420819535,
-                        type: 'object'
+                        type: 'object',
                     },
                 ],
                 'http://xmlns.com/foaf/0.1/lastName': [
                     {
                         uri: '/surname',
                         confidence: 0.001,
-                        type: 'value'
+                        type: 'value',
                     },
                     {
                         uri: '/name',
                         confidence: 0.00458715596330274,
-                        type: 'value'
+                        type: 'value',
                     },
                 ],
                 'http://schema.org/birthDate': [
                     {
                         uri: '/birthdate',
                         confidence: 0.07339449541284403,
-                        type: 'value'
+                        type: 'value',
                     },
                 ],
             };
@@ -804,23 +805,20 @@ if (!__DEBUG__) {
             for (let i = 0; i < 10; i++) {
                 _.forEach(suggRaw, (sources, target) => {
                     _.forEach(sources, ({uri, type, confidence}) => {
-                        suggestions.push(new Suggestion(
-                            uri + (i < 1 ? '': i),
-                            type,
-                            target,
-                            confidence
-                        ));
+                        suggestions.push(
+                            new Suggestion(
+                                uri + (i < 1 ? '' : i),
+                                type,
+                                target,
+                                confidence
+                            )
+                        );
                     });
                 });
             }
 
             _.forEach(directRaw, source => {
-                suggestions.push(new Suggestion(
-                    source,
-                    "value",
-                    null,
-                    0,
-                ));
+                suggestions.push(new Suggestion(source, 'value', null, 0));
             });
             replySubject.onNext({
                 suggestions,
@@ -893,9 +891,12 @@ if (!__DEBUG__) {
                 options: _.filter(
                     result,
                     ({value, label, description}) =>
-                        _.includes(value.toLocaleLowerCase(), search) ||
-                        _.includes(label.toLocaleLowerCase(), search) ||
-                        _.includes(description.toLocaleLowerCase(), search)
+                        _.includes((value || '').toLocaleLowerCase(), search) ||
+                        _.includes((label || '').toLocaleLowerCase(), search) ||
+                        _.includes(
+                            (description || '').toLocaleLowerCase(),
+                            search
+                        )
                 ),
             });
 
@@ -920,9 +921,11 @@ if (!__DEBUG__) {
                         '/name',
                         '/otherProperty',
                         '/evenLongerProperty',
-                        '/another:urn:Very+long+property+from+a+column-header'
+                        '/another:urn:Very+long+property+from+a+column-header',
                     ],
-                    ['/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate']
+                    [
+                        '/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate',
+                    ],
                 ],
                 results: [
                     {
@@ -949,12 +952,10 @@ if (!__DEBUG__) {
         .subscribe(({replySubject}) => {
             const example = {
                 sourcePaths: [
+                    ['/name'],
                     [
-                        '/name'
+                        '/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate',
                     ],
-                    [
-                        '/whatever:urn:This+is+a+very+very+very+very+very+very+very+very+very+very+long+column+title+just+to+have+a+header+to+describe+the+birthdate'
-                    ]
                 ],
                 results: [
                     {
@@ -985,7 +986,7 @@ if (!__DEBUG__) {
                                 'fibo-whatever-1',
                                 'fibo-another-stuff',
                             ],
-                            ['7/21/1977']
+                            ['7/21/1977'],
                         ],
                         transformedValues: ['abigale purdy7/21/1977'],
                     },
@@ -1168,16 +1169,16 @@ if (!__DEBUG__) {
         if (_.has(store, 'rules.propertyRules')) {
             if (id === store.id) {
                 store.rules.propertyRules = _.map(childrenRules, ruleId =>
-                    _.find(store.rules.propertyRules, rule =>
-                        rule.id === ruleId)
-                )
-            }
-            else {
+                    _.find(
+                        store.rules.propertyRules,
+                        rule => rule.id === ruleId
+                    )
+                );
+            } else {
                 store.rules.propertyRules = store.rules.propertyRules.map(
                     rule => orderRule(rule, id, fromPos, toPos)
-                )
+                );
             }
-
         }
         return store;
     };
@@ -1186,7 +1187,11 @@ if (!__DEBUG__) {
         .subject('rule.orderRule')
         .subscribe(({data, replySubject}) => {
             const {id, childrenRules, reload} = data;
-            mockStore = orderRule(_.chain(mockStore).value(), id, childrenRules);
+            mockStore = orderRule(
+                _.chain(mockStore).value(),
+                id,
+                childrenRules
+            );
             saveMockStore(reload);
             replySubject.onNext();
             replySubject.onCompleted();

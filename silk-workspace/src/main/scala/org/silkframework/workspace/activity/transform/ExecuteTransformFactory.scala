@@ -4,7 +4,7 @@ import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
@@ -15,14 +15,17 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."
 )
-case class ExecuteTransformFactory() extends TaskActivityFactory[TransformSpec, ExecuteTransform] {
+case class ExecuteTransformFactory(
+                                   @Param("Limits the maximum number of entities that are transformed.")
+                                   limit: Option[Int] = None) extends TaskActivityFactory[TransformSpec, ExecuteTransform] {
 
   def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
     Activity.regenerating {
       new ExecuteTransform(
         task.dataSource,
         task.data,
-        new CombinedEntitySink(task.entitySinks)
+        new CombinedEntitySink(task.entitySinks),
+        limit
       )
     }
   }

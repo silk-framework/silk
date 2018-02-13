@@ -28,6 +28,15 @@
         loadCometStream();
       });
       loadCometStream();
+      // Restore scroll position on reload
+      setTimeout(function() {
+        const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
+        console.log(scrollTop);
+        if(!isNaN(scrollTop) && scrollTop > 50) {
+          document.getElementsByClassName("mdl-layout__content")[0].scrollTop = scrollTop;
+        }
+        sessionStorage.removeItem("activityViewScrollPosition");
+      }, 1000);
     });
 
     function loadCometStream() {
