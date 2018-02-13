@@ -47,9 +47,9 @@
 <script type="text/javascript">
   function updateStatus(status) {
     // Get control node
-    var control = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
-    var progressbar = control.children(".activity-progress");
-    var tooltip = control.children(".mdl-tooltip");
+    let control = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
+    let progressbar = control.children(".activity-progress");
+    let tooltip = control.children(".mdl-tooltip");
 
     // Initialize progress bar
     if(progressbar.find(".ui-progressbar-value").length == 0) {
@@ -57,14 +57,15 @@
     }
 
     // Get progress bar child nodes
-    var progressbarValue = progressbar.find(".ui-progressbar-value");
-    var progressbarText = progressbar.find(".activity-progress-text");
-    var progressbarHelp = progressbar.find(".activity-progress-help");
+    let progressbarValue = progressbar.find(".ui-progressbar-value");
+    let progressbarText = progressbar.find(".activity-progress-text");
+    let progressbarHelp = progressbar.find(".activity-progress-help");
 
     // Update values
     tooltip.text(status.message);
     if(status.failed) {
       progressbar.progressbar("option", {value: 100});
+      progressbarValue.addClass('status_red');
       progressbarValue.css({
         "background": '#FF5050'
       });
@@ -75,14 +76,15 @@
       progressbarValue.css({
         "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
       });
+      progressbarValue.addClass('status_green');
       progressbarText.text(status.message);
       progressbarHelp.hide();
     }
 
     // Enable/Disable start/stop buttons
-    var startButton = control.children("button[name='start']");
-    var resetButton = control.children("button[name='reset']");
-    var stopButton = control.children("button[name='stop']");
+    let startButton = control.children("button[name='start']");
+    let resetButton = control.children("button[name='reset']");
+    let stopButton = control.children("button[name='stop']");
     startButton.attr("disabled", status.isRunning);
     resetButton.attr("disabled", status.isRunning);
     stopButton.attr("disabled", !status.isRunning);
