@@ -143,7 +143,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(wr) =>
-                wr.writeStream(inputResource.inputStream)
+                wr.writeResource(inputResource)
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")

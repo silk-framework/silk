@@ -163,9 +163,7 @@ class WorkspaceApi extends Controller {
       case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
         try {
           val file = formData.files.head.ref.file
-          val inputStream = new FileInputStream(file)
-          resource.writeStream(inputStream)
-          inputStream.close()
+          resource.writeFile(file)
           Ok
         } catch {
           case ex: Exception =>
@@ -176,9 +174,7 @@ class WorkspaceApi extends Controller {
           val dataParts = formData.dataParts("resource-url")
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
-          val inputStream = urlResource.inputStream
-          resource.writeStream(inputStream)
-          inputStream.close()
+          resource.writeResource(urlResource)
           Ok
         } catch {
           case ex: Exception =>
