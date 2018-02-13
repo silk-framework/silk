@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io._
+import java.nio.file.{Files, StandardCopyOption}
 import java.time.Instant
 
 /**
@@ -40,6 +41,13 @@ case class FileResource(file: File) extends WritableResource {
     } finally {
       outputStream.close()
     }
+  }
+
+  /**
+    * Writes a file.
+    */
+  override def writeFile(file: File): Unit = {
+    Files.copy(this.file.toPath, file.toPath, StandardCopyOption.REPLACE_EXISTING)
   }
 
   /**

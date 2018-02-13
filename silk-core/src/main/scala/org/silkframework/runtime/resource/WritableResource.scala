@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import java.io.{InputStream, OutputStream}
+import java.io.{File, FileInputStream, InputStream, OutputStream}
 
 trait WritableResource extends Resource {
 
@@ -15,15 +15,36 @@ trait WritableResource extends Resource {
     * Writes the contents of a provided input stream.
     * Does not close the input stream.
     */
-  def writeStream(inputStream: InputStream, append: Boolean = false) {
-    write(append) { outputStream =>
-      var b = inputStream.read()
-      while(b != -1) {
-        outputStream.write(b)
-        b = inputStream.read()
+  def writeStream(inputStream: InputStream, append: Boolean = false, closeStream: Boolean = false): Unit = {
+    try {
+      write(append) { outputStream =>
+        var b = inputStream.read()
+        while (b != -1) {
+          outputStream.write(b)
+          b = inputStream.read()
+        }
+      }
+    } finally {
+      if(closeStream) {
+        inputStream.close()
       }
     }
   }
+
+  /**
+    * Writes a file.
+    */
+  def writeFile(file: File): Unit = {
+    writeStream(new FileInputStream(file), closeStream = true)
+  }
+
+  /**
+    * Writes the contents of another resource.
+    */
+  def writeResource(res: Resource, append: Boolean = false): Unit = {
+    res.read(is => writeStream(is, append))
+  }
+
 
   /**
     * Writes raw bytes.
