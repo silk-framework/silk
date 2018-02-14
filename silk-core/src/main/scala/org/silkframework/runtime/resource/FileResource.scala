@@ -47,7 +47,7 @@ case class FileResource(file: File) extends WritableResource {
     * Writes a file.
     */
   override def writeFile(file: File): Unit = {
-    Files.copy(this.file.toPath, file.toPath, StandardCopyOption.REPLACE_EXISTING)
+    Files.copy(file.toPath, this.file.toPath, StandardCopyOption.REPLACE_EXISTING)
   }
 
   /**
