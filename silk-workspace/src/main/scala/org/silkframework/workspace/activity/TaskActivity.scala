@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity
 import java.lang.reflect.{ParameterizedType, Type}
 
 import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.activity.{Activity, HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.ProjectTask
 
@@ -46,19 +46,41 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
-  def reset() = {
+  def reset(): Unit = {
     currentControl.cancel()
     recreateControl()
   }
 
-  def update(config: Map[String, String]) = {
+  /**
+    * Starts the activity asynchronously.
+    * Optionally applies a supplied configuration beforehand.
+    */
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+    if(config.nonEmpty) {
+      update(config)
+    }
+    control.start()
+  }
+
+  /**
+    * Starts the activity blocking.
+    * Optionally applies a supplied configuration beforehand.
+    */
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+    if(config.nonEmpty) {
+      update(config)
+    }
+    control.startBlocking()
+  }
+
+  def update(config: Map[String, String]): Unit = {
     implicit val prefixes = task.project.config.prefixes
     implicit val resources = task.project.resources
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     recreateControl()
   }
 
-  private def recreateControl() = {
+  private def recreateControl(): Unit = {
     val oldControl = currentControl
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
