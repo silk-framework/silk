@@ -184,7 +184,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
@@ -197,7 +197,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
@@ -215,7 +215,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         task.update(taskData, Some(metaData))
@@ -230,7 +230,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
@@ -251,7 +251,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @tparam T The task type
    */
-  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
+  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = synchronized {
     module[T].remove(taskName)
   }
 
@@ -262,7 +262,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
-  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
+  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
       for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
@@ -308,7 +308,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag](): Unit = {
+  def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this)
   }
 
