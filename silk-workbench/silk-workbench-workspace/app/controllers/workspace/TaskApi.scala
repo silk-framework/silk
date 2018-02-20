@@ -125,6 +125,10 @@ class TaskApi extends Controller with ControllerUtilsTrait {
           // Copy all tasks
           for(task <- collectTasks(sourceProj, taskName)) {
             targetProj.addAnyTask(identifiers.generate(task.id), task.data, task.metaData)
+            // Copy resources if the resource is not in the target project yet
+            for(resource <- task.referencedResources if resource.exists && !targetProj.resources.exists(resource.name)) {
+              targetProj.resources.get(resource.name).writeResource(resource)
+            }
           }
         }
       }
