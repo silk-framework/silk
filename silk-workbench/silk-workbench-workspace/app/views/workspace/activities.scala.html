@@ -27,7 +27,7 @@
       .on('before_open.jstree', function (e, data) {
         loadCometStream();
       });
-      loadCometStream();
+      setTimeout(function() {loadCometStream();}, 1);
       // Restore scroll position on reload
       setTimeout(function() {
         const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
