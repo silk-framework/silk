@@ -57,12 +57,16 @@ object EvalLink {
   /**
    * The type of link.
    */
-  sealed trait LinkType
+  sealed trait LinkType {
+    def name: String
+  }
 
   /**
    * Link which have been generate by Silk.
    */
-  case object Generated extends LinkType
+  case object Generated extends LinkType {
+    override def name: String = "generated"
+  }
 
   /**
    * ReferenceType link.
@@ -72,15 +76,21 @@ object EvalLink {
   /**
    * Positive reference link.
    */
-  case object Positive extends ReferenceType
+  case object Positive extends ReferenceType {
+    override def name: String = "positive"
+  }
 
   /**
    * Negative reference link.
    */
-  case object Negative extends ReferenceType
+  case object Negative extends ReferenceType {
+    override def name: String = "negative"
+  }
 
   /**
     * Unlabeled reference link.
     */
-  case object Unlabeled extends ReferenceType
+  case object Unlabeled extends ReferenceType {
+    override def name: String = "unlabeled"
+  }
 }

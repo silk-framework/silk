@@ -97,7 +97,7 @@
       success: function(response) {
       },
       error: function(request) {
-        alert(request.responseText);
+        alert("Could not start activity: Error (" + request.status + ") " + request.responseText);
       }
     });
   }
@@ -109,7 +109,7 @@
       success: function(response) {
       },
       error: function(request) {
-        alert(request.responseText);
+        alert("Could not stop activity: Error (" + request.status + ") " + request.responseText);
       }
     });
   }
@@ -121,7 +121,7 @@
       success: function(response) {
       },
       error: function(request) {
-        alert(request.responseText);
+        alert("Could not restart activity: Error (" + request.status + ") " + request.responseText);
       }
     });
   }
