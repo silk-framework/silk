@@ -151,7 +151,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "handle entity schema with sub paths and type URI" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
-    val entities = source.retrieve(EntitySchema("nestedObject", typedPaths = IndexedSeq(Path.parse("nestedValue").asStringTypedPath), subPath = Path("objects")))
+    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(Path.parse("nestedValue").asStringTypedPath), subPath = Path("nestedObject")))
     entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
   }
 
