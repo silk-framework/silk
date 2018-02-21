@@ -94,9 +94,10 @@ class TaskApi extends Controller with ControllerUtilsTrait {
 
   def copyTask(projectName: String, taskName: String) = Action(BodyParsers.parse.json) { implicit request =>
     implicit val jsonReader = Json.reads[CopyTaskRequest]
+    implicit val jsonWriter = Json.writes[CopyTaskResponse]
     validateJson[CopyTaskRequest] { copyRequest =>
-      copyRequest.copy(projectName, taskName)
-      Ok
+      val result = copyRequest.copy(projectName, taskName)
+      Ok(Json.toJson(result))
     }
   }
 
@@ -111,25 +112,34 @@ class TaskApi extends Controller with ControllerUtilsTrait {
   /**
     * Request to copy a task to another project.
     */
-  case class CopyTaskRequest(targetProject: String) {
+  case class CopyTaskRequest(dryRun: Option[Boolean], targetProject: String) {
 
-    def copy(sourceProject: String, taskName: String): Unit = {
+    def copy(sourceProject: String, taskName: String): CopyTaskResponse = {
       val sourceProj = User().workspace.project(sourceProject)
       val targetProj = User().workspace.project(targetProject)
 
       sourceProj.synchronized {
         targetProj.synchronized {
-          // We need to generate unique task identifiers
-          val identifiers = new IdentifierGenerator
-          targetProj.allTasks.foreach(t => identifiers.add(t.id))
-          // Copy all tasks
-          for(task <- collectTasks(sourceProj, taskName)) {
-            targetProj.addAnyTask(identifiers.generate(task.id), task.data, task.metaData)
-            // Copy resources if the resource is not in the target project yet
-            for(resource <- task.referencedResources if resource.exists && !targetProj.resources.exists(resource.name)) {
-              targetProj.resources.get(resource.name).writeResource(resource)
+          // Collect all tasks to be copied
+          val tasksToCopy = collectTasks(sourceProj, taskName)
+          val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.id.toString
+          val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
+
+          // Copy tasks
+          if(!dryRun.contains(true)) {
+            for (task <- tasksToCopy) {
+              targetProj.updateAnyTask(task.id, task.data, task.metaData)
+              // Copy resources
+              if(copyResources) {
+                for (resource <- task.referencedResources) {
+                  targetProj.resources.get(resource.name).writeResource(resource)
+                }
+              }
             }
           }
+
+          // Generate response
+          CopyTaskResponse(overwrittenTasks.toSet)
         }
       }
     }
@@ -143,5 +153,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     }
 
   }
+
+  case class CopyTaskResponse(overwrittenTasks: Set[String])
 
 }
