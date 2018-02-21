@@ -18,8 +18,8 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
 import play.api.libs.json.JsValue
-import play.api.libs.ws.{WS, WSResponse}
-import play.api.mvc.Results
+import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.mvc.{Call, Results}
 import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
@@ -59,6 +59,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   override implicit lazy val app: Application = {
     var routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
+  }
+
+  /**
+    * Constructs a REST request for a given Call.
+    */
+  def request(call: Call): WSRequest = {
+    WS.url(s"$baseUrl${call.url}")
   }
 
   def deleteRecursively(f: File): Unit = {
