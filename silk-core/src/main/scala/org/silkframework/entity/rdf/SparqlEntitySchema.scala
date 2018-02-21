@@ -59,7 +59,7 @@ object SparqlEntitySchema {
 
     def rewriteRestrictionWithParentProperty(subPath: Path): String = {
       val rootEntity = "?root"
-      val sparql = SparqlPathBuilder.path(subPath, rootEntity, "?" + variable)
+      val sparql = SparqlPathBuilder.path(subPath, rootEntity, "?" + variable, "?st", "?sf")
       sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sparql)
       rootEntity
     }
