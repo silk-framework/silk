@@ -139,7 +139,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
           }
 
           // Generate response
-          CopyTaskResponse(overwrittenTasks.toSet)
+          CopyTaskResponse(tasksToCopy.map(_.id.toString).toSet, overwrittenTasks.toSet)
         }
       }
     }
@@ -154,6 +154,6 @@ class TaskApi extends Controller with ControllerUtilsTrait {
 
   }
 
-  case class CopyTaskResponse(overwrittenTasks: Set[String])
+  case class CopyTaskResponse(copiedTasks: Set[String], overwrittenTasks: Set[String])
 
 }
