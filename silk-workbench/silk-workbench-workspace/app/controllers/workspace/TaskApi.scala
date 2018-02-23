@@ -1,15 +1,17 @@
 package controllers.workspace
 
+import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.workspace.User
-import play.api.libs.json.{JsBoolean, JsObject, JsValue}
-import play.api.mvc._
+import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.{Project, User}
+import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
 
-class TaskApi  extends Controller {
+class TaskApi extends Controller with ControllerUtilsTrait {
 
   def postTask(projectName: String): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
@@ -90,6 +92,15 @@ class TaskApi  extends Controller {
     Ok
   }
 
+  def copyTask(projectName: String, taskName: String) = Action(BodyParsers.parse.json) { implicit request =>
+    implicit val jsonReader = Json.reads[CopyTaskRequest]
+    implicit val jsonWriter = Json.writes[CopyTaskResponse]
+    validateJson[CopyTaskRequest] { copyRequest =>
+      val result = copyRequest.copy(projectName, taskName)
+      Ok(Json.toJson(result))
+    }
+  }
+
   def cachesLoaded(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
@@ -97,5 +108,52 @@ class TaskApi  extends Controller {
 
     Ok(JsBoolean(cachesLoaded))
   }
+
+  /**
+    * Request to copy a task to another project.
+    */
+  case class CopyTaskRequest(dryRun: Option[Boolean], targetProject: String) {
+
+    def copy(sourceProject: String, taskName: String): CopyTaskResponse = {
+      val sourceProj = User().workspace.project(sourceProject)
+      val targetProj = User().workspace.project(targetProject)
+
+      sourceProj.synchronized {
+        targetProj.synchronized {
+          // Collect all tasks to be copied
+          val tasksToCopy = collectTasks(sourceProj, taskName)
+          val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.id.toString
+          val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
+
+          // Copy tasks
+          if(!dryRun.contains(true)) {
+            for (task <- tasksToCopy) {
+              targetProj.updateAnyTask(task.id, task.data, task.metaData)
+              // Copy resources
+              if(copyResources) {
+                for (resource <- task.referencedResources) {
+                  targetProj.resources.get(resource.name).writeResource(resource)
+                }
+              }
+            }
+          }
+
+          // Generate response
+          CopyTaskResponse(tasksToCopy.map(_.id.toString).toSet, overwrittenTasks.toSet)
+        }
+      }
+    }
+
+    /**
+      * Returns a task and all its referenced tasks.
+      */
+    private def collectTasks(project: Project, taskName: Identifier): Seq[Task[_ <:TaskSpec]] = {
+      val task = project.anyTask(taskName)
+      Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
+    }
+
+  }
+
+  case class CopyTaskResponse(copiedTasks: Set[String], overwrittenTasks: Set[String])
 
 }

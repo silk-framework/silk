@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -28,9 +29,14 @@ trait TaskSpec {
   def outputSchemaOpt: Option[EntitySchema]
 
   /**
-    * The tasks that are referenced by this task.
+    * The tasks that are directly referenced by this task.
     */
   def referencedTasks: Set[Identifier] = Set.empty
+
+  /**
+    * The resources that are directly referenced by this task.
+    */
+  def referencedResources: Seq[Resource] = Seq.empty
 
 }
 

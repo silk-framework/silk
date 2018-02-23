@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
@@ -46,6 +47,10 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
+
+  override def referencedTasks: Set[Identifier] = plugin.referencedTasks
+
+  override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   override def toString: String = DatasetSpec.toString
 

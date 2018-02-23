@@ -13,4 +13,6 @@ trait ResourceBasedDataset { this: Dataset =>
     case wr: WritableResource => Some(wr)
     case _ => None
   }
+
+  override def referencedResources: Seq[Resource] = Seq(file)
 }
