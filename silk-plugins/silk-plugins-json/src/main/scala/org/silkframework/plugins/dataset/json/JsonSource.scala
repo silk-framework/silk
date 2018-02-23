@@ -29,7 +29,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
-    val subPath = entitySchema.subPath ++ Path.parse(entitySchema.typeUri.uri)
+    val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
       selectedElements.flatMap(_.select(subPath.operators))
     } else { selectedElements }
