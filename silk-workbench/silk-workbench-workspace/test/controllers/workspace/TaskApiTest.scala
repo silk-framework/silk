@@ -5,7 +5,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json._
 import play.api.libs.ws.WS
 
 class TaskApiTest extends PlaySpec with IntegrationTestTrait {
@@ -277,6 +277,90 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     (response.xml \ "@id").text mustBe customTaskId
     (response.xml \ "@type").text mustBe "test"
     (response.xml \ "Param").filter(p => (p \ "@name").text == "stringParam").text mustBe "someValue"
+  }
+
+  "copy endpoint" should {
+
+    val targetProject = "targetProject"
+
+    "simulate copying a task in a dry run" in {
+      createProject(targetProject)
+
+      val response = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
+        .post(Json.parse(
+          s""" {
+            |    "targetProject": "$targetProject",
+            |    "dryRun": true
+            |  }
+          """.stripMargin
+        ))
+
+      val responseJson = checkResponse(response).json
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
+
+      // Assert that no tasks have been copied
+      val projectResponse = WS.url(s"$baseUrl/workspace/projects/$targetProject").get()
+      val projectJson = checkResponse(projectResponse).json
+      (projectJson \ "tasks" \ "transform").asStringArray mustBe Seq.empty
+    }
+
+    "copy a task" in {
+      val response = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
+        .post(Json.parse(
+          s""" {
+             |    "targetProject": "$targetProject",
+             |    "dryRun": false
+             |  }
+          """.stripMargin
+        ))
+
+      val responseJson = checkResponse(response).json
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
+
+      // Assert that tasks have been copied
+      val projectResponse = WS.url(s"$baseUrl/workspace/projects/$targetProject").get()
+      val projectJson = checkResponse(projectResponse).json
+      (projectJson \ "tasks" \ "dataset").asStringArray mustBe Seq(datasetId)
+      (projectJson \ "tasks" \ "transform").asStringArray mustBe Seq(transformId)
+    }
+
+    "overwrite tasks when copying" in {
+      // Change the label of a dataset in the source project
+      val updateDatasetRequest = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId").withHeaders("Accept" -> "application/json")
+      checkResponse(updateDatasetRequest.patch(Json.parse("""{ "metadata": { "label": "changed label" } }""")))
+
+      // Copy transform task that references the changed dataset
+      val response = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
+        .post(Json.parse(
+          s""" {
+             |    "targetProject": "$targetProject",
+             |    "dryRun": false
+             |  }
+          """.stripMargin
+        ))
+      val responseJson = checkResponse(response).json
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+
+      // Assert that the dataset has been overwritten
+      val datasetResponse = WS.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")
+                                .withHeaders("Accept" -> "application/json")
+                                .get()
+      val datasetJson = checkResponse(datasetResponse).json
+      (datasetJson \ "metadata" \ "label").as[JsString].value mustBe "changed label"
+    }
+
+  }
+
+  /**
+    * Convenience methods for reading JSON values to make the tests more readable.
+    */
+  implicit class JsReadableHelpers(value: JsReadable) {
+    def asStringArray: Seq[String] = {
+      value.as[JsArray].value.map(_.as[JsString].value)
+    }
   }
 
 }
