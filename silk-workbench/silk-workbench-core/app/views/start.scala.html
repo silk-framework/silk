@@ -22,7 +22,7 @@
     Your current workspace contains @projects.size project(s).
   </p>
 
-  <button class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
+  <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
   @if(!projects.exists(_.name == exampleName)) {
     <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
   }
