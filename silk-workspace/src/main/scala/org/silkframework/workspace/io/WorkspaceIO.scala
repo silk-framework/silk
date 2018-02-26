@@ -60,7 +60,9 @@ object WorkspaceIO {
     for(resourceName <- inputResources.list) {
       val input = inputResources.get(resourceName)
       val output = outputResources.get(resourceName, mustExist = false)
-      output.writeResource(input)
+      if(!output.exists) {
+        output.writeResource(input)
+      }
     }
     // Copy child resources recursively
     for(childName <- inputResources.listChildren) {
