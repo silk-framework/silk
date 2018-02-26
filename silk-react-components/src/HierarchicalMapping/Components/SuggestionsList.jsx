@@ -236,6 +236,7 @@ const SuggestionsList = React.createClass({
                     <CardActions fixed>
                         <ProgressButton
                             progress={0}
+                            id="suggestion-save-btn"
                             progressTopic={hierarchicalMappingChannel.subject(
                                 'rule.suggestions.progress'
                             )}
@@ -385,6 +386,7 @@ const SuggestionsList = React.createClass({
                 <CardActions fixed>
                     <AffirmativeButton
                         raised
+                        id="suggestion-save-btn"
                         className="ecc-hm-suggestions-save"
                         onClick={this.handleAddSuggestions}
                         disabled={_.size(suggestionsToBeSave) === 0}>

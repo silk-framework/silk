@@ -39301,6 +39301,7 @@
                 fixed: !0
             }, _react2.default.createElement(_eccGuiElements.ProgressButton, {
                 progress: 0,
+                id: "suggestion-save-btn",
                 progressTopic: _store2.default.subject("rule.suggestions.progress"),
                 tooltip: "Progress"
             }, "Save"), _react2.default.createElement(_eccGuiElements.DismissiveButton, {
@@ -39391,6 +39392,7 @@
                 fixed: !0
             }, _react2.default.createElement(_eccGuiElements.AffirmativeButton, {
                 raised: !0,
+                id: "suggestion-save-btn",
                 className: "ecc-hm-suggestions-save",
                 onClick: this.handleAddSuggestions,
                 disabled: 0 === _lodash2.default.size(suggestionsToBeSave)
