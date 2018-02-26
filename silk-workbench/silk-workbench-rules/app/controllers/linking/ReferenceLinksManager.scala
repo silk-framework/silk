@@ -8,17 +8,22 @@ import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, AnyContent, Controller}
 import plugins.Context
 
 class ReferenceLinksManager extends Controller {
 
-  def referenceLinksView(project: String, task: String) = Action { implicit request =>
+  def referenceLinksView(project: String, task: String): Action[AnyContent] = Action { implicit request =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }
 
-  def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {
+  def referenceLinks(projectName: String,
+                     taskName: String,
+                     linkType: String,
+                     sorting: String,
+                     filter: String,
+                     page: Int): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
