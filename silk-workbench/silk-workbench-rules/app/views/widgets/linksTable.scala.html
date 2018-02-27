@@ -112,7 +112,7 @@
 }
 
 @renderLink(link: EvalLink, counter: Int) = {
-  <div class="link" id="@id(link)">
+  <div class="link @{link.linkType.name}" id="@id(link)">
     <div class="@if(counter % 2 == 0) {link-header grey} else {link-header}" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
       <div id="@id(link, "toggle")">
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
