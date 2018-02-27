@@ -60,7 +60,7 @@ object WorkspaceIO {
     for(resourceName <- inputResources.list) {
       val input = inputResources.get(resourceName)
       val output = outputResources.get(resourceName, mustExist = false)
-      if(!output.exists) {
+      if(inputResources.basePath != outputResources.basePath || !output.exists) {
         output.writeResource(input)
       }
     }
