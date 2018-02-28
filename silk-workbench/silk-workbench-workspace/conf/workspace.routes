@@ -102,6 +102,7 @@ GET           /projects/:project/tasks/:task/metadata                           
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
+POST          /projects/:project/tasks/:task/reloadCaches                       controllers.workspace.TaskApi.reloadCaches(project: String, task: String)
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

@@ -109,6 +109,21 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     Ok(JsBoolean(cachesLoaded))
   }
 
+  def reloadCaches(projectName: String, taskName: String) = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val caches = task.activities.filter(_.autoRun).map(_.control)
+
+    for(cache <- caches) {
+      cache.reset()
+      cache.cancel()
+      cache.waitUntilFinished()
+      cache.start()
+    }
+
+    Ok
+  }
+
   /**
     * Request to copy a task to another project.
     */

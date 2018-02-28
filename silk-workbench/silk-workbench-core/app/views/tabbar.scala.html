@@ -1,4 +1,5 @@
 @import plugins.{Context, WorkbenchPlugins}
+@import controllers.core.routes.Assets
 
 @(context: Option[Context[_]], selectedTab: String, titleLabel: String)
 
@@ -12,7 +13,13 @@ tab <- plugin.tabs(cont)) {
 
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
   <div class="mdl-tabs__tab-bar">
-    <span class="di_tab_task_title">@titleLabel</span>
+    <span class="di_tab_task_title">@titleLabel
+
+    @for(c <- context) {
+      <img src="@Assets.at("img/help.png")" onclick="$.post('@config.baseUrl/workspace/projects/@c.project.name/tasks/@c.task.id/reloadCaches')" ></img>
+    }
+
+    </span>
     <a id="start-screen-link" href="@config.baseUrl/" onclick="window.location='@config.baseUrl/'" class="mdl-tabs__tab @if(selectedTab == "start") {is-active}">Start</a>
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
     <a id="allActivities-view-link" href="@config.baseUrl/workspace/allActivities" onclick="window.location='@config.baseUrl/workspace/allActivities'" class="mdl-tabs__tab @if(selectedTab == "activities") {is-active}">Activities</a>
