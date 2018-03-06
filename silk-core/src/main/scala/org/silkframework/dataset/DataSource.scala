@@ -76,7 +76,7 @@ trait DataSource {
    */
   def sampleEntities(entityDesc: EntitySchema,
                      size: Int,
-                     filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
+                     filterOpt: Option[Entity => Boolean] = None): Seq[Entity] = {
     val entities = retrieve(entityDesc)
     SampleUtil.sample(entities, size, filterOpt)
   }

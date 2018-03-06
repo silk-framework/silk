@@ -76,12 +76,6 @@ object DatasetSpec {
       source.retrievePaths(typeUri, depth, limit)
     }
 
-    override def sampleEntities(entityDesc: EntitySchema,
-                                size: Int,
-                                filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
-      sampleEntities(entityDesc, size, filterOpt)
-    }
-
     /**
       * Retrieves entities from this source which satisfy a specific entity schema.
       *
