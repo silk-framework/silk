@@ -35,11 +35,5 @@ case class CustomTaskWorkbenchPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
       None
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      val (pluginType, params) = PluginRegistry.reflect(taskData.asInstanceOf[CustomTask])
-      params.toSeq
-    }
   }
 }

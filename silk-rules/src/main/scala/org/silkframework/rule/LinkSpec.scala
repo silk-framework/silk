@@ -16,7 +16,7 @@ package org.silkframework.rule
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
@@ -101,6 +101,17 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
   override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
 
   override lazy val referencedTasks = dataSelections.map(_.inputId).toSet
+
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    Seq(
+      ("Source", dataSelections.source.inputId.toString),
+      ("Target", dataSelections.target.inputId.toString),
+      ("Source Type", dataSelections.source.typeUri.toString),
+      ("Target Type", dataSelections.target.typeUri.toString),
+      ("Source Restriction", dataSelections.source.restriction.toString),
+      ("Target Restriction", dataSelections.target.restriction.toString)
+    )
+  }
 }
 
 object LinkSpec {
