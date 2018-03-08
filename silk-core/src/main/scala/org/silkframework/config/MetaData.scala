@@ -7,7 +7,7 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: String, modified: Instant) {
+case class MetaData(label: String, description: String, modified: Instant = Instant.now) {
 
 }
 
