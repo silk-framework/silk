@@ -18,7 +18,7 @@ object MetaData {
   /**
     * XML serialization format.
     */
-  implicit object MetaDataFormat extends XmlFormat[MetaData] {
+  implicit object MetaDataXmlFormat extends XmlFormat[MetaData] {
     /**
       * Deserialize a value from XML.
       */
@@ -37,7 +37,7 @@ object MetaData {
       <MetaData>
         <Label>{data.label}</Label>
         <Description>{data.description}</Description>
-        { data.modified.map(instant => <Modified>{instant.toString}</Modified>) }
+        { data.modified.map(instant => <Modified>{instant.toString}</Modified>).toSeq }
       </MetaData>
     }
   }

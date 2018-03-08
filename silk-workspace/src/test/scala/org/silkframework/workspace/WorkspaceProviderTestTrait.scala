@@ -1,5 +1,7 @@
 package org.silkframework.workspace
 
+import java.time.Instant
+
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
@@ -68,13 +70,15 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   val metaData =
     MetaData(
       label = "Task Label",
-      description = "Some Task Description"
+      description = "Some Task Description",
+      modified = Some(Instant.now)
     )
 
   val metaDataUpdated =
     MetaData(
       label = "Updated Task Label",
-      description = "Updated Task Description"
+      description = "Updated Task Description",
+      modified = Some(Instant.now)
     )
 
   val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")))

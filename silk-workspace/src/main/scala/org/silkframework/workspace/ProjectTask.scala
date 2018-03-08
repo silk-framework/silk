@@ -47,10 +47,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   @volatile
   private var currentMetaData: MetaData = {
     // Make sure that the modified timestamp is set
-    if(initialMetaData.modified.isEmpty)
-      initialMetaData.copy(modified = Some(Instant.now))
-    else
-      initialMetaData
+    initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   }
 
   @volatile
@@ -106,7 +103,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       currentMetaData = md
     }
     // Update modified timestamp
-    currentMetaData = currentMetaData.copy(modified = Some(Instant.now))
+    currentMetaData = currentMetaData.copy(modified = Some(currentMetaData.modified.getOrElse(Instant.now)))
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
