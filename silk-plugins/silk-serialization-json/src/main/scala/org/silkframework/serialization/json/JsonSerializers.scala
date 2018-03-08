@@ -58,7 +58,7 @@ object JsonSerializers {
       MetaData(
         label = stringValueOption(value, LABEL).getOrElse(""),
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        modified = stringValueOption(value, MODIFIED).map(Instant.parse).getOrElse(Instant.now)
+        modified = stringValueOption(value, MODIFIED).map(Instant.parse)
       )
     }
 
@@ -66,7 +66,7 @@ object JsonSerializers {
       Json.obj(
         LABEL -> JsString(value.label),
         DESCRIPTION -> JsString(value.description),
-        MODIFIED -> JsString(value.modified.toString)
+        MODIFIED -> value.modified.map(m => JsString(m.toString))
       )
     }
   }

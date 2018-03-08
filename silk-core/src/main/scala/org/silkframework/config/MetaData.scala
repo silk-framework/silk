@@ -7,13 +7,13 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: String, modified: Instant = Instant.now) {
+case class MetaData(label: String, description: String, modified: Option[Instant] = None) {
 
 }
 
 object MetaData {
 
-  def empty = MetaData("", "", Instant.now)
+  def empty = MetaData("", "")
 
   /**
     * XML serialization format.
@@ -26,7 +26,7 @@ object MetaData {
       MetaData(
         label = (node \ "Label").text,
         description = (node \ "Description").text,
-        modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text)).getOrElse(Instant.now)
+        modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text))
       )
     }
 
@@ -37,7 +37,7 @@ object MetaData {
       <MetaData>
         <Label>{data.label}</Label>
         <Description>{data.description}</Description>
-        <Modified>{data.modified.toString}</Modified>
+        { data.modified.map(instant => <Modified>{instant.toString}</Modified>) }
       </MetaData>
     }
   }
