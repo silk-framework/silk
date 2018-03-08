@@ -3,7 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, TaskSpecJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, BodyParsers, Controller}
@@ -14,16 +14,19 @@ import play.api.mvc.{Action, BodyParsers, Controller}
 class SearchApi extends Controller with ControllerUtilsTrait {
 
   def search() = Action(BodyParsers.parse.json) { implicit request =>
-    implicit val responseOptionsReader = Json.reads[ResponseFormat]
+    implicit val responseOptionsReader = Json.reads[TaskFormatOptions]
     implicit val searchRequestReader = Json.reads[SearchRequest]
     validateJson[SearchRequest] { searchRequest =>
       Ok(searchRequest())
     }
   }
 
-  case class SearchRequest(project: Option[String], searchTerm: Option[String], response: Option[ResponseFormat]) {
+  case class SearchRequest(project: Option[String], searchTerm: Option[String], formatOptions: Option[TaskFormatOptions]) {
 
-    private val responseFormat = response.getOrElse(ResponseFormat())
+    // JSON format to serialize tasks according to the options
+    private val taskFormat: TaskJsonFormat[TaskSpec] = {
+      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()))(TaskSpecJsonFormat)
+    }
 
     /**
       * Executes the search request and generates the JSON response.
@@ -36,7 +39,7 @@ class SearchApi extends Controller with ControllerUtilsTrait {
         tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task))
       }
 
-      JsArray(tasks.map(responseFormat.writeTask))
+      JsArray(tasks.map(writeTask))
     }
 
     /**
@@ -51,29 +54,19 @@ class SearchApi extends Controller with ControllerUtilsTrait {
       }
     }
 
+    def writeTask(task: ProjectTask[_ <: TaskSpec]): JsValue = {
+      taskFormat.write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
+    }
+
     /**
       * Checks if a task matches the search term.
       */
     private def matchesSearchTerm(lowerCaseSearchTerm: String, task: ProjectTask[_ <: TaskSpec]): Boolean = {
       val idMatch = task.id.toLowerCase.contains(lowerCaseSearchTerm)
+      val labelMatch = task.metaData.label.toLowerCase.contains(lowerCaseSearchTerm)
+      val descriptionMatch = task.metaData.description.toLowerCase.contains(lowerCaseSearchTerm)
       val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(_._2.toLowerCase.contains(lowerCaseSearchTerm))
-      idMatch || propertiesMatch
-    }
-  }
-
-  case class ResponseFormat(includeMetaData: Option[Boolean] = None,
-                            includeTaskProperties: Option[Boolean] = None,
-                            includeTaskData: Option[Boolean] = None) {
-
-    // JSON format to serialize tasks according to the options
-    private val taskFormat: TaskJsonFormat[TaskSpec] = {
-      new TaskJsonFormat(includeMetaData = includeMetaData.getOrElse(true),
-        includeTaskProperties = includeTaskProperties.getOrElse(true),
-        includeTaskData = includeTaskData.getOrElse(false))(TaskSpecJsonFormat)
-    }
-
-    def writeTask(task: ProjectTask[_ <: TaskSpec]): JsValue = {
-      taskFormat.write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
+      idMatch || labelMatch || descriptionMatch || propertiesMatch
     }
   }
 }

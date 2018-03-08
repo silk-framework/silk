@@ -918,14 +918,16 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](includeMetaData: Boolean = true,
-                                      includeTaskProperties: Boolean = false,
-                                      includeTaskData: Boolean = true)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions())(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
+    final val DATA = "data"
     final val PROPERTIES = "properties"
+    final val RELATIONS = "relations"
+    final val SCHEMATA = "schemata"
     final val KEY = "key"
     final val VALUE = "value"
+
 
     /**
       * Deserializes a value.
@@ -933,7 +935,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
       PlainTask(
         id = stringValue(value, ID),
-        data = fromJson[T](value),
+        data = fromJson[T](requiredValue(value, DATA)),
         metaData = metaData(value)
       )
     }
@@ -941,39 +943,91 @@ object JsonSerializers {
     /**
       * Serializes a value.
       */
-    override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      var json = Json.obj(ID -> JsString(value.id.toString))
+    override def write(task:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var json = Json.obj(ID -> JsString(task.id.toString))
 
       for(project <- writeContext.projectId) {
         json += PROJECT -> JsString(project)
       }
 
-      if(includeMetaData) {
-        json += METADATA -> toJson(value.metaData)
+      if(options.includeMetaData.getOrElse(true)) {
+        json += METADATA -> toJson(task.metaData)
       }
 
-      if(includeTaskProperties) {
-        val properties = JsArray(
-          for((key, value) <- value.data.properties(writeContext.prefixes)) yield {
-            Json.obj(KEY -> key, VALUE -> value)
-          }
-        )
-        json += PROPERTIES -> properties
+      // Serialize task data
+      val taskDataJson = toJson(task.data).as[JsObject]
+      // We always want to add the type at the top level regardless if the task data is serialized
+      for(taskType <- taskDataJson.value.get(TASKTYPE)) {
+        json += TASKTYPE -> taskType
+      }
+      if(options.includeTaskData.getOrElse(true)) {
+        json += DATA -> taskDataJson
       }
 
-      val taskDataJson = toJson(value.data).as[JsObject]
-      if(includeTaskData) {
-        json ++= taskDataJson
-      } else {
-        // Only include the task type
-        for(taskType <- taskDataJson.value.get(TASKTYPE)) {
-          json += TASKTYPE -> taskType
-        }
+      if(options.includeTaskProperties.getOrElse(false)) {
+        json += PROPERTIES -> writeTaskProperties(task)
+      }
+      if(options.includeRelations.getOrElse(false)) {
+        json += RELATIONS -> writeTaskRelations(task)
+      }
+      if(options.includeSchemata.getOrElse(false)) {
+        json += SCHEMATA -> writeTaskSchemata(task)
       }
 
       json
     }
+
+    private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(
+        for((key, value) <- task.data.properties(writeContext.prefixes)) yield {
+          Json.obj(KEY -> key, VALUE -> value)
+        }
+      )
+    }
+
+    private def writeTaskRelations(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
+        "dependentTasks" -> JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
+      )
+    }
+
+    private def writeTaskSchemata(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val inputSchemata = task.data.inputSchemataOpt match {
+        case Some(schemata) => JsArray(schemata.map(entitySchema))
+        case None => JsNull
+      }
+      val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+      Json.obj(
+        "input" -> inputSchemata,
+        "output" -> outputSchema
+      )
+    }
+
+    private def entitySchema(schema: EntitySchema) = {
+      // TODO: Check if this should serialize to a TypedPath instead
+      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
+      Json.obj(
+        "paths" -> JsArray(paths)
+      )
+    }
   }
+
+  /**
+    * Task serialization options.
+    * Should use a format that can be serialized with the Play Json library.
+    *
+    * @param includeMetaData Include the task meta data.
+    * @param includeTaskData Include the task data.
+    * @param includeTaskProperties Retrieves a list of properties as key-value pairs to be displayed to the user.
+    * @param includeRelations Include relations to other tasks.
+    * @param includeSchemata Include the input and output schemata of the task.
+    */
+  case class TaskFormatOptions(includeMetaData: Option[Boolean] = None,
+                               includeTaskData: Option[Boolean] = None,
+                               includeTaskProperties: Option[Boolean] = None,
+                               includeRelations: Option[Boolean] = None,
+                               includeSchemata: Option[Boolean] = None)
 
   /**
     * Dataset Task
