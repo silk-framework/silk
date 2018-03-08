@@ -914,7 +914,15 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec](includeMetaData: Boolean = true,
+                                      includeTaskProperties: Boolean = false,
+                                      includeTaskData: Boolean = true)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+
+    final val PROJECT = "project"
+    final val PROPERTIES = "properties"
+    final val KEY = "key"
+    final val VALUE = "value"
+
     /**
       * Deserializes a value.
       */
@@ -930,10 +938,36 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        ID -> JsString(value.id.toString),
-        METADATA -> toJson(value.metaData)
-      ) ++ toJson(value.data).as[JsObject]
+      var json = Json.obj(ID -> JsString(value.id.toString))
+
+      for(project <- writeContext.projectId) {
+        json += PROJECT -> JsString(project)
+      }
+
+      if(includeMetaData) {
+        json += METADATA -> toJson(value.metaData)
+      }
+
+      if(includeTaskProperties) {
+        val properties = JsArray(
+          for((key, value) <- value.data.properties(writeContext.prefixes)) yield {
+            Json.obj(KEY -> key, VALUE -> value)
+          }
+        )
+        json += PROPERTIES -> properties
+      }
+
+      val taskDataJson = toJson(value.data).as[JsObject]
+      if(includeTaskData) {
+        json ++= taskDataJson
+      } else {
+        // Only include the task type
+        for(taskType <- taskDataJson.value.get(TASKTYPE)) {
+          json += TASKTYPE -> taskType
+        }
+      }
+
+      json
     }
   }
 
