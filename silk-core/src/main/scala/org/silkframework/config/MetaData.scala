@@ -1,19 +1,19 @@
 package org.silkframework.config
 
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-
+import java.time.Instant
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import scala.xml._
 
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: String) {
+case class MetaData(label: String, description: String, modified: Instant) {
 
 }
 
 object MetaData {
 
-  def empty = MetaData("", "")
+  def empty = MetaData("", "", Instant.now)
 
   /**
     * XML serialization format.
@@ -22,10 +22,11 @@ object MetaData {
     /**
       * Deserialize a value from XML.
       */
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = (node \ "Label").text,
-        description = (node \ "Description").text
+        description = (node \ "Description").text,
+        modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text)).getOrElse(Instant.now)
       )
     }
 
@@ -36,6 +37,7 @@ object MetaData {
       <MetaData>
         <Label>{data.label}</Label>
         <Description>{data.description}</Description>
+        <Modified>{data.modified.toString}</Modified>
       </MetaData>
     }
   }

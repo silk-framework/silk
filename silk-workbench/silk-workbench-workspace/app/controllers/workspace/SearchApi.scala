@@ -8,6 +8,9 @@ import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, BodyParsers, Controller}
 
+/**
+  * API to search for tasks in the workspace.
+  */
 class SearchApi extends Controller with ControllerUtilsTrait {
 
   def search() = Action(BodyParsers.parse.json) { implicit request =>

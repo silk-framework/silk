@@ -14,10 +14,11 @@
 
 package org.silkframework.workspace
 
+import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -98,6 +99,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     for(md <- newMetaData) {
       currentMetaData = md
     }
+    // Update modified timestamp
+    currentMetaData = currentMetaData.copy(modified = Instant.now)
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)

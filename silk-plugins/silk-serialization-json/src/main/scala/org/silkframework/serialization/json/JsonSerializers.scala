@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
+import java.time.Instant
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -47,22 +48,25 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonMetaDataFormat extends JsonFormat[MetaData] {
+  implicit object MetaDataJsonFormat extends JsonFormat[MetaData] {
 
     final val LABEL = "label"
     final val DESCRIPTION = "description"
+    final val MODIFIED = "modified"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = stringValueOption(value, LABEL).getOrElse(""),
-        description = stringValueOption(value, DESCRIPTION).getOrElse("")
+        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        modified = stringValueOption(value, MODIFIED).map(Instant.parse).getOrElse(Instant.now)
       )
     }
 
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         LABEL -> JsString(value.label),
-        DESCRIPTION -> JsString(value.description)
+        DESCRIPTION -> JsString(value.description),
+        MODIFIED -> JsString(value.modified.toString)
       )
     }
   }
