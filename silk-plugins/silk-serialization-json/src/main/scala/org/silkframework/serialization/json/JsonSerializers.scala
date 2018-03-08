@@ -63,11 +63,15 @@ object JsonSerializers {
     }
 
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        LABEL -> JsString(value.label),
-        DESCRIPTION -> JsString(value.description),
-        MODIFIED -> value.modified.map(m => JsString(m.toString))
-      )
+      var json =
+        Json.obj(
+          LABEL -> JsString(value.label),
+          DESCRIPTION -> JsString(value.description)
+        )
+      for(modified <- value.modified) {
+        json += MODIFIED -> JsString(modified.toString)
+      }
+      json
     }
   }
 
