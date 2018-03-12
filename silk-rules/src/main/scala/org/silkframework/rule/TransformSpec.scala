@@ -38,7 +38,15 @@ case class TransformSpec(selection: DatasetSelection,
 
   override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
-  override lazy val referencedTasks = Set(selection.inputId)
+  /**
+    * The tasks that this task reads from.
+    */
+  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+
+  /**
+    * The tasks that this task writes to.
+    */
+  override def outputTasks: Set[Identifier] = outputs.toSet
 
   /**
     * Input and output schemata of all object rules in the tree.

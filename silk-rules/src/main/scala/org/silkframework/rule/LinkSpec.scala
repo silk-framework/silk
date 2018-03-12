@@ -100,7 +100,9 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     */
   override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
 
-  override lazy val referencedTasks = dataSelections.map(_.inputId).toSet
+  override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
+
+  override def outputTasks: Set[Identifier] = outputs.toSet
 
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     Seq(

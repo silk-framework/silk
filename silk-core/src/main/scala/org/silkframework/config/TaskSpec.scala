@@ -29,9 +29,20 @@ trait TaskSpec {
   def outputSchemaOpt: Option[EntitySchema]
 
   /**
-    * The tasks that are directly referenced by this task.
+    * The tasks that this task reads from.
     */
-  def referencedTasks: Set[Identifier] = Set.empty
+  def inputTasks: Set[Identifier] = Set.empty
+
+  /**
+    * The tasks that this task writes to.
+    */
+  def outputTasks: Set[Identifier] = Set.empty
+
+  /**
+    * The tasks that are directly referenced by this task.
+    * This includes input tasks and output tasks.
+    */
+  def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
 
   /**
     * The resources that are directly referenced by this task.

@@ -48,6 +48,10 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
+  override def inputTasks: Set[Identifier] = plugin.inputTasks
+
+  override def outputTasks: Set[Identifier] = plugin.outputTasks
+
   override def referencedTasks: Set[Identifier] = plugin.referencedTasks
 
   override def referencedResources: Seq[Resource] = plugin.referencedResources
