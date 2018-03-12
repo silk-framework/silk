@@ -266,7 +266,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     if(removeDependentTasks) {
       // Remove all dependent tasks
       for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
-        removeAnyTask(dependentTask.id, removeDependentTasks = false)
+        removeAnyTask(dependentTask, removeDependentTasks = false)
       }
     } else {
       // Make sure that no other task depends on this task

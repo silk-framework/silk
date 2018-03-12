@@ -188,9 +188,14 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   override def outputSchemaOpt: Option[EntitySchema] = None
 
   /**
-    * The tasks that are referenced by this workflow.
+    * The tasks that this task reads from.
     */
-  override def referencedTasks: Set[Identifier] = (operators ++ datasets).map(_.task).toSet
+  override def inputTasks: Set[Identifier] = nodes.filter(_.outputs.nonEmpty).map(_.task).toSet
+
+  /**
+    * The tasks that this task writes to.
+    */
+  override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.nonEmpty).map(_.task).toSet
 
   /**
     * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
