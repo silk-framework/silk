@@ -109,6 +109,7 @@ class RulePlugins extends PluginModule {
         classOf[CompareNumbersTransformer] ::
         classOf[CountTransformer] ::
         classOf[PhysicalQuantityExtractor] ::
+        classOf[FormatNumber] ::
         // Date
         classOf[TimestampToDateTransformer] ::
         classOf[DateToTimestampTransformer] ::
