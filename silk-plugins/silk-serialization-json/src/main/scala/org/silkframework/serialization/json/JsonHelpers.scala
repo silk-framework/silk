@@ -4,7 +4,7 @@ import org.silkframework.config.MetaData
 import org.silkframework.entity.Path
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.serialization.json.JsonSerializers.{ID, JsonMetaDataFormat, METADATA}
+import org.silkframework.serialization.json.JsonSerializers.{ID, MetaDataJsonFormat, METADATA}
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
@@ -124,7 +124,7 @@ object JsonHelpers {
   def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
     optionalValue(json, METADATA) match {
       case Some(metaDataJson) =>
-        JsonMetaDataFormat.read(metaDataJson)
+        MetaDataJsonFormat.read(metaDataJson)
       case None =>
         MetaData.empty
     }

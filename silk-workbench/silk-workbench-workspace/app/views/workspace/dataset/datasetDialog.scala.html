@@ -27,11 +27,13 @@
       function savePlugin(pluginId, name, parameters, callbacks) {
         // Build dataset json
         var json = {
-          taskType: "Dataset",
           id: name,
-          type: pluginId,
-          uriProperty: $('#dataset_uriProperty').val(),
-          parameters: parameters
+          data: {
+            taskType: "Dataset",
+            type: pluginId,
+            uriProperty: $('#dataset_uriProperty').val(),
+            parameters: parameters
+          }
         };
 
         // Submit data source

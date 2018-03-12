@@ -87,15 +87,17 @@
 
   function submit() {
     const values = {
-      taskType: "Transform",
       id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
-      selection: {
-        inputId: $("#source_dataset").val(),
-        typeUri: $("#transformation_type").val(),
-        restriction: $("#source").val()
-      },
-      outputs: $("#output_dataset").val().split(" ").filter(String),
-      targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+      data: {
+        taskType: "Transform",
+        selection: {
+          inputId: $("#source_dataset").val(),
+          typeUri: $("#transformation_type").val(),
+          restriction: $("#source").val()
+        },
+        outputs: $("#output_dataset").val().split(" ").filter(String),
+        targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+      }
     };
 
     if(values.id.length === 0) {

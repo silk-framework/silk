@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -38,7 +38,15 @@ case class TransformSpec(selection: DatasetSelection,
 
   override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
-  override lazy val referencedTasks = Set(selection.inputId)
+  /**
+    * The tasks that this task reads from.
+    */
+  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+
+  /**
+    * The tasks that this task writes to.
+    */
+  override def outputTasks: Set[Identifier] = outputs.toSet
 
   /**
     * Input and output schemata of all object rules in the tree.
@@ -60,6 +68,15 @@ case class TransformSpec(selection: DatasetSelection,
     */
   lazy val outputSchema: MultiEntitySchema = {
     new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
+  }
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    Seq(
+      ("Source", selection.inputId.toString),
+      ("Type", selection.typeUri.toString),
+      ("Restriction", selection.restriction.toString)
+    )
   }
 
   /**

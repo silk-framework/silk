@@ -18,8 +18,10 @@
         var json = {
           taskType: "CustomTask",
           id: name,
-          type: pluginId,
-          parameters: parameters
+          data: {
+            type: pluginId,
+            parameters: parameters
+          }
         };
 
         // Submit task

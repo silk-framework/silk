@@ -43,15 +43,5 @@ case class TransformPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String): Option[String] =
       Some(s"transform/$project/$task/editor")
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      val transformSpec = task.asInstanceOf[TransformSpec]
-      Seq(
-        ("Source", transformSpec.selection.inputId.toString),
-        ("Type", transformSpec.selection.typeUri.toString),
-        ("Restriction", transformSpec.selection.restriction.toString)
-      )
-    }
   }
 }

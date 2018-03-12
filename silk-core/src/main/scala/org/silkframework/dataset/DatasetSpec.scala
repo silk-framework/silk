@@ -17,7 +17,7 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -48,9 +48,26 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
+  override def inputTasks: Set[Identifier] = plugin.inputTasks
+
+  override def outputTasks: Set[Identifier] = plugin.outputTasks
+
   override def referencedTasks: Set[Identifier] = plugin.referencedTasks
 
   override def referencedResources: Seq[Resource] = plugin.referencedResources
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    var properties =
+      plugin match {
+        case Dataset(plugin, params) =>
+          Seq(("type", plugin.label)) ++ params
+      }
+    for(uriProperty <- uriProperty) {
+      properties :+= ("URI Property", uriProperty.uri)
+    }
+    properties
+  }
 
   override def toString: String = DatasetSpec.toString
 

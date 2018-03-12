@@ -46,11 +46,6 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
       Some(s"workflow/editor/$project/$task")
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      Seq()
-    }
   }
 
 }

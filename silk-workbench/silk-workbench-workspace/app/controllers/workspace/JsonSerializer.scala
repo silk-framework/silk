@@ -11,7 +11,7 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.JsonSerializers.JsonMetaDataFormat
+import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -126,41 +126,6 @@ object JsonSerializer {
       ("failed" -> JsBoolean(status.failed)) ::
       ("lastUpdateTime" -> JsNumber(status.timestamp)) ::
       ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull)) :: Nil
-    )
-  }
-
-  /**
-    * Serializes the meta data of this task.
-    * In addition it also adds some non-user data, such as the input and output schemata, which could also be split into a separate endpoint/object in the future.
-    */
-  def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
-    implicit val writeContext = WriteContext[JsValue](projectId = Some(task.project.name))
-    val metaDataJson = JsonMetaDataFormat.write(task.metaData).as[JsObject]
-
-    val inputSchemata = task.data.inputSchemataOpt match {
-      case Some(schemata) => JsArray(schemata.map(entitySchema))
-      case None => JsNull
-    }
-    val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
-
-    val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
-    val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
-
-    metaDataJson ++
-      Json.obj(
-        "id" -> JsString(task.id),
-        "inputSchemata" -> inputSchemata,
-        "outputSchema" -> outputSchema,
-        "referencedTasks" -> referencedTasks,
-        "dependentTasks" -> dependentTasks
-      )
-  }
-
-  def entitySchema(schema: EntitySchema) = {
-    // TODO: Check if this should serialize to a TypedPath instead
-    val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
-    Json.obj(
-      "paths" -> JsArray(paths)
     )
   }
 
