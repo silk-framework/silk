@@ -937,9 +937,11 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
+      // In older serializations the task data has been directly attached to this JSON object
+      val dataJson = optionalValue(value, DATA).getOrElse(value)
       PlainTask(
         id = stringValue(value, ID),
-        data = fromJson[T](requiredValue(value, DATA)),
+        data = fromJson[T](dataJson),
         metaData = metaData(value)
       )
     }
