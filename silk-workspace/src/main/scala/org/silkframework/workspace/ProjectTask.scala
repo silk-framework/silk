@@ -34,9 +34,11 @@ import scala.util.control.NonFatal
   * @tparam TaskType The data type that specifies the properties of this task.
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
-                                                   initialData: TaskType,
-                                                   initialMetaData: MetaData,
-                                                   module: Module[TaskType]) extends Task[TaskType] {
+                                                   private val initialData: TaskType,
+                                                   private val initialMetaData: MetaData,
+                                                   private val module: Module[TaskType]) extends Task[TaskType] {
+
+  def this(pt: ProjectTask[TaskType]) = this(pt.id, pt.initialData, pt.initialMetaData, pt.module)
 
   private val log = Logger.getLogger(getClass.getName)
 
