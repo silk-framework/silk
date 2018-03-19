@@ -12,6 +12,6 @@ import scala.reflect.ClassTag
   * @tparam CompanionType Type of the companion object
   */
 class ProjectTaskWrapper[TaskType <: TaskSpec : ClassTag, CompanionType] (pt: ProjectTask[TaskType], val companion: CompanionType) extends ProjectTask[TaskType](pt) {
-  //FIXME: this wrapper should not be neccessary, reimplement Task so we can define any given output destination
+  //FIXME: this wrapper should not be necessary, reimplement Task so we can define any given output destination
 
 }

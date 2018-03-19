@@ -11,7 +11,7 @@ import org.silkframework.workspace.xml.XmlZipProjectMarshaling
   * Trait that can be mixed in to replace the workspace provider with an in-memory version
   * that has a project pre-loaded from the Classpath.
   */
-trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: Suite with FlatSpecLike =>
+trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: Suite=>
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
     */
@@ -33,22 +33,20 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     val is = getClass.getClassLoader.getResourceAsStream(projectPathInClasspath)
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     replacementWorkspace.importProject(projectId, is, XmlZipProjectMarshaling())
-    val rdfWorkspaceUser = new User {
+    expectedUser = new User {
       /**
         * The current workspace of this user.
         */
       override def workspace: Workspace = replacementWorkspace
     }
-    expectedUser = rdfWorkspaceUser
     oldUserManager = User.userManager
-    User.userManager = () => rdfWorkspaceUser
+    User.userManager = () => expectedUser
   }
 
-  it should "return the expected user and project" in {
+  this.beforeAll()
     assert(Option(expectedUser).isDefined && expectedUser == User(),
       "User was different! Try changing the mixin order of SingleProjectWorkspaceProviderTestTrait.")
     assert(project.config.id.toString == projectId)
-  }
 
   override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
