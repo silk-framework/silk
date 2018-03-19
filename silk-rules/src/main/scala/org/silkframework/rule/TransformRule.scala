@@ -2,7 +2,7 @@ package org.silkframework.rule
 
 import java.net.URI
 
-import org.silkframework.config.MetaData.MetaDataFormat
+import org.silkframework.config.MetaData.MetaDataXmlFormat
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
@@ -194,7 +194,7 @@ object RootMappingRule {
       RootMappingRule(
         id = (value \ "@id").text,
         rules = MappingRulesFormat.read((value \ "MappingRules").head),
-        metaData = (value \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+        metaData = (value \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       )
     }
 
@@ -204,7 +204,7 @@ object RootMappingRule {
     override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
       <RootMappingRule id={value.id}>
         { MappingRulesFormat.write(value.rules) }
-        { MetaDataFormat.write(value.metaData) }
+        { MetaDataXmlFormat.write(value.metaData) }
       </RootMappingRule>
     }
   }
@@ -397,7 +397,7 @@ object TransformRule {
         sourcePath = Path.parse((node \ "@relativePath").text),
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
-        metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       )(readContext.prefixes)
     }
 
@@ -414,7 +414,7 @@ object TransformRule {
           }
         }
 
-      val metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+      val metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
 
       val complex =
         ComplexMapping(
@@ -430,14 +430,14 @@ object TransformRule {
       value match {
         case ObjectMapping(name, relativePath, target, childRules, metaData) =>
           <ObjectMapping name={name} relativePath={relativePath.serialize} >
-            {MetaDataFormat.write(metaData)}
+            {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
             { target.map(toXml[MappingTarget]).toSeq }
           </ObjectMapping>
         case _ =>
           // At the moment, all other types are serialized generically
           <TransformRule name={value.id}>
-            {MetaDataFormat.write(value.metaData)}
+            {MetaDataXmlFormat.write(value.metaData)}
             {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
           </TransformRule>
       }

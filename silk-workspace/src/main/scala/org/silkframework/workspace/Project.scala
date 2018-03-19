@@ -265,13 +265,13 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
-        removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true).reverse) {
+        removeAnyTask(dependentTask, removeDependentTasks = false)
       }
     } else {
       // Make sure that no other task depends on this task
       for(task <- allTasks) {
-        if(task.data.referencedTasks.contains(taskName)) {
+        if(task.data.inputTasks.contains(taskName)) {
           throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
         }
       }

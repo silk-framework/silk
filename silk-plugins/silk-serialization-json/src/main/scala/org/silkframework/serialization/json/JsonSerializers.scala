@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json
 
 import java.net.HttpURLConnection
+import java.time.Instant
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -47,23 +48,30 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonMetaDataFormat extends JsonFormat[MetaData] {
+  implicit object MetaDataJsonFormat extends JsonFormat[MetaData] {
 
     final val LABEL = "label"
     final val DESCRIPTION = "description"
+    final val MODIFIED = "modified"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = stringValueOption(value, LABEL).getOrElse(""),
-        description = stringValueOption(value, DESCRIPTION).getOrElse("")
+        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        modified = stringValueOption(value, MODIFIED).map(Instant.parse)
       )
     }
 
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        LABEL -> JsString(value.label),
-        DESCRIPTION -> JsString(value.description)
-      )
+      var json =
+        Json.obj(
+          LABEL -> JsString(value.label),
+          DESCRIPTION -> JsString(value.description)
+        )
+      for(modified <- value.modified) {
+        json += MODIFIED -> JsString(modified.toString)
+      }
+      json
     }
   }
 
@@ -914,14 +922,26 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions())(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+
+    final val PROJECT = "project"
+    final val DATA = "data"
+    final val PROPERTIES = "properties"
+    final val RELATIONS = "relations"
+    final val SCHEMATA = "schemata"
+    final val KEY = "key"
+    final val VALUE = "value"
+
+
     /**
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
+      // In older serializations the task data has been directly attached to this JSON object
+      val dataJson = optionalValue(value, DATA).getOrElse(value)
       PlainTask(
         id = stringValue(value, ID),
-        data = fromJson[T](value),
+        data = fromJson[T](dataJson),
         metaData = metaData(value)
       )
     }
@@ -929,13 +949,94 @@ object JsonSerializers {
     /**
       * Serializes a value.
       */
-    override def write(value:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(task:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var json = Json.obj(ID -> JsString(task.id.toString))
+
+      for(project <- writeContext.projectId) {
+        json += PROJECT -> JsString(project)
+      }
+
+      if(options.includeMetaData.getOrElse(true)) {
+        json += METADATA -> toJson(task.metaData)
+      }
+
+      // Serialize task data
+      val taskDataJson = toJson(task.data).as[JsObject]
+      // We always want to add the type at the top level regardless if the task data is serialized
+      for(taskType <- taskDataJson.value.get(TASKTYPE)) {
+        json += TASKTYPE -> taskType
+      }
+      if(options.includeTaskData.getOrElse(true)) {
+        json += DATA -> taskDataJson
+      }
+
+      if(options.includeTaskProperties.getOrElse(false)) {
+        json += PROPERTIES -> writeTaskProperties(task)
+      }
+      if(options.includeRelations.getOrElse(false)) {
+        json += RELATIONS -> writeTaskRelations(task)
+      }
+      if(options.includeSchemata.getOrElse(false)) {
+        json += SCHEMATA -> writeTaskSchemata(task)
+      }
+
+      json
+    }
+
+    private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(
+        for((key, value) <- task.data.properties(writeContext.prefixes)) yield {
+          Json.obj(KEY -> key, VALUE -> value)
+        }
+      )
+    }
+
+    private def writeTaskRelations(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        ID -> JsString(value.id.toString),
-        METADATA -> toJson(value.metaData)
-      ) ++ toJson(value.data).as[JsObject]
+        "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
+        "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
+        "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
+        "dependentTasksDirect" -> JsArray(task.findDependentTasks(false).map(JsString(_))),
+        "dependentTasksAll" -> JsArray(task.findDependentTasks(true).map(JsString(_)))
+      )
+    }
+
+    private def writeTaskSchemata(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val inputSchemata = task.data.inputSchemataOpt match {
+        case Some(schemata) => JsArray(schemata.map(entitySchema))
+        case None => JsNull
+      }
+      val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+      Json.obj(
+        "input" -> inputSchemata,
+        "output" -> outputSchema
+      )
+    }
+
+    private def entitySchema(schema: EntitySchema) = {
+      // TODO: Check if this should serialize to a TypedPath instead
+      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
+      Json.obj(
+        "paths" -> JsArray(paths)
+      )
     }
   }
+
+  /**
+    * Task serialization options.
+    * Should use a format that can be serialized with the Play Json library.
+    *
+    * @param includeMetaData Include the task meta data.
+    * @param includeTaskData Include the task data.
+    * @param includeTaskProperties Retrieves a list of properties as key-value pairs to be displayed to the user.
+    * @param includeRelations Include relations to other tasks.
+    * @param includeSchemata Include the input and output schemata of the task.
+    */
+  case class TaskFormatOptions(includeMetaData: Option[Boolean] = None,
+                               includeTaskData: Option[Boolean] = None,
+                               includeTaskProperties: Option[Boolean] = None,
+                               includeRelations: Option[Boolean] = None,
+                               includeSchemata: Option[Boolean] = None)
 
   /**
     * Dataset Task

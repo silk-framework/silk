@@ -38,6 +38,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
         <MetaData>
           <Label>label 1</Label>
           <Description>description 1</Description>
+          <Modified>2018-03-08T13:05:40.347Z</Modified>
         </MetaData>
         <Param name="graphUri" value="urn:dataset1"/>
       </Dataset>
@@ -52,6 +53,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
         <MetaData>
           <Label>label 1</Label>
           <Description>description 1</Description>
+          <Modified>2018-03-08T13:05:40.347Z</Modified>
         </MetaData>
         <Param name="graphUri" value="urn:dataset1"/>
       </Dataset>
@@ -66,15 +68,20 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     response.json mustBe
       Json.obj(
         "id" -> datasetId,
+        "project" -> project,
         "metadata" ->
           Json.obj(
             "label" -> "label 1",
-            "description" -> "description 1"
+            "description" -> "description 1",
+            "modified" -> "2018-03-08T13:05:40.347Z"
           ),
         "taskType" -> "Dataset",
-        "type" -> "internal",
-        "parameters" -> Json.obj(
-          "graphUri" -> "urn:dataset1"
+        "data" -> Json.obj(
+          "taskType" -> "Dataset",
+          "type" -> "internal",
+          "parameters" -> Json.obj(
+            "graphUri" -> "urn:dataset1"
+          )
         )
       )
   }
@@ -90,13 +97,15 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
             "label" -> "label 2",
             "description" -> "description 2"
           ),
-        "uriProperty" -> "URI",
-        "taskType" -> "Dataset",
-        "type" -> "internal",
-        "parameters" ->
-          Json.obj(
-            "graphUri" -> "urn:dataset2"
-          )
+        "data" -> Json.obj(
+          "uriProperty" -> "URI",
+          "taskType" -> "Dataset",
+          "type" -> "internal",
+          "parameters" ->
+            Json.obj(
+              "graphUri" -> "urn:dataset2"
+            )
+        )
       )
     )
     checkResponse(response)
@@ -137,9 +146,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     val json = response.json
     (json \ "id").get mustBe JsString(transformId)
     (json \ "taskType").get mustBe JsString("Transform")
-    (json \ "selection" \ "inputId").get mustBe JsString(datasetId)
-    (json \ "selection" \ "typeUri").as[String] mustBe typeUri
-    (json \ "root" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
+    (json \ "data" \ "selection" \ "inputId").get mustBe JsString(datasetId)
+    (json \ "data" \ "selection" \ "typeUri").as[String] mustBe typeUri
+    (json \ "data" \ "root" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
         """{"type":"transformInput","id":"constant","function":"constant","inputs":[],"parameters":{"value":"http://example.org/"}}"""
   }
 
@@ -150,14 +159,16 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
   "patch transform task" in {
     val updateJson = s"""{
                        |    "id": "$transformId",
-                       |    "outputs": [],
-                       |    "selection": {
+                       |    "data": {
+                       |      "outputs": [],
+                       |      "selection": {
                        |        "inputId": "$datasetId",
                        |        "restriction": "",
                        |        "typeUri": "someType"
-                       |    },
-                       |    "targetVocabularies": [],
-                       |    "taskType": "Transform"
+                       |      },
+                       |      "targetVocabularies": [],
+                       |      "taskType": "Transform"
+                       |    }
                        |}""".stripMargin
     val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
     val response = request.patch(Json.parse(updateJson))
@@ -203,9 +214,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
-    (response.json \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
-    (response.json \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ "data" \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
+    (response.json \ "data" \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
+    (response.json \ "data" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "patch linking task" in {
@@ -213,15 +224,17 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
       s"""
          | {
          |  "id": "$linkTaskId",
-         |  "source": {
-         |    "inputId": "$datasetId",
-         |    "typeUri": "owl:Class",
-         |    "restriction": ""
-         |  },
-         |  "target": {
-         |    "inputId": "$datasetId",
-         |    "typeUri": "<urn:schema:targetType>",
-         |    "restriction": ""
+         |  "data": {
+         |    "source": {
+         |      "inputId": "$datasetId",
+         |      "typeUri": "owl:Class",
+         |      "restriction": ""
+         |    },
+         |    "target": {
+         |      "inputId": "$datasetId",
+         |      "typeUri": "<urn:schema:targetType>",
+         |      "restriction": ""
+         |    }
          |  }
          | }
        """.stripMargin
@@ -236,9 +249,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "source" \ "typeUri").get mustBe JsString("owl:Class")
-    (response.json \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
-    (response.json \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ "data" \ "source" \ "typeUri").get mustBe JsString("owl:Class")
+    (response.json \ "data" \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
+    (response.json \ "data" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "post workflow task" in {

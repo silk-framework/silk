@@ -68,6 +68,7 @@ POST          /reload                                                           
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
+POST          /searchTasks                                                      controllers.workspace.SearchApi.search()
 
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects

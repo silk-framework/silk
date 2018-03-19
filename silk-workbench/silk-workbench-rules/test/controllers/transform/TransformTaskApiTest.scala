@@ -28,7 +28,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
         withHeaders("ACCEPT" -> "application/json")
     val response = request.get()
-    (Json.parse(checkResponse(response).body) \ "root" \ "id").as[String] mustBe "root"
+    (Json.parse(checkResponse(response).body) \ "data" \ "root" \ "id").as[String] mustBe "root"
   }
 
   "Check that we can GET the transform task as XML" in {

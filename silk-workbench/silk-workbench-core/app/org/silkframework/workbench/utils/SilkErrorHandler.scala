@@ -4,7 +4,6 @@ import java.util.logging.{Level, Logger}
 import javax.inject.Provider
 
 import org.silkframework.runtime.validation.RequestException
-import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
 import play.api._

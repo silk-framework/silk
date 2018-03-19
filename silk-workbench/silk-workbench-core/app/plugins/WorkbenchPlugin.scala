@@ -49,9 +49,6 @@ object WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     def open(project: String, task: String): Option[String]
 
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)]
-
     /** Retrieves all tasks of this type from a project*/
     def projectTasks(project: Project) = project.tasks[T]
 

@@ -1,9 +1,9 @@
-package org.silkframework.workspace.activity.workflow
+package org.silkframework.serialization.json
 
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.WorkflowExecutionReport
 import play.api.libs.json._
 
 case class WorkflowExecutionReportJsonFormat() extends JsonFormat[WorkflowExecutionReport] {
