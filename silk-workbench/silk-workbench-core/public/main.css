@@ -284,3 +284,9 @@ div#newproject {
   line-height: 24px;
   letter-spacing: 0.04em;
 }
+
+#tab-bar .di_tab_task_caches {
+  position: absolute;
+  right: 10px;
+  margin: 12px 0px 0px 14px;
+}
