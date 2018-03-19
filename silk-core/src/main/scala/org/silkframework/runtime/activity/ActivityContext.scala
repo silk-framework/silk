@@ -24,7 +24,7 @@ trait ActivityContext[T] {
     * Will provide context information relevant for the Activity to be performed (if any)
     * @return - ActivityContextData of the specified type
     */
-  def contextObject[C](implicit ct:ClassTag[C]): Option[ActivityContextData[C]]
+  def contextObject[C](implicit ct:ClassTag[C]): Option[ActivityContextData[C]] = None
 
   /**
    * Retrieves the logger to be used by the activity.

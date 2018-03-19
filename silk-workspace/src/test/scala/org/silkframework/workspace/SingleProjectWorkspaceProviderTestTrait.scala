@@ -43,11 +43,6 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     User.userManager = () => expectedUser
   }
 
-  this.beforeAll()
-    assert(Option(expectedUser).isDefined && expectedUser == User(),
-      "User was different! Try changing the mixin order of SingleProjectWorkspaceProviderTestTrait.")
-    assert(project.config.id.toString == projectId)
-
   override protected def afterAll(): Unit = {
     User.userManager = oldUserManager
     super.afterAll()
