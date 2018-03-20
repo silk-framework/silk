@@ -17,7 +17,7 @@ import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
-import {newValueIsIRI, wasTouched} from './helpers';
+import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -268,6 +268,7 @@ const ObjectMappingRuleForm = React.createClass({
                     placeholder={'Target property'}
                     className="ecc-silk-mapping__ruleseditor__targetProperty"
                     entity="targetProperty"
+                    newOptionCreator={convertToUri}
                     isValidNewOption={newValueIsIRI}
                     creatable
                     ruleId={autoCompleteRuleId}

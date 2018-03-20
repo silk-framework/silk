@@ -7,7 +7,7 @@ import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
 import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory, VocabularyCache, VocabularyCacheFactory}
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, WorkflowExecutionReportJsonFormat}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
 
 import scala.language.existentials
@@ -52,7 +52,7 @@ class WorkspacePlugins extends PluginModule {
     VocabularyCache.ValueFormat.getClass ::
     CachedEntitySchemaXmlFormat.getClass ::
     WorkflowXmlFormat.getClass ::
-    classOf[WorkflowExecutionReportJsonFormat] :: Nil
+    Nil
   }
 
   def projectMarshaller: List[Class[_]] = {

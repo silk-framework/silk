@@ -11,11 +11,12 @@ import {
     ScrollingMixin,
     Checkbox,
 } from '@eccenca/gui-elements';
+import {URI} from 'ecc-utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
-import {newValueIsIRI, wasTouched} from './helpers';
+import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -256,6 +257,7 @@ const ValueMappingRuleForm = React.createClass({
                             placeholder={'Target property'}
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             entity="targetProperty"
+                            newOptionCreator={convertToUri}
                             isValidNewOption={newValueIsIRI}
                             creatable
                             value={this.state.targetProperty}

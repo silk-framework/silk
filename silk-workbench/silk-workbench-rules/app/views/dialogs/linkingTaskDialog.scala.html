@@ -110,19 +110,21 @@
 
   function submit() {
     const values = {
-      taskType: "Linking",
       id: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
-      source: {
-        inputId: $("#source_dataset").val(),
-        typeUri: $("#source_type").val(),
-        restriction: $("#source").val()
-      },
-      target: {
-        inputId: $("#target_dataset").val(),
-        typeUri: $("#target_type").val(),
-        restriction: $("#target").val()
-      },
-      outputs: $("#output_dataset").val().split(" ").filter(String)
+      data: {
+        taskType: "Linking",
+        source: {
+          inputId: $("#source_dataset").val(),
+          typeUri: $("#source_type").val(),
+          restriction: $("#source").val()
+        },
+        target: {
+          inputId: $("#target_dataset").val(),
+          typeUri: $("#target_type").val(),
+          restriction: $("#target").val()
+        },
+        outputs: $("#output_dataset").val().split(" ").filter(String)
+      }
     };
 
     if(values.id.length === 0) {

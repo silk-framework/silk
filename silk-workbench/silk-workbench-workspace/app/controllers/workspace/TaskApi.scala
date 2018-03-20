@@ -5,6 +5,7 @@ import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, User}
@@ -83,7 +84,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
   def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    Ok(JsonSerializer.taskMetadata(task))
+    Ok(JsonSerializers.toJson(task.metaData))
   }
 
   def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {

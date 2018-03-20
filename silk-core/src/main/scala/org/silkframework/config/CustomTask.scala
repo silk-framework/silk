@@ -7,7 +7,15 @@ import scala.xml.Node
 /**
   * A custom task provided by a plugin.
   */
-trait CustomTask extends TaskSpec with AnyPlugin
+trait CustomTask extends TaskSpec with AnyPlugin {
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    val (pluginType, params) = PluginRegistry.reflect(this)
+    params.toSeq
+  }
+
+}
 
 object CustomTask extends PluginFactory[CustomTask] {
 

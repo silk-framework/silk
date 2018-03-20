@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import controllers.util.ProjectUtils._
-import org.silkframework.config.Task
+import org.silkframework.config.{MetaData, Task}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
@@ -44,7 +44,9 @@ class WorkflowApi extends Controller {
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
-    project.updateTask[Workflow](taskName, workflow)
+    // The workflow that is sent to this endpoint by the editor does not contain the metadata
+    val metaData = project.anyTaskOption(taskName).map(_.metaData).getOrElse(MetaData.empty)
+    project.updateTask[Workflow](taskName, workflow, metaData)
 
     Ok
   }

@@ -55,19 +55,5 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
       Some(s"workspace/datasets/$project/$task/dataset")
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      val dataset = taskData.asInstanceOf[DatasetSpec]
-      var properties =
-        dataset.plugin match {
-          case Dataset(plugin, params) =>
-            Seq(("type", plugin.label)) ++ params
-        }
-      for(uriProperty <- dataset.uriProperty) {
-        properties :+= ("URI Property", uriProperty.uri)
-      }
-      properties
-    }
   }
 }

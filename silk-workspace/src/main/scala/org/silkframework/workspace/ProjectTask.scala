@@ -14,10 +14,11 @@
 
 package org.silkframework.workspace
 
+import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -46,7 +47,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private var currentData: TaskType = initialData
 
   @volatile
-  private var currentMetaData: MetaData = initialMetaData
+  private var currentMetaData: MetaData = {
+    // Make sure that the modified timestamp is set
+    initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
+  }
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -100,6 +104,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     for(md <- newMetaData) {
       currentMetaData = md
     }
+    // Update modified timestamp
+    currentMetaData = currentMetaData.copy(modified = Some(currentMetaData.modified.getOrElse(Instant.now)))
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
@@ -165,16 +171,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  def findDependentTasks(recursive: Boolean): Seq[ProjectTask[_]] = {
+  override def findDependentTasks(recursive: Boolean): Seq[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
-    if(!recursive) {
-      dependentTasks
-    } else {
-      val indirectlyDependendTasks = dependentTasks.flatMap(_.findDependentTasks(true))
-      indirectlyDependendTasks ++ dependentTasks
+    var allDependentTaskIds = dependentTasks.map(_.id)
+    if(recursive) {
+      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
+    allDependentTaskIds.distinct
   }
 
   private object Writer extends Runnable {

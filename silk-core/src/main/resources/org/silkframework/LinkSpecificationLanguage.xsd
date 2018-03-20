@@ -6,6 +6,7 @@
             <xs:sequence>
                 <xs:element name="Label" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="Description" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="Modified" minOccurs="0" maxOccurs="1" type="xs:string"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
