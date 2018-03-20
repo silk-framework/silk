@@ -3,6 +3,9 @@ package org.silkframework.workbench.utils
 import java.util.concurrent.{Executors, TimeUnit}
 import java.util.logging.{Level, Logger}
 
+/**
+  * A Listener that limits that rate of updates.
+  */
 trait Listener[T] extends (T => Unit) {
 
   /** The minimum number of milliseconds between two successive calls to onUpdate. */
