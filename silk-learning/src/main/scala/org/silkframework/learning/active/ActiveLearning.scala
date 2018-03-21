@@ -69,9 +69,11 @@ class ActiveLearning(config: LearningConfiguration,
 
     //Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
-    if(context.value().pool.isEmpty || poolPaths != paths) {
+    if(context.value().pool.isEmpty) {
       context.status.updateMessage("Loading pool")
-      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, paths)
+      val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
+      // TODO only generate pairs that contain overlapping values val pathPairs = for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
+      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs)
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
     }
 
