@@ -118,7 +118,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
           if (resultSubject != curSubject) {
             for (curSubjectUri <- curSubject) {
-              f(new Entity(curSubjectUri, values, entitySchema))
+              f(new Entity(curSubjectUri, values.map(_.distinct), entitySchema))
               counter += 1
               if(limit.exists(counter >= _))
                 return
@@ -140,7 +140,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
       }
 
       for (curSubjectUri <- curSubject) {
-        f(new Entity(curSubjectUri, values, entitySchema))
+        f(new Entity(curSubjectUri, values.map(_.distinct), entitySchema))
       }
     }
   }
