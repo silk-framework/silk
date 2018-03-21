@@ -71,8 +71,14 @@ class ActiveLearning(config: LearningConfiguration,
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
     if(context.value().pool.isEmpty) {
       context.status.updateMessage("Loading pool")
-      val pathPairs = for(sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
-      // TODO only generate pairs that contain overlapping values val pathPairs = for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
+      val pathPairs =
+        if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
+          // If boths sources share most path, assume that the schemata are equal and generate direct pairs
+          for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
+        } else {
+          // If both source have different paths, generate the complete cartesian product
+          for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
+        }
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs)
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
     }
