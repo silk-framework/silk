@@ -149,7 +149,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     private def queryPath() = {
       //Select
       val sparql = new StringBuilder
-      sparql append "SELECT "
+      sparql append "SELECT DISTINCT "
       sparql append "?" + entityDesc.variable + " "
       sparql append "?" + varPrefix + "0\n"
 
