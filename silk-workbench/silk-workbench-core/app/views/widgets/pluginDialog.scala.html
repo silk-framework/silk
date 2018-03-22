@@ -51,7 +51,7 @@
       });
 
       @for(obj <- currentObj) {
-        $("#resource_type_select").val("@obj.plugin.id").change();
+        $("#resource_type_select").val("@obj.pluginSpec.id").change();
       }
       @if(currentObj.isEmpty) {
         var first_plugin_id = '@plugins.head.id';
@@ -161,13 +161,10 @@
       }
 
       // Retrieve all plugin parameters
-      var parameters = [
-        @for(param <- plugin.parameters) {
-          { name: '@param.name',
-            value: $('[name=\'@(plugin.id)_@(param.name)\']').val()
-          },
-        }
-      ];
+      var parameters = {};
+      @for(param <- plugin.parameters) {
+        parameters['@param.name'] = $('[name=\'@(plugin.id)_@(param.name)\']').val();
+      }
 
       // Submit dialog
       if(!onlyAutoConfigure) {
@@ -258,7 +255,7 @@
   // Retrieve parameter value as Object
   val paramObj =
     currentObj match {
-      case Some(obj) if obj.plugin.id.toString == pluginId =>
+      case Some(obj) if obj.pluginSpec.id.toString == pluginId =>
         Option(param(obj))
       case _ =>
         param.defaultValue.flatMap(Option(_))

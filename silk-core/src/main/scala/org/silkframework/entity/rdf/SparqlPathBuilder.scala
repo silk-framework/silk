@@ -12,24 +12,37 @@
  * limitations under the License.
  */
 
-package org.silkframework.plugins.dataset.rdf.sparql
+package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 
 /**
- * Builds a SPARQL pattern from Paths.
+ * Builds SPARQL patterns from paths.
  */
 object SparqlPathBuilder {
+
   /**
-   * Builds a SPARQL pattern from Paths.
+    * Builds a SPARQL pattern for a single path.
+    *
+    * @param path The path
+    * @param subject The subject e.g. ?s or <uri>
+    * @param value The value
+    */
+  def path(path: Path, subject: String = "?s", value: String = "?v", tempVarPrefix: String = "?t", filterVarPrefix: String = "?f"): String = {
+    val vars = new Vars(subject, value, tempVarPrefix, filterVarPrefix)
+    buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, value)
+  }
+
+  /**
+   * Builds a SPARQL pattern from a sequence of paths.
    *
    * @param paths The paths
    * @param subject The subject e.g. ?s or <uri>
    * @param valuesPrefix The value of every path will be bound to a variable of the form: valuesPrefix{path.id}
    */
-  def apply(paths: Seq[Path], subject: String = "?s", valuesPrefix: String = "?v"): String = {
-    val vars = new Vars(subject, valuesPrefix)
+  def apply(paths: Seq[Path], subject: String = "?s", valuesPrefix: String = "?v", tempVarPrefix: String = "?t", filterVarPrefix: String = "?f"): String = {
+    val vars = new Vars(subject, valuesPrefix, tempVarPrefix, filterVarPrefix)
     paths.zipWithIndex.map {
       case (path, index) => buildPath(path, index, vars)
     }.mkString
@@ -70,26 +83,23 @@ object SparqlPathBuilder {
   /**
    * Holds all variables used during the construction of a SPARQL pattern.
    */
-  private class Vars(val subject: String = "?s", val valuesPrefix: String = "?v") {
-    private val TempVarPrefix = "?t"
-
-    private val FilterVarPrefix = "?f"
+  private class Vars(val subject: String = "?s", val valuesPrefix: String = "?v", val tempVarPrefix: String = "?t", val filterVarPrefix: String = "?f") {
 
     private var tempVarIndex = 0
 
     private var filterVarIndex = 0
 
     def newTempVar: String = {
-      tempVarIndex += 1; TempVarPrefix + tempVarIndex
+      tempVarIndex += 1; tempVarPrefix + tempVarIndex
     }
 
-    def curTempVar: String = TempVarPrefix + tempVarIndex
+    def curTempVar: String = tempVarPrefix + tempVarIndex
 
     def newFilterVar: String = {
-      filterVarIndex += 1; FilterVarPrefix + filterVarIndex
+      filterVarIndex += 1; filterVarPrefix + filterVarIndex
     }
 
-    def curFilterVar: String = FilterVarPrefix + filterVarIndex
+    def curFilterVar: String = filterVarPrefix + filterVarIndex
 
     def newValueVar(path: Path, index: Int): String = valuesPrefix + index
   }

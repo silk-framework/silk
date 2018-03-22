@@ -55,7 +55,8 @@ class PluginApi extends Controller {
         "title" -> JsString(param.label),
         "description" -> JsString(param.description),
         "type" -> JsString(param.dataType.name),
-        "value" -> defaultValue
+        "value" -> defaultValue,
+        "advanced" -> JsBoolean(param.advanced)
       )
     }
   }

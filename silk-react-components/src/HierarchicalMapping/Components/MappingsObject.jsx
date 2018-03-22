@@ -9,7 +9,7 @@ import {
     DisruptiveButton,
     DismissiveButton,
     NotAvailable,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import {ThingIcon, RuleTitle, RuleTypes} from './MappingRule/SharedComponents';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';

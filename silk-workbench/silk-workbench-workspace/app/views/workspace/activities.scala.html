@@ -27,7 +27,16 @@
       .on('before_open.jstree', function (e, data) {
         loadCometStream();
       });
-      loadCometStream();
+      setTimeout(function() {loadCometStream();}, 1);
+      // Restore scroll position on reload
+      setTimeout(function() {
+        const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
+        console.log(scrollTop);
+        if(!isNaN(scrollTop) && scrollTop > 50) {
+          document.getElementsByClassName("mdl-layout__content")[0].scrollTop = scrollTop;
+        }
+        sessionStorage.removeItem("activityViewScrollPosition");
+      }, 1000);
     });
 
     function loadCometStream() {
@@ -124,7 +133,11 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @task.id
+    @if(task.metaData.label.trim != "") {
+      @task.metaData.label.trim (@task.id)
+    } else {
+      @task.id
+    }
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)

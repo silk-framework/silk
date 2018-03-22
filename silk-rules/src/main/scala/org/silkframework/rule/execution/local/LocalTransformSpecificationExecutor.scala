@@ -51,7 +51,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collect { case tm: TypeMapping => tm.typeUri }.headOption.getOrElse(""),
-            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType)).toIndexedSeq
+            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType, mt.isAttribute)).toIndexedSeq
           )
 
         val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))

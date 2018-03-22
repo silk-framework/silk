@@ -3,13 +3,15 @@ package controllers.workspace
 import java.io.File
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.config.{CustomTask, Task, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
@@ -34,10 +36,11 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-      "dataset" -> tasksJson[Dataset](project),
+      "dataset" -> tasksJson[DatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),
       "linking" -> tasksJson[LinkSpec](project),
-      "workflow" -> tasksJson[Workflow](project)
+      "workflow" -> tasksJson[Workflow](project),
+      "custom" -> tasksJson[CustomTask](project)
       )
     )
   }
@@ -123,33 +126,6 @@ object JsonSerializer {
       ("failed" -> JsBoolean(status.failed)) ::
       ("lastUpdateTime" -> JsNumber(status.timestamp)) ::
       ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull)) :: Nil
-    )
-  }
-
-  def taskMetadata(task: ProjectTask[_ <: TaskSpec]) = {
-    val inputSchemata = task.data.inputSchemataOpt match {
-      case Some(schemata) => JsArray(schemata.map(entitySchema))
-      case None => JsNull
-    }
-    val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
-
-    val referencedTasks = JsArray(task.data.referencedTasks.toSeq.map(JsString(_)))
-    val dependentTasks = JsArray(task.findDependentTasks(true).map(t => JsString(t.id)))
-
-    Json.obj(
-      "id" -> JsString(task.id),
-      "inputSchemata" -> inputSchemata,
-      "outputSchema" -> outputSchema,
-      "referencedTasks" -> referencedTasks,
-      "dependentTasks" -> dependentTasks
-    )
-  }
-
-  def entitySchema(schema: EntitySchema) = {
-    // TODO: Check if this should serialize to a TypedPath instead
-    val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
-    Json.obj(
-      "paths" -> JsArray(paths)
     )
   }
 

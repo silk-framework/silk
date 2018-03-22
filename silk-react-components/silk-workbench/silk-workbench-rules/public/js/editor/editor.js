@@ -462,7 +462,6 @@ function validateLinkSpec() {
             },
             processData: false,
             data: serializationFunction(),
-            dataType: 'json',
             success() {
                 updateEditorStatus([]);
                 updateScore();
@@ -814,7 +813,6 @@ function reloadCache(callback) {
     $.ajax({
         type: 'POST',
         url: `${apiUrl}/reloadCache`,
-        dataType: 'xml',
         success: function success() {
             callback();
         },

@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
@@ -13,7 +12,7 @@ import org.silkframework.util.Uri
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -21,18 +20,22 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
-    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false)) yield {
+    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)) yield {
       (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
     }
   }
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+   retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
+  }
+
+  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[Path] = {
     // At the moment we just generate paths from the first xml node that is found
-    val xml = loadXmlNodes(t.uri)
+    val xml = loadXmlNodes(typeUri.uri)
     if (xml.isEmpty) {
-      throw new ValidationException(s"There are no XML nodes at the given path ${t.toString} in resource ${file.name}")
+      throw new ValidationException(s"There are no XML nodes at the given path ${typeUri.toString} in resource ${file.name}")
     } else {
-      xml.head.collectPaths(onlyLeafNodes = false).toIndexedSeq
+      xml.head.collectPaths(onlyLeafNodes = onlyLeafNodes, onlyInnerNodes = onlyInnerNodes, depth).toIndexedSeq
     }
   }
 
@@ -75,7 +78,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
       // Enumerate entities
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri = traverser.generateUri(uriPattern)
-        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath.path, uriPattern)
+        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
         f(new Entity(uri, values, entityDesc))
       }
     }

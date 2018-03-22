@@ -172,14 +172,16 @@ object PluginDescription {
         (pluginParam.value(), if (ex != "") Some(ex) else defaultValue)
       } getOrElse ("No description", defaultValue)
 
+      val advanced = pluginParam exists (_.advanced())
+
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced)
     }
   }
 
   private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
     try {
-      val clazz = Class.forName(pluginClass.getName + "$")
+      val clazz = Class.forName(pluginClass.getName + "$", true, pluginClass.getClassLoader)
       val module = clazz.getField("MODULE$").get(null)
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 

@@ -93,8 +93,15 @@ silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.s
 silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
 */
 function reloadWorkspace() {
+    // Get the scroll position of the content container and set it after reloading
+    var contentScrollTop = document.getElementsByClassName('mdl-layout__content')[0].scrollTop;
     $.get(baseUrl + '/workspace/tree', function (data) {
         $('#workspace_tree').html(data);
+        if (contentScrollTop > 50) {
+            setTimeout(function () {
+                document.getElementsByClassName('mdl-layout__content')[0].scrollTop = contentScrollTop;
+            }, 200);
+        }
     }).fail(function (request) {
         alert('Error reloading workspace: ' + request.responseText);
     });
@@ -118,38 +125,74 @@ function workspaceDialog(relativePath) {
     showDialog(baseUrl + '/' + relativePath);
 }
 
+function handleError(request, callback) {
+    var responseMessage = void 0;
+    try {
+        var responseJson = JSON.parse(request.responseText);
+        responseMessage = responseJson.message; // Old format
+        if (responseMessage === undefined) {
+            if (responseJson.title === 'Bad Request') {
+                responseMessage = 'Task could not be saved! Details: ';
+            } else {
+                responseMessage = '';
+            }
+            var finestDetail = responseJson;
+            while (finestDetail.cause !== null) {
+                finestDetail = finestDetail.cause;
+            }
+            responseMessage += finestDetail.title;
+            responseMessage = responseMessage + ': ' + finestDetail.detail;
+        }
+    } catch (e) {
+        responseMessage = 'Task could not be saved!';
+
+        if (request.responseText && request.responseText.length > 0) {
+            responseMessage += ' Details: ' + request.responseText;
+        }
+    }
+    callback(responseMessage);
+}
+
 /* exported putTask
 silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
-function putTask(path, xml) {
+function putTask(project, task, json) {
+    var callbacks = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
+        success: function success() {},
+        error: function error() {}
+    };
+
+    $.ajax({
+        type: 'PATCH',
+        url: baseUrl + '/workspace/projects/' + project + '/tasks/' + task,
+        contentType: 'application/json;charset=UTF-8',
+        processData: false,
+        data: JSON.stringify(json),
+        error: function error(request) {
+            handleError(request, callbacks.error);
+        },
+        success: function success() {
+            reloadWorkspace();
+            callbacks.success();
+        }
+    });
+}
+
+function postTask(project, json) {
     var callbacks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
         success: function success() {},
         error: function error() {}
     };
 
     $.ajax({
-        type: 'PUT',
-        url: path,
-        contentType: 'text/xml;charset=UTF-8',
+        type: 'POST',
+        url: baseUrl + '/workspace/projects/' + project + '/tasks',
+        contentType: 'application/json;charset=UTF-8',
         processData: false,
-        data: xml,
+        data: JSON.stringify(json),
         error: function error(request) {
-            var responseJson = JSON.parse(request.responseText);
-            var responseMessage = responseJson.message; // Old format
-            if (responseMessage === undefined) {
-                if (responseJson.title === 'Bad Request') {
-                    responseMessage = 'Task could not be saved! Details: ';
-                } else {
-                    responseMessage = '';
-                }
-                var finestDetail = responseJson;
-                while (finestDetail.cause !== null) {
-                    finestDetail = finestDetail.cause;
-                }
-                responseMessage = responseMessage + finestDetail.title + ': ' + finestDetail.detail;
-            }
-            callbacks.error(responseMessage);
+            handleError(request, callbacks.error);
         },
         success: function success() {
             reloadWorkspace();

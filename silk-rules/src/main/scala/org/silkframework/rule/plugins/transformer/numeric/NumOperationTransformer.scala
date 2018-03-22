@@ -38,19 +38,19 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     parameters = Array("operator", "+"),
     input1 = Array("1"),
     input2 = Array("1"),
-    output = Array("2")
+    output = Array("2.0")
   ),
   new TransformExample(
     parameters = Array("operator", "-"),
     input1 = Array("1"),
     input2 = Array("1"),
-    output = Array("0")
+    output = Array("0.0")
   ),
   new TransformExample(
     parameters = Array("operator", "*"),
     input1 = Array("5"),
     input2 = Array("6"),
-    output = Array("30")
+    output = Array("30.0")
   ),
   new TransformExample(
     parameters = Array("operator", "/"),
@@ -68,13 +68,13 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     parameters = Array("operator", "*"),
     input1 = Array("1"),
     input2 = Array(),
-    output = Array("1")
+    output = Array("1.0")
   ),
   new TransformExample(
     parameters = Array("operator", "+"),
     input1 = Array("1", "1"),
     input2 = Array("1"),
-    output = Array("3")
+    output = Array("3.0")
   )
 ))
 case class NumOperationTransformer(

@@ -79,12 +79,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
           }
           generatedOutput should have size example.output.size
           for ((value, expected) <- generatedOutput zip example.output) {
-            (value, expected) match {
-              case (DoubleLiteral(doubleValue), DoubleLiteral(doubleExpected)) =>
-                doubleValue shouldEqual doubleExpected +- epsilon
-              case _ =>
-                value shouldEqual expected
-            }
+            value shouldEqual expected
           }
         }
       }

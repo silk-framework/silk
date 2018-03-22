@@ -16,7 +16,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
-  private val entityUris = Option(params.entityList).getOrElse("").split(' ').map(_.trim).filter(!_.isEmpty)
+  private val entityUris: Seq[String] = params.entityRestriction
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)

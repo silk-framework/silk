@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -56,7 +56,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[Dataset]()
+  registerModule[DatasetSpec]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
   registerModule[Workflow]()
@@ -184,8 +184,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = synchronized {
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     module[T].add(name, taskData, metaData)
   }
 
@@ -195,8 +197,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = synchronized {
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
@@ -211,12 +215,32 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         task.update(taskData, Some(metaData))
       case None =>
         addTask[T](name, taskData, metaData)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = synchronized {
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) =>
+        module.taskOption(name) match {
+          case Some(task) =>
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+          case None =>
+            addAnyTask(name, taskData, metaData)
+        }
+      case None =>
+        throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 
@@ -227,7 +251,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @tparam T The task type
    */
-  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
+  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = synchronized {
     module[T].remove(taskName)
   }
 
@@ -238,16 +262,16 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
-  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
+  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
-        removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true).reverse) {
+        removeAnyTask(dependentTask, removeDependentTasks = false)
       }
     } else {
       // Make sure that no other task depends on this task
       for(task <- allTasks) {
-        if(task.data.referencedTasks.contains(taskName)) {
+        if(task.data.inputTasks.contains(taskName)) {
           throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
         }
       }
@@ -284,7 +308,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag](): Unit = {
+  def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this)
   }
 

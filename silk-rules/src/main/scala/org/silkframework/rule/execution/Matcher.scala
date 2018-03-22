@@ -66,9 +66,6 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val scheduler = new SchedulerThread(executor)
     scheduler.start()
 
-    // Wait for completion of loaders
-    loaders.foreach(_.waitUntilFinished())
-
     //Process finished tasks
     var finishedTasks = 0
     var lastLog: Long = 0
@@ -79,7 +76,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
         context.value.update(context.value() ++ result.get)
         finishedTasks += 1
 
-        if(System.currentTimeMillis() - lastLog > minLogDelayInMs || finishedTasks == scheduler.taskCount) {
+        if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
           //Update status
           updateStatus(context, finishedTasks, scheduler.taskCount)
           lastLog = System.currentTimeMillis()
@@ -89,6 +86,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
     for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
       context.value.update(context.value() ++ result.get)
+      updateStatus(context, finishedTasks, scheduler.taskCount)
     }
 
     //Shutdown
@@ -102,7 +100,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   }
 
   private def updateStatus(context: ActivityContext[IndexedSeq[Link]], finishedTasks: Int, nrOfTasks: Int): Unit = {
-    val statusPrefix = "Matching:"
+    val statusPrefix = if (loaders.exists(_.status().isRunning)) "Matching (loading):" else "Matching:"
     val statusTasks = " " + finishedTasks + " tasks "
     val statusLinks = " " + context.value().size + " links."
     context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
@@ -132,6 +130,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
           updateSourcePartitions(!sourceLoading)
           updateTargetPartitions(!targetLoading)
+
+          Thread.sleep(500)
 
         } while(sourceLoading || targetLoading)
       } catch {

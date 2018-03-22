@@ -53,7 +53,7 @@ $(function () {
         contentWidthCallback();
     }, 100);
 
-    $(window).resize(resize);
+    $(window).on('resize', resize);
 
     contentWidth = $(window).width() - 190;
     contentWidthCallback();
@@ -142,7 +142,7 @@ function showDialog(path) {
         $(dialog).html(data);
         // enable MDL JS for dynamically added components
         componentHandler.upgradeAllRegistered();
-    }).success(function () {
+    }).done(function () {
         dialog.showModal();
     }).fail(function (request) {
         alert(request.responseText);

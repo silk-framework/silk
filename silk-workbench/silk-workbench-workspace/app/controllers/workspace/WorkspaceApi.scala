@@ -5,14 +5,16 @@ import java.net.URL
 import java.util.logging.{LogRecord, Logger}
 
 import controllers.core.{Stream, Widgets}
+import controllers.util.SerializationUtils
 import org.silkframework.config._
-import org.silkframework.runtime.activity.{Activity, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.users.WebUserManager
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
@@ -71,7 +73,8 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
-  def executeProject(projectName: String): Action[AnyContent] = Action {
+  def executeProject(projectName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val project = User().workspace.project(projectName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
@@ -160,9 +163,7 @@ class WorkspaceApi extends Controller {
       case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
         try {
           val file = formData.files.head.ref.file
-          val inputStream = new FileInputStream(file)
-          resource.writeStream(inputStream)
-          inputStream.close()
+          resource.writeFile(file)
           Ok
         } catch {
           case ex: Exception =>
@@ -173,9 +174,7 @@ class WorkspaceApi extends Controller {
           val dataParts = formData.dataParts("resource-url")
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
-          val inputStream = urlResource.inputStream
-          resource.writeStream(inputStream)
-          inputStream.close()
+          resource.writeResource(urlResource)
           Ok
         } catch {
           case ex: Exception =>
@@ -207,32 +206,5 @@ class WorkspaceApi extends Controller {
     project.resources.delete(resourceName)
 
     Ok
-  }
-
-  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
-    project.removeAnyTask(taskName, removeDependentTasks)
-
-    Ok
-  }
-
-  def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {
-    val project = User().workspace.project(projectName)
-    project.addAnyTask(newTask, project.anyTask(oldTask))
-    Ok
-  }
-
-  def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    Ok(JsonSerializer.taskMetadata(task))
-  }
-
-  def cachesLoaded(projectName: String, taskName: String) = Action {
-    val project = User().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
-
-    Ok(JsBoolean(cachesLoaded))
   }
 }

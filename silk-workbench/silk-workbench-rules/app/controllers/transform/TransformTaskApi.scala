@@ -19,8 +19,11 @@ import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{ProjectTask, User}
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json._
 import play.api.mvc._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TransformTaskApi extends Controller {
 
@@ -30,10 +33,10 @@ class TransformTaskApi extends Controller {
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    serializeCompileTime[Task[TransformSpec]](task)
+    serializeCompileTime[TransformTask](task)
   }
 
-  def putTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
+  def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
@@ -48,26 +51,25 @@ class TransformTaskApi extends Controller {
 
         project.tasks[TransformSpec].find(_.id == taskName) match {
           //Update existing task
-          case Some(oldTask) =>
+          case Some(oldTask) if !createOnly =>
             val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
-          case None =>
+          case _ =>
             val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-            project.updateTask(taskName, transformSpec)
+            project.addTask(taskName, transformSpec)
         }
 
         Ok
       case _ =>
         catchExceptions {
-          deserializeCompileTime[Task[TransformSpec]]() { task =>
+          deserializeCompileTime[TransformTask]() { task =>
             project.updateTask(task.id, task.data)
             Ok
           }
         }
     }
-  }
-  }
+  }}
 
   def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
     val project = getProject(projectName)
@@ -94,6 +96,7 @@ class TransformTaskApi extends Controller {
         deserializeCompileTime[RootMappingRule]() { updatedRules =>
           //Update transformation task
           val updatedTask = task.data.copy(mappingRule = updatedRules)
+          updatedTask.mappingRule.validate()
           project.updateTask(taskName, updatedTask)
           Ok
         }
@@ -241,6 +244,7 @@ class TransformTaskApi extends Controller {
   private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
     val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
     val updatedTask = task.data.copy(mappingRule = updatedRoot)
+    updatedRoot.validate()
     task.project.updateTask(task.id, updatedTask)
   }
 
@@ -258,6 +262,25 @@ class TransformTaskApi extends Controller {
     val activity = task.activity[ExecuteTransform].control
     activity.start()
     Ok
+  }
+
+  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+
+    task.data.outputs.headOption match {
+      case Some(outputId) =>
+        project.taskOption[DatasetSpec](outputId).map(_.data.plugin) match {
+          case Some(ds: ResourceBasedDataset) =>
+            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+          case Some(_) =>
+            ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
+          case None =>
+            ErrorResult(BAD_REQUEST, "Output dataset not found", s"The specified output dataset '$outputId' has not been found.")
+        }
+      case None =>
+        ErrorResult(BAD_REQUEST, "No output dataset", "The transform task does not specify an output dataset.")
+    }
   }
 
   /**

@@ -15,7 +15,7 @@ import scala.xml.Node
 case class EntitySchema(typeUri: Uri,
                         typedPaths: IndexedSeq[TypedPath],
                         filter: Restriction = Restriction.empty,
-                        subPath: Path = Path.empty) {
+                        subPath: Path = Path.empty) extends Serializable {
   //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
@@ -55,7 +55,7 @@ object EntitySchema {
       }
       val paths = if(typedPaths.isEmpty) {
         for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-          TypedPath(Path.parse(pathNode.text.trim), StringValueType)
+          TypedPath(Path.parse(pathNode.text.trim), StringValueType, isAttribute = false)
         }
       } else {
         typedPaths

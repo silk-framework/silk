@@ -1,9 +1,7 @@
-@import org.silkframework.workspace.ProjectTask
-@import plugins.WorkbenchPlugins
-@import plugins.WorkbenchPlugin.TaskActions
-@import org.silkframework.util.Identifier
-@import controllers.workflow.routes.Assets
 @import org.silkframework.config.TaskSpec
+@import org.silkframework.workspace.ProjectTask
+@import plugins.WorkbenchPlugin.TaskActions
+@import plugins.WorkbenchPlugins
 
 @(project: org.silkframework.workspace.Project)
 
@@ -34,9 +32,9 @@
  * A single operator in the toolbox.
  *@
 @toolboxOperator(task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_]) = {
-  <div id="toolbox_@task.id" class="toolboxOperator" title="@task.id">
+  <div id="toolbox_@task.id" class="toolboxOperator" title="@task.taskLabel(maxLength = 1024)">
     @*<img src="@icon">*@
-    @task.id
+    @task.taskLabel()
     @if(taskActions.name != "Dataset") {
       @operator(project, task, taskActions)
     } else {

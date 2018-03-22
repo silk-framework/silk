@@ -43,7 +43,7 @@ class AutoCompletionApi extends Controller {
         // Add known paths
         completions += relativeForwardPaths
         // Return filtered result
-        Ok(completions.filter(term, maxResults).toJson)
+        Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
       case None =>
         throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleName + " in transformation task " + taskName + "!")
     }
@@ -110,7 +110,7 @@ class AutoCompletionApi extends Controller {
     var completions = vocabularyPropertyCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filter(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults).toJson)
   }
 
   /**
@@ -127,7 +127,7 @@ class AutoCompletionApi extends Controller {
     var completions = vocabularyTypeCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filter(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults).toJson)
   }
 
   /**
@@ -152,7 +152,7 @@ class AutoCompletionApi extends Controller {
   private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted
+      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,
@@ -235,10 +235,11 @@ class AutoCompletionApi extends Controller {
     /**
       * Filters and ranks all completions using a search term.
       */
-    def filter(term: String, maxResults: Int): Completions = {
+    def filterAndSort(term: String, maxResults: Int, sortEmptyTermResult: Boolean = true): Completions = {
       if (term.isEmpty) {
         // If the term is empty, return some completions anyway
-        Completions(values.sortBy(_.labelOrGenerated.length).take(maxResults))
+        val sortedValues = if(sortEmptyTermResult) values.sortBy(_.labelOrGenerated.length) else values
+        Completions(sortedValues.take(maxResults))
       } else {
         // Filter all completions that match the search term and sort them by score
         val normalizedTerm = normalizeTerm(term)

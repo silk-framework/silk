@@ -14,9 +14,11 @@
 
 package org.silkframework.rule.plugins
 
+import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
+import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
@@ -161,8 +163,11 @@ class RulePlugins extends PluginModule {
         classOf[GeometricMeanAggregator] :: Nil
 
   private def serializers =
+    TransformSpecFormat.getClass ::
+    TransformTaskXmlFormat.getClass ::
     TransformRuleFormat.getClass ::
     MappingRulesFormat.getClass ::
     RootMappingRuleFormat.getClass ::
+    LinkSpecificationFormat.getClass ::
     Nil
 }

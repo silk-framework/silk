@@ -1,13 +1,12 @@
-@import plugins.Context
-@import org.silkframework.rule.{TransformRule, TransformSpec}
-@import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
+@import controllers.rules.routes.Assets
 @import org.silkframework.entity.ValueType
+@import org.silkframework.rule.{TransformRule, TransformSpec}
 @import org.silkframework.runtime.serialization.XmlSerialization.toXml
+@import plugins.Context
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
 
-@import org.silkframework.workspace.User
 @import org.silkframework.rule.input.Transformer
 
 @header = {
@@ -101,6 +100,15 @@
         The target type.
       </div>
     </li>
+    <li style="display: none">
+      <label>As Attribute:</label>
+      <div id="input_isAttribute" class="mdl-textfield mdl-js-textfield">
+        <input id="targetattribute" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.exists(_.isAttribute)" disabled/>
+      </div>
+      <div class="mdl-tooltip mdl-tooltip--large" for="input_isAttribute">
+        Write as attribute.
+      </div>
+    </li>
   </ul>
 
   @status()
@@ -143,4 +151,4 @@
   </div>
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

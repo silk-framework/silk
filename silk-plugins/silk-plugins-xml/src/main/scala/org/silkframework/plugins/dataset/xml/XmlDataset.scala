@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -63,7 +63,7 @@ case class XmlDataset(
   @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
   outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
   @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-  streaming: Boolean = true) extends Dataset {
+  streaming: Boolean = true) extends Dataset with ResourceBasedDataset {
 
   validateOutputTemplate()
 

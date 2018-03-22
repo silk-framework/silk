@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
  */
 @Plugin(
   id = "count",
-  categories = Array("Numeric"),
+  categories = Array("Sequence", "Numeric"),
   label = "Count values",
   description =
     """Counts the number of values."""

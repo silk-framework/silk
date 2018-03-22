@@ -2,7 +2,7 @@ package controllers.workspace
 
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
@@ -24,24 +24,24 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[Dataset](sourceName)
-    serializeCompileTime(new DatasetTask(task.id, task.data))
+    val task = project.task[DatasetSpec](sourceName)
+    serializeCompileTime[DatasetTask](task)
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[Dataset](sourceName)
-    val datasetPlugin = task.data
+    val task = project.task[DatasetSpec](sourceName)
+    val datasetPlugin = task.data.plugin
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serializeCompileTime(new DatasetTask(task.id, autoConfDataset))
+        serializeCompileTime[DatasetTask](PlainTask(task.id, DatasetSpec(autoConfDataset)))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
-  def putDataset(projectName: String, sourceName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
+  def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = Action { implicit request => {
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
 
@@ -50,13 +50,13 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, autoConfigurable.autoConfigured.asInstanceOf[Dataset])
+              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
               Ok
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data)
+          project.updateTask(dataset.id, dataset.data, dataset.metaData)
           Ok
         }
       }
@@ -64,17 +64,16 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       case ex: Exception =>
         ErrorResult(BadUserInputException(ex))
     }
-  }
-  }
+  }}
 
   def deleteDataset(project: String, source: String): Action[AnyContent] = Action {
-    User().workspace.project(project).removeTask[Dataset](source)
+    User().workspace.project(project).removeTask[DatasetSpec](source)
     Ok
   }
 
   def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset", createDialog: Boolean): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
-    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[Dataset](datasetName).map(_.data)
+    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[DatasetSpec](datasetName).map(_.data)
     Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
   }
 
@@ -86,19 +85,19 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
-        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(ds.autoConfigured)))
+        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured))))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
   }
 
   def dataset(project: String, task: String): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[Dataset](project, task, request.path)
+    val context = Context.get[DatasetSpec](project, task, request.path)
     Ok(views.html.workspace.dataset.dataset(context))
   }
 
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[Dataset](project, task, request.path)
+    val context = Context.get[DatasetSpec](project, task, request.path)
     val source = context.task.data.source
 
     val firstTypes = source.retrieveTypes().head._1
@@ -110,9 +109,9 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[Dataset](project, task, request.path)
+    val context = Context.get[DatasetSpec](project, task, request.path)
 
-    context.task.data match {
+    context.task.data.plugin match {
       case rdf: RdfDataset =>
         val sparqlEndpoint = rdf.sparqlEndpoint
         var queryResults: Option[SparqlResults] = None
@@ -127,7 +126,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = ""): Action[AnyContent] = Action { request =>
-    val context = Context.get[Dataset](project, task, request.path)
+    val context = Context.get[DatasetSpec](project, task, request.path)
     implicit val prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value.types
@@ -139,7 +138,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   /** Get all types of the dataset */
   def getDatasetTypes(project: String, task: String): Action[AnyContent] = Action { request =>
-    val context = Context.get[Dataset](project, task, request.path)
+    val context = Context.get[DatasetSpec](project, task, request.path)
     val types = context.task.activity[TypesCache].value.types
 
     Ok(JsArray(types.map(JsString)))
@@ -148,10 +147,10 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getMappingValueCoverage(projectName: String, datasetId: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = User().workspace.project(projectName)
-      val datasetTask = project.task[Dataset](datasetId)
+      val datasetTask = project.task[DatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
-      datasetTask.source match {
+      datasetTask.plugin.source match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
                inputPath <- coveragePathInput.paths
@@ -182,8 +181,8 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     try {
       val project = User().workspace.project(projectName)
       implicit val prefixes = project.config.prefixes
-      val datasetTask = project.task[Dataset](datasetId)
-      datasetTask.source match {
+      val datasetTask = project.task[DatasetSpec](datasetId)
+      datasetTask.plugin.source match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>

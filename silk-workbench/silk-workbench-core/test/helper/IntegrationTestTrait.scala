@@ -7,22 +7,26 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
+import org.silkframework.workspace._
+import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
-import org.silkframework.workspace.{RdfWorkspaceProvider, User, Workspace, WorkspaceProvider}
 import play.api.Application
-import play.api.libs.ws.{EmptyBody, WS, WSResponse}
-import play.api.mvc.Results
+import play.api.libs.json.JsValue
+import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.mvc.{Call, Results}
 import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
+import scala.util.Random
 import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
@@ -44,6 +48,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   tmpDir.delete()
   tmpDir.mkdirs()
 
+  override lazy val port: Int = 19000 + Random.nextInt(1000)
+
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"
 
@@ -53,6 +59,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   override implicit lazy val app: Application = {
     var routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
+  }
+
+  /**
+    * Constructs a REST request for a given Call.
+    */
+  def request(call: Call): WSRequest = {
+    WS.url(s"$baseUrl${call.url}")
   }
 
   def deleteRecursively(f: File): Unit = {
@@ -220,9 +233,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
     val out = loadRdfIntoGraph(graph, contentType)
     val outWriter = new BufferedOutputStream(out)
-    outWriter.write(rdfString.getBytes())
-    outWriter.flush()
-    outWriter.close()
+    try {
+      outWriter.write(rdfString.getBytes("UTF8"))
+    } finally {
+      outWriter.close()
+    }
   }
 
   def loadRdfAsInputStreamIntoGraph(input: InputStream, graph: String, contentType: String = "application/n-triples"): Unit = {
@@ -270,7 +285,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -282,7 +298,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
+        withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -331,6 +348,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     checkResponse(response)
   }
 
+  def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
+    val response = request.put(taskJson)
+    checkResponse(response)
+  }
+
   /**
     * Create a linking task.
     *
@@ -356,6 +379,27 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   def setLinkingRule(projectId: String, linkingTaskId: String, ruleXml: Elem): WSResponse = {
     val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId/rule")
     val response = request.put(ruleXml)
+    checkResponse(response)
+  }
+
+  /**
+    * Executes a transform task. This is a blocking request.
+    */
+  def executeTransformTask(projectId: String, transformTaskId: String, parameters: Map[String, String] = Map.empty): WSResponse = {
+    var request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$transformTaskId/activities/ExecuteTransform/startBlocking")
+    if(parameters.nonEmpty) {
+      request = request.withQueryString(parameters.toSeq: _*)
+    }
+    val response = request.post("")
+    checkResponse(response)
+  }
+
+  /**
+    * Downloads the transform output.
+    */
+  def downloadTransformOutput(projectId: String, transformTaskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId/downloadOutput")
+    val response = request.get()
     checkResponse(response)
   }
 
@@ -502,5 +546,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
           Null
       }
     }
+  }
+
+  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+    val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
+    control.reset()
+    control.startBlocking()
   }
 }

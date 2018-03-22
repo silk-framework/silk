@@ -10,6 +10,7 @@ import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.ClassUtil
 
 trait ExecutorRegistry {
 
@@ -25,12 +26,13 @@ trait ExecutorRegistry {
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val resource: ResourceManager = EmptyResourceManager
 
-    suitableExecutors match {
-      case Nil =>
+    suitableExecutors.size match {
+      case 0 =>
         throw new ValidationException(s"No executor found for task type ${task.getClass.getSimpleName} " +
             s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
-      case (plugin, _) :: Nil =>
-        plugin()
+      case 1 =>
+        // Instantiate executor
+        suitableExecutors.head._1.apply()
       case _ =>
         // Found multiple suitable executors => Choose the most specific one
         val sortedExecutors = suitableExecutors.sortWith((p1, p2) => p2._2.isAssignableFrom(p1._2))

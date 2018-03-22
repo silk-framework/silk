@@ -5,10 +5,10 @@ package org.silkframework.runtime.users
   */
 object DefaultUserManager {
 
-  def get(id: String): User = {
-    new DefaultUser(id)
+  def get(uri: String): User = {
+    new DefaultUser(uri)
   }
 
-  private class DefaultUser(val id: String) extends User
+  private class DefaultUser(val uri: String) extends User
 
 }

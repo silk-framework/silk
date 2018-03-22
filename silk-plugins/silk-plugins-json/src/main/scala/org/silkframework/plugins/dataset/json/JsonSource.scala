@@ -29,7 +29,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
-    val subPath = entitySchema.subPath
+    val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
       selectedElements.flatMap(_.select(subPath.operators))
     } else { selectedElements }
@@ -56,21 +56,30 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
    * Retrieves the most frequent paths in this source.
    */
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false)
+  }
+
+  def retrieveJsonPaths(t: Uri, depth: Int, limit: Option[Int], leafPathsOnly: Boolean, innerPathsOnly: Boolean): IndexedSeq[Path] = {
     val json = JsonTraverser(file)(codec)
     val selectedElements = json.select(basePathParts)
-    for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = false)) yield {
+    val subSelectedElements = selectedElements.flatMap(_.select(Path.parse(t.uri).operators))
+    for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
+         path <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth) if path.nonEmpty) yield {
       Path(path.toList)
     }
   }
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    val json = JsonTraverser(file)(codec)
-    val selectedElements = json.select(basePathParts)
-    (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true)) yield {
-      Path(path.toList).serialize
-    }) map  (p => (p, 1.0))
+    if(file.nonEmpty) {
+      val json = JsonTraverser(file)(codec)
+      val selectedElements = json.select(basePathParts)
+      (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
+            path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
+        Path(path.toList).serialize
+      }) map (p => (p, 1.0))
+    } else {
+      Traversable.empty
+    }
   }
 
   private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {

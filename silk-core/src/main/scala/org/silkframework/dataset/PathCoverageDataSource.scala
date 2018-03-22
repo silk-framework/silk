@@ -12,7 +12,7 @@ trait PathCoverageDataSource {
   this: DataSource =>
   def pathCoverage(pathInputs: Seq[CoveragePathInput])(implicit prefixes: Prefixes): PathCoverageResult = {
     // This should get all paths defined for this source, depending on the implementation of the data source the depth might be limited to 1.
-    val allPaths = retrievePaths("")
+    val allPaths = retrievePaths("", depth = Int.MaxValue)
     val pathCoverages = for (sourcePath <- allPaths) yield {
       var covered = false
       var fullyCovered = false

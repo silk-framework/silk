@@ -8,7 +8,7 @@ import scala.xml.{Node, NodeSeq, PCData}
  */
 object XmlSerialization {
 
-  def toXml[T](value: T)(implicit format: XmlFormat[T], writeContext: WriteContext[Node] = WriteContext[Node]()): Node = {
+  def toXml[T](value: T)(implicit format: XmlFormat[T], writeContext: WriteContext[Node] = WriteContext[Node](projectId = None)): Node = {
     format.write(value)
   }
 
