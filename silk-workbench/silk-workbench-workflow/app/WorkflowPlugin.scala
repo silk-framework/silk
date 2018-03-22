@@ -1,4 +1,3 @@
-import org.silkframework.config.Prefixes
 import org.silkframework.workspace.activity.workflow.Workflow
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}

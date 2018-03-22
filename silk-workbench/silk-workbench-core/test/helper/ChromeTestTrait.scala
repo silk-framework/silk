@@ -5,7 +5,6 @@ import java.util.logging.Logger
 
 import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.{TimeoutException, WebElement}
-import org.scalatest.selenium.WebBrowser.{Element, Query}
 import org.scalatest.{MustMatchers, Suite}
 import org.scalatestplus.play.{ChromeFactory, OneBrowserPerSuite}
 
