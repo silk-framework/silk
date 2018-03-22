@@ -14,15 +14,28 @@ Community documentation is maintained in the [doc](doc/) folder.
 
 ## Requirements
 
+### Local build
+
 - JDK 8 or later
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 
 Downloading and installing sbt is not necessary as it is available from this directory. Depending on the operating system you may need to adapt the commands below to run it from the local directory, i.e., by using `./sbt` instead of `sbt`
 
+### docker based build
+
+- docker (version >=17.05-xx)
+
 ## Running the Silk Workbench
 
 - Execute: `sbt "project workbench" run`
 - In your browser, navigate to 'http://localhost:9000'
+
+## Running the Silk Workbench as docker container
+
+- Build the docker image with: `docker build -t silk-workbench .` (This maybe take some minutes)
+- Run the docker container with: `docker run -d --name silk.workbench -p 80:80 silk-workbench`
+- In your browser, navigate to 'http://DOCKER_HOST:80'
+
 
 ## Packaging the Silk Workbench as archive
 
