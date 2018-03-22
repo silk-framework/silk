@@ -7,7 +7,9 @@
 @import org.silkframework.execution.ExecutionReport
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.rule.execution.Linking
+@import org.silkframework.config.Task
 
+@import org.silkframework.rule.TransformSpec
 @(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
 @header = {
@@ -31,17 +33,17 @@
 
     @for(taskId <- tasks) {
       <div class="mdl-tabs__panel @if(taskId == tasks.head) {is-active}" id="tab-@taskId">
-      @renderTaskReport(report.taskReports(taskId))
+      @renderTaskReport(context.project.anyTask(taskId), report.taskReports(taskId))
       </div>
     }
 
   </div>
 }
 
-@renderTaskReport(taskReport: ExecutionReport) = {
+@renderTaskReport(task: Task[_], taskReport: ExecutionReport) = {
   @taskReport match {
     case transformReport: TransformReport => {
-      @transformStatistics(transformReport, prefixes)
+      @transformStatistics(task.asInstanceOf[Task[TransformSpec]], transformReport, prefixes)
     }
     case linking: Linking => {
       @linkingReport(linking.statistics, linking.links.size)

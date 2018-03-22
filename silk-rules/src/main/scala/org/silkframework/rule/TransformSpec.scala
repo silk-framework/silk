@@ -1,5 +1,7 @@
 package org.silkframework.rule
 
+import java.util.NoSuchElementException
+
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
@@ -33,6 +35,18 @@ case class TransformSpec(selection: DatasetSelection,
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
+
+  /**
+    * Retrieves a rule by its identifier.
+    * Searches in the entire rule tree.
+    *
+    * @throws NoSuchElementException If no rule with the given identifier could be found.
+    */
+  def ruleById(ruleId: Identifier): TransformRule = {
+    nestedRuleAndSourcePath(ruleId)
+      .getOrElse(throw new NoSuchElementException(s"No rule with identifier 'ruleId' has been found."))
+      ._1
+  }
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
 

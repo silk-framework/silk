@@ -210,26 +210,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     metaDataFields
   }
 
-  private val dotDotDot = '…'
-  private val DEFAULT_MAX_LENGTH = 50
-
   /**
     * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
     * @param maxLength the max length in characters
     */
-  def taskLabel(maxLength: Int = DEFAULT_MAX_LENGTH): String = {
-    assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
-    val label = if(metaData.label.trim != "") {
-      metaData.label.trim
-    } else {
-      id.toString
-    }
-    if(label.length > maxLength) {
-      val sideLength = (maxLength - 2) / 2
-      label.take(sideLength) + s" $dotDotDot " + label.takeRight(sideLength)
-    } else {
-      label
-    }
+  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
+    metaData.formattedLabel(id, maxLength)
   }
 }
 
