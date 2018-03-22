@@ -125,7 +125,7 @@ class RulePlugins extends PluginModule {
         classOf[ValidateNumericRange] ::
         classOf[ValidateDateAfter] ::
         classOf[ValidateRegex] ::
-        classOf[ValidateCardinality] ::
+        classOf[ValidateNumberOValues] ::
         // Sequence
         classOf[GetValueByIndexTransformer] ::
         classOf[ValuesToIndexesTransformer] ::

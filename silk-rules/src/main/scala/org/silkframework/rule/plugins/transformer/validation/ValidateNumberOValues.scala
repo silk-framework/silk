@@ -21,7 +21,7 @@ import org.silkframework.runtime.validation.ValidationException
 @Plugin(
   id = "validateCardinality",
   categories = Array("Validation"),
-  label = "Validate number of values",
+  label = "validate number of values",
   description = "Validates that the number of values lies in a specified range."
 )
 @TransformExamples(Array(
@@ -37,7 +37,7 @@ import org.silkframework.runtime.validation.ValidationException
     throwsException = "org.silkframework.runtime.validation.ValidationException"
   )
 ))
-case class ValidateCardinality(
+case class ValidateNumberOValues(
   @Param(value = "Minimum allowed number of values")
   min: Int = 0,
   @Param(value = "Maximum allowed number of values")
