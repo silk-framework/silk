@@ -14,7 +14,7 @@ import {
     Spinner,
     DisruptiveButton,
     DismissiveButton,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
@@ -129,27 +129,9 @@ const MappingRule = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        this.setState({
-            loading: true,
-        });
-        event.stopPropagation();
         hierarchicalMappingChannel
-            .request({
-                topic: 'rule.orderRule',
-                data: {toPos, fromPos, parentId, id, reload: true},
-            })
-            .subscribe(
-                (/* data */) => {
-                    this.setState({
-                        loading: false,
-                    });
-                },
-                (/* err */) => {
-                    this.setState({
-                        loading: false,
-                    });
-                }
-            );
+            .subject('request.rule.orderRule')
+            .onNext({toPos, fromPos, reload: true});
     },
     // template rendering
     render() {
@@ -174,9 +156,11 @@ const MappingRule = React.createClass({
             rules,
             pos,
             count,
+            metadata,
             errorInfo,
         } = this.props;
 
+        const label = _.get(metadata, 'label', '');
         const loading = this.state.loading ? <Spinner /> : false;
         const discardView = this.state.askForDiscard ? (
             <ConfirmationDialog
@@ -236,13 +220,8 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                <ThingName id={mappingTarget.uri} />
+                {label || <ThingName id={mappingTarget.uri} />}
             </div>,
-            /*
-                <div key={'sl1'} className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-mappingtype">
-                    {type} mapping
-                </div>,
-            */
             <div
                 key={'sl3'}
                 className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">

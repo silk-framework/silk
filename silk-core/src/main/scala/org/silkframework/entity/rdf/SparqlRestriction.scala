@@ -27,29 +27,32 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
   require(restrictionsQualified.trim.isEmpty || restrictionsQualified.contains("?" + variable),
     s"SPARQL restriction '$restrictionsQualified' does not use variable ?$variable and thus has no effect. Use ?$variable for restrictions on entities.")
 
-  def toSparql = restrictionsFull
+  def toSparql: String = restrictionsFull
 
-  def toSparqlQualified = restrictionsQualified
+  def toSparqlQualified: String = restrictionsQualified
 
-  def isEmpty = restrictionsFull.isEmpty
+  def isEmpty: Boolean = restrictionsFull.isEmpty
 
-  def merge(other: SparqlRestriction) = {
+  def merge(other: SparqlRestriction): SparqlRestriction = {
     require(variable == other.variable, "Variables must match")
     SparqlRestriction.fromSparql(variable, toSparql + "\n" + other.toSparql)
   }
 
-  override def toString = restrictionsQualified
+  override def toString: String = restrictionsQualified
 
-  override def equals(other: Any) = other match {
+  override def equals(other: Any): Boolean = other match {
     case o: SparqlRestriction => toSparql == o.toSparql
     case _ => false
   }
+
+  override def hashCode(): Int = toSparql.hashCode
 }
 
 object SparqlRestriction {
 
   def empty: SparqlRestriction = new SparqlRestriction("a", "", "")
 
+  /** Create restriction from an arbitrary SPARQL pattern. */
   def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty): SparqlRestriction = {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
@@ -71,6 +74,7 @@ object SparqlRestriction {
     new SparqlRestriction(variable, restrictionsFull, restrictionsQualified)
   }
 
+  /** Restrict entity to a specific type */
   def forType(typeUri: Uri): SparqlRestriction = {
     if(typeUri.uri.isEmpty) {
       empty

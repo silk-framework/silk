@@ -1,25 +1,33 @@
-@import org.silkframework.workspace.activity.ProjectExecutor
-@import plugins.WorkbenchPlugins
-@import org.silkframework.workspace.Project
-@import plugins.WorkbenchPlugin.TaskActions
-@import org.silkframework.runtime.plugin.PluginRegistry
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
-@import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.ProjectTask
+@import org.silkframework.runtime.plugin.PluginRegistry
+@import org.silkframework.workspace.{Project, ProjectTask, Workspace}
+@import org.silkframework.workspace.activity.ProjectExecutor
+@import plugins.WorkbenchPlugin.TaskActions
+@import plugins.WorkbenchPlugins
 
 @(workspace: Workspace)
 
 <script type="text/javascript" >
   $(function () {
     $('#workspace_root').jstree({
-      "plugins": [ "search", "state" ],
-      "state": { "key" : "workspace_state" },
-      "search": { "show_only_matches": true }
-    });
+      "plugins": [ "search", "state", "dnd" ],
+      "core" : {
+        'check_callback': checkCallback
+      },
+      "state": {
+        "key" : "workspace_state"
+      },
+      "search": {
+        "show_only_matches": true
+      },
+      "dnd": {
+        "always_copy": true
+      }
+    }).on('copy_node.jstree', copyNodeCallback);
 
     var to = false;
-    $('#workspaceSearch').keyup(function () {
+    $('#workspaceSearch').on('keyup', function () {
       if(to) { clearTimeout(to); }
       to = setTimeout(function () {
         var v = $('#workspaceSearch').val();
@@ -27,6 +35,67 @@
       }, 250);
     });
   });
+
+  /**
+   * Called to check whether a modification to the tree is allowed.
+   */
+  function checkCallback(operation, node, node_parent, node_position, more) {
+    if (operation === "copy_node") {
+      // Only allow copying of tasks to projects
+      return !!(node.id.startsWith("task:") && node_parent.id.startsWith("project:"));
+    }
+    return true;  //allow all other operations
+  }
+
+  /**
+   * Called when the user copies a node in the tree.
+   */
+  function copyNodeCallback(e, data) {
+    // Extract project and task ids
+    var idParts = data.original.id.split(":");
+    var sourceProject = idParts[1];
+    var sourceTask = idParts[2];
+    var targetProject = data.parent.slice(8);
+    console.log("Copying task " + sourceTask + " from project " + sourceProject + " to project " + targetProject);
+
+    // Execute copy on backend
+    copyTask(sourceProject, sourceTask, targetProject, true, function (result) {
+      if(result.overwrittenTasks.length === 0 || confirm("The following tasks will be overwritten: " + result.overwrittenTasks)) {
+        copyTask(sourceProject, sourceTask, targetProject, false, function(result) { reloadWorkspace() })
+      } else {
+        reloadWorkspace()
+      }
+    });
+
+    // Don't show node in the tree yet (copying will reload workspace)
+    $('#workspace_root').jstree(true).hide_node(data.node);
+  }
+
+  /**
+   * Copies the task in the backend.
+   */
+  function copyTask(sourceProject, sourceTask, targetProject, dryRun, callback) {
+    var json = {
+      dryRun: dryRun,
+      targetProject: targetProject
+    };
+
+    $.ajax({
+      type: 'POST',
+      url: baseUrl + '/workspace/projects/' + sourceProject + '/tasks/' + sourceTask + '/copy',
+      contentType: 'application/json;charset=UTF-8',
+      processData: false,
+      data: JSON.stringify(json),
+      mimeType: 'application/json',
+      error: function error(request) {
+        alert("Failed to copy task: " + request.responseText);
+        reloadWorkspace();
+      },
+      success: function success(response) {
+        callback(response)
+      }
+    });
+  }
 </script>
 
 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -34,16 +103,27 @@
   <label class="mdl-textfield__label" for="workspaceSearch">Search</label>
 </div>
 
-<div id="workspace_root">
-  <ul  class="filetree">
-    @for(p <- workspace.projects) {
-      @project(p)
-    }
-  </ul>
-</div>
+@* Either a link opening a new tab if linkUrl is set or a button executing the onClick JavaScript *@
+@button(title: String, tooltip: String, icon: String, onClick: String, linkUrl: String = "") = {
+  @if(linkUrl.trim.isEmpty) {
+    <div class="workspace_button" title="@tooltip" onclick="@onClick">
+      <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+      <span>@title</span>
+    </div>
+  } else {
+    <div class="workspace_button" title="@tooltip" onclick="@onClick">
+      <a href="@linkUrl">
+          <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
+          <span>
+            @title
+          </span>
+      </a>
+    </div>
+  }
+}
 
 @project(project: Project) = {
-  <li id="project_@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
+  <li id="project:@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
     @project.name
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
@@ -71,7 +151,7 @@
 }
 
 @taskType(project: Project, taskActions: TaskActions[_ <: TaskSpec]) = {
-  <li id="tasktype_@{project.name}_@taskActions.name.filter(_.isLetter)" data-jstree='{"icon":"@taskActions.folderIcon"}' >
+  <li id="tasktype:@{project.name}:@taskActions.name.filter(_.isLetter)" data-jstree='{"icon":"@taskActions.folderIcon"}' >
     @{taskActions.name}s
     @for(path <- taskActions.createDialog(project.name)) {
       @button("Add", "Add " + taskActions.name, "plus.png", s"workspaceDialog('$path')")
@@ -85,18 +165,18 @@
 }
 
 @task(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_ <: TaskSpec]) = {
-  <li id="task_@{project.name}_@task.id" data-jstree='{"icon":"@taskActions.icon"}'>
-    @task.id
+  <li id="task:@{project.name}:@task.id" data-jstree='{"icon":"@taskActions.icon"}'>
+    @{ if(task.metaData.label.trim != "") task.metaData.label else { task.id } }
     @for(path <- taskActions.propertiesDialog(project.name, task.id)) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
     @for(path <- taskActions.open(project.name, task.id)) {
-      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'")
+      @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + "/" + path)
     }
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${task.id}')")
     <ul>
-      @for((key, value) <- taskActions.properties(task.data)(project.config.prefixes) if !value.isEmpty) {
+      @for((key, value) <- task.metaDataFields ++ task.data.properties(project.config.prefixes) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
           @key: @value
         </li>
@@ -105,9 +185,10 @@
   </li>
 }
 
-@button(title: String, tooltip: String, icon: String, onClick: String) = {
-  <div class="workspace_button" title="@tooltip" onclick="@onClick">
-    <img width="16" height="16" src="@Assets.at("img/" + icon)"/>
-    <span>@title</span>
-  </div>
-}
+<div id="workspace_root">
+  <ul  class="filetree">
+  @for(p <- workspace.projects) {
+    @project(p)
+  }
+  </ul>
+</div>

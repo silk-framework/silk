@@ -81,7 +81,7 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
   override def hashCode: Int = toString.hashCode
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
-  def asStringTypedPath: TypedPath = TypedPath(this, StringValueType)
+  def asStringTypedPath: TypedPath = TypedPath(this, StringValueType, isAttribute = false)
 }
 
 object Path {

@@ -1,10 +1,10 @@
-@import org.silkframework.dataset.Dataset
+@import org.silkframework.dataset.DatasetSpec
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.User
 
 @(project: String, task: String, createDialog: Boolean)
 
-@datasets = @{ User().workspace.project(project).tasks[Dataset].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[DatasetSpec].toSeq }
 
 @transformationTask = @{ User().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
 
@@ -86,31 +86,39 @@
   });
 
   function submit() {
-    var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
-      source: $("#source_dataset").val(),
-      sourceType: $("#transformation_type").val(),
-      restriction: $("#source").val(),
-      output: $("#output_dataset").val(),
-      targetVocabularies: $("#target_vocabularies").val()
+    const values = {
+      id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
+      data: {
+        taskType: "Transform",
+        selection: {
+          inputId: $("#source_dataset").val(),
+          typeUri: $("#transformation_type").val(),
+          restriction: $("#source").val()
+        },
+        outputs: $("#output_dataset").val().split(" ").filter(String),
+        targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+      }
     };
 
-    if(values.name.length === 0) {
+    if(values.id.length === 0) {
       alert("Task name is empty.");
       return;
     }
 
-    $.ajax({
-      type: 'PUT',
-      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
-      data: values,
-      success: function(data) {
+    var callbacks = {
+      success: function() {
         closeDialog();
-        reloadWorkspace();
       },
-      error: function(request) {
-        alert(request.responseText);
+      error: function(msg) {
+        $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+        $("#primary_dialog .dialog__error-msg").fadeIn();
       }
-    });
+    };
+
+    @if(createDialog) {
+      postTask('@project', values, callbacks);
+    } else {
+      putTask('@project', values.id, values, callbacks);
+    }
   }
 </script>

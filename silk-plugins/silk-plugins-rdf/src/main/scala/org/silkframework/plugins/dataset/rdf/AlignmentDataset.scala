@@ -13,7 +13,7 @@ import org.silkframework.runtime.resource.WritableResource
 )
 case class AlignmentDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
-  file: WritableResource) extends Dataset with WritableResourceDataset {
+  file: WritableResource) extends Dataset with WritableResourceDataset with ResourceBasedDataset {
 
   /**
    * Returns a data source for reading entities from the data set.

@@ -1,7 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io._
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 import java.time.Instant
 
 /**
@@ -31,17 +31,32 @@ case class FileResource(file: File) extends WritableResource {
    * @param write A function that accepts an output stream and writes to it.
    */
   override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
-    val baseDir = file.getParentFile
-    if(!baseDir.exists && !baseDir.mkdirs())
-      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
+    createDirectory()
     val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
-    write(outputStream)
-    outputStream.flush()
-    outputStream.close()
+    try {
+      write(outputStream)
+    } finally {
+      outputStream.close()
+    }
+  }
+
+  /**
+    * Writes a file.
+    */
+  override def writeFile(file: File): Unit = {
+    createDirectory()
+    Files.copy(file.toPath, this.file.toPath, StandardCopyOption.REPLACE_EXISTING)
   }
 
   /**
     * Deletes this resource.
     */
   override def delete(): Unit = file.delete()
+
+  private def createDirectory(): Unit = {
+    val baseDir = file.getParentFile
+    if(!baseDir.exists && !baseDir.mkdirs()) {
+      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
+    }
+  }
 }

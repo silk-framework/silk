@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Path
+import org.silkframework.entity.rdf.SparqlPathBuilder
 import org.silkframework.testutil.equalIgnoringWhitespace
 
 class SparqlPathBuilderTest extends FlatSpec with Matchers {

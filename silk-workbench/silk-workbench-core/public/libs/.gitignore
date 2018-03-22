@@ -7,6 +7,7 @@
 */*.json*
 !*/package.json
 */gruntfile.js
+*/Gruntfile.js
 */gulpfile*
 */*.md
 */**/*.min.*

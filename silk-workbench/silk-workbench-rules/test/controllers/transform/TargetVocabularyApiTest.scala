@@ -107,7 +107,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
       )
     val transformTask = PlainTask(task, transformSpec)
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
-    val response = request.put(toJson[Task[TransformSpec]](transformTask))
+    val response = request.put(toJson[TransformTask](transformTask))
     checkResponse(response)
 
     waitForCaches(task)

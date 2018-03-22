@@ -271,3 +271,16 @@ div#newproject {
   /* prevent horizontal scrollbar */
   overflow-x: hidden;
 }
+
+#tab-bar .di_tab_task_title {
+  position: absolute;
+  width: 100%;
+  vertical-align: middle;
+  display: inline-block;
+  margin: 12px 0px 0px 14px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.04em;
+}

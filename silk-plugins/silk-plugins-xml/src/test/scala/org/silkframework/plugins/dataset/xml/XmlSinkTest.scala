@@ -16,8 +16,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstTag"), StringValueType),
-            TypedPath(Path("SecondTag"), StringValueType)
+            TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -36,14 +36,44 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
   }
 
+  it should "write flat structures in complex XML template" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+            IndexedSeq(
+              TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
+              TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
+            )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    test(
+      template = """<Root><OtherElement id="other">Other Element</OtherElement><NestedElement><ID>1</ID><?Element?></NestedElement></Root>""",
+      entityTables = Seq(entities),
+      expected =
+          <Root>
+            <OtherElement id="other">Other Element</OtherElement>
+            <NestedElement>
+              <ID>1</ID>
+              <Element>
+                <FirstTag>1</FirstTag>
+                <SecondTag>2</SecondTag>
+              </Element>
+            </NestedElement>
+          </Root>
+    )
+  }
+
   it should "write entities as root element" in {
     val schema =
       EntitySchema(
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstTag"), StringValueType),
-            TypedPath(Path("SecondTag"), StringValueType)
+            TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -83,14 +113,38 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
     )
   }
 
+  it should "write elements with attributes" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
+            TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true),
+            TypedPath(Path("#text"), StringValueType, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102"), Seq("Value")), schema))
+
+    test(
+      template = "<Root><?Element?></Root>",
+      entityTables = Seq(entities),
+      expected =
+        <Root xmlns="urn:schema:">
+          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102">Value</Element>
+        </Root>
+    )
+  }
+
   it should "use existing namespaces from the template" in {
     val schema =
       EntitySchema(
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("http://example1.org/FirstTag"), StringValueType),
-            TypedPath(Path("http://example1.org/SecondTag"), StringValueType)
+            TypedPath(Path("http://example1.org/FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(Path("http://example1.org/SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -117,8 +171,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typedPaths =
           IndexedSeq(
             TypedPath(Path("id"), StringValueType, isAttribute = true),
-            TypedPath(Path("Name"), UriValueType),
-            TypedPath(Path("Year"), StringValueType)
+            TypedPath(Path("Name"), UriValueType, isAttribute = false),
+            TypedPath(Path("Year"), StringValueType, isAttribute = false)
           )
       )
 
@@ -132,8 +186,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstName"), StringValueType),
-            TypedPath(Path("LastName"), StringValueType)
+            TypedPath(Path("FirstName"), StringValueType, isAttribute = false),
+            TypedPath(Path("LastName"), StringValueType, isAttribute = false)
           )
       )
 
@@ -177,8 +231,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typedPaths =
           IndexedSeq(
             TypedPath(Path("id"), StringValueType, isAttribute = true),
-            TypedPath(Path("Name"), UriValueType),
-            TypedPath(Path("Year"), StringValueType)
+            TypedPath(Path("Name"), UriValueType, isAttribute = false),
+            TypedPath(Path("Year"), StringValueType, isAttribute = false)
           )
       )
 
@@ -191,8 +245,8 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstName"), StringValueType),
-            TypedPath(Path("LastName"), StringValueType)
+            TypedPath(Path("FirstName"), StringValueType, isAttribute = false),
+            TypedPath(Path("LastName"), StringValueType, isAttribute = false)
           )
       )
 

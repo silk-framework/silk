@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.Task.TaskFormat
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -11,6 +12,7 @@ import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 import scala.util.Try
 import scala.xml.{Node, Null}
+import scala.language.implicitConversions
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -36,7 +38,15 @@ case class TransformSpec(selection: DatasetSelection,
 
   override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
-  override lazy val referencedTasks = Set(selection.inputId)
+  /**
+    * The tasks that this task reads from.
+    */
+  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+
+  /**
+    * The tasks that this task writes to.
+    */
+  override def outputTasks: Set[Identifier] = outputs.toSet
 
   /**
     * Input and output schemata of all object rules in the tree.
@@ -58,6 +68,15 @@ case class TransformSpec(selection: DatasetSelection,
     */
   lazy val outputSchema: MultiEntitySchema = {
     new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
+  }
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    Seq(
+      ("Source", selection.inputId.toString),
+      ("Type", selection.typeUri.toString),
+      ("Restriction", selection.restriction.toString)
+    )
   }
 
   /**
@@ -170,10 +189,14 @@ case class TransformSpec(selection: DatasetSelection,
   private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
 }
 
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
+
 /**
   * Static functions for the TransformSpecification class.
   */
 object TransformSpec {
+
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
 
@@ -203,7 +226,7 @@ object TransformSpec {
     def create(rule: TransformRule, selection: DatasetSelection, subPath: Path): RuleSchemata = {
       val inputSchema = EntitySchema(
         typeUri = selection.typeUri,
-        typedPaths = rule.rules.allRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType)).distinct.toIndexedSeq,
+        typedPaths = extractTypedPaths(rule),
         filter = selection.restriction,
         subPath = subPath
       )
@@ -220,7 +243,23 @@ object TransformSpec {
     }
   }
 
-  implicit object TransformSpecificationFormat extends XmlFormat[TransformSpec] {
+  private def extractTypedPaths(rule: TransformRule): IndexedSeq[TypedPath] = {
+    val rules = rule.rules.allRules
+    val (objectRulesWithDefaultPattern, valueRules) = rules.partition ( _.representsDefaultUriRule )
+    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType, isAttribute = false)).distinct.toIndexedSeq
+    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p, UriValueType, isAttribute = false)).distinct.toIndexedSeq
+
+    /** Value paths must come before object paths to not, because later algorithms rely on this order, e.g. PathInput only considers the Path not the value type.
+      * If an object type path would come before the value path, the path input would take the wrong values. The other way round
+      * is taken care of.
+      */
+    valuePaths ++ objectPaths
+  }
+
+  implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
+
+    override def tagNames: Set[String] = Set("TransformSpec")
+
     /**
       * Deserialize a value from XML.
       */
@@ -264,6 +303,16 @@ object TransformSpec {
         }}
       </TargetVocabularies>
       </TransformSpec>
+    }
+  }
+
+  implicit object TransformTaskXmlFormat extends XmlFormat[TransformTask] {
+    override def read(value: Node)(implicit readContext: ReadContext): TransformTask = {
+      new TaskFormat[TransformSpec].read(value)
+    }
+
+    override def write(value: TransformTask)(implicit writeContext: WriteContext[Node]): Node = {
+      new TaskFormat[TransformSpec].write(value)
     }
   }
 

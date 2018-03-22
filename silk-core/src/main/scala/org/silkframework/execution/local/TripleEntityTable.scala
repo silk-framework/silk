@@ -15,10 +15,10 @@ object TripleEntitySchema {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.TripleSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(Path(SilkVocab.tripleSubject), UriValueType),
-      TypedPath(Path(SilkVocab.triplePredicate), UriValueType),
-      TypedPath(Path(SilkVocab.tripleObject), StringValueType),
-      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType)
+      TypedPath(Path(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
+      TypedPath(Path(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
+      TypedPath(Path(SilkVocab.tripleObject), StringValueType, isAttribute = false),
+      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false)
     )
   )
 }

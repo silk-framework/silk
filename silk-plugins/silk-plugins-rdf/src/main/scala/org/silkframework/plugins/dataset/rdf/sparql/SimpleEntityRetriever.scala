@@ -15,14 +15,17 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
-import org.silkframework.entity.rdf.SparqlEntitySchema
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
  */
-class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true, useSubSelect: Boolean = true) extends EntityRetriever {
+class SimpleEntityRetriever(endpoint: SparqlEndpoint,
+                            pageSize: Int = SimpleEntityRetriever.DEFAULT_PAGE_SIZE,
+                            graphUri: Option[String] = None,
+                            useOrderBy: Boolean = true, useSubSelect: Boolean = true) extends EntityRetriever {
   private val varPrefix = "v"
 
   /**
@@ -33,11 +36,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @return The retrieved entities
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
-    if (entities.isEmpty) {
-      retrieveAll(entitySchema, limit)
-    } else {
-      retrieveList(entities, entitySchema)
-    }
+    retrieveAll(entitySchema, limit, entities)
   }
 
   /**
@@ -46,99 +45,59 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
    * @param entitySchema The entity schema
    * @return The retrieved entities
    */
-  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
-    val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema)
+  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri]): Traversable[Entity] = {
+    val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
     //Select
-    var sparql = "SELECT DISTINCT "
-    var selectVariables = "?" + sparqlEntitySchema.variable + " "
+    val sparql = new StringBuilder
+    sparql append "SELECT DISTINCT "
+    val selectVariables = genSelectVariables(sparqlEntitySchema)
+    sparql append selectVariables
+    sparql append "\n"
+
+    //Body
+    sparql append "WHERE {\n"
+    //Graph
+    for (graph <- graphUri if !graph.isEmpty) sparql append s"GRAPH <$graph> {\n"
+
+    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
+      sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
+    } else {
+      sparql append s"?${sparqlEntitySchema.variable} ?${varPrefix}_p ?${varPrefix}_o .\n"
+    }
+
+    sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
+    for (graph <- graphUri if !graph.isEmpty) sparql append "}\n" // END graph
+    sparql append "}" // END WHERE
+    if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
+
+    val sparqlQuery = if(useSubSelect) {
+      s"SELECT $selectVariables\nWHERE {\n${sparql.toString}\n}"
+    } else {
+      sparql.toString()
+    }
+
+    val sparqlResults = endpoint.select(sparqlQuery)
+
+    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+  }
+
+  private def genSelectVariables(sparqlEntitySchema: SparqlEntitySchema) = {
+    var temp = "?" + sparqlEntitySchema.variable + " "
     for (i <- sparqlEntitySchema.paths.indices) {
-      selectVariables += "?" + varPrefix + i + " "
+      temp += "?" + varPrefix + i + " "
     }
-    sparql += selectVariables
-    sparql += "\n"
-
-    //Body
-    sparql += "WHERE {\n"
-    //Graph
-    for (graph <- graphUri if !graph.isEmpty) sparql += "GRAPH <" + graph + "> {\n"
-
-    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty)
-      sparql += sparqlEntitySchema.restrictions.toSparql + "\n"
-    else
-      sparql += "?" + sparqlEntitySchema.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
-
-    sparql += SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
-    for (graph <- graphUri if !graph.isEmpty) sparql += "}\n" // END graph
-    sparql += "}" // END WHERE
-    if(useOrderBy) sparql +=" ORDER BY ?" + sparqlEntitySchema.variable
-
-    if(useSubSelect) {
-      sparql = "SELECT " + selectVariables + "\nWHERE {\n" + sparql + "\n}"
-    }
-
-    val sparqlResults = endpoint.select(sparql)
-
-    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit)
-  }
-
-  /**
-   * Retrieves a list of entities.
-   *
-   * @param entityUris The URIs of the entities
-   * @param entitySchema The entity description
-   * @return A sequence of the retrieved entities.
-   */
-  private def retrieveList(entityUris: Seq[Uri], entitySchema: EntitySchema): Seq[Entity] = {
-    entityUris.view.flatMap(entityUri => retrieveEntity(entityUri, entitySchema))
-  }
-
-  /**
-   * Retrieves a single entity.
-   *
-   * @param entityUri The URI of the entity
-   * @param entitySchema The entity description
-   * @return Some(entity), if an entity with the given uri is in the Store
-   *         None, if no entity with the given uri is in the Store
-   */
-  def retrieveEntity(entityUri: Uri, entitySchema: EntitySchema): Option[Entity] = {
-    //Query only one path at once and combine the result into one
-    val sparqlResults = {
-      for ((path, pathIndex) <- entitySchema.typedPaths.zipWithIndex;
-           results <- retrievePaths(entitySchema, entityUri, Seq(path.path))) yield {
-        results map {
-          case (variable, node) => (varPrefix + pathIndex, node)
-        }
-      }
-    }
-
-    new EntityTraversable(sparqlResults, entitySchema, Some(entityUri), None).headOption
-  }
-
-  private def retrievePaths(entityDesc: EntitySchema, entityUri: Uri, paths: Seq[Path]) = {
-    //Select
-    var sparql = "SELECT DISTINCT "
-    for (i <- paths.indices) {
-      sparql += "?" + varPrefix + i + " "
-    }
-    sparql += "\n"
-
-    //Body
-    sparql += "WHERE {\n"
-    //Graph
-    for (graph <- graphUri) sparql += "GRAPH <" + graph + "> {\n"
-    sparql += SparqlPathBuilder(paths, "<" + entityUri + ">", "?" + varPrefix)
-    for (graph <- graphUri) sparql += "}\n"
-    sparql += "}"
-
-    endpoint.select(sparql).bindings
+    temp
   }
 
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]], entitySchema: EntitySchema, subject: Option[Uri], limit: Option[Int]) extends Traversable[Entity] {
-    val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema)
-    override def foreach[U](f: Entity => U) {
+  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]],
+                                  entitySchema: EntitySchema,
+                                  subject: Option[Uri],
+                                  limit: Option[Int],
+                                  sparqlEntitySchema: SparqlEntitySchema) extends Traversable[Entity] {
+    override def foreach[U](f: Entity => U): Unit = {
       //Remember current subject
       var curSubject: Option[String] = subject.map(_.uri)
 
@@ -186,4 +145,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, grap
     }
   }
 
+}
+
+object SimpleEntityRetriever {
+  final val DEFAULT_PAGE_SIZE = 1000
 }

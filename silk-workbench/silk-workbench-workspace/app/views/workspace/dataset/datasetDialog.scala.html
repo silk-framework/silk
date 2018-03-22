@@ -1,36 +1,47 @@
-@import org.silkframework.dataset.Dataset
+@import org.silkframework.dataset.{Dataset, DatasetSpec}
 @import org.silkframework.workspace.Project
 
-@(project: Project, datasetName: String, dataset: Option[Dataset], title: String = "Edit Dataset", createDialog: Boolean = false)
+@(project: Project, datasetName: String, dataset: Option[DatasetSpec], title: String = "Edit Dataset", createDialog: Boolean = false)
 
 @widgets.pluginDialog(
   project,
   name = datasetName,
   plugins = Dataset.availablePlugins,
-  currentObj = dataset,
+  currentObj = dataset.map(_.plugin),
   resources = project.resources.listRecursive,
   title = title,
   submitLabel = "Save",
   secondaryLabel = "Autoconfigure",
   createDialog = createDialog) {
 
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="dataset_uriProperty" name="dataset_uriProperty" value="@dataset.flatMap(_.uriProperty.map(_.uri)).getOrElse("")"/>
+      <label class="mdl-textfield__label" for="dataset_uriProperty">URI property</label>
+      <div class="mdl-tooltip mdl-tooltip--right" for="dataset_uriProperty">
+        Setting this URI will generate an additional property for each entity.
+        The additional property contains the URI of each entity.
+      </div>
+    </div>
+
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
-        // Build dataset xml
-        var xmlDoc = document.implementation.createDocument('', 'root', null);
-        var xml = xmlDoc.createElement("Dataset");
-        xml.setAttribute("id", name);
-        xml.setAttribute("type", pluginId);
-        for(var i in parameters) {
-          var param = xmlDoc.createElement("Param");
-          param.setAttribute('name', parameters[i].name);
-          param.appendChild(xmlDoc.createCDATASection(parameters[i].value));
-          xml.appendChild(param);
-        }
-        var xmlString = new XMLSerializer().serializeToString(xml);
+        // Build dataset json
+        var json = {
+          id: name,
+          data: {
+            taskType: "Dataset",
+            type: pluginId,
+            uriProperty: $('#dataset_uriProperty').val(),
+            parameters: parameters
+          }
+        };
 
         // Submit data source
-        putTask('@config.baseUrl/workspace/projects/@project.name/datasets/' + name, xmlString, callbacks);
+        @if(createDialog) {
+          postTask('@project.name', json, callbacks);
+        } else {
+          putTask('@project.name', name, json, callbacks);
+        }
       }
 
       function autoConfigure(pluginId, name, parameters) {

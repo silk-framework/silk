@@ -1,5 +1,5 @@
 import React from 'react';
-import {Error} from 'ecc-gui-elements';
+import {Error} from '@eccenca/gui-elements';
 import _ from 'lodash';
 
 const ErrorCause = ({errorCause}) => (

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.dataset.{DataSource, Dataset}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.ProjectTask
@@ -28,7 +28,7 @@ object LinkingTaskUtils {
         case Some(transformTask) =>
           transformTask.asDataSource(selection.typeUri)
         case None =>
-          task.project.task[Dataset](selection.inputId).data.source
+          task.project.task[DatasetSpec](selection.inputId).data.source
       }
     }
 
@@ -36,7 +36,7 @@ object LinkingTaskUtils {
       * Retrieves all link sinks for this linking task.
       */
     def linkSinks = {
-      task.data.outputs.flatMap(o => task.project.taskOption[Dataset](o)).map(_.data.linkSink)
+      task.data.outputs.flatMap(o => task.project.taskOption[DatasetSpec](o)).map(_.data.linkSink)
     }
   }
 

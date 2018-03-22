@@ -3,9 +3,9 @@ package org.silkframework.plugins.dataset.csv
 import java.io.StringReader
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource}
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
@@ -14,12 +14,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   val settings =
     CsvSettings(
-      separator = ',',
       quote = None,
       arraySeparator = None
     )
 
-  val noSeparatorSettings = settings.copy(separator = ' ')
+  val noSeparatorSettings: CsvSettings = settings.copy(separator = ' ')
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
   val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
@@ -57,6 +56,18 @@ class CsvSourceTest extends FlatSpec with Matchers {
       )) shouldBe Some(DetectedSeparator(',', 3, 0))
   }
 
+  "DatasetSpec" should "not cache the CSV source" in {
+    val manager = InMemoryResourceManager()
+    val resource = manager.get("empty.csv")
+    val csvDataset = CsvDataset(resource)
+    val datasetSpec = DatasetSpec(csvDataset)
+    val emptyPaths = datasetSpec.source.retrievePaths("")
+    emptyPaths shouldBe empty
+    resource.writeString("id,name\n1,doe")
+    val nonEmptyPaths = datasetSpec.source.retrievePaths("")
+    nonEmptyPaths.size shouldBe 2
+  }
+
   it should "detect tab separator" in {
     val tab = "\t"
     detect(Seq(
@@ -76,7 +87,6 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   it should "detect lines to skip" in {
-    val tab = "\t"
     val validLines = for (i <- 1 to 100) yield {
       s"""1,2,3"""
     }

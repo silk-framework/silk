@@ -2,7 +2,6 @@ package org.silkframework.config
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
-
 import scala.language.implicitConversions
 import scala.xml._
 
@@ -26,6 +25,13 @@ trait Task[+TaskType <: TaskSpec] {
     * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
     */
   def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
+
+  /**
+    * Finds all tasks that reference this task.
+    *
+    * @param recursive Whether to return tasks that indirectly refer to this task.
+    */
+  def findDependentTasks(recursive: Boolean): Seq[Identifier] = Seq.empty
 
   override def equals(obj: scala.Any) = obj match {
     case task: Task[_] =>
@@ -69,7 +75,7 @@ object Task {
   /**
     * XML serialization format.
     */
-  private class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
+  class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
 
     import XmlSerialization._
 
@@ -94,4 +100,6 @@ object Task {
       node
     }
   }
+
+  implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
 }

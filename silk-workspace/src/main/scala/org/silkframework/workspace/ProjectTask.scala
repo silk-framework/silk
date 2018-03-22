@@ -14,10 +14,11 @@
 
 package org.silkframework.workspace
 
+import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
@@ -44,7 +45,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private var currentData: TaskType = initialData
 
   @volatile
-  private var currentMetaData: MetaData = initialMetaData
+  private var currentMetaData: MetaData = {
+    // Make sure that the modified timestamp is set
+    initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
+  }
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -98,12 +102,21 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     for(md <- newMetaData) {
       currentMetaData = md
     }
+    // Update modified timestamp
+    currentMetaData = currentMetaData.copy(modified = Some(currentMetaData.modified.getOrElse(Instant.now)))
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
+  }
+
+  /**
+    * Updates the meta data of this task.
+    */
+  def updateMetaData(newMetaData: MetaData): Unit = {
+    update(currentData, Some(newMetaData))
   }
 
   /**
@@ -156,16 +169,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  def findDependentTasks(recursive: Boolean): Seq[ProjectTask[_]] = {
+  override def findDependentTasks(recursive: Boolean): Seq[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
-    if(!recursive) {
-      dependentTasks
-    } else {
-      val indirectlyDependendTasks = dependentTasks.flatMap(_.findDependentTasks(true))
-      indirectlyDependendTasks ++ dependentTasks
+    var allDependentTaskIds = dependentTasks.map(_.id)
+    if(recursive) {
+      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
+    allDependentTaskIds.distinct
   }
 
   private object Writer extends Runnable {
@@ -183,6 +195,41 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   override def toString: String = {
     s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+  }
+
+  // Returns all non-empty meta data fields as key value pairs
+  def metaDataFields(): Seq[(String, String)] = {
+    // ID is part of the metaData
+    var metaDataFields: Vector[(String, String)] = Vector(("Task identifier", id.toString))
+    if(metaData.label.trim != "") {
+      metaDataFields = metaDataFields :+ "Label" -> metaData.label
+    }
+    if(metaData.description.trim != "") {
+      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    }
+    metaDataFields
+  }
+
+  private val dotDotDot = '…'
+  private val DEFAULT_MAX_LENGTH = 50
+
+  /**
+    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
+    * @param maxLength the max length in characters
+    */
+  def taskLabel(maxLength: Int = DEFAULT_MAX_LENGTH): String = {
+    assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
+    val label = if(metaData.label.trim != "") {
+      metaData.label.trim
+    } else {
+      id.toString
+    }
+    if(label.length > maxLength) {
+      val sideLength = (maxLength - 2) / 2
+      label.take(sideLength) + s" $dotDotDot " + label.takeRight(sideLength)
+    } else {
+      label
+    }
   }
 }
 

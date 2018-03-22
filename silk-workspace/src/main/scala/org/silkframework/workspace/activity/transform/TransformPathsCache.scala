@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
 import org.silkframework.rule.TransformSpec
@@ -36,7 +37,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Act
       val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask, context)
       val configuredEntitySchema = currentEntityDesc.copy(typedPaths = (currentEntityDesc.typedPaths ++ paths).distinct)
       // Retrieve untyped paths if input is an RDF data source and configured type is non empty
-      val isRdfInput = transformTask.project.anyTask(inputTaskId).data.isInstanceOf[RdfDataset]
+      val isRdfInput = transformTask.project.taskOption[DatasetSpec](inputTaskId).exists(_.plugin.isInstanceOf[RdfDataset])
       val unTypedEntitySchema = if (isRdfInput
           && transform.selection.typeUri.uri.nonEmpty
           && (context.value().untypedSchema.isEmpty
@@ -75,7 +76,7 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
     }
   }
 
-  def isRdfInput(task: ProjectTask[TransformSpec]): Boolean = task.project.anyTask(task.selection.inputId).data.isInstanceOf[RdfDataset]
+  def isRdfInput(task: ProjectTask[TransformSpec]): Boolean = task.project.taskOption[DatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
 }
 
 object CachedEntitySchemata {

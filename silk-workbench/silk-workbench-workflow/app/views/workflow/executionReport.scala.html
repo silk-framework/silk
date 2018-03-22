@@ -47,9 +47,28 @@
       @linkingReport(linking.statistics, linking.links.size)
     }
     case _ => {
-      No report
+      @renderGenericReport(taskReport)
     }
   }
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@renderGenericReport(taskReport: ExecutionReport) = {
+  <table class="mdl-data-table mdl-js-data-table">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for((key, value) <- taskReport.summary) {
+        <tr>
+          <td>@key</td>
+          <td>@value</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import java.io.StringWriter
 import java.util.logging.{Level, Logger}
 
-import org.apache.jena.query.{QueryExecution, QuerySolution, ResultSet}
+import org.apache.jena.query._
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf.{BlankNode, DataTypeLiteral, LanguageLiteral, PlainLiteral, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
 
@@ -34,21 +34,34 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
    * Overloaded in subclasses.
    */
-  protected def createQueryExecution(query: String): QueryExecution
+  protected def createQueryExecution(query: Query): QueryExecution
 
   /**
     * Overloaded in subclasses.
     */
   protected def createUpdateExecution(query: String): UpdateProcessor
 
+  protected def addGraph(query: Query): Unit = {
+    sparqlParams.graph foreach { graphURI =>
+      query.addGraphURI(graphURI)
+    }
+  }
+
   /**
    * Executes a SPARQL SELECT query.
    */
   override def select(sparql: String, limit: Int): SilkResultSet = synchronized {
+    val query = QueryFactory.create(sparql)
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
+    if(limit < Int.MaxValue) {
+      query.setLimit(limit)
+    }
+    if(PagingSparqlTraversable.graphPatternRegex.findFirstIn(sparql).isEmpty) {
+      addGraph(query)
+    }
     // Execute query
-    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
+//    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
     val qe = createQueryExecution(query)
     try {
       toSilkResults(qe.execSelect())
@@ -62,7 +75,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     * Executes a construct query.
     */
   override def construct(query: String): String = synchronized {
-    val qe = createQueryExecution(query)
+    val qe = createQueryExecution(QueryFactory.create(query))
     try {
       val resultModel = qe.execConstruct()
       val writer = new StringWriter()

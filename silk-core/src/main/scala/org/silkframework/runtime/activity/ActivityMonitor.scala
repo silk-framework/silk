@@ -10,7 +10,9 @@ import java.util.logging.Logger
   * @param initialValue The initial value of this activity.
   * @tparam T The value type. Set to [[Unit]] if no values are generated.
   */
-class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None, progressContribution: Double = 0.0, initialValue: => Option[T] = None) extends ActivityContext[T] {
+class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None,
+                         progressContribution: Double = 0.0,
+                         initialValue: => Option[T] = None) extends ActivityContext[T] {
 
   /**
     * Holds all current child activities.
@@ -72,4 +74,6 @@ class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None
   private def removeDoneChildren(): Unit = {
     childControls = childControls.filter(_.status().isRunning)
   }
+
+  override def userContext: UserContext = UserContext.Empty
 }

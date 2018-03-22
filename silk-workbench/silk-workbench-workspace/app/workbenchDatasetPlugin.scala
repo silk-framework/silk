@@ -1,6 +1,6 @@
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.dataset.{Dataset, DatasetTask}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
 import controllers.workspace.routes.Assets
@@ -22,7 +22,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     val p = context.project.name
     val t = context.task.id
     context.task.data match {
-      case dataset: DatasetTask =>
+      case dataset: DatasetSpec =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
         if (dataset.plugin.isInstanceOf[RdfDataset] ) {
           tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
@@ -34,7 +34,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[Dataset] {
+  object DatasetActions extends TaskActions[DatasetSpec] {
 
     /** The name of the task type */
     override def name: String = "Dataset"
@@ -55,12 +55,5 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
       Some(s"workspace/datasets/$project/$task/dataset")
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(taskData: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      taskData.asInstanceOf[Dataset] match {
-        case Dataset(_, params) => params.toSeq
-      }
-    }
   }
 }

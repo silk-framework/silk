@@ -13,7 +13,7 @@ import org.silkframework.workspace.ProjectTask
 import scala.util.control.NonFatal
 
 /**
-  * A local workflow executor. This is not thread safe.
+  * A local workflow executor. This is not thread safe. Usually this should not be executed directly, but instead via [[LocalWorkflowExecutorGeneratingProvenance]].
   *
   * It first builds a dependency graph based on the method from [[Workflow]]. This graph can contain
   * multiple connected components (The dependency graph is double linked). For each end node,
@@ -52,12 +52,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     clearOutputDatasets()
 
     val DAG = workflow.workflowDependencyGraph
-    for (endNode <- DAG.endNodes) {
-      executeWorkflowNode(endNode, entitySchemaOpt = None)
-    }
-    if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-      throw WorkflowException("Not all workflow nodes were executed! Executed " +
-          workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+    try {
+      for (endNode <- DAG.endNodes) {
+        executeWorkflowNode(endNode, entitySchemaOpt = None)
+      }
+      if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
+        throw WorkflowException("Not all workflow nodes were executed! Executed " +
+            workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+      }
+    } catch {
+      case e: WorkflowException =>
+        if(!canceled) {
+          throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
+        }
     }
   }
 
@@ -213,7 +220,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: EntityTable)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    project.taskOption[Dataset](workflowDataset.task) match {
+    project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
         execute(resolvedDataset, Seq(entityTable), None)
@@ -225,7 +232,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
                      (implicit workflowRunContext: WorkflowRunContext): EntityTable = {
-    project.taskOption[Dataset](workflowDataset.task) match {
+    project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
         execute(resolvedDataset, Seq.empty, Some(entitySchema)) match {
@@ -284,9 +291,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
     * @return
     */
-  private def resolveDataset(datasetTask: Task[Dataset],
-                             replaceDatasets: Map[String, Dataset]): Task[Dataset] = {
-    val dataset = datasetTask.data match {
+  private def resolveDataset(datasetTask: Task[DatasetSpec],
+                             replaceDatasets: Map[String, Dataset]): Task[DatasetSpec] = {
+    val dataset = datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {
           case Some(d) => d
@@ -298,7 +305,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ds: Dataset =>
         ds
     }
-    PlainTask(datasetTask.id, dataset)
+    PlainTask(datasetTask.id, datasetTask.data.copy(plugin = dataset), metaData = datasetTask.metaData)
   }
 
   override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)

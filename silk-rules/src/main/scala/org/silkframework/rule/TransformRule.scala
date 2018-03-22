@@ -1,12 +1,14 @@
 package org.silkframework.rule
 
+import java.net.URI
+
+import org.silkframework.config.MetaData.MetaDataXmlFormat
 import org.silkframework.config.{MetaData, Prefixes}
-import org.silkframework.config.MetaData.MetaDataFormat
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
-import org.silkframework.rule.TransformRule.TransformRuleFormat.write
+import org.silkframework.rule.TransformRule.RDF_TYPE
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
@@ -14,9 +16,9 @@ import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, Co
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
-import TransformRule.RDF_TYPE
 
 import scala.language.implicitConversions
+import scala.util.Try
 import scala.xml.{Node, Null}
 
 /**
@@ -77,6 +79,23 @@ sealed trait TransformRule extends Operator {
     collectPaths(operator).distinct
   }
 
+  /** Throws ValidationException if this transform rule is not valid. */
+  def validate(): Unit = {
+    validateTargetUri()
+    rules.foreach(_.validate())
+  }
+
+  private def validateTargetUri(): Unit = {
+    target foreach { mt =>
+      val failure = Try {
+        new URI(mt.propertyUri.uri)
+      }.isFailure
+      if(failure) {
+        throw new ValidationException("Not a valid mapping target property: '" + mt.propertyUri.toString + "'")
+      }
+    }
+  }
+
   /**
     * The children operators.
     */
@@ -92,6 +111,12 @@ sealed trait TransformRule extends Operator {
       throw new IllegalArgumentException(s"$this cannot have any children")
     }
   }
+
+  def representsDefaultUriRule: Boolean = {
+    false
+  }
+
+  def ids: List[Identifier] = id :: rules.allRules.toList.flatMap(_.ids)
 }
 
 /**
@@ -114,6 +139,20 @@ sealed trait ValueTransformRule extends TransformRule
 case class RootMappingRule(id: Identifier,
                            override val rules: MappingRules,
                            metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
+  /** Fails on the first rule it encounters that's invalid */
+  override def validate(): Unit = {
+    rules.allRules foreach (_.validate())
+    validateIDs
+  }
+
+
+  private def validateIDs: Unit = {
+    val allIds = ids
+    val duplicateIds = allIds.groupBy(_.toString).filter(_._2.size > 1).keys
+    if (duplicateIds.nonEmpty) {
+      throw new ValidationException("Duplicate IDs in nested mapping rule found: " + duplicateIds.mkString(", "))
+    }
+  }
 
   /**
     * The children operators.
@@ -155,7 +194,7 @@ object RootMappingRule {
       RootMappingRule(
         id = (value \ "@id").text,
         rules = MappingRulesFormat.read((value \ "MappingRules").head),
-        metaData = (value \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+        metaData = (value \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       )
     }
 
@@ -165,7 +204,7 @@ object RootMappingRule {
     override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
       <RootMappingRule id={value.id}>
         { MappingRulesFormat.write(value.rules) }
-        { MetaDataFormat.write(value.metaData) }
+        { MetaDataXmlFormat.write(value.metaData) }
       </RootMappingRule>
     }
   }
@@ -327,6 +366,7 @@ case class ObjectMapping(id: Identifier = "mapping",
     copy(rules = rules.copy(uriRule = rules.uriRule.orElse(uriRule())))
   }
 
+  override def representsDefaultUriRule: Boolean = rules.uriRule.isEmpty
 }
 
 /**
@@ -357,7 +397,7 @@ object TransformRule {
         sourcePath = Path.parse((node \ "@relativePath").text),
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
-        metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       )(readContext.prefixes)
     }
 
@@ -374,7 +414,7 @@ object TransformRule {
           }
         }
 
-      val metaData = (node \ "MetaData").headOption.map(MetaDataFormat.read).getOrElse(MetaData.empty)
+      val metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
 
       val complex =
         ComplexMapping(
@@ -390,14 +430,14 @@ object TransformRule {
       value match {
         case ObjectMapping(name, relativePath, target, childRules, metaData) =>
           <ObjectMapping name={name} relativePath={relativePath.serialize} >
-            {MetaDataFormat.write(metaData)}
+            {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
             { target.map(toXml[MappingTarget]).toSeq }
           </ObjectMapping>
         case _ =>
           // At the moment, all other types are serialized generically
           <TransformRule name={value.id}>
-            {MetaDataFormat.write(value.metaData)}
+            {MetaDataXmlFormat.write(value.metaData)}
             {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
           </TransformRule>
       }

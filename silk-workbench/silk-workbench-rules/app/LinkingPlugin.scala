@@ -51,19 +51,6 @@ case class LinkingPlugin() extends WorkbenchPlugin {
     /** The path to redirect to when the task is opened. */
     override def open(project: String, task: String) =
       Some(s"linking/$project/$task/editor")
-
-    /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-    override def properties(task: Any)(implicit prefixes: Prefixes): Seq[(String, String)] = {
-      val linkSpec = task.asInstanceOf[LinkSpec]
-      Seq(
-        ("Source", linkSpec.dataSelections.source.inputId.toString),
-        ("Target", linkSpec.dataSelections.target.inputId.toString),
-        ("Source Type", linkSpec.dataSelections.source.typeUri.toString),
-        ("Target Type", linkSpec.dataSelections.target.typeUri.toString),
-        ("Source Restriction", linkSpec.dataSelections.source.restriction.toString),
-        ("Target Restriction", linkSpec.dataSelections.target.restriction.toString)
-      )
-    }
   }
 
 }
