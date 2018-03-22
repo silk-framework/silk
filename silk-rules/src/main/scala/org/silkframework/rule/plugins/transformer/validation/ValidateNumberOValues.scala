@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, Transf
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
-  id = "validateCardinality",
+  id = "validateNumberOfValues",
   categories = Array("Validation"),
   label = "validate number of values",
   description = "Validates that the number of values lies in a specified range."
