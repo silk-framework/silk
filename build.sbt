@@ -1,3 +1,4 @@
+import com.github.play2war.plugin.Play2WarKeys
 import sbt.Keys._
 
 //////////////////////////////////////////////////////////////////////////////
@@ -64,7 +65,7 @@ lazy val learning = (project in file("silk-learning"))
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, serializationJson, core % "test->test")
+  .dependsOn(rules, learning, core % "test->test")
   .aggregate(rules, learning)
   .settings(commonSettings: _*)
   .settings(
@@ -131,7 +132,7 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   )
 
 lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
-  .dependsOn(core, rules)
+  .dependsOn(core, rules, workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
@@ -153,13 +154,15 @@ lazy val plugins = (project in file("silk-plugins"))
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test")
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson)
   .aggregate(workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "org.silkframework.buildInfo",
+    // Play filters (CORS filter etc.)
+    libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
   )
 
@@ -184,7 +187,7 @@ lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"
 lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-workflow"))
   .enablePlugins(PlayScala)
   .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules)
-  .aggregate(workbenchRules)
+  .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workflow"
