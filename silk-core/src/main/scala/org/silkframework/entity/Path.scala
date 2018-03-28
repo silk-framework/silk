@@ -47,6 +47,13 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case _ => None
   }
 
+  /**
+    * extracts either the fragment if available or the last path segment
+    * if neither is available => None
+    * @return
+    */
+  def getLocalName: Option[String] = propertyUri.flatMap(_.localName)
+
   def size: Int = operators.size
 
   /**

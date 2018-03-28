@@ -26,8 +26,13 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * @param execution
     * @return
     */
-  final override def execute(task: Task[DatasetType], inputs: Seq[ExecType#DataType], outputSchema: Option[EntitySchema],
-                             execution: ExecType, context: ActivityContext[ExecutionReport]): Option[ExecType#DataType] = {
+  final override def execute(
+    task: Task[DatasetType],
+    inputs: Seq[ExecType#DataType],
+    outputSchema: Option[EntitySchema],
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport]
+  ): Option[ExecType#DataType] = {
 
     for (input <- inputs) {
       write(input, task, execution)

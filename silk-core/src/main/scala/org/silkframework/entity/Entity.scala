@@ -32,6 +32,15 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     }
   }
 
+  def valueOf(colName: String): Seq[String] ={
+    desc.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
+      case Some(col) => values(desc.pathIndex(col.path))
+      case None => Seq()
+    }
+  }
+
+  def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
+
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
   def toXML: Node = {

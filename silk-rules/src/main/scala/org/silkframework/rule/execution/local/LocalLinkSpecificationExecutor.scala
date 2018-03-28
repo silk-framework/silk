@@ -20,9 +20,14 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
                        inputs: Seq[EntityTable],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
-    val linkSpec = updateSelection(task.data, inputs)
-    val sources = DPair[DataSource](entitySource(inputs(0), task.dataSelections.source.typeUri), entitySource(inputs(1), task.dataSelections.target.typeUri))
+                       context: ActivityContext[ExecutionReport]
+                      ): Option[EntityTable] = {
+    assert(inputs.size == 2, "LinkSpecificationExecutor did npt receive exactly two inputs (source, target).")
+    val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
+    val sources = DPair[DataSource](
+      entitySource(inputs.head, task.dataSelections.source.typeUri),
+      entitySource(inputs.tail.head, task.dataSelections.target.typeUri)
+    )
     val output = execution.createInternalDataset(None) // TODO: Is this needed?
     val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(output.linkSink))
     val linking = Activity(activity).startBlockingAndGetValue()
@@ -60,9 +65,9 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
   }
 
-  private def updateSelection(linkSpec: LinkSpec, inputs: Seq[EntityTable]): LinkSpec = {
-    val sourceSelection = linkSpec.dataSelections.source.copy(inputId = inputs(0).task.id)
-    val targetSelection = linkSpec.dataSelections.target.copy(inputId = inputs(1).task.id)
+  private def updateSelection(linkSpec: LinkSpec, source: EntityTable, target: EntityTable): LinkSpec = {
+    val sourceSelection = linkSpec.dataSelections.source.copy(inputId = source.taskOption.getOrElse(throw new IllegalArgumentException).id)
+    val targetSelection = linkSpec.dataSelections.target.copy(inputId = target.taskOption.getOrElse(throw new IllegalArgumentException).id)
     linkSpec.copy(dataSelections = DPair(sourceSelection, targetSelection))
   }
 }

@@ -14,11 +14,12 @@
 
 package org.silkframework.util
 
-import java.net.{URI, URISyntaxException}
+import java.net.URI
 
 import org.silkframework.config.Prefixes
 
 import scala.language.implicitConversions
+import scala.util.{Success, Try}
 
 /**
   * Represents a URI.
@@ -54,8 +55,8 @@ case class Uri(uri: String) {
 
   private def uriMatchesNamespace(uri: String, namespace: String): Boolean = {
     uri.startsWith(namespace) && {
-      val localPart = uri.drop(namespace.size)
-      localPart.size > 0 &&
+      val localPart = uri.drop(namespace.length)
+      localPart.nonEmpty &&
           !localPart.contains("/") &&
           !localPart.contains("#")
     }
@@ -66,16 +67,22 @@ case class Uri(uri: String) {
     * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
     * Only accepts absolute URIs.
     */
-  def isValidUri: Boolean = {
-    try {
-      val u = new URI(uri)
-      u.isAbsolute
-    } catch {
-      case _: URISyntaxException => false
-    }
-  }
+  def isValidUri: Boolean = toURI.isSuccess
 
   override def toString: String = uri
+
+  def toURI: Try[URI] = Try{new URI(uri)}
+
+  /**
+    * extracts either the fragment if available or the last path segment
+    * if neither is available => None
+    * @return
+    */
+  def localName: Option[String] = toURI match{
+    case Success(u) if u.getFragment != null                    => Some(u.getFragment)
+    case Success(u) if u.getPath != null && u.getPath.nonEmpty  => Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
+    case _ => None
+  }
 }
 
 object Uri {
