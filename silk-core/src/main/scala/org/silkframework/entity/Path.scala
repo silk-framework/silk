@@ -52,7 +52,7 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     * if neither is available => None
     * @return
     */
-  def getLocalName: Option[String] = propertyUri.flatMap(_.localName)
+  def getLocalName: Option[String] = propertyUri.flatMap(_.localName )
 
   def size: Int = operators.size
 
