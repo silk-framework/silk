@@ -14,7 +14,7 @@ import scala.collection.mutable
   */
 case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionType {
 
-  type DataType = EntityTable
+  type DataType = LocalEntities
 
   private val internalDatasets: mutable.Map[Option[String], InternalDatasetTrait] = mutable.Map.empty
 

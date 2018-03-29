@@ -31,7 +31,7 @@ trait EntityHolder {
 
   /**
     * Convenience function for unwrapping the task id
-    * NOTE: Only use for non essential code (exception messages etc.)
+    * NOTE: Caution when using with essential code, prefer taskOption.map(_.id) instead
     * @return - the task id or a unified statement for a missing task id
     */
   def taskId: String = taskOption match{

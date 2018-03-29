@@ -32,6 +32,11 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     }
   }
 
+  /**
+    * returns all values of a given property in the entity
+    * @param colName
+    * @return
+    */
   def valueOf(colName: String): Seq[String] ={
     desc.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
       case Some(col) => values(desc.pathIndex(col.path))
@@ -39,9 +44,25 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     }
   }
 
+  /**
+    * returns the first value (of possibly many) for the property of the given name in this entity
+    * @param columnName
+    * @return
+    */
   def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
 
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+
+  /**
+    * Validates the complete value row against the given types of the schema
+    * @return - the result of the validation matrix (where all values are valid)
+    */
+  def validate: Boolean = {
+    desc.typedPaths.forall(tp =>{
+      val ind = desc.pathIndex(tp.path) +1                      //TODO remove +1
+      values(ind).forall(v => tp.valueType.validate(v))
+    })
+  }
 
   def toXML: Node = {
     <Entity uri={uri}> {

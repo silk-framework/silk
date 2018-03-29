@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.execution.local.{EntityTable, LinksTable, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{LocalEntities, LinksTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, TransformSpec, TransformedDataSource}
@@ -17,11 +17,11 @@ import org.silkframework.util.{DPair, Uri}
 class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] {
 
   override def execute(task: Task[LinkSpec],
-                       inputs: Seq[EntityTable],
+                       inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]
-                      ): Option[EntityTable] = {
+                      ): Option[LocalEntities] = {
     assert(inputs.size == 2, "LinkSpecificationExecutor did npt receive exactly two inputs (source, target).")
     val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
     val sources = DPair[DataSource](
@@ -35,7 +35,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     Some(LinksTable(linking.links, linkSpec.rule.linkType, PlainTask(task.id, linkSpec)))
   }
 
-  private def entitySource(input: EntityTable, typeUri: Uri): EntitySource = {
+  private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {
     input match {
       case mt: MultiEntityTable if typeUri.uri.nonEmpty =>
         val allTables = mt +: mt.subTables
@@ -50,7 +50,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     }
   }
 
-  private class EntitySource(table: EntityTable) extends DataSource {
+  private class EntitySource(table: LocalEntities) extends DataSource {
 
     def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
       table.entities
@@ -65,7 +65,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
   }
 
-  private def updateSelection(linkSpec: LinkSpec, source: EntityTable, target: EntityTable): LinkSpec = {
+  private def updateSelection(linkSpec: LinkSpec, source: LocalEntities, target: LocalEntities): LinkSpec = {
     val sourceSelection = linkSpec.dataSelections.source.copy(inputId = source.taskOption.getOrElse(throw new IllegalArgumentException).id)
     val targetSelection = linkSpec.dataSelections.target.copy(inputId = target.taskOption.getOrElse(throw new IllegalArgumentException).id)
     linkSpec.copy(dataSelections = DPair(sourceSelection, targetSelection))

@@ -29,6 +29,39 @@ sealed abstract class PathOperator {
   override def toString = serialize(Prefixes.empty)
 }
 
+/*
+TODO ask Robert what happens to slashes
+
+sealed abstract class DirectionalPathOperator extends PathOperator{
+
+  def property: Uri
+
+  def operatorIndicator: String
+
+  override def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = {
+    property.toURI match{
+      case Success(_) => operatorIndicator + property.serialize(prefixes)
+      case Failure(_) => operatorIndicator + URLEncoder.encode(property.serialize(prefixes), "UTF-8")
+    }
+  }
+}
+
+/**
+ * Moves forward from a subject resource (set) through a property to its object resource (set).
+ */
+case class ForwardOperator(override val property: Uri) extends DirectionalPathOperator {
+  override val operatorIndicator = "/"
+}
+
+/**
+ * Moves backward from an object resource (set) through a property to its subject resource (set).
+ */
+case class BackwardOperator(override val property: Uri) extends DirectionalPathOperator {
+  override val operatorIndicator = "\\"
+}
+
+ */
+
 /**
  * Moves forward from a subject resource (set) through a property to its object resource (set).
  */
