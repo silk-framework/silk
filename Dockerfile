@@ -9,7 +9,7 @@ RUN \
   && ln -s /opt/apache-maven-3.3.9 /opt/maven \
   && echo "\ncurrent maven version:" \
   && /opt/maven/bin/mvn --version \
-  && echo "test fetching maven artifacts from artifactory" \
+  && echo "fetch jai-core to fix bug with missing maven artifacts" \
   && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp \
   && ./sbt "project workbench" universal:package-zip-tarball || echo "" \
   && ./sbt "project workbench" universal:package-zip-tarball || echo "" \
@@ -25,7 +25,7 @@ ENV \
   # http:\/\/www.labouisse.com\/misc\/2014\/06\/19\/tomcat-startup-time-surprises \
   DEFAULT_JAVA_OPTS="-server -Djava.security.egd=file:/dev/./urandom" \
   JAVA_OPTS="-Xms1g -Xmx2g" \
-  # configure spring application port and expose it
+  # configure application port and expose it
   SERVER_PORT=80 \
   SERVER_CONTEXTPATH="/"
 
