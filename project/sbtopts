@@ -6,12 +6,6 @@
 
 -Xmx4G
 
--XX:ReservedCodeCacheSize=128m
-
 # Set the extra SBT options
-
--Dsbt.log.format=true
-
--Dhttp.port=9000
 
 -Dfile.encoding=UTF8
