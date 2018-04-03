@@ -67,7 +67,10 @@ case class Uri(uri: String) {
     * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
     * Only accepts absolute URIs.
     */
-  def isValidUri: Boolean = toURI.isSuccess
+  def isValidUri: Boolean = toURI match{
+    case Success(u) if u.isAbsolute => true
+    case _ => false
+  }
 
   override def toString: String = uri
 
