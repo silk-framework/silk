@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
-class FileDatasetTest extends FlatSpec with MustMatchers {
+class RdfFileDatasetTest extends FlatSpec with MustMatchers {
   behavior of "RDF file dataset"
 
   val resourceManager = InMemoryResourceManager()
@@ -11,10 +11,10 @@ class FileDatasetTest extends FlatSpec with MustMatchers {
   it should "not load files larger than 'max. read size'" in {
     val largeResource = resourceManager.get("largeResource")
     largeResource.writeString(getString(1000 * 1000 -1))
-    val rdfDataset = FileDataset(largeResource, "Turtle", maxReadSize = 1)
+    val rdfDataset = RdfFileDataset(largeResource, "Turtle", maxReadSize = 1)
     rdfDataset.source.retrieveTypes()
     largeResource.writeString(getString(1000 * 1000 + 1))
-    val rdfDataset2 = FileDataset(largeResource, "Turtle", maxReadSize = 1)
+    val rdfDataset2 = RdfFileDataset(largeResource, "Turtle", maxReadSize = 1)
     intercept[RuntimeException] {
       rdfDataset2.source.retrieveTypes()
     }

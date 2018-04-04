@@ -1,8 +1,7 @@
 package plugins
 
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.Project
-import play.api.routing.Router
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 
 import scala.reflect.ClassTag

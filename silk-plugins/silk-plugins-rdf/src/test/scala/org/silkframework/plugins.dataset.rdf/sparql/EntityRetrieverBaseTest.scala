@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
-import org.silkframework.plugins.dataset.rdf.FileDataset
+import org.silkframework.plugins.dataset.rdf.RdfFileDataset
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource}
 import org.silkframework.util.Uri
 
@@ -15,7 +15,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
 
   lazy val endpoint: SparqlEndpoint = {
     val resource = ReadOnlyResource(ClasspathResourceLoader("org/silkframework/plugins/dataset/rdf").get("persons.ttl"))
-    FileDataset(resource, "Turtle").sparqlEndpoint
+    RdfFileDataset(resource, "Turtle").sparqlEndpoint
   }
 
   private val pn: String = "https://ns.eccenca.com/source/"
