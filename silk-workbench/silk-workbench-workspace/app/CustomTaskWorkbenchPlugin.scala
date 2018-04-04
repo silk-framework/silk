@@ -1,9 +1,8 @@
 
-import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
-import org.silkframework.runtime.plugin.PluginRegistry
+import controllers.workspace.routes.Assets
+import org.silkframework.config.{CustomTask, TaskSpec}
 import plugins.WorkbenchPlugin
 import plugins.WorkbenchPlugin.TaskActions
-import controllers.workspace.routes.Assets
 
 /**
  * Adds custom tasks

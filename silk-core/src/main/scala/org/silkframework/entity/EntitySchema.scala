@@ -6,12 +6,13 @@ import org.silkframework.util.Uri
 import scala.xml.Node
 
 /**
- * An entity schema.
- *
- * @param typeUri The entity type
- * @param typedPaths The list of paths
- * @param filter A filter for restricting the entity set
- */
+  * An entity schema.
+  *
+  * @param typeUri The entity type
+  * @param typedPaths The list of paths
+  * @param filter A filter for restricting the entity set
+  * @param subPath
+  */
 case class EntitySchema(typeUri: Uri,
                         typedPaths: IndexedSeq[TypedPath],
                         filter: Restriction = Restriction.empty,

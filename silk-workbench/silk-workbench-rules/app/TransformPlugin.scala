@@ -1,8 +1,7 @@
+import controllers.rules.routes.Assets
 import org.silkframework.rule.TransformSpec
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
-import controllers.rules.routes.Assets
-import org.silkframework.config.Prefixes
 
 case class TransformPlugin() extends WorkbenchPlugin {
 

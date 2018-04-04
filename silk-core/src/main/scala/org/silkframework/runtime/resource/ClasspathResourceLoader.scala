@@ -23,7 +23,7 @@ case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
     if(mustExist && getClass.getClassLoader.getResource(path) == null) {
       throw new ResourceNotFoundException(s"Resource $name not found in classpath $basePath")
     }
-    new ClasspathResource(path)
+    ClasspathResource(path)
   }
 
   override def listChildren: List[String] = {
@@ -31,14 +31,14 @@ case class ClasspathResourceLoader(basePath: String) extends ResourceLoader {
   }
 
   override def child(name: String): ResourceLoader = {
-    new ClasspathResourceLoader(basePath + "/" + name)
+    ClasspathResourceLoader(basePath + "/" + name)
   }
 
   override def parent: Option[ResourceLoader] = {
     if(basePath == "")
       None
     else
-      Some(new ClasspathResourceLoader(basePath.substring(0, basePath.lastIndexOf('/'))))
+      Some(ClasspathResourceLoader(basePath.substring(0, basePath.lastIndexOf('/'))))
   }
 }
 

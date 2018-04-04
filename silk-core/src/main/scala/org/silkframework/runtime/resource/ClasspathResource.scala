@@ -31,3 +31,5 @@ case class ClasspathResource(path: String) extends Resource {
     inputStream
   }
 }
+
+
