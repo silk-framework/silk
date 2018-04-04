@@ -6,17 +6,14 @@ import java.time.Instant
 /**
   * A resource in the classpath.
   *
-  * @param p The path of the resource, e.g., "org/silkframework/resource.txt"
+  * @param path The path of the resource, e.g., "org/silkframework/resource.txt"
   */
-case class ClasspathResource(p: String) extends Resource {
+case class ClasspathResource(path: String) extends Resource {
 
-  val name: String = p.split(',').last
-
-  lazy val fileLocation: String = Option(getClass.getClassLoader.getResource(p))
-    .map(u => u.getFile).getOrElse(throwRnfException)
+  val name: String = path.split(',').last
 
   def exists: Boolean = {
-    Option(getClass.getClassLoader.getResourceAsStream(p)).isDefined
+    Option(getClass.getClassLoader.getResourceAsStream(path)).isDefined
   }
 
   def size: Option[Long] = {
@@ -27,16 +24,12 @@ case class ClasspathResource(p: String) extends Resource {
   def modificationTime: Option[Instant] = None
 
   override def inputStream: InputStream = {
-    val inputStream = getClass.getClassLoader.getResourceAsStream(p)
-    if(inputStream == null)
-      throwRnfException
+    val inputStream = getClass.getClassLoader.getResourceAsStream(path)
+    if(inputStream == null) {
+      throw new ResourceNotFoundException(s"No resource found at classpath '$path'.")
+    }
     inputStream
   }
-
-  private def throwRnfException = throw new ResourceNotFoundException(s"No resource found at classpath '$p'.")
-
-  /**
-    * The path of this resource.
-    */
-  override def path: String = fileLocation
 }
+
+
