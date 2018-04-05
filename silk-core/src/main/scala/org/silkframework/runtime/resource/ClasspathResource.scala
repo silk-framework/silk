@@ -12,7 +12,7 @@ case class ClasspathResource(resourcePath: String) extends Resource {
 
   override def path: String = {
     try {
-      if (exists) {
+      if (new File(resourcePath).exists()) {
         resourcePath
       }
       else {
@@ -45,13 +45,6 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     inputStream
   }
 
-  /**
-    * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
-    * In these situations a fallback to this path occurs.
-    *
-    * @return Resource in module ./target/test-classes folder with appended resourcePath
-    */
-  def asFileResource: WritableResource = FileResource(new File(getClass.getResource(s"/$resourcePath").getPath))
 
   /**
     * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
@@ -59,6 +52,15 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     *
     * @return Path to module ./target/test-classes folder with appended resourcePath
     */
-  def asFilePath: String = getClass.getResource(s"/$resourcePath").getPath
+  def asFilePath: String = new File(getClass.getResource(s"/$resourcePath").getPath).getPath.replaceAllLiterally("C:/","")
+
+
+  /**
+    * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
+    * In these situations a fallback to this path occurs.
+    *
+    * @return Resource in module ./target/test-classes folder with appended resourcePath
+    */
+  def asFileResource: WritableResource = FileResource(new File(getClass.getResource(s"/$resourcePath").getPath))
 
 }
