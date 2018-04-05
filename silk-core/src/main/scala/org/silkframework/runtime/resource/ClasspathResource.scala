@@ -12,11 +12,11 @@ case class ClasspathResource(resourcePath: String) extends Resource {
 
   override def path: String = {
     try {
-      if (new File(resourcePath).exists()) {
-        resourcePath
+      if (! new File(resourcePath).exists) {
+        asFilePath.replaceAllLiterally("%20"," ")
       }
       else {
-        asFilePath
+        resourcePath
       }
     }
     catch {
@@ -52,7 +52,7 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     *
     * @return Path to module ./target/test-classes folder with appended resourcePath
     */
-  def asFilePath: String = new File(getClass.getResource(s"/$resourcePath").getPath).getPath.replaceAllLiterally("C:/","")
+  def asFilePath: String = asFileResource.path
 
 
   /**
