@@ -84,9 +84,9 @@ trait PathCoverageDataSource {
   def matchCleanPath(inputOperators: List[PathOperator],
                      sourceOperators: List[PathOperator]): Boolean = {
     (inputOperators, sourceOperators) match {
-      case (ForwardOperator(Uri("*")) :: tail, _ :: sTail) =>
+      case (ForwardOperator("*") :: tail, _ :: sTail) =>
         matchCleanPath(tail, sTail)
-      case (ForwardOperator(Uri("**")) :: tail, _) =>
+      case (ForwardOperator("**") :: tail, _) =>
         recursiveTails(sourceOperators) exists { sTail =>
           matchCleanPath(tail, sTail)
         }

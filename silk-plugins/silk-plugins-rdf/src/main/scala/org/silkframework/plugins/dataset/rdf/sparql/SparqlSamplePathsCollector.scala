@@ -105,6 +105,6 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     sparql ++= "}"
 
     for (result <- endpoint.select(sparql.toString(), limit).bindings; binding <- result.values) yield
-      Path(ForwardOperator(Uri.fromURI(binding.value)) :: Nil)
+      Path(ForwardOperator(binding.value) :: Nil)
   }
 }

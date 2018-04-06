@@ -43,13 +43,14 @@ case class Uri(uri: String) {
     * - someName
     */
   def serialize(implicit prefixes: Prefixes): String = {
-    if (!uri.contains(':')) {
-      uri
-    } else {
-      for ((id, namespace) <- prefixes if uriMatchesNamespace(uri, namespace)) {
-        return id + ":" + uri.substring(namespace.length)
+    if(isValidUri) {
+      prefixes.flatMap(p => if (uriMatchesNamespace(uri, p._2)) Some(p._1) else None).headOption match {
+        case Some(prefix) => prefix + ":" + uri.substring(prefixes(prefix).length)
+        case None => "<" + uri + ">"
       }
-      "<" + uri + ">"
+    }
+    else {
+      uri
     }
   }
 

@@ -70,14 +70,14 @@ class PathParserTest extends FlatSpec with Matchers {
 
   it should "parse a path with conflicting prefixes with /" in {
     val path = p.parse("/<http://www.pre.cc/pre1/pre2/test>")
-    path shouldBe Path(List(ForwardOperator(Uri("http://www.pre.cc/pre1/pre2/test"))))
+    path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre2/test")))
     path.serializeSimplified shouldBe "pre2:test"
     path.serialize shouldBe "/pre2:test"
   }
 
   it should "parse a path with conflicting prefixes with #" in {
     val path = p.parse("/<http://www.pre.cc/pre1/pre3#test>")
-    path shouldBe Path(List(ForwardOperator(Uri("http://www.pre.cc/pre1/pre3#test"))))
+    path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre3#test")))
     path.serializeSimplified shouldBe "pre3:test"
     path.serialize shouldBe "/pre3:test"
   }

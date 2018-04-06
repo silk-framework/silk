@@ -24,6 +24,11 @@ import scala.xml.Node
 class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
   require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
+  /**
+    *
+    * @param path
+    * @return
+    */
   def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty) {
       Seq(uri)
@@ -51,6 +56,11 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     */
   def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
 
+  /**
+    * returns the all values for the column index of the row representing this entity
+    * @param pathIndex
+    * @return
+    */
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
   /**

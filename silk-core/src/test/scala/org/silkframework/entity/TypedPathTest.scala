@@ -14,4 +14,13 @@ class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
     )
     testRoundTripSerialization(typedPath)
   }
+
+  it should "serialize and deserialize non uris with slashes correctly" in {
+    val typedPath = TypedPath(
+      path = Path("fdshsdj//Português"),
+      valueType = CustomValueType("http://someType"),
+      isAttribute = true
+    )
+    testRoundTripSerialization(typedPath)
+  }
 }
