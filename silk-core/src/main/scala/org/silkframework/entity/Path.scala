@@ -35,6 +35,7 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     * Serializes this path using the simplified notation.
     */
   def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
+
     operators.map(_.serialize).mkString.stripPrefix("/")
   }
 
