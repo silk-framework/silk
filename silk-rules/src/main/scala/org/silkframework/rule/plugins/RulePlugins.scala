@@ -38,7 +38,7 @@ import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransform
 import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, ValuesToIndexesTransformer}
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import org.silkframework.rule.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange, ValidateRegex}
+import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
 import org.silkframework.runtime.plugin.PluginModule
 
@@ -126,6 +126,7 @@ class RulePlugins extends PluginModule {
         classOf[ValidateNumericRange] ::
         classOf[ValidateDateAfter] ::
         classOf[ValidateRegex] ::
+        classOf[ValidateNumberOValues] ::
         // Sequence
         classOf[GetValueByIndexTransformer] ::
         classOf[ValuesToIndexesTransformer] ::

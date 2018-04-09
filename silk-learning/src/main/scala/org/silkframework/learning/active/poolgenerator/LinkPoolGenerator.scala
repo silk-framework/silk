@@ -11,6 +11,6 @@ trait LinkPoolGenerator {
 
   def generator(inputs: DPair[DataSource],
                 linkSpec: LinkSpec,
-                paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool]
+                paths: Seq[DPair[Path]]): Activity[UnlabeledLinkPool]
 
 }
