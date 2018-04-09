@@ -18,7 +18,7 @@ class ExecuteTransformTab extends Controller {
   def executeStatistics(project: String, task: String) = Action { request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val report = context.task.activity[ExecuteTransform].value
-    Ok(views.html.executeTransform.transformStatistics(report, context.project.config.prefixes))
+    Ok(views.html.executeTransform.transformStatistics(context.task, report, context.project.config.prefixes))
   }
 
   def executeDialog(projectName: String, taskName: String) = Action {

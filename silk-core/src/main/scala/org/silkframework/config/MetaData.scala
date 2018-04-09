@@ -9,11 +9,34 @@ import scala.xml._
   */
 case class MetaData(label: String, description: String, modified: Option[Instant] = None) {
 
+  /**
+    * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
+    *
+    * @param defaultLabel A default label that should be returned if the label is empty
+    * @param maxLength the max length in characters
+    */
+  def formattedLabel(defaultLabel: String, maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
+    assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
+    val trimedLabel = if(label.trim != "") {
+      label.trim
+    } else {
+      defaultLabel
+    }
+    if(trimedLabel.length > maxLength) {
+      val sideLength = (maxLength - 2) / 2
+      trimedLabel.take(sideLength) + s" ... " + trimedLabel.takeRight(sideLength)
+    } else {
+      trimedLabel
+    }
+  }
+
 }
 
 object MetaData {
 
-  def empty = MetaData("", "")
+  val DEFAULT_LABEL_MAX_LENGTH = 50
+
+  def empty: MetaData = MetaData("", "")
 
   /**
     * XML serialization format.

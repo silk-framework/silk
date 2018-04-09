@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
-import org.silkframework.plugins.dataset.rdf.FileDataset
+import org.silkframework.plugins.dataset.rdf.RdfFileDataset
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource}
 import org.silkframework.util.Uri
 
@@ -15,7 +15,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
 
   lazy val endpoint: SparqlEndpoint = {
     val resource = ReadOnlyResource(ClasspathResourceLoader("org/silkframework/plugins/dataset/rdf").get("persons.ttl"))
-    FileDataset(resource, "Turtle").sparqlEndpoint
+    RdfFileDataset(resource, "Turtle").sparqlEndpoint
   }
 
   private val pn: String = "https://ns.eccenca.com/source/"
@@ -57,7 +57,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.size mustBe 2
     entities.map(_.uri) mustBe Seq(person1, person2)
-    entities.head.values mustBe IndexedSeq(Seq("Berlin", "Stuttgart"), Seq("Germany", "Germany"))
+    entities.head.values mustBe IndexedSeq(Seq("Berlin", "Stuttgart"), Seq("Germany"))
     entities(1).values mustBe IndexedSeq(Seq("Leipzig"), Seq("Germany"))
   }
 
@@ -66,7 +66,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
       filter = Restriction.custom(s"?a <${pn}age> 23"))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.map(_.uri) mustBe Seq(person1)
-    entities.head.values mustBe IndexedSeq(Seq("Berlin", "Stuttgart"), Seq("Germany", "Germany"))
+    entities.head.values mustBe IndexedSeq(Seq("Berlin", "Stuttgart"), Seq("Germany"))
   }
 
   it should "understand sub paths" in {

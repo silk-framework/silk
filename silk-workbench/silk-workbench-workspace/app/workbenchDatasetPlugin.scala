@@ -1,9 +1,9 @@
-import org.silkframework.config.{Prefixes, TaskSpec}
+import controllers.workspace.routes.Assets
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
-import controllers.workspace.routes.Assets
 
 /**
  * The data plugin adds data sources and outputs.

@@ -159,6 +159,12 @@ class Learning extends Controller {
     // Pick the next link candidate
     val links = activeLearn.value().links
 
+    // Update unlabeled reference links
+    if(context.task.data.referenceLinks.unlabeled.isEmpty) {
+      val updatedReferenceLinks = context.task.data.referenceLinks.copy(unlabeled = activeLearn.value().pool.links.toSet)
+      context.task.update(context.task.data.copy(referenceLinks = updatedReferenceLinks))
+    }
+
     if(links.isEmpty) {
       log.info("Selecting link candidate: No previous candidates available, waiting until learning task is finished.")
       activeLearn.waitUntilFinished()
