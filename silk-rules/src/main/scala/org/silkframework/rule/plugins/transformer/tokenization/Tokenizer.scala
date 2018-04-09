@@ -15,19 +15,30 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "tokenize",
   categories = Array("Tokenization", "Recommended"),
   label = "Tokenize",
   description = "Tokenizes all input values.")
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("Hello World"),
+    output = Array("Hello", "World")
+  ),
+  new TransformExample(
+    parameters = Array("regex", ","),
+    input1 = Array(".175,.050"),
+    output = Array(".175", ".050")
+  )
+))
 case class Tokenizer(
   @Param("The regular expression used to split values.")
   regex: String = "\\s") extends Transformer {
 
   private[this] val compiledRegex = regex.r
-  
+
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ ++ _).flatMap(compiledRegex.split)
   }
