@@ -140,7 +140,7 @@ object DatasetSpec {
           val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
           for (entity <- entities) yield {
             new Entity(
-              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri),
+              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString),
               values = entity.values,
               desc = entity.desc
             )

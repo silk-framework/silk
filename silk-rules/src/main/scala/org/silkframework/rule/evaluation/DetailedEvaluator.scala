@@ -52,7 +52,7 @@ object DetailedEvaluator {
     val subjectRule = rules.find(_.target.isEmpty)
     val propertyRules = rules.filter(_.target.isDefined)
 
-    val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
+    val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri.toString)
     val values = for(rule <- propertyRules) yield apply(rule, entity)
     DetailedEntity(uri, values, propertyRules)
   }

@@ -176,7 +176,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def uris: Seq[String] = {
-      retrieve(IndexedSeq.empty).map(_.uri)
+      retrieve(IndexedSeq.empty).map(_.uri.toString)
     }
 
     def valuesAt(pathStr: String): Seq[Seq[String]] = {

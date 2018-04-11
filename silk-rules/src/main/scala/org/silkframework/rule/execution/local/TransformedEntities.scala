@@ -38,7 +38,7 @@ class TransformedEntities(entities: Traversable[Entity],
 
       val uriOption = subjectRule match {
         case Some(rule) => rule(entity).headOption
-        case None => Some(entity.uri)
+        case None => Some(entity.uri.toString)
       }
 
       for(uri <- uriOption) {

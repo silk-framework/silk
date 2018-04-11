@@ -109,10 +109,10 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
              newTargetEntities: Traversable[Entity] = Traversable.empty,
              newPositiveLinks: Set[Link] = Set.empty,
              newNegativeLinks: Set[Link] = Set.empty,
-             newUnlabeledLinks: Set[Link] = Set.empty) = {
+             newUnlabeledLinks: Set[Link] = Set.empty): ReferenceEntities = {
     this.copy(
-      sourceEntities = sourceEntities ++ newSourceEntities.map(e => (e.uri, e)),
-      targetEntities = targetEntities ++ newTargetEntities.map(e => (e.uri, e)),
+      sourceEntities = sourceEntities ++ newSourceEntities.map(e => (e.uri.toString, e)),
+      targetEntities = targetEntities ++ newTargetEntities.map(e => (e.uri.toString, e)),
       positiveLinks = positiveLinks ++ newPositiveLinks,
       negativeLinks = negativeLinks ++ newNegativeLinks,
       unlabeledLinks = unlabeledLinks ++ newUnlabeledLinks
@@ -137,7 +137,7 @@ object ReferenceEntities {
 
   def fromEntities(positiveEntities: Traversable[DPair[Entity]],
                    negativeEntities: Traversable[DPair[Entity]],
-                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty) = {
+                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty): ReferenceEntities = {
     def srcEnt(e: Traversable[DPair[Entity]]) = e.map(_.source).toSet
     def tgtEnt(e: Traversable[DPair[Entity]]) = e.map(_.target).toSet
 
@@ -145,8 +145,8 @@ object ReferenceEntities {
     val targetEntities = tgtEnt(positiveEntities) ++ tgtEnt(negativeEntities) ++ tgtEnt(unlabeledEntities)
 
     ReferenceEntities(
-      sourceEntities = sourceEntities.map(e => (e.uri, e)).toMap,
-      targetEntities = targetEntities.map(e => (e.uri, e)).toMap,
+      sourceEntities = sourceEntities.map(e => (e.uri.toString, e)).toMap,
+      targetEntities = targetEntities.map(e => (e.uri.toString, e)).toMap,
       positiveLinks = positiveEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
       negativeLinks = negativeEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
       unlabeledLinks = unlabeledEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet
@@ -160,7 +160,7 @@ object ReferenceEntities {
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): ReferenceEntities = {
       val entityDescs = XmlSerialization.fromXml[DPair[EntitySchema]]((checkAndGet(node,  "Pair").head))
 
       val sourceEntities = extractEntities(entityDescs.source, checkAndGet(node,  "SourceEntities"))
@@ -190,7 +190,7 @@ object ReferenceEntities {
     private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
       (for (entityNode <- (srcEntNode \ "Entity")) yield {
         val entity = Entity.fromXML(entityNode, entityDesc)
-        (entity.uri, entity)
+        (entity.uri.toString, entity)
       }).toMap
     }
 

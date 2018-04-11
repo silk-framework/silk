@@ -26,7 +26,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
     val requestEntities = entityDatasource.retrieve(requestSchema)
     requestEntities.size mustBe 1
     val entity = requestEntities.head
-    entity.uri mustBe entityUri
+    entity.uri.toString mustBe entityUri
     entity.values mustBe IndexedSeq(Seq("4"), Seq("2"))
   }
 

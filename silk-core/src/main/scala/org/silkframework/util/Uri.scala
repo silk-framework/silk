@@ -93,9 +93,9 @@ object Uri {
   /**
     * Builds a URI from a string.
     */
-  implicit def fromURI(uri: String): Uri = {
-    new Uri(uri)
-  }
+  implicit def fromString(uri: String): Uri = new Uri(uri)
+
+  implicit def asString(uri: Uri): String = uri.toString
 
   /**
     * Builds a URI from a qualified name.
@@ -117,11 +117,11 @@ object Uri {
     */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty): Uri = {
     if (str.startsWith("<")) {
-      fromURI(str.substring(1, str.length - 1))
+      fromString(str.substring(1, str.length - 1))
     } else if (!str.contains(':')) {
-      fromURI(str)
+      fromString(str)
     } else if (str.startsWith("http")) {
-      fromURI(str)
+      fromString(str)
     } else {
       fromQualifiedName(str, prefixes)
     }

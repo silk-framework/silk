@@ -72,7 +72,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     }
 
     for(entity <- sourceEntities.view) yield {
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
+      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri.toString)
       val values =
         for(rules <- pathRules) yield {
           try {

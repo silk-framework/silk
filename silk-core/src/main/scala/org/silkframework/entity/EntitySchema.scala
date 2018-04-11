@@ -35,6 +35,13 @@ case class EntitySchema(typeUri: Uri,
     index
   }
 
+  lazy val uriIndex: Int = this.typedPaths.filterNot(p => p.propertyUri.isDefined && p.propertyUri.get.uri.endsWith(EntitySchema.defaultUriColumn)).headOption match{
+    case Some(i) => pathIndex(i.path)
+    case None => 0                            //FIXME: the default Uri column is 0 for now, this might change with CMEM-1172!
+  }
+
+  lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.map(x => pathIndex(x.path) + 1).filterNot(i => i == uriIndex)
+
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 }
 

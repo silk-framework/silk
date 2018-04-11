@@ -16,12 +16,14 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
+import org.silkframework.util.Uri
+
 import scala.xml.Node
 
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
+class Entity(val uri: Uri, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
   require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   /**
@@ -69,13 +71,13 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     */
   def validate: Boolean = {
     desc.typedPaths.forall(tp =>{
-      val ind = desc.pathIndex(tp.path) +1                      //TODO remove +1
+      val ind = desc.pathIndex(tp.path) +1                      //FIXME remove +1 CMEM-
       values(ind).forall(v => tp.valueType.validate(v))
     })
   }
 
   def toXML: Node = {
-    <Entity uri={uri}> {
+    <Entity uri={uri.toString}> {
       for (valueSet <- values) yield {
         <Val> {
           for (value <- valueSet) yield {
@@ -101,12 +103,12 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
   override def toString: String = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   override def equals(other: Any): Boolean = other match {
-    case o: Entity => this.uri == o.uri && this.values == o.values && this.desc == o.desc
+    case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.desc == o.desc
     case _ => false
   }
 
   override def hashCode(): Int = {
-    var hashCode = uri.hashCode
+    var hashCode = uri.toString.hashCode
     hashCode = hashCode * 31 + values.foldLeft(0)(31 * _ + _.hashCode())
     hashCode = hashCode * 31 + desc.hashCode()
     hashCode

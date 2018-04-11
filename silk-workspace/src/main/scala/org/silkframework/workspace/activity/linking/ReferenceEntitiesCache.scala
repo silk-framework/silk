@@ -36,7 +36,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
     pathsCache.start()
   }
 
-  override def run(context: ActivityContext[ReferenceEntities]) = {
+  override def run(context: ActivityContext[ReferenceEntities]): Unit = {
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
@@ -58,7 +58,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
 
     private val linkSpec = task.data
 
-    def load() = {
+    //noinspection ScalaStyle
+    def load(): Unit = {
       context.status.update("Loading entities", 0.0)
 
       import linkSpec.referenceLinks.{negative, positive, unlabeled}
@@ -196,7 +197,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
         entitySchema = entityDesc,
         entities = entityUris map Uri.apply
       )
-      entities.map{ e => (e.uri, e)}.toMap
+      entities.map{ e => (e.uri.toString, e)}.toMap
     }
 
     private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {
