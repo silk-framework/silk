@@ -84,7 +84,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
           }
         }
 
-      new Entity(uri, values, entitySchema)
+      Entity(uri, values, entitySchema)
     }
   }
 }

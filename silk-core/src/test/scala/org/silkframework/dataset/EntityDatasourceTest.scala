@@ -16,7 +16,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
     val entityUri = "http://entity.com/1"
     val entitySchema = EntitySchema(typeUri, typedPaths = paths)
     val entities = Seq(
-      new Entity(entityUri,
+      Entity(entityUri,
         values = IndexedSeq(Seq("1"), Seq("2"), Seq("3"), Seq("4")),
         entitySchema
       )

@@ -23,7 +23,7 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity(val uri: Uri, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
+class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
   require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
   /**
@@ -71,10 +71,30 @@ class Entity(val uri: Uri, val values: IndexedSeq[Seq[String]], val desc: Entity
     */
   def validate: Boolean = {
     desc.typedPaths.forall(tp =>{
-      val ind = desc.pathIndex(tp.path) +1                      //FIXME remove +1 CMEM-
+      val ind = desc.pathIndex(tp.path) +1                      //FIXME remove +1 CMEM-1172
       values(ind).forall(v => tp.valueType.validate(v))
     })
   }
+
+  private var _failure: Option[Throwable] = None
+  /**
+    *
+    * @return
+    */
+  def failure: Option[Throwable] = _failure
+
+  /**
+    *
+    * @return
+    */
+  def hasFailed: Boolean = failure.isDefined
+
+  /**
+    *
+    * @param t
+    */
+  def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
+
 
   def toXML: Node = {
     <Entity uri={uri.toString}> {
@@ -117,8 +137,25 @@ class Entity(val uri: Uri, val values: IndexedSeq[Seq[String]], val desc: Entity
 
 object Entity {
 
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
+    new Entity(uri, values, schema)
+  }
+
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
+  }
+
+  /**
+    * Instantiates a new Entity and fails it with the given Throwable
+    * @param uri - uri of the entity
+    * @param schema - the EntitySchema pertaining to the Entity
+    * @param t - the Throwable which failed this Enity
+    * @return - the failed Entity
+    */
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
+    val e = new Entity(uri, IndexedSeq(), schema)
+    e.failEntity(t)
+    e
   }
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {

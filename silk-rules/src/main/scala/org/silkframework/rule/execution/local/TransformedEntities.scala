@@ -60,7 +60,7 @@ class TransformedEntities(entities: Traversable[Entity],
             rules.flatMap(evalRule)
           }
 
-        f(new Entity(uri, values, outputSchema))
+        f(Entity(uri, values, outputSchema))
 
         report.incrementEntityCounter()
         if (errorFlag) {

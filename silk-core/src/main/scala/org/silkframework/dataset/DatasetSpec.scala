@@ -21,7 +21,7 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{Identifier, SampleUtil, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.Node
@@ -139,10 +139,10 @@ object DatasetSpec {
         case Some(property) =>
           val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
           for (entity <- entities) yield {
-            new Entity(
-              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString),
+            Entity(
+              uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),
               values = entity.values,
-              desc = entity.desc
+              schema = entity.desc
             )
           }
         case None =>

@@ -10,10 +10,10 @@ case class LinksTable(links: Seq[Link], linkType: Uri, task: Task[TaskSpec]) ext
 
   val entities = {
     for (link <- links) yield
-      new Entity(
+      Entity(
         uri = link.source,
         values = IndexedSeq(Seq(link.target), Seq(link.confidence.getOrElse(0.0).toString)),
-        desc = entitySchema
+        schema = entitySchema
       )
   }
 

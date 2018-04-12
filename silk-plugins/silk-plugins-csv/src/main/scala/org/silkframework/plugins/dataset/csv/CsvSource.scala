@@ -163,10 +163,10 @@ class CsvSource(file: Resource,
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
                   val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
-                  f(new Entity(
+                  f(Entity(
                     uri = entityURI,
                     values = entityValues,
-                    desc = entityDesc
+                    schema = entityDesc
                   ))
                 }
               } else {

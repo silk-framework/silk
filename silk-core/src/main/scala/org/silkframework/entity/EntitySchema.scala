@@ -17,7 +17,6 @@ case class EntitySchema(typeUri: Uri,
                         typedPaths: IndexedSeq[TypedPath],
                         filter: Restriction = Restriction.empty,
                         subPath: Path = Path.empty) extends Serializable {
-  //require(filter.paths.forall(paths.contains), "All paths that are used in restriction must be contained in paths list.")
 
   /**
    * Retrieves the index of a given path.
@@ -40,7 +39,11 @@ case class EntitySchema(typeUri: Uri,
     case None => 0                            //FIXME: the default Uri column is 0 for now, this might change with CMEM-1172!
   }
 
+  def uriProperty: String = typedPaths(uriIndex).propertyUri.getOrElse(throw new IllegalArgumentException("No property found!")).toString
+
   lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.map(x => pathIndex(x.path) + 1).filterNot(i => i == uriIndex)
+
+  def propertyNames: Seq[String] = valueIndicies.map(i => typedPaths(i)).flatMap(p => p.propertyUri).map(_.toString)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 }
@@ -56,43 +59,44 @@ object EntitySchema {
     * XML serialization format.
     */
   implicit object EntitySchemaFormat extends XmlFormat[EntitySchema] {
-    /**
-      * Deserialize an EntitySchema from XML.
-      */
-    def read(node: Node)(implicit readContext: ReadContext): EntitySchema = {
-      // Try TypedPath first, then Path for forward compatibility
-      val typedPaths = for (pathNode <- (node \ "Paths" \ "TypedPath").toIndexedSeq) yield {
-        XmlSerialization.fromXml[TypedPath](pathNode)
-      }
-      val paths = if(typedPaths.isEmpty) {
-        for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-          TypedPath(Path.parse(pathNode.text.trim), StringValueType, isAttribute = false)
-        }
-      } else {
-        typedPaths
-      }
 
-      EntitySchema(
-        typeUri = Uri((node \ "Type").text),
-        typedPaths =  paths,
-        filter = Restriction.parse((node \ "Restriction").text)(readContext.prefixes)
-      )
+  /**
+    * Deserialize an EntitySchema from XML.
+    */
+  def read(node: Node)(implicit readContext: ReadContext): EntitySchema = {
+    // Try TypedPath first, then Path for forward compatibility
+    val typedPaths = for (pathNode <- (node \ "Paths" \ "TypedPath").toIndexedSeq) yield {
+      XmlSerialization.fromXml[TypedPath](pathNode)
+    }
+    val paths = if(typedPaths.isEmpty) {
+      for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
+        TypedPath(Path.parse(pathNode.text.trim), StringValueType, isAttribute = false)
+      }
+    } else {
+      typedPaths
     }
 
-    /**
-      * Serialize an EntitySchema to XML.
-      */
-    def write(desc: EntitySchema)(implicit writeContext: WriteContext[Node]): Node =
-      <EntityDescription>
-        <Type>{desc.typeUri}</Type>
-        <Restriction>{desc.filter.serialize}</Restriction>
-        <Paths> {
-          for (path <- desc.typedPaths) yield {
-            XmlSerialization.toXml(path)
-          }
-          }
-        </Paths>
-      </EntityDescription>
+    EntitySchema(
+      typeUri = Uri((node \ "Type").text),
+      typedPaths =  paths,
+      filter = Restriction.parse((node \ "Restriction").text)(readContext.prefixes)
+    )
+  }
+
+  /**
+    * Serialize an EntitySchema to XML.
+    */
+  def write(desc: EntitySchema)(implicit writeContext: WriteContext[Node]): Node =
+    <EntityDescription>
+      <Type>{desc.typeUri}</Type>
+      <Restriction>{desc.filter.serialize}</Restriction>
+      <Paths> {
+        for (path <- desc.typedPaths) yield {
+          XmlSerialization.toXml(path)
+        }
+        }
+      </Paths>
+    </EntityDescription>
   }
 
 }

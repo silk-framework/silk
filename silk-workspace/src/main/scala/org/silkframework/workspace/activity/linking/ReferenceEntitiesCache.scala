@@ -182,10 +182,10 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
           }
 
         //Return the updated entity
-        Some(new Entity(
+        Some(Entity(
           uri = entity.uri,
           values = completeValues,
-          desc = entityDesc
+          schema = entityDesc
         ))
       }
     }

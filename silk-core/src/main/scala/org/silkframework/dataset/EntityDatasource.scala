@@ -23,7 +23,7 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
         val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp.path) )
         entities.map { entity =>
-          new Entity(
+          Entity(
             entity.uri,
             valuesIndexes map { idx => entity.values(idx) },
             requestSchema

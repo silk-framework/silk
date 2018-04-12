@@ -142,10 +142,10 @@ class CompatiblePathsGenerator(components: Components) {
 
     @inline private def transformEntities(entities: DPair[Entity]) = {
       for (entity <- entities) yield {
-        new Entity(
+        Entity(
           uri = transformValues(Seq(entity.uri)).head,
           values = for (values <- entity.values) yield transformValues(values),
-          desc = entity.desc
+          schema = entity.desc
         )
       }
     }

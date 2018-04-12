@@ -71,7 +71,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
           val uri = pathValues.head.uri
           if (pathValues.tail.forall(_.uri == uri)) {
-            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
+            f(Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
             counter += 1
           }
           else {

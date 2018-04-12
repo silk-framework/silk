@@ -106,7 +106,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         case Resource(uri) =>
           (uri, s"$URI_ENC_PREFIX")
       }
-      new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
+      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
     }
     TripleEntityTable(tripleEntities, dataset)
   }

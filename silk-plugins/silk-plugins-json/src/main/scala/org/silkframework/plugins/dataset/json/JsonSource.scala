@@ -102,7 +102,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
           val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.path)
-          f(new Entity(uri, values, entityDesc))
+          f(Entity(uri, values, entityDesc))
         }
       }
     }

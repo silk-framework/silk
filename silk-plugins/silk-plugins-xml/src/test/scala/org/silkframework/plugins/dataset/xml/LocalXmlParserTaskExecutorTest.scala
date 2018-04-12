@@ -22,7 +22,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
   )
   val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1").asStringTypedPath, Path("http://prop2").asStringTypedPath))
   val inputs = Seq(GenericEntityTable(
-    entities = Seq(new Entity(
+    entities = Seq(Entity(
       "http://entity1",
       IndexedSeq(
         Seq("<root><a>some value</a><b>other value</b></root>"),

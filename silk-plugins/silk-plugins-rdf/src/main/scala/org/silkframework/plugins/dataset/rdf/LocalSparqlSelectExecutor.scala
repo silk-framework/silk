@@ -57,7 +57,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       val values = vars map { v =>
         binding.get(v).toSeq.map(_.value)
       }
-      new Entity(s"urn:entity:$count", values = values, desc = taskData.outputSchema)
+      Entity(s"urn:entity:$count", values = values, schema = taskData.outputSchema)
     }
     entities
   }
