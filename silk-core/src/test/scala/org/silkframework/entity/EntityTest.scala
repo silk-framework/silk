@@ -34,6 +34,6 @@ class EntityTest extends FlatSpec with Matchers {
     entity.serialize(new DataOutputStream(outputStream))
     // Deserialize entity
     val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
-    Entity.deserialize(new DataInputStream(inputStream), entity.desc)
+    Entity.deserialize(new DataInputStream(inputStream), entity.schema)
   }
 }

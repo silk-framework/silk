@@ -28,12 +28,12 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
         val output = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], output)
         transformer.transformEntities(task.rules, task.outputSchema, context)
-        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, Some(task), output.tail))
       case _ =>
         val output = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, mutable.Buffer(input), output)
         transformer.transformEntities(task.rules, task.outputSchema, context)
-        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, Some(task), output.tail))
     }
   }
 
@@ -45,7 +45,7 @@ class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalE
       val entities = inputTables.remove(0).entities
 
       val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
-      outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
+      outputTables.append(GenericEntityTable(transformedEntities, outputSchema, Some(task)))
 
       for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
         val childOutputSchema =

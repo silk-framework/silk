@@ -19,10 +19,10 @@ case class EntitySchema(typeUri: Uri,
                         subPath: Path = Path.empty) extends Serializable {
 
   /**
-   * Retrieves the index of a given path.
-   *
-   * @throws NoSuchElementException If the path could not be found in the schema.
-   */
+    * Retrieves the index of a given path.
+    *
+    * @throws NoSuchElementException If the path could not be found in the schema.
+    */
   def pathIndex(path: Path): Int = {
     var index = 0
     while (path != typedPaths(index).path) {
@@ -33,6 +33,12 @@ case class EntitySchema(typeUri: Uri,
     }
     index
   }
+
+  lazy val uriIndex: Int = 0                            //FIXME: the default Uri column is 0 for now, this might change with CMEM-1172!
+
+  lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.map(x => pathIndex(x.path) + 1).filterNot(i => i == uriIndex)  //FIXME: change with CMEM-1172!
+
+  def propertyNames: Seq[String] = valueIndicies.map(i => typedPaths(i - 1)).flatMap(p => p.propertyUri).map(_.toString)   //FIXME: change with CMEM-1172!
 
   lazy val uriIndex: Int = this.typedPaths.filterNot(p => p.propertyUri.isDefined && p.propertyUri.get.uri.endsWith(EntitySchema.defaultUriColumn)).headOption match{
     case Some(i) => pathIndex(i.path)
@@ -54,6 +60,26 @@ object EntitySchema {
   val defaultUriColumn: String = "URI"
 
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
+
+  /**
+    * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
+    * NOTE: valueType and isAttribute of the TypedPath will be copied!
+    * @param es - the EntitySchema
+    * @param propMap - the property uri replacement map
+    * @return - the new EntitySchema with replaced property uris
+    */
+  def renamePaths(es: EntitySchema, propMap: Map[String, String]): EntitySchema ={
+    val newPaths = es.typedPaths.map{p =>
+      p.path.propertyUri match {
+        case Some(prop) => propMap.get(prop.toString) match{
+          case Some(newProp) => TypedPath(Path(newProp), p.valueType, p.isAttribute)
+          case None => TypedPath(Path(prop), p.valueType, p.isAttribute)
+        }
+        case None => p
+      }
+    }
+    es.copy(typedPaths = newPaths)
+  }
 
   /**
     * XML serialization format.

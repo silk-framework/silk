@@ -61,8 +61,8 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
       Seq(entity.uri.toString)
     } else {
       var index = cachedPathIndex
-      if(index == -1 || index >= entity.desc.typedPaths.size || entity.desc.typedPaths(index).path != path) {
-        index = entity.desc.pathIndex(path)
+      if(index == -1 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index).path != path) {
+        index = entity.schema.pathIndex(path)
         cachedPathIndex = index
       }
       entity.evaluate(index)

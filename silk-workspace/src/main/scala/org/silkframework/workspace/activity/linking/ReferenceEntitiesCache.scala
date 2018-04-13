@@ -160,20 +160,20 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
         None
       } else {
         //Compute the paths which are missing on the given entity
-        val existingPaths = entity.desc.typedPaths.toSet
+        val existingPaths = entity.schema.typedPaths.toSet
         val missingPaths = entityDesc.typedPaths.filterNot(existingPaths.contains)
 
         //Retrieve an entity with all missing paths
         val missingEntity =
           source.retrieveByUri(
-            entitySchema = entity.desc.copy(typedPaths = missingPaths),
+            entitySchema = entity.schema.copy(typedPaths = missingPaths),
             entities = entity.uri :: Nil
           ).head
 
         //Collect values from the existing and the new entity
         val completeValues =
           for (path <- entityDesc.typedPaths) yield {
-            val pathIndex = entity.desc.typedPaths.indexOf(path)
+            val pathIndex = entity.schema.typedPaths.indexOf(path)
             if (pathIndex != -1) {
               entity.evaluate(pathIndex)
             } else {
@@ -201,7 +201,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
     }
 
     private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {
-      entity.desc.typedPaths == entityDesc.typedPaths
+      entity.schema.typedPaths == entityDesc.typedPaths
     }
   }
 }

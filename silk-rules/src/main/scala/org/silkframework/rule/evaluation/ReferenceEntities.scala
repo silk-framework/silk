@@ -122,8 +122,8 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   /** Retrieves the pair of entity descriptions for the contained entity pairs. */
   def entitySchemas: DPair[EntitySchema] = {
     for {
-      sourceEntityDesc <- sourceEntities.values.headOption map (_.desc)
-      targetEntityDesc <- targetEntities.values.headOption map (_.desc)
+      sourceEntityDesc <- sourceEntities.values.headOption map (_.schema)
+      targetEntityDesc <- targetEntities.values.headOption map (_.schema)
     } {
       return DPair(sourceEntityDesc, targetEntityDesc)
     }

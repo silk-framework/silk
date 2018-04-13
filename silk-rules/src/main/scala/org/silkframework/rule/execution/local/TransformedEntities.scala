@@ -43,10 +43,10 @@ class TransformedEntities(entities: Traversable[Entity],
 
       for(uri <- uriOption) {
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
-          val uriTypePaths = entity.desc.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
+          val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
           val typedPaths = uriTypePaths.map(_._1)
           val values = uriTypePaths.map(_._2)
-          Entity(entity.uri, values, entity.desc.copy(typedPaths = typedPaths))
+          Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))
         }
         def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
           if(rule.representsDefaultUriRule) {
