@@ -16,13 +16,30 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
+import org.silkframework.util.Uri
+
 import scala.xml.Node
 
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
-  require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
+class Entity(val uri: String, val values: IndexedSeq[Seq[String]], desc: EntitySchema) extends Serializable {
+
+  private var _schema: EntitySchema = _
+  applyNewSchema(desc)
+
+  /**
+    * The EntitySchema defining the cells of the value sequence
+    * @return
+    */
+  def schema: EntitySchema = _schema
+
+  def applyNewSchema(newSchema: EntitySchema): Entity ={
+    if(values.size < newSchema.typedPaths.size)
+      throw new IllegalArgumentException("Must provide at least the same number of value sets as there are paths in the schema.")
+    _schema = newSchema
+    this
+  }
 
   /**
     *
@@ -33,7 +50,7 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
-      evaluate(desc.pathIndex(path))
+      evaluate(_schema.pathIndex(path))
     }
   }
 
@@ -43,8 +60,8 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     * @return
     */
   def valueOf(colName: String): Seq[String] ={
-    desc.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
-      case Some(col) => values(desc.pathIndex(col.path))
+    _schema.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
+      case Some(col) => values(_schema.pathIndex(col.path))
       case None => Seq()
     }
   }
@@ -68,11 +85,31 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    desc.typedPaths.forall(tp =>{
-      val ind = desc.pathIndex(tp.path) +1                      //TODO remove +1
+    _schema.typedPaths.forall(tp =>{
+      val ind = _schema.pathIndex(tp.path) +1                      //FIXME remove +1 CMEM-1172
       values(ind).forall(v => tp.valueType.validate(v))
     })
+
   }
+
+  private var _failure: Option[Throwable] = None
+  /**
+    *
+    * @return
+    */
+  def failure: Option[Throwable] = _failure
+
+  /**
+    *
+    * @return
+    */
+  def hasFailed: Boolean = failure.isDefined
+
+  /**
+    *
+    * @param t
+    */
+  def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
 
   def toXML: Node = {
     <Entity uri={uri}> {
@@ -101,14 +138,14 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
   override def toString: String = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   override def equals(other: Any): Boolean = other match {
-    case o: Entity => this.uri == o.uri && this.values == o.values && this.desc == o.desc
+    case o: Entity => this.uri == o.uri && this.values == o.values && this.schema == o.schema
     case _ => false
   }
 
   override def hashCode(): Int = {
     var hashCode = uri.hashCode
     hashCode = hashCode * 31 + values.foldLeft(0)(31 * _ + _.hashCode())
-    hashCode = hashCode * 31 + desc.hashCode()
+    hashCode = hashCode * 31 + schema.hashCode()
     hashCode
   }
 }
@@ -117,6 +154,19 @@ object Entity {
 
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
+  }
+
+  /**
+    * Instantiates a new Entity and fails it with the given Throwable
+    * @param uri - uri of the entity
+    * @param schema - the EntitySchema pertaining to the Entity
+    * @param t - the Throwable which failed this Enity
+    * @return - the failed Entity
+    */
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
+    val e = new Entity(uri.toString, IndexedSeq(), EntitySchema.empty)
+    e.failEntity(t)
+    e
   }
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {

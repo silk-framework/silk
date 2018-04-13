@@ -85,7 +85,7 @@ class CompatiblePathsGenerator(components: Components) {
   private object PathsRetriever {
     def apply(entities: ReferenceEntities): DPair[Traversable[Path]] = {
       val pair = entities.positiveEntities.head
-      val allPaths = pair.map(e => Path(Nil) +: e.desc.typedPaths.map(_.path))
+      val allPaths = pair.map(e => Path(Nil) +: e.schema.typedPaths.map(_.path))
       allPaths.
           map(_.filterNot(_.toString.contains("sameAs"))).
           map(_.filterNot(_.toString.contains("abstract"))).
@@ -145,7 +145,7 @@ class CompatiblePathsGenerator(components: Components) {
         new Entity(
           uri = transformValues(Seq(entity.uri)).head,
           values = for (values <- entity.values) yield transformValues(values),
-          desc = entity.desc
+          desc = entity.schema
         )
       }
     }

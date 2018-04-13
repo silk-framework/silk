@@ -81,7 +81,7 @@ object LinkageRuleGenerator {
     if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
-      val paths = es.head.map(_.desc.typedPaths.map(_.path))
+      val paths = es.head.map(_.schema.typedPaths.map(_.path))
       new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.compatibleOnly) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
     }
   }
