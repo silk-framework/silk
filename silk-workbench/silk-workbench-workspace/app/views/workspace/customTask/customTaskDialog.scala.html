@@ -16,9 +16,9 @@
       function savePlugin(pluginId, name, parameters, callbacks) {
         // Build task json
         var json = {
-          taskType: "CustomTask",
           id: name,
           data: {
+            taskType: "CustomTask",
             type: pluginId,
             parameters: parameters
           }
