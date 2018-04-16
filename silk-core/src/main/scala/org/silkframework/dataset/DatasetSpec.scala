@@ -142,7 +142,7 @@ object DatasetSpec {
             Entity(
               uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),
               values = entity.values,
-              schema = entity.desc
+              schema = entity.schema
             )
           }
         case None =>

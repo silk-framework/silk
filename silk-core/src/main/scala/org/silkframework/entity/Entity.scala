@@ -23,7 +23,7 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], desc: EntitySchema) extends Serializable {
+class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
 
   private var _schema: EntitySchema = _
   applyNewSchema(desc)
@@ -38,7 +38,10 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], desc:
     if(values.size < newSchema.typedPaths.size)
       throw new IllegalArgumentException("Must provide at least the same number of value sets as there are paths in the schema.")
     _schema = newSchema
-    this
+    if(validate)
+      this
+    else
+      throw new IllegalArgumentException("Provided schema does not fit entity v alues.")
   }
 
   /**
@@ -86,7 +89,7 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], desc:
     */
   def validate: Boolean = {
     _schema.typedPaths.forall(tp =>{
-      val ind = _schema.pathIndex(tp.path) +1                      //FIXME remove +1 CMEM-1172
+      val ind = _schema.pathIndex(tp.path)
       values(ind).forall(v => tp.valueType.validate(v))
     })
 
@@ -168,7 +171,8 @@ object Entity {
     * @return - the failed Entity
     */
   def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
-    val e = new Entity(uri, IndexedSeq(), schema)
+    val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
+    val e = new Entity(uri, fakeVals, schema)
     e.failEntity(t)
     e
   }

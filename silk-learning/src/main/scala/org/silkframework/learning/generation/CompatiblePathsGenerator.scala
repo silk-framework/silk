@@ -145,7 +145,7 @@ class CompatiblePathsGenerator(components: Components) {
         Entity(
           uri = transformValues(Seq(entity.uri)).head,
           values = for (values <- entity.values) yield transformValues(values),
-          schema = entity.desc
+          schema = entity.schema
         )
       }
     }
