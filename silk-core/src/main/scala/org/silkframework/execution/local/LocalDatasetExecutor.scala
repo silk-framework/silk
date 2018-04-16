@@ -25,7 +25,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): EntityTable = {
+  override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): LocalEntities = {
     schema match {
       case TripleEntitySchema.schema =>
         handleTripleEntitySchema(dataset)
@@ -111,7 +111,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     TripleEntityTable(tripleEntities, dataset)
   }
 
-  override protected def write(data: EntityTable, dataset: Task[Dataset], execution: LocalExecution): Unit = {
+  override protected def write(data: LocalEntities, dataset: Task[Dataset], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset) { linkSink =>
@@ -127,7 +127,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
-      case et: EntityTable =>
+      case et: LocalEntities =>
         withEntitySink(dataset) { entitySink =>
           writeEntities(entitySink, et)
         }
@@ -175,7 +175,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeEntities(sink: EntitySink, entityTable: EntityTable): Unit = {
+  private def writeEntities(sink: EntitySink, entityTable: LocalEntities): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime

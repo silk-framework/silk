@@ -32,6 +32,7 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
 /**
   * Created on 3/17/16.
   */
+//noinspection ScalaStyle
 trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   this: Suite =>
 

@@ -82,7 +82,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource {
+  object FileSource extends DataSource with PeakDataSource with Serializable {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null

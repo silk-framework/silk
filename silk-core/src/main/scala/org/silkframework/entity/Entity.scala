@@ -24,6 +24,11 @@ import scala.xml.Node
 class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
   require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
 
+  /**
+    *
+    * @param path
+    * @return
+    */
   def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty) {
       Seq(uri)
@@ -32,7 +37,42 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     }
   }
 
+  /**
+    * returns all values of a given property in the entity
+    * @param colName
+    * @return
+    */
+  def valueOf(colName: String): Seq[String] ={
+    desc.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
+      case Some(col) => values(desc.pathIndex(col.path))
+      case None => Seq()
+    }
+  }
+
+  /**
+    * returns the first value (of possibly many) for the property of the given name in this entity
+    * @param columnName
+    * @return
+    */
+  def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
+
+  /**
+    * returns the all values for the column index of the row representing this entity
+    * @param pathIndex
+    * @return
+    */
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+
+  /**
+    * Validates the complete value row against the given types of the schema
+    * @return - the result of the validation matrix (where all values are valid)
+    */
+  def validate: Boolean = {
+    desc.typedPaths.forall(tp =>{
+      val ind = desc.pathIndex(tp.path) +1                      //TODO remove +1
+      values(ind).forall(v => tp.valueType.validate(v))
+    })
+  }
 
   def toXML: Node = {
     <Entity uri={uri}> {

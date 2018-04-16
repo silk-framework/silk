@@ -115,7 +115,7 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
         children(prop).flatMap(child => child.evaluate(tail))
       case BackwardOperator(prop) :: tail =>
         parentOpt match {
-          case Some(parent) if parent.property == prop =>
+          case Some(parent) if parent.property.toString == prop =>
             parent.traverser.evaluate(tail)
           case None =>
             Nil

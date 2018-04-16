@@ -24,7 +24,7 @@ import scala.ref.WeakReference
   */
 final class Path private(val operators: List[PathOperator]) extends Serializable {
 
-  private val serializedFull = serialize()
+  private lazy val serializedFull = serialize()
 
   /**
     * Serializes this path using the Silk RDF path language.
@@ -46,6 +46,13 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case ForwardOperator(prop) :: Nil => Some(prop)
     case _ => None
   }
+
+  /**
+    * extracts either the fragment if available or the last path segment
+    * if neither is available => None
+    * @return
+    */
+  def getLocalName: Option[String] = propertyUri.flatMap(_.localName )
 
   def size: Int = operators.size
 
@@ -120,14 +127,14 @@ object Path {
     * Creates a path consisting of a single property
     */
   def apply(property: String): Path = {
-    apply(Uri(property))
+    apply(ForwardOperator(property) :: Nil)
   }
 
   /**
     * Creates a path consisting of a single property
     */
   def apply(property: Uri): Path = {
-    apply(ForwardOperator(property) :: Nil)
+    apply(property.uri)
   }
 
   /**

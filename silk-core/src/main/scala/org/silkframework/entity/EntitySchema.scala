@@ -40,6 +40,9 @@ case class EntitySchema(typeUri: Uri,
 
 object EntitySchema {
 
+  //TODO needs properties entry
+  val defaultUriColumn: String = "URI"
+
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
 
   /**

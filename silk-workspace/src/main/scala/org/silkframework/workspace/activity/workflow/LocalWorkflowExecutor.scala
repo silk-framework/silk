@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.local.{EntityTable, LocalExecution}
+import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.workspace.ProjectTask
@@ -82,7 +82,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   def executeWorkflowNode(node: WorkflowDependencyNode,
                           entitySchemaOpt: Option[EntitySchema])
-                         (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
+                         (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Execute this node
     if (!canceled) {
       node.workflowNode match {
@@ -99,7 +99,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
                                            schemaOpt: Option[EntitySchema])
-                                          (implicit workflowRunContext: WorkflowRunContext): Some[EntityTable] = {
+                                          (implicit workflowRunContext: WorkflowRunContext): Some[LocalEntities] = {
     executeWorkflowNode(input, schemaOpt) match {
       case e@Some(entityTable) =>
         e
@@ -113,7 +113,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def executeWorkflowOperator(operatorNode: WorkflowDependencyNode,
                                       entitySchemaOpt: Option[EntitySchema],
                                       operator: WorkflowOperator)
-                                     (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
+                                     (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     try {
       project.anyTaskOption(operator.task) match {
         case Some(operatorTask) =>
@@ -150,7 +150,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
                                             schemataOpt: Option[Seq[EntitySchema]],
                                             inputs: Seq[WorkflowDependencyNode])
-                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Some[EntityTable]] = {
+                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Some[LocalEntities]] = {
     schemataOpt match {
       case Some(schemata) =>
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
@@ -192,7 +192,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def executeWorkflowDataset(datasetNode: WorkflowDependencyNode,
                                      entitySchemaOpt: Option[EntitySchema],
                                      dataset: WorkflowDataset)
-                                    (implicit workflowRunContext: WorkflowRunContext): Option[EntityTable] = {
+                                    (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
       // Execute all input nodes and write to this dataset
@@ -218,7 +218,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
-                                        entityTable: EntityTable)
+                                        entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
@@ -231,7 +231,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
-                     (implicit workflowRunContext: WorkflowRunContext): EntityTable = {
+                     (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
     project.taskOption[DatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)

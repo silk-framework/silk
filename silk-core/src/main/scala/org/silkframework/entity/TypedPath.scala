@@ -14,13 +14,22 @@ import scala.xml.Node
   */
 case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
 
+  /**
+    * Returns the property URI, if this is a simple forward path of length 1.
+    * Otherwise, returns none.
+    */
   def propertyUri: Option[Uri] = path.propertyUri
 
+  /**
+    * extracts either the fragment if available or the last path segment
+    * if neither is available => None
+    * @return
+    */
+  def getLocalName: Option[String] = path.getLocalName
+
   def property: Option[TypedProperty] = path.operators match {
-    case ForwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
-    case BackwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
+    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop, valueType, isBackwardProperty = false, isAttribute = isAttribute))
+    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
 }
