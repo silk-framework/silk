@@ -6,9 +6,9 @@ import org.silkframework.util.Uri
 
 case class LinksTable(links: Seq[Link], linkType: Uri, taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
 
-  val entitySchema = LinksTable.linkEntitySchema
+  val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
-  val entities = {
+  val entities: Seq[Entity] = {
     for (link <- links) yield
       Entity(
         uri = link.source,
@@ -21,6 +21,6 @@ case class LinksTable(links: Seq[Link], linkType: Uri, taskOption: Option[Task[T
 object LinksTable {
 
   val linkEntitySchema = EntitySchema("", IndexedSeq(
-    TypedPath(Path("targetUri"), UriValueType, isAttribute = false),
+    TypedPath(Path("targetUri"), AutoDetectValueType, isAttribute = false),
     TypedPath(Path("confidence"), DoubleValueType, isAttribute = false)))
 }
