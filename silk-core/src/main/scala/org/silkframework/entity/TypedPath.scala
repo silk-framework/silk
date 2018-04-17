@@ -20,7 +20,6 @@ case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, 
     case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
-
 }
 
 object TypedPath {

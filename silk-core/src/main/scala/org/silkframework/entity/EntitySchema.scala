@@ -22,8 +22,7 @@ case class EntitySchema(
 
   /**
     * Retrieves the index of a given path.
-    * NOTE: will work without the second parameter (when the type is unknown),
-    * but there might be the chance that a given path exists twice with different value types
+    * NOTE: will work simple Paths as well, but there might be a chance that a given path exists twice with different value types
     *
     * @param path - the path to find
     * @return - the index of the path in question
@@ -35,7 +34,12 @@ case class EntitySchema(
       case _ => None
     }
     //find the given path and, if provided, match the value type as well
-    typedPaths.zipWithIndex.find(pi => pi._1 == path && (valueTypeOpt.isEmpty || pi._1.valueType == valueTypeOpt.get)) match{
+    typedPaths.zipWithIndex.find(pi => pi._1 == path && (   //if the paths equal and ...
+      valueTypeOpt.isEmpty ||                               //if no ValueType is specified or ...
+      valueTypeOpt.get == AutoDetectValueType ||            //ValueType is of no importance or...
+      pi._1.valueType == AutoDetectValueType ||             //ValueType of the list element is of no importance or...
+      pi._1.valueType == valueTypeOpt.get                   //both ValueTypes match then...
+    )) match{
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
     }
