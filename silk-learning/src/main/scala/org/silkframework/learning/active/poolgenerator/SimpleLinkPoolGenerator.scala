@@ -15,7 +15,7 @@
 package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, Index, Link, Path}
+import org.silkframework.entity._
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.learning.active.UnlabeledLinkPool
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -33,7 +33,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
-                         paths: Seq[DPair[Path]]): Activity[UnlabeledLinkPool] = {
+                         paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
@@ -41,7 +41,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   class LinkPoolGenerator(inputs: DPair[DataSource],
                           linkSpec: LinkSpec,
-                          paths: Seq[DPair[Path]]) extends Activity[UnlabeledLinkPool] {
+                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
 
     override val initialValue = Some(UnlabeledLinkPool.empty)
 

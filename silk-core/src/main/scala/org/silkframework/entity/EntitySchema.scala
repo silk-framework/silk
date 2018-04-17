@@ -13,32 +13,41 @@ import scala.xml.Node
   * @param filter A filter for restricting the entity set
   * @param subPath
   */
-case class EntitySchema(typeUri: Uri,
-                        typedPaths: IndexedSeq[TypedPath],
-                        filter: Restriction = Restriction.empty,
-                        subPath: Path = Path.empty) extends Serializable {
+case class EntitySchema(
+  typeUri: Uri,
+  typedPaths: IndexedSeq[TypedPath],
+  filter: Restriction = Restriction.empty,
+  subPath: Path = Path.empty
+ ) extends Serializable {
 
   /**
     * Retrieves the index of a given path.
+    * NOTE: will work without the second parameter (when the type is unknown),
+    * but there might be the chance that a given path exists twice with different value types
     *
+    * @param path - the path to find
+    * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
   def pathIndex(path: Path): Int = {
-    var index = 0
-    while (path != typedPaths(index).path) {
-      index += 1
-      if (index >= typedPaths.size) {
-        throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.map(_.path).mkString(", ")}.")
-      }
+    val valueTypeOpt = path match{
+      case tp: TypedPath => Option(tp.valueType)
+      case _ => None
     }
-    index
+    //find the given path and, if provided, match the value type as well
+    typedPaths.zipWithIndex.find(pi => pi._1 == path && (valueTypeOpt.isEmpty || pi._1.valueType == valueTypeOpt.get)) match{
+      case Some((_, ind)) => ind
+      case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+    }
   }
 
-  lazy val uriIndex: Int = 0                            //FIXME: the default Uri column is 0 for now, this might change with CMEM-1172!
+  lazy val uriIndex: Int = this.typedPaths.zipWithIndex.
+    find(p => p._1.serializeSimplified == EntitySchema.defaultUriColumn).map(_._2).getOrElse(0)                     //TODO is using "URI" by default as uri column wise?
 
-  lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.map(x => pathIndex(x.path) + 1).filterNot(i => i == uriIndex)  //FIXME: change with CMEM-1172!
+  lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.zipWithIndex.
+    filterNot(p => p._1.serializeSimplified == EntitySchema.defaultUriColumn).map(_._2)
 
-  def propertyNames: Seq[String] = valueIndicies.map(i => typedPaths(i - 1)).flatMap(p => p.propertyUri).map(_.toString)   //FIXME: change with CMEM-1172!
+  def propertyNames: Seq[String] = valueIndicies.map(i => typedPaths(i)).flatMap(p => p.propertyUri).map(_.toString)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 }
@@ -59,7 +68,7 @@ object EntitySchema {
     */
   def renamePaths(es: EntitySchema, propMap: Map[String, String]): EntitySchema ={
     val newPaths = es.typedPaths.map{p =>
-      p.path.propertyUri match {
+      p.propertyUri match {
         case Some(prop) => propMap.get(prop.toString) match{
           case Some(newProp) => TypedPath(Path(newProp), p.valueType, p.isAttribute)
           case None => TypedPath(Path(prop), p.valueType, p.isAttribute)

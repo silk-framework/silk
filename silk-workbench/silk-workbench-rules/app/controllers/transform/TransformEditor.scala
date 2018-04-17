@@ -53,8 +53,8 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
             warning = pathsCache.status.message,  project = project))
         } else {
           val relativePaths = pathsCache.value.configuredSchema.typedPaths. // FIXME: This won't work inside nested object rules for RDF datasets
-              filter(tp => tp.path.operators.startsWith(sourcePath) && tp.path.operators.size > sourcePath.size).
-              map(tp => Path(tp.path.operators.drop(sourcePath.size)))
+              filter(tp => tp.operators.startsWith(sourcePath) && tp.operators.size > sourcePath.size).
+              map(tp => Path(tp.operators.drop(sourcePath.size)))
           val paths = DPair(relativePaths.map(_.serialize(prefixes)), Seq.empty)
           Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
         }
@@ -76,7 +76,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))
     } else {
-      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.path.serialize(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.serialize(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
     }
   }

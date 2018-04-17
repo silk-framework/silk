@@ -137,7 +137,7 @@ object DatasetSpec {
     private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
+          val uriIndex = entitySchema.pathIndex(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
           for (entity <- entities) yield {
             Entity(
               uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),

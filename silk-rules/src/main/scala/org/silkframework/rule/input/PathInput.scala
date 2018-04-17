@@ -14,10 +14,8 @@
 
 package org.silkframework.rule.input
 
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Path}
 import org.silkframework.rule.Operator
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -34,12 +32,12 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
   /**
     * Returns an empty sequence as a path input does not have any children.
     */
-  override def children = Seq.empty
+  override def children: Seq[Operator] = Seq.empty
 
   /**
     * As a path input does not have any children, an [IllegalArgumentException] will be thrown if the provided children sequence is nonempty.
     */
-  override def withChildren(newChildren: Seq[Operator]) = {
+  override def withChildren(newChildren: Seq[Operator]): PathInput = {
     if(newChildren.isEmpty)
       this
     else
@@ -61,7 +59,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
       Seq(entity.uri.toString)
     } else {
       var index = cachedPathIndex
-      if(index == -1 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index).path != path) {
+      if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index) != path) {
         index = entity.schema.pathIndex(path)
         cachedPathIndex = index
       }

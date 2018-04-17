@@ -71,7 +71,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
 
   it should "understand sub paths" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address).path)
+      subPath = path(address))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2, s"${pn}Address3")
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -95,7 +95,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
 
   it should "process sub paths with restricted root entities" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address).path, filter = Restriction.custom(s"?a <${pn}age> 23"))
+      subPath = path(address), filter = Restriction.custom(s"?a <${pn}age> 23"))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2)
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -123,7 +123,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
 
   it should "restrict the root entity URI and work with sub path" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address).path)
+      subPath = path(address))
     val entities = retriever.retrieve(entitySchema, entities = Seq(person1), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2)
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -133,7 +133,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
   it should "restrict the root entity URI and work with sub path and restriction" in {
     for((personURI, (addressURI, expectedResult)) <- Seq(person1, person2).zip(Seq(address1, address3).zip(Seq(IndexedSeq(), IndexedSeq(Seq("Leipzig"), Seq("Germany")))))) {
       val entitySchema = schema(Person, Seq(path(city), path(country)), filter = Restriction.custom(s"?a <${pn}age> 55"),
-        subPath = path(address).path)
+        subPath = path(address))
       val entities = retriever.retrieve(entitySchema, entities = Seq(personURI), limit = None).toArray.toSeq
       entities.size mustBe math.min(expectedResult.size, 1)
       if(entities.nonEmpty) {

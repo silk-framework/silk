@@ -15,7 +15,7 @@
 package org.silkframework.learning.active
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.Path
+import org.silkframework.entity.TypedPath
 import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
@@ -32,13 +32,13 @@ import scala.math.max
 class ActiveLearning(config: LearningConfiguration,
                      datasets: DPair[DataSource],
                      linkSpec: LinkSpec,
-                     paths: DPair[Seq[Path]],
+                     paths: DPair[Seq[TypedPath]],
                      referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                      initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
 
-  def isEmpty = datasets.isEmpty
+  def isEmpty: Boolean = datasets.isEmpty
 
-  override def initialValue = Some(initialState)
+  override def initialValue: Option[ActiveLearningState] = Some(initialState)
 
   override def run(context: ActivityContext[ActiveLearningState]): Unit = {
     // Update unlabeled pool
@@ -109,7 +109,11 @@ class ActiveLearning(config: LearningConfiguration,
     context.value() = context.value().copy(population = population)
   }
   
-  private def updatePopulation(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]) = Timer("Updating population") {
+  private def updatePopulation(
+    generator: LinkageRuleGenerator,
+    completeEntities: ReferenceEntities,
+    fitnessFunction: (LinkageRule => Double
+  ), context: ActivityContext[ActiveLearningState]) = Timer("Updating population") {
     context.status.update("Reproducing", 0.6)
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     var population = context.value().population
@@ -126,7 +130,11 @@ class ActiveLearning(config: LearningConfiguration,
     context.value() = context.value().copy(population = population)
   }
 
-  private def selectLinks(generator: LinkageRuleGenerator, completeEntities: ReferenceEntities, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState]): Unit = Timer("Selecting links") {
+  private def selectLinks(
+   generator: LinkageRuleGenerator,
+   completeEntities: ReferenceEntities,
+   fitnessFunction: (LinkageRule => Double
+ ), context: ActivityContext[ActiveLearningState]): Unit = Timer("Selecting links") {
     if(!context.status().isInstanceOf[Canceling]) {
       context.status.update("Selecting evaluation links", 0.8)
 

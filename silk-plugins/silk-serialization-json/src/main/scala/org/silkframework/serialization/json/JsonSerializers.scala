@@ -1014,8 +1014,7 @@ object JsonSerializers {
     }
 
     private def entitySchema(schema: EntitySchema) = {
-      // TODO: Check if this should serialize to a TypedPath instead
-      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
+      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.serializeSimplified)
       Json.obj(
         "paths" -> JsArray(paths)
       )

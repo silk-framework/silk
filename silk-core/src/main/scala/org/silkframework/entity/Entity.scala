@@ -41,15 +41,29 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
     if(validate)
       this
     else
-      throw new IllegalArgumentException("Provided schema does not fit entity v alues.")
+      throw new IllegalArgumentException("Provided schema does not fit entity values.")
   }
 
   /**
-    *
+    * Will retrieve the values of a given path (if available)
     * @param path
     * @return
     */
+  @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with the ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      evaluate(_schema.pathIndex(path))
+    }
+  }
+
+  /**
+    * Will retrieve the values of a given path (if available)
+    * @param path
+    * @return
+    */
+  def evaluate(path: TypedPath): Seq[String] = {
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
@@ -63,8 +77,8 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
     * @return
     */
   def valueOf(colName: String): Seq[String] ={
-    _schema.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
-      case Some(col) => values(_schema.pathIndex(col.path))
+    _schema.typedPaths.zipWithIndex.find(_._1.getLocalName.getOrElse("").trim == colName) match{
+      case Some((_, ind)) => values(ind)
       case None => Seq()
     }
   }
@@ -88,11 +102,9 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    _schema.typedPaths.forall(tp =>{
-      val ind = _schema.pathIndex(tp.path)
-      values(ind).forall(v => tp.valueType.validate(v))
+    _schema.typedPaths.zipWithIndex.forall(tp =>{
+      values(tp._2).forall(v => tp._1.valueType.validate(v))
     })
-
   }
 
   private var _failure: Option[Throwable] = None

@@ -24,9 +24,10 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
     outputSchemaOpt map { os =>
       val entityTable = inputs.head
       val entities = entityTable.entities
+
       val pathIndex = spec.parsedInputPath match {
         case Some(path) =>
-          entityTable.entitySchema.pathIndex(path)
+          entityTable.entitySchema.pathIndex(path)  //FIXME path Index should be called with ValueType
         case None =>
           0 // Take the value of the first path
       }

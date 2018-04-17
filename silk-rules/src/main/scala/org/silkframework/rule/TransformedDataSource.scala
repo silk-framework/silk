@@ -4,7 +4,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
   * A data source that transforms all entities using a provided transformation.
@@ -54,37 +54,32 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    retrieveEntities(entitySchema, Some(entities), None).toSeq
+    retrieveEntities(entitySchema, Some(entities), None)
   }
 
-  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]) = {
+  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]): Seq[Entity] = {
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
-      for(typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.path))
+      for (typedPath <- entitySchema.typedPaths) yield {
+        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath))
       }
-
-    val allRules = (subjectRule ++ pathRules.flatten).toSeq
 
     val sourceEntities = entities match {
       case Some(uris) => source.retrieveByUri(inputSchema, uris)
       case None => source.retrieve(inputSchema, limit)
     }
 
-    for(entity <- sourceEntities.view) yield {
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri.toString)
-      val values =
-        for(rules <- pathRules) yield {
-          try {
-            rules.flatMap(rule => rule(entity))
-          } catch {
-            case NonFatal(ex) =>
-              // TODO forward error
-              Seq.empty
-          }
-        }
+    val zw = for (entity <- sourceEntities.view) yield {
+      val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+      val values = (for (rules <- pathRules) yield {
+        Try {rules.flatMap(rule => rule(entity))}
+      }).map {
+        case Success(v) => v
+        case Failure(f) => return Seq(Entity(uri, entitySchema, f))
+      }
 
-      Entity(uri, values, entitySchema)
+      Entity(uri, values.toIndexedSeq, entitySchema)
     }
+    zw.toSeq
   }
 }

@@ -177,7 +177,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
             if (pathIndex != -1) {
               entity.evaluate(pathIndex)
             } else {
-              missingEntity.evaluate(path.path)
+              missingEntity.evaluate(path)
             }
           }
 
