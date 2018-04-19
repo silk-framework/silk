@@ -77,7 +77,7 @@ class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private 
     * @return
     */
   def valueOf(colName: String): Seq[String] ={
-    _schema.typedPaths.zipWithIndex.find(_._1.getLocalName.getOrElse("").trim == colName) match{
+    _schema.propertyNames.zipWithIndex.find(_._1 == colName) match{
       case Some((_, ind)) => values(ind)
       case None => Seq()
     }
