@@ -23,8 +23,9 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
+class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
 
+  private var _failure: Option[Throwable] = None
   private var _schema: EntitySchema = _
   applyNewSchema(desc)
 
@@ -35,13 +36,12 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
   def schema: EntitySchema = _schema
 
   def applyNewSchema(newSchema: EntitySchema): Entity ={
-    if(values.size < newSchema.typedPaths.size)
-      throw new IllegalArgumentException("Must provide at least the same number of value sets as there are paths in the schema.")
     _schema = newSchema
-    if(validate)
-      this
-    else
-      throw new IllegalArgumentException("Provided schema does not fit entity values.")
+
+    if(values.size < newSchema.typedPaths.size || !validate)
+      failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
+
+    this
   }
 
   /**
@@ -49,7 +49,7 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
     * @param path
     * @return
     */
-  @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with the ValueType.", "18.03")
+  @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty) {
       Seq(uri)
@@ -107,7 +107,6 @@ class Entity private(val uri: String, val values: IndexedSeq[Seq[String]], priva
     })
   }
 
-  private var _failure: Option[Throwable] = None
   /**
     *
     * @return
@@ -177,14 +176,30 @@ object Entity {
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
+    * NOTE: values are not recorded
     * @param uri - uri of the entity
     * @param schema - the EntitySchema pertaining to the Entity
     * @param t - the Throwable which failed this Enity
     * @return - the failed Entity
     */
+  //TODO add property option
   def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
     val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
     val e = new Entity(uri, fakeVals, schema)
+    e.failEntity(t)
+    e
+  }
+
+  /**
+    * Instantiates a new Entity and fails it with the given Throwable
+    * @param uri - uri of the entity
+    * @param values - the values applied for the failed Entity
+    * @param schema - the EntitySchema pertaining to the Entity
+    * @param t - the Throwable which failed this Enity
+    * @return - the failed Entity
+    */
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
+    val e = apply(uri, values, schema)
     e.failEntity(t)
     e
   }

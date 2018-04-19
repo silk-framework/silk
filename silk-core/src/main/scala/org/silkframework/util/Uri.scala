@@ -33,7 +33,13 @@ import scala.util.{Success, Try}
   * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
   */
-case class Uri(uri: String) {
+case class Uri(private val u: String) {
+
+  lazy val uri: String = if(u.trim.startsWith("<") && u.trim.endsWith(">"))
+    u.trim.substring(1, u.trim.length - 1)
+  else
+    u.trim
+
   /**
     * A turtle-like representation of this URI.
     *

@@ -45,21 +45,12 @@ case class EntitySchema(
     }
   }
 
-  lazy val uriIndex: Int = this.typedPaths.zipWithIndex.
-    find(p => p._1.serializeSimplified == EntitySchema.defaultUriColumn).map(_._2).getOrElse(0)                     //TODO is using "URI" by default as uri column wise?
-
-  lazy val valueIndicies: IndexedSeq[Int] = this.typedPaths.zipWithIndex.
-    filterNot(p => p._1.serializeSimplified == EntitySchema.defaultUriColumn).map(_._2 + 1)                               //FIXME: change with CMEM-1172!
-
-  def propertyNames: Seq[String] = valueIndicies.map(i => typedPaths(i - 1)).flatMap(p => p.propertyUri).map(_.toString)  //FIXME: change with CMEM-1172!
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.flatMap(p => p.propertyUri).map(_.toString)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 }
 
 object EntitySchema {
-
-  //TODO needs properties entry
-  val defaultUriColumn: String = "URI"
 
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
 
