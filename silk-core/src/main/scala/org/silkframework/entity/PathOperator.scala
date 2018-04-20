@@ -58,7 +58,7 @@ sealed abstract class DirectionalPathOperator extends PathOperator{
     if(property.isValidUri)
       operatorIndicator + property.serialize(prefixes) //property is a valid uri => use uri serialization
     else
-      operatorIndicator + "<" + property + ">"                      //property is not an uri => URL encode name
+      operatorIndicator + property                    //property is not an uri => URL encode name
   }
 }
 
