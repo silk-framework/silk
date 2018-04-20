@@ -19,7 +19,7 @@ import org.silkframework.util.Identifier
 /**
  * Thrown if the configuration is not valid.
  */
-class ValidationException(val errors: Seq[ValidationError], cause: Throwable) extends Exception(errors.mkString("\n")) {
+class ValidationException(val errors: Seq[ValidationError], cause: Throwable) extends Exception(errors.mkString("\n"), cause) {
   def this(errors: Seq[ValidationError]) = this(errors, null)
 
   def this(error: String, cause: Throwable) = this(ValidationError(error) :: Nil, cause)

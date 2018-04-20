@@ -33,29 +33,17 @@ sealed abstract class PathOperator {
 sealed abstract class DirectionalPathOperator extends PathOperator{
 
   private def encode(str: String) = SparkCompatibleEncoding.encode(str, "UTF-8")
-  private def decode(uri: Uri) = SparkCompatibleEncoding.decode(uri)
 
   /**
-    * the property uri (externally provided, no encoding)
-    * @return
+    * the property name or uri
     */
-  private[entity] def p: String
+  def property: Uri
 
   /**
     * The URL encoded version of property()
     * @return
     */
   def encoded: Uri = encode(property.toString)
-
-  /**
-    * the property name or uri
-    * @return
-    */
-  def property: Uri = {
-    val decoded = decode(this.p)
-    Uri(decoded)
-  }
-
 
   override def toString: String = property.toString
 
@@ -70,21 +58,21 @@ sealed abstract class DirectionalPathOperator extends PathOperator{
     if(property.isValidUri)
       operatorIndicator + property.serialize(prefixes) //property is a valid uri => use uri serialization
     else
-      operatorIndicator + encoded                      //property is not an uri => URL encode name
+      operatorIndicator + "<" + property + ">"                      //property is not an uri => URL encode name
   }
 }
 
 /**
  * Moves forward from a subject resource (set) through a property to its object resource (set).
  */
-case class ForwardOperator(override private[entity] val p: String) extends DirectionalPathOperator {
+case class ForwardOperator(property: Uri) extends DirectionalPathOperator {
   override val operatorIndicator = "/"
 }
 
 /**
  * Moves backward from an object resource (set) through a property to its subject resource (set).
  */
-case class BackwardOperator(override private[entity] val p: String) extends DirectionalPathOperator {
+case class BackwardOperator(property: Uri) extends DirectionalPathOperator {
   override val operatorIndicator = "\\"
 }
 
