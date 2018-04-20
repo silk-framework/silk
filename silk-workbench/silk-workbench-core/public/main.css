@@ -273,14 +273,14 @@ div#newproject {
 }
 
 #tab-bar .di_tab_task_title {
-  position: absolute;
-  width: 100%;
-  vertical-align: middle;
-  display: inline-block;
-  margin: 12px 0px 0px 14px;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: 0.04em;
+    font-size: 12px;
+    line-height: 48px;
+    height: 48px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 24px;
+    flex-shrink: 10;
+    text-overflow: ellipsis;
+    justify-items: flex-start;
 }
