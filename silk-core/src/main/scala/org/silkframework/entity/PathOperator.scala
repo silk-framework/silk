@@ -55,10 +55,12 @@ sealed abstract class DirectionalPathOperator extends PathOperator{
   def operatorIndicator: String
 
   override def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    if(property.isValidUri)
-      operatorIndicator + property.serialize(prefixes) //property is a valid uri => use uri serialization
+    if(property.isValidUri) //property is a valid uri => use uri serialization
+      operatorIndicator + property.serialize(prefixes)
+    else if(property.uri.contains("/")) //properties containing slashes need to be encloded in brackets
+      operatorIndicator + "<" + property + ">"
     else
-      operatorIndicator + property                    //property is not an uri => URL encode name
+      operatorIndicator + property
   }
 }
 
