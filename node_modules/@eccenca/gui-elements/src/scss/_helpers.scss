@@ -1,0 +1,29 @@
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ *
+ * Configuration used for MDL and beyond.
+ */
+
+// -- Color helpers ------------------------------------------------------------
+
+@import "~sassyjson/stylesheets/decode/decode";
+
+@function to_color($var) {
+    @if type-of($var) == "color" {
+        @return $var;
+    }
+
+    @if (
+        type-of($var) == 'string' and
+        str-slice($var, 1, 3) != 'rgb' and
+        str-slice($var, 1, 3) != 'hsl' and
+        str-slice($var, 1, 1) != '#'
+    ) {
+        @return _color(unquote('rgb(#{$var})'));
+    }
+    @else {
+        @return _color($var);
+    }
+}

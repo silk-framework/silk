@@ -1,0 +1,21 @@
+@include describe("The _from-hsl function") {
+  @include it("should convert a stringified hsl or hsla color into a color") {
+    @include should(expect(type-of(_from-hsl('hsl(0,0,0)'))), to(equal('color')));
+    @include should(expect(type-of(_from-hsl('hsl(0, 0, 0)'))), to(equal('color')));
+    @include should(expect(type-of(_from-hsl('hsla(0, 0, 0, .5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-hsl('hsla(0, 0, 0, 0.5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-hsl('hsla(100%, 100%, 100%, 0.5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-hsl('hsla(100%, 100%, 100%, .5)'))), to(equal('color')));
+  }
+
+  @include it("should return a string if conversion cannot be done") {
+    @include should(expect(type-of(_from-hsl('hsl(0, 0, 0, .5)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsla(0, 0, 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsla(0, 0, 0'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsl(0, 0 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsl(0 0 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsl(0 0, 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsl(0, 0, 0,)'))), to(equal('string')));
+    @include should(expect(type-of(_from-hsl('hsl(,0, 0, 0,)'))), to(equal('string')));
+  }
+}

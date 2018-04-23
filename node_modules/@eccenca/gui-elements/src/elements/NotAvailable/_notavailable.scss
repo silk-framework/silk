@@ -1,0 +1,18 @@
+/**
+ * Copyright 2017 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ */
+
+.ecc-gui-elements__notavailable {
+    display: block;
+    white-space: nowrap;
+}
+
+.ecc-gui-elements__notavailable-label {
+    opacity: 0.61;
+}
+
+.ecc-gui-elements__notavailable--inline {
+    display: inline;
+}

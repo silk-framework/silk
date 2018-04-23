@@ -1786,8 +1786,8 @@
         }
         exports.__esModule = !0;
         exports.Chip = exports.ChipVisual = void 0;
-        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _basicClassCreator = __webpack_require__(15), _basicClassCreator2 = _interopRequireDefault(_basicClassCreator), _lodash = __webpack_require__(4), ChipContact = (_interopRequireDefault(_lodash), 
-        (0, _basicClassCreator2.default)("ChipContact", "mdl-chip__contact", "span")), ChipText = (0, 
+        var _extends2 = __webpack_require__(1), _extends3 = _interopRequireDefault(_extends2), _objectWithoutProperties2 = __webpack_require__(2), _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2), _react = __webpack_require__(0), _react2 = _interopRequireDefault(_react), _classnames = __webpack_require__(5), _classnames2 = _interopRequireDefault(_classnames), _basicClassCreator = __webpack_require__(15), _basicClassCreator2 = _interopRequireDefault(_basicClassCreator), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), ChipContact = (0, 
+        _basicClassCreator2.default)("ChipContact", "mdl-chip__contact", "span"), ChipText = (0, 
         _basicClassCreator2.default)("ChipText", "mdl-chip__text", "span"), ChipVisual = exports.ChipVisual = function(props) {
             var _props$image = props.image, image = void 0 !== _props$image && _props$image, _props$label = props.label, label = void 0 !== _props$label && _props$label, _props$className = props.className, className = void 0 === _props$className ? "" : _props$className, _props$bgColor = props.bgColor, bgColor = void 0 !== _props$bgColor && _props$bgColor, _props$textColor = props.textColor, textColor = void 0 !== _props$textColor && _props$textColor, _props$children = props.children, children = void 0 !== _props$children && _props$children;
             if (image) return _react2.default.createElement(ChipContact, {
@@ -1808,7 +1808,7 @@
             href: _react.PropTypes.string
         }, Chip = function(props) {
             var className = props.className, onClose = props.onClose, children = props.children, otherProps = (0, 
-            _objectWithoutProperties3.default)(props, [ "className", "onClose", "children" ]), childrenArray = _react2.default.Children.toArray(children), contactIndex = childrenArray.findIndex(function(c) {
+            _objectWithoutProperties3.default)(props, [ "className", "onClose", "children" ]), childrenArray = _react2.default.Children.toArray(children), contactIndex = _lodash2.default.findIndex(childrenArray, function(c) {
                 return c.type === ChipContact || c.type === ChipVisual;
             }), chipContent = [];
             contactIndex >= 0 ? chipContent.push(childrenArray[contactIndex], _react2.default.createElement(ChipText, {
