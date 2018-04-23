@@ -1,0 +1,26 @@
+@include describe("The _find-digits function") {
+  @include it("should always return a two item long list") {
+    @include should(expect(length(_find-digits('.5', 1))), to(equal(2)));
+    @include should(expect(length(_find-digits('.20', 1))), to(equal(2)));
+    @include should(expect(length(_find-digits('.101', 1))), to(equal(2)));
+    @include should(expect(length(_find-digits('.1337', 1))), to(equal(2)));
+  }
+
+  @include it("should return the number found after the dot as a second argument") {
+    @include should(expect(nth(_find-digits('.1', 1), 2)), to(equal(0.1)));
+    @include should(expect(nth(_find-digits('.23', 1), 2)), to(equal(0.23)));
+    @include should(expect(nth(_find-digits('.456', 1), 2)), to(equal(0.456)));
+    @include should(expect(nth(_find-digits('.7890', 1), 2)), to(equal(0.7890)));
+  }
+
+  @include it("should return a number as second argument") {
+    @include should(expect(type-of(nth(_find-digits('.1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-digits('.23', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-digits('.456', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-digits('.7890', 1), 2))), to(equal('number')));
+  }
+
+  @include it("should return null if error") {
+    @include should(expect(nth(_find-digits('.', 1), 2)), to(equal(null)));
+  }
+}

@@ -1,0 +1,16 @@
+@include describe("The _from-hex function") {
+  @include it("should convert a stringified hexadecimal color into a color") {
+    @include should(expect(type-of(_from-hex('#000'))), to(equal('color')));
+    @include should(expect(type-of(_from-hex('#000000'))), to(equal('color')));
+    @include should(expect(type-of(_from-hex('#eFa01d'))), to(equal('color')));
+  }
+
+  @include it("should return a string if conversion cannot be done") {
+    @include should(expect(type-of(_from-hex('#00'))), to(equal('string')));
+    @include should(expect(type-of(_from-hex('#00000'))), to(equal('string')));
+    @include should(expect(type-of(_from-hex('#00000g'))), to(equal('string')));
+    @include should(expect(type-of(_from-hex('00000g'))), to(equal('string')));
+    @include should(expect(type-of(_from-hex('000000'))), to(equal('string')));
+    @include should(expect(type-of(_from-hex('000'))), to(equal('string')));
+  }
+}

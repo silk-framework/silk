@@ -1,0 +1,22 @@
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ */
+
+.mdl-progress {
+    width: 100%;
+}
+
+.mdl-progress--global,
+.mdl-progress--local {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    z-index: 32000;
+}
+
+.mdl-progress--local {
+    position: absolute;
+    top: 0;
+}

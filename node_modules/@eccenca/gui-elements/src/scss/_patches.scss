@@ -1,0 +1,19 @@
+/**
+ * Copyright 2015 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ *
+ * Other patches not aligned to application layout and MDL.
+ */
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 6px;
+}
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background-color: grey;
+}

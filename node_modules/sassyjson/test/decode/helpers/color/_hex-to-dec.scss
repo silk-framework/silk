@@ -1,0 +1,7 @@
+@include describe("The _hex-to-dec function") {
+  @include it("should convert a hexadecimal string into a decimal number") {
+    @include should(expect(_hex-to-dec('00')), to(equal(0)));
+    @include should(expect(_hex-to-dec('ff')), to(equal(255)));
+    @include should(expect(_hex-to-dec('c8')), to(equal(200)));
+  }
+}

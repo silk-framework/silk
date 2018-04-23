@@ -1,0 +1,32 @@
+@include describe("The _find-integer function") {
+  @include it("should always return a two item long list") {
+    @include should(expect(length(_find-integer('1', 1))), to(equal(2)));
+    @include should(expect(length(_find-integer('10', 1))), to(equal(2)));
+    @include should(expect(length(_find-integer('100', 1))), to(equal(2)));
+    @include should(expect(length(_find-integer('-1000', 1))), to(equal(2)));
+  }
+
+  @include it("should return the positive integer part of a stringified number as a second argument") {
+    @include should(expect(nth(_find-integer('0', 1), 2)), to(equal(0)));
+    @include should(expect(nth(_find-integer('1', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('1.5', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('-1.5', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('-1', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('-1e1', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('-1e+1', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('1e-1', 1), 2)), to(equal(1)));
+    @include should(expect(nth(_find-integer('1e+1', 1), 2)), to(equal(1)));
+  }
+
+  @include it("should return a number as second argument") {
+    @include should(expect(type-of(nth(_find-integer('0', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('1.5', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('-1.5', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('-1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('-1e1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('-1e+1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('1e-1', 1), 2))), to(equal('number')));
+    @include should(expect(type-of(nth(_find-integer('1e+1', 1), 2))), to(equal('number')));
+  }
+}

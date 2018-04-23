@@ -1,0 +1,54 @@
+@include describe("The _color function") {
+  @include it("should decode CSS lengths to number type") {
+    $test-1:  _length('-1%');
+    $test-2:  _length('1.5in');
+    $test-3:  _length('-1px');
+    $test-4:  _length('1.5em');
+    $test-5:  _length('-1mm');
+    $test-6:  _length('1.5cm');
+    $test-7:  _length('-1pt');
+    $test-8:  _length('1.5pc');
+    $test-9:  _length('-1ex');
+    $test-10: _length('1.5ch');
+    $test-11: _length('-1vh');
+    $test-12: _length('1.5vw');
+    $test-13: _length('-1rem');
+    $test-14: _length('1.5vmin');
+    $test-15: _length('-1vmax');
+    $test-16: _length('1.5pica');
+
+    @include should(expect($test-1 ), to(equal(-1%)));
+    @include should(expect($test-2 ), to(equal(1.5in)));
+    @include should(expect($test-3 ), to(equal(-1px)));
+    @include should(expect($test-4 ), to(equal(1.5em)));
+    @include should(expect($test-5 ), to(equal(-1mm)));
+    @include should(expect($test-6 ), to(equal(1.5cm)));
+    @include should(expect($test-7 ), to(equal(-1pt)));
+    @include should(expect($test-8 ), to(equal(1.5pc)));
+    @include should(expect($test-9 ), to(equal(-1ex)));
+    @include should(expect($test-10), to(equal(1.5ch)));
+    @include should(expect($test-11), to(equal(-1vh)));
+    @include should(expect($test-12), to(equal(1.5vw)));
+    @include should(expect($test-13), to(equal(-1rem)));
+    @include should(expect($test-14), to(equal(1.5vmin)));
+    @include should(expect($test-15), to(equal(-1vmax)));
+    @include should(expect($test-16), to(equal(1.5pica)));
+
+    @include should(expect(type-of($test-1 )), to(equal('number')));
+    @include should(expect(type-of($test-2 )), to(equal('number')));
+    @include should(expect(type-of($test-3 )), to(equal('number')));
+    @include should(expect(type-of($test-4 )), to(equal('number')));
+    @include should(expect(type-of($test-5 )), to(equal('number')));
+    @include should(expect(type-of($test-6 )), to(equal('number')));
+    @include should(expect(type-of($test-7 )), to(equal('number')));
+    @include should(expect(type-of($test-8 )), to(equal('number')));
+    @include should(expect(type-of($test-9 )), to(equal('number')));
+    @include should(expect(type-of($test-10)), to(equal('number')));
+    @include should(expect(type-of($test-11)), to(equal('number')));
+    @include should(expect(type-of($test-12)), to(equal('number')));
+    @include should(expect(type-of($test-13)), to(equal('number')));
+    @include should(expect(type-of($test-14)), to(equal('number')));
+    @include should(expect(type-of($test-15)), to(equal('number')));
+    @include should(expect(type-of($test-16)), to(equal('number')));
+  }
+}

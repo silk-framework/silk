@@ -1,0 +1,21 @@
+@include describe("The _from-rgb function") {
+  @include it("should convert a stringified rgb or rgba color into a color") {
+    @include should(expect(type-of(_from-rgb('rgb(0,0,0)'))), to(equal('color')));
+    @include should(expect(type-of(_from-rgb('rgb(0, 0, 0)'))), to(equal('color')));
+    @include should(expect(type-of(_from-rgb('rgba(0, 0, 0, .5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-rgb('rgba(0, 0, 0, 0.5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-rgb('rgba(100%, 100%, 100%, 0.5)'))), to(equal('color')));
+    @include should(expect(type-of(_from-rgb('rgba(100%, 100%, 100%, .5)'))), to(equal('color')));
+  }
+
+  @include it("should return a string if conversion cannot be done") {
+    @include should(expect(type-of(_from-rgb('rgb(0, 0, 0, .5)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgba(0, 0, 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgba(0, 0, 0'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgb(0, 0 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgb(0 0 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgb(0 0, 0)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgb(0, 0, 0,)'))), to(equal('string')));
+    @include should(expect(type-of(_from-rgb('rgb(,0, 0, 0,)'))), to(equal('string')));
+  }
+}

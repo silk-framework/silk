@@ -1,0 +1,279 @@
+From 6bee05490698ddb98cbc46e92c6eedd9f368208f Mon Sep 17 00:00:00 2001
+From: Tommy Leunen <tommy.leunen+github@gmail.com>
+Date: Sun, 11 Sep 2016 20:28:07 -0400
+Subject: [PATCH] react mdl 1.2.1
+
+---
+ src/layout/_layout.scss    | 34 +++++++++++++++++-----------------
+ src/layout/layout.js       | 36 ++++++++++++------------------------
+ src/mdlComponentHandler.js |  3 ++-
+ src/tabs/tabs.js           |  4 ----
+ 4 files changed, 31 insertions(+), 46 deletions(-)
+
+diff --git a/src/layout/_layout.scss b/src/layout/_layout.scss
+index 05a317a..440eed8 100644
+--- a/src/layout/_layout.scss
++++ b/src/layout/_layout.scss
+@@ -39,14 +39,9 @@
+ 
+ // Main layout class.
+ .mdl-layout {
++  position: absolute;
+   width: 100%;
+   height: 100%;
+-  display: flex;
+-  flex-direction: column;
+-  overflow-y: auto;
+-  overflow-x: hidden;
+-  position: relative;
+-  -webkit-overflow-scrolling: touch;
+ }
+ 
+ // Utility classes for screen sizes.
+@@ -58,10 +53,15 @@
+   display: none;
+ }
+ 
+-.mdl-layout__container {
+-  position: absolute;
++.mdl-layout__inner-container {
+   width: 100%;
+   height: 100%;
++  display: flex;
++  flex-direction: column;
++  overflow-y: auto;
++  overflow-x: hidden;
++  position: relative;
++  -webkit-overflow-scrolling: touch;
+ }
+ 
+ 
+@@ -166,7 +166,7 @@
+     }
+ 
+     @media screen and (min-width: $layout-screen-size-threshold + 1px) {
+-      .mdl-layout--fixed-drawer > & {
++      .mdl-layout--fixed-drawer > .mdl-layout__inner-container > & {
+         transform: translateX(0);
+       }
+     }
+@@ -217,7 +217,7 @@
+       line-height: 54px;
+ 
+       .mdl-layout--no-desktop-drawer-button &,
+-      .mdl-layout--fixed-drawer > &,
++      .mdl-layout--fixed-drawer > .mdl-layout__inner-container > &,
+       .mdl-layout--no-drawer-button & {
+         display: none;
+       }
+@@ -251,13 +251,13 @@
+       min-height: $layout-mobile-header-height;
+     }
+ 
+-    .mdl-layout--fixed-drawer.is-upgraded:not(.is-small-screen) > & {
++    .mdl-layout--fixed-drawer.is-upgraded:not(.is-small-screen) > .mdl-layout__inner-container > & {
+       margin-left: $layout-drawer-width;
+       width: calc(100% - #{$layout-drawer-width});
+     }
+ 
+     @media screen and (min-width: $layout-screen-size-threshold + 1px) {
+-      .mdl-layout--fixed-drawer > & {
++      .mdl-layout--fixed-drawer > .mdl-layout__inner-container > & {
+         .mdl-layout__header-row {
+           padding-left: 40px;
+         }
+@@ -305,7 +305,7 @@
+         display: none;
+       }
+ 
+-      .mdl-layout--fixed-header > & {
++      .mdl-layout--fixed-header > .mdl-layout__inner-container > & {
+         display: flex;
+       }
+     }
+@@ -446,20 +446,20 @@
+     z-index: 1;
+     -webkit-overflow-scrolling: touch;
+ 
+-    .mdl-layout--fixed-drawer > & {
++    .mdl-layout--fixed-drawer > .mdl-layout__inner-container > & {
+       margin-left: $layout-drawer-width;
+     }
+ 
+-    .mdl-layout__container.has-scrolling-header & {
++    .mdl-layout.has-scrolling-header & {
+       overflow: visible;
+     }
+ 
+     @media screen and (max-width: $layout-screen-size-threshold) {
+-      .mdl-layout--fixed-drawer > & {
++      .mdl-layout--fixed-drawer > .mdl-layout__inner-container > & {
+         margin-left: 0;
+       }
+ 
+-      .mdl-layout__container.has-scrolling-header & {
++      .mdl-layout.has-scrolling-header & {
+         overflow-y: auto;
+         overflow-x: hidden;
+       }
+diff --git a/src/layout/layout.js b/src/layout/layout.js
+index 9e1e4e6..54955a1 100644
+--- a/src/layout/layout.js
++++ b/src/layout/layout.js
+@@ -28,6 +28,7 @@
+    */
+   var MaterialLayout = function MaterialLayout(element) {
+     this.element_ = element;
++    this.innerContainer_ = element.querySelector('.' + this.CssClasses_.INNER_CONTAINER);
+ 
+     // Initialize instance.
+     this.init();
+@@ -84,7 +85,7 @@
+    * @private
+    */
+   MaterialLayout.prototype.CssClasses_ = {
+-    CONTAINER: 'mdl-layout__container',
++    INNER_CONTAINER: 'mdl-layout__inner-container',
+     HEADER: 'mdl-layout__header',
+     DRAWER: 'mdl-layout__drawer',
+     CONTENT: 'mdl-layout__content',
+@@ -260,7 +261,7 @@
+   * @public
+   */
+   MaterialLayout.prototype.toggleDrawer = function() {
+-    var drawerButton = this.element_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
++    var drawerButton = this.innerContainer_.querySelector('.' + this.CssClasses_.DRAWER_BTN);
+     this.drawer_.classList.toggle(this.CssClasses_.IS_DRAWER_OPEN);
+     this.obfuscator_.classList.toggle(this.CssClasses_.IS_DRAWER_OPEN);
+ 
+@@ -281,20 +282,13 @@
+    */
+   MaterialLayout.prototype.init = function() {
+     if (this.element_) {
+-      var container = document.createElement('div');
+-      container.classList.add(this.CssClasses_.CONTAINER);
+-
+       var focusedElement = this.element_.querySelector(':focus');
+ 
+-      this.element_.parentElement.insertBefore(container, this.element_);
+-      this.element_.parentElement.removeChild(this.element_);
+-      container.appendChild(this.element_);
+-
+       if (focusedElement) {
+         focusedElement.focus();
+       }
+ 
+-      var directChildren = this.element_.childNodes;
++      var directChildren = this.innerContainer_.childNodes;
+       var numChildren = directChildren.length;
+       for (var c = 0; c < numChildren; c++) {
+         var child = directChildren[c];
+@@ -317,9 +311,9 @@
+       window.addEventListener('pageshow', function(e) {
+         if (e.persisted) { // when page is loaded from back/forward cache
+           // trigger repaint to let layout scroll in safari
+-          this.element_.style.overflowY = 'hidden';
++          this.innerContainer_.style.overflowY = 'hidden';
+           requestAnimationFrame(function() {
+-            this.element_.style.overflowY = '';
++            this.innerContainer_.style.overflowY = '';
+           }.bind(this));
+         }
+       }.bind(this), false);
+@@ -343,7 +337,7 @@
+         } else if (this.header_.classList.contains(
+             this.CssClasses_.HEADER_SCROLL)) {
+           mode = this.Mode_.SCROLL;
+-          container.classList.add(this.CssClasses_.HAS_SCROLLING_HEADER);
++          this.element_.classList.add(this.CssClasses_.HAS_SCROLLING_HEADER);
+         }
+ 
+         if (mode === this.Mode_.STANDARD) {
+@@ -368,7 +362,7 @@
+ 
+       // Add drawer toggling button to our layout, if we have an openable drawer.
+       if (this.drawer_) {
+-        var drawerButton = this.element_.querySelector('.' +
++        var drawerButton = this.innerContainer_.querySelector('.' +
+           this.CssClasses_.DRAWER_BTN);
+         if (!drawerButton) {
+           drawerButton = document.createElement('div');
+@@ -407,12 +401,12 @@
+         if (this.element_.classList.contains(this.CssClasses_.FIXED_HEADER)) {
+           this.header_.insertBefore(drawerButton, this.header_.firstChild);
+         } else {
+-          this.element_.insertBefore(drawerButton, this.content_);
++          this.innerContainer_.insertBefore(drawerButton, this.content_);
+         }
+ 
+         var obfuscator = document.createElement('div');
+         obfuscator.classList.add(this.CssClasses_.OBFUSCATOR);
+-        this.element_.appendChild(obfuscator);
++        this.innerContainer_.appendChild(obfuscator);
+         obfuscator.addEventListener('click',
+             this.drawerToggleHandler_.bind(this));
+         this.obfuscator_ = obfuscator;
+@@ -530,12 +524,8 @@
+      * Auxiliary method to programmatically select a tab in the UI.
+      */
+     function selectTab() {
+-      var href = tab.href.split('#')[1];
+-      var panel = layout.content_.querySelector('#' + href);
+       layout.resetTabState_(tabs);
+-      layout.resetPanelState_(panels);
+       tab.classList.add(layout.CssClasses_.IS_ACTIVE);
+-      panel.classList.add(layout.CssClasses_.IS_ACTIVE);
+     }
+ 
+     if (layout.tabBar_.classList.contains(
+@@ -550,10 +540,8 @@
+     }
+ 
+     tab.addEventListener('click', function(e) {
+-      if (tab.getAttribute('href').charAt(0) === '#') {
+-        e.preventDefault();
+-        selectTab();
+-      }
++      e.preventDefault();
++      selectTab();
+     });
+ 
+     tab.show = selectTab;
+diff --git a/src/mdlComponentHandler.js b/src/mdlComponentHandler.js
+index e4e6523..5d3c1a8 100644
+--- a/src/mdlComponentHandler.js
++++ b/src/mdlComponentHandler.js
+@@ -1,3 +1,5 @@
++if (typeof window === 'undefined') return;
++
+ /**
+  * @license
+  * Copyright 2015 Google Inc. All Rights Reserved.
+@@ -477,7 +479,6 @@ window.addEventListener('load', function() {
+       'querySelector' in document &&
+       'addEventListener' in window && Array.prototype.forEach) {
+     document.documentElement.classList.add('mdl-js');
+-    componentHandler.upgradeAllRegistered();
+   } else {
+     /**
+      * Dummy function to avoid JS errors.
+diff --git a/src/tabs/tabs.js b/src/tabs/tabs.js
+index 3f4d005..c85a4af 100644
+--- a/src/tabs/tabs.js
++++ b/src/tabs/tabs.js
+@@ -141,12 +141,8 @@
+ 
+       tab.addEventListener('click', function(e) {
+         e.preventDefault();
+-        var href = tab.href.split('#')[1];
+-        var panel = ctx.element_.querySelector('#' + href);
+         ctx.resetTabState_();
+-        ctx.resetPanelState_();
+         tab.classList.add(ctx.CssClasses_.ACTIVE_CLASS);
+-        panel.classList.add(ctx.CssClasses_.ACTIVE_CLASS);
+       });
+ 
+     }
+-- 
+2.10.0
+
