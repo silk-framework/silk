@@ -23,11 +23,14 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
+class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
 
   private var _failure: Option[Throwable] = None
   private var _schema: EntitySchema = _
+  private var _values: IndexedSeq[Seq[String]] = vals
   applyNewSchema(desc)
+
+  def values: IndexedSeq[Seq[String]] = _values
 
   /**
     * The EntitySchema defining the cells of the value sequence
@@ -35,12 +38,20 @@ class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private 
     */
   def schema: EntitySchema = _schema
 
-  def applyNewSchema(newSchema: EntitySchema): Entity ={
+  /**
+    * will apply a modified schema
+    * NOTE: The number of values per row must be as least as great as the number of typed paths
+    * NOTE: adding additional TypedPaths not instantiated in the values of the row will fail validation (use withProperty(..) instead)
+    * @param newSchema - the new schema to be applied
+    * @return - this
+    */
+  def applyNewSchema(newSchema: EntitySchema, validate: Boolean = true): Entity ={
     _schema = newSchema
 
-    if(values.size < newSchema.typedPaths.size || !validate)
+    if(validate && (this.values.size < newSchema.typedPaths.size || !this.validate))
       failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
 
+    _values = _schema.typedPaths.zipWithIndex.map(tp =>values(tp._2))
     this
   }
 
@@ -108,19 +119,14 @@ class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private 
   }
 
   /**
-    *
-    * @return
+    * @return - the exception responsible for this ENtity to fail
     */
   def failure: Option[Throwable] = _failure
 
-  /**
-    *
-    * @return
-    */
   def hasFailed: Boolean = failure.isDefined
 
   /**
-    *
+    * Will fail this entity with the provided exception (if not already failed)
     * @param t
     */
   def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
@@ -158,7 +164,7 @@ class Entity private(val uri: Uri, val values: IndexedSeq[Seq[String]], private 
 
   override def hashCode(): Int = {
     var hashCode = uri.toString.hashCode
-    hashCode = hashCode * 31 + values.foldLeft(0)(31 * _ + _.hashCode())
+    hashCode = hashCode * 31 + values.foldLeft(1)(31 * _ + _.hashCode())
     hashCode = hashCode * 31 + schema.hashCode()
     hashCode
   }
@@ -182,7 +188,7 @@ object Entity {
     * @param t - the Throwable which failed this Enity
     * @return - the failed Entity
     */
-  //TODO add property option
+  //FIXME add property option CMEM-719
   def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
     val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
     val e = new Entity(uri, fakeVals, schema)
@@ -198,6 +204,7 @@ object Entity {
     * @param t - the Throwable which failed this Enity
     * @return - the failed Entity
     */
+  //FIXME add property option CMEM-719
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
     val e = apply(uri, values, schema)
     e.failEntity(t)
@@ -207,7 +214,7 @@ object Entity {
   def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
       uri = (node \ "@uri").text.trim,
-      values = {
+      vals = {
         for (valNode <- node \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }

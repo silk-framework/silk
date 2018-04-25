@@ -14,6 +14,7 @@ import scala.xml.Node
   * @param filter A filter for restricting the entity set
   * @param subPath
   */
+//noinspection ScalaStyle
 case class EntitySchema(
   typeUri: Uri,
   typedPaths: IndexedSeq[TypedPath],
@@ -49,6 +50,27 @@ case class EntitySchema(
   lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified(Prefixes.default))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
+
+  override def hashCode(): Int = {
+    val prime = 31
+    var hashCode = typeUri.hashCode()
+    hashCode = hashCode * prime + typedPaths.foldLeft(1)((hash,b) => hash * prime + b.hashCode())
+    hashCode
+  }
+
+  override def equals(obj: scala.Any): Boolean = {
+    if(obj != null) {
+      obj match {
+        case es: EntitySchema =>
+          es.typeUri == this.typeUri &&
+            es.typedPaths.size == this.typedPaths.size &&
+            es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2)
+        case _ => false
+      }
+    }
+    else
+      false
+  }
 }
 
 object EntitySchema {

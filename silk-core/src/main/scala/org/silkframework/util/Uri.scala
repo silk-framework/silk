@@ -33,6 +33,7 @@ import scala.util.{Success, Try}
   * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
   */
+//noinspection ScalaStyle
 case class Uri(private val u: String) {
 
   lazy val uri: String = if(u.trim.startsWith("<") && u.trim.endsWith(">"))
@@ -93,6 +94,10 @@ case class Uri(private val u: String) {
     case Success(u) if u.getPath != null && u.getPath.nonEmpty  => Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
     case _ => None
   }
+
+  override def hashCode(): Int = uri.hashCode
+
+  override def equals(obj: scala.Any): Boolean = obj.isInstanceOf[Uri] && uri == obj.toString
 }
 
 object Uri {
