@@ -23,7 +23,7 @@ class PluginApi extends Controller {
       val plugins = PluginRegistry.availablePluginsForClass(pluginClass)
 
       JsObject(
-        for(plugin <- plugins) yield {
+        for(plugin <- plugins if !plugin.categories.contains("internal")) yield {
           plugin.id.toString -> serializePlugin(plugin)
         }
       )
