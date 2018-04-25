@@ -6,10 +6,10 @@ import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class ReferenceLinksManager extends Controller {
 

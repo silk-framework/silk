@@ -12,7 +12,7 @@ trait WorkbenchPlugin {
   /**
     * The task types that are covered by this plugin.
     */
-  def taskTypes: Seq[TaskType]
+  def taskType: TaskType
 
   /**
     * The task actions that are provided for a specific task.

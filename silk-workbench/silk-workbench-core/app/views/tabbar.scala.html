@@ -1,7 +1,7 @@
-@import plugins.{Context}
 @import org.silkframework.workbench.WorkbenchPlugins
 @import org.silkframework.config.TaskSpec
 
+@import org.silkframework.workbench.Context
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
 
 @pluginTabs = {

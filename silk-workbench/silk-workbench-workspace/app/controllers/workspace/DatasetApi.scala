@@ -10,12 +10,12 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
+import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json._
 import play.api.mvc._
-import plugins.Context
 
 class DatasetApi extends Controller with ControllerUtilsTrait {
   private implicit val partialPath = Json.format[PathCoverage]

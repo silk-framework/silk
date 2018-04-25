@@ -4,9 +4,9 @@ import controllers.core.{Stream, Widgets}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.TransformSpec
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
-import plugins.Context
 
 class ExecuteTransformTab extends Controller {
 

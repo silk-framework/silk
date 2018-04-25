@@ -1,7 +1,7 @@
 @import config.WorkbenchConfig
 @import controllers.core.Start
-@import plugins.Context
 @import org.silkframework.config.TaskSpec
+@import org.silkframework.workbench.Context
 
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 

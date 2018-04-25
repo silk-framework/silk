@@ -1,4 +1,4 @@
-package plugins
+package org.silkframework.workbench
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.{Project, ProjectTask, User}

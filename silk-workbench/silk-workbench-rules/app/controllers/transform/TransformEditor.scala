@@ -5,10 +5,10 @@ import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{DPair, Uri}
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class TransformEditor extends Controller with ControllerUtilsTrait {
 

@@ -13,7 +13,7 @@ import scala.language.existentials
 
 case class WorkbenchPluginDataset() extends WorkbenchPlugin {
 
-  override def taskTypes: Seq[TaskType] = Seq(DatasetTaskType)
+  override def taskType: TaskType = DatasetTaskType
 
   override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
     if(classOf[DatasetSpec].isAssignableFrom(task.data.getClass)) {

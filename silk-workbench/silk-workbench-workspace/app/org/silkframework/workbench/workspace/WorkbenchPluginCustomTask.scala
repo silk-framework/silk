@@ -1,0 +1,64 @@
+package org.silkframework.workbench.workspace
+
+import controllers.workspace.routes.Assets
+import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.workbench.WorkbenchPlugin
+import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
+import org.silkframework.workbench.workspace.WorkbenchPluginCustomTask.{CustomTaskActions, CustomTaskType}
+import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTaskActions, DatasetTaskType}
+import org.silkframework.workspace.ProjectTask
+import scala.language.existentials
+
+case class WorkbenchPluginCustomTask() extends WorkbenchPlugin {
+
+  override def taskType: TaskType = CustomTaskType
+
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
+    if(classOf[CustomTask].isAssignableFrom(task.data.getClass)) {
+      Some(CustomTaskActions(task))
+    } else {
+      None
+    }
+  }
+}
+
+object WorkbenchPluginCustomTask {
+
+  object CustomTaskType extends TaskType {
+
+    /** The name of the task type */
+    override def typeName: String = "Other"
+
+    /** Path to the task icon */
+    override def icon: String = Assets.at("img/task.png").url
+
+    override def folderIcon: String = Assets.at("img/task-folder.png").url
+
+    /** The path to the dialog for creating a new task. */
+    override def createDialog(project: String) =
+      Some(s"workspace/customTasks/newTaskDialog/$project")
+  }
+
+  case class CustomTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {
+
+    private val project = task.project.name
+
+    private val taskId = task.id
+
+    /** The name of the task type */
+    override def taskType: TaskType = DatasetTaskType
+
+    /** The path to the dialog for editing an existing task. */
+    override def propertiesDialog =
+      Some(s"workspace/customTasks/editTaskDialog/$project/$task")
+
+    /** The path to redirect to when the task is opened. */
+    override def openPath =
+      None
+
+    /**
+      * Lists the shown tabs.
+      */
+    override def tabs: Seq[Tab] = Seq.empty
+  }
+}

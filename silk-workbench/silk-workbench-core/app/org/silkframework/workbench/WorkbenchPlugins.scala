@@ -8,12 +8,15 @@ import org.silkframework.workspace.{Project, ProjectTask}
 object WorkbenchPlugins {
 
   private lazy val allPlugins: Seq[WorkbenchPlugin] = {
-    PluginRegistry.availablePlugins[WorkbenchPlugin].map(_.apply()(Prefixes.empty))
+    PluginRegistry.availablePlugins[WorkbenchPlugin].map(_.apply()(Prefixes.empty)).sortBy(_.taskType.typeName)
   }
 
   def byType(project: Project): Seq[(TaskType, Seq[TaskActions])] = {
-    val plugins = for(task <- project.allTasks; plugin <- allPlugins; taskActions <- plugin.taskActions(task)) yield taskActions
-    plugins.groupBy(_.taskType).toSeq.sortBy(_._1.typeName)
+    for {
+      plugin <- allPlugins
+    } yield {
+      (plugin.taskType, project.allTasks.flatMap(plugin.taskActions))
+    }
   }
 
   def forTask(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {

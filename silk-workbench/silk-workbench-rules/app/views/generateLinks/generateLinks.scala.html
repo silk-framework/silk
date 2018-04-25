@@ -1,9 +1,9 @@
-@import plugins.Context
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import controllers.workspace.routes.WorkspaceApi
 @import org.silkframework.rule.execution.GenerateLinks
 @import org.silkframework.rule.LinkSpec
+@import org.silkframework.workbench.Context
 @import views.html.workspace.activity.taskActivityControl
 
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)

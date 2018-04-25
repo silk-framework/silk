@@ -1,4 +1,5 @@
-@(context: plugins.Context[org.silkframework.dataset.DatasetSpec],
+@import org.silkframework.workbench.Context
+@(context: Context[org.silkframework.dataset.DatasetSpec],
   endpoint: org.silkframework.dataset.rdf.SparqlEndpoint,
   query: String,
   queryResults: Option[org.silkframework.dataset.rdf.SparqlResults])(implicit session: play.api.mvc.Session)

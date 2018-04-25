@@ -7,9 +7,9 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.rule.execution.GenerateLinks
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class GenerateLinksView extends Controller {
 

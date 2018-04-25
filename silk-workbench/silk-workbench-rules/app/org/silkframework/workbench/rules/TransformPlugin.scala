@@ -7,6 +7,7 @@ import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.rules.TransformPlugin.{TransformTaskActions, TransformTaskType}
 import org.silkframework.workspace.ProjectTask
+import scala.language.existentials
 
 /**
   * The linking Workbench plugin.
@@ -14,9 +15,9 @@ import org.silkframework.workspace.ProjectTask
 case class TransformPlugin() extends WorkbenchPlugin {
 
   /**
-    * The task types that are covered by this plugin.
+    * The task type that is covered by this plugin.
     */
-  override def taskTypes: Seq[TaskType] = Seq(TransformTaskType)
+  override def taskType: TaskType = TransformTaskType
 
   /**
     * The task actions that are provided for a specific task.
