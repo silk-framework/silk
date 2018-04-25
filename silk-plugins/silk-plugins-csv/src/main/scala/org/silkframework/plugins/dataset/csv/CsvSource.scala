@@ -125,7 +125,7 @@ class CsvSource(file: Resource,
     // Retrieve the indices of the request paths
     val indices =
       for (path <- entityDesc.typedPaths) yield {
-        val property = path.operators.head.asInstanceOf[ForwardOperator].encoded.uri.stripPrefix(prefix)
+        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
           throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))

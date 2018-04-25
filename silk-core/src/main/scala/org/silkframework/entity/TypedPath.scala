@@ -16,8 +16,8 @@ case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, 
   def this(path: Path, valueType: ValueType, isAttribute: Boolean) = this(path.operators, valueType, isAttribute)
 
   def property: Option[TypedProperty] = operators match {
-    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop, valueType, isBackwardProperty = false, isAttribute = isAttribute))
-    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop, valueType, isBackwardProperty = true, isAttribute = isAttribute))
+    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
+    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
 }

@@ -12309,6 +12309,14 @@ div.rdt {
 form.mdl-grid {
   width: 100%; }
 
+.ecc-component-footer .mdl-mini-footer {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  opacity: 0.64; }
+
+.ecc-component-footer .mdl-mini-footer__left-section {
+  line-height: 36px; }
+
 /**
  * Copyright 2015 eccenca GmbH. All Rights Reserved.
  *
