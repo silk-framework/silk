@@ -12,7 +12,7 @@ import scala.language.existentials
 /**
  * The linking Workbench plugin.
  */
-case class LinkingPlugin() extends WorkbenchPlugin {
+case class LinkingPlugin() extends WorkbenchPlugin[LinkSpec] {
 
   /**
     * The task type that is covered by this plugin.
@@ -22,12 +22,8 @@ case class LinkingPlugin() extends WorkbenchPlugin {
   /**
     * The task actions that are provided for a specific task.
     */
-  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
-    if(classOf[LinkSpec].isAssignableFrom(task.data.getClass)) {
-      Some(LinkingTaskActions(task))
-    } else {
-      None
-    }
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions = {
+    LinkingTaskActions(task)
   }
 
 }

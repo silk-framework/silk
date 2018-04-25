@@ -11,7 +11,7 @@
       Operators
     </div>
     @for(task <- project.allTasks;
-         taskActions <- WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName != "Dataset" &&
+         taskActions = WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName != "Dataset" &&
                                                           taskActions.taskType.typeName != "Workflow") {
       @toolboxOperator(taskActions)
     }
@@ -21,7 +21,7 @@
       Datasets
     </div>
       @for(task <- project.allTasks;
-           taskActions <- WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName == "Dataset") {
+           taskActions = WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName == "Dataset") {
         @toolboxOperator(taskActions)
       }
   </div>

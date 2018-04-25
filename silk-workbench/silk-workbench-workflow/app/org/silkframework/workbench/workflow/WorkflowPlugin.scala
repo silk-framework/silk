@@ -8,7 +8,7 @@ import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.workflow.Workflow
 import scala.language.existentials
 
-case class WorkflowPlugin() extends WorkbenchPlugin {
+case class WorkflowPlugin() extends WorkbenchPlugin[Workflow] {
 
   /**
     * The task types that are covered by this plugin.
@@ -18,12 +18,8 @@ case class WorkflowPlugin() extends WorkbenchPlugin {
   /**
     * The task actions that are provided for a specific task.
     */
-  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
-    if(classOf[Workflow].isAssignableFrom(task.data.getClass)) {
-      Some(WorkflowTaskActions(task))
-    } else {
-      None
-    }
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions = {
+    WorkflowTaskActions(task)
   }
 
 }

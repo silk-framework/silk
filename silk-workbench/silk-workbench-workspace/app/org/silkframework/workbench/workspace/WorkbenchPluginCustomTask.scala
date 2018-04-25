@@ -9,16 +9,12 @@ import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTask
 import org.silkframework.workspace.ProjectTask
 import scala.language.existentials
 
-case class WorkbenchPluginCustomTask() extends WorkbenchPlugin {
+case class WorkbenchPluginCustomTask() extends WorkbenchPlugin[CustomTask] {
 
   override def taskType: TaskType = CustomTaskType
 
-  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
-    if(classOf[CustomTask].isAssignableFrom(task.data.getClass)) {
-      Some(CustomTaskActions(task))
-    } else {
-      None
-    }
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions = {
+    CustomTaskActions(task)
   }
 }
 
@@ -46,11 +42,11 @@ object WorkbenchPluginCustomTask {
     private val taskId = task.id
 
     /** The name of the task type */
-    override def taskType: TaskType = DatasetTaskType
+    override def taskType: TaskType = CustomTaskType
 
     /** The path to the dialog for editing an existing task. */
     override def propertiesDialog =
-      Some(s"workspace/customTasks/editTaskDialog/$project/$task")
+      Some(s"workspace/customTasks/editTaskDialog/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
     override def openPath =

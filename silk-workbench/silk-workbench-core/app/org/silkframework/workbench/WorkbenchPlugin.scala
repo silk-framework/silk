@@ -4,10 +4,12 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 import org.silkframework.workspace.ProjectTask
 
+import scala.reflect.ClassTag
+
 /**
   * Specifies the UI integration of specific task types.
   */
-trait WorkbenchPlugin {
+abstract class WorkbenchPlugin[T <: TaskSpec : ClassTag] {
 
   /**
     * The task types that are covered by this plugin.
@@ -17,8 +19,15 @@ trait WorkbenchPlugin {
   /**
     * The task actions that are provided for a specific task.
     */
-  def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions]
+  def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions
 
+  def taskClass: Class[_] = {
+    implicitly[ClassTag[T]].runtimeClass
+  }
+
+  def isCompatible(task: ProjectTask[_ <: TaskSpec]): Boolean = {
+    taskClass.isAssignableFrom(task.data.getClass)
+  }
 }
 
 object WorkbenchPlugin {

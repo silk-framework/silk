@@ -11,16 +11,12 @@ import org.silkframework.workspace.ProjectTask
 
 import scala.language.existentials
 
-case class WorkbenchPluginDataset() extends WorkbenchPlugin {
+case class WorkbenchPluginDataset() extends WorkbenchPlugin[DatasetSpec] {
 
   override def taskType: TaskType = DatasetTaskType
 
-  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
-    if(classOf[DatasetSpec].isAssignableFrom(task.data.getClass)) {
-      Some(DatasetTaskActions(task))
-    } else {
-      None
-    }
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions = {
+    DatasetTaskActions(task)
   }
 }
 

@@ -12,7 +12,7 @@ import scala.language.existentials
 /**
   * The linking Workbench plugin.
   */
-case class TransformPlugin() extends WorkbenchPlugin {
+case class TransformPlugin() extends WorkbenchPlugin[TransformSpec] {
 
   /**
     * The task type that is covered by this plugin.
@@ -22,12 +22,8 @@ case class TransformPlugin() extends WorkbenchPlugin {
   /**
     * The task actions that are provided for a specific task.
     */
-  override def taskActions(task: ProjectTask[_ <: TaskSpec]): Option[TaskActions] = {
-    if(classOf[TransformSpec].isAssignableFrom(task.data.getClass)) {
-      Some(TransformTaskActions(task))
-    } else {
-      None
-    }
+  override def taskActions(task: ProjectTask[_ <: TaskSpec]): TaskActions = {
+    TransformTaskActions(task)
   }
 
 }
