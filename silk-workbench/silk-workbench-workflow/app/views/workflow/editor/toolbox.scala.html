@@ -1,8 +1,8 @@
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.ProjectTask
-@import plugins.WorkbenchPlugin.TaskActions
-@import plugins.WorkbenchPlugins
+@import org.silkframework.workbench.WorkbenchPlugins
 
+@import org.silkframework.workbench.WorkbenchPlugin.TaskActions
 @(project: org.silkframework.workspace.Project)
 
 <div id="toolbox" style="height: 67.9px;">
@@ -10,35 +10,34 @@
     <div id="operatorToolboxHeader">
       Operators
     </div>
-    @for(plugin <- WorkbenchPlugins();
-         taskActions <- plugin.tasks if taskActions.name != "Dataset" && taskActions.name != "Workflow";
-         task <- taskActions.projectTasks(project)) {
-         @toolboxOperator(task, taskActions)
+    @for(task <- project.allTasks;
+         taskActions <- WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName != "Dataset" &&
+                                                          taskActions.taskType.typeName != "Workflow") {
+      @toolboxOperator(taskActions)
     }
   </div>
   <div id="datasetToolbox">
     <div id="datasetToolboxHeader">
       Datasets
     </div>
-    @for(plugin <- WorkbenchPlugins();
-        taskActions <- plugin.tasks if taskActions.name == "Dataset";
-        task <- taskActions.projectTasks(project)) {
-        @toolboxOperator(task, taskActions)
-    }
+      @for(task <- project.allTasks;
+           taskActions <- WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName == "Dataset") {
+        @toolboxOperator(taskActions)
+      }
   </div>
 </div>
 
 @**
  * A single operator in the toolbox.
  *@
-@toolboxOperator(task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_]) = {
-  <div id="toolbox_@task.id" class="toolboxOperator" title="@task.taskLabel(maxLength = 1024)">
+@toolboxOperator(taskActions: TaskActions) = {
+  <div id="toolbox_@taskActions.task.id" class="toolboxOperator" title="@taskActions.task.taskLabel(maxLength = 1024)">
     @*<img src="@icon">*@
-    @task.taskLabel()
-    @if(taskActions.name != "Dataset") {
-      @operator(project, task, taskActions)
+    @taskActions.task.taskLabel()
+    @if(taskActions.taskType.typeName != "Dataset") {
+      @operator(taskActions)
     } else {
-      @dataset(project, task, taskActions)
+      @dataset(taskActions)
     }
   </div>
 }

@@ -1,8 +1,10 @@
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.workbench.rules.{LinkingPlugin, TransformPlugin}
 import play.api.Application
 import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.mvc.EssentialAction
 import plugins.WorkbenchPlugins
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Global extends WorkbenchGlobal {
