@@ -37,6 +37,7 @@ object WorkbenchPlugins {
       case Seq(plugin) =>
         plugin
       case plugins =>
+        // There are multiple plugins that cover this task type => Choose the most specific one
         plugins.sortWith { case (t1, t2) => t2.taskClass.isAssignableFrom(t1.taskClass) }.head
     }
   }
