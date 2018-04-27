@@ -47,7 +47,7 @@ case class EntitySchema(
     }
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified(Prefixes.default))
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.propertyUri.map(_.uri).getOrElse("")) //TODO verify
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 

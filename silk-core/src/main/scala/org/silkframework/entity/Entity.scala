@@ -172,6 +172,8 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
 
 object Entity {
 
+  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq(), EntitySchema.empty)
+
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
   }
@@ -190,9 +192,10 @@ object Entity {
     */
   //FIXME add property option CMEM-719
   def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
-    val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
-    val e = new Entity(uri, fakeVals, schema)
+    val e = empty(uri)
     e.failEntity(t)
+    e._values = schema.typedPaths.map(x => Seq())
+    e.applyNewSchema(schema, validate = false)
     e
   }
 
@@ -206,8 +209,10 @@ object Entity {
     */
   //FIXME add property option CMEM-719
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
-    val e = apply(uri, values, schema)
+    val e = empty(uri)
     e.failEntity(t)
+    e._values = values
+    e.applyNewSchema(schema)
     e
   }
 
