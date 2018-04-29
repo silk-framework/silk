@@ -1,8 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.net.URLEncoder
-
-import org.silkframework.entity.SparkCompatibleEncoding
+import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.collection.immutable
@@ -63,12 +61,7 @@ object CsvSourceHelper {
               case Some(max) => columnName + "_" + (max + 1)
               case None => columnName
             }
-          case (s, _) =>
-            if (Uri(s).isValidUri) {
-              s
-            } else {
-              SparkCompatibleEncoding.encode(s).uri
-            }
+          case (s, _) => Uri(s).serialize(Prefixes.empty)
         }.toIndexedSeq
   }
 }

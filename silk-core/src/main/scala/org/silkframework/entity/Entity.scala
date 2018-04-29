@@ -27,8 +27,25 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
 
   private var _failure: Option[Throwable] = None
   private var _schema: EntitySchema = _
-  private var _values: IndexedSeq[Seq[String]] = vals
+  private var _values: IndexedSeq[Seq[String]] = _
+  setValues(vals)
   applyNewSchema(desc)
+
+  private def setValues(vals: IndexedSeq[Seq[String]]): Unit ={
+    def handleNullsInValueSeq(valueSeq: Seq[Any]) = {
+      if(valueSeq == null)
+        Seq()
+      else
+        valueSeq.flatMap(x => Option(x).map(_.toString))
+
+// FIXME switch to a metadata map to not only record exceptions CMEM-719       if (!nullArrayLogged) {
+//          nullArrayLogged = true
+//          EventLog warn "Spark Array value contains null values!"
+//        }
+    }
+
+    _values = vals.map(handleNullsInValueSeq)
+  }
 
   def values: IndexedSeq[Seq[String]] = _values
 
@@ -51,7 +68,7 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     if(validate && (this.values.size < newSchema.typedPaths.size || !this.validate))
       failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
 
-    _values = _schema.typedPaths.zipWithIndex.map(tp =>values(tp._2))
+    setValues(_schema.typedPaths.zipWithIndex.map(tp =>values(tp._2)))
     this
   }
 
