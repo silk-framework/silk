@@ -28,8 +28,8 @@ case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
   def getLocalName: Option[String] = path.getLocalName
 
   def property: Option[TypedProperty] = path.operators match {
-    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop, valueType, isBackwardProperty = false, isAttribute = isAttribute))
-    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop, valueType, isBackwardProperty = true, isAttribute = isAttribute))
+    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
+    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
 }
