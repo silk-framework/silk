@@ -202,7 +202,7 @@ object PluginRegistry {
     /** Map from plugin id to plugin description */
     private var plugins = ListMap[String, PluginDescription[_]]()
 
-    def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq
+    def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq.filterNot( desc => desc.categories.contains("internal"))
 
     /**
      * Creates a new instance of a specific plugin.
