@@ -39,6 +39,8 @@ object WorkflowPlugin {
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"workflow/dialogs/$project/workflowDialog")
+
+    override def index: Int = 3
   }
 
   case class WorkflowTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {

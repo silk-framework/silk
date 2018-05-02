@@ -44,6 +44,9 @@ object WorkbenchPlugin {
     /** Path to the task folder icon */
     def folderIcon: String
 
+    /** Tasks with a higher indices are shown before tasks with lower indices. */
+    def index: Int = Int.MaxValue
+
   }
 
   trait TaskActions {

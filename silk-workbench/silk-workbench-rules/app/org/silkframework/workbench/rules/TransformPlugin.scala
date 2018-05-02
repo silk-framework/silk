@@ -44,6 +44,8 @@ object TransformPlugin {
     override def createDialog(project: String): Option[String] =
       Some(s"transform/dialogs/newTransformTask/$project")
 
+    override def index: Int = 1
+
   }
 
   case class TransformTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {

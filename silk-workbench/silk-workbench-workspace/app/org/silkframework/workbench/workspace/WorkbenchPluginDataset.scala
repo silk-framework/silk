@@ -35,6 +35,8 @@ object WorkbenchPluginDataset {
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String): Option[String] =
       Some(s"workspace/dialogs/newDataset/$project")
+
+    override def index: Int = 0
   }
 
   case class DatasetTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {

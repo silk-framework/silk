@@ -43,6 +43,8 @@ object LinkingPlugin {
     /** The path to the dialog for creating a new task. */
     override def createDialog(project: String) =
       Some(s"linking/dialogs/newLinkingTask/$project")
+
+    override def index: Int = 2
   }
 
   case class LinkingTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {
