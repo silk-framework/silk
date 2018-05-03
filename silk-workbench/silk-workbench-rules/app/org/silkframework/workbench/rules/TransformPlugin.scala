@@ -59,11 +59,11 @@ object TransformPlugin {
 
     /** The path to the dialog for editing an existing task. */
     override def propertiesDialog: Option[String] =
-      Some(s"transform/dialogs/editTransformTask/$project/$task")
+      Some(s"transform/dialogs/editTransformTask/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
     override def openPath: Option[String] =
-      Some(s"transform/$project/$task/editor")
+      Some(s"transform/$project/$taskId/editor")
 
     /**
       * Lists the shown tabs.

@@ -3,6 +3,7 @@ package org.silkframework.workbench
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 import org.silkframework.workspace.ProjectTask
+import play.api.mvc.Call
 
 import scala.reflect.ClassTag
 
@@ -73,5 +74,9 @@ object WorkbenchPlugin {
     * @param path The target when the user clicks on the tab.
     */
   case class Tab(title: String, path: String)
+
+  object Tab {
+    def apply(title: String, call: Call): Tab = new Tab(title, call.path())
+  }
 
 }

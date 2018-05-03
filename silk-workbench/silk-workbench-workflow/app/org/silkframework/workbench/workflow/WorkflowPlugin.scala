@@ -57,7 +57,7 @@ object WorkflowPlugin {
 
     /** The path to redirect to when the task is opened. */
     override def openPath =
-      Some(s"workflow/editor/$project/$task")
+      Some(s"workflow/editor/$project/$taskId")
 
     /**
       * Lists the shown tabs.
