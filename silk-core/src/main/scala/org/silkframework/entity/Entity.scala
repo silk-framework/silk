@@ -23,31 +23,56 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
+class Entity private(
+    val uri: Uri,
+    private val vals: IndexedSeq[Seq[String]],
+    private val desc: EntitySchema,
+    val subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty
+  ) extends Serializable {
 
-  private var _failure: Option[Throwable] = None
-  private var _schema: EntitySchema = _
-  private var _values: IndexedSeq[Seq[String]] = _
+  if(subEntities.nonEmpty && desc.isInstanceOf[MultiEntitySchema] && desc.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
+    throw new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri)
+
+  private[entity] var _failure: Option[Throwable] = None
+  private[entity] var _schema: EntitySchema = _
+  private[entity] var _values: IndexedSeq[Seq[String]] = _
   setValues(vals)
   applyNewSchema(desc)
 
-  private def setValues(vals: IndexedSeq[Seq[String]]): Unit ={
-    def handleNullsInValueSeq(valueSeq: Seq[Any]) = {
-      if(valueSeq == null)
-        Seq()
-      else
-        valueSeq.flatMap(x => Option(x).map(_.toString))
+  /**
+    * set and normalize a new value sequence
+    * @param vals
+    */
+  private[entity] def setValues(vals: IndexedSeq[Seq[String]]): Unit ={
+    def handleNullsInValueSeq(valueSeq: Seq[String]) = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
 
 // FIXME switch to a metadata map to not only record exceptions CMEM-719       if (!nullArrayLogged) {
 //          nullArrayLogged = true
 //          EventLog warn "Spark Array value contains null values!"
 //        }
-    }
+
 
     _values = vals.map(handleNullsInValueSeq)
   }
 
-  def values: IndexedSeq[Seq[String]] = _values
+  /**
+    * returning the current value sequence (omitting all values not accompanied by a TypedPath in the schema)
+    * @return
+    */
+  def values: IndexedSeq[Seq[String]] = {
+    _schema match {
+      case mes: MultiEntitySchema => mes.pivotSchema.typedPaths.zipWithIndex.flatMap(tp => if(tp._1.isEmpty) None else Some(_values(tp._2))) ++
+        subEntities.flatMap(x => x.map(_.values).getOrElse(Seq()))
+      case _: EntitySchema => _schema.typedPaths.zipWithIndex.flatMap(tp => if(tp._1.isEmpty) None else Some(_values(tp._2)))
+    }
+  }
+
+  def flatValues: IndexedSeq[Seq[String]] = {
+    _schema match {
+      case mes: MultiEntitySchema => mes.pivotSchema.typedPaths.zipWithIndex.map(tp => _values(tp._2))
+      case _: EntitySchema => _schema.typedPaths.zipWithIndex.map(tp => _values(tp._2))
+    }
+  }
 
   /**
     * The EntitySchema defining the cells of the value sequence
@@ -64,11 +89,15 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     */
   def applyNewSchema(newSchema: EntitySchema, validate: Boolean = true): Entity ={
     _schema = newSchema
+    _schema match {
+      case mes: MultiEntitySchema =>
+        this.subEntities.zip(mes.subSchemata).foreach(x => x._1.map(_.applyNewSchema(x._2, validate)))
+      case _ =>
+    }
 
-    if(validate && (this.values.size < newSchema.typedPaths.size || !this.validate))
-      failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
+    if(validate && !this.validate)
+      failEntity(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
 
-    setValues(_schema.typedPaths.zipWithIndex.map(tp =>values(tp._2)))
     this
   }
 
@@ -101,12 +130,14 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
 
   /**
     * returns all values of a given property in the entity
-    * @param colName
+    * @param property
     * @return
     */
-  def valueOf(colName: String): Seq[String] ={
-    _schema.propertyNames.zipWithIndex.find(_._1 == colName) match{
-      case Some((_, ind)) => values(ind)
+  def valueOf(property: String): Seq[String] ={
+    val es = _schema.getSchemaOfProperty(property)
+    val ent = if(es == _schema || _schema.isInstanceOf[MultiEntitySchema] && _schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) this else subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+    es.propertyNames.zipWithIndex.find(_._1 == property) match{
+      case Some((_, ind)) => ent.values(ind)
       case None => Seq()
     }
   }
@@ -130,9 +161,19 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    _schema.typedPaths.zipWithIndex.forall(tp =>{
-      values(tp._2).forall(v => tp._1.valueType.validate(v))
+    val tps = _schema match {
+      case mes: MultiEntitySchema => mes.pivotSchema
+      case _ => _schema
+    }
+    val valsSize = _values.size >= tps.typedPaths.size
+    val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
+      _values(tp._2).forall(v => tp._1.valueType.validate(v))
     })
+    val subEntsValid = _schema match{
+      case mes: MultiEntitySchema => subEntities.zip(mes.subSchemata).forall(se => se._1.isEmpty || se._2 == se._1.get.schema && se._1.get.validate)
+      case _: EntitySchema => true
+    }
+    valsSize && valsConform && subEntsValid
   }
 
   /**
@@ -185,11 +226,28 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     hashCode = hashCode * 31 + schema.hashCode()
     hashCode
   }
+
+  def copy(
+    uri: Uri = this.uri,
+    vals: IndexedSeq[Seq[String]] = this._values,
+    desc: EntitySchema = this._schema
+  ): Entity = this._failure match{
+      case Some(f) => Entity(uri, vals, desc, f)
+      case None => Entity(uri, vals, desc)
+  }
 }
 
 object Entity {
 
   def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq(), EntitySchema.empty)
+
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
+    new Entity(uri, values, schema, subEntities)
+  }
+
+  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
+    new Entity(uri, values, schema, subEntities)
+  }
 
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)

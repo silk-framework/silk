@@ -61,7 +61,7 @@ object CsvSourceHelper {
               case Some(max) => columnName + "_" + (max + 1)
               case None => columnName
             }
-          case (s, _) => Uri(s).serialize(Prefixes.empty)
+          case (s, _) => s
         }.toIndexedSeq
   }
 }

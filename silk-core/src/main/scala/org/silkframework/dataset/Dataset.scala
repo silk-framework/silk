@@ -3,6 +3,7 @@ package org.silkframework.dataset
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.util.Uri
 
 /**
  * Manages the access to a specific dataset.

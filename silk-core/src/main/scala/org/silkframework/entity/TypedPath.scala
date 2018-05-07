@@ -33,6 +33,12 @@ object TypedPath {
     */
   def apply(path: Path, valueType: ValueType, isAttribute: Boolean): TypedPath = new TypedPath(path.operators, valueType, isAttribute)
 
+  /**
+    * Empty TypedPath (used as filler or duds)
+    * @return
+    */
+  def empty: TypedPath = TypedPath(Path.empty, AutoDetectValueType, isAttribute = false)
+
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
     /**
       * Deserializes a value.

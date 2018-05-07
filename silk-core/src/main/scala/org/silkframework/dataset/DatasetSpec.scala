@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -79,7 +79,7 @@ object DatasetSpec {
 
   implicit def toTransformTask(task: Task[DatasetSpec]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
-  def empty = {
+  def empty: DatasetSpec = {
     new DatasetSpec(EmptyDataset)
   }
 
@@ -181,7 +181,7 @@ object DatasetSpec {
     override def writeEntity(subject: String, values: Seq[Seq[String]]) {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriProperty match {
-        case Some(property) =>
+        case Some(_) =>
           entitySink.writeEntity(subject, Seq(subject) +: values)
         case None =>
           entitySink.writeEntity(subject, values)
@@ -263,8 +263,8 @@ object DatasetSpec {
     override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resources = readContext.resources
+      implicit val prefixes: Prefixes = readContext.prefixes
+      implicit val resources: ResourceManager = readContext.resources
 
       // Check if the data source still uses the old outdated XML format
       if (node.label == "DataSource" || node.label == "Output") {

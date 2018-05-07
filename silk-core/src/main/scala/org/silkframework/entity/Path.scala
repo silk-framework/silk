@@ -94,7 +94,7 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 object Path {
   private var pathCache = Map[String, WeakReference[Path]]()
 
-  def empty = new Path(List.empty)
+  def empty: Path = new Path(List.empty)
 
   /**
     * Creates a new path.

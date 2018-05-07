@@ -1,5 +1,6 @@
 package org.silkframework.entity
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -46,7 +47,29 @@ case class EntitySchema(
     }
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified)
+  /**
+    * Will return the (sub-) schema containing the TypedPath in question
+    * @param property - property name of TypedPath to look for
+    * @return
+    */
+  def getSchemaOfProperty(property: String): EntitySchema ={
+    val schema = this.typedPaths.find(tp => tp.serializeSimplified(Prefixes.default) == property) match{
+      case Some(s) => getSchemaOfProperty(s)
+      case None => EntitySchema.empty
+    }
+    assert(schema.getClass.getSuperclass != EntitySchema.getClass)
+    schema
+  }
+
+  /**
+    * this will return the EntitySchema containing the given typed path
+    * NOTE: has to be overwritten in MultiEntitySchema
+    * @param tp - the typed path
+    * @return
+    */
+  def getSchemaOfProperty(tp: TypedPath): EntitySchema = this
+
+  def propertyNames: IndexedSeq[String] = this.typedPaths.flatMap(p => if(p.isEmpty) None else Some(p.serializeSimplified))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 
@@ -70,11 +93,36 @@ case class EntitySchema(
     else
       false
   }
+
+  override def toString: String = "(" + typeUri + " : " + typedPaths.mkString(", ") + ")"
 }
 
 object EntitySchema {
 
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
+
+  /**
+    * Will create a nes EntitySchema minus all given TypedPaths
+    * @param schema - the schema to be changed
+    * @param tps - the TypedPaths to drop
+    * @return
+    */
+  def dropTypedPath(schema: EntitySchema, tps: TypedPath*): EntitySchema ={
+    schema match{
+      case mes: MultiEntitySchema =>
+        new MultiEntitySchema(
+          dropTypedPath(mes.pivotSchema),
+          mes.subSchemata.map(ss => dropTypedPath(ss, tps:_*))
+        )
+      case es: EntitySchema =>
+        EntitySchema(
+          es.typeUri,
+          es.typedPaths.map(tp => if(tps.contains(tp)) TypedPath.empty else tp),
+          es.filter,
+          es.subPath
+        )
+    }
+  }
 
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
