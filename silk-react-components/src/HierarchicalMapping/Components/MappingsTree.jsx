@@ -29,14 +29,6 @@ const MappingsTree = React.createClass({
 
     // initilize state
     getInitialState() {
-        this.subscribe(
-            hierarchicalMappingChannel.subject('reload'),
-            this.loadData
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject('ruleId.change'),
-            this.expandElement
-        );
         return {
             loading: true,
             tree: undefined,
@@ -45,6 +37,14 @@ const MappingsTree = React.createClass({
         };
     },
     componentDidMount() {
+        this.subscribe(
+            hierarchicalMappingChannel.subject('reload'),
+            this.loadData
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject('ruleId.change'),
+            this.expandElement
+        );
         this.loadData();
     },
     expandElement({newRuleId, parentId}) {

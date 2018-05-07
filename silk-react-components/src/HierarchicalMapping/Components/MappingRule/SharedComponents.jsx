@@ -161,10 +161,13 @@ const URIInfo = React.createClass({
 
 const PropertyTypeInfo = React.createClass({
     getInitialState() {
-        if (__DEBUG__) {
-            console.log(this.props);
-        }
-
+        return {
+            name: this.props.name,
+            option: this.props.option,
+            result: false,
+        };
+    },
+    componentDidMount() {
         hierarchicalMappingChannel
             .request({
                 topic: 'autocomplete',
@@ -189,7 +192,7 @@ const PropertyTypeInfo = React.createClass({
                         console.warn(
                             `No ${
                                 this.props.option
-                            } found for the property type ${this.props.name}`
+                                } found for the property type ${this.props.name}`
                         );
                     }
                     this.setState({
@@ -197,12 +200,6 @@ const PropertyTypeInfo = React.createClass({
                     });
                 }
             );
-
-        return {
-            name: this.props.name,
-            option: this.props.option,
-            result: false,
-        };
     },
     render() {
         return <div>{this.state.result}</div>;

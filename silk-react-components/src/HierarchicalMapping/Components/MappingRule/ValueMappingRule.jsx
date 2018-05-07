@@ -43,6 +43,12 @@ const RuleValueView = React.createClass({
         );
     },
     getInitialState() {
+        return {
+            edit: this.props.edit,
+            href: null,
+        };
+    },
+    componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.request({
                 topic: 'rule.getEditorHref',
@@ -50,11 +56,6 @@ const RuleValueView = React.createClass({
             }),
             ({href}) => this.setState({href})
         );
-
-        return {
-            edit: this.props.edit,
-            href: null,
-        };
     },
     handleComplexEdit(event) {
         if (__DEBUG__) {
