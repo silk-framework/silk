@@ -126,7 +126,7 @@ const MappingsWorkview = React.createClass({
             });
             hierarchicalMappingChannel
                 .subject('ruleView.change')
-                .onNext({id: 0});
+                .next({id: 0});
         } else {
             this.setState({
                 askForDiscard: {
@@ -181,7 +181,7 @@ const MappingsWorkview = React.createClass({
 
                         hierarchicalMappingChannel
                             .subject('rulesView.toggle')
-                            .onNext({
+                            .next({
                                 expanded: true,
                                 id: toBeOpened,
                             });
@@ -209,18 +209,18 @@ const MappingsWorkview = React.createClass({
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
         if (type) {
-            hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
+            hierarchicalMappingChannel.subject('ruleId.create').next({type});
         } else if (suggestions) {
             this.setState({
                 showSuggestions: true,
             });
         } else {
-            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({
+            hierarchicalMappingChannel.subject('rulesView.toggle').next({
                 expanded,
                 id: true,
             });
         }
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+        hierarchicalMappingChannel.subject('ruleView.discardAll').next();
         this.setState({
             askForDiscard: false,
         });
@@ -236,7 +236,7 @@ const MappingsWorkview = React.createClass({
         if (this.state.editing.length === 0 || expanded) {
             hierarchicalMappingChannel
                 .subject('rulesView.toggle')
-                .onNext({expanded, id: true});
+                .next({expanded, id: true});
         } else {
             this.setState({
                 askForDiscard: {
@@ -249,7 +249,7 @@ const MappingsWorkview = React.createClass({
     // jumps to selected rule as new center of view
     handleCreate({type}) {
         if (this.state.editing.length === 0) {
-            hierarchicalMappingChannel.subject('ruleId.create').onNext({
+            hierarchicalMappingChannel.subject('ruleId.create').next({
                 type,
             });
         } else {
@@ -263,7 +263,7 @@ const MappingsWorkview = React.createClass({
 
     handleCloseSuggestions() {
         this.setState({showSuggestions: false});
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id: 0});
+        hierarchicalMappingChannel.subject('ruleView.close').next({id: 0});
     },
 
     shouldComponentUpdate(nextProps, nextState) {

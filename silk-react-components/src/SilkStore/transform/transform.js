@@ -1,6 +1,6 @@
 // Low level representation of silks /transform API
 
-import rxmq from 'ecc-messagebus';
+import rxmq from '@eccenca/messagebus';
 import superagent from '@eccenca/superagent';
 
 import _ from 'lodash';

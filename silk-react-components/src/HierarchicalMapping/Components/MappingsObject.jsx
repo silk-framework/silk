@@ -73,7 +73,7 @@ const MappingsObject = React.createClass({
         });
         hierarchicalMappingChannel
             .subject('ruleView.unchanged')
-            .onNext({id: this.props.rule.id});
+            .next({id: this.props.rule.id});
     },
     handleCancelDiscard() {
         this.setState({

@@ -101,6 +101,13 @@
   version "1.3.0-beta5"
   resolved "https://registry.npmjs.org/@eccenca/material-design-lite/-/material-design-lite-1.3.0-beta5.tgz#70c0d0f49a4e10883c365706faff7bdadada67fb"
 
+"@eccenca/messagebus@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@eccenca/messagebus/-/messagebus-5.0.0.tgz#4185c5525065b7879079e90515f9d57c3293d171"
+  dependencies:
+    rxjs "^5.5.6"
+    rxmq "^1.1.5"
+
 "@eccenca/superagent@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@eccenca/superagent/-/superagent-2.0.1.tgz#3833c33e896d2036c0e8a7e37f51c2899d524fa4"
@@ -110,6 +117,14 @@
     rxjs "^5.5.6"
     superagent "^3.8.2"
     warning "^3.0.0"
+
+"@eccenca/utils@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@eccenca/utils/-/utils-1.6.0.tgz#59a48cbb74a093bc9927ccc7f056d6dbfa18f2ec"
+  dependencies:
+    lodash "^4.17.5"
+    urijs "^1.19.1"
+    uuid "^3.2.1"
 
 abbrev@1:
   version "1.1.1"
@@ -2546,22 +2561,6 @@ ecc-license-checker@^2.5.2, ecc-license-checker@^2.6.2:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
     spdx "^0.5.1"
-
-ecc-messagebus@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.npmjs.org/ecc-messagebus/-/ecc-messagebus-3.6.0.tgz#8cdb8c23c700a0f7c405fa1e6167e30843fdf7e7"
-  dependencies:
-    rx "^4.1.0"
-    rxmq "^0.9.3"
-    rxmq.middleware "^0.2.1"
-
-ecc-utils@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/ecc-utils/-/ecc-utils-1.4.0.tgz#dac2b83abdd48080523a0df521a265d337ea2723"
-  dependencies:
-    lodash "^4.17.4"
-    urijs "^1.18.12"
-    uuid "^3.1.0"
 
 ee-first@1.1.1:
   version "1.1.1"
@@ -7139,7 +7138,7 @@ rx-lite@^3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
-rx@^4.0.6, rx@^4.1.0:
+rx@^4.1.0:
   version "4.1.0"
   resolved "https://registry.npmjs.org/rx/-/rx-4.1.0.tgz#a5f13ff79ef3b740fe30aa803fb09f98805d4782"
 
@@ -7149,23 +7148,17 @@ rxjs@^5.0.0-beta.11:
   dependencies:
     symbol-observable "1.0.1"
 
-rxjs@^5.5.6:
+rxjs@^5.5.0, rxjs@^5.5.6:
   version "5.5.10"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.10.tgz#fde02d7a614f6c8683d0d1957827f492e09db045"
   dependencies:
     symbol-observable "1.0.1"
 
-rxmq.middleware@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/rxmq.middleware/-/rxmq.middleware-0.2.1.tgz#8e508d7579132565247427f61ae3b5966ca065ed"
+rxmq@1.1.5, rxmq@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/rxmq/-/rxmq-1.1.5.tgz#44cca1a3dab9159e23808a3fd9825a60af121378"
   dependencies:
-    rx "^4.0.6"
-
-rxmq@^0.9.3:
-  version "0.9.3"
-  resolved "https://registry.npmjs.org/rxmq/-/rxmq-0.9.3.tgz#da2472be135b370a57d6b9c4026809cf7615107d"
-  dependencies:
-    rx "^4.1.0"
+    rxjs "^5.5.0"
 
 safe-buffer@5.1.1, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"
@@ -8133,9 +8126,9 @@ upper-case@^1.1.1:
   version "1.1.3"
   resolved "https://registry.npmjs.org/upper-case/-/upper-case-1.1.3.tgz#f6b4501c2ec4cdd26ba78be7222961de77621598"
 
-urijs@^1.18.12:
-  version "1.19.0"
-  resolved "https://registry.npmjs.org/urijs/-/urijs-1.19.0.tgz#d8aa284d0e7469703a6988ad045c4cbfdf08ada0"
+urijs@^1.19.1:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.1.tgz#5b0ff530c0cbde8386f6342235ba5ca6e995d25a"
 
 urix@^0.1.0:
   version "0.1.0"
@@ -8200,9 +8193,9 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
 
-uuid@^3.0.0, uuid@^3.1.0:
+uuid@^3.0.0, uuid@^3.1.0, uuid@^3.2.1:
   version "3.2.1"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
 
 v8flags@^2.0.2, v8flags@^2.1.1:
   version "2.1.1"

@@ -11,7 +11,7 @@ import {
     ConfirmationDialog,
     Spinner,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
+import {URI} from '@eccenca/utils';
 
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
@@ -65,7 +65,7 @@ const HierarchicalMapping = React.createClass({
     getInitialState() {
         const {baseUrl, project, transformTask, initialRule} = this.props;
 
-        hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+        hierarchicalMappingChannel.subject('setSilkDetails').next({
             baseUrl,
             project,
             transformTask,
@@ -197,14 +197,14 @@ const HierarchicalMapping = React.createClass({
         if (_.includes(this.state.editingElements, 0)) {
             hierarchicalMappingChannel
                 .subject('ruleView.unchanged')
-                .onNext({id: 0});
+                .next({id: 0});
         }
         this.setState({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+        hierarchicalMappingChannel.subject('ruleView.discardAll').next();
     },
     discardAll() {
         this.setState({
@@ -304,7 +304,7 @@ const HierarchicalMapping = React.createClass({
                     onClick={() => {
                         hierarchicalMappingChannel
                             .subject('reload')
-                            .onNext(true);
+                            .next(true);
                     }}>
                     RELOAD
                 </Button>

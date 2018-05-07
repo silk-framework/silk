@@ -68,7 +68,7 @@ const MappingsList = React.createClass({
             })
             .subscribe(() => {
                 // reload mapping tree
-                hierarchicalMappingChannel.subject('reload').onNext();
+                hierarchicalMappingChannel.subject('reload').next();
             });
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local

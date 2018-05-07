@@ -152,9 +152,9 @@ const SuggestionsList = React.createClass({
                 () => {
                     hierarchicalMappingChannel
                         .subject('ruleView.close')
-                        .onNext({id: 0});
+                        .next({id: 0});
                     this.props.onClose();
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject('reload').next(true);
                 },
                 err => {
                     // If we have a list of failedRules, we want to show them, otherwise something
@@ -165,7 +165,7 @@ const SuggestionsList = React.createClass({
 
                     this.setState({saving: false, error});
 
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject('reload').next(true);
                 }
             );
     },

@@ -11,7 +11,7 @@ import {
     ScrollingMixin,
     Checkbox,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
+import {URI} from '@eccenca/utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
@@ -97,7 +97,7 @@ const ValueMappingRuleForm = React.createClass({
         } else {
             hierarchicalMappingChannel
                 .subject('ruleView.change')
-                .onNext({id: 0});
+                .next({id: 0});
             this.setState({
                 create: true,
                 loading: false,
@@ -137,7 +137,7 @@ const ValueMappingRuleForm = React.createClass({
             .subscribe(
                 () => {
                     this.handleClose(event);
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject('reload').next(true);
                 },
                 err => {
                     this.setState({
@@ -166,11 +166,11 @@ const ValueMappingRuleForm = React.createClass({
             if (touched) {
                 hierarchicalMappingChannel
                     .subject('ruleView.change')
-                    .onNext({id});
+                    .next({id});
             } else {
                 hierarchicalMappingChannel
                     .subject('ruleView.unchanged')
-                    .onNext({id});
+                    .next({id});
             }
         }
 
@@ -182,8 +182,8 @@ const ValueMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
+        hierarchicalMappingChannel.subject('ruleView.unchanged').next({id});
+        hierarchicalMappingChannel.subject('ruleView.close').next({id});
     },
     // template rendering
     render() {

@@ -13,7 +13,7 @@ const UseMessageBus = {
             const subjName = subject.subject || subject.name;
 
             switch (action) {
-                case 'onNext':
+                case 'next':
                     console.log(
                         `UseMessageBus: ${
                             this.constructor.displayName
@@ -43,12 +43,12 @@ const UseMessageBus = {
         return subject;
     },
     // send message on subject
-    onNext(subject, ...args) {
+    next(subject, ...args) {
         const currentSubject = this.getSubject(subject);
 
-        this.useMessageBusLog('onNext', subject, ...args);
+        this.useMessageBusLog('next', subject, ...args);
 
-        currentSubject.onNext(...args);
+        currentSubject.next(...args);
     },
     // subscribe on subject
     subscribe(subject, ...args) {
@@ -67,7 +67,7 @@ const UseMessageBus = {
     componentWillUnmount() {
         // unsubscribe all subscriptions on unmount
         if (this.subscriptionsID) {
-            this[this.subscriptionsID].map(sub => sub.dispose());
+            this[this.subscriptionsID].map(sub => sub.unsubscribe());
             this[this.subscriptionsID] = [];
         }
     },

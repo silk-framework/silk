@@ -157,7 +157,7 @@ const ObjectRule = React.createClass({
             })
             .subscribe(
                 data => {
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject('reload').next(true);
                 },
                 err => {
                     console.error(err);
@@ -367,7 +367,7 @@ const ObjectRule = React.createClass({
                     onClick={() =>
                         hierarchicalMappingChannel
                             .subject('removeClick')
-                            .onNext({
+                            .next({
                                 id: this.props.id,
                                 uri: this.props.mappingTarget.uri,
                                 type: this.props.type,

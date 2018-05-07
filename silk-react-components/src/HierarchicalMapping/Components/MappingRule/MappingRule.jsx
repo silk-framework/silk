@@ -117,7 +117,7 @@ const MappingRule = React.createClass({
         });
         hierarchicalMappingChannel
             .subject('ruleView.unchanged')
-            .onNext({id: this.props.id});
+            .next({id: this.props.id});
     },
     handleCancelDiscard() {
         this.setState({
@@ -131,7 +131,7 @@ const MappingRule = React.createClass({
         }
         hierarchicalMappingChannel
             .subject('request.rule.orderRule')
-            .onNext({toPos, fromPos, reload: true});
+            .next({toPos, fromPos, reload: true});
     },
     // template rendering
     render() {

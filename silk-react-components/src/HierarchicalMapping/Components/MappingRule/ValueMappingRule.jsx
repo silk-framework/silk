@@ -76,7 +76,7 @@ const RuleValueView = React.createClass({
         event.stopPropagation();
         hierarchicalMappingChannel
             .subject('ruleView.unchanged')
-            .onNext({id: this.props.id});
+            .next({id: this.props.id});
     },
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
@@ -326,7 +326,7 @@ const RuleValueView = React.createClass({
                             onClick={() =>
                                 hierarchicalMappingChannel
                                     .subject('removeClick')
-                                    .onNext({
+                                    .next({
                                         id: this.props.id,
                                         uri: this.props.mappingTarget.uri,
                                         type: this.props.type,

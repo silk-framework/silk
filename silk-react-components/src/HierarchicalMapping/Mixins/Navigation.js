@@ -7,7 +7,7 @@ const Navigation = {
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject('ruleId.change')
-            .onNext({newRuleId: id, parentId: parent});
+            .next({newRuleId: id, parentId: parent});
 
         event.stopPropagation();
     },
@@ -15,26 +15,26 @@ const Navigation = {
     handleCreate(infoCreation) {
         hierarchicalMappingChannel
             .subject('mapping.create')
-            .onNext(infoCreation);
+            .next(infoCreation);
     },
 
     handleShowSuggestions(event) {
         event.persist();
         hierarchicalMappingChannel
             .subject('mapping.showSuggestions')
-            .onNext(event);
+            .next(event);
     },
 
     handleToggleRuleDetails(stateExpand) {
         hierarchicalMappingChannel
             .subject('list.toggleDetails')
-            .onNext(stateExpand);
+            .next(stateExpand);
     },
 
     promoteToggleTreenavigation(stateVisibility) {
         hierarchicalMappingChannel
             .subject('treenav.toggleVisibility')
-            .onNext(stateVisibility);
+            .next(stateVisibility);
     },
 };
 

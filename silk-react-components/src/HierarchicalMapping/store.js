@@ -1,7 +1,7 @@
 // Store specific to hierarchical mappings, will use silk-store internally
 
 import _ from 'lodash';
-import rxmq, {Rx} from 'ecc-messagebus';
+import rxmq, {Rx} from '@eccenca/messagebus';
 import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_DIRECT,
@@ -98,12 +98,12 @@ const datatypes = _.map(
 function filterPropertyType(input, replySubject) {
     const search = _.deburr(input).toLocaleLowerCase();
 
-    replySubject.onNext({
+    replySubject.next({
         options: _.filter(datatypes, datatype =>
             _.includes(datatype.$search, search)
         ),
     });
-    replySubject.onCompleted();
+    replySubject.complete();
 }
 
 function findRule(curr, id, isObjectMapping, breadcrumbs) {
@@ -234,11 +234,11 @@ const generateRule = (rule, parentId) =>
             topic: 'rule.createGeneratedMapping',
             data: {...rule, parentId},
         })
-        .catch(e => Rx.Observable.return({error: e, rule}));
+        .catch(e => Rx.Observable.of({error: e, rule}));
 
 const createGeneratedRules = ({rules, parentId}) =>
     Rx.Observable.from(rules)
-        .flatMapWithMaxConcurrent(5, rule =>
+        .flatMap(5, rule =>
             Rx.Observable.defer(() => generateRule(rule, parentId))
         )
         .reduce((all, result, idx) => {
@@ -247,7 +247,7 @@ const createGeneratedRules = ({rules, parentId}) =>
 
             hierarchicalMappingChannel
                 .subject('rule.suggestions.progress')
-                .onNext({
+                .next({
                     progressNumber: _.round(count / total * 100, 0),
                     lastUpdate: `Saved ${count} of ${total} rules.`,
                 });
@@ -312,17 +312,17 @@ if (!__DEBUG__) {
             const path = [uri, field];
 
             if (_.has(vocabularyCache, path)) {
-                replySubject.onNext({
+                replySubject.next({
                     info: _.get(vocabularyCache, path),
                 });
-                replySubject.onCompleted();
+                replySubject.complete();
             } else {
                 silkStore
                     .request({
                         topic: 'transform.task.targetVocabulary.typeOrProperty',
                         data: {...apiDetails, uri},
                     })
-                    .catch(() => Rx.Observable.just({}))
+                    .catch(() => Rx.Observable.of({}))
                     .map(returned => {
                         const info = _.get(
                             returned,
@@ -350,7 +350,7 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.suggestions',
                         data: {...apiDetails, ...data},
                     })
-                    .catch(() => Rx.Observable.return(null))
+                    .catch(() => Rx.Observable.of(null))
                     .map(returned => {
                         const body = _.get(returned, 'body', []);
 
@@ -375,7 +375,7 @@ if (!__DEBUG__) {
                         topic: 'transform.task.rule.valueSourcePaths',
                         data: {unusedOnly: true, ...apiDetails, ...data},
                     })
-                    .catch(() => Rx.Observable.return(null))
+                    .catch(() => Rx.Observable.of(null))
                     .map(returned => {
                         const body = _.get(returned, 'body', []);
 
@@ -436,11 +436,11 @@ if (!__DEBUG__) {
                     .subscribe(returned => {
                         const result = mapPeakResult(returned);
                         if (result.title) {
-                            replySubject.onError(result);
+                            replySubject.eror(result);
                         } else {
-                            replySubject.onNext(result);
+                            replySubject.next(result);
                         }
-                        replySubject.onCompleted();
+                        replySubject.complete();
                     });
             }
         });
@@ -458,11 +458,11 @@ if (!__DEBUG__) {
                     .subscribe(returned => {
                         const result = mapPeakResult(returned);
                         if (result.title) {
-                            replySubject.onError(result);
+                            replySubject.error(result);
                         } else {
-                            replySubject.onNext(result);
+                            replySubject.next(result);
                         }
-                        replySubject.onCompleted();
+                        replySubject.complete();
                     });
             }
         });
@@ -498,16 +498,16 @@ if (!__DEBUG__) {
             if (ruleId) {
                 const {transformTask, baseUrl, project} = apiDetails;
 
-                replySubject.onNext({
+                replySubject.next({
                     href: `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}`,
                 });
             } else {
-                replySubject.onNext({
+                replySubject.next({
                     href: null,
                 });
             }
 
-            replySubject.onCompleted();
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -655,11 +655,11 @@ if (!__DEBUG__) {
                 })
                 .subscribe(
                     () => {
-                        replySubject.onNext();
-                        replySubject.onCompleted();
+                        replySubject.next();
+                        replySubject.complete();
                         hierarchicalMappingChannel
                             .subject('reload')
-                            .onNext(true);
+                            .next(true);
                     },
                     err => {
                         // TODO: Beautify
@@ -734,7 +734,7 @@ if (!__DEBUG__) {
                 }
             });
 
-            Rx.Observable.return({rules, parentId})
+            Rx.Observable.of({rules, parentId})
                 .flatMap(createGeneratedRules)
                 .multicast(replySubject)
                 .connect();
@@ -820,10 +820,10 @@ if (!__DEBUG__) {
             _.forEach(directRaw, source => {
                 suggestions.push(new Suggestion(source, 'value', null, 0));
             });
-            replySubject.onNext({
+            replySubject.next({
                 suggestions,
             });
-            replySubject.onCompleted();
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -887,7 +887,7 @@ if (!__DEBUG__) {
 
             const search = _.isString(input) ? input.toLocaleLowerCase() : '';
 
-            replySubject.onNext({
+            replySubject.next({
                 options: _.filter(
                     result,
                     ({value, label, description}) =>
@@ -900,7 +900,7 @@ if (!__DEBUG__) {
                 ),
             });
 
-            replySubject.onCompleted();
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -908,8 +908,8 @@ if (!__DEBUG__) {
         .subscribe(({replySubject}) => {
             const hierarchy = _.chain(mockStore).value();
 
-            replySubject.onNext({hierarchy});
-            replySubject.onCompleted();
+            replySubject.next({hierarchy});
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -943,8 +943,8 @@ if (!__DEBUG__) {
                 ],
                 status: {id: 'success', msg: ''},
             };
-            replySubject.onNext({example});
-            replySubject.onCompleted();
+            replySubject.next({example});
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -1001,8 +1001,8 @@ if (!__DEBUG__) {
                 ],
                 status: {id: 'success', msg: ''},
             };
-            replySubject.onNext({example});
-            replySubject.onCompleted();
+            replySubject.next({example});
+            replySubject.complete();
         });
 
     hierarchicalMappingChannel
@@ -1016,8 +1016,8 @@ if (!__DEBUG__) {
                 []
             );
             const result = _.isNull(rule) ? mockStore : rule;
-            replySubject.onNext({rule: result});
-            replySubject.onCompleted();
+            replySubject.next({rule: result});
+            replySubject.complete();
         });
 
     const appendToMockStore = (store, id, payload) => {
@@ -1050,7 +1050,7 @@ if (!__DEBUG__) {
 
     const saveMockStore = reload => {
         if (reload) {
-            hierarchicalMappingChannel.subject('reload').onNext(true);
+            hierarchicalMappingChannel.subject('reload').next(true);
         }
         localStorage.setItem('mockStore', JSON.stringify(mockStore));
     };
@@ -1074,8 +1074,8 @@ if (!__DEBUG__) {
                 ],
             });
 
-            replySubject.onError(err);
-            replySubject.onCompleted();
+            replySubject.error(err);
+            replySubject.complete();
             return;
         }
 
@@ -1086,8 +1086,8 @@ if (!__DEBUG__) {
 
         saveMockStore();
 
-        replySubject.onNext(data);
-        replySubject.onCompleted();
+        replySubject.next(data);
+        replySubject.complete();
     };
 
     const handleUpdate = ({data, replySubject}) => {
@@ -1110,8 +1110,8 @@ if (!__DEBUG__) {
                     },
                 ],
             });
-            replySubject.onError(err);
-            replySubject.onCompleted();
+            replySubject.error(err);
+            replySubject.complete();
             return;
         }
 
@@ -1127,8 +1127,8 @@ if (!__DEBUG__) {
             saveMockStore();
         }
 
-        replySubject.onNext();
-        replySubject.onCompleted();
+        replySubject.next();
+        replySubject.complete();
     };
 
     hierarchicalMappingChannel
@@ -1161,8 +1161,8 @@ if (!__DEBUG__) {
             const {id} = data;
             mockStore = removeRule(_.chain(mockStore).value(), id);
             saveMockStore();
-            replySubject.onNext();
-            replySubject.onCompleted();
+            replySubject.next();
+            replySubject.complete();
         });
 
     const orderRule = (store, id, childrenRules) => {
@@ -1193,8 +1193,8 @@ if (!__DEBUG__) {
                 childrenRules
             );
             saveMockStore(reload);
-            replySubject.onNext();
-            replySubject.onCompleted();
+            replySubject.next();
+            replySubject.complete();
         });
 
     // eslint-disable-next-line
@@ -1224,8 +1224,8 @@ if (!__DEBUG__) {
                     }
             }
 
-            replySubject.onNext(ret);
-            replySubject.onCompleted();
+            replySubject.next(ret);
+            replySubject.complete();
         });
 }
 

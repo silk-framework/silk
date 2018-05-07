@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {URI} from 'ecc-utils';
+import {URI} from '@eccenca/utils';
 
 export const wasTouched = (initialValues, currentState) =>
     _.some(initialValues, (value, key) => value !== currentState[key]);
