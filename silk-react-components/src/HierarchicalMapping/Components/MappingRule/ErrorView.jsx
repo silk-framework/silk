@@ -39,7 +39,6 @@ const ErrorView = React.createClass({
         cause: React.PropTypes.object, // it may contain a list for errors with title and detail itself
         issues: React.PropTypes.object, // it may contain a list for errors with title and detail itself, too
     },
-    componentDidMount() {},
     getInitialState() {
         return {
             errorExpanded: false,

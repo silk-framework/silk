@@ -494,7 +494,6 @@ if (!__DEBUG__) {
         .subject('rule.getEditorHref')
         .subscribe(({data, replySubject}) => {
             const {id: ruleId} = data;
-
             if (ruleId) {
                 const {transformTask, baseUrl, project} = apiDetails;
 

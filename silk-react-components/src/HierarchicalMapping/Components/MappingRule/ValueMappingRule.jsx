@@ -54,7 +54,9 @@ const RuleValueView = React.createClass({
                 topic: 'rule.getEditorHref',
                 data: {id: this.props.id},
             }),
-            ({href}) => this.setState({href})
+            ({href}) => {
+                this.setState({href});
+            }
         );
     },
     handleComplexEdit(event) {

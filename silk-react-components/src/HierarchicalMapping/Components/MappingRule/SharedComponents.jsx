@@ -88,11 +88,12 @@ export const RuleTreeTypes = ({rule}) => <RuleTypes rule={rule} />;
 
 const URIInfo = React.createClass({
     getInitialState() {
-        this.loadData(this.props);
-
         return {
             info: false,
         };
+    },
+    componentDidMount() {
+        this.loadData(this.props);
     },
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(this.props, nextProps)) {

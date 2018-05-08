@@ -31,6 +31,7 @@ const HierarchicalMapping = React.createClass({
         initialRule: React.PropTypes.string,
     },
     componentDidMount() {
+
         // listen to rule id changes
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
@@ -70,7 +71,6 @@ const HierarchicalMapping = React.createClass({
             project,
             transformTask,
         });
-
         // TODO: Use initialRule
         return {
             // currently selected rule id
