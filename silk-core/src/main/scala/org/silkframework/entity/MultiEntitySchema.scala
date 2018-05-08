@@ -19,24 +19,52 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
 
   override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++ subSchemata.flatMap(_.typedPaths)
 
-  override def getSchemaOfProperty (tp: TypedPath): EntitySchema = {
+
+  /**
+    * Like typedPaths, but without empty paths and paths of sub schemata
+    *
+    * @return
+    */
+  override def flatPaths: IndexedSeq[TypedPath] = this.pivotSchema.flatPaths ++
+    this.subSchemata.zipWithIndex.flatMap(ss => ss._1.flatPaths
+      .map{case TypedPath(ops, a, b) => TypedPath(Path(SubEntityPrefix + ss._2).operators ++ ops, a, b)})
+
+  override def getSchemaOfProperty (tp: TypedPath): Option[EntitySchema] = {
     if(tp.isEmpty){
-      EntitySchema.empty
+      None
     }
     else if(pivotSchema.typedPaths.contains(tp)){
-      pivotSchema
+      Some(pivotSchema)
     }
     else{
-      subSchemata.find(se => se.typedPaths.contains(tp)) match{
-        case Some(s) => s
-        case None => EntitySchema.empty
-      }
+      subSchemata.find(se => se.typedPaths.contains(tp))
     }
   }
+
+  /**
+    * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
+    * NOTE: valueType and isAttribute of the TypedPath will be copied!
+    *
+    * @param oldName - the property to be renamed
+    * @param newName - the new property name
+    * @return - the new EntitySchema with replaced property uris
+    */
+  override def renameProperty(oldName: String, newName: String): EntitySchema = {
+    this.getSchemaOfProperty(oldName) match{
+      case Some(_) => new MultiEntitySchema(
+        this.pivotSchema.renameProperty(oldName, newName),
+        this.subSchemata.map(_.renameProperty(oldName, newName))
+      )
+      case None => this
+    }
+  }
+
 }
 
 object MultiEntitySchema{
   def unapply(arg: MultiEntitySchema): Option[IndexedSeq[EntitySchema]] = Some(IndexedSeq(arg.pivotSchema) ++ arg.subSchemata)
+
+  val SubEntityPrefix = "se"
 
   /**
     * Function to ensure to get the first, most granular EntitySchema

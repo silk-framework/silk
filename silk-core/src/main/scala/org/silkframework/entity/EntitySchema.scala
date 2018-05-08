@@ -23,6 +23,29 @@ case class EntitySchema(
  ) extends Serializable {
 
   /**
+    * overriding the default case class copy(). to deal with Sub-Schemata
+    */
+  def copy(
+    typeUri: Uri = this.typeUri,
+    typedPaths: IndexedSeq[TypedPath] = this.typedPaths,
+    filter: Restriction = this.filter,
+    subPath: Path = this.subPath,
+    subSchemata: IndexedSeq[EntitySchema] = IndexedSeq.empty
+  ): EntitySchema ={
+    val pivotSchema = EntitySchema(typeUri, typedPaths, filter, subPath)
+    subSchemata match{
+      case subs if subs.isEmpty => pivotSchema
+      case subs => new MultiEntitySchema(pivotSchema, subs)
+    }
+  }
+
+  /**
+    * Like typedPaths, but without empty paths and paths of sub schemata
+    * @return
+    */
+  def flatPaths: IndexedSeq[TypedPath] = this.typedPaths.filterNot(_.isEmpty)
+
+  /**
     * Retrieves the index of a given path.
     * NOTE: will work simple Paths as well, but there might be a chance that a given path exists twice with different value types
     *
@@ -52,13 +75,11 @@ case class EntitySchema(
     * @param property - property name of TypedPath to look for
     * @return
     */
-  def getSchemaOfProperty(property: String): EntitySchema ={
-    val schema = this.typedPaths.find(tp => tp.serializeSimplified(Prefixes.default) == property) match{
+  def getSchemaOfProperty(property: String): Option[EntitySchema] ={
+    this.typedPaths.find(tp => tp.serializeSimplified(Prefixes.default) == property) match{
       case Some(s) => getSchemaOfProperty(s)
-      case None => EntitySchema.empty
+      case None => None
     }
-    assert(schema.getClass.getSuperclass != EntitySchema.getClass)
-    schema
   }
 
   /**
@@ -67,11 +88,31 @@ case class EntitySchema(
     * @param tp - the typed path
     * @return
     */
-  def getSchemaOfProperty(tp: TypedPath): EntitySchema = this
+  def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt == tp) match{
+    case Some(_) => Some(this)
+    case None => None
+  }
 
   def propertyNames: IndexedSeq[String] = this.typedPaths.flatMap(p => if(p.isEmpty) None else Some(p.serializeSimplified))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
+
+  /**
+    * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
+    * NOTE: valueType and isAttribute of the TypedPath will be copied!
+    * @param oldName - the property to be renamed
+    * @param newName - the new property name
+    * @return - the new EntitySchema with replaced property uris
+    */
+  def renameProperty(oldName: String, newName: String): EntitySchema ={
+    val sourceSchema = getSchemaOfProperty(oldName)
+    val targetSchema = sourceSchema.map(sa => sa.copy(
+      typedPaths = sa.typedPaths.map(tp =>{
+        if(tp.serializeSimplified == oldName) TypedPath(Path(newName), tp.valueType, tp.isAttribute) else tp
+      })
+    ))
+    targetSchema.getOrElse(this)
+  }
 
   override def hashCode(): Int = {
     val prime = 31
@@ -122,26 +163,6 @@ object EntitySchema {
           es.subPath
         )
     }
-  }
-
-  /**
-    * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
-    * NOTE: valueType and isAttribute of the TypedPath will be copied!
-    * @param es - the EntitySchema
-    * @param propMap - the property uri replacement map
-    * @return - the new EntitySchema with replaced property uris
-    */
-  def renamePaths(es: EntitySchema, propMap: Map[String, String]): EntitySchema ={
-    val newPaths = es.typedPaths.map{p =>
-      p.propertyUri match {
-        case Some(prop) => propMap.get(prop.toString) match{
-          case Some(newProp) => TypedPath(Path(newProp), p.valueType, p.isAttribute)
-          case None => TypedPath(Path(prop), p.valueType, p.isAttribute)
-        }
-        case None => p
-      }
-    }
-    es.copy(typedPaths = newPaths)
   }
 
   /**

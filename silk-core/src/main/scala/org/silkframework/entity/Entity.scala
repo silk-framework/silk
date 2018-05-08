@@ -134,10 +134,16 @@ class Entity private(
     * @return
     */
   def valueOf(property: String): Seq[String] ={
-    val es = _schema.getSchemaOfProperty(property)
-    val ent = if(es == _schema || _schema.isInstanceOf[MultiEntitySchema] && _schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) this else subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
-    es.propertyNames.zipWithIndex.find(_._1 == property) match{
-      case Some((_, ind)) => ent.values(ind)
+    _schema.getSchemaOfProperty(property) match{
+      case Some(es) =>
+        val ent = if(es == _schema || _schema.isInstanceOf[MultiEntitySchema] && _schema.asInstanceOf[MultiEntitySchema].pivotSchema == es)
+          this
+        else
+          subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+        es.propertyNames.zipWithIndex.find(_._1 == property) match{
+          case Some((_, ind)) => ent.values(ind)
+          case None => Seq()
+        }
       case None => Seq()
     }
   }
@@ -167,7 +173,10 @@ class Entity private(
     }
     val valsSize = _values.size >= tps.typedPaths.size
     val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
-      _values(tp._2).forall(v => tp._1.valueType.validate(v))
+      if(tp._2 < _values.size)
+        _values(tp._2).forall(v => tp._1.valueType.validate(v))
+      else
+        throw new ArrayIndexOutOfBoundsException(tp._2)
     })
     val subEntsValid = _schema match{
       case mes: MultiEntitySchema => subEntities.zip(mes.subSchemata).forall(se => se._1.isEmpty || se._2 == se._1.get.schema && se._1.get.validate)
