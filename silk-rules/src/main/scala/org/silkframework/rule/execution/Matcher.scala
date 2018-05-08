@@ -130,17 +130,19 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       try {
         var sourceLoading = true
         var targetLoading = true
+        var loaderSuccessful = true
 
         do {
           sourceLoading = loaders.source.status().isRunning
           targetLoading = loaders.target.status().isRunning
+          loaderSuccessful = !Seq(loaders.source, loaders.target).exists(_.status.get.exists(_.failed))
 
           updateSourcePartitions(!sourceLoading)
           updateTargetPartitions(!targetLoading)
 
           Thread.sleep(500)
 
-        } while(sourceLoading || targetLoading)
+        } while((sourceLoading || targetLoading) && loaderSuccessful)
         val failedLoaders = Seq(loaders.source, loaders.target).filter(_.status.get.exists(_.failed))
         if(failedLoaders.nonEmpty) { // One of the loaders failed
           val loaderErrorMessages = failedLoaders.map(l => s"${l.name} task failed: ${l.status.get.get.message}").mkString(", ")
