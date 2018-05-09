@@ -14,7 +14,9 @@ import {
 import {URI} from '@eccenca/utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel from './store';
+import hierarchicalMappingChannel, {
+    setConfiguration,
+} from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -31,7 +33,6 @@ const HierarchicalMapping = React.createClass({
         initialRule: React.PropTypes.string,
     },
     componentDidMount() {
-
         // listen to rule id changes
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleId.change'),
@@ -65,12 +66,14 @@ const HierarchicalMapping = React.createClass({
     // initilize state
     getInitialState() {
         const {baseUrl, project, transformTask, initialRule} = this.props;
-
-        hierarchicalMappingChannel.subject('setSilkDetails').next({
+        console.warn('debug initial props', this.props);
+        // set basic configuration for store
+        setConfiguration({
             baseUrl,
             project,
             transformTask,
         });
+
         // TODO: Use initialRule
         return {
             // currently selected rule id
@@ -82,6 +85,30 @@ const HierarchicalMapping = React.createClass({
             editingElements: [],
             askForDiscard: false,
         };
+    },
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.currentRuleId !== this.state.currentRuleId &&
+            !_.isEmpty(this.state.currentRuleId)
+        ) {
+            const href = window.location.href;
+
+            try {
+                const uriTemplate = new URI(href);
+
+                if (uriTemplate.segment(-2) !== 'rule') {
+                    uriTemplate.segment('rule');
+                    uriTemplate.segment('rule');
+                }
+
+                uriTemplate.segment(-1, this.state.currentRuleId);
+                history.pushState(null, '', uriTemplate.toString());
+            } catch (e) {
+                console.debug(
+                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
+                );
+            }
+        }
     },
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
@@ -161,30 +188,6 @@ const HierarchicalMapping = React.createClass({
             this.setState({
                 askForDiscard: newRuleId,
             });
-        }
-    },
-    componentDidUpdate(prevProps, prevState) {
-        if (
-            prevState.currentRuleId !== this.state.currentRuleId &&
-            !_.isEmpty(this.state.currentRuleId)
-        ) {
-            const href = window.location.href;
-
-            try {
-                const uriTemplate = new URI(href);
-
-                if (uriTemplate.segment(-2) !== 'rule') {
-                    uriTemplate.segment('rule');
-                    uriTemplate.segment('rule');
-                }
-
-                uriTemplate.segment(-1, this.state.currentRuleId);
-                history.pushState(null, '', uriTemplate.toString());
-            } catch (e) {
-                console.debug(
-                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
-                );
-            }
         }
     },
     // show / hide navigation
@@ -322,11 +325,9 @@ const HierarchicalMapping = React.createClass({
                 {loading}
                 <div className="ecc-silk-mapping__content">
                     {navigationTree}
-                    {
-                        <MappingsWorkview
-                            currentRuleId={this.state.currentRuleId}
-                        />
-                    }
+                    <MappingsWorkview
+                        currentRuleId={this.state.currentRuleId}
+                    />
                 </div>
             </section>
         );

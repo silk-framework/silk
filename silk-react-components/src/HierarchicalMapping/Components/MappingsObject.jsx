@@ -80,7 +80,9 @@ const MappingsObject = React.createClass({
             askForDiscard: false,
         });
     },
+    // collapse / expand mapping rule
     handleToggleExpand() {
+        // if edit mode ask if user really wants it
         if (this.state.editing) {
             this.setState({
                 askForDiscard: true,
@@ -199,9 +201,7 @@ const MappingsObject = React.createClass({
                                                     ? 'expand_less'
                                                     : 'expand_more'
                                             }
-                                            onClick={ev => {
-                                                this.handleToggleExpand();
-                                            }}
+                                            onClick={this.handleToggleExpand}
                                         />
                                     </div>
                                 </div>

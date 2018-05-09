@@ -40,11 +40,11 @@ const MappingsList = React.createClass({
         };
     },
     componentWillReceiveProps(nextProps) {
-        if (_.isEqual(this.props, nextProps)) return;
-
-        this.setState({
-            items: this.getItems(nextProps.rules),
-        });
+        if (!_.isEqual(this.props, nextProps)) {
+            this.setState({
+                items: this.getItems(nextProps.rules),
+            });
+        }
     },
     shouldComponentUpdate(nextProps) {
         return !_.isEqual(this.props, nextProps);
@@ -141,9 +141,6 @@ const MappingsList = React.createClass({
                 <Info vertSpacing border>
                     No existing mapping rules.
                 </Info>
-                {/* TODO: we should provide options like adding rules or suggestions here,
-                         even a help text would be a good support for the user.
-                         */}
             </CardContent>
         ) : (
             <DragDropContext

@@ -10,7 +10,7 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel, {getEditorLink} from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 
@@ -41,20 +41,22 @@ const ObjectRule = React.createClass({
         rules: React.PropTypes.object,
         edit: React.PropTypes.bool.isRequired,
     },
+    getInitialState() {
+        return {
+            edit: !!this.props.edit,
+            href: getEditorLink(_.get(this.props, 'rules.uriRule.id')),
+        };
+    },
+    componentWillReceiveProps(nextProps) {
+        if (_.has(nextProps, 'rules.uriRule.id')) {
+            this.setState({href: getEditorLink(_.get(this.props, 'rules.uriRule.id'))});
+        }
+    },
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject('ruleView.close'),
             this.handleCloseEdit
         );
-        if (_.has(this.props, 'rules.uriRule.id')) {
-            this.subscribe(
-                hierarchicalMappingChannel.request({
-                    topic: 'rule.getEditorHref',
-                    data: {id: this.props.rules.uriRule.id},
-                }),
-                ({href}) => this.setState({href})
-            );
-        }
     },
     editUriRule(event) {
         if (__DEBUG__) {
@@ -117,21 +119,8 @@ const ObjectRule = React.createClass({
             })
             .subscribe(
                 data => {
-                    hierarchicalMappingChannel
-                        .request({
-                            topic: 'rule.getEditorHref',
-                            data: {
-                                id: data.body.rules.uriRule.id,
-                            },
-                        })
-                        .subscribe(
-                            ({href}) => {
-                                window.location.href = href;
-                            },
-                            err => {
-                                console.error(err);
-                            }
-                        );
+                    // open editor page
+                    window.location.href = getEditorLink(data.body.rules.uriRule.id);
                 },
                 err => {
                     console.error(err);
@@ -165,11 +154,6 @@ const ObjectRule = React.createClass({
             );
         return false;
     },
-    getInitialState() {
-        return {
-            edit: !!this.props.edit,
-        };
-    },
     // open view in edit mode
     handleEdit() {
         this.setState({
@@ -179,17 +163,6 @@ const ObjectRule = React.createClass({
     handleCloseEdit(obj) {
         if (obj.id === this.props.id) {
             this.setState({edit: false});
-        }
-    },
-    componentWillReceiveProps(nextProps) {
-        if (_.has(nextProps, 'rules.uriRule.id')) {
-            this.subscribe(
-                hierarchicalMappingChannel.request({
-                    topic: 'rule.getEditorHref',
-                    data: {id: _.get(nextProps, 'rules.uriRule.id', '')},
-                }),
-                ({href}) => this.setState({href})
-            );
         }
     },
     // template rendering

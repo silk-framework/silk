@@ -40,13 +40,6 @@ const MappingsHeader = React.createClass({
         };
     },
 
-    componentDidMount() {
-        // this.subscribe(
-        //     hierarchicalMappingChannel.subject('ruleView.discardAll'),
-        //     this.discardAll
-        // );
-    },
-
     handleToggleTreenavigation() {
         this.promoteToggleTreenavigation(!this.state.showTreenavigation);
         this.setState({

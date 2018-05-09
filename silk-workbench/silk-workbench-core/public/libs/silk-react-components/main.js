@@ -3056,16 +3056,15 @@
         return null;
     }
     exports.__esModule = !0;
+    exports.setConfiguration = void 0;
     var _stringify = __webpack_require__(554), _extends2 = (_interopRequireDefault(_stringify), 
     __webpack_require__(14)), _extends3 = _interopRequireDefault(_extends2), _lodash = __webpack_require__(11), _lodash2 = _interopRequireDefault(_lodash), _messagebus = __webpack_require__(257), _messagebus2 = _interopRequireDefault(_messagebus), _helpers = __webpack_require__(23), _Suggestion = __webpack_require__(851), hierarchicalMappingChannel = _messagebus2.default.channel("silk.hierarchicalMapping"), silkStore = _messagebus2.default.channel("silk.api"), apiDetails = {
         transformTask: !1,
         baseUrl: !1,
         project: !1
-    };
-    hierarchicalMappingChannel.subject("setSilkDetails").subscribe(function(data) {
+    }, setConfiguration = function(data) {
         apiDetails = (0, _extends3.default)({}, data);
-    });
-    var datatypes = _lodash2.default.map([ {
+    }, datatypes = _lodash2.default.map([ {
         value: "AutoDetectValueType",
         label: "Auto Detect",
         description: "The data type is decided automatically, based on the lexical form of each value."
@@ -3342,7 +3341,6 @@
     });
     hierarchicalMappingChannel.subject("rule.getEditorHref").subscribe(function(_ref10) {
         var data = _ref10.data, replySubject = _ref10.replySubject, ruleId = data.id;
-        console.warn("debug rule.getEditorHref", data);
         if (ruleId) {
             var _apiDetails = apiDetails, transformTask = _apiDetails.transformTask, baseUrl = _apiDetails.baseUrl, project = _apiDetails.project;
             replySubject.next({
@@ -3441,7 +3439,7 @@
         }, function(err) {});
     });
     exports.default = hierarchicalMappingChannel;
-    module.exports = exports.default;
+    exports.setConfiguration = setConfiguration;
 }, function(module, exports, __webpack_require__) {
     "use strict";
     (function(global) {
@@ -22742,7 +22740,6 @@
             _setState));
         },
         handleClose: function(event) {
-            console.warn("debug close value mapping");
             event.stopPropagation();
             var id = _lodash2.default.get(this.props, "id", 0);
             _store2.default.subject("ruleView.unchanged").next({
@@ -27501,7 +27498,8 @@
         },
         getInitialState: function() {
             var _props = this.props, baseUrl = _props.baseUrl, project = _props.project, transformTask = _props.transformTask, initialRule = _props.initialRule;
-            _store2.default.subject("setSilkDetails").next({
+            console.warn("debug initial props", this.props);
+            (0, _store.setConfiguration)({
                 baseUrl: baseUrl,
                 project: project,
                 transformTask: transformTask
@@ -27514,16 +27512,30 @@
                 askForDiscard: !1
             };
         },
+        componentDidUpdate: function(prevProps, prevState) {
+            if (prevState.currentRuleId !== this.state.currentRuleId && !_lodash2.default.isEmpty(this.state.currentRuleId)) {
+                var href = window.location.href;
+                try {
+                    var uriTemplate = new _utils.URI(href);
+                    if ("rule" !== uriTemplate.segment(-2)) {
+                        uriTemplate.segment("rule");
+                        uriTemplate.segment("rule");
+                    }
+                    uriTemplate.segment(-1, this.state.currentRuleId);
+                    history.pushState(null, "", uriTemplate.toString());
+                } catch (e) {
+                    console.debug("HierarchicalMapping: " + href + " is not an URI, cannot update the window state");
+                }
+            }
+        },
         onOpenEdit: function(obj) {
             var id = _lodash2.default.get(obj, "id", 0);
-            console.warn("debug onOpenEdit", obj, this.state.editingElements, _lodash2.default.includes(this.state.editingElements, id));
             _lodash2.default.includes(this.state.editingElements, id) || this.setState({
                 editingElements: _lodash2.default.concat(this.state.editingElements, [ id ])
             });
         },
         onCloseEdit: function(obj) {
             var id = _lodash2.default.get(obj, "id", 0);
-            console.warn("debug onCloseEdit", obj, this.state.editingElements, _lodash2.default.includes(this.state.editingElements, id));
             _lodash2.default.includes(this.state.editingElements, id) && this.setState({
                 editingElements: _lodash2.default.filter(this.state.editingElements, function(e) {
                     return e !== id;
@@ -27580,22 +27592,6 @@
             }) : this.setState({
                 askForDiscard: newRuleId
             }));
-        },
-        componentDidUpdate: function(prevProps, prevState) {
-            if (prevState.currentRuleId !== this.state.currentRuleId && !_lodash2.default.isEmpty(this.state.currentRuleId)) {
-                var href = window.location.href;
-                try {
-                    var uriTemplate = new _utils.URI(href);
-                    if ("rule" !== uriTemplate.segment(-2)) {
-                        uriTemplate.segment("rule");
-                        uriTemplate.segment("rule");
-                    }
-                    uriTemplate.segment(-1, this.state.currentRuleId);
-                    history.pushState(null, "", uriTemplate.toString());
-                } catch (e) {
-                    console.debug("HierarchicalMapping: " + href + " is not an URI, cannot update the window state");
-                }
-            }
         },
         handleToggleNavigation: function(stateVisibility) {
             this.setState({
@@ -35852,7 +35848,6 @@
                     _ref3[topLevelId] = !0, _ref3) : _this.state.expanded
                 });
             }, function(err) {
-                console.warn("err MappingsTree: hierarchy.get", err);
                 _this.setState({
                     loading: !1
                 });
@@ -35947,6 +35942,36 @@
         propTypes: {
             currentRuleId: _react2.default.PropTypes.string
         },
+        getInitialState: function() {
+            return {
+                loading: !0,
+                ruleData: {},
+                ruleEditView: !1,
+                editing: [],
+                askForDiscard: !1,
+                showSuggestions: !1
+            };
+        },
+        componentDidMount: function() {
+            this.loadData({
+                initialLoad: !0
+            });
+            this.subscribe(_store2.default.subject("reload"), this.loadData);
+            this.subscribe(_store2.default.subject("ruleId.create"), this.onRuleCreate);
+            this.subscribe(_store2.default.subject("mapping.create"), this.handleCreate);
+            this.subscribe(_store2.default.subject("mapping.showSuggestions"), this.handleShowSuggestions);
+            this.subscribe(_store2.default.subject("list.toggleDetails"), this.handleToggleRuleDetails);
+            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.handleRuleEditClose);
+            this.subscribe(_store2.default.subject("ruleView.close"), this.handleRuleEditClose);
+            this.subscribe(_store2.default.subject("ruleView.change"), this.handleRuleEditOpen);
+            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
+        },
+        componentDidUpdate: function(prevProps) {
+            prevProps.currentRuleId !== this.props.currentRuleId && this.loadData();
+        },
+        shouldComponentUpdate: function(nextProps, nextState) {
+            return !_lodash2.default.isEmpty(nextState.ruleData);
+        },
         onRuleCreate: function(_ref) {
             var type = _ref.type;
             this.setState({
@@ -35974,30 +35999,6 @@
                 })
             });
         },
-        getInitialState: function() {
-            return {
-                loading: !0,
-                ruleData: {},
-                ruleEditView: !1,
-                editing: [],
-                askForDiscard: !1,
-                showSuggestions: !1
-            };
-        },
-        componentDidMount: function() {
-            this.loadData({
-                initialLoad: !0
-            });
-            this.subscribe(_store2.default.subject("reload"), this.loadData);
-            this.subscribe(_store2.default.subject("ruleId.create"), this.onRuleCreate);
-            this.subscribe(_store2.default.subject("mapping.create"), this.handleCreate);
-            this.subscribe(_store2.default.subject("mapping.showSuggestions"), this.handleShowSuggestions);
-            this.subscribe(_store2.default.subject("list.toggleDetails"), this.handleToggleRuleDetails);
-            this.subscribe(_store2.default.subject("ruleView.unchanged"), this.handleRuleEditClose);
-            this.subscribe(_store2.default.subject("ruleView.close"), this.handleRuleEditClose);
-            this.subscribe(_store2.default.subject("ruleView.change"), this.handleRuleEditOpen);
-            this.subscribe(_store2.default.subject("ruleView.discardAll"), this.discardAll);
-        },
         discardAll: function() {
             this.setState({
                 editing: [],
@@ -36018,9 +36019,6 @@
                     suggestions: !0
                 }
             });
-        },
-        componentDidUpdate: function(prevProps) {
-            prevProps.currentRuleId !== this.props.currentRuleId && this.loadData();
         },
         loadData: function() {
             var _this = this, params = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, _params$initialLoad = params.initialLoad, initialLoad = void 0 !== _params$initialLoad && _params$initialLoad;
@@ -36048,7 +36046,6 @@
                     ruleData: rule
                 });
             }, function(err) {
-                console.warn("err MappingsWorkview: rule.get");
                 _this.setState({
                     loading: !1
                 });
@@ -36105,9 +36102,6 @@
                 id: 0
             });
         },
-        shouldComponentUpdate: function(nextProps, nextState) {
-            return !_lodash2.default.isEmpty(nextState.ruleData);
-        },
         render: function() {
             var _state$ruleData = this.state.ruleData, _state$ruleData$rules = _state$ruleData.rules, rules = void 0 === _state$ruleData$rules ? {} : _state$ruleData$rules, id = _state$ruleData.id, loading = !!this.state.loading && _react2.default.createElement(_guiElements.Spinner, null), discardView = !1 !== this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
@@ -36161,7 +36155,7 @@
             }, _react2.default.createElement(_MappingsObject2.default, {
                 rule: this.state.ruleData,
                 key: "objhead_" + id
-            }), !listSuggestions && listMappings), listSuggestions, createRuleForm);
+            }), listMappings), listSuggestions, createRuleForm);
         }
     });
     exports.default = MappingsWorkview;
@@ -36183,7 +36177,6 @@
                 showTreenavigation: !0
             };
         },
-        componentDidMount: function() {},
         handleToggleTreenavigation: function() {
             this.promoteToggleTreenavigation(!this.state.showTreenavigation);
             this.setState({
@@ -36311,7 +36304,6 @@
             });
         },
         render: function() {
-            var _this2 = this;
             if (_lodash2.default.isEmpty(this.props.rule)) return !1;
             var discardView = !!this.state.askForDiscard && _react2.default.createElement(_guiElements.ConfirmationDialog, {
                 active: !0,
@@ -36368,9 +36360,7 @@
                 key: "action"
             }, _react2.default.createElement(_guiElements.Button, {
                 iconName: this.state.expanded ? "expand_less" : "expand_more",
-                onClick: function(ev) {
-                    _this2.handleToggleExpand();
-                }
+                onClick: this.handleToggleExpand
             })))))), content));
         }
     });
@@ -40832,7 +40822,6 @@
             edit: _react2.default.PropTypes.bool.isRequired
         },
         handleCloseEdit: function(obj) {
-            console.warn("debug handleCloseEdit", obj, this.props.id);
             obj.id === this.props.id && this.setState({
                 edit: !1
             });
@@ -40855,7 +40844,6 @@
             }
         }), function(_ref) {
             var href = _ref.href;
-            console.warn("debug href", href);
             _this.setState({
                 href: href
             });
@@ -41062,7 +41050,6 @@
                     })
                 });
             }, function(err) {
-                console.warn("debug err", err);
                 _this.setState({
                     loading: !1,
                     error: [ {
@@ -41192,23 +41179,20 @@
         render: function() {
             var _this3 = this;
             if (this.state.loading) return _react2.default.createElement(_guiElements.Spinner, null);
-            if (this.state.saving) {
-                console.warn("todo buttons have no actions?");
-                return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement("p", null, "The", " ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
-                    return d.checked;
-                })), " ", "rules you have selected are being created.")), _react2.default.createElement(_guiElements.CardActions, {
-                    fixed: !0
-                }, _react2.default.createElement(_guiElements.ProgressButton, {
-                    progress: 0,
-                    id: "suggestion-save-btn",
-                    progressTopic: _store2.default.subject("rule.suggestions.progress"),
-                    tooltip: "Progress"
-                }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
-                    raised: !0,
-                    disabled: !0,
-                    className: "ecc-hm-suggestions-cancel"
-                }, "Cancel")));
-            }
+            if (this.state.saving) return _react2.default.createElement(SuggestionsListWrapper, null, _react2.default.createElement(_guiElements.CardTitle, null, "Saving..."), _react2.default.createElement(_guiElements.CardContent, null, _react2.default.createElement("p", null, "The", " ", _lodash2.default.size(_lodash2.default.filter(this.state.data, function(d) {
+                return d.checked;
+            })), " ", "rules you have selected are being created.")), _react2.default.createElement(_guiElements.CardActions, {
+                fixed: !0
+            }, _react2.default.createElement(_guiElements.ProgressButton, {
+                progress: 0,
+                id: "suggestion-save-btn",
+                progressTopic: _store2.default.subject("rule.suggestions.progress"),
+                tooltip: "Progress"
+            }, "Save"), _react2.default.createElement(_guiElements.DismissiveButton, {
+                raised: !0,
+                disabled: !0,
+                className: "ecc-hm-suggestions-cancel"
+            }, "Cancel")));
             if (this.state.error) {
                 var errorsList = _lodash2.default.map(this.state.error, function(err) {
                     return _react2.default.createElement("li", {

@@ -35,33 +35,6 @@ const MappingsWorkview = React.createClass({
     propTypes: {
         currentRuleId: React.PropTypes.string, // selected rule id
     },
-    onRuleCreate({type}) {
-        this.setState({
-            ruleEditView: {
-                type,
-            },
-        });
-    },
-    handleRuleEditOpen({id}) {
-        if (!_.includes(this.state.editing, id)) {
-            this.setState({
-                editing: _.concat(this.state.editing, [id]),
-            });
-        }
-    },
-    handleRuleEditClose({id}) {
-        if (id === 0) {
-            this.setState({
-                ruleEditView: false,
-                editing: _.filter(this.state.editing, e => e !== id),
-            });
-        } else {
-            this.setState({
-                editing: _.filter(this.state.editing, e => e !== id),
-            });
-        }
-    },
-
     // initilize state
     getInitialState() {
         return {
@@ -112,6 +85,42 @@ const MappingsWorkview = React.createClass({
             this.discardAll
         );
     },
+    componentDidUpdate(prevProps) {
+        if (prevProps.currentRuleId !== this.props.currentRuleId) {
+            this.loadData();
+        }
+    },
+    shouldComponentUpdate(nextProps, nextState) {
+        // Required to prevent empty redraws while not all data is there.
+        // The issue is due to bad use of React ...
+        return !_.isEmpty(nextState.ruleData);
+    },
+    onRuleCreate({type}) {
+        this.setState({
+            ruleEditView: {
+                type,
+            },
+        });
+    },
+    handleRuleEditOpen({id}) {
+        if (!_.includes(this.state.editing, id)) {
+            this.setState({
+                editing: _.concat(this.state.editing, [id]),
+            });
+        }
+    },
+    handleRuleEditClose({id}) {
+        if (id === 0) {
+            this.setState({
+                ruleEditView: false,
+                editing: _.filter(this.state.editing, e => e !== id),
+            });
+        } else {
+            this.setState({
+                editing: _.filter(this.state.editing, e => e !== id),
+            });
+        }
+    },
     discardAll() {
         this.setState({
             editing: [],
@@ -135,21 +144,12 @@ const MappingsWorkview = React.createClass({
             });
         }
     },
-    componentDidUpdate(prevProps) {
-        if (prevProps.currentRuleId !== this.props.currentRuleId) {
-            this.loadData();
-        }
-    },
     loadData(params = {}) {
         const {initialLoad = false} = params;
 
         this.setState({
             loading: true,
         });
-
-        if (__DEBUG__) {
-            console.warn('DATA RELOAD');
-        }
 
         hierarchicalMappingChannel
             .request({
@@ -265,12 +265,6 @@ const MappingsWorkview = React.createClass({
         hierarchicalMappingChannel.subject('ruleView.close').next({id: 0});
     },
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // Required to prevent empty redraws while not all data is there.
-        // The issue is due to bad use of React ...
-        return !_.isEmpty(nextState.ruleData);
-    },
-
     // template rendering
     render() {
         const {rules = {}, id} = this.state.ruleData;
@@ -348,6 +342,7 @@ const MappingsWorkview = React.createClass({
                   )
                 : [];
 
+        // list of suggested mappings
         const listSuggestions =
             !createRuleForm &&
             this.state.showSuggestions &&
@@ -372,6 +367,7 @@ const MappingsWorkview = React.createClass({
             ) : (
                 false
             );
+        // list of attended mappings
         const listMappings =
             !createRuleForm && !listSuggestions ? (
                 <MappingsList
@@ -395,7 +391,7 @@ const MappingsWorkview = React.createClass({
                         rule={this.state.ruleData}
                         key={`objhead_${id}`}
                     />
-                    {listSuggestions ? false : listMappings}
+                    {listMappings}
                 </div>
                 {listSuggestions}
                 {createRuleForm}

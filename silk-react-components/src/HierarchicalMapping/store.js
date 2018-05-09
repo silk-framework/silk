@@ -23,10 +23,10 @@ let apiDetails = {
     project: false,
 };
 
-// Set Api details
-hierarchicalMappingChannel.subject('setSilkDetails').subscribe(data => {
+// set API configuration
+const setConfiguration = (data) => {
     apiDetails = {...data};
-});
+};
 
 const datatypes = _.map(
     [
@@ -490,6 +490,11 @@ if (!__DEBUG__) {
                 .connect();
         });
 
+    // construct url to open editor of a given ruleID
+    const getEditorLink = (ruleId) => {
+        const {transformTask, baseUrl, project} = apiDetails;
+        return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}` : null;
+    };
     hierarchicalMappingChannel
         .subject('rule.getEditorHref')
         .subscribe(({data, replySubject}) => {
@@ -1229,3 +1234,7 @@ if (!__DEBUG__) {
 }
 
 export default hierarchicalMappingChannel;
+export {
+    setConfiguration,
+    getEditorLink,
+};
