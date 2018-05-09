@@ -193,7 +193,6 @@ const MappingsWorkview = React.createClass({
                     });
                 },
                 err => {
-                    console.warn('err MappingsWorkview: rule.get');
                     this.setState({loading: false});
                 }
             );
