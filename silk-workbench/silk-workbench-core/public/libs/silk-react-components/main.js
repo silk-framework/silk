@@ -33252,7 +33252,6 @@
         },
         loadData: function() {
             var _this = this;
-            console.warn("debug reload Mappingstree");
             _store2.default.request({
                 topic: "hierarchy.get"
             }).subscribe(function(_ref2) {
@@ -33264,7 +33263,6 @@
                     _ref3[topLevelId] = !0, _ref3) : _this.state.expanded
                 });
             }, function(err) {
-                console.warn("err MappingsTree: hierarchy.get", err);
                 _this.setState({
                     loading: !1
                 });
@@ -33435,9 +33433,7 @@
             prevProps.currentRuleId !== this.props.currentRuleId && this.loadData();
         },
         loadData: function() {
-            var _this = this, params = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {};
-            console.warn("debug reload MappingWorkview");
-            var _params$initialLoad = params.initialLoad, initialLoad = void 0 !== _params$initialLoad && _params$initialLoad;
+            var _this = this, params = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}, _params$initialLoad = params.initialLoad, initialLoad = void 0 !== _params$initialLoad && _params$initialLoad;
             this.setState({
                 loading: !0
             });
@@ -33462,7 +33458,6 @@
                     ruleData: rule
                 });
             }, function(err) {
-                console.warn("err MappingsWorkview: rule.get");
                 _this.setState({
                     loading: !1
                 });
@@ -38540,16 +38535,12 @@
                     parentId: this.props.ruleId
                 }
             }).subscribe(function() {
-                console.warn("debug handleAddSuggestions ok");
                 _store2.default.subject("ruleView.close").onNext({
                     id: 0
                 });
                 _store2.default.subject("reload").onNext(!0);
-                console.warn("debug handleAddSuggestions ok before close");
                 _this2.props.onClose();
-                console.warn("debug handleAddSuggestions ok after close");
             }, function(err) {
-                console.warn("debug handleAddSuggestions err");
                 var error = err.failedRules ? err.failedRules : [ {
                     error: err
                 } ];

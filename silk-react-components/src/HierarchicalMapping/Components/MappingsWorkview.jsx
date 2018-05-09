@@ -141,7 +141,6 @@ const MappingsWorkview = React.createClass({
         }
     },
     loadData(params = {}) {
-        console.warn('debug reload MappingWorkview');
         const {initialLoad = false} = params;
 
         this.setState({
