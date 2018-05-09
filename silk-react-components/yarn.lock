@@ -101,9 +101,9 @@
   version "1.3.0-beta5"
   resolved "https://registry.npmjs.org/@eccenca/material-design-lite/-/material-design-lite-1.3.0-beta5.tgz#70c0d0f49a4e10883c365706faff7bdadada67fb"
 
-"@eccenca/superagent@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/@eccenca/superagent/-/superagent-1.4.0.tgz#ba6583e97c755ce54e0b54d855071e0a484db32c"
+"@eccenca/superagent@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@eccenca/superagent/-/superagent-1.4.1.tgz#ae3fe879cba62a8a7afa9d3730fe57b3fc4a0a43"
   dependencies:
     lodash "^4.13.1"
     methods "^1.1.2"
