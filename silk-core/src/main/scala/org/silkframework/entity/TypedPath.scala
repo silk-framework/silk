@@ -10,6 +10,7 @@ import scala.xml.Node
   *
   * @param ops the path operators
   * @param valueType the type that has to be considered during processing.
+  * @param isAttribute is XML attribute
   */
 case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
 

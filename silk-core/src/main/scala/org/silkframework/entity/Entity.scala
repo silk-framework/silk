@@ -16,6 +16,7 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
+import org.silkframework.entity.EntitySchema.dropTypedPath
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -23,82 +24,27 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(
-    val uri: Uri,
+case class Entity private(
+    uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
-    private val desc: EntitySchema,
-    val subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty
+    schema: EntitySchema,
+    subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
+    private val failureOpt: Option[Throwable] = None,
+    private val validateSchema: Boolean = true
   ) extends Serializable {
 
-  if(subEntities.nonEmpty && desc.isInstanceOf[MultiEntitySchema] && desc.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
-    throw new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri)
+  val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
-  private[entity] var _failure: Option[Throwable] = None
-  private[entity] var _schema: EntitySchema = _
-  private[entity] var _values: IndexedSeq[Seq[String]] = _
-  setValues(vals)
-  applyNewSchema(desc)
-
-  /**
-    * set and normalize a new value sequence
-    * @param vals
-    */
-  private[entity] def setValues(vals: IndexedSeq[Seq[String]]): Unit ={
-    def handleNullsInValueSeq(valueSeq: Seq[String]) = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
-
-// FIXME switch to a metadata map to not only record exceptions CMEM-719       if (!nullArrayLogged) {
-//          nullArrayLogged = true
-//          EventLog warn "Spark Array value contains null values!"
-//        }
-
-
-    _values = vals.map(handleNullsInValueSeq)
+  val failure: Option[Throwable] = if(failureOpt.isEmpty && validateSchema) {   //if no failure has occurred yet and this entity shall be validated
+    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
+      Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))
+    else if (! this.validate)
+      Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
+    else
+      None
   }
-
-  /**
-    * returning the current value sequence (omitting all values not accompanied by a TypedPath in the schema)
-    * @return
-    */
-  def values: IndexedSeq[Seq[String]] = {
-    _schema match {
-      case mes: MultiEntitySchema => mes.pivotSchema.typedPaths.zipWithIndex.flatMap(tp => if(tp._1.isEmpty) None else Some(_values(tp._2))) ++
-        subEntities.flatMap(x => x.map(_.values).getOrElse(Seq()))
-      case _: EntitySchema => _schema.typedPaths.zipWithIndex.flatMap(tp => if(tp._1.isEmpty) None else Some(_values(tp._2)))
-    }
-  }
-
-  def flatValues: IndexedSeq[Seq[String]] = {
-    _schema match {
-      case mes: MultiEntitySchema => mes.pivotSchema.typedPaths.zipWithIndex.map(tp => _values(tp._2))
-      case _: EntitySchema => _schema.typedPaths.zipWithIndex.map(tp => _values(tp._2))
-    }
-  }
-
-  /**
-    * The EntitySchema defining the cells of the value sequence
-    * @return
-    */
-  def schema: EntitySchema = _schema
-
-  /**
-    * will apply a modified schema
-    * NOTE: The number of values per row must be as least as great as the number of typed paths
-    * NOTE: adding additional TypedPaths not instantiated in the values of the row will fail validation (use withProperty(..) instead)
-    * @param newSchema - the new schema to be applied
-    * @return - this
-    */
-  def applyNewSchema(newSchema: EntitySchema, validate: Boolean = true): Entity ={
-    _schema = newSchema
-    _schema match {
-      case mes: MultiEntitySchema =>
-        this.subEntities.zip(mes.subSchemata).foreach(x => x._1.map(_.applyNewSchema(x._2, validate)))
-      case _ =>
-    }
-
-    if(validate && !this.validate)
-      failEntity(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
-
-    this
+  else {
+    failureOpt
   }
 
   /**
@@ -111,7 +57,7 @@ class Entity private(
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
-      evaluate(_schema.pathIndex(path))
+      evaluate(schema.pathIndex(path))
     }
   }
 
@@ -124,7 +70,7 @@ class Entity private(
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
-      evaluate(_schema.pathIndex(path))
+      evaluate(schema.pathIndex(path))
     }
   }
 
@@ -134,9 +80,9 @@ class Entity private(
     * @return
     */
   def valueOf(property: String): Seq[String] ={
-    _schema.getSchemaOfProperty(property) match{
+    schema.getSchemaOfProperty(property) match{
       case Some(es) =>
-        val ent = if(es == _schema || _schema.isInstanceOf[MultiEntitySchema] && _schema.asInstanceOf[MultiEntitySchema].pivotSchema == es)
+        val ent = if(es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es)
           this
         else
           subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
@@ -167,36 +113,25 @@ class Entity private(
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    val tps = _schema match {
+    val tps = schema match {
       case mes: MultiEntitySchema => mes.pivotSchema
-      case _ => _schema
+      case _ => schema
     }
-    val valsSize = _values.size >= tps.typedPaths.size
+    val valsSize = values.size >= tps.typedPaths.size
     val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
-      if(tp._2 < _values.size)
-        _values(tp._2).forall(v => tp._1.valueType.validate(v))
+      if(tp._2 < values.size)
+        values(tp._2).forall(v => tp._1.valueType.validate(v))
       else
         throw new ArrayIndexOutOfBoundsException(tp._2)
     })
-    val subEntsValid = _schema match{
+    val subEntsValid = schema match{
       case mes: MultiEntitySchema => subEntities.zip(mes.subSchemata).forall(se => se._1.isEmpty || se._2 == se._1.get.schema && se._1.get.validate)
       case _: EntitySchema => true
     }
     valsSize && valsConform && subEntsValid
   }
 
-  /**
-    * @return - the exception responsible for this ENtity to fail
-    */
-  def failure: Option[Throwable] = _failure
-
   def hasFailed: Boolean = failure.isDefined
-
-  /**
-    * Will fail this entity with the provided exception (if not already failed)
-    * @param t
-    */
-  def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
 
   def toXML: Node = {
     <Entity uri={uri.toString}> {
@@ -238,11 +173,17 @@ class Entity private(
 
   def copy(
     uri: Uri = this.uri,
-    vals: IndexedSeq[Seq[String]] = this._values,
-    desc: EntitySchema = this._schema
-  ): Entity = this._failure match{
-      case Some(f) => Entity(uri, vals, desc, f)
-      case None => Entity(uri, vals, desc)
+    values: IndexedSeq[Seq[String]] = this.values,
+    schema: EntitySchema = this.schema,
+    subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
+    failureOpt: Option[Throwable] = None,
+   validateSchema: Boolean = true
+  ): Entity = this.failure match{
+      case Some(_) => this
+      case None => failureOpt match{
+        case Some(f) => Entity(uri, values, schema, f)
+        case None => Entity(uri, values, schema)
+      }
   }
 }
 
@@ -266,6 +207,8 @@ object Entity {
     new Entity(uri, values, schema)
   }
 
+  def handleNullsInValueSeq(valueSeq: Seq[String]): Seq[String] = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
+
   /**
     * Instantiates a new Entity and fails it with the given Throwable
     * NOTE: values are not recorded
@@ -275,13 +218,7 @@ object Entity {
     * @return - the failed Entity
     */
   //FIXME add property option CMEM-719
-  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
-    val e = empty(uri)
-    e.failEntity(t)
-    e._values = schema.typedPaths.map(x => Seq())
-    e.applyNewSchema(schema, validate = false)
-    e
-  }
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(t), validateSchema = false)
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
@@ -291,14 +228,9 @@ object Entity {
     * @param t - the Throwable which failed this Enity
     * @return - the failed Entity
     */
-  //FIXME add property option CMEM-719
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
-    val e = empty(uri)
-    e.failEntity(t)
-    e._values = values
-    e.applyNewSchema(schema)
-    e
-  }
+  //FIXME add property option CMEM-719 maybe only allow SparkInstanceException
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = Entity(uri, values, schema, IndexedSeq(), Some(t), validateSchema = false)
+
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
@@ -308,7 +240,7 @@ object Entity {
           for (e <- valNode \ "e") yield e.text
         }
       }.toIndexedSeq,
-      desc = desc
+      schema = desc
     )
   }
 
