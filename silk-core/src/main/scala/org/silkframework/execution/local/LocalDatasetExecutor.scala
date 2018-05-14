@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.DatasetSpec.EntitySinkWrapper
+import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, PlainDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -56,7 +56,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleMultiEntitySchema(dataset: Task[Dataset], schema: EntitySchema, multi: MultiEntitySchema) = {
+  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, multi: MultiEntitySchema) = {
     MultiEntityTable(
       entities = dataset.source.retrieve(entitySchema = schema),
       entitySchema = schema,
@@ -78,7 +78,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleSparqlEndpointSchema(dataset: Task[Dataset]): SparqlEndpointEntityTable = {
+  private def handleSparqlEndpointSchema(dataset: Task[PlainDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
@@ -89,7 +89,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def readTriples(dataset: Task[Dataset], rdfDataset: RdfDataset) = {
+  private def readTriples(dataset: Task[PlainDatasetSpec], rdfDataset: RdfDataset) = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
@@ -114,7 +114,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
-        withLinkSink(dataset) { linkSink =>
+        withLinkSink(dataset.data.plugin) { linkSink =>
           writeLinks(linkSink, links, linkType)
         }
       case TripleEntityTable(entities, _) =>
@@ -166,7 +166,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withEntitySink(dataset: Dataset)(f: EntitySink => Unit): Unit = {
+  private def withEntitySink(dataset: DatasetSpec[Dataset])(f: EntitySink => Unit): Unit = {
     val sink = dataset.entitySink
     try {
       f(sink)

@@ -81,7 +81,7 @@ object ProjectUtils {
     */
   def createInMemorySink(xmlRoot: NodeSeq,
                          sinkIds: Map[String, String])
-                        (implicit resourceLoader: ResourceManager): Map[String, SinkTrait] = {
+                        (implicit resourceLoader: ResourceManager): Map[String, DatasetWriteAccess] = {
     val datasets = createDatasets(xmlRoot, Some(sinkIds.keySet), "Sinks")
     //    val datasetPlugins = datasets.map { ds =>
     //      val ds.plugin match {

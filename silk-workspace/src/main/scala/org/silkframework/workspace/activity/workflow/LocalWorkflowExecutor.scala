@@ -263,7 +263,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_))
       case _ => Seq()
     }
-    var errorSinks: Seq[SinkTrait] = errorOutputSinks(errorOutputs)
+    var errorSinks: Seq[DatasetWriteAccess] = errorOutputSinks(errorOutputs)
 
 
     if (errorOutputs.exists(!_.data.isInstanceOf[Dataset])) {
@@ -277,7 +277,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     //        activityContext.value() = activityContext.value().withReport(operator.id, report)
   }
 
-  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {
+  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[DatasetWriteAccess] = {
     errorOutputs.collect {
       case pt: ProjectTask[_] if pt.data.isInstanceOf[Dataset] =>
         pt.data.asInstanceOf[Dataset]

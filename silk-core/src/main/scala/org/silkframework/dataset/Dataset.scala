@@ -7,12 +7,7 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 /**
  * Manages the access to a specific dataset.
  */
-trait Dataset extends TaskSpec with AnyPlugin with SinkTrait {
-
-  /**
-   * Returns a data source for reading entities from the data set.
-   */
-  def source: DataSource
+trait Dataset extends TaskSpec with AnyPlugin with DatasetAccess {
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -26,18 +21,6 @@ trait DatasetPluginAutoConfigurable[T <: Dataset] {
    * returns an auto-configured version of this plugin
    */
   def autoConfigured: T
-}
-
-trait SinkTrait {
-  /**
-   * Returns a link sink for writing entity links to the data set.
-   */
-  def linkSink: LinkSink
-
-  /**
-   * Returns a entity sink for writing entities to the data set.
-   */
-  def entitySink: EntitySink
 }
 
 /**

@@ -1,11 +1,9 @@
 package org.silkframework.execution
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.ActivityContext
-
-import scala.reflect.ClassTag
 
 /**
   * Writes and/or reads a data set.
@@ -14,6 +12,10 @@ import scala.reflect.ClassTag
   * @tparam ExecType The execution type, e.g., SparkExecution
   */
 trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends Executor[DatasetSpec[DatasetType], ExecType] {
+
+  def access(task: Task[DatasetSpec[DatasetType]], execution: ExecType): DatasetAccess = {
+    task.data
+  }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType): ExecType#DataType
 

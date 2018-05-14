@@ -4,7 +4,7 @@ import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
@@ -129,5 +129,16 @@ object ExecutorRegistry extends ExecutorRegistry {
 
     val exec = executor(task.data, execution)
     exec.execute(task, inputs, outputSchema, execution, context)
+  }
+
+  /** Fetch the execution specific access to a dataset.*/
+  def access[DatasetType <: Dataset, ExecType <: ExecutionType](task: Task[DatasetSpec[DatasetType]],
+                                                                execution: ExecType): DatasetAccess = {
+    executor(task.data, execution) match {
+      case ds: DatasetExecutor[DatasetType, ExecType] =>
+        ds.access(task, execution)
+      case _ =>
+        throw new Exception(s"Tried to access task $task, which does not provide a dataset executor.")
+    }
   }
 }

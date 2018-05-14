@@ -32,7 +32,7 @@ import scala.xml.Node
   * @param uriProperty Setting this URI will generate an additional property for each entity.
                        The additional property contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
