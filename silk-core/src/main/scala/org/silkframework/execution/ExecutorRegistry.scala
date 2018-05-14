@@ -22,21 +22,21 @@ trait ExecutorRegistry {
     val plugins = PluginRegistry.availablePlugins[Executor[TaskType, ExecType]]
 
     // If the task to be executed is a dataset, we need to forward the Dataset plugin.
-    val executingTask = task match {
+    val taskClass = task match {
       case datasetSpec: DatasetSpec[_] =>
-        datasetSpec.plugin
+        datasetSpec.plugin.getClass
       case _ =>
-        task
+        task.getClass
     }
 
-    val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(executingTask, context, plugin)) yield (plugin, taskType)
+    val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(taskClass, context, plugin)) yield (plugin, taskType)
 
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val resource: ResourceManager = EmptyResourceManager
 
     suitableExecutors.size match {
       case 0 =>
-        throw new ValidationException(s"No executor found for task type ${executingTask.getClass.getSimpleName} " +
+        throw new ValidationException(s"No executor found for task type ${taskClass.getSimpleName} " +
             s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
       case 1 =>
         // Instantiate executor
@@ -54,7 +54,7 @@ trait ExecutorRegistry {
     *
     * @return The actual supported task type, if the executor is suitable.
     */
-  private def isSuitable(task: TaskSpec, execution: ExecutionType, plugin: PluginDescription[Executor[_, _]]): Option[Class[_]] = {
+  private def isSuitable(taskClass: Class[_], execution: ExecutionType, plugin: PluginDescription[Executor[_, _]]): Option[Class[_]] = {
     try {
       // Get executor interface
       val (executorInterface, inheritanceTrail) = findExecutorInterface(plugin.pluginClass).get
@@ -63,7 +63,7 @@ trait ExecutorRegistry {
       val executionType = getTypeArgument(executorInterface, 1, inheritanceTrail)
       // Check if suitable
       val isAbstract = Modifier.isAbstract(plugin.pluginClass.getModifiers)
-      val suitableTaskType = taskType.isAssignableFrom(task.getClass)
+      val suitableTaskType = taskType.isAssignableFrom(taskClass)
       val suitableExecutionType = executionType.isAssignableFrom(execution.getClass)
       // Return description if all fits
       if(!isAbstract && suitableTaskType && suitableExecutionType) {

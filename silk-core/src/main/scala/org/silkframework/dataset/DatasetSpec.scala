@@ -48,12 +48,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
-  override def inputTasks: Set[Identifier] = plugin.inputTasks
-
-  override def outputTasks: Set[Identifier] = plugin.outputTasks
-
-  override def referencedTasks: Set[Identifier] = plugin.referencedTasks
-
+  /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
