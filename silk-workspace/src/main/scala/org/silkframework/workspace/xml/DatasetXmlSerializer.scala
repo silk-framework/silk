@@ -17,6 +17,7 @@ package org.silkframework.workspace.xml
 import java.util.logging.Logger
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
@@ -28,7 +29,7 @@ import scala.xml.XML
 /**
  * The source module which encapsulates all data sources.
  */
-private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec] {
+private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
 
   private val logger = Logger.getLogger(classOf[DatasetXmlSerializer].getName)
 
@@ -37,7 +38,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[DatasetSpec]] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[PlainDatasetSpec]] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
@@ -61,7 +62,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec] {
     // Load the data set
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val dataset = XmlSerialization.fromXml[Task[DatasetSpec]](resources.get(name).read(XML.load))
+    val dataset = XmlSerialization.fromXml[Task[PlainDatasetSpec]](resources.get(name).read(XML.load))
 
     dataset
   }
@@ -69,7 +70,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[DatasetSpec], resources: ResourceManager): Unit = {
+  override def writeTask(task: Task[PlainDatasetSpec], resources: ResourceManager): Unit = {
     resources.get(task.id.toString + ".xml").write(){ os => XmlSerialization.toXml(task).write(os) }
   }
 

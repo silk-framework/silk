@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.CustomTask
+import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.execution.TaskException
 import org.silkframework.rule.{TransformSpec, TransformedDataSource}
@@ -28,7 +29,7 @@ object TransformTaskUtils {
             case Some(transformTask) =>
               transformTask.asDataSource(transformTask.data.selection.typeUri)
             case None =>
-              task.project.task[DatasetSpec](sourceId).data.source
+              task.project.task[PlainDatasetSpec](sourceId).data.source
           }
       }
     }
@@ -38,7 +39,7 @@ object TransformTaskUtils {
       */
     def asDataSource(typeUri: Uri): DataSource = {
       val transformSpec = task.data
-      val source = task.project.task[DatasetSpec](transformSpec.selection.inputId).data.source
+      val source = task.project.task[PlainDatasetSpec](transformSpec.selection.inputId).data.source
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
@@ -57,14 +58,14 @@ object TransformTaskUtils {
       * Retrieves all entity sinks for this transform task.
       */
     def entitySinks = {
-      task.data.outputs.flatMap(o => task.project.taskOption[DatasetSpec](o)).map(_.data.entitySink)
+      task.data.outputs.flatMap(o => task.project.taskOption[PlainDatasetSpec](o)).map(_.data.entitySink)
     }
 
     /**
       * Retrieves all error entity sinks for this transform task.
       */
     def errorEntitySinks = {
-      task.data.errorOutputs.flatMap(o => task.project.taskOption[DatasetSpec](o)).map(_.data.entitySink)
+      task.data.errorOutputs.flatMap(o => task.project.taskOption[PlainDatasetSpec](o)).map(_.data.entitySink)
     }
   }
 

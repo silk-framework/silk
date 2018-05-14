@@ -2,8 +2,8 @@
 @import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
 @import org.silkframework.config.TaskSpec
-
 @import org.silkframework.workspace.ProjectTask
+
 @(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
 <div class="dataset" title="@task.taskLabel(maxLength = 1024)" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"

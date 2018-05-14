@@ -19,7 +19,7 @@ import java.util.logging.LogRecord
 
 import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, DatasetSpec, LinkSink}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
@@ -115,7 +115,7 @@ class GenerateLinks(id: Identifier,
 object GenerateLinks {
 
   def fromSources(id: Identifier,
-                  datasets: Traversable[Task[DatasetSpec]],
+                  datasets: Traversable[Task[DatasetSpec[Dataset]]],
                   linkSpec: LinkSpec,
                   runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) = {
     val sourcePair = linkSpec.findSources(datasets)

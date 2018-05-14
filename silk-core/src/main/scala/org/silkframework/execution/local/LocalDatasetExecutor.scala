@@ -25,7 +25,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[Dataset], schema: EntitySchema, execution: LocalExecution): LocalEntities = {
+  override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution): LocalEntities = {
     schema match {
       case TripleEntitySchema.schema =>
         handleTripleEntitySchema(dataset)
@@ -41,9 +41,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[Dataset]) = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[Dataset]]) = {
     dataset.data match {
-      case datasetSpec: DatasetSpec =>
+      case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             new DatasetResourceEntityTable(dsr.file, dataset)
@@ -67,7 +67,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     )
   }
 
-  private def handleTripleEntitySchema(dataset: Task[Dataset]): TripleEntityTable = {
+  private def handleTripleEntitySchema(dataset: Task[DatasetSpec[Dataset]]): TripleEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
@@ -111,7 +111,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     TripleEntityTable(tripleEntities, dataset)
   }
 
-  override protected def write(data: LocalEntities, dataset: Task[Dataset], execution: LocalExecution): Unit = {
+  override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset) { linkSink =>
@@ -135,10 +135,10 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   }
 
   // Write the resource from the resource entity table to the dataset's resource
-  private def writeDatasetResource(dataset: Task[Dataset], datasetResource: DatasetResourceEntityTable): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], datasetResource: DatasetResourceEntityTable): Unit = {
     val inputResource = datasetResource.datasetResource
     dataset.data match {
-      case datasetSpec: DatasetSpec =>
+      case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {

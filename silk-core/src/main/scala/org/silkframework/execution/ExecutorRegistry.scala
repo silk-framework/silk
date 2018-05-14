@@ -1,16 +1,15 @@
 package org.silkframework.execution
 
-import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
+import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 import java.util.logging.{Level, Logger}
-import java.lang.reflect.Modifier
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.ClassUtil
 
 trait ExecutorRegistry {
 
@@ -21,14 +20,23 @@ trait ExecutorRegistry {
     */
   protected def executor[TaskType <: TaskSpec, ExecType <: ExecutionType](task: TaskType, context: ExecType): Executor[TaskType, ExecType] = {
     val plugins = PluginRegistry.availablePlugins[Executor[TaskType, ExecType]]
-    val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(task, context, plugin)) yield (plugin, taskType)
+
+    // If the task to be executed is a dataset, we need to forward the Dataset plugin.
+    val executingTask = task match {
+      case datasetSpec: DatasetSpec[_] =>
+        datasetSpec.plugin
+      case _ =>
+        task
+    }
+
+    val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(executingTask, context, plugin)) yield (plugin, taskType)
 
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val resource: ResourceManager = EmptyResourceManager
 
     suitableExecutors.size match {
       case 0 =>
-        throw new ValidationException(s"No executor found for task type ${task.getClass.getSimpleName} " +
+        throw new ValidationException(s"No executor found for task type ${executingTask.getClass.getSimpleName} " +
             s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
       case 1 =>
         // Instantiate executor
@@ -71,8 +79,14 @@ trait ExecutorRegistry {
   }
 
   private def findExecutorInterface(clazz: Class[_], inheritanceTrail: List[Class[_]] = List.empty): Option[(ParameterizedType, List[Class[_]])] = {
-    val executorClasses: Set[Type] = Set(classOf[Executor[_, _]], classOf[DatasetExecutor[_, _]])
-    clazz.getGenericInterfaces.collect { case pt: ParameterizedType => pt }.find(pt => executorClasses.contains(pt.getRawType)) match {
+    val executorClass =
+      if(classOf[DatasetExecutor[_, _]].isAssignableFrom(clazz)) {
+        classOf[DatasetExecutor[_, _]]
+      } else {
+        classOf[Executor[_, _]]
+      }
+
+    clazz.getGenericInterfaces.collect { case pt: ParameterizedType => pt }.find(_.getRawType == executorClass) match {
       case Some(executorInterface) =>
         Some((executorInterface, clazz :: inheritanceTrail))
       case None =>
