@@ -19,28 +19,6 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
 
   override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++ subSchemata.flatMap(_.typedPaths)
 
-
-  /**
-    * Like typedPaths, but without empty paths and paths of sub schemata
-    *
-    * @return
-    */
-  override def flatPaths: IndexedSeq[TypedPath] = this.pivotSchema.flatPaths ++
-    this.subSchemata.zipWithIndex.flatMap(ss => ss._1.flatPaths
-      .map{case TypedPath(ops, a, b) => TypedPath(Path(SubEntityPrefix + ss._2).operators ++ ops, a, b)})
-
-  override def getSchemaOfProperty (tp: TypedPath): Option[EntitySchema] = {
-    if(tp.isEmpty){
-      None
-    }
-    else if(pivotSchema.typedPaths.contains(tp)){
-      Some(pivotSchema)
-    }
-    else{
-      subSchemata.find(se => se.typedPaths.contains(tp))
-    }
-  }
-
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
     * NOTE: valueType and isAttribute of the TypedPath will be copied!
