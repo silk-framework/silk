@@ -24,6 +24,7 @@ case class EntitySchema(
 
   /**
     * overriding the default case class copy(). to deal with Sub-Schemata
+    * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema
     */
   def copy(
     typeUri: Uri = this.typeUri,
@@ -38,12 +39,6 @@ case class EntitySchema(
       case subs => new MultiEntitySchema(pivotSchema, subs)
     }
   }
-
-  /**
-    * Like typedPaths, but without empty paths and paths of sub schemata
-    * @return
-    */
-  def flatPaths: IndexedSeq[TypedPath] = this.typedPaths.filterNot(_.isEmpty)
 
   /**
     * Retrieves the index of a given path.
@@ -93,7 +88,7 @@ case class EntitySchema(
     case None => None
   }
 
-  def propertyNames: IndexedSeq[String] = this.typedPaths.flatMap(p => if(p.isEmpty) None else Some(p.serializeSimplified))
+  def propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 

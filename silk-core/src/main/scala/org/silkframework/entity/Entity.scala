@@ -15,8 +15,6 @@
 package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
-
-import org.silkframework.entity.EntitySchema.dropTypedPath
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -33,6 +31,21 @@ case class Entity private(
     private val validateSchema: Boolean = true
   ) extends Serializable {
 
+  def copy(
+    uri: Uri = this.uri,
+    values: IndexedSeq[Seq[String]] = this.values,
+    schema: EntitySchema = this.schema,
+    subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
+    failureOpt: Option[Throwable] = None,
+    validateSchema: Boolean = this.validateSchema
+  ): Entity = this.failure match{
+    case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
+    case None => failureOpt match{                      // else we decided based on the provided failure option
+      case Some(f) => new Entity(uri, vals, schema, subEntities, Some(f), validateSchema = false)
+      case None => new Entity(uri, vals, schema, subEntities, None, this.values != vals)
+    }
+  }
+
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[Throwable] = if(failureOpt.isEmpty && validateSchema) {   //if no failure has occurred yet and this entity shall be validated
@@ -46,6 +59,8 @@ case class Entity private(
   else {
     failureOpt
   }
+
+  def hasFailed: Boolean = failure.isDefined
 
   /**
     * Will retrieve the values of a given path (if available)
@@ -82,10 +97,12 @@ case class Entity private(
   def valueOf(property: String): Seq[String] ={
     schema.getSchemaOfProperty(property) match{
       case Some(es) =>
+        //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
         val ent = if(es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es)
           this
         else
           subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+        //now find the pertining index and get values
         es.propertyNames.zipWithIndex.find(_._1 == property) match{
           case Some((_, ind)) => ent.values(ind)
           case None => Seq()
@@ -131,8 +148,6 @@ case class Entity private(
     valsSize && valsConform && subEntsValid
   }
 
-  def hasFailed: Boolean = failure.isDefined
-
   def toXML: Node = {
     <Entity uri={uri.toString}> {
       for (valueSet <- values) yield {
@@ -170,26 +185,11 @@ case class Entity private(
     hashCode = hashCode * 31 + schema.hashCode()
     hashCode
   }
-
-  def copy(
-    uri: Uri = this.uri,
-    values: IndexedSeq[Seq[String]] = this.values,
-    schema: EntitySchema = this.schema,
-    subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
-    failureOpt: Option[Throwable] = None,
-   validateSchema: Boolean = true
-  ): Entity = this.failure match{
-      case Some(_) => this
-      case None => failureOpt match{
-        case Some(f) => Entity(uri, values, schema, f)
-        case None => Entity(uri, values, schema)
-      }
-  }
 }
 
 object Entity {
 
-  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq(), EntitySchema.empty)
+  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq.empty, EntitySchema.empty)
 
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
     new Entity(uri, values, schema, subEntities)
