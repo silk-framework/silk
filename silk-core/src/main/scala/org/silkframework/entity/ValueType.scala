@@ -113,7 +113,7 @@ object ValueType {
   }
 
   /** All [[ValueType]] classes/singletons */
-  val allValueType: Seq[Either[(String, Class[_]), ValueType]] = Seq(
+  val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
     Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])),
     Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
     Right(IntValueType),
@@ -135,12 +135,12 @@ object ValueType {
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map { case (id, classOrObj) =>
-    classOrObj match {
-      case Left(clazz) => (clazz, id)
-      case Right(obj) => (obj.getClass, id)
+  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map(ei =>
+    ei._2 match {
+      case Left(clazz) => (clazz, ei._1)
+      case Right(obj) => (obj.getClass, ei._1)
     }
-  }.toMap
+  ).toMap
 }
 
 object Test {

@@ -18,14 +18,14 @@ object SparkCompatibleEncoding {
     * @return Encoded but not twice encoded String
     */
   def encode(original: String, encoding: String = "UTF-8"): Uri = {
-    val orifUri = Uri(original)
-    if(orifUri.isValidUri)
-      return orifUri
+    val origUri = Uri(original)
+    if(origUri.isValidUri)
+      return origUri
 
     val encoded = URLEncoder.encode(original, encoding)
     if (encoded.contains("+")) {
       if (original.equals(encoded.replaceAll("\\+", " "))) {
-        encoded
+        origUri
       }
       else {
         original.replaceAll(" ", "+")
