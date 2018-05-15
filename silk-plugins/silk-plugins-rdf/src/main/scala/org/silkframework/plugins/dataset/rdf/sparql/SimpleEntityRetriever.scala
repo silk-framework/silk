@@ -54,10 +54,11 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     sparql append selectVariables
     sparql append "\n"
 
+    //Graph
+    for (graph <- graphUri if !graph.isEmpty) sparql append s"FROM <$graph>\n"
+
     //Body
     sparql append "WHERE {\n"
-    //Graph
-    for (graph <- graphUri if !graph.isEmpty) sparql append s"GRAPH <$graph> {\n"
 
     if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
       sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
@@ -66,7 +67,6 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     }
 
     sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
-    for (graph <- graphUri if !graph.isEmpty) sparql append "}\n" // END graph
     sparql append "}" // END WHERE
     if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
 
