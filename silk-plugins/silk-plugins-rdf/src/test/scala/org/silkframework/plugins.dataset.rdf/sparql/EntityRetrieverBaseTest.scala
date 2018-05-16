@@ -1,21 +1,63 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.apache.jena.fuseki.FusekiException
+import org.apache.jena.fuseki.embedded.FusekiServer
+import org.apache.jena.fuseki.server.{DataService, Operation}
+import org.apache.jena.query.{DatasetFactory, TxnType}
+import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.riot.{Lang, RDFDataMgr}
+import org.apache.jena.tdb2.TDB2Factory
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
-import org.silkframework.plugins.dataset.rdf.RdfFileDataset
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResource}
+import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
+import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
-abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
+abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with BeforeAndAfterAll {
   def entityRetriever(endpoint: SparqlEndpoint,
                       graphUri: Option[String] = None,
                       useOrderBy: Boolean = true): EntityRetriever
+  private val GRAPH = "http://testGraph"
+
+  private var fusekiServer: Option[FusekiServer] = None
+  private var fusekiServerPort = 3330
 
   lazy val endpoint: SparqlEndpoint = {
-    val resource = ReadOnlyResource(ClasspathResourceLoader("org/silkframework/plugins/dataset/rdf").get("persons.ttl"))
-    RdfFileDataset(resource, "Turtle").sparqlEndpoint
+    SparqlDataset(endpointURI = s"http://localhost:$fusekiServerPort/ds", graph = "http://some.graph").sparqlEndpoint
+  }
+
+  override def beforeAll(): Unit = {
+    val dataset = DatasetFactory.createTxnMem
+    val ds = dataset.asDatasetGraph()
+    val model = ModelFactory.createDefaultModel()
+    val is = ClasspathResourceLoader("org/silkframework/plugins/dataset/rdf").get("persons.ttl").inputStream
+    RDFDataMgr.read(model, is, Lang.TURTLE)
+    dataset.addNamedModel(GRAPH, model)
+    val dataService = new DataService(ds)
+    // All services on the same endpoint instead different ones for query and update
+    dataService.addEndpoint(Operation.Quads_RW, "")
+    dataService.addEndpoint(Operation.Query, "")
+    dataService.addEndpoint(Operation.Update, "")
+    while (fusekiServer.isEmpty) {
+      try {
+        val server = FusekiServer.create.add("/ds", ds)
+            .setPort(fusekiServerPort)
+            .add("/data", dataService)
+            .build
+        server.start()
+        fusekiServer = Some(server)
+      } catch {
+        case _: FusekiException =>
+          fusekiServerPort += 1
+      }
+    }
+  }
+
+  override def afterAll(): Unit = {
+    fusekiServer foreach (s => s.stop())
   }
 
   private val pn: String = "https://ns.eccenca.com/source/"
@@ -40,7 +82,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers {
   private val address2 = s"${pn}Address2"
   private val address3 = s"${pn}Address3"
 
-  private def retriever = entityRetriever(endpoint)
+  private def retriever = entityRetriever(endpoint, graphUri = Some(GRAPH))
 
   private def path(propertyUri: String): TypedPath = Path.parse(s"<$propertyUri>").asStringTypedPath
   private def path(properties: Seq[String]): TypedPath = Path.parse(properties.mkString("/<", ">/<", ">")).asStringTypedPath
