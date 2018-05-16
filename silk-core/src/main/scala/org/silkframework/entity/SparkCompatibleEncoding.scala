@@ -18,7 +18,7 @@ object SparkCompatibleEncoding {
     * @return Encoded but not twice encoded String
     */
   def encode(original: String, encoding: String = "UTF-8"): Uri = {
-    val orifUri = Uri(original)
+    val orifUri = Uri.parse(original)
     if(orifUri.isValidUri)
       return orifUri
 

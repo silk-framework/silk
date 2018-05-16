@@ -126,7 +126,7 @@ object Uri {
       fromString(str.substring(1, str.length - 1))
     } else if (!str.contains(':')) {
       fromString(str)
-    } else if (str.startsWith("http")) {
+    } else if (str.startsWith("http") || str.startsWith("urn:")) {
       fromString(str)
     } else {
       fromQualifiedName(str, prefixes)
