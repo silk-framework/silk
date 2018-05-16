@@ -15,6 +15,7 @@
 package org.silkframework.rule.execution
 
 import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.cache.EntityCache
@@ -63,14 +64,15 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
-    val scheduler = new SchedulerThread(executor)
+    val error = new AtomicReference[Option[String]](None)
+    val scheduler = new SchedulerThread(executor, error)
     scheduler.start()
 
     //Process finished tasks
     var finishedTasks = 0
     var lastLog: Long = 0
     val minLogDelayInMs = 1000
-    while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
+    while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && error.get().isEmpty) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
@@ -84,9 +86,14 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
-      context.value.update(context.value() ++ result.get)
-      updateStatus(context, finishedTasks, scheduler.taskCount)
+    error.get() match {
+      case Some(schedulerThreadErrorMessage) =>
+        throw new RuntimeException("" + schedulerThreadErrorMessage)
+      case None =>
+        for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
+          context.value.update(context.value() ++ result.get)
+          updateStatus(context, finishedTasks, scheduler.taskCount)
+        }
     }
 
     //Shutdown
@@ -113,7 +120,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Monitors the entity caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]]) extends Thread {
+  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]], error: AtomicReference[Option[String]]) extends Thread {
     @volatile var taskCount = 0
 
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
@@ -123,19 +130,26 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       try {
         var sourceLoading = true
         var targetLoading = true
+        var loaderSuccessful = true
 
         do {
           sourceLoading = loaders.source.status().isRunning
           targetLoading = loaders.target.status().isRunning
+          loaderSuccessful = !Seq(loaders.source, loaders.target).exists(_.status.get.exists(_.failed))
 
           updateSourcePartitions(!sourceLoading)
           updateTargetPartitions(!targetLoading)
 
           Thread.sleep(500)
 
-        } while(sourceLoading || targetLoading)
+        } while((sourceLoading || targetLoading) && loaderSuccessful)
+        val failedLoaders = Seq(loaders.source, loaders.target).filter(_.status.get.exists(_.failed))
+        if(failedLoaders.nonEmpty) { // One of the loaders failed
+          val loaderErrorMessages = failedLoaders.map(l => s"${l.name} task failed: ${l.status.get.get.message}").mkString(", ")
+          error.set(Some(loaderErrorMessages))
+        }
       } catch {
-        case ex: InterruptedException =>
+        case _: InterruptedException =>
       }
     }
 

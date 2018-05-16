@@ -67,7 +67,7 @@ object CsvSourceHelper {
             if (Uri(s).isValidUri) {
               s
             } else {
-              SparkCompatibleEncoding.encode(s).uri
+              URLEncoder.encode(s, "UTF-8")
             }
         }.toIndexedSeq
   }
