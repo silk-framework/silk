@@ -18,6 +18,7 @@ import java.util.logging.Logger
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.tdb2.TDB2Factory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
@@ -73,7 +74,8 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers {
   }
 
   private def createEndpoint() = {
-    val dataset = DatasetFactory.createTxnMem()
+    val dataset = TDB2Factory.createDataset()
+    dataset.begin()
     dataset.addNamedModel(graphDBpedia, loadData("test.nt"))
     dataset.addNamedModel(graphSchemaOrg, loadData("test2.nt"))
     new JenaDatasetEndpoint(dataset)

@@ -16,6 +16,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.tdb2.TDB2Factory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 
@@ -41,7 +42,8 @@ class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers {
   }
 
   private def createEndpoint() = {
-    val dataset = DatasetFactory.createTxnMem()
+    val dataset = TDB2Factory.createDataset()
+    dataset.begin() // Open transaction and keep transaction open
     dataset.addNamedModel(graphDBpedia, loadData("test.nt"))
     dataset.addNamedModel(graphSchemaOrg, loadData("test2.nt"))
     new JenaDatasetEndpoint(dataset)
