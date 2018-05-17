@@ -18,20 +18,33 @@ import java.util.logging.Logger
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
-import org.apache.jena.tdb2.TDB2Factory
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
-import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.plugins.dataset.rdf.endpoint.{JenaDatasetEndpoint, RemoteSparqlEndpoint}
+import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
+import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.util.Timer
 
-class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers {
+class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
 
   private val graphDBpedia = "http://example.org/dbpedia"
   private val graphSchemaOrg = "http://example.org/schemaOrg"
 
-  private val endpoint = createEndpoint()
+  private lazy val endpoint = createEndpoint()
+
+  private var fusekiServerInfo: Option[FusekiServerInfo] = None
+
+  override def beforeAll(): Unit = {
+    val dataset = DatasetFactory.createTxnMem()
+    dataset.addNamedModel(graphDBpedia, loadData("test.nt"))
+    dataset.addNamedModel(graphSchemaOrg, loadData("test2.nt"))
+    fusekiServerInfo = Some(FusekiHelper.startFusekiServer(dataset, 3500))
+  }
+
+  override def afterAll(): Unit = {
+    fusekiServerInfo foreach { info => info.server.stop() }
+  }
 
   behavior of "SparqlPathsCollectorTest"
 
@@ -74,11 +87,8 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers {
   }
 
   private def createEndpoint() = {
-    val dataset = TDB2Factory.createDataset()
-    dataset.begin()
-    dataset.addNamedModel(graphDBpedia, loadData("test.nt"))
-    dataset.addNamedModel(graphSchemaOrg, loadData("test2.nt"))
-    new JenaDatasetEndpoint(dataset)
+    val fusekiUrl = fusekiServerInfo.getOrElse(throw new RuntimeException("Did not start Fuseki server!")).url
+    SparqlDataset(endpointURI = fusekiUrl).sparqlEndpoint
   }
 
   private def loadData(name: String): Model = {
