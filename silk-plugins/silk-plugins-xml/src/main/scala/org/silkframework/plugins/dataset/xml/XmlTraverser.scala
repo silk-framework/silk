@@ -124,7 +124,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def evaluatePathAsString(path: TypedPath, uriPattern: String): Seq[String] = {
     val fetchEntityUri = path.valueType == UriValueType
-    val xml = evaluatePath(path.path)
+    val xml = evaluatePath(path)
     xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
   }
 

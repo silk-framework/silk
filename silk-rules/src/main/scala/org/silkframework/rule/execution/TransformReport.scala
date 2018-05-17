@@ -12,8 +12,11 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class TransformReport(entityCounter: Long = 0L, entityErrorCounter: Long = 0L,
-                           ruleResults: Map[Identifier, RuleResult] = Map.empty) extends ExecutionReport {
+case class TransformReport(
+                            entityCounter: Long = 0L,
+                            entityErrorCounter: Long = 0L,
+                            ruleResults: Map[Identifier, RuleResult] = Map.empty
+                          ) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(

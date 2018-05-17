@@ -69,10 +69,11 @@ sealed trait TransformRule extends Operator {
   /**
     * Collects all input paths in this rule.
     */
-  def sourcePaths: Seq[Path] = {
-    def collectPaths(param: Input): Seq[Path] = param match {
+  def sourcePaths: Seq[TypedPath] = {
+    def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
-      case p: PathInput => Seq(p.path)
+      case PathInput(_, path: TypedPath) => Seq(path)
+      case PathInput(_, path: Path) => Seq(TypedPath(path, AutoDetectValueType, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 

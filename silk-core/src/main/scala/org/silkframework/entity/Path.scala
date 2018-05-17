@@ -22,7 +22,7 @@ import scala.ref.WeakReference
 /**
   * Represents an RDF path.
   */
-final class Path private(val operators: List[PathOperator]) extends Serializable {
+class Path private[entity](val operators: List[PathOperator]) extends Serializable {
 
   private lazy val serializedFull = serialize()
 
@@ -88,7 +88,7 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
   override def hashCode: Int = toString.hashCode
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
-  def asStringTypedPath: TypedPath = TypedPath(this, StringValueType, isAttribute = false)
+  def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
 }
 
 object Path {

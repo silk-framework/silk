@@ -61,7 +61,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path.path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path)
 
       pathRetrievers.foreach(_.start())
 
@@ -71,7 +71,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
           val uri = pathValues.head.uri
           if (pathValues.tail.forall(_.uri == uri)) {
-            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
+            f(Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
             counter += 1
           }
           else {

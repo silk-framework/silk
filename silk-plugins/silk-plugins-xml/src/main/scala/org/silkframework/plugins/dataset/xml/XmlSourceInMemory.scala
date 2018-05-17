@@ -79,7 +79,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri = traverser.generateUri(uriPattern)
         val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
-        f(new Entity(uri, values, entityDesc))
+        f(Entity(uri, values, entityDesc))
       }
     }
   }

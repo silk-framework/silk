@@ -72,16 +72,16 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 
 object LinkageRuleGenerator {
 
-  def empty = {
+  def empty: LinkageRuleGenerator = {
     new LinkageRuleGenerator(IndexedSeq.empty, Components())
   }
 
-  def apply(entities: ReferenceEntities, components: Components = Components()) = {
+  def apply(entities: ReferenceEntities, components: Components = Components()): LinkageRuleGenerator = {
     val es = entities.positiveEntities
     if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
-      val paths = es.head.map(_.desc.typedPaths.map(_.path))
+      val paths = es.head.map(_.schema.typedPaths)
       new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.compatibleOnly) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
     }
   }
