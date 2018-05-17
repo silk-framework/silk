@@ -10,6 +10,7 @@ import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
+import scala.language.existentials
 
 trait ExecutorRegistry {
 
