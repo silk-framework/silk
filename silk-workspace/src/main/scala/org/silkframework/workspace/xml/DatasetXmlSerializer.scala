@@ -17,7 +17,7 @@ package org.silkframework.workspace.xml
 import java.util.logging.Logger
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
@@ -38,7 +38,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[PlainDatasetSpec]] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[GenDatasetSpec]] = {
     // Read dataset tasks
     val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
     var tasks = for (name <- names) yield {
@@ -62,7 +62,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
     // Load the data set
     implicit val res = projectResources
     implicit val readContext = ReadContext(projectResources)
-    val dataset = XmlSerialization.fromXml[Task[PlainDatasetSpec]](resources.get(name).read(XML.load))
+    val dataset = XmlSerialization.fromXml[Task[GenDatasetSpec]](resources.get(name).read(XML.load))
 
     dataset
   }
@@ -70,7 +70,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[PlainDatasetSpec], resources: ResourceManager): Unit = {
+  override def writeTask(task: Task[GenDatasetSpec], resources: ResourceManager): Unit = {
     resources.get(task.id.toString + ".xml").write(){ os => XmlSerialization.toXml(task).write(os) }
   }
 

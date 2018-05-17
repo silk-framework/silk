@@ -75,7 +75,7 @@ object DatasetSpec {
   /**
     * A DatasetSpec that is agnostic of the actual Dataset type.
     */
-  type PlainDatasetSpec = DatasetSpec[Dataset]
+  type GenDatasetSpec = DatasetSpec[Dataset]
 
   implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 

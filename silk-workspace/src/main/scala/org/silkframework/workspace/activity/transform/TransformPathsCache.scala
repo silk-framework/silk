@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
@@ -77,7 +77,7 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
     }
   }
 
-  def isRdfInput(task: ProjectTask[TransformSpec]): Boolean = task.project.taskOption[PlainDatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
+  def isRdfInput(task: ProjectTask[TransformSpec]): Boolean = task.project.taskOption[GenDatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
 }
 
 object CachedEntitySchemata {

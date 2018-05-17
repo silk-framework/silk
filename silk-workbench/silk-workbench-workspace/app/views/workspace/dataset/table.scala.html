@@ -1,9 +1,9 @@
 @import org.silkframework.entity.Path
 @import org.silkframework.entity.Entity
-@import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
 @import plugins.Context
 
-@(context: plugins.Context[PlainDatasetSpec], paths: IndexedSeq[Path], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
+@(context: plugins.Context[GenDatasetSpec], paths: IndexedSeq[Path], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
 
 @header = {
 }

@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.dataset.DatasetSpec.PlainDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -271,7 +271,7 @@ class TransformTaskApi extends Controller {
 
     task.data.outputs.headOption match {
       case Some(outputId) =>
-        project.taskOption[PlainDatasetSpec](outputId).map(_.data.plugin) match {
+        project.taskOption[GenDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
             Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
           case Some(_) =>
