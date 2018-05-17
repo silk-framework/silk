@@ -6,23 +6,21 @@ import controllers.core.{Stream, Widgets}
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.entity.{Link, Path}
+import org.silkframework.entity.{Link, Path, TypedPath}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.{LinkSpec, LinkageRule, RuleTraverser}
-import org.silkframework.rule.input.{Input, PathInput}
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.activity.Status
-import org.silkframework.runtime.activity.Status.{Finished, Idle}
+import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.util.DPair
 import org.silkframework.util.Identifier._
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.{Action, Controller, Result}
+import play.api.mvc.{Action, Controller}
 import plugins.Context
 
 class Learning extends Controller {
@@ -68,10 +66,10 @@ class Learning extends Controller {
     /**
       * Collects paths of all linkage rules in the population, sorted by frequency
       */
-    def sortedPaths(sourceOrTarget: Boolean): Seq[Path] = {
+    def sortedPaths(sourceOrTarget: Boolean): Seq[TypedPath] = {
       val rules = activeLearn.value().population.individuals.map(_.node.build)
       val allSourcePaths = rules.map(rule => collectPaths(rule, sourceOrTarget))
-      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).typedPaths.map(_.path)
+      val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).typedPaths
       val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_ == p))
       sortedSchemaPaths
     }

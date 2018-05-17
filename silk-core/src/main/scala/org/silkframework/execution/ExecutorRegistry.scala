@@ -121,11 +121,13 @@ trait ExecutorRegistry {
 object ExecutorRegistry extends ExecutorRegistry {
 
   /** Fetch the most specific, matching Executor and execute it on the provided parameters. */
-  def execute[TaskType <: TaskSpec, ExecType <: ExecutionType](task: Task[TaskType],
-                                                               inputs: Seq[ExecType#DataType],
-                                                               outputSchema: Option[EntitySchema],
-                                                               execution: ExecType,
-                                                               context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[ExecType#DataType] = {
+  def execute[TaskType <: TaskSpec, ExecType <: ExecutionType](
+    task: Task[TaskType],
+    inputs: Seq[ExecType#DataType],
+    outputSchema: Option[EntitySchema],
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
+  ): Option[ExecType#DataType] = {
 
     val exec = executor(task.data, execution)
     exec.execute(task, inputs, outputSchema, execution, context)

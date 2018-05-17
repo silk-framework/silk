@@ -332,16 +332,16 @@ class TransformTaskApi extends Controller {
         val cachedPaths = pathCache.value.fetchCachedPaths(task, sourcePath)
         val isRdfInput = pathCache.value.isRdfInput(task)
         val matchingPaths = cachedPaths filter { p =>
-          val pathSize = p.path.operators.size
+          val pathSize = p.operators.size
           isRdfInput ||
-              p.path.operators.startsWith(sourcePath) &&
+              p.operators.startsWith(sourcePath) &&
                   pathSize > sourcePath.size &&
                   pathSize - sourcePath.size <= maxDepth
         } map { p =>
             if(isRdfInput) {
-              p.path
+              p
             } else {
-              Path(p.path.operators.drop(sourcePath.size))
+              Path(p.operators.drop(sourcePath.size))
             }
         }
         val filteredPaths = if(unusedOnly) {

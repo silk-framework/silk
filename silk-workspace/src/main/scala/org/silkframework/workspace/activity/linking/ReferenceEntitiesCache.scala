@@ -36,7 +36,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
     pathsCache.start()
   }
 
-  override def run(context: ActivityContext[ReferenceEntities]) = {
+  override def run(context: ActivityContext[ReferenceEntities]): Unit = {
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
@@ -58,7 +58,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
 
     private val linkSpec = task.data
 
-    def load() = {
+    //noinspection ScalaStyle
+    def load(): Unit = {
       context.status.update("Loading entities", 0.0)
 
       import linkSpec.referenceLinks.{negative, positive, unlabeled}
@@ -159,32 +160,32 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
         None
       } else {
         //Compute the paths which are missing on the given entity
-        val existingPaths = entity.desc.typedPaths.toSet
+        val existingPaths = entity.schema.typedPaths.toSet
         val missingPaths = entityDesc.typedPaths.filterNot(existingPaths.contains)
 
         //Retrieve an entity with all missing paths
         val missingEntity =
           source.retrieveByUri(
-            entitySchema = entity.desc.copy(typedPaths = missingPaths),
+            entitySchema = entity.schema.copy(typedPaths = missingPaths),
             entities = entity.uri :: Nil
           ).head
 
         //Collect values from the existing and the new entity
         val completeValues =
           for (path <- entityDesc.typedPaths) yield {
-            val pathIndex = entity.desc.typedPaths.indexOf(path)
+            val pathIndex = entity.schema.typedPaths.indexOf(path)
             if (pathIndex != -1) {
               entity.evaluate(pathIndex)
             } else {
-              missingEntity.evaluate(path.path)
+              missingEntity.evaluate(path)
             }
           }
 
         //Return the updated entity
-        Some(new Entity(
+        Some(Entity(
           uri = entity.uri,
           values = completeValues,
-          desc = entityDesc
+          schema = entityDesc
         ))
       }
     }
@@ -196,11 +197,11 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
         entitySchema = entityDesc,
         entities = entityUris map Uri.apply
       )
-      entities.map{ e => (e.uri, e)}.toMap
+      entities.map{ e => (e.uri.toString, e)}.toMap
     }
 
     private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {
-      entity.desc.typedPaths == entityDesc.typedPaths
+      entity.schema.typedPaths == entityDesc.typedPaths
     }
   }
 }

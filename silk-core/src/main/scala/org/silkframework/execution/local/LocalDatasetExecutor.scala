@@ -37,7 +37,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
-        GenericEntityTable(entities, entitySchema = schema, dataset)
+        GenericEntityTable(entities, entitySchema = schema, Some(dataset))
     }
   }
 
@@ -46,7 +46,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new DatasetResourceEntityTable(dsr.file, dataset)
+            new DatasetResourceEntityTable(dsr.file, Some(dataset))
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -62,8 +62,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
-      task = dataset
+            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, Some(dataset)),
+      taskOption = Some(dataset)
     )
   }
 
@@ -81,9 +81,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def handleSparqlEndpointSchema(dataset: Task[PlainDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(dataset))
       case DatasetSpec(rdfDataset: RdfDataset, _) =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(dataset))
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
     }
@@ -106,9 +106,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         case Resource(uri) =>
           (uri, s"$URI_ENC_PREFIX")
       }
-      new Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
+      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
     }
-    TripleEntityTable(tripleEntities, dataset)
+    TripleEntityTable(tripleEntities, Some(dataset))
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution): Unit = {

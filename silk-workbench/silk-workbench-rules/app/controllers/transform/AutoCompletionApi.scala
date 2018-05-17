@@ -152,7 +152,7 @@ class AutoCompletionApi extends Controller {
   private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted.distinct
+      val serializedPaths = paths.map(_.serialize(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,

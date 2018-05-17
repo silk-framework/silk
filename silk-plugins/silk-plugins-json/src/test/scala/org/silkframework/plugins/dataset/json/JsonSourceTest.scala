@@ -49,7 +49,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     val source = new JsonSource(resource, "data/entities", "http://blah/{id}", Codec.UTF8)
     val entities = source.retrieve(EntitySchema.empty)
     entities.size mustBe 1
-    entities.head.uri mustBe "http://blah/ID"
+    entities.head.uri.toString mustBe "http://blah/ID"
   }
 
   it should "return peak results" in {

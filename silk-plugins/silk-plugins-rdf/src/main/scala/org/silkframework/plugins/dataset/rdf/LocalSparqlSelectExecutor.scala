@@ -21,7 +21,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
         val entities = executeOnSparqlEndpointEntityTable(taskData, sparql)
-        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
+        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, Some(task)))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
     }
@@ -42,7 +42,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         case Some(prop) =>
           prop.uri
         case _ =>
-          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.path.serializeSimplified)
+          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.serializeSimplified)
       }
     }
     vars
@@ -57,7 +57,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       val values = vars map { v =>
         binding.get(v).toSeq.map(_.value)
       }
-      new Entity(s"urn:entity:$count", values = values, desc = taskData.outputSchema)
+      Entity(s"urn:entity:$count", values = values, schema = taskData.outputSchema)
     }
     entities
   }

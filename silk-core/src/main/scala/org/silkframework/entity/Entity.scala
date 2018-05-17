@@ -16,24 +16,69 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
+import org.silkframework.util.Uri
+
 import scala.xml.Node
 
 /**
  * A single entity.
  */
-class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: EntitySchema) extends Serializable {
-  require(values.size == desc.typedPaths.size, "Must provide the same number of value sets as there are paths in the schema.")
+class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
+
+  private var _failure: Option[Throwable] = None
+  private var _schema: EntitySchema = _
+  private var _values: IndexedSeq[Seq[String]] = vals
+  applyNewSchema(desc)
+
+  def values: IndexedSeq[Seq[String]] = _values
 
   /**
-    *
+    * The EntitySchema defining the cells of the value sequence
+    * @return
+    */
+  def schema: EntitySchema = _schema
+
+  /**
+    * will apply a modified schema
+    * NOTE: The number of values per row must be as least as great as the number of typed paths
+    * NOTE: adding additional TypedPaths not instantiated in the values of the row will fail validation (use withProperty(..) instead)
+    * @param newSchema - the new schema to be applied
+    * @return - this
+    */
+  def applyNewSchema(newSchema: EntitySchema, validate: Boolean = true): Entity ={
+    _schema = newSchema
+
+    if(validate && (this.values.size < newSchema.typedPaths.size || !this.validate))
+      failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
+
+    _values = _schema.typedPaths.zipWithIndex.map(tp =>values(tp._2))
+    this
+  }
+
+  /**
+    * Will retrieve the values of a given path (if available)
     * @param path
     * @return
     */
+  @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
-      evaluate(desc.pathIndex(path))
+      evaluate(_schema.pathIndex(path))
+    }
+  }
+
+  /**
+    * Will retrieve the values of a given path (if available)
+    * @param path
+    * @return
+    */
+  def evaluate(path: TypedPath): Seq[String] = {
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      evaluate(_schema.pathIndex(path))
     }
   }
 
@@ -43,8 +88,8 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     * @return
     */
   def valueOf(colName: String): Seq[String] ={
-    desc.typedPaths.find(_.getLocalName.getOrElse("").trim == colName) match{
-      case Some(col) => values(desc.pathIndex(col.path))
+    _schema.propertyNames.zipWithIndex.find(_._1 == colName) match{
+      case Some((_, ind)) => values(ind)
       case None => Seq()
     }
   }
@@ -68,14 +113,26 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    desc.typedPaths.forall(tp =>{
-      val ind = desc.pathIndex(tp.path) +1                      //TODO remove +1
-      values(ind).forall(v => tp.valueType.validate(v))
+    _schema.typedPaths.zipWithIndex.forall(tp =>{
+      values(tp._2).forall(v => tp._1.valueType.validate(v))
     })
   }
 
+  /**
+    * @return - the exception responsible for this ENtity to fail
+    */
+  def failure: Option[Throwable] = _failure
+
+  def hasFailed: Boolean = failure.isDefined
+
+  /**
+    * Will fail this entity with the provided exception (if not already failed)
+    * @param t
+    */
+  def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
+
   def toXML: Node = {
-    <Entity uri={uri}> {
+    <Entity uri={uri.toString}> {
       for (valueSet <- values) yield {
         <Val> {
           for (value <- valueSet) yield {
@@ -101,28 +158,63 @@ class Entity(val uri: String, val values: IndexedSeq[Seq[String]], val desc: Ent
   override def toString: String = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
 
   override def equals(other: Any): Boolean = other match {
-    case o: Entity => this.uri == o.uri && this.values == o.values && this.desc == o.desc
+    case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema
     case _ => false
   }
 
   override def hashCode(): Int = {
-    var hashCode = uri.hashCode
-    hashCode = hashCode * 31 + values.foldLeft(0)(31 * _ + _.hashCode())
-    hashCode = hashCode * 31 + desc.hashCode()
+    var hashCode = uri.toString.hashCode
+    hashCode = hashCode * 31 + values.foldLeft(1)(31 * _ + _.hashCode())
+    hashCode = hashCode * 31 + schema.hashCode()
     hashCode
   }
 }
 
 object Entity {
 
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
+    new Entity(uri, values, schema)
+  }
+
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
+  }
+
+  /**
+    * Instantiates a new Entity and fails it with the given Throwable
+    * NOTE: values are not recorded
+    * @param uri - uri of the entity
+    * @param schema - the EntitySchema pertaining to the Entity
+    * @param t - the Throwable which failed this Enity
+    * @return - the failed Entity
+    */
+  //FIXME add property option CMEM-719
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
+    val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
+    val e = new Entity(uri, fakeVals, schema)
+    e.failEntity(t)
+    e
+  }
+
+  /**
+    * Instantiates a new Entity and fails it with the given Throwable
+    * @param uri - uri of the entity
+    * @param values - the values applied for the failed Entity
+    * @param schema - the EntitySchema pertaining to the Entity
+    * @param t - the Throwable which failed this Enity
+    * @return - the failed Entity
+    */
+  //FIXME add property option CMEM-719
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
+    val e = apply(uri, values, schema)
+    e.failEntity(t)
+    e
   }
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
       uri = (node \ "@uri").text.trim,
-      values = {
+      vals = {
         for (valNode <- node \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }
