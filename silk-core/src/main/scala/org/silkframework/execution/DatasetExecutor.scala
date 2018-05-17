@@ -13,7 +13,12 @@ import org.silkframework.runtime.activity.ActivityContext
   */
 trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends Executor[DatasetSpec[DatasetType], ExecType] {
 
+  /**
+    * Fetch the execution specific access to a dataset.
+    */
   def access(task: Task[DatasetSpec[DatasetType]], execution: ExecType): DatasetAccess = {
+    // Because the Dataset still inherits the DatasetAccess trait, we can just return it.
+    // In the future, each dataset executor should overwrite this method.
     task.data
   }
 
