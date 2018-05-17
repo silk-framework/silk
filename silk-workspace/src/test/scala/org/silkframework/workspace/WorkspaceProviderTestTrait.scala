@@ -5,7 +5,7 @@ import java.time.Instant
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.config._
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, MockDataset}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.plugins.dataset.InternalDataset
@@ -210,10 +210,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "read and write dataset tasks" in {
     PluginRegistry.registerPlugin(classOf[MockDataset])
-    project.addTask[GenDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
+    project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
-      val ds = workspaceProvider.readTasks[GenDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe dataset
     }
   }
@@ -221,7 +221,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   it should "update dataset tasks" in {
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspaceProvider.readTasks[GenDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
       ds shouldBe datasetUpdated
     }
   }
@@ -335,10 +335,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   it should "delete dataset tasks" in {
     refreshProject(PROJECT_NAME)
-    workspaceProvider.readTasks[GenDatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
-    workspaceProvider.deleteTask[GenDatasetSpec](PROJECT_NAME, DATASET_ID)
+    workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
+    workspaceProvider.deleteTask[GenericDatasetSpec](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspaceProvider.readTasks[GenDatasetSpec](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
+      workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.id.toString) shouldBe Seq(DUMMY_DATASET)
     }
   }
 

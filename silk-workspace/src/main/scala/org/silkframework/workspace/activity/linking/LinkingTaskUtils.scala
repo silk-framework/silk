@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.util.{DPair, Identifier, Uri}
@@ -29,7 +29,7 @@ object LinkingTaskUtils {
         case Some(transformTask) =>
           transformTask.asDataSource(selection.typeUri)
         case None =>
-          task.project.task[GenDatasetSpec](selection.inputId).data.source
+          task.project.task[GenericDatasetSpec](selection.inputId).data.source
       }
     }
 

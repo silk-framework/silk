@@ -3,7 +3,7 @@ package controllers.transform
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -78,7 +78,7 @@ class PeakTransformApi extends Controller {
     implicit val prefixes: Prefixes = project.config.prefixes
 
     project.anyTask(inputTaskId).data match {
-      case dataset: GenDatasetSpec =>
+      case dataset: GenericDatasetSpec =>
         dataset.plugin.source match {
           case peakDataSource: PeakDataSource =>
             try {
@@ -118,7 +118,7 @@ class PeakTransformApi extends Controller {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
           s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
-      project.task[GenDatasetSpec](sparqlDataset).data.plugin match {
+      project.task[GenericDatasetSpec](sparqlDataset).data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
           val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(PlainTask(sparqlDataset, DatasetSpec(rdfDataset))))
           val executor = LocalSparqlSelectExecutor()

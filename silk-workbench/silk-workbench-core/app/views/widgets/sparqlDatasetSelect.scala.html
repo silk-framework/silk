@@ -1,11 +1,11 @@
-@import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @import org.silkframework.dataset.rdf.RdfDataset
 @import org.silkframework.workspace.User
 
 @(projectName: String, label: String, description: String, mainId: String, inputId: Option[String])
 
 @project = @{ User().workspace.project(projectName.toString) }
-@rdfDatasets = @{ project.tasks[GenDatasetSpec].filter(_.data.plugin.isInstanceOf[RdfDataset]) }
+@rdfDatasets = @{ project.tasks[GenericDatasetSpec].filter(_.data.plugin.isInstanceOf[RdfDataset]) }
 
 <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
   <select class="mdl-selectfield__select" id="@{mainId}" name="@{mainId}">

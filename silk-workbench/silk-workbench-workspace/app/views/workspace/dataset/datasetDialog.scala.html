@@ -1,8 +1,8 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.workspace.Project
-@import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 
-@(project: Project, datasetName: String, dataset: Option[GenDatasetSpec], title: String = "Edit Dataset", createDialog: Boolean = false)
+@(project: Project, datasetName: String, dataset: Option[GenericDatasetSpec], title: String = "Edit Dataset", createDialog: Boolean = false)
 
 @widgets.pluginDialog(
   project,

@@ -18,7 +18,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import play.api.libs.json._
 import JsonHelpers._
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 
 /**
   * Serializers for JSON.
@@ -76,13 +76,13 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonDatasetSpecFormat extends JsonFormat[GenDatasetSpec] {
+  implicit object JsonDatasetSpecFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
 
     override def typeNames: Set[String] = Set("Dataset")
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): GenDatasetSpec = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
       new DatasetSpec(
@@ -95,7 +95,7 @@ object JsonSerializers {
       )
     }
 
-    override def write(value: GenDatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: GenericDatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
           TASKTYPE -> JsString("Dataset"),
@@ -1043,11 +1043,11 @@ object JsonSerializers {
     */
   implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
-      val task = new TaskJsonFormat[GenDatasetSpec].read(value)
+      val task = new TaskJsonFormat[GenericDatasetSpec].read(value)
       DatasetTask(task.id, task.data, task.metaData)
     }
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      new TaskJsonFormat[GenDatasetSpec].write(value)
+      new TaskJsonFormat[GenericDatasetSpec].write(value)
     }
   }
 

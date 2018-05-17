@@ -4,7 +4,7 @@ import controllers.core.{Stream, Widgets}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.rule.execution.GenerateLinks
@@ -21,7 +21,7 @@ class GenerateLinksView extends Controller {
 
   def generateLinksDialog(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[GenDatasetSpec].map(_.id.toString())
+    val outputs = project.tasks[GenericDatasetSpec].map(_.id.toString())
 
     Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }

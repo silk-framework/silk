@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenDatasetSpec}
+import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -78,7 +78,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleSparqlEndpointSchema(dataset: Task[GenDatasetSpec]): SparqlEndpointEntityTable = {
+  private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(dataset))
@@ -89,7 +89,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def readTriples(dataset: Task[GenDatasetSpec], rdfDataset: RdfDataset) = {
+  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset) = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value

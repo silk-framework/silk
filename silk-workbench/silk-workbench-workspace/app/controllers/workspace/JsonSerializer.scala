@@ -4,7 +4,7 @@ import java.io.File
 import java.util.logging.LogRecord
 
 import org.silkframework.config.{CustomTask, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -37,7 +37,7 @@ object JsonSerializer {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
-      "dataset" -> tasksJson[GenDatasetSpec](project),
+      "dataset" -> tasksJson[GenericDatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),
       "linking" -> tasksJson[LinkSpec](project),
       "workflow" -> tasksJson[Workflow](project),

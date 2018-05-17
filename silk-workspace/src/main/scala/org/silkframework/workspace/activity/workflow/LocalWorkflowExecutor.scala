@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenDatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
@@ -221,7 +221,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    project.taskOption[GenDatasetSpec](workflowDataset.task) match {
+    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
         execute(resolvedDataset, Seq(entityTable), None)
@@ -233,7 +233,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
                      (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
-    project.taskOption[GenDatasetSpec](workflowDataset.task) match {
+    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
         execute(resolvedDataset, Seq.empty, Some(entitySchema)) match {
@@ -292,8 +292,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
     * @return
     */
-  private def resolveDataset(datasetTask: Task[GenDatasetSpec],
-                             replaceDatasets: Map[String, Dataset]): Task[GenDatasetSpec] = {
+  private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
+                             replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
     val dataset = datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {
