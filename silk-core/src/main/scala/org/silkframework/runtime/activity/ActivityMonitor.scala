@@ -89,7 +89,7 @@ class ActivityMonitor[T](name: String,
     */
   override def contextObject[C](implicit ct:ClassTag[C]): Option[ActivityContextData[C]] = {
     contextMetaData match{
-      case Some(cm) if cm.isInstanceOf[ActivityContextData[C]] => Some(cm.asInstanceOf[ActivityContextData[C]])
+      case Some(cm) if cm.isInstanceOf[ActivityContextData[_]] => Some(cm.asInstanceOf[ActivityContextData[C]])
       case _ => None
     }
   }

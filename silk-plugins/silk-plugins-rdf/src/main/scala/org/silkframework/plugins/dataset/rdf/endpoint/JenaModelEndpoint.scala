@@ -21,7 +21,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
     this.synchronized {
-      val graphStore = DatasetGraphFactory.createOneGraph(model.getGraph)
+      val graphStore = DatasetGraphFactory.wrap(model.getGraph)
       UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
     }
   }
