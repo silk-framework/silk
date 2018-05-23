@@ -41,6 +41,7 @@
   <!-- OAuth specific log messages  -->
   <logger name="oauth" additivity="false">
     <level value="info"/>
+    <appender-ref ref="STDOUT"/>
     <appender-ref ref="FILE"/>
   </logger>
 
