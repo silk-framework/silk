@@ -84,7 +84,22 @@ class TaskApi extends Controller with ControllerUtilsTrait {
   def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action {
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    Ok(JsonSerializers.toJson(task.metaData))
+
+    val formatOptions =
+      TaskFormatOptions(
+        includeMetaData = Some(false),
+        includeTaskData = Some(false),
+        includeTaskProperties = Some(false),
+        includeRelations = Some(true),
+        includeSchemata = Some(true)
+      )
+    val taskFormat = new TaskJsonFormat(formatOptions)(TaskSpecJsonFormat)
+    implicit val writeContext = WriteContext[JsValue](projectId = Some(projectName))
+    val taskJson = taskFormat.write(task)
+    val metaDataJson = JsonSerializers.toJson(task.metaData)
+    val mergedJson = metaDataJson.as[JsObject].deepMerge(taskJson.as[JsObject])
+
+    Ok(mergedJson)
   }
 
   def cloneTask(projectName: String, oldTask: String, newTask: String) = Action {
