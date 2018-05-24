@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
+import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
@@ -21,6 +22,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Act
 
   override def initialValue: Option[CachedEntitySchemata] = Some(CachedEntitySchemata(EntitySchema.empty, None))
 
+  private def inputId = transformTask.data.selection.inputId
+
   /**
    * Loads the most frequent paths.
    */
@@ -33,7 +36,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Act
     //Check if paths have not been loaded yet or if the restriction has been changed
     if (context.value().configuredSchema.typedPaths.isEmpty || currentEntityDesc.typeUri != context.value().configuredSchema.typeUri) {
       // Retrieve the data sources
-      val inputTaskId = transformTask.data.selection.inputId
+      val inputTaskId = inputId
       val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask, context)
       val configuredEntitySchema = currentEntityDesc.copy(typedPaths = (currentEntityDesc.typedPaths ++ paths).distinct)
       // Retrieve untyped paths if input is an RDF data source and configured type is non empty

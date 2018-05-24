@@ -18,9 +18,10 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
-import org.silkframework.runtime.activity.{HasValue, Status}
+import org.silkframework.config._
+import org.silkframework.runtime.activity.{HasValue, Status, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -44,19 +45,25 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   @volatile
   private var currentData: TaskType = initialData
 
+  // Should be used to observe the task data
+  val dataValueHolder: ValueHolder[TaskType] = new ValueHolder(Some(initialData))
+
   @volatile
   private var currentMetaData: MetaData = {
     // Make sure that the modified timestamp is set
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   }
 
+  // Should be used to observe the meta data
+  val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(currentMetaData))
+
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes = module.project.config.prefixes
-    implicit val resources = module.project.resources
+    implicit val prefixes: Prefixes = module.project.config.prefixes
+    implicit val resources: ResourceManager = module.project.resources
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
@@ -85,7 +92,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current meta data of this task.
     */
-  override def metaData = currentMetaData
+  override def metaData: MetaData = currentMetaData
 
   def init(): Unit = {
     // Start auto-run activities
@@ -110,6 +117,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
     scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
+    dataValueHolder.update(newData)
   }
 
   /**
@@ -187,8 +195,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        if(!activity.control.status().isRunning)
+        if(!activity.control.status().isRunning) {
           activity.control.start()
+        }
       }
     }
   }

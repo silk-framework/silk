@@ -66,7 +66,7 @@ class GenerateLinks(id: Identifier,
       val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
       val updateLinks = (links: Seq[Link]) => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size))))
-      matcher.value.onUpdate(updateLinks)
+      matcher.value.subscribe(updateLinks)
       matcher.start()
       matcher.waitUntilFinished()
       if(context.status.isCanceling) return

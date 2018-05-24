@@ -31,7 +31,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
   }
 
   override def reset(): Unit = {
-    val pathsCache = task.activity[LinkingPathsCache].control
+    val pathsCache =  task.activity[LinkingPathsCache].control
     pathsCache.reset()
     pathsCache.start()
   }
@@ -93,7 +93,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
           existingTargetEntity match {
             case Some(entity) if entityMatchesDescription(entity, entityDescs.target) =>
               targetEntities += ((entity.uri, entity))
-            case None =>
+            case _ =>
               targetEntityUrisNeedingUpdate.add(link.target)
           }
         }

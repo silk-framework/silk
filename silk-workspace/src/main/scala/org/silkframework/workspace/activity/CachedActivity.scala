@@ -52,7 +52,7 @@ class CachedActivity[T](activity: Activity[T], resource: WritableResource)(impli
     // Listen for value updates
     var updated = false
     val updateFunc = (value: T) => { updated = true }
-    context.value.onUpdate(updateFunc)
+    context.value.subscribe(updateFunc)
     // Update cache
     activity.run(context)
     // Persist value (if updated)

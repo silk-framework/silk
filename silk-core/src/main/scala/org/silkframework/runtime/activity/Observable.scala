@@ -25,9 +25,6 @@ trait Observable[T] {
 
   private val subscriberMap = new mutable.WeakHashMap[T => _, Unit]()
 
-  @volatile
-  private var updatePublished = false
-
   /**
     * Checks if a value is defined.
     */
@@ -42,32 +39,27 @@ trait Observable[T] {
     * Retrieves the value as Option
     */
   def get: Option[T] = {
-    if(isDefined)
+    if(isDefined) {
       Some(apply())
-    else
+    } else {
       None
+    }
   }
 
   /**
-   * True, if an update has been published.
-   */
-  def updated = updatePublished
-  
-  /**
-   * Execute a function on every update.
+   * Registers a callback function that is called on every update.
    * Note that the function is stored in a weak hash map i.e. it is removed as soon as it is no longer referenced.
    *
    * @return The provided function
    */
-  def onUpdate[U](f: T => U) = synchronized {
+  def subscribe[U](f: T => U): Unit = synchronized {
     subscriberMap.update(f, Unit)
-    f
   }
 
   /**
    * Removes a function from the subscribers list.
    */
-  def removeSubscriptions() = synchronized {
+  def removeSubscriptions(): Unit = synchronized {
     subscriberMap.clear()
   }
 
@@ -84,7 +76,6 @@ trait Observable[T] {
    * @param newValue The new value.
    */
   protected def publish(newValue: T) = {
-    updatePublished = true
     for(subscriber <- subscriberMap.keys)
       subscriber(newValue)
   }

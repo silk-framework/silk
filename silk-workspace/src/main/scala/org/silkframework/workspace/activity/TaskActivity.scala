@@ -85,10 +85,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
     for (subscriber <- oldControl.status.subscribers) {
-      currentControl.status.onUpdate(subscriber)
+      currentControl.status.subscribe(subscriber)
     }
     for (subscriber <- oldControl.value.subscribers) {
-      currentControl.value.onUpdate(subscriber)
+      currentControl.value.subscribe(subscriber)
     }
   }
 
