@@ -33,9 +33,9 @@ import scala.xml.Node
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeLinkingConfig,
-                         sources: Traversable[Task[DatasetSpec]],
+                         sources: Traversable[Task[DatasetSpec[Dataset]]],
                          linkSpecs: Traversable[Task[LinkSpec]],
-                         outputs: Seq[Task[DatasetSpec]] = Seq.empty,
+                         outputs: Seq[Task[DatasetSpec[Dataset]]] = Seq.empty,
                          transforms: Traversable[Task[TransformSpec]] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
@@ -116,8 +116,8 @@ object LinkingConfig {
     }
 
     private def readWithPrefixes(node: Node)(implicit readContext: ReadContext) = {
-      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Task[DatasetSpec]]).toSet
-      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Task[DatasetSpec]]).toSet
+      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Task[DatasetSpec[Dataset]]]).toSet
+      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Task[DatasetSpec[Dataset]]]).toSet
       val sources = oldSources ++ newSources
       val blocking = (node \ "Blocking").headOption match {
         case Some(blockingNode) => Blocking.fromXML(blockingNode)
@@ -128,8 +128,8 @@ object LinkingConfig {
 
       implicit val globalThreshold = None
 
-      val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[Task[DatasetSpec]])
-      val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Task[DatasetSpec]])
+      val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[Task[DatasetSpec[Dataset]]])
+      val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Task[DatasetSpec[Dataset]]])
       val outputs = oldOutputs ++ newOutputs
 
       LinkingConfig(readContext.prefixes, RuntimeLinkingConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
@@ -142,7 +142,7 @@ object LinkingConfig {
       <Silk>
         {value.prefixes.toXML}
         <DataSources>
-          {value.sources.map(toXml[Task[DatasetSpec]])}
+          {value.sources.map(toXml[Task[DatasetSpec[Dataset]]])}
         </DataSources>
         <Interlinks>
           {value.linkSpecs.map(spec => XmlSerialization.toXml(spec))}
@@ -151,7 +151,7 @@ object LinkingConfig {
           {value.transforms.map(spec => XmlSerialization.toXml(spec))}
         </Transforms>
         <Outputs>
-          {value.outputs.map(toXml[Task[DatasetSpec]])}
+          {value.outputs.map(toXml[Task[DatasetSpec[Dataset]]])}
         </Outputs>
       </Silk>
     }

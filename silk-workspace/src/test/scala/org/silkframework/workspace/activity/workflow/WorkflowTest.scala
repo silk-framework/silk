@@ -3,6 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -36,9 +37,9 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val workflow = testWorkflow
     for (dataset <- workflow.datasets) {
       val id = Identifier(dataset.nodeId)
-      val datasetTask = mock[ProjectTask[DatasetSpec]]
+      val datasetTask = mock[ProjectTask[GenericDatasetSpec]]
       when(datasetTask.id).thenReturn(id)
-      when(project.taskOption[DatasetSpec](dataset.task)).thenReturn(Some(datasetTask))
+      when(project.taskOption[GenericDatasetSpec](dataset.task)).thenReturn(Some(datasetTask))
     }
     val sortedWorkflowNodes = workflow.topologicalSortedNodes.map(_.nodeId)
     sortedWorkflowNodes mustBe Seq(DS_A1, DS_A2, TRANSFORM_1, TRANSFORM_2, DS_B1, DS_B2, LINKING, LINKS, GENERATE_OUTPUT, OUTPUT)

@@ -27,12 +27,12 @@ object SilkConfigImporter {
 
     //Add all sources
     for(source <- config.sources) {
-      project.addTask(source.id, source.plugin)
+      project.addTask(source.id, source.data)
     }
 
     //Add all outputs
     for(output <- config.outputs) {
-      project.addTask(output.id, output.plugin)
+      project.addTask(output.id, output.data)
     }
 
     //Add all linking tasks

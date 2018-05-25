@@ -1,6 +1,7 @@
 import controllers.workspace.routes.Assets
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import plugins.WorkbenchPlugin.{Tab, TaskActions}
 import plugins.{Context, WorkbenchPlugin}
@@ -22,7 +23,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     val p = context.project.name
     val t = context.task.id
     context.task.data match {
-      case dataset: DatasetSpec =>
+      case dataset: GenericDatasetSpec =>
         var tabs = Seq(Tab("Dataset", s"workspace/datasets/$p/$t/dataset"))
         if (dataset.plugin.isInstanceOf[RdfDataset] ) {
           tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$p/$t/sparql")
@@ -34,7 +35,7 @@ case class WorkbenchDatasetPlugin() extends WorkbenchPlugin {
     }
   }
 
-  object DatasetActions extends TaskActions[DatasetSpec] {
+  object DatasetActions extends TaskActions[GenericDatasetSpec] {
 
     /** The name of the task type */
     override def name: String = "Dataset"

@@ -41,7 +41,7 @@ object WorkspaceIO {
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
     val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager))
-    copyTasks[DatasetSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
