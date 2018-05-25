@@ -5,8 +5,8 @@ import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, ResourceManager, UrlResourceManager}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
 
@@ -116,9 +116,17 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     try {
       val projectRes = if(projectName.isDefined) resourceManager.child(projectName.get) else resourceManager
       var entry = zip.getNextEntry
+      var stripPrefix = ""
       while (entry != null) {
         if (!entry.isDirectory) {
-          projectRes.getInPath(entry.getName).writeStream(zip)
+          val nameParts = entry.getName.split("/")
+          if(stripPrefix == "" && projectName.isDefined && nameParts.size == 2 && nameParts(1) == "config.xml") {
+            // If this is a workspace zip, but a single project should be imported, pick the first project from the workspace
+            stripPrefix = nameParts(0) + "/"
+          }
+          if(entry.getName.startsWith(stripPrefix)) {
+            projectRes.getInPath(entry.getName.stripPrefix(stripPrefix)).writeStream(zip)
+          }
         }
         zip.closeEntry()
         entry = zip.getNextEntry
