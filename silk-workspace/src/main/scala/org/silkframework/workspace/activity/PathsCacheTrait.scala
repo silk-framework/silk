@@ -18,7 +18,7 @@ trait PathsCacheTrait {
                            task: ProjectTask[_],
                            context: ActivityContext[CachedEntitySchemata]): IndexedSeq[TypedPath] = {
     task.project.anyTask(taskId).data match {
-      case dataset: DatasetSpec =>
+      case dataset: DatasetSpec[Dataset] =>
         val source = dataset.source
         //Retrieve most frequent paths
         context.status.update("Retrieving frequent paths", 0.0)
