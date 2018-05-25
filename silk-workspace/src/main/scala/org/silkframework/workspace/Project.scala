@@ -265,8 +265,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true).reverse) {
-        removeAnyTask(dependentTask, removeDependentTasks = false)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
+        removeAnyTask(dependentTask, removeDependentTasks = true)
       }
     } else {
       // Make sure that no other task depends on this task
