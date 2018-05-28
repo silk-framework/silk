@@ -2,16 +2,16 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, CacheActivity}
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.PathsCacheTrait
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
+import org.silkframework.workspace.activity.PathsCacheTrait
 
 /**
  * Holds the most frequent paths.
  */
-class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[EntitySchema]] with PathsCacheTrait {
+class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[EntitySchema]] with CacheActivity[LinkSpec] with PathsCacheTrait {
 
   private def linkSpec = task.data
 
@@ -19,13 +19,11 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
 
   override def initialValue: Option[DPair[EntitySchema]] = Some(DPair.fill(EntitySchema.empty))
 
-  // Is true if the data of an input source has changed
-  private var sourceChanged: Boolean = false
-
+  /** The purpose of this val is to store the change notify callback function
+    * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
   private val transformSpecObserverFunctions: (TransformSpec) => Unit = {
     val fn: (TransformSpec) => Unit = (_) => {
-      sourceChanged = true
-      task.activity[LinkingPathsCache].start()
+      this.startDirty(task.activity[LinkingPathsCache].control)
     }
     for(selection <- task.data.dataSelections) {
       val sourceInputId = selection.inputId
@@ -52,18 +50,19 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
     val emptyPaths = context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty
     val update = emptyPaths ||
         typeChanged ||
-        sourceChanged
+        dirty
 
     // Update paths
     if (update) {
       val updatedSchemata =
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
-          if(sourceChanged && !(emptyPaths || typeChanged)) {
+          if(dirty && !(emptyPaths || typeChanged)) {
+            dirty = false
             // Only transformation sources changed
             if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined) {
               updateSchema(dataSelection, entitySchema)
             } else {
-              entitySchema // Do not update other source schemata
+              entitySchema // Do not update other source schemata automatically
             }
           } else {
             updateSchema(dataSelection, entitySchema)

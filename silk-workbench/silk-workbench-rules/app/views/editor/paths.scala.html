@@ -80,6 +80,7 @@
         @for((path, index) <- paths.zipWithIndex) {
           <div
             id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}"
+            title=@path
             class="draggable @{pathType.toLowerCase}Paths @if(index < maximumPaths) {visible} else {hidden}"
             style="display: none;"
             >
