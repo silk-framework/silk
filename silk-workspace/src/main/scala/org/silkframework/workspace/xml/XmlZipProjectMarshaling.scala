@@ -125,6 +125,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
             stripPrefix = nameParts(0) + "/"
           }
           if(entry.getName.startsWith(stripPrefix)) {
+            /* FIXME: If this is a workspace zip only the first project is imported, all others are ignored
+                      A better solution would probably be to let the user choose which project to import from the workspace zip. */
             projectRes.getInPath(entry.getName.stripPrefix(stripPrefix)).writeStream(zip)
           }
         }
