@@ -1,10 +1,5 @@
-@import org.silkframework.workspace.Project
 @import controllers.workflow.routes.Assets
-@import org.silkframework.config.TaskSpec
-@import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
-
-@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
 
 @(taskActions: TaskActions, pos: Option[(Int, Int)] = None)
 
