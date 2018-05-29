@@ -3,6 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
@@ -24,13 +25,13 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[DatasetSpec](sourceName)
+    val task = project.task[GenericDatasetSpec](sourceName)
     serializeCompileTime[DatasetTask](task)
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project = User().workspace.project(projectName)
-    val task = project.task[DatasetSpec](sourceName)
+    val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
@@ -67,13 +68,13 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }}
 
   def deleteDataset(project: String, source: String): Action[AnyContent] = Action {
-    User().workspace.project(project).removeTask[DatasetSpec](source)
+    User().workspace.project(project).removeTask[GenericDatasetSpec](source)
     Ok
   }
 
   def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset", createDialog: Boolean): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
-    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[DatasetSpec](datasetName).map(_.data)
+    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[GenericDatasetSpec](datasetName).map(_.data)
     Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
   }
 
@@ -92,12 +93,12 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def dataset(project: String, task: String): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[DatasetSpec](project, task, request.path)
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
     Ok(views.html.workspace.dataset.dataset(context))
   }
 
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[DatasetSpec](project, task, request.path)
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
 
     val firstTypes = source.retrieveTypes().head._1
@@ -109,7 +110,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = Action { implicit request =>
-    val context = Context.get[DatasetSpec](project, task, request.path)
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
 
     context.task.data.plugin match {
       case rdf: RdfDataset =>
@@ -126,7 +127,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = ""): Action[AnyContent] = Action { request =>
-    val context = Context.get[DatasetSpec](project, task, request.path)
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value.types
@@ -138,7 +139,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   /** Get all types of the dataset */
   def getDatasetTypes(project: String, task: String): Action[AnyContent] = Action { request =>
-    val context = Context.get[DatasetSpec](project, task, request.path)
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val types = context.task.activity[TypesCache].value.types
 
     Ok(JsArray(types.map(JsString)))
@@ -147,7 +148,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   def getMappingValueCoverage(projectName: String, datasetId: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = User().workspace.project(projectName)
-      val datasetTask = project.task[DatasetSpec](datasetId)
+      val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
       datasetTask.plugin.source match {
@@ -181,7 +182,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     try {
       val project = User().workspace.project(projectName)
       implicit val prefixes = project.config.prefixes
-      val datasetTask = project.task[DatasetSpec](datasetId)
+      val datasetTask = project.task[GenericDatasetSpec](datasetId)
       datasetTask.plugin.source match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)

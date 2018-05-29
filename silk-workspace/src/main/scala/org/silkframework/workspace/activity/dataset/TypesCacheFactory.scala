@@ -12,11 +12,11 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
   categories = Array("Dataset"),
   description = "Holds the most frequent types in a dataset."
 )
-class TypesCacheFactory extends TaskActivityFactory[DatasetSpec, TypesCache] {
+class TypesCacheFactory extends TaskActivityFactory[DatasetSpec[Dataset], TypesCache] {
 
   override def autoRun = true
 
-  def apply(task: ProjectTask[DatasetSpec]): Activity[Types] = {
+  def apply(task: ProjectTask[DatasetSpec[Dataset]]): Activity[Types] = {
     new CachedActivity(
       activity = new TypesCache(task),
       resource = task.project.cacheResources.child("dataset").get(s"${task.id}_cache.xml")

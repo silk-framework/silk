@@ -1,8 +1,8 @@
 @import org.silkframework.dataset.rdf.RdfDataset
-@import org.silkframework.dataset.DatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @import org.silkframework.workbench.Context
 
-@(context: Context[DatasetSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[GenericDatasetSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
 

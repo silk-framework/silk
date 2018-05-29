@@ -4,6 +4,8 @@
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
 
+@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+
 @(taskActions: TaskActions, pos: Option[(Int, Int)] = None)
 
 <div class="dataset" title="@taskActions.task.taskLabel(maxLength = 1024)" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
