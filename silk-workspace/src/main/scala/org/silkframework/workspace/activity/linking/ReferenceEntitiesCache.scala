@@ -77,7 +77,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
 
       val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
       val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
-      for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
+      for ((links, _) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
           // Find existing source entity

@@ -69,7 +69,7 @@ class ActiveLearning(config: LearningConfiguration,
 
     //Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
-    if(context.value().pool.isEmpty) {
+    if(context.value().pool.isEmpty || poolPaths != paths) {
       context.status.updateMessage("Loading pool")
       val pathPairs =
         if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
