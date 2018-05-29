@@ -1,10 +1,20 @@
 package controllers.workspace
 
+import java.io._
+import java.nio.charset.StandardCharsets
+
+import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request}
+import com.ning.http.client.multipart.FilePart
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.User
 import play.api.libs.ws.WS
+import play.api.libs.ws.ning.NingWSResponse
+import com.ning.http.client.{Response => AHCResponse, _}
+
+import scala.concurrent.{Future, Promise}
+import scala.util.Try
 
 class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -27,6 +37,38 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     User().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
+  "import single project workspace as project" in {
+    val projectId = "singleWorkspaceProject"
+    val projectZipBytes = ClasspathResource("controllers/workspace/singleProjectWorkspace.zip").loadAsBytes
+    importProject(projectId, projectZipBytes)
+
+    User().workspace.projects.map(_.config.id).toSet must contain (projectId)
+  }
+
+  private def importProject(projectId: String, xmlZipInputBytes: Array[Byte]): Unit = {
+    val asyncHttpClient: AsyncHttpClient = WS.client.underlying
+    var postBuilder = asyncHttpClient.preparePost(s"$baseUrl/projects/$projectId/import")
+    val tempFile = File.createTempFile("di_file_upload", ".zip")
+    try {
+      tempFile.deleteOnExit()
+      val os = new FileOutputStream(tempFile)
+      try {
+        os.write(xmlZipInputBytes)
+      } finally {
+        os.flush()
+        os.close()
+      }
+      postBuilder = postBuilder.addBodyPart(new FilePart("file", tempFile, "application/octet-stream", StandardCharsets.UTF_8))
+      val request = postBuilder.build()
+      val response = executeAsyncRequest(asyncHttpClient, request, () => tempFile.delete())
+      checkResponse(response)
+    } catch {
+      case e: IOException =>
+        Try(tempFile.delete())
+        throw e
+    }
+  }
+
   private def importWorkspace(workspaceBytes: Array[Byte]): Unit = {
     val request = WS.url(s"$baseUrl/import/xmlZip")
     val response = request.post(workspaceBytes)
@@ -45,4 +87,23 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
   }
 
+  private def executeAsyncRequest(asyncHttpClient: AsyncHttpClient,
+                                  request: Request,
+                                  // To run when the request completed or failed
+                                  postProcessing: () => Unit): Future[NingWSResponse] = {
+    val result = Promise[NingWSResponse]()
+    asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
+      override def onCompleted(response: AHCResponse) = {
+        result.success(NingWSResponse(response))
+        postProcessing()
+        response
+      }
+
+      override def onThrowable(t: Throwable) = {
+        postProcessing()
+        result.failure(t)
+      }
+    })
+    result.future
+  }
 }
