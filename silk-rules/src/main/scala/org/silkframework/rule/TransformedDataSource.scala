@@ -54,10 +54,10 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    retrieveEntities(entitySchema, Some(entities), None)
+    retrieveEntities(entitySchema, Some(entities), None).toSeq
   }
 
-  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]): Seq[Entity] = {
+  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]): Traversable[Entity] = {
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {
@@ -69,17 +69,31 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
       case None => source.retrieve(inputSchema, limit)
     }
 
-    val zw = for (entity <- sourceEntities.view) yield {
-      val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
-      val values = (for (rules <- pathRules) yield {
-        Try {rules.flatMap(rule => rule(entity))}
-      }).map {
-        case Success(v) => v
-        case Failure(f) => return Seq(Entity(uri, entitySchema, f))
+    new Traversable[Entity] {
+      override def foreach[U](f: Entity => U): Unit = {
+        for (entity <- sourceEntities) yield {
+          val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+          transformedValues(pathRules, entity) match {
+            case Left(transformedValues) =>
+              f(Entity(uri, transformedValues, entitySchema))
+            case Right(throwable) =>
+              f(Entity(uri, entitySchema, throwable))
+          }
+        }
       }
-
-      Entity(uri, values.toIndexedSeq, entitySchema)
     }
-    zw.toSeq
+  }
+
+  private def transformedValues[U](pathRules: IndexedSeq[Seq[TransformRule]], entity: Entity): Either[IndexedSeq[Seq[String]], Throwable] = {
+    val transformedValues = (for (rules <- pathRules) yield {
+      Try {
+        rules.flatMap(rule => rule(entity))
+      }
+    }).map {
+      case Success(v) => v
+      case Failure(f) =>
+        return Right(f)
+    }
+    Left(transformedValues)
   }
 }
