@@ -1,0 +1,19 @@
+sudo: false
+language: scala
+jdk:
+  - oraclejdk8
+#  - openjdk8 not supported, see https://github.com/travis-ci/travis-ci/issues/1647
+scala:
+  - 2.11.11
+
+script:
+  -  mvn install -Dmaven.test.skip=false
+notifications:
+  email:
+    recipients:
+      - markus.freudenberg@eccenca.com
+    on_success: change
+    on_failure: change
+cache:
+  directories:
+  - $HOME/.m2
