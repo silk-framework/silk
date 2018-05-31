@@ -5,7 +5,7 @@
 ###  Helper methods for BASH scripts ###
 ###  ------------------------------- ###
 
-# Path of the directory this file is placed in
+#   Path of the directory this file is placed in
 projectPath=${0%sbt}
 echo "Project path is $projectPath"
 
