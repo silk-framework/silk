@@ -5,8 +5,8 @@ import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, ResourceManager, UrlResourceManager}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
 
@@ -116,12 +116,35 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     try {
       val projectRes = if(projectName.isDefined) resourceManager.child(projectName.get) else resourceManager
       var entry = zip.getNextEntry
-      while (entry != null) {
+      var stripPrefix = ""
+      var configFound = false
+      var stop = false
+      while (entry != null && !stop) {
         if (!entry.isDirectory) {
-          projectRes.getInPath(entry.getName).writeStream(zip)
+          val entryName = entry.getName
+          val nameParts = entry.getName.split("/")
+          if(stripPrefix == "" && projectName.isDefined && (nameParts.last == "config.xml")) {
+            /* If this is a workspace zip, but a single project should be imported, pick the first project from the workspace
+               This is the fastest way to address this issue, since only one project is actually copied from the ZIP stream.
+               FIXME: The fact that config.xml is the first file to appear in any project folder may become invalid in the future
+             */
+            configFound = true
+            stripPrefix = if(nameParts.size == 2) nameParts(0) + "/" else ""
+          }
+          if(entry.getName.startsWith(stripPrefix)) {
+            /* FIXME: If this is a workspace zip only the first project is imported, all others are ignored
+                      A better solution would probably be to let the user choose which project to import from the workspace zip. */
+            projectRes.getInPath(entry.getName.stripPrefix(stripPrefix)).writeStream(zip)
+          } else {
+            stop = true // Since project files are ordered in the stream, we can stop if another project pops up
+          }
         }
         zip.closeEntry()
         entry = zip.getNextEntry
+      }
+      if(projectName.isDefined && !configFound) {
+        // No project found, but project expected
+        throw new ValidationException("No project found in given zip file. Imported nothing!")
       }
     } finally {
       // Close ZIP and reload

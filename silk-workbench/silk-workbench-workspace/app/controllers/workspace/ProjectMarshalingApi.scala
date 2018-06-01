@@ -2,9 +2,11 @@ package controllers.workspace
 
 import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, User}
 import play.api.libs.json.JsArray
 import play.api.mvc._
+
 
 class ProjectMarshalingApi extends Controller {
 
@@ -16,19 +18,24 @@ class ProjectMarshalingApi extends Controller {
   }
 
   def importProject(project: String): Action[AnyContent] = Action { implicit request =>
-    for (data <- request.body.asMultipartFormData;
-         file <- data.files) {
-      // Read the project from the received file
-      val inputStream = new FileInputStream(file.ref.file)
-      try {
-        val marshaller = marshallerForFile(file.filename)
-        val workspace = User().workspace
-        workspace.importProject(project, inputStream, marshaller)
-      } finally {
-        inputStream.close()
+    try {
+      for (data <- request.body.asMultipartFormData;
+           file <- data.files) {
+        // Read the project from the received file
+        val inputStream = new FileInputStream(file.ref.file)
+        try {
+          val marshaller = marshallerForFile(file.filename)
+          val workspace = User().workspace
+          workspace.importProject(project, inputStream, marshaller)
+        } finally {
+          inputStream.close()
+        }
       }
+      Ok
+    } catch {
+      case ex: ValidationException =>
+        BadRequest(ex.getMessage)
     }
-    Ok
   }
 
   /**

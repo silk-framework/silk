@@ -1,10 +1,11 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.rule.{LinkSpec, TransformSpec}
 @import org.silkframework.workspace.User
-@import org.silkframework.dataset.DatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+
 @(project: String, task: String, createDialog: Boolean)
 
-@datasets = @{ User().workspace.project(project).tasks[DatasetSpec] }
+@datasets = @{ User().workspace.project(project).tasks[GenericDatasetSpec] }
 
 @transformTasks = @{ User().workspace.project(project).tasks[TransformSpec] }
 

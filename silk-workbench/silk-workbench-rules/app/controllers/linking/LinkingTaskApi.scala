@@ -3,6 +3,7 @@ package controllers.linking
 import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.learning.LearningActivity
@@ -286,12 +287,12 @@ class LinkingTaskApi extends Controller {
     val params = request.body.asFormUrlEncoded.get
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[DatasetSpec](posOutputName.head).data.linkSink
+      val posOutput = project.task[GenericDatasetSpec](posOutputName.head).data.linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[DatasetSpec](negOutputName.head).data.linkSink
+      val negOutput = project.task[GenericDatasetSpec](negOutputName.head).data.linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 

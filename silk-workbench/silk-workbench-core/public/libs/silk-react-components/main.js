@@ -459,7 +459,7 @@
                 }
             },
             componentWillUnmount: function() {
-                _lodash2.default.has(this, "subscription") && this.subscription.unsubscribe();
+                _lodash2.default.has(this, "subscription") && this.subscription.dispose();
             },
             handleProgressUpdates: function(_ref) {
                 var progressNumber = _ref.progressNumber, _ref$lastUpdate = _ref.lastUpdate, lastUpdate = void 0 !== _ref$lastUpdate && _ref$lastUpdate;
@@ -23492,7 +23492,7 @@
     function(containerId, apiSettings) {
         _reactDom2.default.render(_react2.default.createElement(_HierarchicalMapping2.default, apiSettings), document.getElementById(containerId));
     });
-    __webpack_require__(507);
+    __webpack_require__(506);
     window.HierarchicalMapping = hierarchicalMapping;
 }, function(module, exports, __webpack_require__) {
     "use strict";
@@ -33263,7 +33263,6 @@
                     _ref3[topLevelId] = !0, _ref3) : _this.state.expanded
                 });
             }, function(err) {
-                console.warn("err MappingsTree: hierarchy.get", err);
                 _this.setState({
                     loading: !1
                 });
@@ -33459,7 +33458,6 @@
                     ruleData: rule
                 });
             }, function(err) {
-                console.warn("err MappingsWorkview: rule.get");
                 _this.setState({
                     loading: !1
                 });
@@ -38540,8 +38538,8 @@
                 _store2.default.subject("ruleView.close").onNext({
                     id: 0
                 });
-                _this2.props.onClose();
                 _store2.default.subject("reload").onNext(!0);
+                _this2.props.onClose();
             }, function(err) {
                 var error = err.failedRules ? err.failedRules : [ {
                     error: err
@@ -39087,11 +39085,6 @@
         module.exports = parseHeader;
     }, function(module, exports, __webpack_require__) {
         "use strict";
-        function _interopRequireDefault(obj) {
-            return obj && obj.__esModule ? obj : {
-                default: obj
-            };
-        }
         function httpProblemHandler(callback, err, res) {
             if (err) {
                 var detail = err.message, title = "An Error occurred";
@@ -39107,19 +39100,14 @@
                 err.detail = detail;
                 err.isHTTPProblem = !0;
                 _lodash2.default.set(err, "response.type", "application/problem+json");
-                err = new Proxy(err, {
-                    get: function(t, n) {
-                        if ("message" === n) {
-                            (0, _warning2.default)(!0, DEPRECATION_WARNING);
-                            return t.title + "\n" + t.detail;
-                        }
-                        return t[n];
-                    }
-                });
             }
             callback(err, res);
         }
-        var _lodash = __webpack_require__(0), _lodash2 = _interopRequireDefault(_lodash), _warning = __webpack_require__(12), _warning2 = _interopRequireDefault(_warning), DEPRECATION_WARNING = "@eccenca/superagent: You used .message of to access Error details.\nYou should use the more detailed .title and .detail .";
+        var _lodash = __webpack_require__(0), _lodash2 = function(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }(_lodash);
         module.exports = function(superagent) {
             var oldEnd = superagent.Request.prototype.end;
             superagent.Request.prototype.end = function(callback) {
@@ -39127,8 +39115,6 @@
             };
             return superagent;
         };
-    }, function(module, exports) {
-        module.exports = __webpack_require__(506);
     } ]);
 }, function(module, exports, __webpack_require__) {
     function noop() {}
@@ -39875,8 +39861,4 @@
     }() || function() {
         return [ "get", "post", "put", "head", "delete", "options", "trace", "copy", "lock", "mkcol", "move", "purge", "propfind", "proppatch", "unlock", "report", "mkactivity", "checkout", "merge", "m-search", "notify", "subscribe", "unsubscribe", "patch", "search", "connect" ];
     }();
-}, function(module, exports) {}, function(module, exports, __webpack_require__) {
-    "use strict";
-    var warning = function() {};
-    module.exports = warning;
-}, function(module, exports) {} ]);
+}, function(module, exports) {}, function(module, exports) {} ]);

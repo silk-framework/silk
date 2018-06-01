@@ -21,6 +21,6 @@ case class LinksTable(links: Seq[Link], linkType: Uri, taskOption: Option[Task[T
 object LinksTable {
 
   val linkEntitySchema = EntitySchema("", IndexedSeq(
-    TypedPath(Path("targetUri"), AutoDetectValueType, isAttribute = false),
+    TypedPath(Path("targetUri"), UriValueType, isAttribute = false),
     TypedPath(Path("confidence"), DoubleValueType, isAttribute = false)))
 }

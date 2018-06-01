@@ -3,6 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
@@ -220,7 +221,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    project.taskOption[DatasetSpec](workflowDataset.task) match {
+    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
         execute(resolvedDataset, Seq(entityTable), None)
@@ -232,7 +233,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
                      (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
-    project.taskOption[DatasetSpec](workflowDataset.task) match {
+    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
         execute(resolvedDataset, Seq.empty, Some(entitySchema)) match {
@@ -262,7 +263,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_))
       case _ => Seq()
     }
-    var errorSinks: Seq[SinkTrait] = errorOutputSinks(errorOutputs)
+    var errorSinks: Seq[DatasetWriteAccess] = errorOutputSinks(errorOutputs)
 
 
     if (errorOutputs.exists(!_.data.isInstanceOf[Dataset])) {
@@ -276,7 +277,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     //        activityContext.value() = activityContext.value().withReport(operator.id, report)
   }
 
-  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[SinkTrait] = {
+  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[DatasetWriteAccess] = {
     errorOutputs.collect {
       case pt: ProjectTask[_] if pt.data.isInstanceOf[Dataset] =>
         pt.data.asInstanceOf[Dataset]
@@ -291,8 +292,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
     * @return
     */
-  private def resolveDataset(datasetTask: Task[DatasetSpec],
-                             replaceDatasets: Map[String, Dataset]): Task[DatasetSpec] = {
+  private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
+                             replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
     val dataset = datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {

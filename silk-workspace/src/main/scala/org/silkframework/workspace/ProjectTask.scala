@@ -39,8 +39,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    private val initialMetaData: MetaData,
                                                    private val module: Module[TaskType]) extends Task[TaskType] {
 
-  def this(pt: ProjectTask[TaskType]) = this(pt.id, pt.initialData, pt.initialMetaData, pt.module)
-
   private val log = Logger.getLogger(getClass.getName)
 
   @volatile

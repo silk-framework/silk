@@ -34,12 +34,7 @@ import scala.util.{Success, Try}
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
   */
 //noinspection ScalaStyle
-case class Uri(private val u: String) {
-
-  lazy val uri: String = if(u.trim.startsWith("<") && u.trim.endsWith(">"))
-    u.trim.substring(1, u.trim.length - 1)
-  else
-    u.trim
+case class Uri(uri: String) {
 
   /**
     * A turtle-like representation of this URI.
@@ -131,7 +126,7 @@ object Uri {
       fromString(str.substring(1, str.length - 1))
     } else if (!str.contains(':')) {
       fromString(str)
-    } else if (str.startsWith("http")) {
+    } else if (str.startsWith("http") || str.startsWith("urn:")) {
       fromString(str)
     } else {
       fromQualifiedName(str, prefixes)
