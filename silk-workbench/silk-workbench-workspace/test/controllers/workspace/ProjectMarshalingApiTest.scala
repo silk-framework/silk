@@ -3,16 +3,14 @@ package controllers.workspace
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request}
 import com.ning.http.client.multipart.FilePart
+import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.User
 import play.api.libs.ws.WS
 import play.api.libs.ws.ning.NingWSResponse
-import com.ning.http.client.{Response => AHCResponse, _}
-import org.silkframework.runtime.validation.ValidationException
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
