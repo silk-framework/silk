@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/silk-framework/silk.svg?branch=develop)](https://travis-ci.org/silk-framework/silk)
+
 # Silk Link Discovery Framework
 
 Silk is an open source framework for integrating heterogeneous data sources. The primary uses cases of Silk include:

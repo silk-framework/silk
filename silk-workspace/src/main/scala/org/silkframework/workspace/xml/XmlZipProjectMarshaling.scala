@@ -117,16 +117,19 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       val projectRes = if(projectName.isDefined) resourceManager.child(projectName.get) else resourceManager
       var entry = zip.getNextEntry
       var stripPrefix = ""
+      var configFound = false
       var stop = false
       while (entry != null && !stop) {
         if (!entry.isDirectory) {
+          val entryName = entry.getName
           val nameParts = entry.getName.split("/")
-          if(stripPrefix == "" && projectName.isDefined && nameParts.size == 2 && nameParts(1) == "config.xml") {
+          if(stripPrefix == "" && projectName.isDefined && (nameParts.last == "config.xml")) {
             /* If this is a workspace zip, but a single project should be imported, pick the first project from the workspace
                This is the fastest way to address this issue, since only one project is actually copied from the ZIP stream.
                FIXME: The fact that config.xml is the first file to appear in any project folder may become invalid in the future
              */
-            stripPrefix = nameParts(0) + "/"
+            configFound = true
+            stripPrefix = if(nameParts.size == 2) nameParts(0) + "/" else ""
           }
           if(entry.getName.startsWith(stripPrefix)) {
             /* FIXME: If this is a workspace zip only the first project is imported, all others are ignored
@@ -138,6 +141,10 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
         }
         zip.closeEntry()
         entry = zip.getNextEntry
+      }
+      if(projectName.isDefined && !configFound) {
+        // No project found, but project expected
+        throw new ValidationException("No project found in given zip file. Imported nothing!")
       }
     } finally {
       // Close ZIP and reload

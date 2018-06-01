@@ -3,15 +3,14 @@ package controllers.workspace
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request}
 import com.ning.http.client.multipart.FilePart
+import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.User
 import play.api.libs.ws.WS
 import play.api.libs.ws.ning.NingWSResponse
-import com.ning.http.client.{Response => AHCResponse, _}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -45,7 +44,15 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     User().workspace.projects.map(_.config.id).toSet must contain (projectId)
   }
 
-  private def importProject(projectId: String, xmlZipInputBytes: Array[Byte]): Unit = {
+  "throw error if no project is found" in {
+    val projectId = "nonProject"
+    val projectZipBytes = ClasspathResource("controllers/workspace/nonProject.zip").loadAsBytes
+    importProject(projectId, projectZipBytes, expectedResponseCodePrefix = '4')
+
+    User().workspace.projects.map(_.config.id).toSet must not contain projectId
+  }
+
+  private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
     val asyncHttpClient: AsyncHttpClient = WS.client.underlying
     var postBuilder = asyncHttpClient.preparePost(s"$baseUrl/projects/$projectId/import")
     val tempFile = File.createTempFile("di_file_upload", ".zip")
@@ -61,7 +68,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
       postBuilder = postBuilder.addBodyPart(new FilePart("file", tempFile, "application/octet-stream", StandardCharsets.UTF_8))
       val request = postBuilder.build()
       val response = executeAsyncRequest(asyncHttpClient, request, () => tempFile.delete())
-      checkResponse(response)
+      checkResponse(response, expectedResponseCodePrefix)
     } catch {
       case e: IOException =>
         Try(tempFile.delete())
