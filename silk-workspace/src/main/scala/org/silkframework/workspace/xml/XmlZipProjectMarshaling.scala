@@ -139,6 +139,10 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
         zip.closeEntry()
         entry = zip.getNextEntry
       }
+      if(projectName.isDefined && stripPrefix.isEmpty) {
+        // No project found, but project expected
+        throw new ValidationException("No project found in given zip file. Imported nothing!")
+      }
     } finally {
       // Close ZIP and reload
       zip.close()
