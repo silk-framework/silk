@@ -92,8 +92,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
     counter mustBe 3
   }
 
-  private def entity(values: Seq[String]*)
-                    (implicit entitySchema: EntitySchema): Entity = {
-    new Entity("uri", values.toIndexedSeq, entitySchema)
+  private def entity(values: Seq[String]*)(implicit entitySchema: EntitySchema): Entity = {
+    Entity("uri", values.toIndexedSeq, entitySchema)
   }
 }

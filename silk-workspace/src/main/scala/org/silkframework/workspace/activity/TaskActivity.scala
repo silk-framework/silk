@@ -124,7 +124,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
       val recursiveTypes: List[Type] = clazz match {
         case c: Class[_] =>
           val genericInterfaces = c.getGenericInterfaces.toList
-          genericInterfaces ++ genericInterfaces.flatMap(getAllInterfacesRecursively(_, stopAtClassPrefix))
+          val transitiveInterfaces = (genericInterfaces ++ Option(c.getSuperclass).toSeq).flatMap(getAllInterfacesRecursively(_, stopAtClassPrefix))
+          genericInterfaces ++ transitiveInterfaces
         case pt: ParameterizedType =>
           getAllInterfacesRecursively(pt.getRawType, stopAtClassPrefix)
         case t: Type =>

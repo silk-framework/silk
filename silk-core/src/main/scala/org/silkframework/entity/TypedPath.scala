@@ -2,32 +2,20 @@ package org.silkframework.entity
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.Uri
 
 import scala.xml.Node
 
 /**
   * Constitutes a path with type information.
   *
-  * @param path      the path
+  * @param ops the path operators
   * @param valueType the type that has to be considered during processing.
   */
-case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
+case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
 
-  /**
-    * Returns the property URI, if this is a simple forward path of length 1.
-    * Otherwise, returns none.
-    */
-  def propertyUri: Option[Uri] = path.propertyUri
+  def this(path: Path, valueType: ValueType, isAttribute: Boolean) = this(path.operators, valueType, isAttribute)
 
-  /**
-    * extracts either the fragment if available or the last path segment
-    * if neither is available => None
-    * @return
-    */
-  def getLocalName: Option[String] = path.getLocalName
-
-  def property: Option[TypedProperty] = path.operators match {
+  def property: Option[TypedProperty] = operators match {
     case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
     case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
@@ -35,6 +23,15 @@ case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
 }
 
 object TypedPath {
+
+  /**
+    *
+    * @param path
+    * @param valueType
+    * @param isAttribute
+    * @return
+    */
+  def apply(path: Path, valueType: ValueType, isAttribute: Boolean): TypedPath = new TypedPath(path.operators, valueType, isAttribute)
 
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
     /**
@@ -61,7 +58,7 @@ object TypedPath {
       implicit val p = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
-          {typedPath.path.serialize}
+          {typedPath.serialize}
         </Path>{XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }

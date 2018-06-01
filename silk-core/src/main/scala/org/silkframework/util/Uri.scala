@@ -33,7 +33,9 @@ import scala.util.{Success, Try}
   * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
   */
+//noinspection ScalaStyle
 case class Uri(uri: String) {
+
   /**
     * A turtle-like representation of this URI.
     *
@@ -87,15 +89,19 @@ case class Uri(uri: String) {
     case Success(u) if u.getPath != null && u.getPath.nonEmpty  => Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
     case _ => None
   }
+
+  override def hashCode(): Int = uri.hashCode
+
+  override def equals(obj: scala.Any): Boolean = obj.isInstanceOf[Uri] && uri == obj.toString
 }
 
 object Uri {
   /**
     * Builds a URI from a string.
     */
-  implicit def fromURI(uri: String): Uri = {
-    new Uri(uri)
-  }
+  implicit def fromString(uri: String): Uri = new Uri(uri)
+
+  implicit def asString(uri: Uri): String = uri.toString
 
   /**
     * Builds a URI from a qualified name.
@@ -117,11 +123,11 @@ object Uri {
     */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty): Uri = {
     if (str.startsWith("<")) {
-      fromURI(str.substring(1, str.length - 1))
+      fromString(str.substring(1, str.length - 1))
     } else if (!str.contains(':')) {
-      fromURI(str)
-    } else if (str.startsWith("http")) {
-      fromURI(str)
+      fromString(str)
+    } else if (str.startsWith("http") || str.startsWith("urn:")) {
+      fromString(str)
     } else {
       fromQualifiedName(str, prefixes)
     }

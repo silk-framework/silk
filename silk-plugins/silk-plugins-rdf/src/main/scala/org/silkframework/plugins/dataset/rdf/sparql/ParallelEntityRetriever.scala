@@ -61,7 +61,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path.path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path)
 
       pathRetrievers.foreach(_.start())
 
@@ -71,7 +71,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
           val uri = pathValues.head.uri
           if (pathValues.tail.forall(_.uri == uri)) {
-            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
+            f(Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
             counter += 1
           }
           else {
@@ -153,10 +153,12 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       sparql append "?" + entityDesc.variable + " "
       sparql append "?" + varPrefix + "0\n"
 
+      //Graph
+      for (graph <- graphUri if !graph.isEmpty) sparql append "FROM <" + graph + ">\n"
+
       //Body
       sparql append "WHERE {\n"
-      //Graph
-      for (graph <- graphUri if !graph.isEmpty) sparql append "GRAPH <" + graph + "> {\n"
+
 
       if (entityDesc.restrictions.toSparql.isEmpty) {
         sparql append "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
@@ -165,7 +167,6 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
       sparql append SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
 
-      for (graph <- graphUri if !graph.isEmpty) sparql append "}\n"
       sparql append "}" // END WHERE
 
       if (useOrderBy) {

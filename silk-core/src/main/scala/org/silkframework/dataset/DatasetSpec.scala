@@ -21,7 +21,7 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{Identifier, SampleUtil, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.Node
@@ -32,7 +32,7 @@ import scala.xml.Node
   * @param uriProperty Setting this URI will generate an additional property for each entity.
                        The additional property contains the URI of each entity.
   */
-case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -48,12 +48,7 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
-  override def inputTasks: Set[Identifier] = plugin.inputTasks
-
-  override def outputTasks: Set[Identifier] = plugin.outputTasks
-
-  override def referencedTasks: Set[Identifier] = plugin.referencedTasks
-
+  /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
@@ -73,17 +68,22 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
 
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec, metaData: MetaData = MetaData.empty) extends Task[DatasetSpec]
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]]
 
 object DatasetSpec {
 
-  implicit def toTransformTask(task: Task[DatasetSpec]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
+  /**
+    * A DatasetSpec that is agnostic of the actual Dataset type.
+    */
+  type GenericDatasetSpec = DatasetSpec[Dataset]
+
+  implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
   def empty = {
     new DatasetSpec(EmptyDataset)
   }
 
-  case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec) extends DataSource {
+  case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
     override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
       source.retrieveTypes(limit)
@@ -137,12 +137,12 @@ object DatasetSpec {
     private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
+          val uriIndex = entitySchema.pathIndex(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
           for (entity <- entities) yield {
-            new Entity(
-              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri),
+            Entity(
+              uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),
               values = entity.values,
-              desc = entity.desc
+              schema = entity.schema
             )
           }
         case None =>
@@ -151,7 +151,7 @@ object DatasetSpec {
     }
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -213,7 +213,7 @@ object DatasetSpec {
     override def clear(): Unit = entitySink.clear()
   }
 
-  case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec) extends LinkSink {
+  case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec[Dataset]) extends LinkSink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -258,11 +258,11 @@ object DatasetSpec {
   /**
     * XML serialization format.
     */
-  implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
+  implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec[Dataset]] {
 
     override def tagNames: Set[String] = Set("Dataset")
 
-    def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
+    def read(node: Node)(implicit readContext: ReadContext): DatasetSpec[Dataset] = {
       implicit val prefixes = readContext.prefixes
       implicit val resources = readContext.resources
 
@@ -286,7 +286,7 @@ object DatasetSpec {
       }
     }
 
-    def write(value: DatasetSpec)(implicit writeContext: WriteContext[Node]): Node = {
+    def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriProperty.map(_.uri).getOrElse("")}>
@@ -298,11 +298,11 @@ object DatasetSpec {
 
   implicit object DatasetTaskXmlFormat extends XmlFormat[DatasetTask] {
     override def read(value: Node)(implicit readContext: ReadContext): DatasetTask = {
-      new TaskFormat[DatasetSpec].read(value)
+      new TaskFormat[DatasetSpec[Dataset]].read(value)
     }
 
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[Node]): Node = {
-      new TaskFormat[DatasetSpec].write(value)
+      new TaskFormat[DatasetSpec[Dataset]].write(value)
     }
   }
 

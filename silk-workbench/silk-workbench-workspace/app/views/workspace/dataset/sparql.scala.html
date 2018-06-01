@@ -1,5 +1,6 @@
 @import org.silkframework.workbench.Context
-@(context: Context[org.silkframework.dataset.DatasetSpec],
+
+@(context: Context[org.silkframework.dataset.DatasetSpec.GenericDatasetSpec],
   endpoint: org.silkframework.dataset.rdf.SparqlEndpoint,
   query: String,
   queryResults: Option[org.silkframework.dataset.rdf.SparqlResults])(implicit session: play.api.mvc.Session)

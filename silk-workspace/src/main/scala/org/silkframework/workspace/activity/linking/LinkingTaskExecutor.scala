@@ -8,7 +8,7 @@ import org.silkframework.workspace.activity.TaskExecutor
 
 class LinkingTaskExecutor extends TaskExecutor[LinkSpec] {
 
-  override def apply(inputs: Seq[DataSource], linkSpec: LinkSpec, outputs: Seq[SinkTrait], errorOutputs: Seq[SinkTrait]) = {
+  override def apply(inputs: Seq[DataSource], linkSpec: LinkSpec, outputs: Seq[DatasetWriteAccess], errorOutputs: Seq[DatasetWriteAccess]) = {
     require(inputs.size == 1 || inputs.size == 2, "Linking tasks expect one or two input datasets.")
 
     val inputPair = if(inputs.size == 1) DPair.fill(inputs.head) else DPair.fromSeq(inputs)

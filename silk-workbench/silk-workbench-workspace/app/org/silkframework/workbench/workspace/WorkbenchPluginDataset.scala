@@ -1,17 +1,18 @@
 package org.silkframework.workbench.workspace
 
 import controllers.workspace.routes.Assets
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.workbench.WorkbenchPlugin
-import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType, Tab}
+import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTaskActions, DatasetTaskType}
 import org.silkframework.workspace.ProjectTask
 
 import scala.language.existentials
 
-case class WorkbenchPluginDataset() extends WorkbenchPlugin[DatasetSpec] {
+case class WorkbenchPluginDataset() extends WorkbenchPlugin[GenericDatasetSpec] {
 
   override def taskType: TaskType = DatasetTaskType
 
@@ -63,7 +64,7 @@ object WorkbenchPluginDataset {
       */
     override def tabs: Seq[Tab] = {
       task.data match {
-        case dataset: DatasetSpec =>
+        case dataset: GenericDatasetSpec =>
           var tabs = Seq(Tab("Dataset", s"workspace/datasets/$project/$taskId/dataset"))
           if (dataset.plugin.isInstanceOf[RdfDataset]) {
             tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$project/$taskId/sparql")

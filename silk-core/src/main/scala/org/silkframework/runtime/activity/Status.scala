@@ -51,6 +51,11 @@ sealed trait Status {
   def succeeded: Boolean = !isRunning && !failed
 
   /**
+    * Providing an exception if execution has failed
+    */
+  def exception: Option[Throwable] = None
+
+  /**
     * The timestamp when the status has been updated.
     */
   val timestamp: Long = System.currentTimeMillis()
@@ -111,7 +116,7 @@ object Status {
    * @param runtime The time in milliseconds needed to execute the task.
    * @param exception The exception, if the task failed.
    */
-  case class Finished(success: Boolean, runtime: Long, exception: Option[Throwable] = None) extends Status {
+  case class Finished(success: Boolean, runtime: Long, override val exception: Option[Throwable] = None) extends Status {
     override def message: String = exception match {
       case None => "Finished in " + formattedTime
       case Some(ex) => "Failed after " + formattedTime + ": " + ex.getMessage

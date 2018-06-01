@@ -88,7 +88,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
-    if(entitySchema.typedPaths.exists(_.path.operators.exists(_.isInstanceOf[BackwardOperator]))) {
+    if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
 
@@ -106,7 +106,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val uri = traverser.generateUri(uriPattern)
             val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
 
-            f(new Entity(uri, values, entitySchema))
+            f(Entity(uri, values, entitySchema))
 
             goToNextEntity(reader, node.label)
             count += 1
