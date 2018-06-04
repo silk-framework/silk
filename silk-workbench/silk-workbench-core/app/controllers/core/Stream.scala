@@ -19,7 +19,7 @@ object Stream {
         channel.push(value)
       }
     }
-    activity.value.onUpdate(listener)
+    activity.value.subscribe(listener)
     listeners.put(enumerator, listener)
     enumerator
   }
@@ -36,7 +36,7 @@ object Stream {
     // Push initial value
     listener(statusObservable())
     // Push updates
-    statusObservable.onUpdate(listener)
+    statusObservable.subscribe(listener)
     listeners.put(enumerator, listener)
     enumerator
   }
