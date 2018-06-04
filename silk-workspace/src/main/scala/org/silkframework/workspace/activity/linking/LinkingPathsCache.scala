@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
