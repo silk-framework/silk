@@ -102,7 +102,7 @@ case class Entity private(
           this
         else
           subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
-        //now find the pertining index and get values
+        //now find the pertaining index and get values
         es.propertyNames.zipWithIndex.find(_._1 == property) match{
           case Some((_, ind)) => ent.values(ind)
           case None => Seq()

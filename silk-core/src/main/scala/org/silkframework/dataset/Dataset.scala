@@ -2,12 +2,6 @@ package org.silkframework.dataset
 
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
-
-/**
- * Manages the access to a specific dataset.
- */
-trait Dataset extends TaskSpec with AnyPlugin with SinkTrait {
 
 /**
  * A specific dataset.
