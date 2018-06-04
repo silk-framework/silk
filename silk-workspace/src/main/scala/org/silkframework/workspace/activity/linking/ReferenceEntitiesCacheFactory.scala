@@ -15,12 +15,9 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 )
 case class ReferenceEntitiesCacheFactory() extends TaskActivityFactory[LinkSpec, ReferenceEntitiesCache] {
 
-  override def autoRun = true
+  override def autoRun: Boolean = true
 
   def apply(task: ProjectTask[LinkSpec]): Activity[ReferenceEntities] = {
-    new CachedActivity(
-      activity = new ReferenceEntitiesCache(task),
-      resource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")
-    )
+    new ReferenceEntitiesCache(task)
   }
 }

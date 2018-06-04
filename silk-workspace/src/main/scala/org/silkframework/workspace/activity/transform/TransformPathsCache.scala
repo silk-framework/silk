@@ -1,22 +1,22 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.PathsCacheTrait
+import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
 import scala.xml.{Node, Null}
 
 /**
  * Holds the most frequent paths.
  */
-class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Activity[CachedEntitySchemata] with PathsCacheTrait {
+class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends CachedActivity[CachedEntitySchemata] with PathsCacheTrait {
 
   override def name: String = s"Paths cache ${transformTask.id}"
 
@@ -55,6 +55,10 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Act
       context.value() = CachedEntitySchemata(configuredEntitySchema, unTypedEntitySchema)
     }
   }
+
+  override def resource: WritableResource = transformTask.project.cacheResources.child("transform").child(transformTask.id).get(s"pathsCache.xml")
+
+  override protected val wrappedXmlFormat = WrappedXmlFormat()
 }
 
 /**

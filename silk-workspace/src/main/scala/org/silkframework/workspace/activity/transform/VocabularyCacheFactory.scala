@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.transform
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
+import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
   id = "VocabularyCache",
@@ -13,12 +13,9 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 )
 case class VocabularyCacheFactory() extends TaskActivityFactory[TransformSpec, VocabularyCache] {
 
-  override def autoRun = true
+  override def autoRun: Boolean = true
 
-  def apply(task: ProjectTask[TransformSpec]) = {
-    new CachedActivity(
-      activity = new VocabularyCache(task),
-      resource = task.project.cacheResources.child("transform").child(task.id).get(s"vocabularyCache.xml")
-    )
+  def apply(task: ProjectTask[TransformSpec]): VocabularyCache = {
+    new VocabularyCache(task)
   }
 }

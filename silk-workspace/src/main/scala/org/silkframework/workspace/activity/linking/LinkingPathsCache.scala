@@ -2,16 +2,17 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, CacheActivity}
+import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.PathsCacheTrait
+import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
 /**
  * Holds the most frequent paths.
  */
-class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[EntitySchema]] with CacheActivity[LinkSpec] with PathsCacheTrait {
+class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPair[EntitySchema]] with PathsCacheTrait {
 
   private def linkSpec = task.data
 
@@ -84,4 +85,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends Activity[DPair[Enti
     // Retrieve most frequent paths
     source.retrievePaths(datasetSelection.typeUri, 1, Some(50))
   }
+
+  override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")
+
+  override protected val wrappedXmlFormat = WrappedXmlFormat()
 }
