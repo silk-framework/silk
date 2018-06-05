@@ -10,6 +10,8 @@ import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.workspace.activity.CachedActivity
 
 import scala.collection.JavaConverters._
 
@@ -17,14 +19,14 @@ import scala.collection.JavaConverters._
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
  */
-class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity[ReferenceEntities] {
 
   @volatile
   private var canceled = false
 
   override def name = s"Entities cache ${task.id}"
 
-  override def initialValue = Some(ReferenceEntities.empty)
+  override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
 
   override def cancelExecution(): Unit = {
     canceled = true
@@ -204,4 +206,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
       entity.schema.typedPaths == entityDesc.typedPaths
     }
   }
+
+  override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")
+
+  override protected val wrappedXmlFormat = WrappedXmlFormat()
 }

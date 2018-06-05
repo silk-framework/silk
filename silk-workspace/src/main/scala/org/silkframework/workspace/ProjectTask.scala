@@ -42,20 +42,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   private val log = Logger.getLogger(getClass.getName)
 
-  @volatile
-  private var currentData: TaskType = initialData
-
   // Should be used to observe the task data
   val dataValueHolder: ValueHolder[TaskType] = new ValueHolder(Some(initialData))
 
-  @volatile
-  private var currentMetaData: MetaData = {
+  // Should be used to observe the meta data
+  val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(
     // Make sure that the modified timestamp is set
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
-  }
-
-  // Should be used to observe the meta data
-  val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(currentMetaData))
+  ))
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
@@ -87,12 +81,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current data of this task.
     */
-  override def data: TaskType = currentData
+  override def data: TaskType = dataValueHolder()
 
   /**
     * Retrieves the current meta data of this task.
     */
-  override def metaData: MetaData = currentMetaData
+  override def metaData: MetaData = metaDataValueHolder()
 
   def init(): Unit = {
     // Start auto-run activities
@@ -105,26 +99,30 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
     // Update data
-    currentData = newData
+    dataValueHolder.update(newData)
     for(md <- newMetaData) {
-      currentMetaData = md
+      metaDataValueHolder.update(md)
     }
-    // Update modified timestamp
-    currentMetaData = currentMetaData.copy(modified = Some(currentMetaData.modified.getOrElse(Instant.now)))
+
+    // Update modified timestamp if not already set in new meta data object
+    metaDataValueHolder.update(
+      metaDataValueHolder().copy(
+        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
+      )
+    )
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
-    dataValueHolder.update(newData)
   }
 
   /**
     * Updates the meta data of this task.
     */
   def updateMetaData(newMetaData: MetaData): Unit = {
-    update(currentData, Some(newMetaData))
+    update(dataValueHolder(), Some(newMetaData))
   }
 
   /**
@@ -203,7 +201,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   override def toString: String = {
-    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+    s"ProjectTask(id=$id, data=${dataValueHolder().toString}, metaData=${metaData.toString})"
   }
 
   // Returns all non-empty meta data fields as key value pairs

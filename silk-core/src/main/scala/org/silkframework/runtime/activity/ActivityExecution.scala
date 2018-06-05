@@ -104,28 +104,19 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
-      var dirty = true
-      while(dirty) {
-        val startTime = System.currentTimeMillis()
-        startTimestamp = Some(startTime)
-        try {
-          activity.run(this)
-          status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
-        } catch {
-          case ex: Throwable =>
-            status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
-            throw ex
-        } finally {
-          lastResult = activityExecutionResult
-          resetMetaData()
-          forkJoinRunner = None
-        }
-        dirty = activity match {
-          case cacheActivity: CacheActivity[T] =>
-            cacheActivity.dirty
-          case _ =>
-            false
-        }
+      val startTime = System.currentTimeMillis()
+      startTimestamp = Some(startTime)
+      try {
+        activity.run(this)
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+      } catch {
+        case ex: Throwable =>
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
+          throw ex
+      } finally {
+        lastResult = activityExecutionResult
+        resetMetaData()
+        forkJoinRunner = None
       }
     }
   }
