@@ -13,7 +13,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   categories = Array("Dataset"),
   description = "Holds the most frequent types in a dataset."
 )
-class TypesCacheFactory extends TaskActivityFactory[DatasetSpec[Dataset], TypesCache] {
+class TypesCacheFactory extends TaskActivityFactory[GenericDatasetSpec, TypesCache] {
 
   override def autoRun: Boolean = true
 
