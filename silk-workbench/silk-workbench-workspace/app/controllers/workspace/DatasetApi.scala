@@ -52,13 +52,13 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
               project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
-              Ok
+              NoContent
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
           project.updateTask(dataset.id, dataset.data, dataset.metaData)
-          Ok
+          NoContent
         }
       }
     } catch {
