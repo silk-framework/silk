@@ -69,7 +69,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def deleteDataset(project: String, source: String): Action[AnyContent] = Action {
     User().workspace.project(project).removeTask[GenericDatasetSpec](source)
-    Ok
+    NoContent
   }
 
   def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset", createDialog: Boolean): Action[AnyContent] = Action { request =>
