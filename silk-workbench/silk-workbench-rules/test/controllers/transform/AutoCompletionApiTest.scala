@@ -21,8 +21,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      //TODO ask why the result sequence has expanded
-      expectedValues = Set("/source:name", "/source:country", "/source:age", "/rdf:type", "/source:city", "/source:address")
+      expectedValues = Seq("/source:name", "/source:age", "/rdf:type", "/source:address", "/source:address/source:country", "/source:address/source:city")
     )
   }
 
@@ -31,7 +30,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Set("/source:name")
+      expectedValues = Seq("/source:name")
     )
   }
 
@@ -40,7 +39,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Set("/source:name")
+      expectedValues = Seq("/source:name")
     )
   }
 
@@ -49,7 +48,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyTypes,
-      expectedValues = Set("foaf:Agent", "foaf:Person", "foaf:PersonalProfileDocument")
+      expectedValues = Seq("foaf:Agent", "foaf:Person", "foaf:PersonalProfileDocument")
     )
   }
 
@@ -58,7 +57,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyProperties,
-      expectedValues = Set("foaf:givenname", "foaf:givenName")
+      expectedValues = Seq("foaf:givenname", "foaf:givenName")
     )
   }
 
@@ -67,7 +66,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyProperties,
-      expectedValues = Set("foaf:img", "foaf:depiction")
+      expectedValues = Seq("foaf:img", "foaf:depiction")
     )
   }
 
@@ -122,10 +121,10 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
   private implicit class AutoCompletionChecks(json: JsValue) {
 
-    def checkCompletionValues(category: String, expectedValues: Set[String]): Unit = {
+    def checkCompletionValues(category: String, expectedValues: Seq[String]): Unit = {
       val filteredCompletions = json.as[JsArray].value.filter(c => (c \ "category").get == JsString(category))
       val values = filteredCompletions.map(c => (c \ "value").as[JsString].value)
-      values.toSet mustBe expectedValues
+      values must contain theSameElementsAs expectedValues
     }
   }
 

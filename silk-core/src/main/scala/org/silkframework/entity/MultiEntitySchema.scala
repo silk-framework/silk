@@ -6,7 +6,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   extends EntitySchema(
     getPivotSchema(pivot).typeUri,    //NOTE: using [[getPivotSchema]] will ensure that the pivot schema is not a MultiEntitySchema
     getPivotSchema(pivot).typedPaths,
-    getPivotSchema(pivot).filter,    //TODO how to combine multiple filters, sub paths
+    getPivotSchema(pivot).filter,
     getPivotSchema(pivot).subPath
   ){
 
@@ -17,7 +17,9 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   lazy val subSchemata: IndexedSeq[EntitySchema] = getNonPivotSchemata(this)
   //NOTE: ---------------------------------------------------------------------------------------------------------
 
-  override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++ subSchemata.flatMap(_.typedPaths)
+  // TypedPaths of pivot and typedPaths of subSchemata (prepended with their sub-paths)
+  override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++
+    subSchemata.flatMap(ses => ses.typedPaths.map(tp => TypedPath(ses.subPath.operators ++ tp.operators, tp.valueType, tp.isAttribute)))
 
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
@@ -56,7 +58,7 @@ object MultiEntitySchema{
 
   /**
     * Opposite of [[getPivotSchema]] collecting all non-pivot schemata
-    * @param es
+    * @param es - the Schema to begin with
     * @return
     */
   def getNonPivotSchemata(es: EntitySchema): IndexedSeq[EntitySchema] = es match{

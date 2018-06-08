@@ -1,6 +1,5 @@
 package org.silkframework.entity
 
-import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -71,7 +70,7 @@ case class EntitySchema(
     * @return
     */
   def getSchemaOfProperty(property: String): Option[EntitySchema] ={
-    this.typedPaths.find(tp => tp.serializeSimplified(Prefixes.default) == property) match{
+    this.typedPaths.find(tp => tp.serializeSimplified == property) match{
       case Some(s) => getSchemaOfProperty(s)
       case None => None
     }
@@ -143,12 +142,12 @@ object EntitySchema {
     * @param tps - the TypedPaths to drop
     * @return
     */
-  def dropTypedPath(schema: EntitySchema, tps: TypedPath*): EntitySchema ={
+  def dropTypedPaths(schema: EntitySchema, tps: TypedPath*): EntitySchema ={
     schema match{
       case mes: MultiEntitySchema =>
         new MultiEntitySchema(
-          dropTypedPath(mes.pivotSchema),
-          mes.subSchemata.map(ss => dropTypedPath(ss, tps:_*))
+          dropTypedPaths(mes.pivotSchema),
+          mes.subSchemata.map(ss => dropTypedPaths(ss, tps:_*))
         )
       case es: EntitySchema =>
         EntitySchema(

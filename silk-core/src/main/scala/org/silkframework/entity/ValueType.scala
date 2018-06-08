@@ -293,10 +293,11 @@ case object IntegerValueType extends ValueType with Serializable {
 
 case object UriValueType extends ValueType with Serializable {
 
-  override def label = "Resource"
+  override def label = "Uri"
 
   override def validate(lexicalString: String): Boolean = {
-    new Uri(lexicalString).isValidUri
+    true
+    //TODO new Uri(lexicalString).isValidUri
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */

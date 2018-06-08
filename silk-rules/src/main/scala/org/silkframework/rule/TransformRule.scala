@@ -285,7 +285,7 @@ case class TypeMapping(id: Identifier = "type",
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, StringValueType))
 
   override val typeString = "Type"
 
@@ -494,7 +494,7 @@ private object UriPattern {
       }
     }
 
-    TransformInput(id = "buildUri",transformer = ConcatTransformer(""), inputs = inputs)
+    TransformInput(id = "buildUri",transformer = ConcatTransformer(), inputs = inputs)
   }
 
   def isPattern(inputs: Seq[Input]): Boolean = {

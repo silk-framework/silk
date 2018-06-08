@@ -24,18 +24,21 @@ import scala.ref.WeakReference
   */
 class Path private[entity](val operators: List[PathOperator]) extends Serializable {
 
-  private lazy val serializedFull = serialize()
+  private lazy val serializedFull = operators.map(_.serialize(Prefixes.empty)).mkString
 
   /**
     * Serializes this path using the Silk RDF path language.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = operators.map(_.serialize).mkString
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match{
+    case Prefixes.empty => serializedFull
+    case _ => operators.map(_.serialize(prefixes)).mkString
+  }
 
   /**
     * Serializes this path using the simplified notation.
     */
   def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    operators.map(_.serialize).mkString.stripPrefix("/")
+    operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
   }
 
   /**
@@ -82,7 +85,6 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
       case p: Path => serializedFull == p.serializedFull
       case _ => false
     }
-
   }
 
   override def hashCode: Int = toString.hashCode
@@ -127,7 +129,7 @@ object Path {
     * Creates a path consisting of a single property
     */
   def apply(property: String): Path = {
-    apply(ForwardOperator(property) :: Nil)
+    apply(ForwardOperator(property.trim) :: Nil)
   }
 
   /**

@@ -34,7 +34,7 @@ import scala.util.{Success, Try}
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
   */
 //noinspection ScalaStyle
-case class Uri(uri: String) {
+case class Uri (uri: String) {
 
   /**
     * A turtle-like representation of this URI.

@@ -12,7 +12,11 @@ import scala.xml.Node
   * @param valueType the type that has to be considered during processing.
   * @param isAttribute is XML attribute
   */
-case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
+case class TypedPath(
+  private val ops: List[PathOperator],
+  valueType: ValueType,
+  isAttribute: Boolean
+) extends Path(ops) {
 
   def this(path: Path, valueType: ValueType, isAttribute: Boolean) = this(path.operators, valueType, isAttribute)
 
