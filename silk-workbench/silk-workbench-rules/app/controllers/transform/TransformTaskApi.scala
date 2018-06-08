@@ -352,7 +352,7 @@ class TransformTaskApi extends Controller {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serialize)))
+        Ok(Json.toJson(filteredPaths.map(_.normalizedSerialization)))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }

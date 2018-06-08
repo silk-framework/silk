@@ -33,10 +33,10 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
   /**
     * Serializes this path using the Silk RDF path language.
     *
-    * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
     * @param stripForwardSlash If true and if the path beginns with a forward operator, the first forward slash is stripped.
+    * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty, stripForwardSlash: Boolean = true): String = prefixes match {
+  def serialize(stripForwardSlash: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match {
     case Prefixes.empty if stripForwardSlash => normalizedSerialization
     case _ => serializePath(prefixes, stripForwardSlash)
   }
@@ -63,12 +63,8 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
   }
 
   /**
-    * extracts either the fragment if available or the last path segment
-    * if neither is available => None
-    * @return
+    * Returns the number of operators in this path.
     */
-  def getLocalName: Option[String] = propertyUri.flatMap(_.localName )
-
   def size: Int = operators.size
 
   /**
@@ -93,7 +89,7 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     }
   }
 
-  override def hashCode: Int = toString.hashCode
+  override def hashCode: Int = normalizedSerialization.hashCode
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
@@ -111,7 +107,7 @@ object Path {
   def apply(operators: List[PathOperator]): Path = {
     val path = new Path(operators)
 
-    val pathStr = path.serialize
+    val pathStr = path.serialize()
 
     //Remove all garbage collected paths from the map and try to return a cached path
     synchronized {

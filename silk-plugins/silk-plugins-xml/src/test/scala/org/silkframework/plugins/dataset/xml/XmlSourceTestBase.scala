@@ -198,7 +198,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def leafPaths(depth: Int): Seq[String] = {
-      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.serialize)
+      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.normalizedSerialization)
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

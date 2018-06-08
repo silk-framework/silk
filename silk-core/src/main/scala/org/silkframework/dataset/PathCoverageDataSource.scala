@@ -26,7 +26,7 @@ trait PathCoverageDataSource {
           }
         }
       }
-      PathCoverage(sourcePath.serialize, covered, fullyCovered)
+      PathCoverage(sourcePath.serialize(), covered, fullyCovered)
     }
     PathCoverageResult(pathCoverages)
   }

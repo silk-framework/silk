@@ -196,7 +196,7 @@
 
 @renderValues(path: Path, values: Seq[String], divClassPrefix: String) = {
   <li>
-    @path.serialize(project.config.prefixes)
+    @path.serialize()(project.config.prefixes)
     @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{project.config.prefixes.shorten(v)}</span>)
     @if(values.size > 10) {...} else {}
   </li>
@@ -251,7 +251,7 @@
   case InputValue(input, values, error) => {
     <li>
       <span class="input">
-        Input: @input.path.serialize(project.config.prefixes) (@input.id)
+        Input: @input.path.serialize()(project.config.prefixes) (@input.id)
         @for(v <- values) {
           <span class="@(divClassPrefix)-value">@convertToLinkIfDetected(v)</span>
         }

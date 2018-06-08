@@ -2,6 +2,8 @@ package org.silkframework.entity
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Uri
 
 class PathTest extends FlatSpec with Matchers {
 
@@ -97,20 +99,73 @@ class PathTest extends FlatSpec with Matchers {
   it should "parse a path with conflicting prefixes with /" in {
     val path = p.parse("/<http://www.pre.cc/pre1/pre2/test>")
     path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre2/test")))
-    path.serialize shouldBe "pre2:test"
+    path.serialize() shouldBe "pre2:test"
   }
 
   it should "parse a path with conflicting prefixes with #" in {
     val path = p.parse("/<http://www.pre.cc/pre1/pre3#test>")
     path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre3#test")))
-    path.serialize shouldBe "pre3:test"
+    path.serialize() shouldBe "pre3:test"
+  }
+
+  it should "provide serialization without stripping the initial forward slash" in {
+    Path(ForwardOperator("http://www.example.org/p") :: Nil).serialize(stripForwardSlash = false) shouldBe "/ex:p"
+  }
+
+  it should "return the property URI for simple forward paths of length 1." in {
+    Path("http://www.example.org/p").propertyUri shouldBe Some(Uri("http://www.example.org/p"))
+    Path.empty.propertyUri shouldBe None
+    Path(ForwardOperator("http://www.example.org/p") :: ForwardOperator("http://www.example.org/p") :: Nil).propertyUri shouldBe None
+  }
+
+  it should "count the operators correctly" in {
+    Path.empty.isEmpty shouldBe true
+    Path.empty.size shouldBe 0
+    Path(Uri("http://www.example.org/p")).size shouldBe 1
+    Path(ForwardOperator("http://www.example.org/p") :: Nil).isEmpty shouldBe false
+    Path(ForwardOperator("http://www.example.org/p") :: ForwardOperator("http://www.example.org/p") :: Nil).size shouldBe 2
+  }
+
+  it should "concatenate two paths" in {
+    val op1 = ForwardOperator("http://www.example.org/p1")
+    val op2 = ForwardOperator("http://www.example.org/p2")
+    Path(op1 :: Nil) ++ Path(op2 :: Nil) shouldBe Path(op1 :: op2 :: Nil)
+    Path(op1 :: op2 :: Nil) ++ Path(op2 :: op1 :: Nil) shouldBe Path(op1 :: op2 :: op2 :: op1 :: Nil)
+  }
+
+  it should "throw ValidationException if a given path is invalid" in {
+    an [ValidationException] should be thrownBy Path.parse("//invalidPath")
+  }
+
+  it should "return the normalized serialzation if toString is called" in {
+    Path.parse("/ex:p").toString shouldBe "<http://www.example.org/p>"
+  }
+
+  it should "compare two paths for equality" in {
+    (Path.parse("/ex:p") == Path.parse("ex:p")) shouldBe true
+    (Path.parse("\\ex:p") == Path.parse("ex:p")) shouldBe false
+    (Path.parse("/ex:p").hashCode == Path.parse("ex:p").hashCode) shouldBe true
+    (Path.parse("\\ex:p").hashCode == Path.parse("ex:p").hashCode) shouldBe false
+  }
+
+  it should "be convertable to a string typed path" in {
+    val ops = ForwardOperator("http://www.example.org/p") :: Nil
+    Path(ops).asStringTypedPath shouldBe TypedPath(ops, StringValueType, isAttribute = false)
+  }
+
+  it should "be usable in a pattern matching case" in {
+    val ops = ForwardOperator("http://www.example.org/p") :: Nil
+    Path(ops) match {
+      case Path(o) =>
+        ops shouldBe o
+    }
   }
 
   def parseAndSerialize(pathString: String, path: Path, normalizedSerialization: String, serializationWithPrefixes: String): Unit = {
     val parsedPath = p.parse(pathString)
     parsedPath shouldBe path
     parsedPath.normalizedSerialization shouldBe normalizedSerialization
-    parsedPath.serialize shouldBe serializationWithPrefixes
+    parsedPath.serialize() shouldBe serializationWithPrefixes
     // In addition test a round trip with the normalized serialization
     p.parse(normalizedSerialization).normalizedSerialization shouldBe normalizedSerialization
   }
