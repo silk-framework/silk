@@ -275,5 +275,10 @@ checkJsBuildTools := {
   }
   assert(missing.isEmpty, "Required command line tools are missing")
 }
-buildSilkReact := println("Build Silk React module")
+buildSilkReact := {
+  checkJsBuildTools.value // depend on check
+  Process("yarn" :: "run" :: "deploy" :: Nil, new File("silk-react-components")).!!
+}
 testSilkReact := println("test silk react")
+
+//sourceGenerators in Compile += buildSilkReact
