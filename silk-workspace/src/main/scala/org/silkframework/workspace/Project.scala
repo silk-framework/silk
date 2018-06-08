@@ -327,7 +327,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
         task.flush()
       } catch {
         case NonFatal(ex) =>
-          logger.warning(s"Could not persist task ${task.id} of project ${config.id} to workspace provider. Reason: " + ex.getMessage)
+          logger.log(Level.WARNING, s"Could not persist task ${task.id} of project ${config.id} to workspace provider.", ex)
       }
     }
   }
