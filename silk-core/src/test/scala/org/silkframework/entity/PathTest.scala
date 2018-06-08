@@ -3,9 +3,9 @@ package org.silkframework.entity
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 
-class PathParserTest extends FlatSpec with Matchers {
+class PathTest extends FlatSpec with Matchers {
 
-  behavior of "path parser"
+  behavior of "Path"
 
   implicit private val prefixes: Prefixes = Prefixes(Map(
     "ex" -> "http://www.example.org/",
@@ -18,16 +18,31 @@ class PathParserTest extends FlatSpec with Matchers {
 
   private val p = new PathParser(prefixes)
 
-  it should " parse simple forward paths with prefixes" in {
-    p.parse("?a/ex:prop") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
+  it should " parse and serialize simple forward paths with prefixes" in {
+    parseAndSerialize(
+      pathString = "/ex:prop",
+      path = Path(ForwardOperator("http://www.example.org/prop") :: Nil),
+      normalizedSerialization = "<http://www.example.org/prop>",
+      serializationWithPrefixes = "ex:prop"
+    )
   }
 
-  it should " parse simple forward paths with full URIs" in {
-    p.parse("?a/<http://www.example.org/prop>") should equal(Path(ForwardOperator("http://www.example.org/prop") :: Nil))
+  it should " parse and serialize simple forward paths with full URIs" in {
+    parseAndSerialize(
+      pathString = "/<http://www.example.org/prop>",
+      path = Path(ForwardOperator("http://www.example.org/prop") :: Nil),
+      normalizedSerialization = "<http://www.example.org/prop>",
+      serializationWithPrefixes = "ex:prop"
+    )
   }
 
-  it should "parse simple backwards paths" in {
-    p.parse("?a\\ex:prop") should equal(Path(BackwardOperator("http://www.example.org/prop") :: Nil))
+  it should "parse and serialize simple backwards paths" in {
+    parseAndSerialize(
+      pathString = "\\ex:prop",
+      path = Path(BackwardOperator("http://www.example.org/prop") :: Nil),
+      normalizedSerialization = "\\<http://www.example.org/prop>",
+      serializationWithPrefixes = "\\ex:prop"
+    )
   }
 
   it should " parse paths with simplified syntax" in {
@@ -40,9 +55,20 @@ class PathParserTest extends FlatSpec with Matchers {
     p.parse("") should equal(Path(Nil))
   }
 
-  it should "parse chained forward paths" in {
-    p.parse("?a/ex:p1\\ex:p2") should equal(Path(ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil))
-    p.parse("?a\\ex:p2/ex:p1\\ex:p2") should equal(Path(BackwardOperator("http://www.example.org/p2") :: ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil))
+  it should "parse and serialize chained paths" in {
+    parseAndSerialize(
+      pathString = "/ex:p1\\ex:p2",
+      path = Path(ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil),
+      normalizedSerialization = "<http://www.example.org/p1>\\<http://www.example.org/p2>",
+      serializationWithPrefixes = "ex:p1\\ex:p2"
+    )
+
+    parseAndSerialize(
+      pathString = "\\ex:p2/ex:p1\\ex:p2",
+      path = Path(BackwardOperator("http://www.example.org/p2") :: ForwardOperator("http://www.example.org/p1") :: BackwardOperator("http://www.example.org/p2") :: Nil),
+      normalizedSerialization = "\\<http://www.example.org/p2>/<http://www.example.org/p1>\\<http://www.example.org/p2>",
+      serializationWithPrefixes = "\\ex:p2/ex:p1\\ex:p2"
+    )
   }
 
   it should "parse property filters with literal values" in {
@@ -78,6 +104,13 @@ class PathParserTest extends FlatSpec with Matchers {
     val path = p.parse("/<http://www.pre.cc/pre1/pre3#test>")
     path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre3#test")))
     path.serialize shouldBe "pre3:test"
+  }
+
+  def parseAndSerialize(pathString: String, path: Path, normalizedSerialization: String, serializationWithPrefixes: String): Unit = {
+    val parsedPath = p.parse(pathString)
+    parsedPath shouldBe path
+    parsedPath.normalizedSerialization shouldBe normalizedSerialization
+    parsedPath.serialize shouldBe serializationWithPrefixes
   }
 }
 
