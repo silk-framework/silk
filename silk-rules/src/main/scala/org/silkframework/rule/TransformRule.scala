@@ -508,8 +508,8 @@ private object UriPattern {
 
   def build(inputs: Seq[Input]): String = {
     inputs.map {
-      case PathInput(id, path) => "{" + path.serializeSimplified() + "}"
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
+      case PathInput(id, path) => "{" + path.serialize() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }

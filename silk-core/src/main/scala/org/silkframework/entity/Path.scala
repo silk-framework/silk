@@ -24,18 +24,20 @@ import scala.ref.WeakReference
   */
 class Path private[entity](val operators: List[PathOperator]) extends Serializable {
 
-  private lazy val serializedFull = serialize()
+  /**
+    * The normalized serialization using the Silk RDF path language.
+    * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
+    */
+  lazy val normalizedSerialization: String = serialize()
 
   /**
     * Serializes this path using the Silk RDF path language.
+    *
+    * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = operators.map(_.serialize).mkString
-
-  /**
-    * Serializes this path using the simplified notation.
-    */
-  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    operators.map(_.serialize).mkString.stripPrefix("/")
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match{
+    case Prefixes.empty => normalizedSerialization
+    case _ => operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
   }
 
   /**
@@ -66,23 +68,16 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     */
   def ++(path: Path): Path = Path(operators ::: path.operators)
 
-  override def toString: String = serializedFull
+  override def toString: String = normalizedSerialization
 
   /**
     * Tests if this path equals another path
     */
   override def equals(other: Any): Boolean = {
-    //Because of the path cache it is sufficient to compare by reference
-    //    other match {
-    //      case otherPath: Path => this eq otherPath
-    //      case _ => false
-    //    }
-    // As paths are serializable now, comparing by reference no longer suffices
     other match {
-      case p: Path => serializedFull == p.serializedFull
+      case p: Path => normalizedSerialization == p.normalizedSerialization
       case _ => false
     }
-
   }
 
   override def hashCode: Int = toString.hashCode

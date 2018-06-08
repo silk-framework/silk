@@ -27,6 +27,6 @@
 }
 
 @printInput(input: Input) = @{ input match {
-  case pathInput: PathInput => pathInput.path.serializeSimplified(prefixes)
+  case pathInput: PathInput => pathInput.path.serialize(prefixes)
   case transformInput: TransformInput => "Transformed"
 }}
