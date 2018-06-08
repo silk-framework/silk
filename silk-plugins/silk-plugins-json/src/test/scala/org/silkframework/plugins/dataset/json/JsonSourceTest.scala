@@ -21,9 +21,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     val types = jsonExampleSource.retrieveTypes().map(_._1).toSet
     types mustBe Set(
       "",
-      "/persons",
-      "/persons/phoneNumbers",
-      "/organizations"
+      "persons",
+      "persons/phoneNumbers",
+      "organizations"
     )
   }
 

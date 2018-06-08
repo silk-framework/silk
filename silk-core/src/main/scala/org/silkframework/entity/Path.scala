@@ -28,23 +28,29 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     * The normalized serialization using the Silk RDF path language.
     * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
     */
-  lazy val normalizedSerialization: String = serializePath(Prefixes.empty)
+  lazy val normalizedSerialization: String = serializePath(Prefixes.empty, stripForwardSlash = true)
 
   /**
     * Serializes this path using the Silk RDF path language.
     *
     * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
+    * @param stripForwardSlash If true and if the path beginns with a forward operator, the first forward slash is stripped.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match{
-    case Prefixes.empty => normalizedSerialization
-    case _ => serializePath(prefixes)
+  def serialize(implicit prefixes: Prefixes = Prefixes.empty, stripForwardSlash: Boolean = true): String = prefixes match {
+    case Prefixes.empty if stripForwardSlash => normalizedSerialization
+    case _ => serializePath(prefixes, stripForwardSlash)
   }
 
   /**
     * Internal path serialization function.
     */
-  private def serializePath(prefixes: Prefixes = Prefixes.empty): String = {
-    operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
+  private def serializePath(prefixes: Prefixes, stripForwardSlash: Boolean): String = {
+    val pathStr = operators.map(_.serialize(prefixes)).mkString
+    if(stripForwardSlash) {
+      pathStr.stripPrefix("/")
+    } else {
+      pathStr
+    }
   }
 
   /**
