@@ -56,6 +56,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   def removeProject(name: Identifier): Unit = {
     project(name).activities.foreach(_.control.cancel())
+    project(name).flush()
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
