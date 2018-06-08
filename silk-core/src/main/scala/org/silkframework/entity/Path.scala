@@ -28,7 +28,7 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     * The normalized serialization using the Silk RDF path language.
     * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
     */
-  lazy val normalizedSerialization: String = serialize()
+  lazy val normalizedSerialization: String = serializePath(Prefixes.empty)
 
   /**
     * Serializes this path using the Silk RDF path language.
@@ -37,7 +37,14 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     */
   def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match{
     case Prefixes.empty => normalizedSerialization
-    case _ => operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
+    case _ => serializePath(prefixes)
+  }
+
+  /**
+    * Internal path serialization function.
+    */
+  private def serializePath(prefixes: Prefixes = Prefixes.empty): String = {
+    operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
   }
 
   /**

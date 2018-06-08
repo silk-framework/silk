@@ -2,9 +2,9 @@ package org.silkframework.entity
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.util.Uri
 
 class PathParserTest extends FlatSpec with Matchers {
+
   behavior of "path parser"
 
   implicit private val prefixes: Prefixes = Prefixes(Map(
@@ -72,14 +72,12 @@ class PathParserTest extends FlatSpec with Matchers {
     val path = p.parse("/<http://www.pre.cc/pre1/pre2/test>")
     path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre2/test")))
     path.serialize shouldBe "pre2:test"
-    path.serialize shouldBe "/pre2:test"
   }
 
   it should "parse a path with conflicting prefixes with #" in {
     val path = p.parse("/<http://www.pre.cc/pre1/pre3#test>")
     path shouldBe Path(List(ForwardOperator("http://www.pre.cc/pre1/pre3#test")))
     path.serialize shouldBe "pre3:test"
-    path.serialize shouldBe "/pre3:test"
   }
 }
 
