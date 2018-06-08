@@ -111,6 +111,8 @@ class PathTest extends FlatSpec with Matchers {
     parsedPath shouldBe path
     parsedPath.normalizedSerialization shouldBe normalizedSerialization
     parsedPath.serialize shouldBe serializationWithPrefixes
+    // In addition test a round trip with the normalized serialization
+    p.parse(normalizedSerialization).normalizedSerialization shouldBe normalizedSerialization
   }
 }
 
