@@ -258,3 +258,22 @@ lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
 lazy val root = (project in file("."))
   .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)
+
+val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
+val buildSilkReact = taskKey[Unit]("Builds silk React module")
+val testSilkReact = taskKey[Unit]("Run tests for React component")
+
+checkJsBuildTools := {
+  val missing = Seq("yarn") filter { name =>
+    scala.util.Try {
+      Process(name :: "--version" :: Nil).!! == ""
+    } getOrElse true
+  }
+
+  missing foreach { m =>
+    println(s"Command line tool $m is missing")
+  }
+  assert(missing.isEmpty, "Required command line tools are missing")
+}
+buildSilkReact := println("Build Silk React module")
+testSilkReact := println("test silk react")
