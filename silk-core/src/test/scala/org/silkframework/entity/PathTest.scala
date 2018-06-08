@@ -146,6 +146,7 @@ class PathTest extends FlatSpec with Matchers {
     (Path.parse("\\ex:p") == Path.parse("ex:p")) shouldBe false
     (Path.parse("/ex:p").hashCode == Path.parse("ex:p").hashCode) shouldBe true
     (Path.parse("\\ex:p").hashCode == Path.parse("ex:p").hashCode) shouldBe false
+    (Path.parse("ex:p") == "ex:p") shouldBe false
   }
 
   it should "be convertable to a string typed path" in {
