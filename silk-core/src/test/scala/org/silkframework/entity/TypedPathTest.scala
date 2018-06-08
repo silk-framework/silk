@@ -27,9 +27,9 @@ class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
   it should "equal paths with all kind of different serializations" in{
     val basePath = Path("http://example.org/file?query")
 
-    basePath mustEqual Uri.parse("<http://example.org/file?query>")
-    basePath mustEqual Uri.parse("http://example.org/file?query")
-    basePath mustEqual Uri.parse("/<http://example.org/file?query>")
-    basePath mustEqual Uri.parse("/http://example.org/file?query")
+    Path(Uri.parse("<http://example.org/file?query>")).equals(basePath) mustBe true
+    Path(Uri.parse("http://example.org/file?query")).equals(basePath) mustBe true
+    Path.parse("<http://example.org/file?query>").equals(basePath) mustBe true
+    Path.parse("/<http://example.org/file?query>").equals(basePath) mustBe true
   }
 }
