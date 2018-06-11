@@ -304,10 +304,10 @@ checkJsBuildTools := {
 buildSilkReact := {
   checkJsBuildTools.value // depend on check
   Process("yarn" :: Nil, silkReactRoot.value).!! // Install dependencies
-  Process("yarn" :: "run" :: "deploy" :: Nil, silkReactRoot.value).!! // Build main artifact
+  Process("yarn" :: "webpack" :: Nil, silkReactRoot.value).!! // Build main artifact
   FileUtils.deleteDirectory(silkDistRoot.value)
   FileUtils.forceMkdir(silkDistRoot.value)
-  // Run uglify
+  /** Run uglify */
   (Process( // TODO: Omit this step for dev build, just copy main.js
     new File(silkReactRoot.value, "node_modules/uglify-js/bin/uglifyjs").absolutePath :: "--compress" ::
       "dead_code,sequences=false" :: "--beautify" :: "--" :: "./dist/main.js" :: Nil, // TODO: Remove beautify in production, build source map instead
@@ -315,8 +315,14 @@ buildSilkReact := {
   ) #> new File(silkDistRoot.value, "main.js")).!!
   FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
   FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
-  /**
-    cp -rf ./dist/fonts $(SILK_DIST_ROOT)*/
+  /** Bablify Silk source files */
+//  for file in $(find silk-workbench -name '*.js'); do
+//    target=$(echo $file | sed -E 's#^.+?/silk-workbench/#silk-workbench/#g')
+//
+//  mkdir -p ../$(dirname $target)
+//  echo "Converting $file to ../$target"
+//  node_modules/.bin/babel "$file" --out-file="../$target"
+//  done
 }
 testSilkReact := println(s"test silk react ${baseDirectory.value.absolutePath}")
 
