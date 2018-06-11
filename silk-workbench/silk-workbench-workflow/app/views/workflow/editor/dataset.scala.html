@@ -1,7 +1,9 @@
 @import controllers.workflow.routes.Assets
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
+@import org.silkframework.workspace.ProjectTask
+@import org.silkframework.workspace.activity.workflow.Workflow
 
-@(taskActions: TaskActions, pos: Option[(Int, Int)] = None)
+@(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
 <div class="dataset" title="@taskActions.task.taskLabel(maxLength = 1024)" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
      data-input-cardinality="@inputCardinality()">
@@ -9,7 +11,7 @@
   <div class="dataset-contents">
     <div class="dataset-buttons">
       <img src="@Assets.at("img/delete.png")" style="float:right" onclick="editor.removeElement($(this).parent().parent().parent().attr('id'))"/>
-      @for(path <- taskActions.openPath) {
+      @for(path <- taskActions.openPath(Some(workflow.id))) {
         <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
       }
     </div>
