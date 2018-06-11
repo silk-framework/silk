@@ -87,7 +87,7 @@
   case InputValue(input, values, error) => {
     <li>
       <span class="input">
-    Input: @input.path.serializeSimplified(prefixes) (@input.id)
+    Input: @input.path.serialize()(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
         @renderError(error)
       </span>

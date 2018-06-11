@@ -18,7 +18,7 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
       val matchingPathMap = matchingPaths.toMap
       if(matchingPaths.size != requestSchema.typedPaths.size) {
         val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp))
-        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.serializeSimplified + "!")
+        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.serialize() + "!")
       } else {
         val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )

@@ -76,7 +76,7 @@ class Learning extends Controller {
 
     def values(link: Link)(sourceOrTarget: Boolean) = {
       val paths = sortedPaths(sourceOrTarget)
-      for(path <- paths) yield (path.serializeSimplified(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
+      for(path <- paths) yield (path.serialize()(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
     request.body.asFormUrlEncoded match {
