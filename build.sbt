@@ -1,5 +1,8 @@
 import com.github.play2war.plugin.Play2WarKeys
 import sbt.Keys._
+import java.nio.file.Files
+
+import org.apache.commons.io.FileUtils
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
@@ -259,10 +262,31 @@ lazy val root = (project in file("."))
   .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)
 
+
+//////////////////////////////////////////////////////////////////////////////
+// Silk React build pipeline
+//////////////////////////////////////////////////////////////////////////////
+
+val silkReactRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "silk-react-components")
+}
+
+val silkLibRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "silk-workbench/silk-workbench-core/public/libs")
+}
+
+val silkDistRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "silk-workbench/silk-workbench-core/public/libs/silk-react-components")
+}
+
+/** list of vendor libs we maintain in the package.json */
+val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree lodash mark.js @eccenca/material-design-lite mdl-selectfield twbs-pagination"
+
 val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
 val buildSilkReact = taskKey[Unit]("Builds silk React module")
 val testSilkReact = taskKey[Unit]("Run tests for React component")
 
+/** Check that all necessary build tool for the JS pipeline are available */
 checkJsBuildTools := {
   val missing = Seq("yarn") filter { name =>
     scala.util.Try {
@@ -275,10 +299,25 @@ checkJsBuildTools := {
   }
   assert(missing.isEmpty, "Required command line tools are missing")
 }
+
+/** Build Silk React */
 buildSilkReact := {
   checkJsBuildTools.value // depend on check
-  Process("yarn" :: "run" :: "deploy" :: Nil, new File("silk-react-components")).!!
+  Process("yarn" :: Nil, silkReactRoot.value).!! // Install dependencies
+  Process("yarn" :: "run" :: "deploy" :: Nil, silkReactRoot.value).!! // Build main artifact
+  FileUtils.deleteDirectory(silkDistRoot.value)
+  FileUtils.forceMkdir(silkDistRoot.value)
+  // Run uglify
+  (Process( // TODO: Omit this step for dev build, just copy main.js
+    new File(silkReactRoot.value, "node_modules/uglify-js/bin/uglifyjs").absolutePath :: "--compress" ::
+      "dead_code,sequences=false" :: "--beautify" :: "--" :: "./dist/main.js" :: Nil, // TODO: Remove beautify in production, build source map instead
+    silkReactRoot.value
+  ) #> new File(silkDistRoot.value, "main.js")).!!
+  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
+  FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
+  /**
+    cp -rf ./dist/fonts $(SILK_DIST_ROOT)*/
 }
-testSilkReact := println("test silk react")
+testSilkReact := println(s"test silk react ${baseDirectory.value.absolutePath}")
 
 //sourceGenerators in Compile += buildSilkReact
