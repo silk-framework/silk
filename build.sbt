@@ -295,7 +295,7 @@ checkJsBuildTools := {
   }
 
   missing foreach { m =>
-    println(s"Command line tool $m is missing")
+    println(s"Command line tool $m is missing for building JavaScript artifacts!")
   }
   assert(missing.isEmpty, "Required command line tools are missing")
 }
@@ -305,15 +305,12 @@ buildSilkReact := {
   checkJsBuildTools.value // depend on check
   Process("yarn" :: Nil, silkReactRoot.value).!! // Install dependencies
   Process("yarn" :: "webpack" :: Nil, silkReactRoot.value).!! // Build main artifact
-  FileUtils.deleteDirectory(silkDistRoot.value)
+//  FileUtils.deleteDirectory(silkDistRoot.value)
   FileUtils.forceMkdir(silkDistRoot.value)
-  /** Run uglify */
-  (Process( // TODO: Omit this step for dev build, just copy main.js
-    new File(silkReactRoot.value, "node_modules/uglify-js/bin/uglifyjs").absolutePath :: "--compress" ::
-      "dead_code,sequences=false" :: "--beautify" :: "--" :: "./dist/main.js" :: Nil, // TODO: Remove beautify in production, build source map instead
-    silkReactRoot.value
-  ) #> new File(silkDistRoot.value, "main.js")).!!
+  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js"), silkDistRoot.value)
+  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js.map"), silkDistRoot.value)
   FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
+  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css.map"), silkDistRoot.value)
   FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
   /** Bablify Silk source files */
 //  for file in $(find silk-workbench -name '*.js'); do
@@ -324,6 +321,11 @@ buildSilkReact := {
 //  node_modules/.bin/babel "$file" --out-file="../$target"
 //  done
 }
+
+//
+(compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value
+
+// No unit tests, yet, in Silk React module
 testSilkReact := println(s"test silk react ${baseDirectory.value.absolutePath}")
 
 //sourceGenerators in Compile += buildSilkReact
