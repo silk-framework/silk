@@ -43,4 +43,4 @@ HEALTHCHECK --interval=5s --timeout=10s --retries=20 \
   CMD curl "http://localhost:${SERVER_PORT}${SERVER_CONTEXTPATH}"
 
 # start application
-CMD [ "/silk-workbench/bin/silk-workbench", "-Dplay.server.http.port=80", "-Dpidfile.path=/dev/null" ]
+CMD [ "/silk-workbench/bin/silk-workbench", "-Dplay.server.http.port=${SERVER_PORT}", "-Dpidfile.path=/dev/null" ]
