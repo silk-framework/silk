@@ -206,13 +206,9 @@ lazy val reactComponents = (project in file("silk-react-components"))
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      if(Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegexes = Seq(
-        """\.jsx$""",
-        """\.js$""",
-        """\.scss$""",
-        """\.json$"""
-      )))) {
-        println("--- Building React components")
+      println("CHECKING")
+      if(Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$"""))) {
+        println("Building React components...")
         Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
         Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
         FileUtils.deleteDirectory(silkDistRoot.value)
@@ -222,6 +218,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
         FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
         FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css.map"), silkDistRoot.value)
         FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
+        println("Finished building React components.")
 
         /** Bablify Silk source files */
         //  for file in $(find silk-workbench -name '*.js'); do
@@ -233,7 +230,8 @@ lazy val reactComponents = (project in file("silk-react-components"))
         //  done
       }
     },
-    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value
+    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
+    watchSources += baseDirectory.value
   )
 
 //////////////////////////////////////////////////////////////////////////////
