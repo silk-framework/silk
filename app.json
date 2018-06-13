@@ -8,7 +8,7 @@
   "env": {
     "SERVER_PORT": {
       "description": "The default port where the application is bind to.",
-      "generator": "8080"
+      "value": "8080"
     }
   }
 }
