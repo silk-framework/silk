@@ -22,6 +22,7 @@ import org.silkframework.dataset.DatasetSpec.{DatasetSpecFormat, DatasetTaskXmlF
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.runtime.serialization.PlainTextFormat
 
 import scala.language.existentials
 
@@ -38,6 +39,7 @@ class CorePlugins extends PluginModule {
     Nil
 
   private def serializers =
+    classOf[PlainTextFormat] ::
     TaskSpecXmlFormat.getClass ::
     GenericTaskFormat.getClass ::
     DatasetSpecFormat.getClass ::

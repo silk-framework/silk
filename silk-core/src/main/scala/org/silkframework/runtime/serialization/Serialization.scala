@@ -28,18 +28,18 @@ object Serialization {
 
   def serializationFormat(classToSerialize: Class[_],
                           mimeType: String): Option[SerializationFormat[Any, Any]] = {
-    serializationFormats.find(f => f.valueType == classToSerialize && f.mimeTypes.contains(mimeType))
+    serializationFormats.find(f => f.valueType.isAssignableFrom(classToSerialize) && f.mimeTypes.contains(mimeType))
   }
 
   def hasSerialization[T: ClassTag](mimeType: String): Boolean = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
-    serializationFormats.exists(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*"))
+    serializationFormats.exists(f => f.valueType.isAssignableFrom(valueType) && (f.mimeTypes.contains(mimeType) || mimeType == "*/*"))
   }
 
   def formatForType[T: ClassTag, U: ClassTag]: SerializationFormat[T, U] = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     val serializedType = implicitly[ClassTag[U]].runtimeClass
-    serializationFormats.find(f => f.valueType == valueType && f.serializedType == serializedType) match {
+    serializationFormats.find(f => f.valueType.isAssignableFrom(valueType) && f.serializedType == serializedType) match {
       case Some(format) =>
         format.asInstanceOf[SerializationFormat[T, U]]
       case None =>
@@ -52,7 +52,7 @@ object Serialization {
   }
 
   def formatForMime(valueType: Class[_], mimeType: String): SerializationFormat[Any, Any] = {
-    serializationFormats.find(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*")) match {
+    serializationFormats.find(f => f.valueType.isAssignableFrom(valueType) && (f.mimeTypes.contains(mimeType) || mimeType == "*/*")) match {
       case Some(format) =>
         format
       case None =>

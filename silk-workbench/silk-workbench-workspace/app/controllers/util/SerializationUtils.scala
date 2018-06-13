@@ -16,7 +16,7 @@ import scala.xml.{Elem, Node}
 
 object SerializationUtils {
 
-  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle")
+  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle", "text/plain")
 
   /**
     * Tries to serialize a given value based on the accept header. The compile time type is used instead of the runtime
