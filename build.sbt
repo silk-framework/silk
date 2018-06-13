@@ -1,8 +1,5 @@
-import com.github.play2war.plugin.Play2WarKeys
-import sbt.Keys._
-import java.nio.file.Files
-
 import org.apache.commons.io.FileUtils
+import sbt.Keys._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
@@ -163,13 +160,90 @@ lazy val plugins = (project in file("silk-plugins"))
   )
 
 //////////////////////////////////////////////////////////////////////////////
+// Silk React Components
+//////////////////////////////////////////////////////////////////////////////
+
+val silkReactRoot: Def.Initialize[File] = Def.setting {
+  baseDirectory.value
+}
+
+val silkLibRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "../silk-workbench/silk-workbench-core/public/libs")
+}
+
+val silkDistRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "../silk-workbench/silk-workbench-core/public/libs/silk-react-components")
+}
+
+/** list of vendor libs we maintain in the package.json */
+val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree lodash mark.js @eccenca/material-design-lite mdl-selectfield twbs-pagination"
+
+val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
+val buildSilkReact = taskKey[Unit]("Builds silk React module")
+val testSilkReact = taskKey[Unit]("Run tests for React component")
+
+lazy val reactComponents = (project in file("silk-react-components"))
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk React Components",
+    //////////////////////////////////////////////////////////////////////////////
+    // Silk React build pipeline
+    //////////////////////////////////////////////////////////////////////////////
+    /** Check that all necessary build tool for the JS pipeline are available */
+    checkJsBuildTools := {
+      val missing = Seq("yarn") filter { name =>
+        scala.util.Try {
+          Process(name :: "--version" :: Nil).!! == ""
+        } getOrElse true
+      }
+
+      missing foreach { m =>
+        println(s"Command line tool $m is missing for building JavaScript artifacts!")
+      }
+      assert(missing.isEmpty, "Required command line tools are missing")
+    },
+    // Run when building silk react
+    /** Build Silk React */
+    buildSilkReact := {
+      checkJsBuildTools.value // depend on check
+      if(Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegexes = Seq(
+        """\.jsx$""",
+        """\.js$""",
+        """\.scss$""",
+        """\.json$"""
+      )))) {
+        println("--- Building React components")
+        Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
+        Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
+        FileUtils.deleteDirectory(silkDistRoot.value)
+        FileUtils.forceMkdir(silkDistRoot.value)
+        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js"), silkDistRoot.value)
+        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js.map"), silkDistRoot.value)
+        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
+        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css.map"), silkDistRoot.value)
+        FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
+
+        /** Bablify Silk source files */
+        //  for file in $(find silk-workbench -name '*.js'); do
+        //    target=$(echo $file | sed -E 's#^.+?/silk-workbench/#silk-workbench/#g')
+        //
+        //  mkdir -p ../$(dirname $target)
+        //  echo "Converting $file to ../$target"
+        //  node_modules/.bin/babel "$file" --out-file="../$target"
+        //  done
+      }
+    },
+    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value
+  )
+
+//////////////////////////////////////////////////////////////////////////////
 // Workbench
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson)
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents)
   .aggregate(workspace)
   .settings(commonSettings: _*)
   .settings(
@@ -261,69 +335,6 @@ lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
 lazy val root = (project in file("."))
   .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Silk React build pipeline
-//////////////////////////////////////////////////////////////////////////////
-
-val silkReactRoot: Def.Initialize[File] = Def.setting {
-  new File(baseDirectory.value, "silk-react-components")
-}
-
-val silkLibRoot: Def.Initialize[File] = Def.setting {
-  new File(baseDirectory.value, "silk-workbench/silk-workbench-core/public/libs")
-}
-
-val silkDistRoot: Def.Initialize[File] = Def.setting {
-  new File(baseDirectory.value, "silk-workbench/silk-workbench-core/public/libs/silk-react-components")
-}
-
-/** list of vendor libs we maintain in the package.json */
-val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree lodash mark.js @eccenca/material-design-lite mdl-selectfield twbs-pagination"
-
-val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
-val buildSilkReact = taskKey[Unit]("Builds silk React module")
-val testSilkReact = taskKey[Unit]("Run tests for React component")
-
-/** Check that all necessary build tool for the JS pipeline are available */
-checkJsBuildTools := {
-  val missing = Seq("yarn") filter { name =>
-    scala.util.Try {
-      Process(name :: "--version" :: Nil).!! == ""
-    } getOrElse true
-  }
-
-  missing foreach { m =>
-    println(s"Command line tool $m is missing for building JavaScript artifacts!")
-  }
-  assert(missing.isEmpty, "Required command line tools are missing")
-}
-
-/** Build Silk React */
-buildSilkReact := {
-  checkJsBuildTools.value // depend on check
-  Process("yarn" :: Nil, silkReactRoot.value).!! // Install dependencies
-  Process("yarn" :: "webpack" :: Nil, silkReactRoot.value).!! // Build main artifact
-//  FileUtils.deleteDirectory(silkDistRoot.value)
-  FileUtils.forceMkdir(silkDistRoot.value)
-  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js"), silkDistRoot.value)
-  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js.map"), silkDistRoot.value)
-  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
-  FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css.map"), silkDistRoot.value)
-  FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
-  /** Bablify Silk source files */
-//  for file in $(find silk-workbench -name '*.js'); do
-//    target=$(echo $file | sed -E 's#^.+?/silk-workbench/#silk-workbench/#g')
-//
-//  mkdir -p ../$(dirname $target)
-//  echo "Converting $file to ../$target"
-//  node_modules/.bin/babel "$file" --out-file="../$target"
-//  done
-}
-
-//
-(compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value
 
 // No unit tests, yet, in Silk React module
 testSilkReact := println(s"test silk react ${baseDirectory.value.absolutePath}")

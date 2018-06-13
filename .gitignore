@@ -17,3 +17,5 @@ target/
 **/.idea
 myScripts
 scripts
+# Ignore generated JavaScript from React components
+silk-workbench/silk-workbench-core/public/libs/silk-react-components/
