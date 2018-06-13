@@ -19,6 +19,17 @@ lazy val commonSettings = Seq(
   parallelExecution in Test := false,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
+  dependencyOverrides ++= Set(
+    // This overrides version 1.9.36 of async-http-client in Play 2.4.8, which has a bug. See Ticket #12089, TODO: Remove after next Play update
+    "com.ning" % "async-http-client" % "1.9.39",
+    "com.ning" % "async-http-client" % "1.9.39" % "test",
+    "com.google.guava" % "guava" % "18.0",
+    "com.google.inject" % "guice" % "4.0",
+    "io.netty" % "netty" % "3.10.5.Final",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
+    "com.google.code.findbugs" % "jsr305" % "3.0.0"
+  ),
+
   // The assembly plugin cannot resolve multiple dependencies to commons logging
   assemblyMergeStrategy in assembly := {
     case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
@@ -82,8 +93,9 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "3.4.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "3.4.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test"
   )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -168,7 +180,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf)
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
   .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(

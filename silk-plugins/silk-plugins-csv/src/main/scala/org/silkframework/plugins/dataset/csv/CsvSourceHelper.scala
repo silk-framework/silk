@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import java.net.URLEncoder
 
+import org.silkframework.entity.SparkCompatibleEncoding
 import org.silkframework.util.Uri
 
 import scala.collection.immutable

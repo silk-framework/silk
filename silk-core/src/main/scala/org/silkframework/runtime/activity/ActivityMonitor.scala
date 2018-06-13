@@ -1,6 +1,9 @@
 package org.silkframework.runtime.activity
 import java.util.logging.Logger
 
+import scala.reflect.ClassTag._
+import scala.reflect.ClassTag
+
 /**
   * Holds the current status and value of an activity, but does not control its execution.
   *
@@ -10,9 +13,12 @@ import java.util.logging.Logger
   * @param initialValue The initial value of this activity.
   * @tparam T The value type. Set to [[Unit]] if no values are generated.
   */
-class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None,
-                         progressContribution: Double = 0.0,
-                         initialValue: => Option[T] = None) extends ActivityContext[T] {
+class ActivityMonitor[T](name: String,
+   parent: Option[ActivityContext[_]] = None,
+   progressContribution: Double = 0.0,
+   initialValue: => Option[T] = None,
+   val contextMetaData: Option[ActivityContextData[_]] = None
+) extends ActivityContext[T] {
 
   /**
     * Holds all current child activities.
@@ -76,4 +82,15 @@ class ActivityMonitor[T](name: String, parent: Option[ActivityContext[_]] = None
   }
 
   override def userContext: UserContext = UserContext.Empty
+
+  /**
+    * Will provide context information relevant for the Activity to be performed (if any)
+    * @return - ActivityContextData of the specified type
+    */
+  override def contextObject[C](implicit ct:ClassTag[C]): Option[ActivityContextData[C]] = {
+    contextMetaData match{
+      case Some(cm) if cm.isInstanceOf[ActivityContextData[_]] => Some(cm.asInstanceOf[ActivityContextData[C]])
+      case _ => None
+    }
+  }
 }

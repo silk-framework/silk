@@ -41,15 +41,14 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
   }
 
   private def buildQuery(graph: Option[String]): String = {
-    var sparql = "SELECT ?t (count(?t) AS ?count) WHERE {\n"
+    var sparql = "SELECT ?t (count(?t) AS ?count) "
 
     for (graphUri <- graph if !graphUri.isEmpty)
-      sparql += "GRAPH <" + graphUri + "> {\n"
+      sparql += "FROM <" + graphUri + ">\n"
+
+    sparql += "WHERE {\n"
 
     sparql += "?s a ?t\n"
-
-    for (graphUri <- graph if !graphUri.isEmpty)
-      sparql += "}\n"
 
     sparql += "}\n"
     sparql += "GROUP BY ?t\n"

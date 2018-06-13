@@ -3,6 +3,7 @@ package org.silkframework.dataset
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
 import org.silkframework.util.Uri
+import org.silkframework.util.Uri._
 
 /**
   * A data source that can give information about how given input paths cover the sources input paths. This is used for example
@@ -25,7 +26,7 @@ trait PathCoverageDataSource {
           }
         }
       }
-      PathCoverage(sourcePath.serializeSimplified, covered, fullyCovered)
+      PathCoverage(sourcePath.serialize(), covered, fullyCovered)
     }
     PathCoverageResult(pathCoverages)
   }

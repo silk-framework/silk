@@ -9,7 +9,7 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetResourceEntityTable
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.execution.local.{EntityTable, LocalExecution, LocalExecutor}
+import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
@@ -21,10 +21,10 @@ import org.silkframework.runtime.validation.ValidationException
   */
 case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
   override def execute(task: Task[XSLTOperator],
-                       inputs: Seq[EntityTable],
+                       inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
+                       context: ActivityContext[ExecutionReport]): Option[LocalEntities] = {
     inputs.headOption match {
       case Some(et: DatasetResourceEntityTable) =>
         val xSLTOperator = task.data
@@ -49,7 +49,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
         inMemoryResource.write() { os =>
           transformer.transform(text, new StreamResult(os))
         }
-        Some(new DatasetResourceEntityTable(inMemoryResource, task))
+        Some(new DatasetResourceEntityTable(inMemoryResource, Some(task)))
       case _ =>
         throw new ValidationException("XSLT operator executor did not receive a dataset resource table as input!")
     }

@@ -76,7 +76,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     private val taskReportListeners = {
       for((task, context) <- taskContexts) yield {
         val listener = new TaskReportListener(task)
-        context.value.onUpdate(listener)
+        context.value.subscribe(listener)
         listener
       }
     }

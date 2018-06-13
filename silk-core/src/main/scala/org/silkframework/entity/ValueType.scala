@@ -1,6 +1,4 @@
 package org.silkframework.entity
-
-import java.net.URI
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 
 import org.silkframework.config.Prefixes
@@ -13,6 +11,7 @@ import ValueType.XSD
 
 /**
   * The type of a value.
+  * (Atomic Types)
   */
 sealed trait ValueType {
 
@@ -142,12 +141,6 @@ object ValueType {
       case Right(obj) => (obj.getClass, id)
     }
   }.toMap
-}
-
-object Test {
-  def main(args: Array[String]): Unit = {
-    println(ValueType.valueTypeMapByStringId.keys.toSeq.sorted.mkString("\n"))
-  }
 }
 
 /**

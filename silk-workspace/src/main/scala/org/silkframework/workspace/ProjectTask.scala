@@ -18,9 +18,10 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
-import org.silkframework.runtime.activity.{HasValue, Status}
+import org.silkframework.config._
+import org.silkframework.runtime.activity.{HasValue, Status, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -35,28 +36,28 @@ import scala.util.control.NonFatal
   * @tparam TaskType The data type that specifies the properties of this task.
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
-                                                   initialData: TaskType,
-                                                   initialMetaData: MetaData,
-                                                   module: Module[TaskType]) extends Task[TaskType] {
+                                                   private val initialData: TaskType,
+                                                   private val initialMetaData: MetaData,
+                                                   private val module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  @volatile
-  private var currentData: TaskType = initialData
+  // Should be used to observe the task data
+  val dataValueHolder: ValueHolder[TaskType] = new ValueHolder(Some(initialData))
 
-  @volatile
-  private var currentMetaData: MetaData = {
+  // Should be used to observe the meta data
+  val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(
     // Make sure that the modified timestamp is set
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
-  }
+  ))
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes = module.project.config.prefixes
-    implicit val resources = module.project.resources
+    implicit val prefixes: Prefixes = module.project.config.prefixes
+    implicit val resources: ResourceManager = module.project.resources
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
@@ -80,12 +81,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current data of this task.
     */
-  override def data: TaskType = currentData
+  override def data: TaskType = dataValueHolder()
 
   /**
     * Retrieves the current meta data of this task.
     */
-  override def metaData = currentMetaData
+  override def metaData: MetaData = metaDataValueHolder()
 
   def init(): Unit = {
     // Start auto-run activities
@@ -98,12 +99,17 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
     // Update data
-    currentData = newData
+    dataValueHolder.update(newData)
     for(md <- newMetaData) {
-      currentMetaData = md
+      metaDataValueHolder.update(md)
     }
-    // Update modified timestamp
-    currentMetaData = currentMetaData.copy(modified = Some(currentMetaData.modified.getOrElse(Instant.now)))
+
+    // Update modified timestamp if not already set in new meta data object
+    metaDataValueHolder.update(
+      metaDataValueHolder().copy(
+        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
+      )
+    )
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
@@ -116,7 +122,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Updates the meta data of this task.
     */
   def updateMetaData(newMetaData: MetaData): Unit = {
-    update(currentData, Some(newMetaData))
+    update(dataValueHolder(), Some(newMetaData))
   }
 
   /**
@@ -187,14 +193,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        if(!activity.control.status().isRunning)
+        if(!activity.control.status().isRunning) {
           activity.control.start()
+        }
       }
     }
   }
 
   override def toString: String = {
-    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+    s"ProjectTask(id=$id, data=${dataValueHolder().toString}, metaData=${metaData.toString})"
   }
 
   // Returns all non-empty meta data fields as key value pairs
@@ -210,26 +217,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     metaDataFields
   }
 
-  private val dotDotDot = '…'
-  private val DEFAULT_MAX_LENGTH = 50
-
   /**
     * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
     * @param maxLength the max length in characters
     */
-  def taskLabel(maxLength: Int = DEFAULT_MAX_LENGTH): String = {
-    assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
-    val label = if(metaData.label.trim != "") {
-      metaData.label.trim
-    } else {
-      id.toString
-    }
-    if(label.length > maxLength) {
-      val sideLength = (maxLength - 2) / 2
-      label.take(sideLength) + s" $dotDotDot " + label.takeRight(sideLength)
-    } else {
-      label
-    }
+  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
+    metaData.formattedLabel(id, maxLength)
   }
 }
 

@@ -38,11 +38,11 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
 
-  def findSources(datasets: Traversable[Task[DatasetSpec]]): DPair[DataSource] = {
+  def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]]): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
   }
 
-  def findOutputs(datasets: Traversable[Task[DatasetSpec]]): Seq[LinkSink] = {
+  def findOutputs(datasets: Traversable[Task[DatasetSpec[Dataset]]]): Seq[LinkSink] = {
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
 

@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -12,18 +12,18 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
     if(requestSchema.typeUri != entitySchema.typeUri) {
       throw new ValidationException("Type URI '" + requestSchema.typeUri.toString + "' not available!")
     } else {
-      val matchingPaths = entitySchema.typedPaths.map(_.path).zipWithIndex.filter { case (path, _) =>
-          requestSchema.typedPaths.exists(_.path == path)
+      val matchingPaths = entitySchema.typedPaths.zipWithIndex.filter { case (path, _) =>
+          requestSchema.typedPaths.contains(path)
       }
       val matchingPathMap = matchingPaths.toMap
       if(matchingPaths.size != requestSchema.typedPaths.size) {
-        val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp.path))
-        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.path.serializeSimplified + "!")
+        val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp))
+        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.serialize() + "!")
       } else {
         val matchingPathMap = matchingPaths.toMap
-        val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp.path) )
+        val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )
         entities.map { entity =>
-          new Entity(
+          Entity(
             entity.uri,
             valuesIndexes map { idx => entity.values(idx) },
             requestSchema
@@ -41,7 +41,7 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
     Seq(entitySchema.typeUri.uri -> 1.0)
   }
 
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
-    entitySchema.typedPaths.map(_.path)
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[TypedPath] = {
+    entitySchema.typedPaths
   }
 }

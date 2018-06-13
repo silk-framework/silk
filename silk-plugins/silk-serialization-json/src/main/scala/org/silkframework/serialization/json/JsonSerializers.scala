@@ -1,9 +1,9 @@
 package org.silkframework.serialization.json
 
-import java.net.HttpURLConnection
 import java.time.Instant
 
 import org.silkframework.config._
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -12,12 +12,12 @@ import org.silkframework.rule.similarity._
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.runtime.validation.{RequestException, ValidationException}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
+import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import play.api.libs.json._
-import JsonHelpers._
 
 /**
   * Serializers for JSON.
@@ -75,13 +75,13 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonDatasetSpecFormat extends JsonFormat[DatasetSpec] {
+  implicit object JsonDatasetSpecFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
 
     override def typeNames: Set[String] = Set("Dataset")
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSpec = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
       new DatasetSpec(
@@ -94,7 +94,7 @@ object JsonSerializers {
       )
     }
 
-    override def write(value: DatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: GenericDatasetSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
           TASKTYPE -> JsString("Dataset"),
@@ -147,7 +147,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString(PATH_INPUT),
           ID -> JsString(value.id.toString),
-          PATH -> JsString(value.path.serialize(writeContext.prefixes))
+          PATH -> JsString(value.path.serialize()(writeContext.prefixes))
         )
       )
     }
@@ -472,7 +472,7 @@ object JsonSerializers {
         Seq(
           TYPE -> JsString("direct"),
           ID -> JsString(value.id),
-          SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
+          SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize()(writeContext.prefixes)),
           MAPPING_TARGET_PROPERTY -> toJson(value.mappingTarget),
           METADATA -> toJson(value.metaData)
         )
@@ -506,7 +506,7 @@ object JsonSerializers {
       Json.obj(
         TYPE -> JsString("object"),
         ID -> JsString(value.id),
-        SOURCE_PATH -> JsString(value.sourcePath.serialize(writeContext.prefixes)),
+        SOURCE_PATH -> JsString(value.sourcePath.serialize()(writeContext.prefixes)),
         MAPPING_TARGET -> value.target.map(toJson(_)).getOrElse(JsNull).asInstanceOf[JsValue],
         RULES -> toJson(value.rules),
         METADATA -> toJson(value.metaData)
@@ -582,7 +582,7 @@ object JsonSerializers {
           TYPE -> JsString("complex"),
           ID -> JsString(rule.id),
           OPERATOR -> toJson(rule.operator),
-          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serialize(writeContext.prefixes)).map(JsString)),
+          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serialize()(writeContext.prefixes)).map(JsString)),
           METADATA -> toJson(rule.metaData)
         ) ++
             rule.target.map("mappingTarget" -> toJson(_))
@@ -1014,8 +1014,7 @@ object JsonSerializers {
     }
 
     private def entitySchema(schema: EntitySchema) = {
-      // TODO: Check if this should serialize to a TypedPath instead
-      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.path.serializeSimplified)
+      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.normalizedSerialization)
       Json.obj(
         "paths" -> JsArray(paths)
       )
@@ -1043,11 +1042,11 @@ object JsonSerializers {
     */
   implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
-      val task = new TaskJsonFormat[DatasetSpec].read(value)
+      val task = new TaskJsonFormat[GenericDatasetSpec].read(value)
       DatasetTask(task.id, task.data, task.metaData)
     }
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      new TaskJsonFormat[DatasetSpec].write(value)
+      new TaskJsonFormat[GenericDatasetSpec].write(value)
     }
   }
 

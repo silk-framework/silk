@@ -20,7 +20,7 @@ import org.silkframework.util.Uri
 """Dataset which retrieves and writes all entities from/to an RDF file.
 The dataset is loaded in-memory and thus the size is restricted by the available memory.
 Large datasets should be loaded into an external RDF store and retrieved using the Sparql dataset instead.""")
-case class FileDataset(
+case class RdfFileDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
   file: WritableResource,
   @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
@@ -82,7 +82,7 @@ case class FileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource {
+  object FileSource extends DataSource with PeakDataSource with Serializable {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null

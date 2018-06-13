@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
@@ -21,7 +21,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
     for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)) yield {
-      (path.serialize(Prefixes.empty), 1.0 / path.operators.size)
+      (path.normalizedSerialization, 1.0 / path.operators.size)
     }
   }
 
@@ -79,7 +79,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri = traverser.generateUri(uriPattern)
         val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
-        f(new Entity(uri, values, entityDesc))
+        f(Entity(uri, values, entityDesc))
       }
     }
   }

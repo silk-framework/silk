@@ -25,7 +25,8 @@ import org.silkframework.util.Uri
 class SimpleEntityRetriever(endpoint: SparqlEndpoint,
                             pageSize: Int = SimpleEntityRetriever.DEFAULT_PAGE_SIZE,
                             graphUri: Option[String] = None,
-                            useOrderBy: Boolean = true, useSubSelect: Boolean = true) extends EntityRetriever {
+                            useOrderBy: Boolean = true,
+                            useSubSelect: Boolean = false) extends EntityRetriever {
   private val varPrefix = "v"
 
   /**
@@ -54,10 +55,13 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     sparql append selectVariables
     sparql append "\n"
 
+    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
+    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+
     //Body
     sparql append "WHERE {\n"
-    //Graph
-    for (graph <- graphUri if !graph.isEmpty) sparql append s"GRAPH <$graph> {\n"
+    // GRAPH in subselect case
+    for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"GRAPH <$graph> {\n"
 
     if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
       sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
@@ -66,7 +70,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     }
 
     sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
-    for (graph <- graphUri if !graph.isEmpty) sparql append "}\n" // END graph
+    // End GRAPH in subselect case
+    for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE
     if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
 
@@ -118,7 +123,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
           if (resultSubject != curSubject) {
             for (curSubjectUri <- curSubject) {
-              f(new Entity(curSubjectUri, values, entitySchema))
+              f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
               counter += 1
               if(limit.exists(counter >= _))
                 return
@@ -140,7 +145,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
       }
 
       for (curSubjectUri <- curSubject) {
-        f(new Entity(curSubjectUri, values, entitySchema))
+        f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
       }
     }
   }

@@ -10,7 +10,8 @@ import org.silkframework.runtime.validation.NotFoundException
   * @param taskType The type of the task, e.g., Dataset
   */
 case class TaskNotFoundException(projectName: String, taskName: String, taskType: String) extends
-    NotFoundException(s"${taskType.capitalize} '$taskName' not found in project '$projectName'") {
+
+  NotFoundException(s"${taskType.capitalize} '$taskName' not found in project '$projectName'") {
 
   override val errorTitle = "Task not found"
 

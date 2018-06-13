@@ -1,10 +1,10 @@
-@import org.silkframework.dataset.DatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.User
 
 @(project: String, task: String, createDialog: Boolean)
 
-@datasets = @{ User().workspace.project(project).tasks[DatasetSpec].toSeq }
+@datasets = @{ User().workspace.project(project).tasks[GenericDatasetSpec].toSeq }
 
 @transformationTask = @{ User().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
 

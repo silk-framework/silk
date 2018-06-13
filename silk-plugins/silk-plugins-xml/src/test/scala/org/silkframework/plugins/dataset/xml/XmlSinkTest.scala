@@ -281,7 +281,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
 
     // Write entity tables
     for(entityTable <- entityTables) {
-      val schema = entityTable.head.desc
+      val schema = entityTable.head.schema
       sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
       for (entity <- entityTable) {
         sink.writeEntity(entity.uri, entity.values)

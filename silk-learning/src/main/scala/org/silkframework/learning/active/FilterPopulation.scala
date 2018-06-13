@@ -48,7 +48,7 @@ private object FilterPopulation {
     }
 
     val paths = collectPaths(rule.operator.get)
-    val shortPaths  = paths.map(_.serialize.split("[/#]").last.init)
+    val shortPaths  = paths.map(_.serialize().split("[/#]").last.init)
 
     shortPaths.mkString(" ")
   }

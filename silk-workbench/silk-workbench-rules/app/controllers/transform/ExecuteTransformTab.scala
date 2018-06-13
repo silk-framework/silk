@@ -1,6 +1,7 @@
 package controllers.transform
 
 import controllers.core.{Stream, Widgets}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.TransformSpec
@@ -18,12 +19,12 @@ class ExecuteTransformTab extends Controller {
   def executeStatistics(project: String, task: String) = Action { request =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val report = context.task.activity[ExecuteTransform].value
-    Ok(views.html.executeTransform.transformStatistics(report, context.project.config.prefixes))
+    Ok(views.html.executeTransform.transformStatistics(context.task, report, context.project.config.prefixes))
   }
 
   def executeDialog(projectName: String, taskName: String) = Action {
     val project = User().workspace.project(projectName)
-    val outputs = project.tasks[DatasetSpec].toSeq.map(_.id.toString())
+    val outputs = project.tasks[GenericDatasetSpec].toSeq.map(_.id.toString())
     Ok(views.html.executeTransform.executeTransformDialog(projectName, taskName, outputs))
   }
 

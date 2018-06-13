@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -270,7 +271,7 @@ class TransformTaskApi extends Controller {
 
     task.data.outputs.headOption match {
       case Some(outputId) =>
-        project.taskOption[DatasetSpec](outputId).map(_.data.plugin) match {
+        project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
             Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
           case Some(_) =>
@@ -331,16 +332,16 @@ class TransformTaskApi extends Controller {
         val cachedPaths = pathCache.value.fetchCachedPaths(task, sourcePath)
         val isRdfInput = pathCache.value.isRdfInput(task)
         val matchingPaths = cachedPaths filter { p =>
-          val pathSize = p.path.operators.size
+          val pathSize = p.operators.size
           isRdfInput ||
-              p.path.operators.startsWith(sourcePath) &&
+              p.operators.startsWith(sourcePath) &&
                   pathSize > sourcePath.size &&
                   pathSize - sourcePath.size <= maxDepth
         } map { p =>
             if(isRdfInput) {
-              p.path
+              p
             } else {
-              Path(p.path.operators.drop(sourcePath.size))
+              Path(p.operators.drop(sourcePath.size))
             }
         }
         val filteredPaths = if(unusedOnly) {
@@ -351,7 +352,7 @@ class TransformTaskApi extends Controller {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serialize)))
+        Ok(Json.toJson(filteredPaths.map(_.serialize())))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }

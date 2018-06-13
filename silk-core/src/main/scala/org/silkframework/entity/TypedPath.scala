@@ -2,30 +2,36 @@ package org.silkframework.entity
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.Uri
 
 import scala.xml.Node
 
 /**
   * Constitutes a path with type information.
   *
-  * @param path      the path
+  * @param ops the path operators
   * @param valueType the type that has to be considered during processing.
   */
-case class TypedPath(path: Path, valueType: ValueType, isAttribute: Boolean) {
+case class TypedPath(ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
 
-  def propertyUri: Option[Uri] = path.propertyUri
+  def this(path: Path, valueType: ValueType, isAttribute: Boolean) = this(path.operators, valueType, isAttribute)
 
-  def property: Option[TypedProperty] = path.operators match {
-    case ForwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
-    case BackwardOperator(prop) :: Nil =>
-      Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
+  def property: Option[TypedProperty] = operators match {
+    case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
+    case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
 }
 
 object TypedPath {
+
+  /**
+    *
+    * @param path
+    * @param valueType
+    * @param isAttribute
+    * @return
+    */
+  def apply(path: Path, valueType: ValueType, isAttribute: Boolean): TypedPath = new TypedPath(path.operators, valueType, isAttribute)
 
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
     /**
@@ -52,7 +58,7 @@ object TypedPath {
       implicit val p = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
-          {typedPath.path.serialize}
+          {typedPath.normalizedSerialization}
         </Path>{XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }

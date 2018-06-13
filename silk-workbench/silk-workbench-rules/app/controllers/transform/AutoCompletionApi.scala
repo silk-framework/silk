@@ -1,17 +1,15 @@
 package controllers.transform
 
-import java.net.{URLDecoder, URLEncoder}
+import java.net.URLDecoder
 import java.util.logging.Logger
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.workspace.activity.TaskActivity
-import org.silkframework.workspace.activity.transform.{MappingCandidates, TransformPathsCache, VocabularyCache}
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
 
@@ -70,7 +68,7 @@ class AutoCompletionApi extends Controller {
       } else {
         path.operators.drop(simpleSourcePath.size)
       }
-      completion.copy(value = Path(truncatedOps).serialize)
+      completion.copy(value = Path(truncatedOps).serialize())
     }
   }
 
@@ -152,7 +150,7 @@ class AutoCompletionApi extends Controller {
   private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.path.serialize(task.project.config.prefixes)).sorted.distinct
+      val serializedPaths = paths.map(_.serialize()(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,

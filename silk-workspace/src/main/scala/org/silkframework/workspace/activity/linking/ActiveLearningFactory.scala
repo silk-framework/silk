@@ -33,7 +33,7 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveL
         config = LearningConfiguration.default,
         datasets = task.dataSources,
         linkSpec = task.data,
-        paths = task.activity[LinkingPathsCache].value.map(_.typedPaths.map(_.path)),
+        paths = task.activity[LinkingPathsCache].value.map(_.typedPaths),
         referenceEntities = task.activity[ReferenceEntitiesCache].value
       )
     }

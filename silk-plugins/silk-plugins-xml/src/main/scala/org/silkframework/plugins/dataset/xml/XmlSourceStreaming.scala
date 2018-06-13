@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
-import org.silkframework.config.Prefixes
+import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
@@ -33,7 +32,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         val reader: XMLStreamReader = initStreamReader(inputStream)
         val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
         for (path <- paths) yield {
-          (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
+          (path.normalizedSerialization, 1.0 / (path.operators.size + 1))
         }
       } finally {
         inputStream.close()
@@ -88,7 +87,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
-    if(entitySchema.typedPaths.exists(_.path.operators.exists(_.isInstanceOf[BackwardOperator]))) {
+    if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
 
@@ -106,7 +105,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val uri = traverser.generateUri(uriPattern)
             val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
 
-            f(new Entity(uri, values, entitySchema))
+            f(Entity(uri, values, entitySchema))
 
             goToNextEntity(reader, node.label)
             count += 1

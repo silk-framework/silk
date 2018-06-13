@@ -49,16 +49,15 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       val variable = restrictions.variable
 
       var sparql = new StringBuilder()
-      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n"
+      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) "
 
       for (graphUri <- graph if !graphUri.isEmpty)
-        sparql ++= "GRAPH <" + graphUri + "> {\n"
+        sparql ++= "FROM <" + graphUri + ">\n"
+
+      sparql ++= "WHERE {\n"
 
       sparql ++= restrictions.toSparql + "\n"
       sparql ++= "?" + variable + " ?p ?o\n"
-
-      for (graphUri <- graph if !graphUri.isEmpty)
-        sparql ++= "}\n"
 
       sparql ++= "}\n"
       sparql ++= "GROUP BY ?p\n"
@@ -68,7 +67,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
-          (Path(ForwardOperator(Uri.fromURI(result("p").value)) :: Nil),
+          (Path(ForwardOperator(result("p").value) :: Nil),
             result("count").value.toDouble / maxCount)
         }
       } else {
@@ -82,17 +81,16 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       val variable = restrictions.variable
 
       var sparql = new StringBuilder()
-      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) WHERE {\n"
+      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count )\n"
 
       for (graphUri <- graph if !graphUri.isEmpty)
-        sparql ++= "GRAPH <" + graphUri + "> {\n"
+        sparql ++= "FROM <" + graphUri + ">\n"
+
+      sparql ++= "WHERE {\n"
 
       sparql ++= restrictions.toSparql + "\n"
       sparql ++= "?s ?p ?" + variable + " .\n"
       sparql ++= s"FILTER isIRI(?$variable)\n"
-
-      for (graphUri <- graph if !graphUri.isEmpty)
-        sparql ++= "}\n"
 
       sparql ++= "}\n"
       sparql ++= "GROUP BY ?p\n"
@@ -102,7 +100,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("p")) yield {
-          (Path(BackwardOperator(Uri.fromURI(result("p").value)) :: Nil),
+          (Path(BackwardOperator(result("p").value) :: Nil),
             result("count").value.toDouble / maxCount)
         }
       } else {

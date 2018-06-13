@@ -4,19 +4,18 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.util.Uri
 
-case class LinksTable(links: Seq[Link], linkType: Uri, task: Task[TaskSpec]) extends EntityTable {
+case class LinksTable(links: Seq[Link], linkType: Uri, taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
 
-  val entitySchema = LinksTable.linkEntitySchema
+  val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
-  val entities = {
+  val entities: Seq[Entity] = {
     for (link <- links) yield
-      new Entity(
+      Entity(
         uri = link.source,
         values = IndexedSeq(Seq(link.target), Seq(link.confidence.getOrElse(0.0).toString)),
-        desc = entitySchema
+        schema = entitySchema
       )
   }
-
 }
 
 object LinksTable {

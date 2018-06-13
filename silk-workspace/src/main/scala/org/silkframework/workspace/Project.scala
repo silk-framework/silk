@@ -56,7 +56,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[DatasetSpec]()
+  registerModule[DatasetSpec[Dataset]]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
   registerModule[Workflow]()
@@ -265,8 +265,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true).reverse) {
-        removeAnyTask(dependentTask, removeDependentTasks = false)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
+        removeAnyTask(dependentTask, removeDependentTasks = true)
       }
     } else {
       // Make sure that no other task depends on this task
@@ -318,5 +318,17 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def registerExecutor[T : ClassTag](executor: TaskExecutor[T]): Unit = {
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
+  }
+
+  /** Flush outstanding updates */
+  def flush(): Unit = synchronized {
+    for(task <- allTasks) {
+      try {
+        task.flush()
+      } catch {
+        case NonFatal(ex) =>
+          logger.log(Level.WARNING, s"Could not persist task ${task.id} of project ${config.id} to workspace provider.", ex)
+      }
+    }
   }
 }

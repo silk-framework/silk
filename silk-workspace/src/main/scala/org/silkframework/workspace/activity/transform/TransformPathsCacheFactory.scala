@@ -1,6 +1,5 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
@@ -17,9 +16,6 @@ case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpe
   override def autoRun: Boolean = true
 
   def apply(task: ProjectTask[TransformSpec]): CachedActivity[CachedEntitySchemata] = {
-    new CachedActivity(
-      activity = new TransformPathsCache(task),
-      resource = task.project.cacheResources.child("transform").child(task.id).get(s"pathsCache.xml")
-    )
+    new TransformPathsCache(task)
   }
 }

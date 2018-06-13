@@ -35,7 +35,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val resourceLoader = new FileResourceManager(new File(URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile, "UTF-8")))
 
-  val dataset = new FileDataset(resourceLoader.get(fileName), "N-TRIPLE")
+  val dataset = new RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
     EntitySchema(
