@@ -1,0 +1,8 @@
+{
+  "name": "Silkframwork Silk-Workbench on Heroku",
+  "description": "A docker-based deployment of silk on heroku with container-deploy",
+  "image": "silkframework/silk-workbench",
+  "addons": [
+    "storj:hobbyist"
+  ]
+}
