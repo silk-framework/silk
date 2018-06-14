@@ -3,10 +3,12 @@ import java.io.File
 import scala.collection.mutable.HashMap
 import scala.util.matching.Regex
 
+/** Watches files for being modified */
 object Watcher {
   private val watches = new HashMap[WatchConfig, WatchData]()
 
-  /** Checks if files have changed since last check and updates watch data */
+  /** Checks if files have changed since last check and updates watch data
+    * @return true either if this is the first run or any file has been modified */
   def filesChanged(watchConfig: WatchConfig): Boolean = {
     val watchData = fetchWatchData(watchConfig)
 

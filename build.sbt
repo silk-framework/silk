@@ -206,17 +206,21 @@ lazy val reactComponents = (project in file("silk-react-components"))
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      println("CHECKING")
-      if(Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$"""))) {
+      if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$"""))) {
         println("Building React components...")
         Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
         Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
         FileUtils.deleteDirectory(silkDistRoot.value)
         FileUtils.forceMkdir(silkDistRoot.value)
-        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js"), silkDistRoot.value)
-        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/main.js.map"), silkDistRoot.value)
-        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css"), silkDistRoot.value)
-        FileUtils.copyFileToDirectory(new File(silkReactRoot.value, "dist/style.css.map"), silkDistRoot.value)
+        val files = Seq( // React components build artifacts
+          new File(silkReactRoot.value, "dist/main.js"),
+          new File(silkReactRoot.value, "dist/main.js.map"),
+          new File(silkReactRoot.value, "dist/style.css"),
+          new File(silkReactRoot.value, "dist/style.css.map")
+        )
+        for (file <- files) {
+          FileUtils.copyFileToDirectory(file, silkDistRoot.value)
+        }
         FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
         println("Finished building React components.")
 
@@ -231,7 +235,12 @@ lazy val reactComponents = (project in file("silk-react-components"))
       }
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
-    watchSources += baseDirectory.value
+    watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
+      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "src")) yield {
+        path._1
+      }
+      paths.toSeq
+    }
   )
 
 //////////////////////////////////////////////////////////////////////////////
