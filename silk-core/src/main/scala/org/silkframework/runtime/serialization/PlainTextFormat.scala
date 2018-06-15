@@ -2,7 +2,11 @@ package org.silkframework.runtime.serialization
 
 import org.silkframework.runtime.validation.ValidationException
 
-case class PlainTextFormat() extends SerializationFormat[Any, String] {
+/**
+  * A serialization format that serializes any type by calling toString.
+  * Throws an exception when trying to deserialize any value.
+  */
+object PlainTextFormat extends SerializationFormat[Any, String] {
   /**
     * The MIME types that can be formatted.
     */
