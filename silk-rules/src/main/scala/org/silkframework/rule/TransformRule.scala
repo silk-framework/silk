@@ -285,7 +285,7 @@ case class TypeMapping(id: Identifier = "type",
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget(RDF_TYPE, StringValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
 
   override val typeString = "Type"
 
