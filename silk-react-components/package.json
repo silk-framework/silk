@@ -62,6 +62,7 @@
     "uglify-js": "^3.4.0",
     "uglifyjs": "^2.4.11",
     "webpack": "^4.6.0",
-    "webpack-dev-server": "^3.1.4"
+    "webpack-dev-server": "^3.1.4",
+    "@eccenca/gulp-tasks": "^3.15.0"
   }
 }
