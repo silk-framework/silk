@@ -217,7 +217,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 //        Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
 
         // Run build via webpack only, uncomment source map copy instruction when using this
-        Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
+        Process("yarn" :: "webpack-dev-build" :: Nil, baseDirectory.value).!! // Build main artifact
 
         FileUtils.deleteDirectory(silkDistRoot.value)
         FileUtils.forceMkdir(silkDistRoot.value)

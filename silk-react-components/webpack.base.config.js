@@ -3,7 +3,6 @@ const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
-  mode: 'development',
   entry: path.resolve(__dirname, 'src','index.jsx'),
   output: {
     path: path.resolve(__dirname, 'public'),
@@ -69,7 +68,7 @@ module.exports = {
     publicPath: '/',
     filename: 'main.js'
   },
-  devtool: " source-map ",
+  devtool: "source-map",
   plugins: [
       new webpack.DefinePlugin({ __DEBUG__: false }),
       new MiniCssExtractPlugin({

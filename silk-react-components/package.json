@@ -12,7 +12,8 @@
     "build": "gulp build",
     "deploy": "gulp deploy",
     "watch": "webpack --watch",
-    "webpack": "webpack",
+    "webpack-build": "NODE_ENV=production webpack --config webpack.prod.config.js",
+    "webpack-dev-build": "NODE_ENV=development webpack --config webpack.dev.config.js",
     "babel": "babel"
   },
   "repository": {
@@ -65,6 +66,7 @@
     "uglifyjs": "^2.4.11",
     "url-loader": "^1.0.1",
     "webpack": "^4.6.0",
-    "webpack-dev-server": "^3.1.4"
+    "webpack-dev-server": "^3.1.4",
+    "webpack-merge": "^4.1.3"
   }
 }
