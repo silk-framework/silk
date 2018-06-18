@@ -1,5 +1,6 @@
 import java.io.File
 
+import scala.collection.mutable
 import scala.collection.mutable.HashMap
 import scala.util.matching.Regex
 
@@ -8,21 +9,29 @@ object Watcher {
   private val watches = new HashMap[WatchConfig, WatchData]()
 
   /** Checks if files have changed since last check and updates watch data
-    * @return true either if this is the first run or any file has been modified */
-  def filesChanged(watchConfig: WatchConfig): Boolean = {
+    * @return The files that are not registered yet or have been modified, since the last check. */
+  def filesChanged(watchConfig: WatchConfig): Iterable[File] = {
     val watchData = fetchWatchData(watchConfig)
+    val changedFiles = mutable.HashSet.empty[File]
 
     watches.get(watchConfig) match {
       case Some(oldWatchData) =>
         if(watchData != oldWatchData) {
           watches.put(watchConfig, watchData)
-          true
+          watchData.files.keys filter { file =>
+            oldWatchData.files.get(file) match {
+              case Some(oldFileInfo) =>
+                watchData.files(file).modifiedTimestamp != oldFileInfo.modifiedTimestamp
+              case None =>
+                true // not existing, yet, so add
+            }
+          }
         } else {
-          false
+          Seq.empty
         }
       case None =>
         watches.put(watchConfig, watchData)
-        true
+        watchData.files.keys
     }
   }
 

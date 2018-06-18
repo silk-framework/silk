@@ -12,7 +12,8 @@
     "build": "gulp build",
     "deploy": "gulp deploy",
     "watch": "webpack --watch",
-    "webpack": "webpack"
+    "webpack": "webpack",
+    "babel": "babel"
   },
   "repository": {
     "type": "git",

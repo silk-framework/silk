@@ -167,8 +167,12 @@ val silkReactRoot: Def.Initialize[File] = Def.setting {
   baseDirectory.value
 }
 
+val silkWorkbenchRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "../silk-workbench")
+}
+
 val silkLibRoot: Def.Initialize[File] = Def.setting {
-  new File(baseDirectory.value, "../silk-workbench/silk-workbench-core/public/libs")
+  new File(silkWorkbenchRoot.value, "silk-workbench-core/public/libs")
 }
 
 val silkDistRoot: Def.Initialize[File] = Def.setting {
@@ -206,7 +210,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$"""))) {
+      if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
         println("Building React components...")
         Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
         // Run build via gulp task
@@ -238,6 +242,17 @@ lazy val reactComponents = (project in file("silk-react-components"))
         //  node_modules/.bin/babel "$file" --out-file="../$target"
         //  done
       }
+      val silkReactWorkbenchRoot = new File(silkReactRoot.value, "silk-workbench")
+      val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
+      if(changedJsFiles.nonEmpty) {
+        // Transpile JavaScript files to ES5
+        for(file <- changedJsFiles) {
+          val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
+          val targetFile = new File(silkWorkbenchRoot.value, relativePath)
+          println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath())
+          Process("yarn" :: "babel" :: file.getAbsolutePath() :: s"--out-file=${targetFile.getAbsolutePath()}" :: Nil, baseDirectory.value).!!
+        }
+      }
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
@@ -245,6 +260,12 @@ lazy val reactComponents = (project in file("silk-react-components"))
         path._1
       }
       paths.toSeq
+    },
+    watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
+      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "silk-workbench")) yield {
+        path._1
+      }
+      paths.toSeq.filter(_.getName.endsWith(".js"))
     }
   )
 
