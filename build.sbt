@@ -232,15 +232,6 @@ lazy val reactComponents = (project in file("silk-react-components"))
         }
         FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
         println("Finished building React components.")
-
-        /** Bablify Silk source files */
-        //  for file in $(find silk-workbench -name '*.js'); do
-        //    target=$(echo $file | sed -E 's#^.+?/silk-workbench/#silk-workbench/#g')
-        //
-        //  mkdir -p ../$(dirname $target)
-        //  echo "Converting $file to ../$target"
-        //  node_modules/.bin/babel "$file" --out-file="../$target"
-        //  done
       }
       val silkReactWorkbenchRoot = new File(silkReactRoot.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
