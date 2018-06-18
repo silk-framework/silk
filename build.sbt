@@ -211,13 +211,16 @@ lazy val reactComponents = (project in file("silk-react-components"))
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
       if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
-        println("Building React components...")
+        val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
+        val productionBuild = buildEnv == "production"
+        val buildTask = if(productionBuild) "webpack-build" else "webpack-dev-build"
+        println(s"Building React components for $buildEnv, running task $buildTask...")
+
         Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
         // Run build via gulp task
 //        Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
-
         // Run build via webpack only, uncomment source map copy instruction when using this
-        Process("yarn" :: "webpack-dev-build" :: Nil, baseDirectory.value).!! // Build main artifact
+        Process("yarn" :: buildTask :: Nil, baseDirectory.value).!! // Build main artifact
 
         FileUtils.deleteDirectory(silkDistRoot.value)
         FileUtils.forceMkdir(silkDistRoot.value)
@@ -226,7 +229,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
           new File(silkReactRoot.value, "dist/main.js.map"),
           new File(silkReactRoot.value, "dist/style.css"),
           new File(silkReactRoot.value, "dist/style.css.map")
-        )
+        ).filter(f => !f.getName.endsWith(".map") || productionBuild)
         for (file <- files) {
           FileUtils.copyFileToDirectory(file, silkDistRoot.value)
         }
@@ -238,10 +241,10 @@ lazy val reactComponents = (project in file("silk-react-components"))
       if(changedJsFiles.nonEmpty) {
         // Transpile JavaScript files to ES5
         for(file <- changedJsFiles) {
-          val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
+          val relativePath = silkReactWorkbenchRoot.toURI.relativize(file.toURI).getPath
           val targetFile = new File(silkWorkbenchRoot.value, relativePath)
-          println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath())
-          Process("yarn" :: "babel" :: file.getAbsolutePath() :: s"--out-file=${targetFile.getAbsolutePath()}" :: Nil, baseDirectory.value).!!
+          println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath)
+          Process("yarn" :: "babel" :: file.getAbsolutePath :: s"--out-file=${targetFile.getAbsolutePath}" :: Nil, baseDirectory.value).!!
         }
       }
     },
