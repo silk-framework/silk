@@ -3,8 +3,7 @@ package org.silkframework.plugins.dataset.json
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.DefaultConfig
-import org.silkframework.dataset.{DataSource, PeakDataSource, PeakException}
+import org.silkframework.dataset.{DataSource, PeakDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
@@ -75,7 +74,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
       val selectedElements = json.select(basePathParts)
       (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
             path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
-        Path(path.toList).serialize
+        Path(path.toList).normalizedSerialization
       }) map (p => (p, 1.0))
     } else {
       Traversable.empty

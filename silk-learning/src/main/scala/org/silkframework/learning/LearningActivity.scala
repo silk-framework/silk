@@ -48,7 +48,7 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
 
     // Execute linkage rule learner
     val learnerActivity = context.child(learner.learn(input.trainingEntities, input.seedLinkageRules), 1.0)
-    learnerActivity.value.onUpdate(updateValue(context))
+    learnerActivity.value.subscribe(updateValue(context))
     learnerActivity.startBlocking()
   }
 

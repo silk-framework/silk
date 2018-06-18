@@ -15,7 +15,7 @@
 package org.silkframework.learning.generation
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{Path, TypedPath}
+import org.silkframework.entity.Path
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual._
 import org.silkframework.rule.input.Transformer
@@ -34,7 +34,7 @@ class PatternGenerator(components: Components) {
 
   private trait Handler extends (DPair[Traversable[Path]] => Option[ComparisonGenerator]) {
     protected def getProperty(paths: DPair[Traversable[Path]], property: String): Option[DPair[Path]] = {
-      (paths.source.find(_.serialize.contains(property)), paths.target.find(_.serialize.contains(property))) match {
+      (paths.source.find(_.serialize().contains(property)), paths.target.find(_.serialize().contains(property))) match {
         case (Some(sourcePath), Some(targetPath)) => Some(DPair(sourcePath, targetPath))
         case _ => None
       }

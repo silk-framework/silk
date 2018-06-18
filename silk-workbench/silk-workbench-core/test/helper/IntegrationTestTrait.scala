@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsBoolean, JsValue, Json}
 import play.api.libs.ws.{WS, WSRequest, WSResponse}
 import play.api.mvc.{Call, Results}
 import play.api.test.FakeApplication
@@ -554,5 +554,17 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
     control.reset()
     control.startBlocking()
+  }
+
+  def waitForCaches(task: String, project: String): Unit = {
+    var cachesLoaded = false
+    do {
+      val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$task/cachesLoaded")
+      val response = request.get()
+      val responseJson = checkResponse(response).json
+      cachesLoaded = responseJson.as[JsBoolean].value
+      if(!cachesLoaded)
+        Thread.sleep(1000)
+    } while(!cachesLoaded)
   }
 }

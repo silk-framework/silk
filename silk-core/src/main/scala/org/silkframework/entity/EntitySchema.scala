@@ -12,7 +12,7 @@ import scala.xml.Node
   * @param typeUri The entity type
   * @param typedPaths The list of paths
   * @param filter A filter for restricting the entity set
-  * @param subPath
+  * @param subPath Specifies the path starting from the root that is used for enumerating the entities.
   */
 //noinspection ScalaStyle
 case class EntitySchema(
@@ -47,7 +47,7 @@ case class EntitySchema(
     }
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified(Prefixes.default))
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serialize()(Prefixes.default))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 

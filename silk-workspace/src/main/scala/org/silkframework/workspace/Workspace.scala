@@ -15,7 +15,7 @@
 package org.silkframework.workspace
 
 import java.io._
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
@@ -56,6 +56,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   def removeProject(name: Identifier): Unit = {
     project(name).activities.foreach(_.control.cancel())
+    project(name).flush()
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
@@ -105,7 +106,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
         task.flush()
       } catch {
         case NonFatal(ex) =>
-          log.warning(s"Could not persist task ${task.id} of project ${project.config.id} to workspace provider. Reason: " + ex.getMessage)
+          log.log(Level.WARNING, s"Could not persist task ${task.id} of project ${project.config.id} to workspace provider.", ex)
       }
     }
   }

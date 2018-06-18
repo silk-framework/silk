@@ -143,12 +143,6 @@ object ValueType {
   }.toMap
 }
 
-object Test {
-  def main(args: Array[String]): Unit = {
-    println(ValueType.valueTypeMapByStringId.keys.toSeq.sorted.mkString("\n"))
-  }
-}
-
 /**
   * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
   * lexical form, e.g. "1" can be an Int, but also a String.

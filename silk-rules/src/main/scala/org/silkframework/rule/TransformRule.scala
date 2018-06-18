@@ -339,7 +339,7 @@ case class ObjectMapping(id: Identifier = "mapping",
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}/$id"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id"))
         }
       case None =>
         None
@@ -430,7 +430,7 @@ object TransformRule {
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
         case ObjectMapping(name, relativePath, target, childRules, metaData) =>
-          <ObjectMapping name={name} relativePath={relativePath.serialize} >
+          <ObjectMapping name={name} relativePath={relativePath.normalizedSerialization} >
             {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
             { target.map(toXml[MappingTarget]).toSeq }
@@ -508,8 +508,8 @@ private object UriPattern {
 
   def build(inputs: Seq[Input]): String = {
     inputs.map {
-      case PathInput(id, path) => "{" + path.serializeSimplified() + "}"
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
+      case PathInput(id, path) => "{" + path.serialize() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }
