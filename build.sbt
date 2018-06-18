@@ -214,18 +214,18 @@ lazy val reactComponents = (project in file("silk-react-components"))
         println("Building React components...")
         Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
         // Run build via gulp task
-        Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
+//        Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
 
-        // Run build via webpack only  // TODO: Also uncomment source map copy when using webpack directly
-        //          Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
+        // Run build via webpack only, uncomment source map copy instruction when using this
+        Process("yarn" :: "webpack" :: Nil, baseDirectory.value).!! // Build main artifact
 
         FileUtils.deleteDirectory(silkDistRoot.value)
         FileUtils.forceMkdir(silkDistRoot.value)
         val files = Seq( // React components build artifacts
           new File(silkReactRoot.value, "dist/main.js"),
-          //            new File(silkReactRoot.value, "dist/main.js.map"),
-          new File(silkReactRoot.value, "dist/style.css")
-          //            new File(silkReactRoot.value, "dist/style.css.map")
+          new File(silkReactRoot.value, "dist/main.js.map"),
+          new File(silkReactRoot.value, "dist/style.css"),
+          new File(silkReactRoot.value, "dist/style.css.map")
         )
         for (file <- files) {
           FileUtils.copyFileToDirectory(file, silkDistRoot.value)

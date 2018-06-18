@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@eccenca/dotfiles": "^2.3.2",
+    "@eccenca/gulp-tasks": "^3.15.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^7.2.3",
     "babel-loader": "^7.1.4",
@@ -62,8 +63,8 @@
     "twbs-pagination": "^1.4.1",
     "uglify-js": "^3.4.0",
     "uglifyjs": "^2.4.11",
+    "url-loader": "^1.0.1",
     "webpack": "^4.6.0",
-    "webpack-dev-server": "^3.1.4",
-    "@eccenca/gulp-tasks": "^3.15.0"
+    "webpack-dev-server": "^3.1.4"
   }
 }
