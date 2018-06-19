@@ -108,6 +108,31 @@ case class EntitySchema(
     targetSchema.getOrElse(this)
   }
 
+  /**
+    * Will create a nes EntitySchema minus all given TypedPaths
+    * @param tps - the TypedPaths to drop
+    * @return
+    */
+  def selectTypedPaths(tps: TypedPath*): EntitySchema ={
+    this match{
+      case mes: MultiEntitySchema =>
+        new MultiEntitySchema(
+          mes.pivotSchema.selectTypedPaths(tps:_*),
+          mes.subSchemata.map(ss => ss.selectTypedPaths(tps:_*))
+        )
+      case es: EntitySchema =>
+        EntitySchema(
+          es.typeUri,
+          tps.map(tp => es.typedPaths.find(t => t == tp) match{
+            case Some(_) => tp
+            case None => TypedPath.empty
+          }).toIndexedSeq,
+          es.filter,
+          es.subPath
+        )
+    }
+  }
+
   override def hashCode(): Int = {
     val prime = 31
     var hashCode = typeUri.hashCode()
@@ -135,29 +160,6 @@ case class EntitySchema(
 object EntitySchema {
 
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
-
-  /**
-    * Will create a nes EntitySchema minus all given TypedPaths
-    * @param schema - the schema to be changed
-    * @param tps - the TypedPaths to drop
-    * @return
-    */
-  def dropTypedPaths(schema: EntitySchema, tps: TypedPath*): EntitySchema ={
-    schema match{
-      case mes: MultiEntitySchema =>
-        new MultiEntitySchema(
-          dropTypedPaths(mes.pivotSchema),
-          mes.subSchemata.map(ss => dropTypedPaths(ss, tps:_*))
-        )
-      case es: EntitySchema =>
-        EntitySchema(
-          es.typeUri,
-          es.typedPaths.map(tp => if(tps.contains(tp)) TypedPath.empty else tp),
-          es.filter,
-          es.subPath
-        )
-    }
-  }
 
   /**
     * XML serialization format.

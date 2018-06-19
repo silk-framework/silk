@@ -34,8 +34,6 @@ import scala.xml.Node
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  private val log = Logger.getLogger(DatasetSpec.getClass.getName)
-
   def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
   def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
@@ -79,9 +77,7 @@ object DatasetSpec {
 
   implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
-  def empty = {
-    new DatasetSpec(EmptyDataset)
-  }
+  def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
 
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 

@@ -37,13 +37,29 @@ case class Entity private(
     schema: EntitySchema = this.schema,
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     failureOpt: Option[Throwable] = None,
-    validateSchema: Boolean = this.validateSchema
+    validateSchema: Boolean = this.validateSchema,
+    projectValuesIfNewSchema: Boolean = true
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None => failureOpt match{                      // else we decided based on the provided failure option
-      case Some(f) => new Entity(uri, vals, schema, subEntities, Some(f), validateSchema = false)
-      case None => new Entity(uri, vals, schema, subEntities, None, this.values != vals)
+      case Some(f) => new Entity(uri, values, schema, subEntities, Some(f), validateSchema = false)
+      case None =>
+        val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
+        val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
+        new Entity(uri, actualVals, schema, actualSubs, None, this.values != values)
     }
+  }
+
+  /**
+    * Will remap the index positions of values in case the typed paths of the EntitySchema were changed
+    * @param es - the new schema
+    * @return - the new value array
+    */
+  private def applyNewSchema(es: EntitySchema): IndexedSeq[Seq[String]] ={
+    es.typedPaths.map(tp => this.schema.typedPaths.find(t => t == tp) match{
+      case Some(fp) if fp != TypedPath.empty => this.evaluate(fp)
+      case None => Seq()
+    })
   }
 
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
