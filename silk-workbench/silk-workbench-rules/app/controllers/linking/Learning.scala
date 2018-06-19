@@ -22,7 +22,6 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class Learning extends Controller {
 
