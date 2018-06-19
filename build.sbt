@@ -243,6 +243,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
         for(file <- changedJsFiles) {
           val relativePath = silkReactWorkbenchRoot.toURI.relativize(file.toURI).getPath
           val targetFile = new File(silkWorkbenchRoot.value, relativePath)
+          FileUtils.forceMkdir(targetFile.getParentFile)
           println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath)
           Process("yarn" :: "babel" :: file.getAbsolutePath :: s"--out-file=${targetFile.getAbsolutePath}" :: Nil, baseDirectory.value).!!
         }
