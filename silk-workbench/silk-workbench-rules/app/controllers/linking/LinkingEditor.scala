@@ -4,10 +4,10 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
 import org.silkframework.util.DPair
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 import scala.util.control.NonFatal
 

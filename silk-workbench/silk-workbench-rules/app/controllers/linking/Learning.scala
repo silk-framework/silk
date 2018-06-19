@@ -17,11 +17,11 @@ import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier._
+import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{ProjectTask, User}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class Learning extends Controller {
 

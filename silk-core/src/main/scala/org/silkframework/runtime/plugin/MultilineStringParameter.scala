@@ -6,7 +6,11 @@ import scala.language.implicitConversions
   * A multiline string parameter.
   */
 case class MultilineStringParameter(str: String) {
+
   override def toString: String = str
+
+  def lines: Seq[String] = str.split('\n')
+
 }
 
 object MultilineStringParameter {

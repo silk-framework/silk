@@ -1,7 +1,7 @@
-@import plugins.Context
-@import org.silkframework.rule.{TransformSpec}
+@import org.silkframework.rule.TransformSpec
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.vocab.Vocabularies
+@import org.silkframework.workbench.Context
 
 @(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit session: play.api.mvc.Session)
 

@@ -2,6 +2,7 @@ package controllers.workspace
 
 import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, User}
 import play.api.libs.json.JsArray
@@ -107,7 +108,7 @@ class ProjectMarshalingApi extends Controller {
       case Some(marshaller) =>
         f(marshaller)
       case None =>
-        BadRequest("No marshaller plugin '" + marshallerId + "' found.")
+        throw BadUserInputException("No marshaller plugin '" + marshallerId + "' found. Available marshallers: " + marshallingPlugins.map(_.id).mkString(", "))
     }
   }
 
@@ -121,7 +122,7 @@ class ProjectMarshalingApi extends Controller {
           inputStream.close()
         }
       case AnyContentAsMultipartFormData(formData) if formData.files.size != 1 =>
-        BadRequest("Must provide exactly one file in multipart form data body.")
+        throw BadUserInputException("Must provide exactly one file in multipart form data body.")
       case AnyContentAsRaw(buffer) =>
         val inputStream = new FileInputStream(buffer.asFile)
         try {
@@ -130,7 +131,7 @@ class ProjectMarshalingApi extends Controller {
           inputStream.close()
         }
       case _ =>
-        BadRequest("Must attach body as multipart form data or as raw bytes.")
+        throw BadUserInputException("Must attach body as multipart form data or as raw bytes.")
     }
   }
 

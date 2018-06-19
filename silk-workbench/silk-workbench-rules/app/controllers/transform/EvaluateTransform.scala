@@ -2,9 +2,9 @@ package controllers.transform
 
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import play.api.mvc.{Action, Controller}
-import plugins.Context
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 class EvaluateTransform extends Controller {
