@@ -19,3 +19,9 @@ myScripts
 scripts
 # Ignore generated JavaScript from React components
 silk-workbench/silk-workbench-core/public/libs/silk-react-components/
+silk-workbench/silk-workbench-core/public/libs/dynep/
+silk-workbench/silk-workbench-core/public/main.js
+silk-workbench/silk-workbench-rules/public/js/
+silk-workbench/silk-workbench-workflow/public/editor/editor.js
+silk-workbench/silk-workbench-workflow/public/editor/serializeWorkflow.js
+silk-workbench/silk-workbench-workspace/public/workspace.js
