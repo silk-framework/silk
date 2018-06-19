@@ -66,6 +66,7 @@
     "uglifyjs": "^2.4.11",
     "url-loader": "^1.0.1",
     "webpack": "^4.6.0",
+    "webpack-cli": "^3.0.8",
     "webpack-dev-server": "^3.1.4",
     "webpack-merge": "^4.1.3"
   }
