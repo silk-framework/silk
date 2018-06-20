@@ -20,7 +20,6 @@ case class EntitySchema(
   filter: Restriction = Restriction.empty,
   subPath: Path = Path.empty
  ) extends Serializable {
-
   /**
     * overriding the default case class copy(). to deal with Sub-Schemata
     * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema
@@ -145,13 +144,30 @@ case class EntitySchema(
       obj match {
         case es: EntitySchema =>
           es.typeUri == this.typeUri &&
-            es.typedPaths.size == this.typedPaths.size &&
-            es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2)
+          es.typedPaths.size == this.typedPaths.size &&
+          es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
+          es.subPath == this.subPath &&
+          (es.filter.operator match{
+              case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
+              case None if this.filter.operator.isEmpty => true
+              case _ => false
+          })
         case _ => false
       }
     }
     else
       false
+  }
+
+  def fits(es: EntitySchema): Boolean = {
+    es.typedPaths.size == this.typedPaths.size &&
+    es.typedPaths.zip(this.typedPaths).forall(ps => ps._1.valueType == ps._2.valueType) &&
+    es.subPath == this.subPath &&
+    (es.filter.operator match{
+      case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
+      case None if this.filter.operator.isEmpty => true
+      case _ => false
+    })
   }
 
   override def toString: String = "(" + typeUri + " : " + typedPaths.mkString(", ") + ")"

@@ -46,7 +46,7 @@ case class Entity private(
       case None =>
         val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
         val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
-        new Entity(uri, actualVals, schema, actualSubs, None, this.values != values)
+        new Entity(uri, actualVals, schema, actualSubs, None, validateSchema)
     }
   }
 
