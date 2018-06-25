@@ -91,6 +91,9 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
+
+  /** Returns a [[org.silkframework.entity.TypedPath]] from this path with auto detect type. */
+  def asAutoDetectTypedPath: TypedPath = TypedPath(this.operators, AutoDetectValueType, isAttribute = false)
 }
 
 object Path {

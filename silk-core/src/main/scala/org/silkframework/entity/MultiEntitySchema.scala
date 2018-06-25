@@ -51,7 +51,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
   }
 
-  override private[entity] def pathIndex(path: Path): Int = throw new NotImplementedError("Function 'pathIndex' is not supported for MultiEntitySchemata.")
+  override def pathIndex(path: Path): Int = throw new NotImplementedError("Function 'pathIndex' is not supported for MultiEntitySchemata.")
 }
 
 object MultiEntitySchema{

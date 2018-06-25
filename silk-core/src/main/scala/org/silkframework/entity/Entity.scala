@@ -85,7 +85,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOf(path.asStringTypedPath)
+    valueOf(path.asAutoDetectTypedPath)
   }
 
   /**
@@ -103,7 +103,7 @@ case class Entity private(
   private[entity] def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
 
-  def valueOf(property: String): Seq[String] = valueOf(Path(property.trim).asStringTypedPath)
+  def valueOf(property: String): Seq[String] = valueOf(Path(property.trim).asAutoDetectTypedPath)
 
   /**
     * returns all values of a given property in the entity
@@ -135,7 +135,7 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String): Option[String] = valueOf(Path(property).asStringTypedPath).headOption
+  def singleValue(property: String): Option[String] = valueOf(Path(property).asAutoDetectTypedPath).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
