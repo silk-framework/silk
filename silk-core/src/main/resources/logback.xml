@@ -1,134 +1,193 @@
 <configuration>
 
-  <property name="elds.home" value="${ELDS_HOME:-${user.home}/.elds}"/>
+    <property name="elds.home" value="${ELDS_HOME:-${user.home}/.elds}"/>
 
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${elds.home}/var/log/dataintegration.log</file>
-    <encoder>
-      <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${elds.home}/var/log/dataintegration.log</file>
+        <encoder>
+            <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+        </encoder>
+    </appender>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%date %coloredLevel %logger{15} %message%n%xException</pattern>
-    </encoder>
-  </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date %coloredLevel %logger{15} %message%n%xException</pattern>
+        </encoder>
+    </appender>
 
-  <!-- Valid logging levels: ERROR, WARN, INFO, DEBUG, TRACE -->
-  <!-- # RDF Plugin related logging (e.g. queries) -->
-  <!--<logger name="org.silkframework.plugins.dataset.rdf" level="TRACE" />-->
+    <!-- Valid logging levels: ERROR, WARN, INFO, DEBUG, TRACE -->
+    <!-- # RDF Plugin related logging (e.g. queries) -->
+    <!--<logger name="org.silkframework.plugins.dataset.rdf" level="TRACE" />-->
 
-  <appender name="sparkFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/tmp/spark.log</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <!-- rotate every day -->
-      <fileNamePattern>/spark.%d{yyyyMMdd}.log.zip</fileNamePattern>
-    </rollingPolicy>
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{100} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-
-  <root level="info">
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
-  </root>
-
-  <!-- OAuth specific log messages  -->
-  <logger name="oauth" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
-  </logger>
+    <appender name="sparkFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/tmp/spark.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rotate every day -->
+            <fileNamePattern>/spark.%d{yyyyMMdd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{100} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
 
-  <logger name="category.DataNucleus" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
 
-  <logger name="org.apache.hadoop.util.Shell" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="SparkExecutor" additivity="false">
+        <level value="debug"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.parquet" additivity="false">
-    <level value="warn"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <!-- OAuth specific log messages  -->
+    <logger name="oauth" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </logger>
 
-  <logger name="org.apache.spark.executor" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <!-- Spark component logs -->
+    <logger name="org.apache.spark" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.storage" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.broadcast" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.scheduler" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.sql" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.SparkContext" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.util" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.CacheManager" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.executor" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.MapOutputTracker" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.storage" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.MapOutputTrackerMaster"
-          additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.scheduler" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.ContextCleaner" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.SparkContext" additivity="false">
+        <level value="debug"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.rdd" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.CacheManager" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.ClosureCleaner" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.MapOutputTracker" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.spark-project.jetty" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.MapOutputTrackerMaster"
+            additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.hadoop" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.ContextCleaner" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.sql.execution.datasources.parquet" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <logger name="org.apache.spark.rdd" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 
-  <logger name="org.apache.spark.sql.catalyst.expressions.codegen" additivity="false">
-    <level value="info"/>
-    <appender-ref ref="sparkFileAppender"/>
-  </logger>
+    <!-- HDFS components -->
+    <logger name="org.apache.hadoop" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.service" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.util.Shell" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.hive" additivity="false">
+        <level value="debug"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.metrics" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.metrics2" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.conf" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <!-- Servlet API components -->
+    <logger name="org.eclipse.jetty" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.spark_project.jetty" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.spark-project.jetty" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="category.DataNucleus" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+
+    <!-- Other -->
+    <logger name="org.apache.parquet" additivity="false">
+        <level value="warn"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="org.apache.jena" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
+
+    <logger name="io.netty" additivity="false">
+        <level value="error"/>
+        <appender-ref ref="sparkFileAppender"/>
+    </logger>
 </configuration>
