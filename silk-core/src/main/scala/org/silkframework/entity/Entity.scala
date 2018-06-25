@@ -85,11 +85,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    if(path.operators.isEmpty) {
-      Seq(uri)
-    } else {
-      evaluate(schema.pathIndex(path))
-    }
+    valueOf(path.asStringTypedPath)
   }
 
   /**
@@ -97,49 +93,56 @@ case class Entity private(
     * @param path
     * @return
     */
-  def evaluate(path: TypedPath): Seq[String] = {
-    if(path.operators.isEmpty) {
-      Seq(uri)
-    } else {
-      evaluate(schema.pathIndex(path))
-    }
-  }
+  def evaluate(path: TypedPath): Seq[String] = valueOf(path)
+
+  /**
+    * returns the all values for the column index of the row representing this entity
+    * @param pathIndex - the index in the value array
+    * @return
+    */
+  private[entity] def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+
+
+  def valueOf(property: String): Seq[String] = valueOf(Path(property.trim).asStringTypedPath)
 
   /**
     * returns all values of a given property in the entity
-    * @param property
+    * @param path - the path you want values of
     * @return
     */
-  def valueOf(property: String): Seq[String] ={
-    schema.getSchemaOfProperty(property) match{
-      case Some(es) =>
-        //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
-        val ent = if(es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es)
-          this
-        else
-          subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
-        //now find the pertaining index and get values
-        es.propertyNames.zipWithIndex.find(_._1 == property) match{
-          case Some((_, ind)) => ent.values(ind)
-          case None => Seq()
-        }
-      case None => Seq()
+  def valueOf(path: TypedPath): Seq[String] ={
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      schema.getSchemaOfProperty(path) match {
+        case Some(es) =>
+          //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
+          val ent = if (es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) {
+            this
+          }
+          else {
+            subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+          }
+          //now find the pertaining index and get values
+          ent.evaluate(es.pathIndex(path))
+        case None => Seq()
+      }
     }
   }
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
-    * @param columnName
+    * @param property - the property name to query
     * @return
     */
-  def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
+  def singleValue(property: String): Option[String] = valueOf(Path(property).asStringTypedPath).headOption
 
   /**
-    * returns the all values for the column index of the row representing this entity
-    * @param pathIndex
+    * returns the first value (of possibly many) for the property of the given name in this entity
+    * @param path - the path to query
     * @return
     */
-  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+  def singleValue(path: TypedPath): Option[String] = valueOf(path).headOption
 
   /**
     * Validates the complete value row against the given types of the schema

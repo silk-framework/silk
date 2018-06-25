@@ -29,7 +29,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @param newName - the new property name
     * @return - the new EntitySchema with replaced property uris
     */
-  override def renameProperty(oldName: String, newName: String): EntitySchema = {
+  override def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema = {
     this.getSchemaOfProperty(oldName) match{
       case Some(_) => new MultiEntitySchema(
         this.pivotSchema.renameProperty(oldName, newName),
@@ -39,6 +39,19 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     }
   }
 
+  /**
+    * this will return the EntitySchema containing the given typed path
+    * NOTE: has to be overwritten in MultiEntitySchema
+    * @param tp - the typed path
+    * @return
+    */
+  override def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] =
+    this.pivotSchema.getSchemaOfProperty(tp) match{
+      case Some(es) => Some(es)
+      case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
+  }
+
+  override private[entity] def pathIndex(path: Path): Int = throw new NotImplementedError("Function 'pathIndex' is not supported for MultiEntitySchemata.")
 }
 
 object MultiEntitySchema{

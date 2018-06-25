@@ -39,6 +39,19 @@ case class EntitySchema(
   }
 
   /**
+    * Simplifies the acquisition of path ranges. No indices needed.
+    * @param fromPath - range starts with path
+    * @param toPath - range ends with path
+    * @return
+    */
+  def getPathRange(fromPath: TypedPath, toPath: Option[TypedPath]): Seq[TypedPath] = {
+    val fromIndex = typedPaths.zipWithIndex.find(p => fromPath == p._1).map(_._2).getOrElse(return Seq())
+    val toIndex = toPath.map(tp => typedPaths.zipWithIndex.find(p => tp == p._1).map(_._2).getOrElse(typedPaths.size - 1)).getOrElse(return Seq())
+
+    typedPaths.slice(fromIndex, toIndex + 1) //until param is exclusive
+  }
+
+  /**
     * Retrieves the index of a given path.
     * NOTE: will work simple Paths as well, but there might be a chance that a given path exists twice with different value types
     *
@@ -52,26 +65,14 @@ case class EntitySchema(
       case _ => None
     }
     //find the given path and, if provided, match the value type as well
-    typedPaths.zipWithIndex.find(pi => pi._1 == path && (   //if the paths equal and ...
+    typedPaths.zipWithIndex.find(pi => (
       valueTypeOpt.isEmpty ||                               //if no ValueType is specified or ...
       valueTypeOpt.get == AutoDetectValueType ||            //ValueType is of no importance or...
       pi._1.valueType == AutoDetectValueType ||             //ValueType of the list element is of no importance or...
       pi._1.valueType == valueTypeOpt.get                   //both ValueTypes match then...
-    )) match{
+    ) && pi._1 == path) match{                              //if the paths equal
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
-    }
-  }
-
-  /**
-    * Will return the (sub-) schema containing the TypedPath in question
-    * @param property - property name of TypedPath to look for
-    * @return
-    */
-  def getSchemaOfProperty(property: String): Option[EntitySchema] ={
-    this.typedPaths.find(tp => tp.serializeSimplified == property) match{
-      case Some(s) => getSchemaOfProperty(s)
-      case None => None
     }
   }
 
@@ -97,12 +98,10 @@ case class EntitySchema(
     * @param newName - the new property name
     * @return - the new EntitySchema with replaced property uris
     */
-  def renameProperty(oldName: String, newName: String): EntitySchema ={
+  def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema ={
     val sourceSchema = getSchemaOfProperty(oldName)
     val targetSchema = sourceSchema.map(sa => sa.copy(
-      typedPaths = sa.typedPaths.map(tp =>{
-        if(tp.serializeSimplified == oldName) TypedPath(Path(newName), tp.valueType, tp.isAttribute) else tp
-      })
+      typedPaths = sa.typedPaths.map(tp => if(tp == oldName) TypedPath(newName, tp.valueType, tp.isAttribute) else tp)
     ))
     targetSchema.getOrElse(this)
   }

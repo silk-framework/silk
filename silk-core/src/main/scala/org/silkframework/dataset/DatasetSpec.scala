@@ -53,8 +53,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     var properties =
       plugin match {
-        case Dataset(plugin, params) =>
-          Seq(("type", plugin.label)) ++ params
+        case Dataset(p, params) =>
+          Seq(("type", p.label)) ++ params
       }
     for(uriProperty <- uriProperty) {
       properties :+= ("URI Property", uriProperty.uri)
@@ -133,10 +133,9 @@ object DatasetSpec {
     private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          val uriIndex = entitySchema.pathIndex(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
           for (entity <- entities) yield {
             Entity(
-              uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
@@ -259,8 +258,8 @@ object DatasetSpec {
     override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec[Dataset] = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resources = readContext.resources
+      implicit val prefixes: Prefixes = readContext.prefixes
+      implicit val resources: ResourceManager = readContext.resources
 
       // Check if the data source still uses the old outdated XML format
       if (node.label == "DataSource" || node.label == "Output") {
