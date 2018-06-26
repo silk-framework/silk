@@ -1,5 +1,6 @@
 package org.silkframework.entity
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -87,7 +88,6 @@ case class EntitySchema(
     case None => None
   }
 
-  //TODO def propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified)
   lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serialize()(Prefixes.default))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))

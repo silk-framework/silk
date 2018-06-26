@@ -91,10 +91,6 @@ case class Uri(uri: String) {
     case Success(u) if u.getPath != null && u.getPath.nonEmpty  => Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
     case _ => None
   }
-
-  override def hashCode(): Int = uri.hashCode
-
-  override def equals(obj: scala.Any): Boolean = obj.isInstanceOf[Uri] && uri == obj.toString
 }
 
 object Uri {
