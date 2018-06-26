@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 
-import org.silkframework.config.Prefixes
+import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
 import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
@@ -33,7 +32,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         val reader: XMLStreamReader = initStreamReader(inputStream)
         val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
         for (path <- paths) yield {
-          (path.serialize(Prefixes.empty), 1.0 / (path.operators.size + 1))
+          (path.normalizedSerialization, 1.0 / (path.operators.size + 1))
         }
       } finally {
         inputStream.close()

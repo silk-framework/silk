@@ -319,4 +319,16 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
     executors = executors.updated(taskClassName, executor)
   }
+
+  /** Flush outstanding updates */
+  def flush(): Unit = synchronized {
+    for(task <- allTasks) {
+      try {
+        task.flush()
+      } catch {
+        case NonFatal(ex) =>
+          logger.log(Level.WARNING, s"Could not persist task ${task.id} of project ${config.id} to workspace provider.", ex)
+      }
+    }
+  }
 }

@@ -21,7 +21,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Seq("/source:name", "/source:age", "/rdf:type", "/source:address", "/source:address/source:country", "/source:address/source:city")
+      expectedValues = Set("rdf:type", "source:name", "source:age", "source:address")
     )
   }
 
@@ -30,7 +30,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Seq("/source:name")
+      expectedValues = Set("source:name")
     )
   }
 
@@ -39,7 +39,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Seq("/source:name")
+      expectedValues = Set("source:name")
     )
   }
 

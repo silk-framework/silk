@@ -69,7 +69,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
       context.status.updateProgress(0.0)
 
-      generateLinksActivity.value.onUpdate(listener)
+      generateLinksActivity.value.subscribe(listener)
       generateLinksActivity.startBlocking()
 
       val generatedLinks = op.getLinks()

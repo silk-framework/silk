@@ -1,7 +1,8 @@
-package plugins
+package org.silkframework.workbench
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.{Project, ProjectTask, User}
+import play.api.mvc.Request
 
 import scala.reflect.ClassTag
 
@@ -21,6 +22,18 @@ case class Context[T <: TaskSpec](project: Project, task: ProjectTask[T], path: 
 object Context {
 
   /**
+    * Creates a new context.
+    *
+    * @param projectName The name of the project
+    * @param taskName The name of the task
+    * @tparam T The type of the task
+    * @return The generated context
+    */
+  def get[T <: TaskSpec : ClassTag](projectName: String, taskName: String)(implicit request: Request[_]): Context[T] = {
+    get[T](projectName, taskName, request.path)
+  }
+
+  /**
    * Creates a new context.
    *
    * @param projectName The name of the project
@@ -32,7 +45,6 @@ object Context {
   def get[T <: TaskSpec : ClassTag](projectName: String, taskName: String, path: String): Context[T] = {
     val project = User().workspace.project(projectName)
     val task = project.task[T](taskName)
-
     Context(project, task, path)
   }
 }

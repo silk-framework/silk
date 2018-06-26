@@ -37,7 +37,7 @@ class ProjectActivity(override val project: Project, initialFactory: ProjectActi
     currentControl = Activity(currentFactory(project))
     // Keep subscribers
     for(subscriber <- oldControl.status.subscribers) {
-      currentControl.status.onUpdate(subscriber)
+      currentControl.status.subscribe(subscriber)
     }
   }
 

@@ -11,12 +11,12 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
+import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, User}
 import play.api.libs.json._
 import play.api.mvc._
-import plugins.Context
 
 class DatasetApi extends Controller with ControllerUtilsTrait {
   private implicit val partialPath = Json.format[PathCoverage]
@@ -52,13 +52,13 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
               project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
-              Ok
+              NoContent
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
           project.updateTask(dataset.id, dataset.data, dataset.metaData)
-          Ok
+          NoContent
         }
       }
     } catch {
@@ -69,7 +69,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def deleteDataset(project: String, source: String): Action[AnyContent] = Action {
     User().workspace.project(project).removeTask[GenericDatasetSpec](source)
-    Ok
+    NoContent
   }
 
   def datasetDialog(projectName: String, datasetName: String, title: String = "Edit Dataset", createDialog: Boolean): Action[AnyContent] = Action { request =>

@@ -43,6 +43,17 @@ class FileUtils(file: File) {
   }
 
   /**
+    * Deletes this directory and all sub directories on shutdown.
+    */
+  def deleteRecursiveOnExit(): Unit = {
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        deleteRecursive()
+      }
+    })
+  }
+
+  /**
    * Adds a suffix to the file path.
    */
   def +(suffix: String) = new File(file + suffix)

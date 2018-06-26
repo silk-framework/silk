@@ -54,20 +54,21 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 
   protected def workflow(implicit workflowRunContext: WorkflowRunContext): Workflow = workflowRunContext.workflow
+}
 
-  case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
-                                workflow: Workflow,
-                                alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
+case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
+                              workflow: Workflow,
+                              alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
 
-    /**
-      * Holds the execution reports for each task.
-      */
-    val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
-      for(node <- workflow.nodes) yield {
-        val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
-        (node.task, taskMonitor)
-      }
-    }.toMap
+  /**
+    * Holds the execution reports for each task.
+    */
+  val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
+    for(node <- workflow.nodes) yield {
+      val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
+      (node.task, taskMonitor)
+    }
+  }.toMap
 
     /**
       * Listeners for updates to task reports.
@@ -76,20 +77,18 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     private val taskReportListeners = {
       for((task, context) <- taskContexts) yield {
         val listener = new TaskReportListener(task)
-        context.value.onUpdate(listener)
+        context.value.subscribe(listener)
         listener
       }
     }
 
-    /**
-      * Updates the workflow execution report on each update of a task report.
-      */
-    private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
-      def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-        activityContext.value() = activityContext.value().withReport(task, report)
-      }
+  /**
+    * Updates the workflow execution report on each update of a task report.
+    */
+  private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
+    def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
+      activityContext.value() = activityContext.value().withReport(task, report)
     }
-
   }
 
 }

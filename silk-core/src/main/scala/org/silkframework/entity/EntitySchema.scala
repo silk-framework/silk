@@ -11,7 +11,7 @@ import scala.xml.Node
   * @param typeUri The entity type
   * @param typedPaths The list of paths
   * @param filter A filter for restricting the entity set
-  * @param subPath
+  * @param subPath Specifies the path starting from the root that is used for enumerating the entities.
   */
 //noinspection ScalaStyle
 case class EntitySchema(
@@ -87,7 +87,8 @@ case class EntitySchema(
     case None => None
   }
 
-  def propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified)
+  //TODO def propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serializeSimplified)
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serialize()(Prefixes.default))
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 
@@ -157,19 +158,6 @@ case class EntitySchema(
     else
       false
   }
-
-  def fits(es: EntitySchema): Boolean = {
-    es.typedPaths.size == this.typedPaths.size &&
-    es.typedPaths.zip(this.typedPaths).forall(ps => ps._1.valueType == ps._2.valueType) &&
-    es.subPath == this.subPath &&
-    (es.filter.operator match{
-      case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
-      case None if this.filter.operator.isEmpty => true
-      case _ => false
-    })
-  }
-
-  override def toString: String = "(" + typeUri + " : " + typedPaths.mkString(", ") + ")"
 }
 
 object EntitySchema {

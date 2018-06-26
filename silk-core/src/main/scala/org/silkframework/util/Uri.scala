@@ -22,19 +22,15 @@ import scala.language.implicitConversions
 import scala.util.{Success, Try}
 
 /**
-  * Represents a URI.
-  *
-  * Three notations are supported for representing URIs
-  * 1. Prefixed notation: prefix:name
-  * 2. Full URI:  <http://dbpedia.org/resource/Berlin>
-  * 3. Plain Identifiers: Name
+  * Represents a URI-like identifier.
   *
   * Note that this class does not enforce that a given URI is valid according to
   * <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC&nbsp;2732</a>.
   * Call [[isValidUri]] to determine whether an instance represents a valid URI.
+  *
+  * @param uri The full (and normalized) representation of the URI-like identifier.
   */
-//noinspection ScalaStyle
-case class Uri (uri: String) {
+case class Uri(uri: String) {
 
   /**
     * A turtle-like representation of this URI.
@@ -75,8 +71,14 @@ case class Uri (uri: String) {
     case _ => false
   }
 
+  /**
+    * Returns the full representation.
+    */
   override def toString: String = uri
 
+  /**
+    * Generates a Java URI instance if this is a valid URI and fails otherwise.
+    */
   def toURI: Try[URI] = Try{new URI(uri)}
 
   /**
@@ -114,12 +116,12 @@ object Uri {
   }
 
   /**
-    * Parses an URI in turtle-like notation.
+    * Parses a URI from a turtle-like notation.
     *
-    * Examples:
-    * - dbpedia:Berlin
-    * - <http://dbpedia.org/resource/Berlin>
-    * - someName
+    * Three notations are supported for representing URIs
+    * 1. Prefixed notation: prefix:name
+    * 2. Full URI:  <http://dbpedia.org/resource/Berlin>
+    * 3. Plain Identifiers: Name
     */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty): Uri = {
     if (str.startsWith("<")) {

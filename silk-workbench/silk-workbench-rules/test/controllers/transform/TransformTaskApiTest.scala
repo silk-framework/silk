@@ -152,7 +152,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "propertyRules" : [ {
               "type" : "direct",
               "id" : "directRule",
-              "sourcePath" : "/source:name",
+              "sourcePath" : "source:name",
               "mappingTarget" : {
                 "uri" : "target:name",
                 "valueType" : {
@@ -168,7 +168,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             }, {
               "type" : "object",
               "id" : "objectRule",
-              "sourcePath" : "/source:address",
+              "sourcePath" : "source:address",
               "mappingTarget" : {
                 "uri" : "target:address",
                 "valueType" : {
@@ -204,7 +204,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         {
           "type" : "object",
           "id" : "objectRule",
-          "sourcePath" : "/source:address",
+          "sourcePath" : "source:address",
           "mappingTarget" : {
             "uri" : "target:address",
             "valueType" : {
@@ -268,7 +268,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
       """
         {
-          "sourcePath": "/source:firstName",
+          "sourcePath": "source:firstName",
           "mappingTarget": {
             "uri": "target:firstName",
             "isAttribute": true
@@ -283,7 +283,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         {
           "type": "direct",
           "id": "directRule",
-          "sourcePath": "/source:firstName",
+          "sourcePath": "source:firstName",
           "mappingTarget": {
             "uri": "target:firstName",
             "valueType": {

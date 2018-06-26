@@ -1,4 +1,3 @@
-@import plugins.Context
 @import org.silkframework.workspace.activity.workflow.WorkflowExecutionReport
 @import org.silkframework.rule.execution.TransformReport
 @import views.html.executeTransform.transformStatistics
@@ -8,8 +7,8 @@
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.rule.execution.Linking
 @import org.silkframework.config.Task
-
 @import org.silkframework.rule.TransformSpec
+@import org.silkframework.workbench.Context
 @(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
 
 @header = {

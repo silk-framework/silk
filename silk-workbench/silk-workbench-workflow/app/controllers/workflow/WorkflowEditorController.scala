@@ -1,8 +1,8 @@
 package controllers.workflow
 
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class WorkflowEditorController extends Controller {
 

@@ -164,7 +164,7 @@ class WorkspaceApi extends Controller {
         try {
           val file = formData.files.head.ref.file
           resource.writeFile(file)
-          Ok
+          NoContent
         } catch {
           case ex: Exception =>
             ErrorResult(BadUserInputException(ex))
@@ -175,7 +175,7 @@ class WorkspaceApi extends Controller {
           val url = dataParts.head
           val urlResource = UrlResource(new URL(url))
           resource.writeResource(urlResource)
-          Ok
+          NoContent
         } catch {
           case ex: Exception =>
             ErrorResult(BadUserInputException(ex))
@@ -183,18 +183,18 @@ class WorkspaceApi extends Controller {
       case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
         // Put empty resource
         resource.writeBytes(Array[Byte]())
-        Ok
+        NoContent
       case AnyContentAsRaw(buffer) =>
         val bytes = buffer.asBytes().getOrElse(Array[Byte]())
         resource.writeBytes(bytes)
-        Ok
+        NoContent
       case AnyContentAsText(txt) =>
         resource.writeString(txt)
-        Ok
+        NoContent
       case AnyContentAsEmpty =>
         // Put empty resource
         resource.writeBytes(Array[Byte]())
-        Ok
+        NoContent
       case _ =>
         ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
     }
@@ -205,6 +205,6 @@ class WorkspaceApi extends Controller {
     val project = User().workspace.project(projectName)
     project.resources.delete(resourceName)
 
-    Ok
+    NoContent
   }
 }

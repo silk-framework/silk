@@ -5,10 +5,10 @@ import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{DPair, Uri}
+import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class TransformEditor extends Controller with ControllerUtilsTrait {
 
@@ -55,7 +55,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
           val relativePaths = pathsCache.value.configuredSchema.typedPaths. // FIXME: This won't work inside nested object rules for RDF datasets
               filter(tp => tp.operators.startsWith(sourcePath) && tp.operators.size > sourcePath.size).
               map(tp => Path(tp.operators.drop(sourcePath.size)))
-          val paths = DPair(relativePaths.map(_.serialize(prefixes)), Seq.empty)
+          val paths = DPair(relativePaths.map(_.serialize()(prefixes)), Seq.empty)
           Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
         }
       case None =>
@@ -76,7 +76,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))
     } else {
-      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.serialize(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.serialize()(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
     }
   }

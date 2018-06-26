@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.execution.local.{LocalEntities, GenericEntityTable, LocalExecution, LocalExecutor}
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, TaskException}
 import org.silkframework.runtime.activity.ActivityContext
 
@@ -42,7 +42,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         case Some(prop) =>
           prop.uri
         case _ =>
-          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.serializeSimplified)
+          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.normalizedSerialization)
       }
     }
     vars

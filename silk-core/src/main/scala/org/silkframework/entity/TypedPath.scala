@@ -69,7 +69,7 @@ object TypedPath {
       implicit val p = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
-          {typedPath.serialize}
+          {typedPath.normalizedSerialization}
         </Path>{XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }

@@ -10,6 +10,8 @@ import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.workspace.activity.CachedActivity
 
 import scala.collection.JavaConverters._
 
@@ -17,21 +19,21 @@ import scala.collection.JavaConverters._
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
  */
-class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity[ReferenceEntities] {
 
   @volatile
   private var canceled = false
 
   override def name = s"Entities cache ${task.id}"
 
-  override def initialValue = Some(ReferenceEntities.empty)
+  override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
 
   override def cancelExecution(): Unit = {
     canceled = true
   }
 
   override def reset(): Unit = {
-    val pathsCache = task.activity[LinkingPathsCache].control
+    val pathsCache =  task.activity[LinkingPathsCache].control
     pathsCache.reset()
     pathsCache.start()
   }
@@ -77,7 +79,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
 
       val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
       val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
-      for ((links, loadLinkFn) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
+      for ((links, _) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
         for (link <- links if !canceled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
           // Find existing source entity
@@ -93,7 +95,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
           existingTargetEntity match {
             case Some(entity) if entityMatchesDescription(entity, entityDescs.target) =>
               targetEntities += ((entity.uri, entity))
-            case None =>
+            case _ =>
               targetEntityUrisNeedingUpdate.add(link.target)
           }
         }
@@ -202,4 +204,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends Activity[Refer
       entity.schema.typedPaths == entityDesc.typedPaths
     }
   }
+
+  override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")
+
+  override protected val wrappedXmlFormat = WrappedXmlFormat()
 }

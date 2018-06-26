@@ -67,13 +67,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
   }
 
   def waitForCaches(task: String): Unit = {
-    var cachesLoaded = false
-    do {
-      val response = jsonGetRequest(s"$baseUrl/workspace/projects/$project/tasks/$task/cachesLoaded")
-      cachesLoaded = response.as[JsBoolean].value
-      if(!cachesLoaded)
-        Thread.sleep(1000)
-    } while(!cachesLoaded)
+    waitForCaches(task, project)
   }
 
   def retrieveRuleOrder(): Seq[String] = {

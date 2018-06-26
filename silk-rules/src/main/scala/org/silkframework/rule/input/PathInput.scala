@@ -74,7 +74,7 @@ object PathInput {
     }
 
     def write(value: PathInput)(implicit writeContext: WriteContext[Node]): Node = {
-      <Input id={value.id} path={value.path.serialize}/>
+      <Input id={value.id} path={value.path.normalizedSerialization}/>
     }
   }
 }

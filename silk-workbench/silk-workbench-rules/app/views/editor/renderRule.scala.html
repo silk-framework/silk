@@ -67,7 +67,7 @@
       @transformationBox(id, transformer.pluginSpec, parameterValues(transformer, transformer.pluginSpec), x, y, true, project)
     }
     case PathInput(id, path) => {
-      @pathBox(id, isSourceInput(op), path.serialize(project.config.prefixes), x, y, true, project)
+      @pathBox(id, isSourceInput(op), path.serialize()(project.config.prefixes), x, y, true, project)
     }
   }
 }

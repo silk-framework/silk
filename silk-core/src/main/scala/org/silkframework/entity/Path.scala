@@ -24,21 +24,33 @@ import scala.ref.WeakReference
   */
 class Path private[entity](val operators: List[PathOperator]) extends Serializable {
 
-  private lazy val serializedFull = operators.map(_.serialize(Prefixes.empty)).mkString
+  /**
+    * The normalized serialization using the Silk RDF path language.
+    * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
+    */
+  lazy val normalizedSerialization: String = serializePath(Prefixes.empty, stripForwardSlash = true)
 
   /**
     * Serializes this path using the Silk RDF path language.
+    *
+    * @param stripForwardSlash If true and if the path beginns with a forward operator, the first forward slash is stripped.
+    * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match{
-    case Prefixes.empty => serializedFull
-    case _ => operators.map(_.serialize(prefixes)).mkString
+  def serialize(stripForwardSlash: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match {
+    case Prefixes.empty if stripForwardSlash => normalizedSerialization
+    case _ => serializePath(prefixes, stripForwardSlash)
   }
 
   /**
-    * Serializes this path using the simplified notation.
+    * Internal path serialization function.
     */
-  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    operators.map(_.serialize(prefixes)).mkString.stripPrefix("/")
+  private def serializePath(prefixes: Prefixes, stripForwardSlash: Boolean): String = {
+    val pathStr = operators.map(_.serialize(prefixes)).mkString
+    if(stripForwardSlash) {
+      pathStr.stripPrefix("/")
+    } else {
+      pathStr
+    }
   }
 
   /**
@@ -51,12 +63,8 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
   }
 
   /**
-    * extracts either the fragment if available or the last path segment
-    * if neither is available => None
-    * @return
+    * Returns the number of operators in this path.
     */
-  def getLocalName: Option[String] = propertyUri.flatMap(_.localName )
-
   def size: Int = operators.size
 
   /**
@@ -69,25 +77,19 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     */
   def ++(path: Path): Path = Path(operators ::: path.operators)
 
-  override def toString: String = serializedFull
+  override def toString: String = normalizedSerialization
 
   /**
     * Tests if this path equals another path
     */
   override def equals(other: Any): Boolean = {
-    //Because of the path cache it is sufficient to compare by reference
-    //    other match {
-    //      case otherPath: Path => this eq otherPath
-    //      case _ => false
-    //    }
-    // As paths are serializable now, comparing by reference no longer suffices
     other match {
-      case p: Path => serializedFull == p.serializedFull
+      case p: Path => normalizedSerialization == p.normalizedSerialization
       case _ => false
     }
   }
 
-  override def hashCode: Int = toString.hashCode
+  override def hashCode: Int = normalizedSerialization.hashCode
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
@@ -97,6 +99,7 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 }
 
 object Path {
+
   private var pathCache = Map[String, WeakReference[Path]]()
 
   def empty: Path = new Path(List.empty)
@@ -108,7 +111,7 @@ object Path {
   def apply(operators: List[PathOperator]): Path = {
     val path = new Path(operators)
 
-    val pathStr = path.serialize
+    val pathStr = path.serialize()
 
     //Remove all garbage collected paths from the map and try to return a cached path
     synchronized {
