@@ -88,7 +88,7 @@ case class EntitySchema(
     case None => None
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.serialize()(Prefixes.default))
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.normalizedSerialization)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 
@@ -108,7 +108,7 @@ case class EntitySchema(
   }
 
   /**
-    * Will create a nes EntitySchema minus all given TypedPaths
+    * Will create a new EntitySchema minus all given TypedPaths
     * @param tps - the TypedPaths to drop
     * @return
     */
@@ -122,9 +122,9 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.map(tp => es.typedPaths.find(t => t == tp) match{
-            case Some(_) => tp
-            case None => TypedPath.empty
+          tps.flatMap(tp => es.typedPaths.find(t => t == tp) match{
+            case Some(_) => Some(tp)
+            case None => None
           }).toIndexedSeq,
           es.filter,
           es.subPath
