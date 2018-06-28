@@ -1,6 +1,5 @@
 package org.silkframework.entity
 
-import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
