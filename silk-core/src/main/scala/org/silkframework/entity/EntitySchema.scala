@@ -107,13 +107,13 @@ case class EntitySchema(
   }
 
   /**
-    * Will create a new EntitySchema minus all given TypedPaths
+    * Will create a new EntitySchema only containing the given TypedPaths
     * @param tps - the TypedPaths to drop
     * @return
     */
   def selectTypedPaths(tps: TypedPath*): EntitySchema ={
-    //TODO deal with duplicate typed paths
-    this match{
+    //we have to delete any duplicate path first the selected paths have to be unique
+    EntitySchema.deleteDuplicatePaths(this) match{
       case mes: MultiEntitySchema =>
         new MultiEntitySchema(
           mes.pivotSchema.selectTypedPaths(tps:_*),
@@ -163,6 +163,27 @@ case class EntitySchema(
 object EntitySchema {
 
   def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
+
+  /**
+    * Will delete any typed path already occurring before in the indexed sequence.
+    * Precedence is given to paths of the pivot schema and then in order of sub schemata.
+    * @param es - the EntitySchema to change
+    * @return
+    */
+  private def deleteDuplicatePaths(es: EntitySchema): EntitySchema = {
+    es match{
+      case mes: MultiEntitySchema =>
+        val pivot = deleteDuplicatePaths(mes.pivotSchema)
+        var seen = pivot.typedPaths
+        val subs = mes.subSchemata.map{ sub =>
+          val tps = sub.typedPaths.distinct.diff(seen)
+          seen = seen ++ tps
+          sub.copy(typedPaths = tps)
+        }
+        mes.copy(es.typeUri, pivot.typedPaths, es.filter, es.subPath, subs)
+      case nes: EntitySchema => nes.copy(typedPaths = nes.typedPaths.distinct)
+    }
+  }
 
   /**
     * XML serialization format.
