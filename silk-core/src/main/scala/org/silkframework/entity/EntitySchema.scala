@@ -112,6 +112,7 @@ case class EntitySchema(
     * @return
     */
   def selectTypedPaths(tps: TypedPath*): EntitySchema ={
+    //TODO deal with duplicate typed paths
     this match{
       case mes: MultiEntitySchema =>
         new MultiEntitySchema(
