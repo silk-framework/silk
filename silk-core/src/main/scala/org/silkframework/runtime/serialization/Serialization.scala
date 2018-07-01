@@ -21,13 +21,11 @@ object Serialization {
 
   def availableFormats: Seq[SerializationFormat[Any, Any]] = serializationFormats
 
-  def hasSerialization(classToSerialize: Class[_],
-                       mimeType: String): Boolean = {
+  def hasSerialization(classToSerialize: Class[_], mimeType: String): Boolean = {
     serializationFormat(classToSerialize, mimeType).isDefined
   }
 
-  def serializationFormat(classToSerialize: Class[_],
-                          mimeType: String): Option[SerializationFormat[Any, Any]] = {
+  def serializationFormat(classToSerialize: Class[_], mimeType: String): Option[SerializationFormat[Any, Any]] = {
     serializationFormats.find(f => f.valueType == classToSerialize && f.mimeTypes.contains(mimeType))
   }
 

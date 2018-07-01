@@ -15,20 +15,28 @@
 package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
+
+import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.util.Uri
 
 import scala.xml.Node
+import scala.language.existentials
 
 /**
- * A single entity.
- */
+  * An Entity can represent an instance of any given concept
+  * @param uri - an URI as identifier
+  * @param vals - A list of values of the properties defined in the provided EntitySchema
+  * @param schema - The EntitySchema defining the nature of this entity
+  * @param subEntities - optional, each entity can be composed of multiple sub-entities if defined with a suitable MultiEntitiySchema
+  * @param metadata - metadata object containing all available metadata information about this object
+  *                 an Entity is marked as 'failed' if [[EntityMetadata.failure]] is set. It becomes sealed.
+  */
 case class Entity private(
     uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
     schema: EntitySchema,
     subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
-    private val failureOpt: Option[Throwable] = None,
-    private val validateSchema: Boolean = true
+    metadata: EntityMetadata[_] = EntityMetadata.empty
   ) extends Serializable {
 
   def copy(
@@ -36,18 +44,16 @@ case class Entity private(
     values: IndexedSeq[Seq[String]] = this.values,
     schema: EntitySchema = this.schema,
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
+    metadata: EntityMetadata[_] = this.metadata,
     failureOpt: Option[Throwable] = None,
-    validateSchema: Boolean = this.validateSchema,
     projectValuesIfNewSchema: Boolean = true
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
-    case None => failureOpt match{                      // else we decided based on the provided failure option
-      case Some(f) => new Entity(uri, values, schema, subEntities, Some(f), validateSchema = false)
-      case None =>
-        val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
-        val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
-        new Entity(uri, actualVals, schema, actualSubs, None, validateSchema)
-    }
+    case None =>
+      val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
+      val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
+      val actualMetadata = failureOpt.map(f => EntityMetadata((metadata.toSeq ++ Seq(EntityMetadata.FAILURE_KEY -> f)).toMap[String, Any])(classOf[Any])).getOrElse(metadata)
+      new Entity(uri, actualVals, schema, actualSubs, actualMetadata)
   }
 
   /**
@@ -64,7 +70,7 @@ case class Entity private(
 
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
-  val failure: Option[Throwable] = if(failureOpt.isEmpty && validateSchema) {   //if no failure has occurred yet and this entity shall be validated
+  val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {   //if no failure has occurred yet and this entity shall be validated
     if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
       Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))
     else if (! this.validate)
@@ -73,7 +79,7 @@ case class Entity private(
       None
   }
   else {
-    failureOpt
+    metadata.failure.metadata
   }
 
   def hasFailed: Boolean = failure.isDefined
@@ -226,6 +232,13 @@ object Entity {
     new Entity(uri, values, schema)
   }
 
+  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[Throwable]): Entity = {
+    new Entity(uri, values, schema, subEntities, failureOpt match{
+      case Some(t) => EntityMetadata(t)
+      case None => EntityMetadata.empty
+    })
+  }
+
   def handleNullsInValueSeq(valueSeq: Seq[String]): Seq[String] = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
 
   /**
@@ -237,7 +250,7 @@ object Entity {
     * @return - the failed Entity
     */
   //FIXME add property option CMEM-719
-  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(t), validateSchema = false)
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(t))
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
@@ -248,7 +261,7 @@ object Entity {
     * @return - the failed Entity
     */
   //FIXME add property option CMEM-719 maybe only allow SparkInstanceException
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = Entity(uri, values, schema, IndexedSeq(), Some(t), validateSchema = false)
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = Entity(uri, values, schema, IndexedSeq())
 
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {

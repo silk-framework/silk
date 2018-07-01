@@ -1,5 +1,7 @@
 package org.silkframework.runtime.serialization
 
+import java.beans.XMLEncoder
+
 import scala.reflect.ClassTag
 import scala.xml.{Node, XML}
 
@@ -16,7 +18,7 @@ abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
   /**
     * The MIME types that can be formatted.
     */
-  def mimeTypes = Set("text/xml", "application/xml")
+  def mimeTypes: Set[String] = Set(XmlFormat.MIME_TYPE_TEXT, XmlFormat.MIME_TYPE_APPLICATION)
 
   /**
     * Formats a value as string.
@@ -31,8 +33,13 @@ abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
     * Reads a value from an XML string.
     */
   def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): T = {
-    read(XML.loadString(value))
+    read(parse(value, mimeType))
   }
+
+  /**
+    * Read Serialization format from string
+    */
+  override def parse(value: String, mimeType: String): Node = XML.loadString(value)
 
   override def toString(values: Iterable[T], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[Node]): String = {
     containerName match {
@@ -49,4 +56,9 @@ abstract class XmlFormat[T: ClassTag] extends SerializationFormat[T, Node] {
     }
   }
 
+}
+
+object XmlFormat{
+  val MIME_TYPE_TEXT = "text/xml"
+  val MIME_TYPE_APPLICATION = "application/xml"
 }

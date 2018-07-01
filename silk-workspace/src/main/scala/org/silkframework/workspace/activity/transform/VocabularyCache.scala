@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.transform
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{Vocabularies, Vocabulary, VocabularyManager}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{ActivityContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.workspace.ProjectTask
@@ -32,7 +32,7 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
 
   override def resource: WritableResource = task.project.cacheResources.child("transform").child(task.id).get(s"vocabularyCache.xml")
 
-  val wrappedXmlFormat = WrappedXmlFormat()
+  val wrappedXmlFormat: WrappedXmlFormat = WrappedXmlFormat()(VocabularyCache.ValueFormat)
 }
 
 object VocabularyCache {

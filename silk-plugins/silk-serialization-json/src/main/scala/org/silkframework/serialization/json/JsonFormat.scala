@@ -4,7 +4,6 @@ import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat
 import play.api.libs.json.{JsValue, Json}
 
 import scala.reflect.ClassTag
-import scala.xml.Node
 
 /**
   * JSON serialization format.
@@ -19,7 +18,7 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
   /**
     * The MIME types that can be formatted.
     */
-  def mimeTypes = Set("application/json")
+  def mimeTypes: Set[String] = Set(JsonFormat.MIME_TYPE_APPLICATION)
 
   /**
     * Formats a JSON value as string.
@@ -32,8 +31,13 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
     * Reads a value from a JSON string.
     */
   def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): T = {
-    read(Json.parse(value))
+    read(parse(value, mimeType))
   }
+
+  /**
+    * Read Serialization format from string
+    */
+  override def parse(value: String, mimeType: String): JsValue = Json.parse(value)
 
   override def toString(values: Iterable[T], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[JsValue]): String = {
     val sb = new StringBuilder()
@@ -47,4 +51,8 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
     sb.append(s"]")
     sb.toString()
   }
+}
+
+object JsonFormat{
+  val MIME_TYPE_APPLICATION = "application/json"
 }
