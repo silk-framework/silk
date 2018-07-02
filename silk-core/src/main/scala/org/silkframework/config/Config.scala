@@ -23,6 +23,7 @@ object Config{
   final val ELDS_HOME_CONF: String = "elds.home"
   final val USER_HOME_CONF: String = "user.home"
   final val DATAINTEGRATION_PATH: String = "/etc/dataintegration"
+  final val DATAINTEGRATION_CONFIG_DIR: String = DATAINTEGRATION_PATH + "/conf"
   final val DATAINTEGRATION_CONF: String = "/conf/dataintegration.conf"
   final val REFERENCE_CONF: String = "/conf/reference.conf"
   final val APPLICATION_CONF: String = "/conf/application.conf"
