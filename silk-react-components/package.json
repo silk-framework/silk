@@ -12,8 +12,8 @@
     "build": "gulp build",
     "deploy": "gulp deploy",
     "watch": "webpack --watch",
-    "webpack-build": "NODE_ENV=production webpack --config webpack.prod.config.js",
-    "webpack-dev-build": "NODE_ENV=development webpack --config webpack.dev.config.js",
+    "webpack-build": "cross-env NODE_ENV=production webpack --config webpack.prod.config.js",
+    "webpack-dev-build": "cross-env NODE_ENV=development webpack --config webpack.dev.config.js",
     "babel": "babel"
   },
   "repository": {
@@ -50,6 +50,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
+    "cross-env": "^5.2.0",
     "css-loader": "^0.28.11",
     "ecc-license-checker": "^2.5.2",
     "file-loader": "^1.1.11",
