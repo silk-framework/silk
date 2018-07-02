@@ -7,13 +7,14 @@ import org.silkframework.util.{DPair, Uri}
 
 import scala.xml.Node
 
-class EntityMetadataTest extends FlatSpec with Matchers {
+class EntityMetadataTestXml extends FlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
 
   implicit val throwableTag = classOf[Throwable]
 
+  val testException = new Exception("test", new IllegalArgumentException("some cause"))
   val metadata = new EntityMetadataXml(
-    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataXml(new Exception("test"), ExceptionSerializer()))
+    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataXml(testException, ExceptionSerializer()))
   )
 
   val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, IndexedSeq.empty, metadata)
@@ -23,8 +24,13 @@ class EntityMetadataTest extends FlatSpec with Matchers {
   it should "accept exception object as metadata and recognize it as a failed entity" in{
     val lazyMetadata = entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).asInstanceOf[LazyMetadataXml[Throwable]]
     val copy = lazyMetadata.copy(obj = None, serial = Some(lazyMetadata.serialized))
-    val zw = copy.metadata
-    lazyMetadata.serialized.toString.contains("<ClassName>org.silkframework.entity.metadata.EntityMetadataTest</ClassName>") shouldBe true
+    copy.metadata.isDefined shouldBe true
+    copy.metadata.get.getClass.getCanonicalName shouldBe testException.getClass.getCanonicalName
+    copy.metadata.get.getMessage shouldBe testException.getMessage
+    copy.metadata.get.getStackTrace.length shouldBe testException.getStackTrace.length
+    copy.metadata.get.getCause should not be  null.asInstanceOf[Throwable]
+    copy.metadata.get.getCause.getClass shouldBe testException.getCause.getClass
+    copy.metadata.get.getCause.getMessage shouldBe testException.getCause.getMessage
     entity1.hasFailed shouldBe true
   }
 

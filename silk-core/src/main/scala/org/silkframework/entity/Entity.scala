@@ -70,16 +70,16 @@ case class Entity private(
 
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
-  val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {   //if no failure has occurred yet and this entity shall be validated
-    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
+  val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
+    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)  // if sub entities size is not equal to sub schemata size
       Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))
-    else if (! this.validate)
+    else if (! this.validate)                                                                                                 // if entity is not valid
       Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
     else
       None
   }
   else {
-    metadata.failure.metadata
+    metadata.failure.metadata   //propagate former failure
   }
 
   def hasFailed: Boolean = failure.isDefined

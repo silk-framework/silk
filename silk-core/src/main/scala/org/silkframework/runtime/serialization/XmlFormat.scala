@@ -1,7 +1,5 @@
 package org.silkframework.runtime.serialization
 
-import java.beans.XMLEncoder
-
 import scala.reflect.ClassTag
 import scala.xml.{Node, XML}
 

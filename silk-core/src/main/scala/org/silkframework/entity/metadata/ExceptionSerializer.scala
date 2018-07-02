@@ -1,6 +1,7 @@
 package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import ExceptionSerializer._
 
 import scala.xml.{Elem, Node}
 
@@ -12,9 +13,9 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     if(node == null)
       return null
 
-    val className = (node \ "Class").text.trim
-    val message = (node \ "Message").text.trim
-    val cause = readException((node \ "Cause").headOption.flatMap(_.child.headOption).orNull)
+    val className = (node \ CLASS).text.trim
+    val message = (node \ MESSAGE).text.trim
+    val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
 
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
     var arguments = Seq[Object]()
@@ -38,16 +39,16 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     else{
       new Exception("Emulated Exception of class: " + className + ", original message: " + message, cause)
     }
-    exception.setStackTrace(readStackTrace((node \ "StackTrace").head))
+    exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
     exception
   }
 
   def readStackTrace(node: Node): Array[StackTraceElement] ={
-    val stackTrace = for(ste <- node \ "STE") yield{
-      val className = (ste \ "ClassName").text.trim
-      val methodName = (ste \ "MethodName").text.trim
-      val fileName = (ste \ "FileName").text.trim
-      val lineNumber = (ste \ "LineNumber").text.trim
+    val stackTrace = for(ste <- node \ STELEMENT) yield{
+      val className = (ste \ CLASSNAME).text.trim
+      val methodName = (ste \ METHODNAME).text.trim
+      val fileName = (ste \ FILENAME).text.trim
+      val lineNumber = (ste \ LINENUMBER).text.trim
       new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else 0)
     }
     stackTrace.toArray
@@ -55,6 +56,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = writeException(ex)
 
+  //TODO parameterize tag names
   private def writeException(ex: Throwable): Node ={
     <Exception>
       <Class>{ex.getClass.getCanonicalName}</Class>
@@ -81,9 +83,19 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   /**
     * The identifier used to define metadata objects in the map of [[EntityMetadata]]
     */
-  override val metadataId: String = ExceptionSerializer.ID
+  override def metadataId: String = ExceptionSerializer.ID
 }
 
 object ExceptionSerializer{
   val ID: String = EntityMetadata.FAILURE_KEY
+  val EXCEPTION: String = "Exception"
+  val CLASS: String = "Class"
+  val MESSAGE: String = "Message"
+  val CAUSE: String = "Cause"
+  val STACKTRACE: String = "StackTrace"
+  val STELEMENT: String = "STE"
+  val FILENAME: String = "FileName"
+  val CLASSNAME: String = "ClassName"
+  val METHODNAME: String = "MethodName"
+  val LINENUMBER: String = "LineNumber"
 }

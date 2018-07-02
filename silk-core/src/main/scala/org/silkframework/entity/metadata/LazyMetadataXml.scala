@@ -36,13 +36,18 @@ case class LazyMetadataXml[Typ] private(
   override def serialized: Node = serial match{
     case Some(s) => s
     case None => string match{
-      case s: String if s.trim.nonEmpty => serializer.parse(s, XmlFormat.MIME_TYPE_TEXT)
+      case s: String if s.trim.nonEmpty => serializer.parse(s, defaultMimeType)
       case _ => obj match{
         case Some(x) => serializer.write(x)
         case None => Group(Seq())
       }
     }
   }
+
+  /**
+    * Providing the default mime type to be used with the serializer
+    */
+  override val defaultMimeType: String = XmlFormat.MIME_TYPE_TEXT
 }
 
 object LazyMetadataXml{

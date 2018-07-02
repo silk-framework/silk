@@ -14,7 +14,7 @@ case class LazyMetadataJson[Typ] private(
    serializer: SerializationFormat[Typ, JsValue]
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, JsValue] {
 
-  assert(obj.nonEmpty || serial.nonEmpty, "LazyMetadata without any data object.")
+  assert(obj.nonEmpty || serial.nonEmpty || string.nonEmpty, "LazyMetadata without any data object.")
 
   override implicit val serTag: ClassTag[JsValue] = ClassTag(classOf[JsValue])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
@@ -38,19 +38,24 @@ case class LazyMetadataJson[Typ] private(
   override def serialized: JsValue = serial match{
     case Some(s) => s
     case None => string match{
-      case s: String if s.trim.nonEmpty => serializer.parse(s, JsonFormat.MIME_TYPE_APPLICATION)
+      case s: String if s.trim.nonEmpty => serializer.parse(s, defaultMimeType)
       case _ => obj match{
         case Some(x) => serializer.write(x)
         case None => JsObject(Seq())
       }
     }
   }
+
+  /**
+    * Providing the default mime type to be used with the serializer
+    */
+  override val defaultMimeType: String = JsonFormat.MIME_TYPE_APPLICATION
 }
 
 object LazyMetadataJson{
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(Some(obj), None, "", serializer)(typ)
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(Option(obj), None, "", serializer)(typ)
 
-  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, Some(node), "", serializer)(typ)
+  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, Option(node), "", serializer)(typ)
 
   def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, None, ser, serializer)(typ)
 }

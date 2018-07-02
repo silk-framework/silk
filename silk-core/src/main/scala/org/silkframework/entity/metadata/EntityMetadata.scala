@@ -16,7 +16,7 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
     */
   def getLazyMetadata[Typ](key: String)(implicit tt: Class[Typ]): LazyMetadata[Typ, Serialization] = metadata.get(key) match{
     case Some(lm: LazyMetadata[_, _]) => lm.metadata match{
-      case _: Any => lm.asInstanceOf[LazyMetadata[Typ, Serialization]]
+      case Some(x: Any) if tt.isAssignableFrom(x.getClass) => lm.asInstanceOf[LazyMetadata[Typ, Serialization]]
       case _ => LazyMetadata.empty[Typ, Serialization]
     }
     case _ => LazyMetadata.empty[Typ, Serialization]
@@ -54,13 +54,15 @@ object EntityMetadata{
     new EntityMetadataXml(resMap)
   }
 
+  def apply(t: Throwable): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[Throwable])
+
+  def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(ReadContext())
+
   val empty: EntityMetadata[String] = new EntityMetadata[String] {
     override val serializer: SerializationFormat[EntityMetadata[String], String] = LazyMetadata.nullSerializer
     override val metadata: Map[String, LazyMetadata[_, String]] = Map()
     override implicit val serTag: Class[String] = classOf[String]
   }
-
-  def apply(t: Throwable): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[Throwable])
 
   object XmlSerializer extends XmlMetadataSerializer[EntityMetadata[Node]]{
     override def read(node: Node)(implicit readContext: ReadContext): EntityMetadata[Node] = {

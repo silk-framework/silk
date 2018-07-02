@@ -1,7 +1,7 @@
 package org.silkframework.runtime.serialization
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
+import scala.reflect._
 
 /**
   * Implementing classes support the serialization and deserialization of a specific type.
@@ -50,7 +50,6 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] {
     * Read Serialization format from string
     */
   def parse(value: String, mimeType: String): U
-
 
   // register the new serializer
   SerializationFormat.registerSerializationFormat(this)
