@@ -48,7 +48,7 @@ object EntityMetadata{
 
   def apply[Typ](map: Map[String, Typ])(implicit typTag: Class[Typ]): EntityMetadata[Node] = {
     val resMap = map.map(ent => {
-      val serializer = XmlMetadata.getSerializationFormat[Typ](ent._1).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1))
+      val serializer = XmlMetadataSerializer.getSerializationFormat[Typ](ent._1).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1))
       ent._1 -> LazyMetadataXml(ent._2, serializer)(typTag)
     })
     new EntityMetadataXml(resMap)
@@ -62,11 +62,11 @@ object EntityMetadata{
 
   def apply(t: Throwable): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[Throwable])
 
-  object XmlSerializer extends XmlMetadata[EntityMetadata[Node]]{
+  object XmlSerializer extends XmlMetadataSerializer[EntityMetadata[Node]]{
     override def read(node: Node)(implicit readContext: ReadContext): EntityMetadata[Node] = {
       val metaMap = for(meta <- node \ "Metadata") yield{
         val key = (meta \ "MetaId").text.trim
-        val serializer = XmlMetadata.getSerializationFormat[CT](key).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + key))
+        val serializer = XmlMetadataSerializer.getSerializationFormat[CT](key).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + key))
         key -> LazyMetadataXml((meta \ "MetaValue").head, serializer)(serializer.valueType.asInstanceOf[Class[CT]])
       }
       new EntityMetadataXml(metaMap.toMap)

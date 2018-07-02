@@ -6,6 +6,11 @@ import scala.collection.mutable
 
 trait MetadataRegistry[Format <: Any] {
 
+  /**
+    * Each serialization format needs a dedicated Exception serializer
+    */
+  val exceptionSerializer: SerializationFormat[Throwable, Format]
+
   /* Serializer Registry */
 
   private val SerializerRegistry = new mutable.HashMap[String, SerializationFormat[_, Format]]

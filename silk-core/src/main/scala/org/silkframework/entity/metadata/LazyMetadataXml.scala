@@ -12,7 +12,7 @@ case class LazyMetadataXml[Typ] private(
    serializer: SerializationFormat[Typ, Node]
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, Node] {
 
-  assert(obj.nonEmpty || serial.nonEmpty, "LazyMetadata without any data object.")
+  assert(obj.nonEmpty || serial.nonEmpty || string.nonEmpty, "LazyMetadata without any data object.")
 
   override implicit val serTag: ClassTag[Node] = ClassTag(classOf[Node])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)

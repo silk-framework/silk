@@ -13,7 +13,7 @@ class EntityMetadataTest extends FlatSpec with Matchers {
   implicit val throwableTag = classOf[Throwable]
 
   val metadata = new EntityMetadataXml(
-    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataXml(new Exception("test"), FailureSerializer()))
+    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataXml(new Exception("test"), ExceptionSerializer()))
   )
 
   val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, IndexedSeq.empty, metadata)
@@ -21,13 +21,15 @@ class EntityMetadataTest extends FlatSpec with Matchers {
   val entity2 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("dÃ©clarÃ©s", "v2"), Seq("v3")), schema)
 
   it should "accept exception object as metadata and recognize it as a failed entity" in{
-    entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).serialized.toString
-      .contains("<ClassName>org.silkframework.entity.metadata.EntityMetadataTest</ClassName>") shouldBe true
+    val lazyMetadata = entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).asInstanceOf[LazyMetadataXml[Throwable]]
+    val copy = lazyMetadata.copy(obj = None, serial = Some(lazyMetadata.serialized))
+    val zw = copy.metadata
+    lazyMetadata.serialized.toString.contains("<ClassName>org.silkframework.entity.metadata.EntityMetadataTest</ClassName>") shouldBe true
     entity1.hasFailed shouldBe true
   }
 
   it should "be able to create an arbitrary metadata object and handle it normally" in{
-    val serializer = new XmlMetadata[DPair[String]] {
+    val serializer = new XmlMetadataSerializer[DPair[String]] {
       /**
         * The identifier used to define metadata objects in the map of [[EntityMetadata]]
         */
