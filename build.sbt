@@ -10,7 +10,7 @@ lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := "2.7.2",
   // Building
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.11.11",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
