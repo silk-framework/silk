@@ -1,5 +1,6 @@
 import org.apache.commons.io.FileUtils
 import sbt.Keys._
+import sbt.file
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
@@ -58,7 +59,7 @@ lazy val core = (project in file("silk-core"))
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-    libraryDependencies += "commons-io" % "commons-io" % "2.4" % "test"
+    libraryDependencies += "commons-io" % "commons-io" % "2.4"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -151,9 +152,11 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
     libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
   )
 
+// Aggregate all plugins
+// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsSpatialTemporal, pluginsAsian, serializationJson)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"
@@ -186,6 +189,14 @@ val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
 val buildSilkReact = taskKey[Unit]("Builds silk React module")
 val testSilkReact = taskKey[Unit]("Run tests for React component")
 
+val yarnCommand: String = sys.props.get("os.name") match {
+  case Some(os) if os.toLowerCase.contains("win") =>
+    // On windows, we need to provide the path of the yarn script manually
+    Process("where.exe" :: "yarn.cmd" :: Nil).!!.trim
+  case _ =>
+    "yarn"
+}
+
 lazy val reactComponents = (project in file("silk-react-components"))
   .settings(commonSettings: _*)
   .settings(
@@ -195,7 +206,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
     //////////////////////////////////////////////////////////////////////////////
     /** Check that all necessary build tool for the JS pipeline are available */
     checkJsBuildTools := {
-      val missing = Seq("yarn") filter { name =>
+      val missing = Seq(yarnCommand) filter { name =>
         scala.util.Try {
           Process(name :: "--version" :: Nil).!! == ""
         } getOrElse true
@@ -216,11 +227,12 @@ lazy val reactComponents = (project in file("silk-react-components"))
         val buildTask = if(productionBuild) "webpack-build" else "webpack-dev-build"
         println(s"Building React components for $buildEnv, running task $buildTask...")
 
-        Process("yarn" :: Nil, baseDirectory.value).!! // Install dependencies
-        // Run build via gulp task
-//        Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
+        Process(yarnCommand :: Nil, baseDirectory.value).!! // Install dependencies
+        // Run build via gulp task, this has been the old way of building it
+        //          Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
+
         // Run build via webpack only, uncomment source map copy instruction when using this
-        Process("yarn" :: buildTask :: Nil, baseDirectory.value).!! // Build main artifact
+        Process(yarnCommand :: buildTask :: Nil, baseDirectory.value).!! // Build main artifact
 
         FileUtils.deleteDirectory(silkDistRoot.value)
         FileUtils.forceMkdir(silkDistRoot.value)
@@ -241,11 +253,11 @@ lazy val reactComponents = (project in file("silk-react-components"))
       if(changedJsFiles.nonEmpty) {
         // Transpile JavaScript files to ES5
         for(file <- changedJsFiles) {
-          val relativePath = silkReactWorkbenchRoot.toURI.relativize(file.toURI).getPath
+          val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
           val targetFile = new File(silkWorkbenchRoot.value, relativePath)
           FileUtils.forceMkdir(targetFile.getParentFile)
           println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath)
-          Process("yarn" :: "babel" :: file.getAbsolutePath :: s"--out-file=${targetFile.getAbsolutePath}" :: Nil, baseDirectory.value).!!
+          Process(yarnCommand :: "babel" :: file.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, baseDirectory.value).!!
         }
       }
     },
@@ -363,8 +375,3 @@ lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
 lazy val root = (project in file("."))
   .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)
-
-// No unit tests, yet, in Silk React module
-testSilkReact := println(s"test silk react ${baseDirectory.value.absolutePath}")
-
-//sourceGenerators in Compile += buildSilkReact
