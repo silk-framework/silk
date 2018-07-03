@@ -2,6 +2,7 @@ package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization._
 
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serialization]] with Serializable{
@@ -58,11 +59,13 @@ object EntityMetadata{
 
   def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(ReadContext())
 
-  val empty: EntityMetadata[String] = new EntityMetadata[String] {
-    override val serializer: SerializationFormat[EntityMetadata[String], String] = LazyMetadata.nullSerializer
-    override val metadata: Map[String, LazyMetadata[_, String]] = Map()
-    override implicit val serTag: Class[String] = classOf[String]
+  private val _empty: EntityMetadata[CT] = new EntityMetadata[CT] {
+    override val serializer: SerializationFormat[EntityMetadata[CT], CT] = LazyMetadata.nullSerializer[Null, CT](ClassTag(classOf[Any]), ClassTag(classOf[Node])).asInstanceOf[SerializationFormat[EntityMetadata[CT], CT]]
+    override val metadata: Map[String, LazyMetadata[_, CT]] = Map()
+    override implicit val serTag: Class[CT] = classOf[Any].asInstanceOf[Class[CT]]
   }
+
+  def empty[Serialization]: EntityMetadata[Serialization] = _empty.asInstanceOf[EntityMetadata[Serialization]]
 
   object XmlSerializer extends XmlMetadataSerializer[EntityMetadata[Node]]{
     override def read(node: Node)(implicit readContext: ReadContext): EntityMetadata[Node] = {
