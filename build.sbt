@@ -28,7 +28,8 @@ lazy val commonSettings = Seq(
     "com.google.inject" % "guice" % "4.0",
     "io.netty" % "netty" % "3.10.5.Final",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
-    "com.google.code.findbugs" % "jsr305" % "3.0.0"
+    "com.google.code.findbugs" % "jsr305" % "3.0.0",
+    "javax.servlet" % "javax.servlet-api" % "3.1.0" // FIXME: Needs to be re-evaluated when changing the Fuseki version (currently 3.7.0), comes from jetty-servlets 9.4.7.v20170914
   ),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
