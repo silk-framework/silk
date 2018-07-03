@@ -57,4 +57,13 @@ object LazyMetadataXml{
   def apply[Typ](node: Node, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(None, Some(node), "", serializer)(typ)
 
   def apply[Typ](ser: String, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(None, None, ser, serializer)(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](obj: Typ, serializer: String)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(obj, XmlMetadataSerializer.getSerializer[Typ](serializer))(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](node: Node, serializer: String)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(node, XmlMetadataSerializer.getSerializer[Typ](serializer))(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](ser: String, serializer: String)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(ser, XmlMetadataSerializer.getSerializer[Typ](serializer))(typ)
 }

@@ -53,9 +53,23 @@ case class LazyMetadataJson[Typ] private(
 }
 
 object LazyMetadataJson{
+
+  def createLazyMetadata[Typ](key: String, t: Typ)(implicit typTag: Class[Typ]): Option[(String, LazyMetadataJson[Typ])] = {
+    JsonMetadataSerializer.getSerializationFormat[Typ](key).map(serializer => (key, LazyMetadataJson(t, serializer)))
+  }
+  //TODO mak serializer a broadcast, dont serialize it with the metadata
   def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(Option(obj), None, "", serializer)(typ)
 
   def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, Option(node), "", serializer)(typ)
 
   def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, None, ser, serializer)(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](obj: Typ, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(obj, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](node: JsValue, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(node, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](ser: String, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(ser, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
 }

@@ -3,7 +3,7 @@ package org.silkframework.serialization.json.metadata
 import org.silkframework.entity.metadata._
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsNull, JsObject, JsValue}
 
 case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) extends EntityMetadata[JsValue]{
 
@@ -20,10 +20,7 @@ object EntityMetadataJson{
   implicit val JsValClass: Class[JsValue] = classOf[JsValue]
 
   def apply[Typ](map: Map[String, Typ])(implicit typTag: Class[Typ]): EntityMetadataJson = {
-    val resMap = map.map(ent => {
-      val serializer = JsonMetadataSerializer.getSerializationFormat[Typ](ent._1).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1))
-      ent._1 -> LazyMetadataJson(ent._2, serializer)(typTag)
-    })
+    val resMap = map.map(ent => LazyMetadataJson.createLazyMetadata[Typ](ent._1, ent._2).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1)))
     new EntityMetadataJson(resMap)
   }
 
@@ -36,25 +33,30 @@ object EntityMetadataJson{
   object JsonSerializer extends JsonFormat[EntityMetadata[JsValue]] {
 
     private def extractKey(source: String): String ={
-      var keyOpened = false
-      val key = for(chr <- source) yield{
-        if(keyOpened) {
-          if(chr == '"'){
-            keyOpened = false
+      if(source == null || source.isEmpty){
+        ""
+      }
+      else {
+        var keyOpened = false
+        val key = for (chr <- source) yield {
+          if (keyOpened) {
+            if (chr == '"') {
+              keyOpened = false
+              ""
+            }
+            else {
+              chr.toString
+            }
+          }
+          else {
+            if (chr == '"') {
+              keyOpened = true
+            }
             ""
           }
-          else{
-            chr.toString
-          }
         }
-        else{
-          if(chr == '"'){
-            keyOpened = true
-          }
-          ""
-        }
+        key.reduce((a, b) => a + b)
       }
-      key.reduce((a,b) => a + b)
     }
 
     /**
@@ -73,12 +75,12 @@ object EntityMetadataJson{
         .map(_.trim)
         .filter(_.length > 3)
         .map(line => line.splitAt(line.indexOf(':') + 1))
-      val map = lines.map(kv => {
+      val map = lines.flatMap(kv => {
         val key = extractKey(kv._1)                                 // removing quotes and colon
         var stringRep = kv._2.trim
         stringRep = if(stringRep.last == ',') stringRep.substring(0, stringRep.length - 1) else stringRep         // removing trailing comma
-        val serializer = JsonMetadataSerializer.getSerializationFormat[CT](key).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + key))
-        key -> LazyMetadataJson[CT](stringRep, serializer)(serializer.valueType.asInstanceOf[Class[CT]])
+        JsonMetadataSerializer.getSerializationFormat[CT](key).map(serializer => key ->
+          LazyMetadataJson[CT](stringRep, serializer)(serializer.valueType.asInstanceOf[Class[CT]]))
       }).toMap
       new EntityMetadataJson(map)
     }
@@ -94,8 +96,13 @@ object EntityMetadataJson{
       for(ent <- value){
         if(ent != value.head) sb.append(",\n") else sb.append("\n")
         sb.append("\t\"" + ent._1.trim + "\":")
-        val serializer = JsonMetadataSerializer.getSerializationFormat[CT](ent._1).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1))
-        ent._2.metadata.foreach(m => sb.append(serializer.toString(m, ent._2.defaultMimeType)))
+        JsonMetadataSerializer.getSerializationFormat[CT](ent._1) match{
+          case Some(serializer) => ent._2.metadata match{
+            case Some(m) => sb.append(serializer.toString(m, ent._2.defaultMimeType))
+            case None => sb.append("null")
+          }
+          case None => sb.append("null")
+        }
       }
       sb.append("\n}")
       sb.toString()

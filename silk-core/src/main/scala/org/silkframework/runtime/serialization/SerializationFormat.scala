@@ -9,7 +9,7 @@ import scala.reflect._
   * @tparam T The value type that can be serialized by an implementing class.
   * @tparam U The serialized type. For instance scala.xml.Node for XML serializations.
   */
-abstract class SerializationFormat[T: ClassTag, U: ClassTag] {
+abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends Serializable {
 
   /**
     * The type that can be serialized by this format.

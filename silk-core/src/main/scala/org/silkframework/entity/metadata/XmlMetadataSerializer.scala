@@ -5,7 +5,7 @@ import org.silkframework.runtime.serialization.{SerializationFormat, XmlFormat}
 import scala.reflect._
 import scala.xml.Node
 
-abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T]{
+abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with Serializable {
 
   /**
     * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]

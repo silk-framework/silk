@@ -41,7 +41,7 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
   override def -(key: String): Map[String, LazyMetadata[_, Serialization]] = metadata.-(key)
 }
 
-object EntityMetadata{
+object EntityMetadata extends Serializable {
   val FAILURE_KEY: String = "failure_metadata"
   val METADATA_KEY : String = "entity_metadata"
 

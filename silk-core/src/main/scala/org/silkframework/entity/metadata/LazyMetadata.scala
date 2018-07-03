@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
   * @tparam Typ - The target type of the metadata object
   * @tparam Ser - The type of the serialization Format (e.g. [[scala.xml.Node]] for Xml serialization)
   */
-trait LazyMetadata[Typ, Ser] {
+trait LazyMetadata[Typ, Ser] extends Serializable {
 
   implicit val rc = ReadContext()
   implicit val wc = WriteContext[Ser]()
@@ -35,8 +35,10 @@ trait LazyMetadata[Typ, Ser] {
 
   /**
     * the parser function to parse the target type
+    * NOTE: should be implemented as def (is transient)
+    * usually pass the metadata category key and get the serializer from the serialization type registry
     */
-  val serializer: SerializationFormat[Typ, Ser]
+  @transient def serializer: SerializationFormat[Typ, Ser]
 
   /**
     * the final metadata object lazily computed
@@ -49,11 +51,10 @@ trait LazyMetadata[Typ, Ser] {
     */
   val defaultMimeType: String
 
-
   override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(wc)).getOrElse("")
 }
 
-object LazyMetadata{
+object LazyMetadata extends Serializable {
 
   type Schema = Any
 

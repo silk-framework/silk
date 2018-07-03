@@ -7,7 +7,7 @@ import play.api.libs.json.JsValue
 
 import scala.reflect._
 
-abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] {
+abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with Serializable {
 
   /**
     * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]

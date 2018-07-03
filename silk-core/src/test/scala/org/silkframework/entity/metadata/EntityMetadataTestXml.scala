@@ -39,7 +39,7 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
       /**
         * The identifier used to define metadata objects in the map of [[EntityMetadata]]
         */
-      override val metadataId: String = "pair_test_metadata"
+      override def metadataId: String = "pair_test_metadata"
 
       override def read(value: Node)(implicit readContext: ReadContext): DPair[String] = {
         val source = (value \ "Source").text.trim

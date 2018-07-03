@@ -30,5 +30,10 @@ trait MetadataRegistry[Format <: Any] {
     }
   }
 
+  def getSerializer[T](key: String): SerializationFormat[T, Format] = getSerializationFormat[T](key).getOrElse(throwSerializerNotFound(key))
+
+  def throwSerializerNotFound[T](key: String): T =
+    throw new IllegalArgumentException("Serializer for category " + key + " was not found in this registry: " + this.getClass.getName)
+
   def listAllSerializers: List[SerializationFormat[_, Format]] = SerializerRegistry.values.toList.distinct
 }
