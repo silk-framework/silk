@@ -14,6 +14,8 @@
 
 package org.silkframework.entity
 
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
@@ -135,7 +137,10 @@ object Path {
     * Creates a path consisting of a single property
     */
   def apply(property: String): Path = {
-    apply(ForwardOperator(property.trim) :: Nil)
+    var uri = Uri(property)
+    if(!uri.isValidUri && !Uri("http://ex.org/" + property).isValidUri)
+      uri = Uri(URLEncoder.encode(property, "UTF-8"))
+    apply(ForwardOperator(uri) :: Nil)
   }
 
   /**
