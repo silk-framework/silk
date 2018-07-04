@@ -20,6 +20,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
+import scala.util.Success
 
 /**
   * Represents an RDF path.
@@ -137,7 +138,7 @@ object Path {
     * Creates a path consisting of a single property
     */
   def apply(property: String): Path = {
-    var uri = Uri(property)
+    var uri = Uri.parse(property)
     if(!uri.isValidUri && !Uri("http://ex.org/" + property).isValidUri)
       uri = Uri(URLEncoder.encode(property, "UTF-8"))
     apply(ForwardOperator(uri) :: Nil)
