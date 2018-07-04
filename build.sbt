@@ -11,6 +11,14 @@ lazy val commonSettings = Seq(
   version := "2.7.2",
   // Building
   scalaVersion := "2.11.11",
+  publishTo := {
+    val artifactory = "https://artifactory.eccenca.com/"
+    if (isSnapshot.value) {
+      Some("snapshots" at artifactory + "maven-ecc-snapshot")
+    } else {
+      Some("releases" at artifactory + "maven-ecc-release")
+    }
+  },
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
