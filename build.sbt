@@ -8,7 +8,7 @@ import sbt.file
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := "2.7.2",
+  version := "3.0.0-SNAPSHOT",
   // Building
   scalaVersion := "2.11.11",
   publishTo := {
