@@ -11,6 +11,9 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) e
     EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadata[JsValue], JsValue]]
 
   override implicit val serTag: Class[JsValue] = EntityMetadataJson.JsValClass
+
+  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadata[JsValue] =
+    EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 }
 
 object EntityMetadataJson{

@@ -16,7 +16,7 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
-import org.silkframework.entity.metadata.EntityMetadata
+import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataEmpty}
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -235,7 +235,7 @@ object Entity {
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[Throwable]): Entity = {
     new Entity(uri, values, schema, subEntities, failureOpt match{
       case Some(t) => EntityMetadata(t)
-      case None => EntityMetadata.empty
+      case None => EntityMetadata.empty[Any]
     })
   }
 

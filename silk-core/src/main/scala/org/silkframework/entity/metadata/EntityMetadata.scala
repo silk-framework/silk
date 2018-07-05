@@ -2,7 +2,6 @@ package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization._
 
-import scala.reflect.ClassTag
 import scala.xml.Node
 
 trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serialization]] with Serializable{
@@ -32,6 +31,8 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
 
   val metadata: Map[String, LazyMetadata[_, Serialization]]
 
+  def addReplaceMetadata(key: String, lm: LazyMetadata[_, Serialization]): EntityMetadata[Serialization]
+
   override def +[B1 >: LazyMetadata[_, Serialization]](kv: (String, B1)): Map[String, B1] = metadata.+[B1](kv)
 
   override def get(key: String): Option[LazyMetadata[_, Serialization]] = metadata.get(key)
@@ -59,13 +60,7 @@ object EntityMetadata extends Serializable {
 
   def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(ReadContext())
 
-  private val _empty: EntityMetadata[CT] = new EntityMetadata[CT] {
-    override val serializer: SerializationFormat[EntityMetadata[CT], CT] = LazyMetadata.nullSerializer[Null, CT](ClassTag(classOf[Any]), ClassTag(classOf[Node])).asInstanceOf[SerializationFormat[EntityMetadata[CT], CT]]
-    override val metadata: Map[String, LazyMetadata[_, CT]] = Map()
-    override implicit val serTag: Class[CT] = classOf[Any].asInstanceOf[Class[CT]]
-  }
-
-  def empty[Serialization]: EntityMetadata[Serialization] = _empty.asInstanceOf[EntityMetadata[Serialization]]
+  def empty[Serialization <: Any](implicit serTag: Class[Serialization] = classOf[Node].asInstanceOf[Class[Serialization]]): EntityMetadata[Serialization] = EntityMetadataEmpty[Serialization](serTag)
 
   object XmlSerializer extends XmlMetadataSerializer[EntityMetadata[Node]]{
     override def read(node: Node)(implicit readContext: ReadContext): EntityMetadata[Node] = {
@@ -95,7 +90,7 @@ object EntityMetadata extends Serializable {
   }
 }
 
-class EntityMetadataXml(override val metadata: Map[String, LazyMetadata[_, Node]] = Map[String, LazyMetadata[_, Node]]()) extends EntityMetadata[Node] {
+case class EntityMetadataXml(override val metadata: Map[String, LazyMetadata[_, Node]] = Map[String, LazyMetadata[_, Node]]()) extends EntityMetadata[Node] {
 
   def this(rawMetadata: String) = {
     this(EntityMetadata.XmlSerializer.fromString(rawMetadata, XmlFormat.MIME_TYPE_TEXT)(ReadContext()))
@@ -104,4 +99,7 @@ class EntityMetadataXml(override val metadata: Map[String, LazyMetadata[_, Node]
   override val serializer: SerializationFormat[EntityMetadata[Node], Node] = EntityMetadata.XmlSerializer
 
   override implicit val serTag: Class[Node] = classOf[Node]
+
+  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, Node]): EntityMetadata[Node] =
+    EntityMetadataXml((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 }
