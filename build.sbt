@@ -26,6 +26,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   dependencyOverrides ++= Set(
     // This overrides version 1.9.36 of async-http-client in Play 2.4.8, which has a bug. See Ticket #12089, TODO: Remove after next Play update
