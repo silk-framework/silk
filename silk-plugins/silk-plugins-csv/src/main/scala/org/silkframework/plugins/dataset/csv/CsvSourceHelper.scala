@@ -64,8 +64,9 @@ object CsvSourceHelper {
               case None => columnName
             }
           case (s, _) =>
-            if (Uri(s).isValidUri) {
-              s
+            val u = Uri.parse(s)
+            if (u.isValidUri) {
+              u.uri
             } else {
               URLEncoder.encode(s, "UTF-8")
             }

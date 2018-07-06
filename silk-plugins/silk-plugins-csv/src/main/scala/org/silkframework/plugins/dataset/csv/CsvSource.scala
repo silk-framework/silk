@@ -91,7 +91,7 @@ class CsvSource(file: Resource,
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(prefix + property) :: Nil)
+        Path(ForwardOperator(Uri.parse(prefix + property)) :: Nil)
       }
     } catch {
       case e: MalformedInputException =>

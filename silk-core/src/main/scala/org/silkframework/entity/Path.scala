@@ -20,7 +20,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
-import scala.util.Success
+import scala.util.Try
 
 /**
   * Represents an RDF path.
