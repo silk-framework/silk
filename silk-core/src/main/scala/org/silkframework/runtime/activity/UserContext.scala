@@ -3,7 +3,8 @@ package org.silkframework.runtime.activity
 import org.silkframework.runtime.users.User
 
 /**
-  * Context in which an activity is executed.
+  * User context in which resources and tasks are created, modified, deleted, executed or queried. Used, among other things,
+  * for access control, provenance and logging.
   */
 trait UserContext {
   def user: Option[User]
@@ -11,7 +12,7 @@ trait UserContext {
 
 object UserContext {
 
-  object Empty extends UserContext {
+  implicit object Empty extends UserContext {
     def user: Option[User] = None
   }
 

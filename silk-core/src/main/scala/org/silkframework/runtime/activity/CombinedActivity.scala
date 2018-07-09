@@ -10,7 +10,8 @@ case class CombinedActivity(override val name: String,
    *
    * @param context Holds the context in which the activity is executed.
    */
-  override def run(context: ActivityContext[Unit]): Unit = {
+  override def run(context: ActivityContext[Unit])
+                  (implicit userContext: UserContext): Unit = {
     activities foreach(_.run(context))
   }
 

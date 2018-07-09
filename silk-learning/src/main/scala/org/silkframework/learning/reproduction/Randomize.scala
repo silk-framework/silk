@@ -18,7 +18,7 @@ import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 /**
  * Randomizes the population by mutating its individuals.
@@ -30,7 +30,8 @@ class Randomize(population: Population,
 
   private val mutation = new MutationFunction(new CrossoverFunction(fitnessFunction, config.components), generator)
 
-  override def run(context: ActivityContext[Population]): Unit = {
+  override def run(context: ActivityContext[Population])
+                  (implicit userContext: UserContext): Unit = {
     context.value.update(Population(population.individuals.par.map(mutation).seq))
   }
 }

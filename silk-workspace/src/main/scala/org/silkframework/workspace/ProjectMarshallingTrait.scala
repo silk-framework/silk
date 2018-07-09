@@ -2,6 +2,7 @@ package org.silkframework.workspace
 
 import java.io.{InputStream, OutputStream}
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
@@ -35,7 +36,8 @@ trait ProjectMarshallingTrait {
   def marshalProject(project: ProjectConfig,
                      outputStream: OutputStream,
                      workspaceProvider: WorkspaceProvider,
-                     resourceManager: ResourceManager): String
+                     resourceManager: ResourceManager)
+                    (implicit userContext: UserContext): String
 
   /**
     * Unmarshals the project
@@ -47,7 +49,8 @@ trait ProjectMarshallingTrait {
   def unmarshalProject(projectName: Identifier,
                        workspaceProvider: WorkspaceProvider,
                        resourceManager: ResourceManager,
-                       inputStream: InputStream): Unit
+                       inputStream: InputStream)
+                      (implicit userContext: UserContext): Unit
 
   /**
     * Marshals the entire workspace.
@@ -58,7 +61,8 @@ trait ProjectMarshallingTrait {
     */
   def marshalWorkspace(outputStream: OutputStream,
                        workspaceProvider: WorkspaceProvider,
-                       resourceRepository: ResourceRepository): String
+                       resourceRepository: ResourceRepository)
+                      (implicit userContext: UserContext): String
 
 
   /**
@@ -70,7 +74,8 @@ trait ProjectMarshallingTrait {
     */
   def unmarshalWorkspace(workspaceProvider: WorkspaceProvider,
                          resourceRepository: ResourceRepository,
-                         inputStream: InputStream): Unit
+                         inputStream: InputStream)
+                        (implicit userContext: UserContext): Unit
 
   /**
     * Helper methods
@@ -88,7 +93,8 @@ trait ProjectMarshallingTrait {
                               workspaceProvider: WorkspaceProvider,
                               importFromWorkspace: WorkspaceProvider,
                               resources: Option[ResourceManager],
-                              importResources: Option[ResourceManager]): Unit = {
+                              importResources: Option[ResourceManager])
+                             (implicit userContext: UserContext): Unit = {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().filter(_.id == projectName).zipWithIndex) {
       val targetProject = if (index == 0) projectName else projectName + index
@@ -103,7 +109,8 @@ trait ProjectMarshallingTrait {
                               workspaceProvider: WorkspaceProvider,
                               exportToWorkspace: WorkspaceProvider,
                               resources: Option[ResourceManager],
-                              exportToResources: Option[ResourceManager]): Unit = {
+                              exportToResources: Option[ResourceManager])
+                             (implicit userContext: UserContext): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
     WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project)

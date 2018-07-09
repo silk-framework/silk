@@ -2,7 +2,8 @@
 @import org.silkframework.runtime.plugin.PluginRegistry
 @import org.silkframework.workspace.Project
 
-@(project: Project, taskName: String, taskPlugin: Option[CustomTask], createDialog: Boolean)
+@import org.silkframework.runtime.activity.UserContext
+@(project: Project, taskName: String, taskPlugin: Option[CustomTask], createDialog: Boolean)(implicit userContext: UserContext)
 
 @widgets.pluginDialog(
   project,

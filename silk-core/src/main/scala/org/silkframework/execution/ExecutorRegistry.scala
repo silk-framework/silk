@@ -6,10 +6,11 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
+
 import scala.language.existentials
 
 trait ExecutorRegistry {
@@ -128,7 +129,7 @@ object ExecutorRegistry extends ExecutorRegistry {
     outputSchema: Option[EntitySchema],
     execution: ExecType,
     context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
-  ): Option[ExecType#DataType] = {
+  )(implicit userContext: UserContext): Option[ExecType#DataType] = {
 
     val exec = executor(task.data, execution)
     exec.execute(task, inputs, outputSchema, execution, context)

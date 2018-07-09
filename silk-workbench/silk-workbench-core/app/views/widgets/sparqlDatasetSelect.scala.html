@@ -2,7 +2,8 @@
 @import org.silkframework.dataset.rdf.RdfDataset
 @import org.silkframework.workspace.User
 
-@(projectName: String, label: String, description: String, mainId: String, inputId: Option[String])
+@import org.silkframework.runtime.activity.UserContext
+@(projectName: String, label: String, description: String, mainId: String, inputId: Option[String])(implicit userContext: UserContext)
 
 @project = @{ User().workspace.project(projectName.toString) }
 @rdfDatasets = @{ project.tasks[GenericDatasetSpec].filter(_.data.plugin.isInstanceOf[RdfDataset]) }

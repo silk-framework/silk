@@ -1,10 +1,11 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(name: String,
   opType: String,
   pluginsByCategory: Map[String, Seq[org.silkframework.runtime.plugin.PluginDescription[_]]],
-  project: Project)
+  project: Project)(implicit userContext: UserContext)
 
 <script type="text/javascript">
 // Initialization

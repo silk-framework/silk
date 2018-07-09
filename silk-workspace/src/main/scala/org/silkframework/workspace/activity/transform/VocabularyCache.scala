@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.VocabularyManager
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
@@ -16,7 +16,8 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
 
   override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
 
-  override def run(context: ActivityContext[VocabularyCacheValue]): Unit = {
+  override def run(context: ActivityContext[VocabularyCacheValue])
+                  (implicit userContext: UserContext): Unit = {
     val transform = task.data
     if(transform.targetVocabularies.nonEmpty) {
       val vocabManager = VocabularyManager()

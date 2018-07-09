@@ -7,6 +7,8 @@ import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, User}
@@ -25,7 +27,8 @@ class AutoCompletionApi extends Controller {
   /**
     * Given a search term, returns all possible completions for source property paths.
     */
-  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
+  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
@@ -102,7 +105,8 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
+  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyPropertyCompletions(task)
@@ -119,7 +123,8 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
+  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyTypeCompletions(task)
@@ -147,7 +152,8 @@ class AutoCompletionApi extends Controller {
     )
   }
 
-  private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
+  private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+                                   (implicit userContext: UserContext): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
       val serializedPaths = paths.map(_.serialize()(task.project.config.prefixes)).sorted.distinct
@@ -165,7 +171,8 @@ class AutoCompletionApi extends Controller {
     }
   }
 
-  private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): IndexedSeq[TypedPath] = {
+  private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val cachedSchemata = task.activity[TransformPathsCache].value
     cachedSchemata.fetchCachedPaths(task, sourcePath)
   }

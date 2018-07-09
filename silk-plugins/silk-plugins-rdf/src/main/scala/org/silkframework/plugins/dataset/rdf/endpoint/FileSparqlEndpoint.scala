@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 
 class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends SparqlEndpoint {
@@ -42,17 +43,20 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
     * If the query does not contain a offset or limit, automatic paging is done by issuing multiple queries with a sliding offset.
     *
     */
-  override def select(query: String, limit: Int): SparqlResults = jenaEndpoint.select(query, limit)
+  override def select(query: String, limit: Int)
+                     (implicit userContext: UserContext): SparqlResults = jenaEndpoint.select(query, limit)
 
   /**
     * Executes a construct query.
     */
-  override def construct(query: String): String = jenaEndpoint.construct(query)
+  override def construct(query: String)
+                        (implicit userContext: UserContext): String = jenaEndpoint.construct(query)
 
   /**
     * Executes an update query.
     */
-  override def update(query: String): Unit = jenaEndpoint.update(query)
+  override def update(query: String)
+                     (implicit userContext: UserContext): Unit = jenaEndpoint.update(query)
 
   /**
     * @return the SPARQL related configuration of this SPARQL endpoint.

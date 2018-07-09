@@ -21,7 +21,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -52,7 +52,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
+  override def run(context: ActivityContext[IndexedSeq[Link]])
+                  (implicit userContext: UserContext): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties

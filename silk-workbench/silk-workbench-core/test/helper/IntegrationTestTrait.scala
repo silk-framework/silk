@@ -8,6 +8,7 @@ import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization
@@ -50,6 +51,9 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   tmpDir.mkdirs()
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
+
+  // Assume by default that anonymous access is allowed
+  implicit def userContext: UserContext = UserContext.Empty
 
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProvider: String = "inMemoryRdfWorkspace"
@@ -550,7 +554,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     }
   }
 
-  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+  def reloadVocabularyCache(project: Project, transformTaskId: String)
+                           (implicit userContext: UserContext): Unit = {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
     control.reset()
     control.startBlocking()

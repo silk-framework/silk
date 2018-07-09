@@ -24,25 +24,25 @@ import org.silkframework.learning.reproduction.{Randomize, Reproduction}
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Timer}
 
 import scala.math.max
 
 class ActiveLearning(config: LearningConfiguration,
-                     datasets: DPair[DataSource],
+                     fetchDatasources: (UserContext) => DPair[DataSource],
                      linkSpec: LinkSpec,
                      paths: DPair[Seq[TypedPath]],
                      referenceEntities: ReferenceEntities = ReferenceEntities.empty,
                      initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
 
-  def isEmpty: Boolean = datasets.isEmpty
-
   override def initialValue: Option[ActiveLearningState] = Some(initialState)
 
-  override def run(context: ActivityContext[ActiveLearningState]): Unit = {
+  override def run(context: ActivityContext[ActiveLearningState])
+                  (implicit userContext: UserContext): Unit = {
+    val datasets = fetchDatasources(userContext)
     // Update unlabeled pool
-    val pool = updatePool(context)
+    val pool = updatePool(datasets, context)
 
     // Create linkage rule generator
     val generator = linkageRuleGenerator(context)
@@ -63,8 +63,9 @@ class ActiveLearning(config: LearningConfiguration,
     // Clean population
     cleanPopulation(generator, fitnessFunction, context)
   }
-  
-  private def updatePool(context: ActivityContext[ActiveLearningState]): UnlabeledLinkPool = Timer("Generating Pool") {
+
+  private def updatePool(datasets: DPair[DataSource],
+                         context: ActivityContext[ActiveLearningState]): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
     //Build unlabeled pool

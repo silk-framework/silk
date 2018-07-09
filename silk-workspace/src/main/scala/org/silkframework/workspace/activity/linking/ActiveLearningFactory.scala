@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.active.{ActiveLearning, ActiveLearningState}
 import org.silkframework.rule.LinkSpec
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -31,7 +31,8 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveL
 
       new ActiveLearning(
         config = LearningConfiguration.default,
-        datasets = task.dataSources,
+        // No user context here, defer fetching data sources
+        fetchDatasources = (userContext: UserContext) => task.dataSources(userContext),
         linkSpec = task.data,
         paths = task.activity[LinkingPathsCache].value.map(_.typedPaths),
         referenceEntities = task.activity[ReferenceEntitiesCache].value

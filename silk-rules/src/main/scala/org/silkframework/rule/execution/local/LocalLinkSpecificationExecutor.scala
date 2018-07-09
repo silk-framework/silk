@@ -3,11 +3,11 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.execution.local.{LocalEntities, LinksTable, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, TransformSpec, TransformedDataSource}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
@@ -21,7 +21,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]
-                      ): Option[LocalEntities] = {
+                      )(implicit userContext: UserContext): Option[LocalEntities] = {
     assert(inputs.size == 2, "LinkSpecificationExecutor did npt receive exactly two inputs (source, target).")
     val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
     val sources = DPair[DataSource](

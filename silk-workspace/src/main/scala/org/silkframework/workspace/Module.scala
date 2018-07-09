@@ -2,7 +2,8 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, MetaData, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -50,7 +51,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   /**
    * Retrieves all tasks in this module.
    */
-  def tasks: Seq[ProjectTask[TaskData]] = {
+  def tasks(implicit userContext: UserContext): Seq[ProjectTask[TaskData]] = {
     load()
     cachedTasks.values.toSeq
   }
@@ -60,17 +61,20 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    *
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def task(name: Identifier): ProjectTask[TaskData] = {
+  def task(name: Identifier)
+          (implicit userContext: UserContext): ProjectTask[TaskData] = {
     load()
     cachedTasks.getOrElse(name, throw TaskNotFoundException(project.name, name, taskType.getName))
   }
 
-  def taskOption(name: Identifier): Option[ProjectTask[TaskData]] = {
+  def taskOption(name: Identifier)
+                (implicit userContext: UserContext): Option[ProjectTask[TaskData]] = {
     load()
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: MetaData): Unit = {
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData)
+         (implicit userContext: UserContext): Unit = {
     val task = new ProjectTask(name, taskData, metaData, this)
     provider.putTask(project.name, task)
     task.init()
@@ -80,7 +84,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   /**
    * Removes a task from this module.
    */
-  def remove(taskId: Identifier) {
+  def remove(taskId: Identifier)
+            (implicit userContext: UserContext){
     // Cancel all activities
     for {
       task <- cachedTasks.get(taskId)
@@ -94,7 +99,8 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     logger.info(s"Removed task '$taskId' from project ${project.name}")
   }
 
-  private def load(): Unit = synchronized {
+  private def load()
+                  (implicit userContext: UserContext): Unit = synchronized {
     if(cachedTasks == null) {
       try {
         val tasks = provider.readTasks(project.name, project.resources)

@@ -5,6 +5,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
+import org.silkframework.runtime.activity.UserContext.Empty
 
 import scala.io.Codec
 

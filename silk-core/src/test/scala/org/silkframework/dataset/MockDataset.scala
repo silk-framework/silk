@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 import org.silkframework.entity.{Entity, EntitySchema, Link, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -13,11 +14,11 @@ case class MockDataset(name: String = "dummy") extends Dataset {
   var clearFn: () => Unit = () => {}
   var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[Path] = (_, _, _) => { IndexedSeq.empty }
 
-  override def source: DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
+  override def source(implicit userContext: UserContext): DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
 
-  override def linkSink: LinkSink = DummyLinkSink(writeLinkFn, clearFn)
+  override def linkSink(implicit userContext: UserContext): LinkSink = DummyLinkSink(writeLinkFn, clearFn)
 
-  override def entitySink: EntitySink = DummyEntitySink(writeEntityFn, clearFn)
+  override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
@@ -40,7 +41,7 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
 
 case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
                          clearFn: () => Unit) extends LinkSink {
-  override def init(): Unit = {}
+  override def init()(implicit userContext: UserContext): Unit = {}
 
   override def writeLink(link: Link, predicateUri: String): Unit = {
     writeLinkFn(link, predicateUri)

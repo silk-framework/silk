@@ -3,6 +3,8 @@ package controllers.linking
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.User
@@ -14,11 +16,13 @@ import scala.util.control.NonFatal
 class LinkingEditor extends Controller {
 
   def editor(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.editor.linkingEditor(context))
   }
 
-  def paths(projectName: String, taskName: String, groupPaths: Boolean): Action[AnyContent] = Action {
+  def paths(projectName: String, taskName: String, groupPaths: Boolean): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
@@ -42,7 +46,8 @@ class LinkingEditor extends Controller {
     }
   }
 
-  def score(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def score(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val entitiesCache = task.activity[ReferenceEntitiesCache].control
@@ -76,5 +81,4 @@ class LinkingEditor extends Controller {
       }
     }
   }
-
 }

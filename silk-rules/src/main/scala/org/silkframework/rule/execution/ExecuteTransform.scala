@@ -5,13 +5,17 @@ import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+
 import scala.util.control.Breaks._
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: => EntitySink, limit: Option[Int] = None) extends Activity[TransformReport] {
+class ExecuteTransform(input: UserContext => DataSource,
+                       transform: TransformSpec,
+                       output: UserContext => EntitySink,
+                       limit: Option[Int] = None) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -20,11 +24,12 @@ class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: =
 
   override val initialValue = Some(TransformReport())
 
-  def run(context: ActivityContext[TransformReport]): Unit = {
+  def run(context: ActivityContext[TransformReport])
+         (implicit userContext: UserContext): Unit = {
     isCanceled = false
     // Get fresh data source and entity sink
-    val dataSource = input
-    val entitySink = output
+    val dataSource = input(userContext)
+    val entitySink = output(userContext)
 
     // Clear outputs before writing
     entitySink.clear()

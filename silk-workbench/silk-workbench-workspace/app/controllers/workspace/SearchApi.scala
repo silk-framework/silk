@@ -2,7 +2,9 @@ package controllers.workspace
 
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.config.TaskSpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsValue, Json}
@@ -13,9 +15,10 @@ import play.api.mvc.{Action, BodyParsers, Controller}
   */
 class SearchApi extends Controller with ControllerUtilsTrait {
 
-  def search() = Action(BodyParsers.parse.json) { implicit request =>
+  def search(): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
     implicit val responseOptionsReader = Json.reads[TaskFormatOptions]
     implicit val searchRequestReader = Json.reads[SearchRequest]
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     validateJson[SearchRequest] { searchRequest =>
       Ok(searchRequest())
     }
@@ -24,14 +27,14 @@ class SearchApi extends Controller with ControllerUtilsTrait {
   case class SearchRequest(project: Option[String], searchTerm: Option[String], formatOptions: Option[TaskFormatOptions]) {
 
     // JSON format to serialize tasks according to the options
-    private val taskFormat: TaskJsonFormat[TaskSpec] = {
-      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()))(TaskSpecJsonFormat)
+    private def taskFormat(userContext: UserContext): TaskJsonFormat[TaskSpec] = {
+      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()), Some(userContext))(TaskSpecJsonFormat)
     }
 
     /**
       * Executes the search request and generates the JSON response.
       */
-    def apply(): JsValue = {
+    def apply()(implicit userContext: UserContext): JsValue = {
       var tasks = projects.flatMap(_.allTasks)
 
       for(term <- searchTerm) {
@@ -54,8 +57,9 @@ class SearchApi extends Controller with ControllerUtilsTrait {
       }
     }
 
-    def writeTask(task: ProjectTask[_ <: TaskSpec]): JsValue = {
-      taskFormat.write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
+    def writeTask(task: ProjectTask[_ <: TaskSpec])
+                 (implicit userContext: UserContext): JsValue = {
+      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
     }
 
     /**

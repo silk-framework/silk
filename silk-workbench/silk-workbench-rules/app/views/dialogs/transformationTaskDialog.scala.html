@@ -2,7 +2,8 @@
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.User
 
-@(project: String, task: String, createDialog: Boolean)
+@import org.silkframework.runtime.activity.UserContext
+@(project: String, task: String, createDialog: Boolean)(implicit userContext: UserContext)
 
 @datasets = @{ User().workspace.project(project).tasks[GenericDatasetSpec].toSeq }
 

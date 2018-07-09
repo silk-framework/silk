@@ -8,7 +8,7 @@ import org.silkframework.learning.individual.Population
 import org.silkframework.learning.reproduction.Reproduction
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[LinkageRule],
                       config: LearningConfiguration) extends Activity[Result] {
@@ -33,7 +33,8 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
   
   override def initialValue = Some(Result(Population.empty, 0, ""))
 
-  override def run(context: ActivityContext[Result]) = {
+  override def run(context: ActivityContext[Result])
+                  (implicit userContext: UserContext)= {
     //Reset state
     stop = false
     iterations = 0

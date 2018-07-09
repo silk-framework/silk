@@ -4,6 +4,7 @@ import java.io._
 
 import org.silkframework.dataset.{EntitySink, TripleSink, TypedProperty}
 import org.silkframework.entity.ValueType
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 import org.silkframework.util.Uri
 
@@ -67,7 +68,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     }
   }
 
-  override def init(): Unit = {
+  override def init()(implicit userContext: UserContext): Unit = {
     openTable(typeUri = "", properties = Seq())
   }
 

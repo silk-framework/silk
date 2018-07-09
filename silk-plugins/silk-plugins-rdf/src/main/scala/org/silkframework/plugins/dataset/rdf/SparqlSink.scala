@@ -6,6 +6,7 @@ import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -30,7 +31,7 @@ class SparqlSink(params: SparqlParams,
     this.properties = properties
   }
 
-  override def init() = {}
+  override def init()(implicit userContext: UserContext) = {}
 
   override def writeLink(link: Link, predicateUri: String) {
     val (newStatements, statementCount) = formatLink(link, predicateUri)

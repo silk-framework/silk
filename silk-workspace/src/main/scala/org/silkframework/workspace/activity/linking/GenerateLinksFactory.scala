@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -52,7 +52,8 @@ class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeL
     *
     * @param context Holds the context in which the activity is executed.
     */
-  override def run(context: ActivityContext[Linking]): Unit = {
+  override def run(context: ActivityContext[Linking])
+                  (implicit userContext: UserContext): Unit = {
     val linkSpec = task.data
 
     val inputs = task.dataSources

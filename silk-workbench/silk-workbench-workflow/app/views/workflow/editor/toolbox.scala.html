@@ -1,9 +1,7 @@
-@import org.silkframework.config.TaskSpec
-@import org.silkframework.workspace.ProjectTask
-@import org.silkframework.workbench.WorkbenchPlugins
-
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
-@(project: org.silkframework.workspace.Project)
+@import org.silkframework.workbench.WorkbenchPlugins
+@import org.silkframework.runtime.activity.UserContext
+@(project: org.silkframework.workspace.Project)(implicit userContext: UserContext)
 
 <div id="toolbox" style="height: 67.9px;">
   <div id="operatorToolbox">

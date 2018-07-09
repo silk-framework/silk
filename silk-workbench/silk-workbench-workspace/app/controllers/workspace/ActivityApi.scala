@@ -24,7 +24,8 @@ class ActivityApi extends Controller {
     Ok(JsonSerializer.projectActivities(project))
   }
 
-  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.anyTask(taskName)
     Ok(JsonSerializer.taskActivities(task))
@@ -73,7 +74,8 @@ class ActivityApi extends Controller {
     Ok
   }
 
-  def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val activityConfig =
       if (taskName.nonEmpty) {
@@ -87,6 +89,7 @@ class ActivityApi extends Controller {
   }
 
   def postActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val config = activityConfig(request)
     if (config.nonEmpty) {
       val project = User().workspace.project(projectName)
@@ -102,7 +105,8 @@ class ActivityApi extends Controller {
     }
   }
 
-  def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
@@ -116,12 +120,14 @@ class ActivityApi extends Controller {
 
   def getActivityValue(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { implicit request =>
     implicit val project: Project = User().workspace.project(projectName)
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)
   }
 
-  def recentActivities(maxCount: Int): Action[AnyContent] = Action {
+  def recentActivities(maxCount: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     // Get all projects and tasks
     val projects = User().workspace.projects
     val tasks: Seq[ProjectTask[_]] = projects.flatMap(_.allTasks)
@@ -144,7 +150,8 @@ class ActivityApi extends Controller {
     Ok(JsonSerializer.logRecords(ActivityLog.records))
   }
 
-  def activityUpdates(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def activityUpdates(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val projects =
       if (projectName.nonEmpty) User().workspace.project(projectName) :: Nil
       else User().workspace.projects
@@ -174,7 +181,8 @@ class ActivityApi extends Controller {
     Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
   }
 
-  private def activityControl(projectName: String, taskName: String, activityName: String): ActivityControl[_] = {
+  private def activityControl(projectName: String, taskName: String, activityName: String)
+                             (implicit userContext: UserContext): ActivityControl[_] = {
     val project = User().workspace.project(projectName)
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)

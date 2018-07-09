@@ -28,21 +28,25 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class WorkspaceApi extends Controller {
 
-  def reload: Action[AnyContent] = Action {
+  def reload: Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     User().workspace.reload()
     Ok
   }
 
-  def projects: Action[AnyContent] = Action {
+  def projects: Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     Ok(JsonSerializer.projectsJson)
   }
 
-  def getProject(projectName: String): Action[AnyContent] = Action {
+  def getProject(projectName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     Ok(JsonSerializer.projectJson(project))
   }
 
-  def newProject(project: String): Action[AnyContent] = Action {
+  def newProject(project: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     if (User().workspace.projects.exists(_.name == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
@@ -53,12 +57,14 @@ class WorkspaceApi extends Controller {
     }
   }
 
-  def deleteProject(project: String): Action[AnyContent] = Action {
+  def deleteProject(project: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     User().workspace.removeProject(project)
     Ok
   }
 
-  def cloneProject(oldProject: String, newProject: String) = Action {
+  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val workspace = User().workspace
     val project = workspace.project(oldProject)
 
@@ -89,7 +95,8 @@ class WorkspaceApi extends Controller {
     }
   }
 
-  def importLinkSpec(projectName: String): Action[AnyContent] = Action { implicit request => {
+  def importLinkSpec(projectName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources)
 
@@ -108,9 +115,9 @@ class WorkspaceApi extends Controller {
         ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/xml"))
     }
   }
-  }
 
-  def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
@@ -120,13 +127,13 @@ class WorkspaceApi extends Controller {
     Ok(XmlSerialization.toXml(silkConfig))
   }
 
-  def updatePrefixes(project: String): Action[AnyContent] = Action { implicit request => {
+  def updatePrefixes(project: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
     val projectObj = User().workspace.project(project)
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
 
     Ok
-  }
   }
 
   def getResources(projectName: String): Action[AnyContent] = Action {
@@ -155,7 +162,7 @@ class WorkspaceApi extends Controller {
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
   }
 
-  def putResource(projectName: String, resourceName: String): Action[AnyContent] = Action { implicit request => {
+  def putResource(projectName: String, resourceName: String): Action[AnyContent] = Action { implicit request =>
     val project = User().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
 
@@ -198,7 +205,6 @@ class WorkspaceApi extends Controller {
       case _ =>
         ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
     }
-  }
   }
 
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = Action {

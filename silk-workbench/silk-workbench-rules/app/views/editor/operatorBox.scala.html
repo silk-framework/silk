@@ -3,15 +3,16 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.ParameterType._
-
 @import org.silkframework.workspace.User
+@import org.silkframework.runtime.activity.UserContext
+
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int,
   display: Boolean,
-  project: Project)(additionalContent: Html)
+  project: Project)(additionalContent: Html)(implicit userContext: UserContext)
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div"
      style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">

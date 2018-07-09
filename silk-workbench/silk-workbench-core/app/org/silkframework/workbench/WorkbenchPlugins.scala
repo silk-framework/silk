@@ -1,6 +1,7 @@
 package org.silkframework.workbench
 
 import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
@@ -18,7 +19,8 @@ object WorkbenchPlugins {
   /**
     * Given a project, returns all tasks actions grouped by task type.
     */
-  def byType(project: Project): Seq[(TaskType, Seq[TaskActions])] = {
+  def byType(project: Project)
+            (implicit userContext: UserContext): Seq[(TaskType, Seq[TaskActions])] = {
     for {
       plugin <- allPlugins
     } yield {

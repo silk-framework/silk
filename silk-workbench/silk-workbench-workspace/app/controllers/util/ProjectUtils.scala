@@ -1,6 +1,6 @@
 package controllers.util
 
-import java.io.{File, StringWriter}
+import java.io.StringWriter
 
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
@@ -11,9 +11,9 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
-import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.FileUtils
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
@@ -25,7 +25,9 @@ import scala.xml.{Node, NodeSeq}
   * Utility functions for [[Project]]
   */
 object ProjectUtils {
-  def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
+  def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String,
+                                                  taskName: String)
+                                                 (implicit userContext: UserContext): (Project, ProjectTask[T]) = {
     val project = getProject(projectName)
     val task = project.task[T](taskName)
     (project, task)

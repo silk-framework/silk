@@ -2,9 +2,10 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EntitySink}
 import org.silkframework.execution.TaskException
 import org.silkframework.rule.{TransformSpec, TransformedDataSource}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.runtime.validation.ValidationException
@@ -19,7 +20,7 @@ object TransformTaskUtils {
     /**
       * Retrieves the data source for this transform task.
       */
-    def dataSource: DataSource = {
+    def dataSource(implicit userContext: UserContext): DataSource = {
       val sourceId = task.data.selection.inputId
       task.project.taskOption[CustomTask](sourceId) match {
         case Some(customTask) =>
@@ -37,7 +38,8 @@ object TransformTaskUtils {
     /**
       * Converts this transform task to a data source.
       */
-    def asDataSource(typeUri: Uri): DataSource = {
+    def asDataSource(typeUri: Uri)
+                    (implicit userContext: UserContext): DataSource = {
       val transformSpec = task.data
       val source = task.project.task[GenericDatasetSpec](transformSpec.selection.inputId).data.source
 
@@ -57,14 +59,14 @@ object TransformTaskUtils {
     /**
       * Retrieves all entity sinks for this transform task.
       */
-    def entitySinks = {
+    def entitySinks(implicit userContext: UserContext): Seq[EntitySink] = {
       task.data.outputs.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(_.data.entitySink)
     }
 
     /**
       * Retrieves all error entity sinks for this transform task.
       */
-    def errorEntitySinks = {
+    def errorEntitySinks(implicit userContext: UserContext): Seq[EntitySink] = {
       task.data.errorOutputs.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(_.data.entitySink)
     }
   }

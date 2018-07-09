@@ -20,6 +20,7 @@ import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.dataset.{DataSource, Dataset}
 import org.silkframework.entity.{Entity, EntitySchema, Index, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Uri
 
@@ -28,11 +29,11 @@ case class CacheDataset(dir: String) extends Dataset {
 
   private val file = new File(dir)
 
-  override def source = CacheSource
+  override def source(implicit userContext: UserContext) = CacheSource
 
-  override def entitySink = ???
+  override def entitySink(implicit userContext: UserContext) = ???
 
-  override def linkSink = ???
+  override def linkSink(implicit userContext: UserContext) = ???
 
   object CacheSource extends DataSource {
     def retrieve(entityDesc: EntitySchema, limit: Option[Int]): Traversable[Entity] = {

@@ -4,7 +4,7 @@ import java.util
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
@@ -38,7 +38,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     pathsCache.start()
   }
 
-  override def run(context: ActivityContext[ReferenceEntities]): Unit = {
+  override def run(context: ActivityContext[ReferenceEntities])
+                  (implicit userContext: UserContext): Unit = {
     canceled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
@@ -54,7 +55,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     }
   }
 
-  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntitySchema]) {
+  private class EntityLoader(context: ActivityContext[ReferenceEntities], entityDescs: DPair[EntitySchema])
+                            (implicit userContext: UserContext) {
 
     private val sources = task.dataSources
 

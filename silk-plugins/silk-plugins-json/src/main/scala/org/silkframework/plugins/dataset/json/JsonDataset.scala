@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 
@@ -24,9 +25,9 @@ case class JsonDataset(
 
   private val codec = Codec(charset)
 
-  override def source: DataSource = new JsonSource(file, basePath, uriPattern, codec)
+  override def source(implicit userContext: UserContext): DataSource = new JsonSource(file, basePath, uriPattern, codec)
 
-  override def linkSink: LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
+  override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 
-  override def entitySink: EntitySink = throw new NotImplementedError("JSON files cannot be written at the moment")
+  override def entitySink(implicit userContext: UserContext): EntitySink = throw new NotImplementedError("JSON files cannot be written at the moment")
 }

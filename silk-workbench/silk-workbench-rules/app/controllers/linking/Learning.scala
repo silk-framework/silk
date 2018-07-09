@@ -15,6 +15,8 @@ import org.silkframework.rule.{LinkSpec, LinkageRule, RuleTraverser}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.Status.Finished
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier._
 import org.silkframework.workbench.Context
@@ -28,27 +30,32 @@ class Learning extends Controller {
   private val log = Logger.getLogger(getClass.getName)
 
   def start(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.start(context))
   }
 
   def learn(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.learn(context))
   }
 
   def activeLearn(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.activeLearn(context))
   }
 
   def activeLearnDetails(project: String, task: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     val activeLearnState = context.task.activity[ActiveLearning].value
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
   def activeLearnCandidate(project: String, task: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     val prefixes = context.project.config.prefixes
     val activeLearn = context.task.activity[ActiveLearning].control
@@ -132,7 +139,8 @@ class Learning extends Controller {
     * @param linkSource source URI of the current link candidate
     * @param linkTarget target URI of the current link candidate
     */
-  private def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, context: Context[LinkSpec]): Option[Link] = {
+  private def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, context: Context[LinkSpec])
+                                      (implicit userContext: UserContext): Option[Link] = {
     val activeLearn = context.task.activity[ActiveLearning].control
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
     val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
@@ -185,6 +193,7 @@ class Learning extends Controller {
     * Renders the top linkage rule in the current population.
     */
   def rule(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](projectName, taskName, request.path)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
@@ -205,7 +214,8 @@ class Learning extends Controller {
   /**
     * Resets the active learning activity.
     */
-  def resetActiveLearning(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def resetActiveLearning(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
 
@@ -219,7 +229,8 @@ class Learning extends Controller {
     Ok
   }
 
-  def ruleStream(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def ruleStream(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
@@ -227,7 +238,8 @@ class Learning extends Controller {
     Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
   }
 
-  def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = Action {
+  def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val validLinks = task.activity[ActiveLearning].value.links
@@ -248,14 +260,16 @@ class Learning extends Controller {
     Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
   }
 
-  def linksStream(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def linksStream(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val stream = Stream.activityValue(task.activity[ActiveLearning].control)
     Ok.chunked(Widgets.autoReload("reload", stream))
   }
 
-  def statusStream(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def statusStream(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
 
@@ -266,11 +280,13 @@ class Learning extends Controller {
   }
 
   def population(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.population(context))
   }
 
-  def populationView(projectName: String, taskName: String, page: Int): Action[AnyContent] = Action {
+  def populationView(projectName: String, taskName: String, page: Int): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val population = getPopulation(task)

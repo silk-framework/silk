@@ -1,17 +1,17 @@
 package controllers.workflow
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import org.silkframework.config.{MetaData, Task}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.{Activity, SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.users.{WebUser, WebUserManager}
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, PersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.{ProjectTask, User}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
@@ -20,7 +20,7 @@ import scala.xml.Elem
 
 class WorkflowApi extends Controller {
 
-  def getWorkflows(projectName: String): Action[AnyContent] = Action {
+  def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflowTasks = project.tasks[Workflow]
     val workflowIdsJson = workflowTasks map { task =>
@@ -31,7 +31,7 @@ class WorkflowApi extends Controller {
 
   private def fetchProject(projectName: String) = User().workspace.project(projectName)
 
-  def postWorkflow(projectName: String): Action[AnyContent] = Action { request =>
+  def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
@@ -40,7 +40,7 @@ class WorkflowApi extends Controller {
     Ok
   }
 
-  def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+  def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
@@ -51,13 +51,13 @@ class WorkflowApi extends Controller {
     Ok
   }
 
-  def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
-  def deleteWorkflow(project: String, task: String): Action[AnyContent] = Action {
+  def deleteWorkflow(project: String, task: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     User().workspace.project(project).removeTask[Workflow](task)
     Ok
   }
@@ -75,7 +75,7 @@ class WorkflowApi extends Controller {
     }
   }
 
-  def status(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def status(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value
@@ -98,7 +98,7 @@ class WorkflowApi extends Controller {
     * delivered inside the request.
     */
   def postVariableWorkflowInput(projectName: String,
-                                workflowTaskName: String): Action[AnyContent] = Action { request =>
+                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>

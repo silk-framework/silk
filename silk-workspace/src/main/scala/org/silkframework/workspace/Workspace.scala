@@ -17,6 +17,7 @@ package org.silkframework.workspace
 import java.io._
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
@@ -27,9 +28,14 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
   @volatile
-  private var cachedProjects = loadProjects()
+  private var cachedProjects: Seq[Project] = Seq.empty
 
   def projects: Seq[Project] = cachedProjects
+
+  def init() // TODO: This needs to be called after creating the workspace
+          (implicit userContext: UserContext): Unit = synchronized {
+    cachedProjects = loadProjects()
+  }
 
   /**
    * Retrieves a project by name.
@@ -44,7 +50,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     projects.find(_.name == name)
   }
 
-  def createProject(config: ProjectConfig): Project = {
+  def createProject(config: ProjectConfig)
+                   (implicit userContext: UserContext): Project = {
     if(cachedProjects.exists(_.name == config.id)) {
       throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
     }
@@ -54,7 +61,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     newProject
   }
 
-  def removeProject(name: Identifier): Unit = {
+  def removeProject(name: Identifier)
+                   (implicit userContext: UserContext): Unit = {
     project(name).activities.foreach(_.control.cancel())
     project(name).flush()
     provider.deleteProject(name)
@@ -69,7 +77,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * @param marshaller object that defines how the project should be marshaled.
     * @return
     */
-  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait): String = {
+  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
+                   (implicit userContext: UserContext): String = {
     marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
   }
 
@@ -82,7 +91,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     */
   def importProject(name: Identifier,
                     inputStream: InputStream,
-                    marshaller: ProjectMarshallingTrait) {
+                    marshaller: ProjectMarshallingTrait)
+                   (implicit userContext: UserContext) {
     findProject(name) match {
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
@@ -97,9 +107,10 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush(): Unit = {
+  def flush()
+           (implicit userContext: UserContext): Unit = {
     for {
-      project <- projects
+      project <- projects // TODO: Should not work directly on all cached projects
       task <- project.allTasks
     } {
       try {
@@ -114,11 +125,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Reloads this workspace.
     */
-  def reload(): Unit = {
+  def reload()
+            (implicit userContext: UserContext): Unit = {
     // Write all data
     flush()
     // Stop all activities
-    for{ project <- projects
+    for{ project <- projects // Should not work directly on the cached projects
          activity <- project.activities } {
       activity.control.cancel()
     }
@@ -134,13 +146,15 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Removes all projects from this workspace.
     */
-  def clear(): Unit = {
+  def clear()
+           (implicit userContext: UserContext): Unit = {
     for(project <- projects) {
-      removeProject(project.config.id)
+      removeProject(project.config.id) // TODO: This works directly on the cached projects and not the ones the user can see
     }
   }
 
-  private def loadProjects(): Seq[Project] = {
+  private def loadProjects()
+                          (implicit userContext: UserContext): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       new Project(projectConfig, provider, repository.get(projectConfig.id))

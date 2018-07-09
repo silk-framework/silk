@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -16,7 +17,7 @@ object EmptyDataset extends Dataset {
   /**
    * Returns an empty data source.
    */
-  override def source: DataSource = new DataSource {
+  override def source(implicit userContext: UserContext): DataSource = new DataSource {
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int]) = Traversable[Entity]()
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = Seq.empty
 
@@ -28,7 +29,7 @@ object EmptyDataset extends Dataset {
   /**
    * Returns a dummy entity sink.
    */
-  override def entitySink: EntitySink = new EntitySink {
+  override def entitySink(implicit userContext: UserContext): EntitySink = new EntitySink {
     override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {}
 
     /**
@@ -52,11 +53,11 @@ object EmptyDataset extends Dataset {
   /**
    * Returns a dummy link sink
    */
-  override def linkSink: LinkSink = new LinkSink {
+  override def linkSink(implicit userContext: UserContext): LinkSink = new LinkSink {
     /**
      * Initialize the link sink
      */
-    override def init(): Unit = {}
+    override def init()(implicit userContext: UserContext): Unit = {}
 
     /**
      * Writes a new link to this writer.

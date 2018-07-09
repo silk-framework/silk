@@ -20,6 +20,7 @@ import java.util.logging.Logger
 import javax.xml.bind.DatatypeConverter
 
 import org.silkframework.dataset.rdf._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.io.Source
@@ -31,11 +32,10 @@ import scala.xml.{Elem, XML}
  */
 case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoint {
 
-  private val logger = Logger.getLogger(classOf[RemoteSparqlEndpoint].getName)
+  override def toString: String = sparqlParams.uri
 
-  override def toString = sparqlParams.uri
-
-  override def select(query: String, limit: Int) = {
+  override def select(query: String, limit: Int)
+                     (implicit userContext: UserContext): SparqlResults = {
     PagingSparqlTraversable(query, executeSelect, sparqlParams, limit)
   }
 
@@ -71,7 +71,8 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
   }
 
-  override def construct(query: String): String = {
+  override def construct(query: String)
+                        (implicit userContext: UserContext): String = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
@@ -100,7 +101,8 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
   }
 
-  override def update(query: String): Unit = {
+  override def update(query: String)
+                     (implicit userContext: UserContext): Unit = {
     //Open a new HTTP connection
     val connection = new URL(sparqlParams.uri).openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")

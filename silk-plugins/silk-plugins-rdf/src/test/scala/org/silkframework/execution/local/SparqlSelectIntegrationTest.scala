@@ -1,6 +1,7 @@
 package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
@@ -20,6 +21,7 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
 
   it should "produce the correct result" in {
     checkOutputResource("sparqlOutput.csv", "s,v")
+    implicit val userContext: UserContext = UserContext.Empty
     val workflowTask = project.task[Workflow](workflow)
     val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()

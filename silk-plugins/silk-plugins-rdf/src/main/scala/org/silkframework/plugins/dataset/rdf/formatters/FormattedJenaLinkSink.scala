@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.formatters
 import org.apache.jena.rdf.model.Model
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * A [[LinkSink]] implementation based on Jena's [[Model]] abstraction.
@@ -12,7 +13,7 @@ class FormattedJenaLinkSink(model: Model,
   /**
    * Initialize the link sink
    */
-  override def init(): Unit = {}
+  override def init()(implicit userContext: UserContext): Unit = {}
 
   /**
    * Writes a new link to this writer.

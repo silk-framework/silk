@@ -1,4 +1,5 @@
-@(project: String, task: String)
+@import org.silkframework.runtime.activity.UserContext
+@(project: String, task: String)(implicit userContext: UserContext)
 
 @import org.silkframework.workspace.User
 @import org.silkframework.workspace.activity.workflow.Workflow

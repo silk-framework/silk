@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
@@ -67,7 +68,7 @@ case class XmlDataset(
 
   validateOutputTemplate()
 
-  override def source: DataSource = {
+  override def source(implicit userContext: UserContext): DataSource = {
     if(streaming) {
       new XmlSourceStreaming(file, basePath, uriPattern)
     } else {
@@ -75,9 +76,9 @@ case class XmlDataset(
     }
   }
 
-  override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
+  override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink: EntitySink = new XmlSink(file, outputTemplate.str)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, outputTemplate.str)
 
   /**
     * Validates the output template parameter

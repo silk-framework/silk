@@ -2,6 +2,8 @@ package controllers.workspace
 
 import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, User}
@@ -19,6 +21,7 @@ class ProjectMarshalingApi extends Controller {
   }
 
   def importProject(project: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     try {
       for (data <- request.body.asMultipartFormData;
            file <- data.files) {
@@ -47,6 +50,7 @@ class ProjectMarshalingApi extends Controller {
     * @return
     */
   def importProjectViaPlugin(project: String, marshallerId: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     withMarshaller(marshallerId) { marshaller =>
       withBodyAsStream { inputStream =>
         val workspace = User().workspace
@@ -56,7 +60,8 @@ class ProjectMarshalingApi extends Controller {
     }
   }
 
-  def exportProject(projectName: String): Action[AnyContent] = Action {
+  def exportProject(projectName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val marshaller = marshallerById("xmlZip").get
     // Export the project into a byte array
     val outputStream = new ByteArrayOutputStream()
@@ -67,7 +72,8 @@ class ProjectMarshalingApi extends Controller {
     Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
   }
 
-  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = Action {
+  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     withMarshaller(marshallerPluginId) { marshaller =>
       // Export the project into a byte array
       val outputStream = new ByteArrayOutputStream()
@@ -80,6 +86,7 @@ class ProjectMarshalingApi extends Controller {
   }
 
   def importWorkspaceViaPlugin(marshallerId: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     User().workspace.clear()
     withMarshaller(marshallerId) { marshaller =>
       withBodyAsStream { inputStream =>
@@ -91,7 +98,8 @@ class ProjectMarshalingApi extends Controller {
     }
   }
 
-  def exportWorkspaceViaPlugin(marshallerPluginId: String): Action[AnyContent] = Action {
+  def exportWorkspaceViaPlugin(marshallerPluginId: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     withMarshaller(marshallerPluginId) { marshaller =>
       val outputStream = new ByteArrayOutputStream()
       val workspace = User().workspace

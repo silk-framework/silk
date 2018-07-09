@@ -1,12 +1,12 @@
 @import controllers.workspace.routes.Assets
-@import org.silkframework.config.TaskSpec
 @import org.silkframework.runtime.plugin.PluginRegistry
-@import org.silkframework.workspace.{Project, ProjectTask, Workspace}
-@import org.silkframework.workspace.activity.ProjectExecutor
+@import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 @import org.silkframework.workbench.WorkbenchPlugins
-@import org.silkframework.workbench.WorkbenchPlugin.{TaskType, TaskActions}
+@import org.silkframework.workspace.activity.ProjectExecutor
+@import org.silkframework.workspace.{Project, Workspace}
+@import org.silkframework.runtime.activity.UserContext
 
-@(workspace: Workspace)
+@(workspace: Workspace)(implicit userContext: UserContext)
 
 <script type="text/javascript" >
   $(function () {

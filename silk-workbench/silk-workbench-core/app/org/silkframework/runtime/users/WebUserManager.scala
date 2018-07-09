@@ -3,6 +3,7 @@ package org.silkframework.runtime.users
 import java.util.logging.Logger
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import play.api.mvc.Request
@@ -14,6 +15,8 @@ import scala.util.control.NonFatal
   */
 trait WebUserManager {
   def user(request: Request[_]): Option[WebUser]
+
+  def userContext(request: Request[_]): UserContext
 }
 
 object WebUserManager {
@@ -49,4 +52,6 @@ object WebUserManager {
 
 object EmptyWebUserManager extends WebUserManager {
   override def user(request: Request[_]): Option[WebUser] = None
+
+  override def userContext(request: Request[_]): UserContext = UserContext.Empty
 }

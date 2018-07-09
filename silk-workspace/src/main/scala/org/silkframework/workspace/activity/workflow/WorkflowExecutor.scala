@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, Status}
+import org.silkframework.runtime.activity._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
@@ -35,11 +35,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               inputs: Seq[ExecType#DataType],
                                               outputSchema: Option[EntitySchema])
                                              (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContexts(task.id))
   }
 
   /** Return error if VariableDataset is used in output and input */
-  protected def checkVariableDatasets(): Unit = {
+  protected def checkVariableDatasets()
+                                     (implicit userContext: UserContext): Unit = {
     val variableDatasets = currentWorkflow.variableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
@@ -58,6 +60,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
 
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
                               workflow: Workflow,
+                              userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
 
   /**

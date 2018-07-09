@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.Link
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * A link sink that pre filters links before writing it to the underlying [[LinkSink]]
@@ -11,7 +12,7 @@ case class FilteredLinkSink(linkSink: LinkSink, filterFn: Link => Boolean) exten
   /**
    * Initialize the link sink
    */
-  override def init(): Unit = linkSink.init()
+  override def init()(implicit userContext: UserContext): Unit = linkSink.init()
 
   /**
    * Filter the link before writing it to the underlying link sink.

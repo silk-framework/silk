@@ -5,6 +5,7 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 
 /**
@@ -31,7 +32,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     }
   }
 
-  override def init(): Unit = {
+  override def init()(implicit userContext: UserContext): Unit = {
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     formattedLinkWriter = javaFile match {
       case Some(file) =>

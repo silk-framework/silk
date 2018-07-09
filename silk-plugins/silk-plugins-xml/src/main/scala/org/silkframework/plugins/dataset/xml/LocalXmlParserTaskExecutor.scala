@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.config.Task
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, TaskException}
-import org.silkframework.execution.local.{LocalEntities, GenericEntityTable, LocalExecution, LocalExecutor}
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 /**
@@ -16,7 +16,8 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
                        inputs: Seq[LocalEntities],
                        outputSchemaOpt: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[LocalEntities] = {
+                       context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     val spec = task.data
     if (inputs.size != 1) {
       throw TaskException("XmlParserTask takes exactly one input!")

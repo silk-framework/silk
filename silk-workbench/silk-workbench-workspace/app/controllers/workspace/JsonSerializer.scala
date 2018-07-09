@@ -8,7 +8,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.Status
+import org.silkframework.runtime.activity.{Status, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
   */
 object JsonSerializer {
 
-  def projectsJson = {
+  def projectsJson(implicit userContext: UserContext) = {
     JsArray(
       for (project <- User().workspace.projects) yield {
         projectJson(project)
@@ -33,7 +33,8 @@ object JsonSerializer {
     )
   }
 
-  def projectJson(project: Project) = {
+  def projectJson(project: Project)
+                 (implicit userContext: UserContext)= {
     Json.obj(
       "name" -> JsString(project.name),
       "tasks" -> Json.obj(
@@ -46,7 +47,8 @@ object JsonSerializer {
     )
   }
 
-  def tasksJson[T <: TaskSpec : ClassTag](project: Project) = JsArray(
+  def tasksJson[T <: TaskSpec : ClassTag](project: Project)
+                                         (implicit userContext: UserContext)= JsArray(
     for (task <- project.tasks[T]) yield {
       JsString(task.id)
     }

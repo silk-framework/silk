@@ -7,6 +7,7 @@ import org.silkframework.dataset.rdf.GraphStoreTrait
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -47,7 +48,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     writeStatementString(newStatements)
   }
 
-  override def init(): Unit = {
+  override def init()(implicit userContext: UserContext): Unit = {
     if(output.isEmpty) {
       stmtCount = 0
       byteCount = 0L
@@ -55,7 +56,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     }
   }
 
-  private def initOutputStream: Option[OutputStream] = {
+  private def initOutputStream(implicit userContext: UserContext): Option[OutputStream] = {
     // Always use N-Triples because of stream-ability
     val out = graphStore.postDataToGraph(graphUri, comment = comment)
     Some(out)

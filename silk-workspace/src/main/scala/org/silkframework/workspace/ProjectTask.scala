@@ -19,7 +19,7 @@ import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
-import org.silkframework.runtime.activity.{HasValue, Status, ValueHolder}
+import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
@@ -97,7 +97,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None)
+            (implicit userContext: UserContext): Unit = synchronized {
     // Update data
     dataValueHolder.update(newData)
     for(md <- newMetaData) {
@@ -114,14 +115,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(new Writer(), ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
   }
 
   /**
     * Updates the meta data of this task.
     */
-  def updateMetaData(newMetaData: MetaData): Unit = {
+  def updateMetaData(newMetaData: MetaData)
+                    (implicit userContext: UserContext): Unit = {
     update(dataValueHolder(), Some(newMetaData))
   }
 
@@ -130,13 +132,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush(): Unit = synchronized {
+  def flush()
+           (implicit userContext: UserContext): Unit = synchronized {
     // Cancel any scheduled writer
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     // Write now
-    Writer.run()
+    new Writer().run()
   }
 
   /**
@@ -175,7 +178,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  override def findDependentTasks(recursive: Boolean): Seq[Identifier] = {
+  override def findDependentTasks(recursive: Boolean)
+                                 (implicit userContext: UserContext): Seq[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
@@ -186,7 +190,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     allDependentTaskIds.distinct
   }
 
-  private object Writer extends Runnable {
+  private class Writer(implicit userContext: UserContext) extends Runnable {
     override def run(): Unit = {
       // Write task
       module.provider.putTask(project.name, ProjectTask.this)

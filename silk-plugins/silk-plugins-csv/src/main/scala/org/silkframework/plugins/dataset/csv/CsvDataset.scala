@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 import scala.io.Codec
 
@@ -42,11 +43,11 @@ case class CsvDataset
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset {
 
-  override def source: DataSource = csvSource
+  override def source(implicit userContext: UserContext): DataSource = csvSource
 
-  override def linkSink: LinkSink = new CsvLinkSink(file, csvSettings)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
 
-  override def entitySink: EntitySink = new CsvEntitySink(file, csvSettings)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
   private def csvSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
     skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)

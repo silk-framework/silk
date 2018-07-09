@@ -7,6 +7,7 @@ import com.ning.http.client.multipart.FilePart
 import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.User
 import play.api.libs.ws.WS
@@ -89,7 +90,8 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     result.bodyAsBytes
   }
 
-  private def clearWorkspace(): Unit = {
+  private def clearWorkspace()
+                            (implicit userContext: UserContext): Unit = {
     User().workspace.clear()
     User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
   }

@@ -3,6 +3,8 @@ package controllers.transform
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workbench.Context
@@ -13,6 +15,7 @@ import play.api.mvc.{Action, AnyContent, Controller}
 class TransformEditor extends Controller with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
 
@@ -21,6 +24,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
   }
 
   def editor(project: String, task: String, rule: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[TransformSpec](project, task, request.path)
     val transformSpec = context.task.data
     transformSpec.nestedRuleAndSourcePath(rule) match {
@@ -32,6 +36,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
   }
 
   def propertyDetails(project: String, task: String, property: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value
     val uri = Uri.parse(property, context.project.config.prefixes)
@@ -40,7 +45,8 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
   }
 
   /** Fetch relative source paths for a specific rule and render widget. */
-  def rulePaths(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action {
+  def rulePaths(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
     val sourceName = transformTask.data.selection.inputId.toString
     val prefixes = project.config.prefixes
@@ -63,7 +69,8 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
     }
   }
 
-  def paths(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def paths(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val pathsCache = task.activity[TransformPathsCache].control

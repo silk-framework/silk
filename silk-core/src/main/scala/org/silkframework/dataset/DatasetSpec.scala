@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
@@ -36,11 +37,11 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
 
   private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
-  def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
-  def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 
-  def linkSink: LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -221,7 +222,7 @@ object DatasetSpec {
 
     private var isOpen = false
 
-    override def init(): Unit = {
+    override def init()(implicit userContext: UserContext): Unit = {
       if (isOpen) {
         linkSink.close()
         isOpen = false

@@ -10,27 +10,30 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.{ProjectTask, User}
+import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+/** CRUD endpoints to manage transform tasks */
 class TransformTaskApi extends Controller {
 
   private val log = Logger.getLogger(getClass.getName)
 
   def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -38,6 +41,7 @@ class TransformTaskApi extends Controller {
   }
 
   def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = Action { implicit request => {
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
@@ -72,7 +76,8 @@ class TransformTaskApi extends Controller {
     }
   }}
 
-  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action {
+  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = getProject(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
@@ -80,6 +85,7 @@ class TransformTaskApi extends Controller {
   }
 
   def getRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -87,6 +93,7 @@ class TransformTaskApi extends Controller {
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
@@ -106,6 +113,7 @@ class TransformTaskApi extends Controller {
   }
 
   def getRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -115,6 +123,7 @@ class TransformTaskApi extends Controller {
   }
 
   def putRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
@@ -132,6 +141,7 @@ class TransformTaskApi extends Controller {
   }
 
   def deleteRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -148,6 +158,7 @@ class TransformTaskApi extends Controller {
   }
 
   def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
@@ -166,6 +177,7 @@ class TransformTaskApi extends Controller {
   }
 
   def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -242,14 +254,17 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  private def updateRule(ruleTraverser: RuleTraverser)(implicit task: ProjectTask[TransformSpec]): Unit = {
+  private def updateRule(ruleTraverser: RuleTraverser)
+                        (implicit task: ProjectTask[TransformSpec],
+                         userContext: UserContext): Unit = {
     val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
     val updatedTask = task.data.copy(mappingRule = updatedRoot)
     updatedRoot.validate()
     task.project.updateTask(task.id, updatedTask)
   }
 
-  def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     task.activity[TransformPathsCache].control.reset()
@@ -257,7 +272,8 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def executeTransformTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val activity = task.activity[ExecuteTransform].control
@@ -265,7 +281,8 @@ class TransformTaskApi extends Controller {
     Ok
   }
 
-  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action {
+  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val project = User().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
 
@@ -291,6 +308,7 @@ class TransformTaskApi extends Controller {
     *         else write triples to defined data sink.
     */
   def postTransformInput(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -308,12 +326,14 @@ class TransformTaskApi extends Controller {
   private def executeTransform(task: ProjectTask[TransformSpec],
                                entitySink: EntitySink,
                                dataSource: DataSource,
-                               errorEntitySinkOpt: Option[EntitySink]): Unit = {
-    val transform = new ExecuteTransform(dataSource, task.data, entitySink)
+                               errorEntitySinkOpt: Option[EntitySink])
+                              (implicit userContext: UserContext): Unit = {
+    val transform = new ExecuteTransform((_) => dataSource, task.data, (_) => entitySink)
     Activity(transform).startBlocking()
   }
 
-  private def projectAndTask(projectName: String, taskName: String) = {
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
@@ -322,6 +342,7 @@ class TransformTaskApi extends Controller {
                        ruleId: String,
                        maxDepth: Int,
                        unusedOnly: Boolean): Action[AnyContent] = Action { implicit request =>
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 

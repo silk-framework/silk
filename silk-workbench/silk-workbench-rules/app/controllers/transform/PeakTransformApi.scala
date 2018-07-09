@@ -10,10 +10,12 @@ import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
@@ -41,7 +43,7 @@ class PeakTransformApi extends Controller {
   def peak(projectName: String,
            taskName: String,
            ruleName: String): Action[AnyContent] = Action { implicit request =>
-
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -56,7 +58,7 @@ class PeakTransformApi extends Controller {
   def peakChildRule(projectName: String,
                     taskName: String,
                     ruleName: String): Action[AnyContent] = Action { implicit request =>
-
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -72,7 +74,7 @@ class PeakTransformApi extends Controller {
 
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata)
                       (implicit request: Request[AnyContent]): Result = {
-
+    implicit val userContext: UserContext = WebUserManager().userContext(request)
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
     val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     implicit val prefixes: Prefixes = project.config.prefixes
@@ -112,7 +114,8 @@ class PeakTransformApi extends Controller {
                                        limit: Int,
                                        maxTryEntities: Int,
                                        sparqlSelectTask: SparqlSelectCustomTask)
-                                      (implicit prefixes: Prefixes): Result = {
+                                      (implicit prefixes: Prefixes,
+                                       userContext: UserContext): Result = {
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset.toString == "") {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
@@ -204,7 +207,8 @@ class PeakTransformApi extends Controller {
     }
   }
 
-  private def projectAndTask(projectName: String, taskName: String) = {
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 

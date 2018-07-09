@@ -3,6 +3,7 @@ package org.silkframework.dataset.rdf
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.execution.local.LocalEntities
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -13,7 +14,8 @@ class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val taskOption: 
 
   override def entities: Traversable[Entity] = Traversable.empty
 
-  def select(query: String, limit: Int = Integer.MAX_VALUE): SparqlResults = sparqlEndpoint.select(query, limit)
+  def select(query: String, limit: Int = Integer.MAX_VALUE)
+            (implicit userContext: UserContext): SparqlResults = sparqlEndpoint.select(query, limit)
 }
 
 object SparqlEndpointEntitySchema {

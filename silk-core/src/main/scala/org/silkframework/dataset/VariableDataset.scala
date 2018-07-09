@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 
 /**
@@ -15,17 +16,17 @@ final class VariableDataset extends Dataset {
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source: DataSource = EmptyDataset.source// TODO: error()
+  override def source(implicit userContext: UserContext): DataSource = EmptyDataset.source// TODO: error()
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override def entitySink: EntitySink = error()
+  override def entitySink(implicit userContext: UserContext): EntitySink = error()
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override def linkSink: LinkSink = error()
+  override def linkSink(implicit userContext: UserContext): LinkSink = error()
 
   private def error() = throw new RuntimeException("A Variable Dataset cannot be accessed! Only use it in workflows that replace all variable datasets before execution.")
 }
