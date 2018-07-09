@@ -127,10 +127,8 @@ object Uri {
       fromString(trimmed)
     } else if (trimmed.toLowerCase.startsWith("http") || trimmed.toLowerCase.startsWith("urn:")) {
       fromString(trimmed)
-    } else if(prefixes.nonEmpty) {
+    } else {
       fromQualifiedName(trimmed, prefixes)
-    } else{
-      fromString(trimmed)
     }
   }
 }

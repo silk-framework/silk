@@ -20,7 +20,6 @@ import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
-import scala.util.Try
 
 /**
   * Represents an RDF path.
@@ -138,17 +137,30 @@ object Path {
     * Creates a path consisting of a single property
     */
   def apply(property: String): Path = {
-    var uri = Uri.parse(property)
-    if(!uri.isValidUri && !Uri("http://ex.org/" + property).isValidUri)
-      uri = Uri(URLEncoder.encode(property, "UTF-8"))
-    apply(ForwardOperator(uri) :: Nil)
+    val trimmed = property.trim
+    if(trimmed.nonEmpty) {
+      val firstChar = trimmed.charAt(0)
+      if (firstChar == '\\')
+        apply(BackwardOperator(Uri.parse(trimmed.substring(1))) :: Nil)
+      else if (firstChar == '/')
+        apply(ForwardOperator(Uri.parse(trimmed.substring(1))) :: Nil)
+      else
+        apply(Uri.parse(property))
+    }
+    else
+      apply(Uri.parse(property))
   }
 
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: Uri): Path = {
-    apply(property.uri)
+  def apply(uri: Uri): Path = {
+    if(!uri.isValidUri && !Uri("http://ex.org/" + uri.uri).isValidUri) {
+      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
+    }
+    else {
+      apply(ForwardOperator(uri) :: Nil)
+    }
   }
 
   /**
