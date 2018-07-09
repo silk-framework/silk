@@ -158,6 +158,4 @@ private class ActivityExecution[T](activity: Activity[T],
       true
     }
   }
-
-  override def userContext: UserContext = startedByUser
 }
