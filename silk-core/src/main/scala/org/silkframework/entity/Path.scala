@@ -20,6 +20,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an RDF path.
@@ -136,19 +137,11 @@ object Path {
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: String): Path = {
-    val trimmed = property.trim
-    if(trimmed.nonEmpty) {
-      val firstChar = trimmed.charAt(0)
-      if (firstChar == '\\')
-        apply(BackwardOperator(Uri.parse(trimmed.substring(1))) :: Nil)
-      else if (firstChar == '/')
-        apply(ForwardOperator(Uri.parse(trimmed.substring(1))) :: Nil)
-      else
-        apply(Uri.parse(property))
+  def apply(property: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
+    Try{Path.parse(property)} match{
+      case Success(p) => p
+      case Failure(_) => apply(Uri(property))
     }
-    else
-      apply(Uri.parse(property))
   }
 
   /**
