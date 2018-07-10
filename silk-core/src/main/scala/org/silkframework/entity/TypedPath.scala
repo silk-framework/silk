@@ -67,7 +67,7 @@ object TypedPath {
       META_FIELD_XML_ATTRIBUTE -> isAttribute,
       META_FIELD_ORIGIN_NAME -> path
     )
-    apply(Path(path)(prefixes).operators, valueType, metadata)
+    apply(Path.saveApply(path)(prefixes).operators, valueType, metadata)
   }
 
   /**
