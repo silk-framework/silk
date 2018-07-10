@@ -57,5 +57,4 @@ object Serialization {
         throw new NoSuchElementException(s"No serialization format for type $valueType for content type $mimeType available.")
     }
   }
-
 }
