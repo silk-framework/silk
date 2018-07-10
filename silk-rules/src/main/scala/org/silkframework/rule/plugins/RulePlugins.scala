@@ -68,6 +68,7 @@ class RulePlugins extends PluginModule {
         classOf[StripPrefixTransformer] ::
         classOf[StripPostfixTransformer] ::
         classOf[StripUriPrefixTransformer] ::
+        classOf[UriFixTransformer] ::
         classOf[AlphaReduceTransformer] ::
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::

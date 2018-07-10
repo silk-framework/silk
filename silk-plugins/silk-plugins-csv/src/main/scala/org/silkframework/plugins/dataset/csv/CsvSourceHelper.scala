@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
@@ -61,7 +63,13 @@ object CsvSourceHelper {
               case Some(max) => columnName + "_" + (max + 1)
               case None => columnName
             }
-          case (s, _) => s
+          case (s, _) =>
+            val u = Uri.parse(s)
+            if (u.isValidUri) {
+              u.uri
+            } else {
+              URLEncoder.encode(s, "UTF-8")
+            }
         }.toIndexedSeq
   }
 }

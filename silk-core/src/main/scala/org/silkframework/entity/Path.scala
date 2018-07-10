@@ -14,10 +14,13 @@
 
 package org.silkframework.entity
 
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an RDF path.
@@ -134,15 +137,23 @@ object Path {
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: String): Path = {
-    apply(ForwardOperator(property.trim) :: Nil)
+  def apply(property: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
+    Try{Path.parse(property)} match{
+      case Success(p) => p
+      case Failure(_) => apply(Uri(property))
+    }
   }
 
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: Uri): Path = {
-    apply(property.uri)
+  def apply(uri: Uri): Path = {
+    if(!uri.isValidUri && !Uri("http://ex.org/" + uri.uri).isValidUri) {
+      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
+    }
+    else {
+      apply(ForwardOperator(uri) :: Nil)
+    }
   }
 
   /**

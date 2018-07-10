@@ -13,10 +13,6 @@ const hierarchicalMapping = (containerId, apiSettings) => {
     );
 };
 
-if (__DEBUG__) {
-    hierarchicalMapping('react');
-}
-
 require('./style/style.scss');
 
 window.HierarchicalMapping = hierarchicalMapping;
