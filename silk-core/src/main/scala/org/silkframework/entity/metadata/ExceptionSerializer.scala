@@ -5,7 +5,7 @@ import ExceptionSerializer._
 
 import scala.xml.{Elem, Node}
 
-case class   ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
+case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
