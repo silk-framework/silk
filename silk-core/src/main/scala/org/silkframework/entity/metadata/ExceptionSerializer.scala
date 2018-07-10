@@ -5,7 +5,7 @@ import ExceptionSerializer._
 
 import scala.xml.{Elem, Node}
 
-case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
+case class   ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
@@ -19,6 +19,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
     var arguments = Seq[Object]()
+    //TODO this is not deterministic, there might be constructors
     val constructor = if(cause != null){
       var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
       arguments = Seq(message, cause)
