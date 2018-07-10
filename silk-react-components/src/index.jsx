@@ -10,7 +10,7 @@ import SilkStore from './SilkStore/silkStore';
 
 require('./style/style.scss');
 
-window.silkRreactComponents = {
+window.silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(
             <HierarchicalMappingComponent {...apiSettings} />,
