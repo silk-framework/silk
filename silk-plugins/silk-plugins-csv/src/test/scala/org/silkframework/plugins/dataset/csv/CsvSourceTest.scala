@@ -22,6 +22,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   val source = new CsvSource(resources.get("persons.csv"), settings)
   val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
+  val dirtyHeaders = new CsvSource(resources.get("dirtyHeaders.csv"), settings)
   val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
   val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
   val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
@@ -30,6 +31,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
     properties should equal(Set("ID", "Name", "Age"))
+  }
+
+  "For dirtyHeaders.csv, CsvParser" should "encode the column names when extracting the schema" in {
+    val properties = dirtyHeaders.retrievePaths("").map(_.propertyUri.get.toString).toSet
+    properties should equal(Set("ID+mit+Sonderzeichen%25%21%3F", "Name+of+the+Person", "Alter%C3%84%C3%96%C3%9C"))
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {

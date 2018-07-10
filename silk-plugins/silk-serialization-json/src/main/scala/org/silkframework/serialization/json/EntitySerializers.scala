@@ -14,7 +14,7 @@ object EntitySerializers {
 
     override def write(value: EntityHolder)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       // Append header
-      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.serializeSimplified).toArray
+      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.serialize(true)).toArray
 
       // Convert entity values to a nested JSON array
       val valuesJson = JsArray(

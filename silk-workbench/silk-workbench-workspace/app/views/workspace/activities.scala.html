@@ -186,7 +186,7 @@
       }
     </div>
     <div class="activity-button-value">
-      @if(activity.valueType != classOf[BoxedUnit]) {
+      @if(!activity.isUnitValueType) {
         <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
       }
     </div>

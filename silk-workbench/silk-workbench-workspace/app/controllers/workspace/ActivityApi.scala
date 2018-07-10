@@ -54,7 +54,7 @@ class ActivityApi extends Controller {
         activityControl.startBlocking()
       else
         activityControl.start()
-      Ok
+      NoContent
     }
   }
 

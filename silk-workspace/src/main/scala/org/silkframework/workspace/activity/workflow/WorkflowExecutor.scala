@@ -70,17 +70,17 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     }
   }.toMap
 
-  /**
-    * Listeners for updates to task reports.
-    * We need to hold them to prevent their garbage collection.
-    */
-  private val taskReportListeners = {
-    for((task, context) <- taskContexts) yield {
-      val listener = new TaskReportListener(task)
-      context.value.onUpdate(listener)
-      listener
+    /**
+      * Listeners for updates to task reports.
+      * We need to hold them to prevent their garbage collection.
+      */
+    private val taskReportListeners = {
+      for((task, context) <- taskContexts) yield {
+        val listener = new TaskReportListener(task)
+        context.value.subscribe(listener)
+        listener
+      }
     }
-  }
 
   /**
     * Updates the workflow execution report on each update of a task report.

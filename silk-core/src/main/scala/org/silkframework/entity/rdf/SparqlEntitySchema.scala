@@ -15,7 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{BackwardOperator, EntitySchema, ForwardOperator, Path}
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -103,7 +103,7 @@ object SparqlEntitySchema {
         <Restrictions>{desc.restrictions.toSparql}</Restrictions>
         <Paths> {
           for (path <- desc.paths) yield {
-            <Path>{path.serialize(Prefixes.empty)}</Path>
+            <Path>{path.serialize()(Prefixes.empty)}</Path>
           }
           }
         </Paths>

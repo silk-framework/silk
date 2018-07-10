@@ -11,7 +11,7 @@ import scala.xml.Node
   * @param ops the path operators
   * @param valueType the type that has to be considered during processing.
   */
-case class TypedPath(private val ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
+case class TypedPath(ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean) extends Path(ops) {
 
   def this(path: Path, valueType: ValueType, isAttribute: Boolean) = this(path.operators, valueType, isAttribute)
 
@@ -58,7 +58,7 @@ object TypedPath {
       implicit val p = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
-          {typedPath.serialize}
+          {typedPath.normalizedSerialization}
         </Path>{XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }

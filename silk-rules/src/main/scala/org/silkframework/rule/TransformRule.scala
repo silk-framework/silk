@@ -11,7 +11,7 @@ import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
-import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
+import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
@@ -339,7 +339,7 @@ case class ObjectMapping(id: Identifier = "mapping",
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id"))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.serialize}}/$id"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id"))
         }
       case None =>
         None
@@ -430,7 +430,7 @@ object TransformRule {
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
         case ObjectMapping(name, relativePath, target, childRules, metaData) =>
-          <ObjectMapping name={name} relativePath={relativePath.serialize} >
+          <ObjectMapping name={name} relativePath={relativePath.normalizedSerialization} >
             {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
             { target.map(toXml[MappingTarget]).toSeq }
@@ -483,24 +483,34 @@ private object UriPattern {
     // FIXME we should write a real parser for this
     val inputs = {
       if(pattern == "{}") {
-        Seq(TransformInput("uri", UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path", Path.empty))))
+        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", Path.empty))))
       } else {
+        var firstConstant: String = ""
         for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
-          if (i % 2 == 0)
+          if (i % 2 == 0) {
+            if(i == 0) {
+              firstConstant = str
+            }
             TransformInput("constant" + i, ConstantTransformer(str))
-          else
-            TransformInput("encode" + i, UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path" + i, Path.parse(str))))
+          } else {
+            if(i == 1 && firstConstant == "") {
+              // There is a path at the start of the URI pattern, this value needs to become a valid URI
+              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+            } else {
+              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+            }
+          }
         }
       }
     }
 
-    TransformInput(id = "buildUri",transformer = ConcatTransformer(""), inputs = inputs)
+    TransformInput(id = "buildUri",transformer = ConcatTransformer(), inputs = inputs)
   }
 
   def isPattern(inputs: Seq[Input]): Boolean = {
     inputs.forall {
       case PathInput(id, path) => true
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => true
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, ConstantTransformer(constant), Nil) => true
       case _ => false
     }
@@ -508,8 +518,8 @@ private object UriPattern {
 
   def build(inputs: Seq[Input]): String = {
     inputs.map {
-      case PathInput(id, path) => "{" + path.serializeSimplified() + "}"
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serializeSimplified() + "}"
+      case PathInput(id, path) => "{" + path.serialize() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }
