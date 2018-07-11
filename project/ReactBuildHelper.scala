@@ -1,6 +1,8 @@
-import org.apache.commons.io.FileUtils
 import java.io.File
-import sbt.Process
+
+import org.apache.commons.io.FileUtils
+
+import scala.sys.process.{Process, ProcessLogger}
 
 object ReactBuildHelper {
   /**
@@ -9,7 +11,7 @@ object ReactBuildHelper {
   val yarnCommand: String = sys.props.get("os.name") match {
     case Some(os) if os.toLowerCase.contains("win") =>
       // On windows, we need to provide the path of the yarn script manually
-      Process("where.exe" :: "yarn.cmd" :: Nil).!!.trim
+      process("where.exe" :: "yarn.cmd" :: Nil).trim
     case _ =>
       "yarn"
   }
@@ -20,7 +22,7 @@ object ReactBuildHelper {
   def checkReactBuildTool(): Unit = {
     val missing = Seq(yarnCommand) filter { name =>
       scala.util.Try {
-        Process(name :: "--version" :: Nil).!! == ""
+        process(name :: "--version" :: Nil) == ""
       } getOrElse true
     }
 
@@ -43,12 +45,12 @@ object ReactBuildHelper {
     val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
     println(s"Building $project React components for $buildEnv, running task $buildTask...")
 
-    Process(yarnCommand :: Nil, reactBuildRoot).!! // Install dependencies
+    process(yarnCommand :: Nil, reactBuildRoot) // Install dependencies
     // Run build via gulp task, this has been the old way of building it
     //          Process("yarn" :: "run" :: "deploy" :: Nil, reactBuildRoot).!! // Build main artifact
 
     // Run build via webpack only, uncomment source map copy instruction when using this
-    Process(yarnCommand :: buildTask :: Nil, reactBuildRoot).!! // Build main artifact
+    process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
 
     FileUtils.deleteDirectory(targetArtifactDirectory)
     FileUtils.forceMkdir(targetArtifactDirectory)
@@ -62,7 +64,28 @@ object ReactBuildHelper {
       FileUtils.copyFileToDirectory(file, targetArtifactDirectory)
     }
     FileUtils.copyDirectoryToDirectory(new File(reactBuildRoot, "dist/fonts"), targetArtifactDirectory)
-    println("Finished building React components.")
+    println(s"Finished building $project React components.")
+  }
+
+  private def process(command: Seq[String], workingDir: File): String = {
+    val (out, err) = (new StringBuffer(), new StringBuffer())
+    val logger = ProcessLogger(
+      out.append(_),
+      err.append(_)
+    )
+    val proc = Process(command, workingDir)
+    val exitCode = proc.!(logger)
+    if(exitCode == 0) {
+      out.toString
+    } else {
+      throw new RuntimeException(s"Executing external process '${command.mkString(" ")}' in working directory " +
+          s"${workingDir.getCanonicalPath} failed with error code " + exitCode +
+          s" and error output: ${err.toString}")
+    }
+  }
+
+  def process(command: Seq[String]): String = {
+    process(command, new File("./"))
   }
 
   /**
@@ -75,6 +98,6 @@ object ReactBuildHelper {
   def transpileJavaScript(reactBuildRoot: File, sourceFile: File, targetFile: File): Unit = {
     FileUtils.forceMkdir(targetFile.getParentFile)
     println("Transpiling (ES5) " + sourceFile.getCanonicalPath + " to " + targetFile.getCanonicalPath)
-    Process(yarnCommand :: "babel" :: sourceFile.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, reactBuildRoot).!!
+    process(yarnCommand :: "babel" :: sourceFile.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, reactBuildRoot)
   }
 }
