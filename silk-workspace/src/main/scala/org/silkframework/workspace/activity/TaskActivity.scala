@@ -3,9 +3,11 @@ package org.silkframework.workspace.activity
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 
 import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{Activity, HasValue, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.reflect.ClassTag
 import scala.runtime.BoxedUnit
@@ -14,86 +16,98 @@ import scala.runtime.BoxedUnit
   * Holds an activity that is part of an task.
   *
   * @param task           The task this activity belongs to.
-  * @param initialFactory The initial activity factory for generating the activity.
+  * @param defaultFactory The initial activity factory for generating the activity.
   * @tparam DataType The type of the task.
   */
 class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType],
-                                                                                         initialFactory: TaskActivityFactory[DataType, ActivityType])
-    extends WorkspaceActivity {
+                                                                                         defaultFactory: TaskActivityFactory[DataType, ActivityType])
+    extends WorkspaceActivity[ActivityType] {
 
   @volatile
-  private var currentControl = Activity(initialFactory(task))
+  private var currentControl = Activity(defaultFactory(task))
 
   @volatile
-  private var currentFactory = initialFactory
+  private var controls: Map[Identifier, ActivityControl[ActivityType#ValueType]] = Map()
 
-  override def name = currentFactory.pluginSpec.id
+  private val identifierGenerator = new IdentifierGenerator(defaultFactory.pluginSpec.id)
 
-  override def project = task.project
+  override def name: Identifier = defaultFactory.pluginSpec.id
 
-  override def taskOption = Option(task)
+  override def project: Project = task.project
 
-  def value = currentControl.value()
+  override def taskOption: Option[ProjectTask[DataType]] = Option(task)
 
-  override def status = currentControl.status()
+  override def control: ActivityControl[ActivityType#ValueType] = currentControl
 
-  override def startTime: Option[Long] = currentControl.startTime
+  def allControls: Map[Identifier, ActivityControl[ActivityType#ValueType]] = {
+    if(defaultFactory.isSingleton) {
+      Map((name, control))
+    } else {
+      controls
+    }
+  }
 
-  def autoRun = currentFactory.autoRun
+  def factory: TaskActivityFactory[DataType, ActivityType] = defaultFactory
 
-  def control = currentControl
+  def autoRun: Boolean = defaultFactory.autoRun
 
-  def factory = currentFactory
+  def isSingleton: Boolean = defaultFactory.isSingleton
 
-  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
+  def config: Map[String, String] = PluginDescription(defaultFactory.getClass).parameterValues(defaultFactory)(Prefixes.empty)
 
   def reset(): Unit = {
     currentControl.cancel()
-    recreateControl()
+    createControl(config)
   }
 
   /**
     * Starts the activity asynchronously.
-    * Optionally applies a supplied configuration beforehand.
+    * Optionally applies a supplied configuration.
     */
-  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
-    if(config.nonEmpty) {
-      update(config)
-    }
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Identifier = {
+    val (id, control) = createControl(config)
     control.start()
+    id
   }
 
   /**
     * Starts the activity blocking.
-    * Optionally applies a supplied configuration beforehand.
+    * Optionally applies a supplied configuration.
     */
-  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
-    if(config.nonEmpty) {
-      update(config)
-    }
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Identifier = {
+    val (id, control) = createControl(config)
     control.startBlocking()
+    id
   }
 
+  @deprecated("should send configuration when calling start", "4.5.0")
   def update(config: Map[String, String]): Unit = {
-    implicit val prefixes = task.project.config.prefixes
-    implicit val resources = task.project.resources
-    currentFactory = PluginDescription(currentFactory.getClass)(config)
-    recreateControl()
+    createControl(config)
   }
 
-  private def recreateControl(): Unit = {
-    val oldControl = currentControl
-    currentControl = Activity(currentFactory(task))
-    // Keep subscribers
-    for (subscriber <- oldControl.status.subscribers) {
-      currentControl.status.subscribe(subscriber)
+  private def createControl(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = {
+    implicit val prefixes: Prefixes = task.project.config.prefixes
+    implicit val resources: ResourceManager = task.project.resources
+    val newControl = Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
+    val identifier = if(defaultFactory.isSingleton) name else identifierGenerator.generate("")
+
+    if(defaultFactory.isSingleton) {
+      // Keep subscribers
+      for (subscriber <- currentControl.status.subscribers) {
+        newControl.status.subscribe(subscriber)
+      }
+      for (subscriber <- currentControl.value.subscribers) {
+        newControl.value.subscribe(subscriber)
+      }
+    } else {
+      controls += ((identifier, newControl))
     }
-    for (subscriber <- oldControl.value.subscribers) {
-      currentControl.value.subscribe(subscriber)
-    }
+
+    currentControl = newControl
+    (identifier, newControl)
   }
 
-  def activityType: Class[_] = currentFactory.activityType
+  def activityType: Class[_] = defaultFactory.activityType
 
   /**
     * Checks if the value type of the activity is Unit.

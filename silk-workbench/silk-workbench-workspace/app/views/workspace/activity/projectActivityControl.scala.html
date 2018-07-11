@@ -1,8 +1,9 @@
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.workspace.activity.CachedActivity
+@import org.silkframework.runtime.activity.HasValue
 @import scala.language.existentials
 
-@(activity: ProjectActivity, showButtons: Boolean = false)
+@(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false)
 
 @activityControl(
   activity.project.name, None, activity.name,

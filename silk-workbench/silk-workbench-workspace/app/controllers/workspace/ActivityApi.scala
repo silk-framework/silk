@@ -5,14 +5,15 @@ import java.util.logging.{LogRecord, Logger}
 import controllers.core.{Stream, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
+import org.silkframework.runtime.activity._
 import org.silkframework.runtime.users.WebUserManager
-import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.util.Identifier
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, User}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 
 import scala.language.existentials
@@ -34,27 +35,23 @@ class ActivityApi extends Controller {
     val project = User().workspace.project(projectName)
     val config = activityConfig(request)
     implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
-    val activityControl =
+    val activity: WorkspaceActivity[_ <: HasValue] =
       if (taskName.nonEmpty) {
-        val activity = project.anyTask(taskName).activity(activityName)
-        if (config.nonEmpty)
-          activity.update(config)
-        activity.control
+        project.anyTask(taskName).activity(activityName)
       } else {
-        val activity = project.activity(activityName)
-        if (config.nonEmpty)
-          activity.update(config)
-        activity.control
+        project.activity(activityName)
       }
 
-    if (activityControl.status().isRunning) {
+    if (activity.status.isRunning) {
       ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
     } else {
-      if (blocking)
-        activityControl.startBlocking()
-      else
-        activityControl.start()
-      NoContent
+      if (blocking) {
+        activity.startBlocking(config)
+        NoContent
+      } else {
+        val id = activity.start(config)
+        Ok(Json.obj(("activityId", id.toString)))
+      }
     }
   }
 
@@ -128,7 +125,7 @@ class ActivityApi extends Controller {
 
     // Get all activities
     val projectActivities = projects.flatMap(_.activities)
-    val taskActivities = tasks.flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity]])
+    val taskActivities = tasks.flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity[_ <: HasValue]]])
     val allActivities = projectActivities ++ taskActivities
 
     // Filter recent activities
@@ -176,9 +173,15 @@ class ActivityApi extends Controller {
 
   private def activityControl(projectName: String, taskName: String, activityName: String): ActivityControl[_] = {
     val project = User().workspace.project(projectName)
+    val activityId: Identifier = activityName
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
-      task.activity(activityName).control
+      val activities = task.activities.flatMap(_.allControls.get(activityId).asInstanceOf[Option[ActivityControl[_]]].toSeq)
+      activities match {
+        case Seq(activity) => activity
+        case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
+        case _ => throw new ValidationException(s"Multiple activities with id $activityName found")
+      }
     } else {
       project.activity(activityName).control
     }

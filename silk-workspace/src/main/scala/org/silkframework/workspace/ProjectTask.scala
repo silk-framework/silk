@@ -18,10 +18,9 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config._
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -56,16 +55,21 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes: Prefixes = module.project.config.prefixes
-    implicit val resources: ResourceManager = module.project.resources
-    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
+    implicit val prefixes = module.project.config.prefixes
+    implicit val resources = module.project.resources
+    val taskType = data.getClass
+    val activityPlugins = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
+
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
-    for (factory <- factories) {
+    for (plugin <- activityPlugins) {
       try {
-        activities ::= new TaskActivity(this, factory)
+        val factory = plugin.apply()
+        if(factory.taskType.isAssignableFrom(taskType)) {
+          activities ::= new TaskActivity(this, factory)
+        }
       } catch {
         case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$id' in project '${module.project.name}'.", ex)
+          log.log(Level.WARNING, s"Could not load task activity '$plugin' in task '$id' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse
@@ -142,7 +146,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * All activities that belong to this task.
     */
-  def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
+  def activities: Seq[TaskActivity[TaskType, _ <: HasValue]] = taskActivities
 
   /**
     * Retrieves an activity by type.

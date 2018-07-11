@@ -18,7 +18,7 @@
       const contentScrollTop = document.getElementsByClassName("mdl-layout__content")[0].scrollTop;
       sessionStorage.setItem("activityViewScrollPosition", contentScrollTop);
       $.post(
-        '@Html(routes.ActivityApi.postActivityConfig(activity.task.project.name, activity.task.id, activity.name).url)',
+        '@Html(routes.ActivityApi.startActivity(activity.task.project.name, activity.task.id, activity.name, blocking = false).url)',
         parameters
       ).done(function() {
         closeDialog();

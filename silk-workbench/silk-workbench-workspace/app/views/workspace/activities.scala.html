@@ -10,6 +10,7 @@
 @import controllers.workspace.routes.Assets
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.activity.CachedActivity
+@import org.silkframework.runtime.activity.HasValue
 
 @**
  * Overview page of all activities and their status
@@ -146,7 +147,7 @@
   </li>
 }
 
-@projectActivityStatus(project: Project, activity: ProjectActivity) = {
+@projectActivityStatus(project: Project, activity: ProjectActivity[_ <: HasValue]) = {
   <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div class="activity-progress-small">

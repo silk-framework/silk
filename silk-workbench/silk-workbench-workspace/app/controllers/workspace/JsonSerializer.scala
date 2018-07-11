@@ -8,7 +8,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.Status
+import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
@@ -111,8 +111,8 @@ object JsonSerializer {
   }.toMap
 
 
-  def activityStatus(activity: WorkspaceActivity): JsValue = {
-    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.status, activity.startTime)
+  def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
+    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.control.status(), activity.startTime)
   }
 
   def activityStatus(project: String, task: String, activity: String, status: Status, startTime: Option[Long]): JsValue = {

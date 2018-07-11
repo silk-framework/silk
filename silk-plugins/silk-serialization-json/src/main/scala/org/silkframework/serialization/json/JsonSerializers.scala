@@ -32,6 +32,22 @@ object JsonSerializers {
   final val METADATA = "metadata"
   final val OPERATOR = "operator"
 
+  implicit object StringJsonFormat extends JsonFormat[String] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): String = {
+      value.as[JsString].value
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: String)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsString(value)
+    }
+  }
+
   implicit object UriJsonFormat extends JsonFormat[Uri] {
     /**
       * Deserializes a value.
