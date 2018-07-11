@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.Prefixes
-`import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
