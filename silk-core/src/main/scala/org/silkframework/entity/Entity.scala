@@ -100,7 +100,7 @@ case class Entity private(
     * @param pathIndex - the index in the value array
     * @return
     */
-  private[entity] def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
 
   def valueOf(property: String): Seq[String] = valueOf(Path.saveApply(property.trim).asAutoDetectTypedPath)

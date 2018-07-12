@@ -27,6 +27,8 @@ import scala.xml.Node
  */
 case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
 
+  @volatile private var cachedPathIndex = -1
+
   /**
     * Returns an empty sequence as a path input does not have any children.
     */
@@ -52,7 +54,18 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
     eval(entity)
   }
 
-  private def eval(entity: Entity) = entity.evaluate(path)
+  private def eval(entity: Entity) = {
+    if(path.operators.isEmpty) {
+      Seq(entity.uri.toString)
+    } else {
+      var index = cachedPathIndex
+      if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index) != path) {
+        index = entity.schema.pathIndex(path)
+        cachedPathIndex = index
+      }
+      entity.evaluate(index)
+    }
+  }
 }
 
 object PathInput {
