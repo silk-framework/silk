@@ -32,7 +32,8 @@ case class TypedPath(
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
   /**
-    * TODO @Robert Isele
+    * Returns a typed property if this is a path of length one.
+    * Returns None otherwise.
     */
   def property: Option[TypedProperty] = operators match {
     case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))

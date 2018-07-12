@@ -40,7 +40,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   }
 
   /**
-    * this will return the EntitySchema containing the given typed path
+    * his will return the EntitySchema containing the given typed path
     * NOTE: has to be overwritten in MultiEntitySchema
     * @param tp - the typed path
     * @return
@@ -51,7 +51,14 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
   }
 
-  override def pathIndex(path: Path): Int = throw new NotImplementedError("Function 'pathIndex' is not supported for MultiEntitySchemata.")
+  /**
+    * Returns the index of a given path in the pivot schema.
+    * Note that paths in any of the sub schemata are not searched for.
+    *
+    * @param path - the path to find
+    * @return - the index of the path in question
+    */
+  override def pathIndex(path: Path): Int = pivotSchema.pathIndex(path)
 }
 
 object MultiEntitySchema{
