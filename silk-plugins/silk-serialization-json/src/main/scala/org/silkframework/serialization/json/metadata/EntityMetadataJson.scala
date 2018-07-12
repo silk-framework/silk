@@ -3,9 +3,9 @@ package org.silkframework.serialization.json.metadata
 import org.silkframework.entity.metadata._
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
-import play.api.libs.json.{JsNull, JsObject, JsValue}
+import play.api.libs.json.{JsObject, JsValue}
 
-case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) extends EntityMetadata[JsValue]{
+case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]] = Map()) extends EntityMetadata[JsValue]{
 
   override val serializer: SerializationFormat[EntityMetadata[JsValue], JsValue] =
     EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadata[JsValue], JsValue]]
@@ -14,6 +14,8 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) e
 
   override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadata[JsValue] =
     EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
+
+  override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
 }
 
 object EntityMetadataJson{
@@ -32,6 +34,8 @@ object EntityMetadataJson{
   def apply(base: EntityMetadata[JsValue]): EntityMetadataJson = EntityMetadataJson(base.metadata)
 
   def apply(value: String): EntityMetadataJson = apply(JsonSerializer.fromString(value, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext()))
+
+  EntityMetadata.registerNewEntityMetadataFormat(EntityMetadataJson())
 
   object JsonSerializer extends JsonFormat[EntityMetadata[JsValue]] {
 
@@ -73,7 +77,7 @@ object EntityMetadataJson{
       */
     override def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): EntityMetadata[JsValue] = {
       if(value == null || value.trim.isEmpty)
-        return EntityMetadata.empty[JsValue]
+        return EntityMetadataJson()
       val lines = value.split("\n")
         .map(_.trim)
         .filter(_.length > 3)
@@ -93,8 +97,8 @@ object EntityMetadataJson{
       * Formats a JSON value as string.
       */
     override def toString(value: EntityMetadata[JsValue], mimeType: String)(implicit writeContext: WriteContext[JsValue]): String = {
-      if(value == EntityMetadata.empty)
-        return null
+      if(value.isEmpty)
+        return ""
       val sb = new StringBuilder("{")
       for(ent <- value){
         if(ent != value.head) sb.append(",\n") else sb.append("\n")

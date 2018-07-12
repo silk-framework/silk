@@ -16,7 +16,7 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
-import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataEmpty}
+import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -24,19 +24,19 @@ import scala.language.existentials
 
 /**
   * An Entity can represent an instance of any given concept
-  * @param uri - an URI as identifier
-  * @param vals - A list of values of the properties defined in the provided EntitySchema
-  * @param schema - The EntitySchema defining the nature of this entity
+  * @param uri         - an URI as identifier
+  * @param vals        - A list of values of the properties defined in the provided EntitySchema
+  * @param schema      - The EntitySchema defining the nature of this entity
   * @param subEntities - optional, each entity can be composed of multiple sub-entities if defined with a suitable MultiEntitiySchema
-  * @param metadata - metadata object containing all available metadata information about this object
-  *                 an Entity is marked as 'failed' if [[EntityMetadata.failure]] is set. It becomes sealed.
+  * @param metadata    - metadata object containing all available metadata information about this object
+  *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
 case class Entity private(
     uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
     schema: EntitySchema,
     subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
-    metadata: EntityMetadata[_] = EntityMetadata.empty
+    metadata: EntityMetadata[_] = EntityMetadataXml()
   ) extends Serializable {
 
   def copy(
@@ -235,7 +235,7 @@ object Entity {
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[Throwable]): Entity = {
     new Entity(uri, values, schema, subEntities, failureOpt match{
       case Some(t) => EntityMetadata(t)
-      case None => EntityMetadata.empty[Any]
+      case None => EntityMetadataXml()
     })
   }
 

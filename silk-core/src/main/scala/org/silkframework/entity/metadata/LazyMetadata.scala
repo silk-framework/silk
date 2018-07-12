@@ -12,9 +12,6 @@ import scala.reflect.ClassTag
   */
 trait LazyMetadata[Typ, Ser] extends Serializable {
 
-  implicit val rc = ReadContext()
-  implicit val wc = WriteContext[Ser]()
-
   implicit val typTag: ClassTag[Typ]
   implicit val serTag: ClassTag[Ser]
 
@@ -51,7 +48,7 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     */
   val defaultMimeType: String
 
-  override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(wc)).getOrElse("")
+  override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(WriteContext[Ser]())).getOrElse("")
 }
 
 object LazyMetadata extends Serializable {

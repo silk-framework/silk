@@ -1,6 +1,6 @@
 package org.silkframework.entity.metadata
 
-import org.silkframework.runtime.serialization.{SerializationFormat, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext, XmlFormat}
 
 import scala.reflect.ClassTag
 import scala.xml.{Group, Node}
@@ -27,7 +27,7 @@ case class LazyMetadataXml[Typ] private(
     */
   override lazy val metadata: Option[Typ] = obj match{
     case Some(x) => Some(x)
-    case None => Option(serializer.read(serialized))
+    case None => Option(serializer.read(serialized)(ReadContext()))
   }
 
   /**

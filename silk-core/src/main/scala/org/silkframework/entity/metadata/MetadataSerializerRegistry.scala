@@ -4,7 +4,7 @@ import org.silkframework.runtime.serialization.SerializationFormat
 
 import scala.collection.mutable
 
-trait MetadataRegistry[Format <: Any] {
+trait MetadataSerializerRegistry[Format <: Any] {
 
   /**
     * Each serialization format needs a dedicated Exception serializer

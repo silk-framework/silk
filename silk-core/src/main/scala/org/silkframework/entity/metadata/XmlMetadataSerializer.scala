@@ -23,7 +23,7 @@ abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with Ser
   XmlMetadataSerializer.registerSerializationFormat(metadataId, this)
 }
 
-object XmlMetadataSerializer extends MetadataRegistry[Node] {
+object XmlMetadataSerializer extends MetadataSerializerRegistry[Node] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */

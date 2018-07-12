@@ -14,10 +14,10 @@ import scala.xml.Node
   * @param metadata an immutable map that stores metadata object
   */
 case class TypedPath(
-                      private val ops: List[PathOperator],
-                      valueType: ValueType,
-                      metadata: Map[String, Any]
-                    ) extends Path(ops) {
+  private val ops: List[PathOperator],
+  valueType: ValueType,
+  metadata: Map[String, Any]
+) extends Path(ops) {
 
   /**
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key

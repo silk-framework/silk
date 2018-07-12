@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.MetadataRegistry
+import org.silkframework.entity.metadata.MetadataSerializerRegistry
 import org.silkframework.runtime.serialization.SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.JsValue
@@ -25,7 +25,7 @@ abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with S
   JsonMetadataSerializer.registerSerializationFormat(metadataId, this)
 }
 
-object JsonMetadataSerializer extends MetadataRegistry[JsValue] {
+object JsonMetadataSerializer extends MetadataSerializerRegistry[JsValue] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
