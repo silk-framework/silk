@@ -25,7 +25,7 @@ trait MetadataInjector[Typ, Ser] {
 
   private def getEmptyMetadataInstance: EntityMetadata[Ser] = EntityMetadata.empty[Ser](serializer.serializedType.asInstanceOf[Class[Ser]]) match{
     case Some(em) => em
-    case None => throw new IllegalArgumentException
+    case None => throw new NotImplementedError("No implementation of [[EntityMetadata]] for serialization type " + serializer.serializedType.getName + " was found.")
   }
 
   /**

@@ -16,6 +16,11 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]] = 
     EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 
   override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
+
+  override def addFailure(failure: Throwable): EntityMetadata[JsValue] = {
+    val lm = LazyMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[Throwable])
+    addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
+  }
 }
 
 object EntityMetadataJson{

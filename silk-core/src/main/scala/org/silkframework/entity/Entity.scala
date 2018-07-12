@@ -52,7 +52,10 @@ case class Entity private(
     case None =>
       val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
       val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
-      val actualMetadata = failureOpt.map(f => EntityMetadata((metadata.toSeq ++ Seq(EntityMetadata.FAILURE_KEY -> f)).toMap[String, Any])(classOf[Any])).getOrElse(metadata)
+      val actualMetadata = failureOpt match{
+        case Some(f) if metadata.failure.metadata.isEmpty => metadata.addFailure(f)
+        case _ => metadata
+      }
       new Entity(uri, actualVals, schema, actualSubs, actualMetadata)
   }
 
@@ -234,7 +237,7 @@ object Entity {
 
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[Throwable]): Entity = {
     new Entity(uri, values, schema, subEntities, failureOpt match{
-      case Some(t) => EntityMetadata(t)
+      case Some(t) => EntityMetadataXml(t)
       case None => EntityMetadataXml()
     })
   }
