@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -33,8 +33,6 @@ import scala.xml.Node
                        The additional property contains the URI of each entity.
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
-
-  private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
   def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
@@ -55,8 +53,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     var properties =
       plugin match {
-        case Dataset(plugin, params) =>
-          Seq(("type", plugin.label)) ++ params
+        case Dataset(p, params) =>
+          Seq(("type", p.label)) ++ params
       }
     for(uriProperty <- uriProperty) {
       properties :+= ("URI Property", uriProperty.uri)
@@ -79,9 +77,7 @@ object DatasetSpec {
 
   implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
-  def empty = {
-    new DatasetSpec(EmptyDataset)
-  }
+  def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
 
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
@@ -137,10 +133,9 @@ object DatasetSpec {
     private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          val uriIndex = entitySchema.pathIndex(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
           for (entity <- entities) yield {
             Entity(
-              uri = new Uri(entity.evaluate(uriIndex).headOption.getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
@@ -181,7 +176,7 @@ object DatasetSpec {
     override def writeEntity(subject: String, values: Seq[Seq[String]]) {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriProperty match {
-        case Some(property) =>
+        case Some(_) =>
           entitySink.writeEntity(subject, Seq(subject) +: values)
         case None =>
           entitySink.writeEntity(subject, values)
@@ -263,8 +258,8 @@ object DatasetSpec {
     override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec[Dataset] = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resources = readContext.resources
+      implicit val prefixes: Prefixes = readContext.prefixes
+      implicit val resources: ResourceManager = readContext.resources
 
       // Check if the data source still uses the old outdated XML format
       if (node.label == "DataSource" || node.label == "Output") {
