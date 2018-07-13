@@ -62,7 +62,7 @@ object WorkbenchPlugin {
     def propertiesDialog: Option[String]
 
     /** The path to redirect to when the task is opened. */
-    def openPath(inWorkflow: Option[Identifier] = None): Option[String]
+    def openPath(inWorkflow: Option[Identifier] = None, workflowOperatorId: Option[String]): Option[String]
 
     /** The paths to the tabs that should be shown for this task. */
     def tabs: Seq[Tab]

@@ -58,7 +58,7 @@ object WorkflowPlugin {
     override def propertiesDialog = None
 
     /** The path to redirect to when the task is opened. */
-    override def openPath(inWorkflow: Option[Identifier]) =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       Some(s"workflow/editor/$project/$taskId")
 
     /**

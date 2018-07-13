@@ -169,7 +169,7 @@
     @for(path <- actions.propertiesDialog) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
-    @for(path <- actions.openPath(None)) {
+    @for(path <- actions.openPath(None, None)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + "/" + path)
     }
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${actions.task.id}')")

@@ -56,7 +56,7 @@ object WorkbenchPluginDataset {
     }
 
     /** The path to redirect to when the task is opened. */
-    override def openPath(inWorkflow: Option[Identifier]): Option[String] = {
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] = {
       Some(s"workspace/datasets/$project/$taskId/dataset")
     }
 

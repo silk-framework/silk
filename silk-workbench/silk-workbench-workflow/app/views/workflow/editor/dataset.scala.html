@@ -11,7 +11,7 @@
   <div class="dataset-contents">
     <div class="dataset-buttons">
       <img src="@Assets.at("img/delete.png")" style="float:right" onclick="editor.removeElement($(this).parent().parent().parent().attr('id'))"/>
-      @for(path <- taskActions.openPath(Some(workflow.id))) {
+      @for(path <- taskActions.openPath(Some(workflow.id), None)) {
         <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
       }
     </div>

@@ -16,7 +16,7 @@
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
     @taskActions.task.taskLabel()
-    @for(path <- taskActions.openPath(Some(workflow.id))) {
+    @for(path <- taskActions.openPath(Some(workflow.id), Some(taskActions.task.id.toString))) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
   </div>
