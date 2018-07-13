@@ -23,7 +23,7 @@ trait MetadataSerializerRegistry[Format <: Any] {
   def getSerializationFormat[T](key: String): Option[SerializationFormat[T, Format]] ={
     SerializerRegistry.get(key) match{
       case Some(ser) => ser.valueType match{
-        case _:T => Some(ser.asInstanceOf[SerializationFormat[T, Format]])
+        case _:T => Some(ser.asInstanceOf[SerializationFormat[T, Format]])              //NOTE: unchecked conversion to T
         case _ => None
       }
       case None => None
