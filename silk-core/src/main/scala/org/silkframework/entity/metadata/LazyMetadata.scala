@@ -48,6 +48,11 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     */
   val defaultMimeType: String
 
+  /**
+    * Indicates whether this metadata object might be overwritten by subsequent object with the same metadataId
+    */
+  val isReplaceable: Boolean = true
+
   override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(WriteContext[Ser]())).getOrElse("")
 }
 
