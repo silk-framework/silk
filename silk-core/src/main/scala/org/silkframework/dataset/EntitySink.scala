@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.{TypedPath, ValueType}
+import org.silkframework.entity.{Entity, TypedPath, ValueType}
 import org.silkframework.util.Uri
 
 /**
@@ -33,6 +33,16 @@ trait EntitySink extends DataSink {
    *               when opening this writer, it must contain a set of values.
    */
   def writeEntity(subject: String, values: Seq[Seq[String]]): Unit
+
+  /**
+    * Writes a new entity.
+    * @param entity - the entity to write
+    */
+  def writeEntity(entity: Entity): Unit = if(! entity.hasFailed) writeEntity(entity.uri, entity.values)
 }
 
+/**
+  * A single, typed property.
+  * May either be a forward or a backward property.
+  */
 case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean, isAttribute: Boolean = false)

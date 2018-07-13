@@ -58,7 +58,7 @@ class AutoCompletionApi extends Controller {
       val path = Path.parse(p.value)
       isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
       path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
-          path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
+      path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
     } map { completion =>
       val path = Path.parse(completion.value)
       val truncatedOps = if (path.operators.startsWith(forwardOnlySourcePath)) {

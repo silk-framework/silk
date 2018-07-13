@@ -27,5 +27,5 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
 
   override def resource: WritableResource = task.project.cacheResources.child("transform").child(task.id).get(s"vocabularyCache.xml")
 
-  val wrappedXmlFormat = WrappedXmlFormat()
+  val wrappedXmlFormat: WrappedXmlFormat = WrappedXmlFormat()
 }

@@ -47,7 +47,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
   /**
    * Retrieves the values of this input for a given entity.
    *
-   * @param entity The pair of entities.
+   * @param entity The entity.
    * @return The values.
    */
   override def apply(entity: Entity): Seq[String] = {

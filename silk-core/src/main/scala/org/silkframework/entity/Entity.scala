@@ -15,7 +15,6 @@
 package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
-
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -23,37 +22,61 @@ import scala.xml.Node
 /**
  * A single entity.
  */
-class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], private val desc: EntitySchema) extends Serializable {
+case class Entity private(
+    uri: Uri,
+    private val vals: IndexedSeq[Seq[String]],
+    schema: EntitySchema,
+    subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
+    private val failureOpt: Option[Throwable] = None,
+    private val validateSchema: Boolean = true
+  ) extends Serializable {
 
-  private var _failure: Option[Throwable] = None
-  private var _schema: EntitySchema = _
-  private var _values: IndexedSeq[Seq[String]] = vals
-  applyNewSchema(desc)
-
-  def values: IndexedSeq[Seq[String]] = _values
-
-  /**
-    * The EntitySchema defining the cells of the value sequence
-    * @return
-    */
-  def schema: EntitySchema = _schema
-
-  /**
-    * will apply a modified schema
-    * NOTE: The number of values per row must be as least as great as the number of typed paths
-    * NOTE: adding additional TypedPaths not instantiated in the values of the row will fail validation (use withProperty(..) instead)
-    * @param newSchema - the new schema to be applied
-    * @return - this
-    */
-  def applyNewSchema(newSchema: EntitySchema, validate: Boolean = true): Entity ={
-    _schema = newSchema
-
-    if(validate && (this.values.size < newSchema.typedPaths.size || !this.validate))
-      failEntity(new IllegalArgumentException("Provided schema does not fit entity values."))
-
-    _values = _schema.typedPaths.zipWithIndex.map(tp =>values(tp._2))
-    this
+  def copy(
+    uri: Uri = this.uri,
+    values: IndexedSeq[Seq[String]] = this.values,
+    schema: EntitySchema = this.schema,
+    subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
+    failureOpt: Option[Throwable] = None,
+    validateSchema: Boolean = this.validateSchema,
+    projectValuesIfNewSchema: Boolean = true
+  ): Entity = this.failure match{
+    case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
+    case None => failureOpt match{                      // else we decided based on the provided failure option
+      case Some(f) => new Entity(uri, values, schema, subEntities, Some(f), validateSchema = false)
+      case None =>
+        val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
+        val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
+        new Entity(uri, actualVals, schema, actualSubs, None, validateSchema)
+    }
   }
+
+  /**
+    * Will remap the index positions of values in case the typed paths of the EntitySchema were changed
+    * @param es - the new schema
+    * @return - the new value array
+    */
+  private def applyNewSchema(es: EntitySchema): IndexedSeq[Seq[String]] ={
+    es.typedPaths.map(tp => this.schema.typedPaths.find(t => t == tp) match{
+      case Some(fp) if fp != TypedPath.empty => this.evaluate(fp)
+      case None => Seq()
+    })
+  }
+
+  val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
+
+  val failure: Option[Throwable] = if(failureOpt.isEmpty && validateSchema) {   //if no failure has occurred yet and this entity shall be validated
+    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)
+      Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))
+    else if (! this.validate)
+      Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
+    else
+      None
+  }
+  else {
+    failureOpt
+  }
+
+  def hasFailed: Boolean = failure.isDefined
 
   /**
     * Will retrieve the values of a given path (if available)
@@ -62,11 +85,7 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    if(path.operators.isEmpty) {
-      Seq(uri)
-    } else {
-      evaluate(_schema.pathIndex(path))
-    }
+    valueOf(path.asAutoDetectTypedPath)
   }
 
   /**
@@ -74,62 +93,79 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
     * @param path
     * @return
     */
-  def evaluate(path: TypedPath): Seq[String] = {
-    if(path.operators.isEmpty) {
-      Seq(uri)
-    } else {
-      evaluate(_schema.pathIndex(path))
-    }
-  }
+  def evaluate(path: TypedPath): Seq[String] = valueOf(path)
+
+  /**
+    * returns the all values for the column index of the row representing this entity
+    * @param pathIndex - the index in the value array
+    * @return
+    */
+  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+
+
+  def valueOf(property: String): Seq[String] = valueOf(Path.saveApply(property.trim).asAutoDetectTypedPath)
 
   /**
     * returns all values of a given property in the entity
-    * @param colName
+    * @param path - the path you want values of
     * @return
     */
-  def valueOf(colName: String): Seq[String] ={
-    _schema.propertyNames.zipWithIndex.find(_._1 == colName) match{
-      case Some((_, ind)) => values(ind)
-      case None => Seq()
+  def valueOf(path: TypedPath): Seq[String] ={
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      schema.getSchemaOfProperty(path) match {
+        case Some(es) =>
+          //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
+          val ent = if (es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) {
+            this
+          }
+          else {
+            subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+          }
+          //now find the pertaining index and get values
+          ent.evaluate(es.pathIndex(path))
+        case None => Seq()
+      }
     }
   }
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
-    * @param columnName
+    * @param property - the property name to query
     * @return
     */
-  def singleValue(columnName: String): Option[String] = valueOf(columnName).headOption
+  def singleValue(property: String): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
 
   /**
-    * returns the all values for the column index of the row representing this entity
-    * @param pathIndex
+    * returns the first value (of possibly many) for the property of the given name in this entity
+    * @param path - the path to query
     * @return
     */
-  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+  def singleValue(path: TypedPath): Option[String] = valueOf(path).headOption
 
   /**
     * Validates the complete value row against the given types of the schema
     * @return - the result of the validation matrix (where all values are valid)
     */
   def validate: Boolean = {
-    _schema.typedPaths.zipWithIndex.forall(tp =>{
-      values(tp._2).forall(v => tp._1.valueType.validate(v))
+    val tps = schema match {
+      case mes: MultiEntitySchema => mes.pivotSchema
+      case _ => schema
+    }
+    val valsSize = values.size >= tps.typedPaths.size
+    val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
+      if(tp._2 < values.size)
+        values(tp._2).forall(v => tp._1.valueType.validate(v))
+      else
+        throw new ArrayIndexOutOfBoundsException(tp._2)
     })
+    val subEntsValid = schema match{
+      case mes: MultiEntitySchema => subEntities.zip(mes.subSchemata).forall(se => se._1.isEmpty || se._2 == se._1.get.schema && se._1.get.validate)
+      case _: EntitySchema => true
+    }
+    valsSize && valsConform && subEntsValid
   }
-
-  /**
-    * @return - the exception responsible for this ENtity to fail
-    */
-  def failure: Option[Throwable] = _failure
-
-  def hasFailed: Boolean = failure.isDefined
-
-  /**
-    * Will fail this entity with the provided exception (if not already failed)
-    * @param t
-    */
-  def failEntity(t: Throwable): Unit = if(!hasFailed) _failure = Option(t)
 
   def toXML: Node = {
     <Entity uri={uri.toString}> {
@@ -172,6 +208,16 @@ class Entity private(val uri: Uri, private val vals: IndexedSeq[Seq[String]], pr
 
 object Entity {
 
+  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq.empty, EntitySchema.empty)
+
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
+    new Entity(uri, values, schema, subEntities)
+  }
+
+  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
+    new Entity(uri, values, schema, subEntities)
+  }
+
   def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
   }
@@ -179,6 +225,8 @@ object Entity {
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
     new Entity(uri, values, schema)
   }
+
+  def handleNullsInValueSeq(valueSeq: Seq[String]): Seq[String] = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
@@ -189,12 +237,7 @@ object Entity {
     * @return - the failed Entity
     */
   //FIXME add property option CMEM-719
-  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = {
-    val fakeVals = schema.typedPaths.map(p => Seq("")).toIndexedSeq
-    val e = new Entity(uri, fakeVals, schema)
-    e.failEntity(t)
-    e
-  }
+  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(t), validateSchema = false)
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
@@ -204,12 +247,9 @@ object Entity {
     * @param t - the Throwable which failed this Enity
     * @return - the failed Entity
     */
-  //FIXME add property option CMEM-719
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = {
-    val e = apply(uri, values, schema)
-    e.failEntity(t)
-    e
-  }
+  //FIXME add property option CMEM-719 maybe only allow SparkInstanceException
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = Entity(uri, values, schema, IndexedSeq(), Some(t), validateSchema = false)
+
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
     new Entity(
@@ -219,7 +259,7 @@ object Entity {
           for (e <- valNode \ "e") yield e.text
         }
       }.toIndexedSeq,
-      desc = desc
+      schema = desc
     )
   }
 
