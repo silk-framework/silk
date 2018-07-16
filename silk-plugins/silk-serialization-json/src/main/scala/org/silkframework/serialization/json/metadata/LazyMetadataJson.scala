@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.LazyMetadata
+import org.silkframework.entity.metadata.{LazyMetadata, UnreplaceableMetadata}
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
@@ -52,24 +52,37 @@ case class LazyMetadataJson[Typ] private(
   override val defaultMimeType: String = JsonFormat.MIME_TYPE_APPLICATION
 }
 
+private class UnreplaceableLazyMetadataJson[Typ](
+   obj: Option[Typ],
+   serial: Option[JsValue],
+   string: String,
+   serializer: SerializationFormat[Typ, JsValue]
+)(implicit override val typ: Class[Typ]) extends LazyMetadataJson[Typ](obj, serial, string, serializer) with UnreplaceableMetadata[Typ, JsValue]
+
 object LazyMetadataJson{
 
-  def createLazyMetadata[Typ](key: String, t: Typ)(implicit typTag: Class[Typ]): Option[(String, LazyMetadataJson[Typ])] = {
-    JsonMetadataSerializer.getSerializationFormat[Typ](key).map(serializer => (key, LazyMetadataJson(t, serializer)))
+  def createLazyMetadata[Typ](key: String, t: Typ, isReplaceable: Boolean = true)(implicit typTag: Class[Typ]): Option[(String, LazyMetadataJson[Typ])] = {
+    JsonMetadataSerializer.getSerializationFormat[Typ](key).map(serializer => (key, LazyMetadataJson(t, serializer, isReplaceable)))
   }
   //TODO mak serializer a broadcast, dont serialize it with the metadata
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(Option(obj), None, "", serializer)(typ)
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue], isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    if(isReplaceable) apply(Option(obj), None, "", serializer)(typ) else new UnreplaceableLazyMetadataJson[Typ](Option(obj), None, "", serializer)
 
-  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, Option(node), "", serializer)(typ)
+  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue], isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    if(isReplaceable) apply(None, Option(node), "", serializer)(typ) else new UnreplaceableLazyMetadataJson[Typ](None, Option(node), "", serializer)
 
-  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(None, None, ser, serializer)(typ)
-
-  @throws[IllegalArgumentException]
-  def apply[Typ](obj: Typ, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(obj, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
-
-  @throws[IllegalArgumentException]
-  def apply[Typ](node: JsValue, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(node, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
+  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue], isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    if(isReplaceable) apply(None, None, ser, serializer)(typ) else new UnreplaceableLazyMetadataJson[Typ](None, None, ser, serializer)
 
   @throws[IllegalArgumentException]
-  def apply[Typ](ser: String, serializer: String)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] = apply(ser, JsonMetadataSerializer.getSerializer[Typ](serializer))(typ)
+  def apply[Typ](obj: Typ, serializer: String, isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    apply(obj, JsonMetadataSerializer.getSerializer[Typ](serializer), isReplaceable)(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](node: JsValue, serializer: String, isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    apply(node, JsonMetadataSerializer.getSerializer[Typ](serializer), isReplaceable)(typ)
+
+  @throws[IllegalArgumentException]
+  def apply[Typ](ser: String, serializer: String, isReplaceable: Boolean)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+    apply(ser, JsonMetadataSerializer.getSerializer[Typ](serializer), isReplaceable)(typ)
 }

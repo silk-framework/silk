@@ -56,6 +56,10 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
   override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(WriteContext[Ser]())).getOrElse("")
 }
 
+trait UnreplaceableMetadata[Typ, Ser] extends LazyMetadata[Typ, Ser]{
+  override val isReplaceable: Boolean = false
+}
+
 object LazyMetadata extends Serializable {
 
   type Schema = Any

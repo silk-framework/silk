@@ -34,11 +34,6 @@ trait MetadataInjector[Typ, Ser] {
     */
   def afterAll(): Unit = {}
 
-  /**
-    * Indicates whether a given metadata object can be overwritten if already present
-    */
-  val isReplaceable: Boolean = true
-
   private def getEmptyMetadataInstance: EntityMetadata[Ser] = EntityMetadata.empty[Ser](serializer.serializedType.asInstanceOf[Class[Ser]]) match{
     case Some(em) => em
     case None => throw new NotImplementedError("No implementation of [[EntityMetadata]] for serialization type " + serializer.serializedType.getName + " was found.")
@@ -51,7 +46,7 @@ trait MetadataInjector[Typ, Ser] {
     compute(entity, obj) match{
       case Some(lm) => entity.metadata match{
         case empty: EntityMetadata[_] if empty.isEmpty => entity.copy(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))
-        case inst: EntityMetadata[Ser] if this.isReplaceable || inst.get(metadataId).isEmpty => entity.copy(metadata = inst.addReplaceMetadata(metadataId, lm))
+        case inst: EntityMetadata[Ser] if lm.isReplaceable || inst.get(metadataId).isEmpty => entity.copy(metadata = inst.addReplaceMetadata(metadataId, lm))
         case _ => throw new IllegalStateException("No metadata map found for entity " + entity.uri)
       }
       case None => entity

@@ -19,7 +19,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
     var arguments = Seq[Object]()
-    //TODO this is not deterministic, there might be constructors
+    //TODO this is not deterministic, there might be other constructors
     val constructor = if(cause != null){
       var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
       arguments = Seq(message, cause)
