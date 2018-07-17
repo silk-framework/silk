@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.config.Task
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
@@ -8,7 +9,7 @@ import org.silkframework.util.Uri
   * A helper data source to combine several SPARQL sources in order to retrieve entities from them.
   * The sources are not merged, but instead are queries one by one.
   */
-case class CombinedSparqlSource(sparqlSources: SparqlSource*) extends DataSource {
+case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], sparqlSources: SparqlSource*) extends DataSource {
   /**
     * Retrieves entities from this source which satisfy a specific entity schema.
     *

@@ -6,10 +6,11 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource}
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
 import scala.io.Codec
@@ -303,6 +304,13 @@ class CsvSource(file: Resource,
 
     CsvAutoconfiguredParameters(detectedSeparator, csvSource.codecToUse.name, csvSource.skipLinesAutomatic)
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])

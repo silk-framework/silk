@@ -120,7 +120,7 @@ class PeakTransformApi extends Controller {
     } else {
       project.task[GenericDatasetSpec](sparqlDataset).data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
-          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(PlainTask(sparqlDataset, DatasetSpec(rdfDataset))))
+          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
           val executor = LocalSparqlSelectExecutor()
           val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities)
           val entityDatasource = EntityDatasource(entities, sparqlSelectTask.outputSchema)

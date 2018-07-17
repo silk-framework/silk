@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.json
 
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
 import scala.io.Codec
@@ -10,10 +11,11 @@ import scala.io.Codec
 /**
   * Data structure to traverse JSON files.
   *
+  * @param taskId     - the identifier of the task for which this traverser is executed
   * @param parentOpt
   * @param value
   */
-case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
+case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], value: JsValue) {
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
       case obj: JsObject =>
@@ -153,8 +155,9 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     }
   }
 
+  //FIXME CMEM-1352 would be good to outsource this to DataSource
   def generateUri(path: String, value: JsObject): String = {
-    "urn:instance:" + path + nodeId(value)
+    DataSource.URN_NID_PREFIX + path + "#" + nodeId(value)
   }
 
   def nodeId(value: JsValue): String = {
@@ -175,18 +178,18 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     }
   }
 
-  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(parentOpt = Some(ParentTraverser(this, prop)), value)
+  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), value)
 
-  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(parentOpt = parentOpt, value)
+  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, value)
 }
 
 object JsonTraverser {
-  def apply(resource: Resource)(implicit codec: Codec): JsonTraverser = {
-    JsonTraverser(None, Json.parse(resource.loadAsString))
+  def apply(taskId: Identifier, resource: Resource)(implicit codec: Codec): JsonTraverser = {
+    JsonTraverser(taskId, None, Json.parse(resource.loadAsString))
   }
 
-  def apply(jsValue: JsValue)(implicit codec: Codec): JsonTraverser = {
-    JsonTraverser(None, jsValue)
+  def apply(taskId: Identifier, jsValue: JsValue)(implicit codec: Codec): JsonTraverser = {
+    JsonTraverser(taskId, None, jsValue)
   }
 }
 

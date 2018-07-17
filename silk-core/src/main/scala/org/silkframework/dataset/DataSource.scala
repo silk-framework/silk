@@ -14,13 +14,22 @@
 
 package org.silkframework.dataset
 
+import org.silkframework.config.Task
+import org.silkframework.dataset.DataSource.URN_NID_PREFIX
 import org.silkframework.entity._
-import org.silkframework.util.{SampleUtil, Uri}
+import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
 /**
  * The base trait of a concrete source of entities.
  */
 trait DataSource {
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    * @return
+    */
+  def underlyingTask: Task[DatasetSpec[Dataset]]
+
   /**
    * Retrieves known types in this source.
    * Implementations are only required to work on a best effort basis i.e. it does not necessarily return any or all types.
@@ -70,8 +79,8 @@ trait DataSource {
   /**
    * Samples a fixed size set of entities from the whole dataset.
    * The default implementation iterates once over all entities.
-   * @param entityDesc
-   * @param size
+   * @param entityDesc  - EntitySchema user to retrieve the sample entities
+   * @param size        - desired size of the sample
    * @return
    */
   def sampleEntities(entityDesc: EntitySchema,
@@ -80,4 +89,16 @@ trait DataSource {
     val entities = retrieve(entityDesc)
     SampleUtil.sample(entities, size, filterOpt)
   }
+
+  /**
+    * Will generate a unique IRI identifying a given Entity throughout the whole framework (pattern: urn:instance:taskId#identifier )
+    * @param identifier - a unique identifier of the given entity (e.g. a unique property of the Entity itself or an index)
+    * @return - the unique IRI
+    */
+  def genericEntityIRI(identifier: Identifier): String = URN_NID_PREFIX + underlyingTask.id + "#" + identifier
+}
+
+object DataSource{
+
+  val URN_NID_PREFIX: String = "urn:instance:"
 }

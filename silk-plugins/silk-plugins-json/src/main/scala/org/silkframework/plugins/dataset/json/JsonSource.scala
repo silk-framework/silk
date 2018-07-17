@@ -3,10 +3,11 @@ package org.silkframework.plugins.dataset.json
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.dataset.{DataSource, PeakDataSource}
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.io.Codec
 
@@ -26,7 +27,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(file)(codec)
+    val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
     val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
@@ -46,7 +47,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(file)(codec)
+    val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
     new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet).toSeq
   }
@@ -59,7 +60,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   }
 
   def retrieveJsonPaths(t: Uri, depth: Int, limit: Option[Int], leafPathsOnly: Boolean, innerPathsOnly: Boolean): IndexedSeq[Path] = {
-    val json = JsonTraverser(file)(codec)
+    val json = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = json.select(basePathParts)
     val subSelectedElements = selectedElements.flatMap(_.select(Path.parse(t.uri).operators))
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
@@ -70,7 +71,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
     if(file.nonEmpty) {
-      val json = JsonTraverser(file)(codec)
+      val json = JsonTraverser(underlyingTask.id, file)(codec)
       val selectedElements = json.select(basePathParts)
       (for (element <- selectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
             path <- element.collectPaths(path = Nil, leafPathsOnly = false, innerPathsOnly = true, depth = Int.MaxValue)) yield {
@@ -110,4 +111,11 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }

@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Task
 import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -44,4 +45,11 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[TypedPath] = {
     entitySchema.typedPaths
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = throw new NotImplementedError("An underlying Task is not needed for EntityDatasource.")
 }

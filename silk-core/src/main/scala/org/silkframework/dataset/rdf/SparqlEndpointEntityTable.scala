@@ -8,7 +8,7 @@ import org.silkframework.util.Uri
 /**
   * An entity table that does not contain data, but a SPARQL endpoint from the data source input that can be queried.
   */
-class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
+class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[TaskSpec]) extends LocalEntities {
   override def entitySchema: EntitySchema = EntitySchema.empty
 
   override def entities: Traversable[Entity] = Traversable.empty
