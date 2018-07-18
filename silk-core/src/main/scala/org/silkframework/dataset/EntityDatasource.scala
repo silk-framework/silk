@@ -8,7 +8,7 @@ import org.silkframework.util.Uri
 /**
   * A data source on [[org.silkframework.entity.Entity]] objects
   */
-case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
+case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
     if(requestSchema.typeUri != entitySchema.typeUri) {
       throw new ValidationException("Type URI '" + requestSchema.typeUri.toString + "' not available!")
@@ -45,11 +45,4 @@ case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntityS
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[TypedPath] = {
     entitySchema.typedPaths
   }
-
-  /**
-    * The dataset task underlying the Datset this source belongs to
-    *
-    * @return
-    */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = throw new NotImplementedError("An underlying Task is not needed for EntityDatasource.")
 }

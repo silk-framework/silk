@@ -23,8 +23,7 @@ case class EntitySchema(
 
   // use this for any validation tests
     assert(
-      typedPaths.distinct.size == typedPaths.size &&  //typed paths are unique
-      typeUri.uri.trim.nonEmpty                       //none empty type uri
+      typedPaths.distinct.size == typedPaths.size  //typed paths are unique
     , "EntitySchema is not valid. Make sure all properties are named uniquely.")
 
   /**

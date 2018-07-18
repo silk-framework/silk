@@ -40,7 +40,13 @@ object EntityRetriever {
   /**
    * Creates a new EntityRetriever instance for specific strategy.
    */
-  def apply(endpoint: SparqlEndpoint, strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true): EntityRetriever = {
+  def apply(
+   endpoint: SparqlEndpoint,
+   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
+   pageSize: Int = 1000,
+   graphUri: Option[String] = None,
+   useOrderBy: Boolean = true
+ ): EntityRetriever = {
     strategy match {
       case EntityRetrieverStrategy.simple =>
         new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy, useSubSelect = false)

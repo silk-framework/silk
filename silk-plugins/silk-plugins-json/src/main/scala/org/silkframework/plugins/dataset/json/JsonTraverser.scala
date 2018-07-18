@@ -122,7 +122,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case None =>
             Nil
         }
-      case (p : PropertyFilter) :: tail =>
+      case p : PropertyFilter :: tail =>
         evaluatePropertyFilter(path, p, tail)
       case Nil =>
         nodeToValue(value)
@@ -155,9 +155,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     }
   }
 
-  //FIXME CMEM-1352 would be good to outsource this to DataSource
   def generateUri(path: String, value: JsObject): String = {
-    DataSource.URN_NID_PREFIX + path + "#" + nodeId(value)
+    DataSource.generateEntityUri(path, nodeId(value))
   }
 
   def nodeId(value: JsValue): String = {

@@ -15,7 +15,6 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.DataSource.URN_NID_PREFIX
 import org.silkframework.entity._
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
@@ -95,10 +94,19 @@ trait DataSource {
     * @param identifier - a unique identifier of the given entity (e.g. a unique property of the Entity itself or an index)
     * @return - the unique IRI
     */
-  def genericEntityIRI(identifier: Identifier): String = URN_NID_PREFIX + underlyingTask.id + "#" + identifier
+  def genericEntityIRI(identifier: Identifier): String = DataSource.generateEntityUri(underlyingTask.id, identifier)
 }
 
 object DataSource{
 
+  //the URN_NID prefix (see rfc 8141) for for generic dataset and entity naming
   val URN_NID_PREFIX: String = "urn:instance:"
+
+  /**
+    * Will generate a unique IRI identifying an Entity throughout the whole framework (pattern: urn:instance:groupId#entityId )
+    * @param groupId  - the identifier of the dataset, node or sub-group
+    * @param entityId - identifier of the entity or instance
+    * @return
+    */
+  def generateEntityUri(groupId: Identifier, entityId: Identifier): String = URN_NID_PREFIX + groupId + "#" + entityId
 }

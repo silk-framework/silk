@@ -89,7 +89,7 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            index.toString
+            genericEntityIRI(index.toString)
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = Path.parse(m.group(1))

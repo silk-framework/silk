@@ -51,10 +51,9 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   /**
     * Generates a URI for this node.
     */
-  //FIXME CMEM-1352 outsource to DataSource?
   def generateUri(uriPattern: String): String = {
     if (uriPattern.isEmpty) {
-      DataSource.URN_NID_PREFIX + node.label + "#" + nodeId
+      DataSource.generateEntityUri(node.label, nodeId)
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)

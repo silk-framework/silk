@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
 import java.io.{BufferedReader, InputStreamReader}
-import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
@@ -149,17 +148,20 @@ class CsvSource(file: Resource,
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
 
         try {
-          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
-          // the rows.
+          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
+
+          //skip header line
+          parser.parseNext()
+
           var entryOpt = parser.parseNext()
           var index = 0
           while (entryOpt.isDefined) {
             val entry = entryOpt.get
-            if (!(properties.trim.isEmpty && 0 == index) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
+            if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
               if (propertyList.size <= entry.length) {
                 //Extract requested values
                 val values = indices.map(entry(_))
-                val entityURI = generateEntityUri(index, entry)
+                val entityURI = genericEntityIRI(index.toString)
 
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
@@ -200,27 +202,6 @@ class CsvSource(file: Resource,
         values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
     }
     entityValues
-  }
-
-  /** Returns a generated entity URI.
-    * The default URI pattern is to use the prefix and the line number.
-    * However the user can specify a different URI pattern (in the *uri* property), which is then used to
-    * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
-    * as defined in the *properties* field. */
-  private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uriPattern.isEmpty && prefix.isEmpty) {
-      "urn:" + URLEncoder.encode(file.name, "UTF-8") + "/" + (index + 1)
-    } else if (uriPattern.isEmpty) {
-      prefix + (index + 1)
-    } else {
-      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
-        val propName = m.group(1)
-
-        assert(propertyList.contains(propName))
-        val value = entry(propertyList.indexOf(propName))
-        URLEncoder.encode(value, "UTF-8")
-      })
-    }
   }
 
   private def csvParser(): CsvParser = {

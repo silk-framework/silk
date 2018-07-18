@@ -19,7 +19,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
     new Traversable[Entity] {
-      override def foreach[U](f: (Entity) => U): Unit = {
+      override def foreach[U](f: Entity => U): Unit = {
         for (sparqlSource <- sparqlSources;
              entity <- sparqlSource.retrieve(entitySchema, limit)) {
           f(entity)
