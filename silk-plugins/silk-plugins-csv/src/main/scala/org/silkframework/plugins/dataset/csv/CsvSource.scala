@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 import java.io.{BufferedReader, InputStreamReader}
+import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
@@ -161,8 +162,7 @@ class CsvSource(file: Resource,
               if (propertyList.size <= entry.length) {
                 //Extract requested values
                 val values = indices.map(entry(_))
-                val entityURI = genericEntityIRI(index.toString)
-
+                val entityURI = generateEntityUri(index, values)
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
                   val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
@@ -186,7 +186,28 @@ class CsvSource(file: Resource,
     }
   }
 
-  private def handleBadLine[U](index: Int, entry: Array[String]) = {
+  /** Returns a generated entity URI.
+    * The default URI pattern is to use the prefix and the line number.
+    * However the user can specify a different URI pattern (in the *uri* property), which is then used to
+    * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
+    * as defined in the *properties* field. */
+  private def generateEntityUri(index: Int, entry: IndexedSeq[String]) = {
+    if (uriPattern.isEmpty && prefix.isEmpty) {
+      genericEntityIRI(index.toString)
+    } else if (uriPattern.isEmpty) {
+      prefix + index
+    } else {
+      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
+        val propName = m.group(1)
+
+        assert(propertyList.contains(propName))
+        val value = entry(propertyList.indexOf(propName))
+        URLEncoder.encode(value, "UTF-8")
+      })
+    }
+  }
+
+  private def handleBadLine[U](index: Int, entry: Array[String]): Unit = {
     // Bad line
     if (!ignoreBadLines) {
       assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
