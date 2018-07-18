@@ -20,6 +20,13 @@ case class EntitySchema(
   filter: Restriction = Restriction.empty,
   subPath: Path = Path.empty
  ) extends Serializable {
+
+  // use this for any validation tests
+    assert(
+      typedPaths.distinct.size == typedPaths.size &&  //typed paths are unique
+      typeUri.uri.trim.nonEmpty                       //none empty type uri
+    , "EntitySchema is not valid. Make sure all properties are named uniquely.")
+
   /**
     * overriding the default case class copy(). to deal with Sub-Schemata
     * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema
