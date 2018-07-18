@@ -122,7 +122,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case None =>
             Nil
         }
-      case p : PropertyFilter :: tail =>
+      case (p : PropertyFilter) :: tail =>
         evaluatePropertyFilter(path, p, tail)
       case Nil =>
         nodeToValue(value)
