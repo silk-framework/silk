@@ -3,6 +3,7 @@ package org.silkframework.entity
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
+import scala.collection.mutable
 import scala.xml.Node
 
 /**
@@ -52,6 +53,17 @@ case class EntitySchema(
     typedPaths.slice(fromIndex, toIndex + 1) //until param is exclusive
   }
 
+  def pathIndex(path: Path): Int ={
+    val valueTypeOpt = path match{
+      case tp: TypedPath => Option(tp.valueType)
+      case _ => None
+    }
+    pathIndex(path, valueTypeOpt)
+  }
+
+  /* path index cache, private mutable state only */
+  private val pathIndexCache: mutable.HashMap[Int, Int] = mutable.HashMap.apply[Int, Int](typedPaths.map(_.hashCode).zipWithIndex:_*)
+
   /**
     * Retrieves the index of a given path.
     * NOTE: will work simple Paths as well, but there might be a chance that a given path exists twice with different value types
@@ -60,20 +72,22 @@ case class EntitySchema(
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndex(path: Path): Int = {
-    val valueTypeOpt = path match{
-      case tp: TypedPath => Option(tp.valueType)
-      case _ => None
-    }
-    //find the given path and, if provided, match the value type as well
-    typedPaths.zipWithIndex.find(pi => (
-      valueTypeOpt.isEmpty ||                               //if no ValueType is specified or ...
-      valueTypeOpt.get == AutoDetectValueType ||            //ValueType is of no importance or...
-      pi._1.valueType == AutoDetectValueType ||             //ValueType of the list element is of no importance or...
-      pi._1.valueType == valueTypeOpt.get                   //both ValueTypes match then...
-    ) && pi._1 == path) match{                              //if the paths equal
-      case Some((_, ind)) => ind
-      case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+  private def pathIndex(path: Path, valueTypeOpt: Option[ValueType]): Int = {
+    pathIndexCache.get(path.hashCode) match{
+      case Some(i) => i
+      case None =>
+        //find the given path and, if provided, match the value type as well
+        typedPaths.zipWithIndex.find(pi => (
+          valueTypeOpt.isEmpty ||                               //if no ValueType is specified or ...
+            valueTypeOpt.get == AutoDetectValueType ||            //ValueType is of no importance or...
+            pi._1.valueType == AutoDetectValueType ||             //ValueType of the list element is of no importance or...
+            pi._1.valueType == valueTypeOpt.get                   //both ValueTypes match then
+          ) && path.normalizedSerialization == pi._1.normalizedSerialization ) match{   //and the paths are equal, then...
+          case Some((_, ind)) =>
+            pathIndexCache.put(path.hashCode, ind)
+            ind
+          case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+        }
     }
   }
 

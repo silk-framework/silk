@@ -80,7 +80,7 @@ case class Entity private(
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
+    * @param path - the path of the value to retrieve
     * @return
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
@@ -90,7 +90,7 @@ case class Entity private(
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
+    * @param path - the path of the value to retrieve
     * @return
     */
   def evaluate(path: TypedPath): Seq[String] = valueOf(path)
