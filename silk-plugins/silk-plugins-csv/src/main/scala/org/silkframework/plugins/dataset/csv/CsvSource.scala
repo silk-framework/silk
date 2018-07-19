@@ -162,7 +162,7 @@ class CsvSource(file: Resource,
               if (propertyList.size <= entry.length) {
                 //Extract requested values
                 val values = indices.map(entry(_))
-                val entityURI = generateEntityUri(index, values)
+                val entityURI = generateEntityUri(index, entry)
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
                   val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
@@ -191,7 +191,7 @@ class CsvSource(file: Resource,
     * However the user can specify a different URI pattern (in the *uri* property), which is then used to
     * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
     * as defined in the *properties* field. */
-  private def generateEntityUri(index: Int, entry: IndexedSeq[String]) = {
+  private def generateEntityUri(index: Int, entry: Array[String]) = {
     if (uriPattern.isEmpty && prefix.isEmpty) {
       genericEntityIRI(index.toString)
     } else if (uriPattern.isEmpty) {
