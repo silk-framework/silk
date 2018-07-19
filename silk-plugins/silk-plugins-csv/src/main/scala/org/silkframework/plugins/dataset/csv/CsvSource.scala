@@ -222,7 +222,10 @@ class CsvSource(file: Resource,
   }
 
   private def firstLine: Array[String] = {
-    csvParser().parseNext().getOrElse(Array())
+    val parser = csvParser()
+    val fl = parser.parseNext().getOrElse(Array())
+    parser.stopParsing()
+    fl
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
