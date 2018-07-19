@@ -12,7 +12,6 @@ import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
-import scala.collection.mutable
 import scala.io.Codec
 
 class CsvSource(file: Resource,
@@ -35,19 +34,11 @@ class CsvSource(file: Resource,
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
-  lazy val propertyList: IndexedSeq[String] = {
+  val propertyList: IndexedSeq[String] = {
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      val parser = csvParser()
-      val firstLine = parser.parseNext()
-      parser.stopParsing()
-      if (firstLine.isDefined) {
-        val headerFields = firstLine.get
-        CsvSourceHelper.convertHeaderFields(headerFields, prefix)
-      } else {
-        mutable.IndexedSeq()
-      }
+      CsvSourceHelper.convertHeaderFields(firstLine, prefix)
     }
   }
 
@@ -143,16 +134,13 @@ class CsvSource(file: Resource,
                                 indices: IndexedSeq[Int]): Traversable[Entity] = {
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
-        val parser: CsvParser = csvParser()
+        val parser: CsvParser = csvParser(properties.trim.isEmpty)
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
 
         try {
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
-
-          //skip header line
-          parser.parseNext()
 
           var entryOpt = parser.parseNext()
           var index = 0
@@ -225,11 +213,16 @@ class CsvSource(file: Resource,
     entityValues
   }
 
-  private def csvParser(): CsvParser = {
+  private def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
     parser.beginParsing(reader)
+    if(skipFirst) parser.parseNext()
     parser
+  }
+
+  private def firstLine: Array[String] = {
+    csvParser().parseNext().getOrElse(Array())
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
