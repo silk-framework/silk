@@ -109,10 +109,10 @@ case class Entity private(
     * @param pathIndex - the index in the value array
     * @return
     */
-  private[entity] def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
 
-  def valueOf(property: String): Seq[String] = valueOf(Path(property.trim).asAutoDetectTypedPath)
+  def valueOf(property: String): Seq[String] = valueOf(Path.saveApply(property.trim).asAutoDetectTypedPath)
 
   /**
     * returns all values of a given property in the entity
@@ -144,7 +144,7 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String): Option[String] = valueOf(Path(property).asAutoDetectTypedPath).headOption
+  def singleValue(property: String): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity

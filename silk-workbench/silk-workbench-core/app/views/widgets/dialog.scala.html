@@ -31,18 +31,28 @@
   </div>
 </form>
 <script type="text/javascript">
-  primary_dialog.querySelector('.close').addEventListener('click', function() {
-    primary_dialog.close();
-  });
-  primary_dialog.querySelector('#dialog-secondary-button').addEventListener('click', function() {
-    dialog_secondary();
-  });
-  secondary_dialog.querySelector('.close').addEventListener('click', function() {
-    secondary_dialog.close();
-  });
-  secondary_dialog.querySelector('#dialog-secondary-button').addEventListener('click', function() {
-    dialog_secondary();
-  });
+  if (primary_dialog) {
+    primary_dialog.querySelector('.close').addEventListener('click', function () {
+      primary_dialog.close();
+    });
+    var secondaryButton = primary_dialog.querySelector('#dialog-secondary-button');
+    if(secondaryButton) {
+      secondaryButton.addEventListener('click', function () {
+        dialog_secondary();
+      });
+    }
+  }
+  if (secondary_dialog) {
+    secondary_dialog.querySelector('.close').addEventListener('click', function () {
+      secondary_dialog.close();
+    });
+    var secondaryButton = secondary_dialog.querySelector('#dialog-secondary-button');
+    if(secondaryButton) {
+      secondaryButton.addEventListener('click', function () {
+        dialog_secondary();
+      });
+    }
+  }
   $(".dialog__error-msg").on('click', function() { $(this).fadeToggle(); });
 </script>
 

@@ -1,4 +1,5 @@
 package org.silkframework.dataset
+import org.silkframework.config.Task
 import org.silkframework.entity.{Entity, EntitySchema, Link, Path}
 import org.silkframework.util.Uri
 
@@ -36,6 +37,8 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
   }
 
   override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
+
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = EmptySource.underlyingTask
 }
 
 case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,

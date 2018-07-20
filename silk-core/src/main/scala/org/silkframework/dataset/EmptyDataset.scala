@@ -16,14 +16,7 @@ object EmptyDataset extends Dataset {
   /**
    * Returns an empty data source.
    */
-  override def source: DataSource = new DataSource {
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int]) = Traversable[Entity]()
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = Seq.empty
-
-    override def retrieveTypes(limit: Option[Int]) = Traversable.empty
-
-    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]) = IndexedSeq.empty
-  }
+  override def source: DataSource = EmptySource
 
   /**
    * Returns a dummy entity sink.

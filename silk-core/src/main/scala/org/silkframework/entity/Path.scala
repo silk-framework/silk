@@ -122,10 +122,9 @@ object Path {
 
       pathCache.get(pathStr).flatMap(_.get) match {
         case Some(cachedPath) => cachedPath
-        case None => {
+        case None =>
           pathCache += (pathStr -> new WeakReference(path))
           path
-        }
       }
     }
   }
@@ -137,30 +136,38 @@ object Path {
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
-    Try{Path.parse(property)} match{
-      case Success(p) => p
-      case Failure(_) => apply(Uri(property))
-    }
-  }
+  def apply(property: String): Path = apply(Uri(property))
 
   /**
     * Creates a path consisting of a single property
     */
   def apply(uri: Uri): Path = {
-    if(!uri.isValidUri && !Uri("http://ex.org/" + uri.uri).isValidUri) {
-      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
+    if(uri.isValidUri || Uri("http://ex.org/" + uri.uri).isValidUri) {
+      apply(ForwardOperator(uri) :: Nil)
     }
     else {
-      apply(ForwardOperator(uri) :: Nil)
+      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
     }
   }
 
   /**
-    * Parses a path string.
-    * Returns a cached copy if available.
+    * Convenience function for non-strict path parsing. This will always return a Path object (either parsed or fail save wrapped).
+    * @param propertyOrPath - the input string (might be serialized path or new (non-encoded) field name)
+    * @param prefixes - will be forwarded to parser
+    * @return - a Path
     */
-  def parse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
-    new PathParser(prefixes).parse(pathStr)
+  def saveApply(propertyOrPath: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = parse(propertyOrPath, strict = false)
+
+  /**
+    * Parses a path string.
+    * @param pathStr - the path string
+    * @param strict - Dictates the behaviour when PathParser fails. If false, the erroneous path string is wrapped inside an Uri without syntax test.
+    * @return - a Path
+    */
+  def parse(pathStr: String, strict: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
+    Try{new PathParser(prefixes).parse(pathStr)} match{
+      case Success(p) => p
+      case Failure(f) => if(strict) throw f else apply(Uri(pathStr))
+    }
   }
 }

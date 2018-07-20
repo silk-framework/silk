@@ -144,6 +144,13 @@ object DatasetSpec {
           entities
       }
     }
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      *
+      * @return
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
   case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {

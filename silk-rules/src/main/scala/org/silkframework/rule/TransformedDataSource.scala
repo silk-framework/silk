@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.config.Task
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
@@ -96,4 +97,11 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     }
     Left(transformedValues)
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
 }

@@ -118,12 +118,13 @@ class PeakTransformApi extends Controller {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
           s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
-      project.task[GenericDatasetSpec](sparqlDataset).data.plugin match {
+      val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
+      datasetTask.data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
-          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(PlainTask(sparqlDataset, DatasetSpec(rdfDataset))))
+          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
           val executor = LocalSparqlSelectExecutor()
           val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities)
-          val entityDatasource = EntityDatasource(entities, sparqlSelectTask.outputSchema)
+          val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)
             generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)

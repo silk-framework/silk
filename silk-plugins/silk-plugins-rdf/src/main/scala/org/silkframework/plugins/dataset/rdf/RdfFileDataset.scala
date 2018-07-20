@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset._
 import org.silkframework.entity.rdf.SparqlRestriction
@@ -11,7 +12,7 @@ import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = "file",
@@ -130,6 +131,13 @@ case class RdfFileDataset(
         }
       }
     }
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      *
+      * @return
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset)) //FIXME CMEM 1352 replace with actual task
   }
 
   override def tripleSink: TripleSink = new FormattedEntitySink(file, formatter)

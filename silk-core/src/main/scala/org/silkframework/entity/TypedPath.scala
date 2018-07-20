@@ -14,10 +14,10 @@ import scala.xml.Node
   * @param metadata an immutable map that stores metadata object
   */
 case class TypedPath(
-  private val ops: List[PathOperator],
-  valueType: ValueType,
-  metadata: Map[String, Any]
-) extends Path(ops) {
+    private val ops: List[PathOperator],
+    valueType: ValueType,
+    metadata: Map[String, Any]
+  ) extends Path(ops) {
 
   /**
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
@@ -32,7 +32,8 @@ case class TypedPath(
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
   /**
-    * TODO @Robert Isele
+    * Returns a typed property if this is a path of length one.
+    * Returns None otherwise.
     */
   def property: Option[TypedProperty] = operators match {
     case ForwardOperator(prop) :: Nil   => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = false, isAttribute = isAttribute))
@@ -67,7 +68,7 @@ object TypedPath {
       META_FIELD_XML_ATTRIBUTE -> isAttribute,
       META_FIELD_ORIGIN_NAME -> path
     )
-    apply(Path(path)(prefixes).operators, valueType, metadata)
+    apply(Path.saveApply(path)(prefixes).operators, valueType, metadata)
   }
 
   /**

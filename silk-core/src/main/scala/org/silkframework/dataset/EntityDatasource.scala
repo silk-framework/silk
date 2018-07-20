@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Task
 import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -7,7 +8,7 @@ import org.silkframework.util.Uri
 /**
   * A data source on [[org.silkframework.entity.Entity]] objects
   */
-case class EntityDatasource(entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
+case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
     if(requestSchema.typeUri != entitySchema.typeUri) {
       throw new ValidationException("Type URI '" + requestSchema.typeUri.toString + "' not available!")

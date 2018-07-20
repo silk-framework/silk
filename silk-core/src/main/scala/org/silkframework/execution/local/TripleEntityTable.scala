@@ -7,7 +7,7 @@ import org.silkframework.util.Uri
 /**
   * Holds RDF triples.
   */
-case class TripleEntityTable(entities: Traversable[Entity], taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
+case class TripleEntityTable(entities: Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
 
   override def entitySchema: EntitySchema = TripleEntitySchema.schema
 }
