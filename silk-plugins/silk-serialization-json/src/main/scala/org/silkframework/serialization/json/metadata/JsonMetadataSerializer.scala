@@ -1,19 +1,13 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.MetadataSerializerRegistry
+import org.silkframework.entity.metadata.{MetadataSerializer, MetadataSerializerRegistry}
 import org.silkframework.runtime.serialization.SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.JsValue
 
 import scala.reflect._
 
-abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with Serializable {
-
-  /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
-    * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
-    */
-  def metadataId: String
+abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with MetadataSerializer {
 
   //we have to make sure that metadataId was not implemented as a val
   if(runtime.currentMirror.classSymbol(this.getClass).toType.decls.exists(d => d.name.encodedName.toString == "metadataId" && !d.isMethod))
@@ -29,5 +23,5 @@ object JsonMetadataSerializer extends MetadataSerializerRegistry[JsValue] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
-  override val exceptionSerializer: SerializationFormat[Throwable, JsValue] = ExceptionSerializerJson()
+  override val exceptionSerializer: SerializationFormat[Throwable, JsValue] with MetadataSerializer = ExceptionSerializerJson()
 }

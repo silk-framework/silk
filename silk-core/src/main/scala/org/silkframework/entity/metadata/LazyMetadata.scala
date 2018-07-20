@@ -51,14 +51,15 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
   /**
     * Indicates whether this metadata object might be overwritten by subsequent object with the same metadataId
     */
-  val isReplaceable: Boolean = true
+  val isReplaceable: Boolean = ! classOf[IrreplaceableMetadata].isAssignableFrom(this.getClass)
 
   override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(WriteContext[Ser]())).getOrElse("")
 }
 
-trait UnreplaceableMetadata[Typ, Ser] extends LazyMetadata[Typ, Ser]{
-  override val isReplaceable: Boolean = false
-}
+/**
+  * Objects claiming this trait cannot be replaced or deleted from an EntityMetadata map
+  */
+trait IrreplaceableMetadata
 
 object LazyMetadata extends Serializable {
 

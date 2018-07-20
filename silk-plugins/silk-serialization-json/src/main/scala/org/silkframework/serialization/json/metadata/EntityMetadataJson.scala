@@ -18,7 +18,7 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]] = 
   override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
 
   override def addFailure(failure: Throwable): EntityMetadata[JsValue] = {
-    val lm = LazyMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[Throwable])
+    val lm = IrreplaceableMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[Throwable])
     addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
   }
 }
@@ -30,7 +30,7 @@ object EntityMetadataJson{
   implicit val JsValClass: Class[JsValue] = classOf[JsValue]
 
   def apply[Typ](map: Map[String, Typ])(implicit typTag: Class[Typ]): EntityMetadataJson = {
-    val resMap = map.map(ent => LazyMetadataJson.createLazyMetadata[Typ](ent._1, ent._2).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + ent._1)))
+    val resMap = map.map(ent => LazyMetadataJson.createLazyMetadata[Typ](ent._1, ent._2))
     new EntityMetadataJson(resMap)
   }
 
@@ -42,7 +42,7 @@ object EntityMetadataJson{
 
   EntityMetadata.registerNewEntityMetadataFormat(EntityMetadataJson())
 
-  object JsonSerializer extends JsonFormat[EntityMetadata[JsValue]] {
+  object JsonSerializer extends JsonMetadataSerializer[EntityMetadata[JsValue]] {
 
     private def extractKey(source: String): String ={
       if(source == null || source.isEmpty){
@@ -88,7 +88,7 @@ object EntityMetadataJson{
         .filter(_.length > 3)
         .map(line => line.splitAt(line.indexOf(':') + 1))
       val map = lines.flatMap(kv => {
-        val key = extractKey(kv._1)                                 // removing quotes and colon
+        val key = extractKey(kv._1)                                                                               // removing quotes and colon
         var stringRep = kv._2.trim
         stringRep = if(stringRep.last == ',') stringRep.substring(0, stringRep.length - 1) else stringRep         // removing trailing comma
         JsonMetadataSerializer.getSerializationFormat[CT](key).map(serializer => key ->
@@ -131,5 +131,13 @@ object EntityMetadataJson{
     override def write(em: EntityMetadata[JsValue])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(em.metadata.map(ent => ent._1 -> ent._2.serialized))
     }
+
+    /**
+      * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+      * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
+      */
+    override def metadataId: String = EntityMetadata.METADATA_KEY
+
+    override def replaceableMetadata: Boolean = true    //has no importance for EntityMetadata
   }
 }

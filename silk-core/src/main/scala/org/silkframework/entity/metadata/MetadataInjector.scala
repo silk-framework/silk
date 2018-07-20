@@ -11,7 +11,7 @@ trait MetadataInjector[Typ, Ser] {
   /**
     * The metadata serializer to be used
     */
-  def serializer: SerializationFormat[Typ, Ser]
+  def serializer: SerializationFormat[Typ, Ser] with MetadataSerializer
 
   /**
     * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
@@ -34,6 +34,15 @@ trait MetadataInjector[Typ, Ser] {
     */
   def afterAll(): Unit = {}
 
+  private def computeAndValidate(entity: Entity, obj: Option[Typ]): Option[LazyMetadata[Typ, Ser]] ={
+    compute(entity, obj).map(lm =>{
+      //test whether the generated metadata object is (ir-)replaceable as defined in the pertaining serializer
+      assert(lm.metadata.isEmpty || lm.isReplaceable == serializer.replaceableMetadata, "The generated metadata objects replaceable indicator does not match its serializer." +
+        "Make sure when implementing a metadata injector to use a LazyMetadata container with the [[IrreplaceableMetadata]] trait, when setting isReplaceable to false.")
+      lm
+    })
+  }
+
   private def getEmptyMetadataInstance: EntityMetadata[Ser] = EntityMetadata.empty[Ser](serializer.serializedType.asInstanceOf[Class[Ser]]) match{
     case Some(em) => em
     case None => throw new NotImplementedError("No implementation of [[EntityMetadata]] for serialization type " + serializer.serializedType.getName + " was found.")
@@ -43,10 +52,14 @@ trait MetadataInjector[Typ, Ser] {
     * Generates new metadata objects for each Entity and stores it under the metadataId in the EntityMetadata container
     */
   def injectMetadata(entity: Entity, obj: Option[Typ]): Entity = {
-    compute(entity, obj) match{
+    computeAndValidate(entity, obj) match{
       case Some(lm) => entity.metadata match{
         case empty: EntityMetadata[_] if empty.isEmpty => entity.copy(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))
-        case inst: EntityMetadata[Ser] if lm.isReplaceable || inst.get(metadataId).isEmpty => entity.copy(metadata = inst.addReplaceMetadata(metadataId, lm))
+        case inst: EntityMetadata[Ser] => inst.get(metadataId) match{
+          case Some(m) if m.isReplaceable || m.metadata.isEmpty => entity.copy(metadata = inst.addReplaceMetadata(metadataId, lm))
+          case None => entity.copy(metadata = inst.addReplaceMetadata(metadataId, lm))
+          case _ => entity
+        }
         case _ => throw new IllegalStateException("No metadata map found for entity " + entity.uri)
       }
       case None => entity

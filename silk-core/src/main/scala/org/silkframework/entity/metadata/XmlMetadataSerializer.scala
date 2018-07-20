@@ -5,13 +5,7 @@ import org.silkframework.runtime.serialization.{SerializationFormat, XmlFormat}
 import scala.reflect._
 import scala.xml.Node
 
-abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with Serializable {
-
-  /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
-    * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
-    */
-  def metadataId: String
+abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with MetadataSerializer {
 
   //we have to make sure that metadataId was not implemented as a val
   if(runtime.currentMirror.classSymbol(this.getClass).toType.decls.exists(d => d.name.encodedName.toString == "metadataId" && !d.isMethod))
@@ -27,5 +21,5 @@ object XmlMetadataSerializer extends MetadataSerializerRegistry[Node] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
-  override val exceptionSerializer: SerializationFormat[Throwable, Node] = ExceptionSerializer()
+  override val exceptionSerializer: SerializationFormat[Throwable, Node] with MetadataSerializer = ExceptionSerializer()
 }

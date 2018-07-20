@@ -44,6 +44,8 @@ class JsonMetadataTest extends FlatSpec with Matchers {
         "Target" -> JsString(value.target)
       ))
     }
+
+    override def replaceableMetadata: Boolean = true
   }
 
   def compareExceptions(ex1: Throwable, ex2: Throwable): Unit = {

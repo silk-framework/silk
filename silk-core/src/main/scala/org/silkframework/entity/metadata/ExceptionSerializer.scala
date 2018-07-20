@@ -85,6 +85,13 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     * The identifier used to define metadata objects in the map of [[EntityMetadata]]
     */
   override def metadataId: String = ExceptionSerializer.ID
+
+  /**
+    * An indicator whether the LazyMetadata object produced with this serializer will be replaceable (overridable in the Metadata map)
+    *
+    * @return
+    */
+  override def replaceableMetadata: Boolean = false
 }
 
 object ExceptionSerializer{

@@ -5,14 +5,14 @@ import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat
 import scala.reflect.ClassTag
 import scala.xml.{Group, Node}
 
-case class LazyMetadataXml[Typ] private(
-   obj: Option[Typ],
-   serial: Option[Node],
-   string: String,
-   serializer: SerializationFormat[Typ, Node]
+class LazyMetadataXml[Typ] private[metadata](
+  private[metadata] val obj: Option[Typ],
+  private[metadata] val serial: Option[Node],
+  private[metadata] val str: String,
+  val serializer: SerializationFormat[Typ, Node]
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, Node] {
 
-  assert(obj.nonEmpty || serial.nonEmpty || string.nonEmpty, "LazyMetadata without any data object.")
+  assert(obj.nonEmpty || serial.nonEmpty || str.nonEmpty, "LazyMetadata without any data object.")
 
   override implicit val serTag: ClassTag[Node] = ClassTag(classOf[Node])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
@@ -35,7 +35,7 @@ case class LazyMetadataXml[Typ] private(
     */
   override def serialized: Node = serial match{
     case Some(s) => s
-    case None => string match{
+    case None => str match{
       case s: String if s.trim.nonEmpty => serializer.parse(s, defaultMimeType)
       case _ => obj match{
         case Some(x) => serializer.write(x)
@@ -48,15 +48,28 @@ case class LazyMetadataXml[Typ] private(
     * Providing the default mime type to be used with the serializer
     */
   override val defaultMimeType: String = XmlFormat.MIME_TYPE_TEXT
+
+  /**
+    * String representation of the serialized object
+    */
+  override val string: String = if(str.trim.nonEmpty){
+    str
+  }
+  else{
+    serialized.toString()
+  }
 }
 
 object LazyMetadataXml{
 
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(Some(obj), None, "", serializer)(typ)
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+    new LazyMetadataXml(Some(obj), None, "", serializer)(typ)
 
-  def apply[Typ](node: Node, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(None, Some(node), "", serializer)(typ)
+  def apply[Typ](node: Node, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+    new LazyMetadataXml(None, Some(node), "", serializer)(typ)
 
-  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(None, None, ser, serializer)(typ)
+  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+    new LazyMetadataXml(None, None, ser, serializer)(typ)
 
   @throws[IllegalArgumentException]
   def apply[Typ](obj: Typ, serializer: String)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] = apply(obj, XmlMetadataSerializer.getSerializer[Typ](serializer))(typ)

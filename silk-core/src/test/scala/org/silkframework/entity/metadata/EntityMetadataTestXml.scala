@@ -23,7 +23,7 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
 
   it should "accept exception object as metadata and recognize it as a failed entity" in{
     val lazyMetadata = entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).asInstanceOf[LazyMetadataXml[Throwable]]
-    val copy = lazyMetadata.copy(obj = None, serial = Some(lazyMetadata.serialized))
+    val copy = LazyMetadataXml(lazyMetadata.serialized, ExceptionSerializer())
     copy.metadata.isDefined shouldBe true
     copy.metadata.get.getClass.getCanonicalName shouldBe testException.getClass.getCanonicalName
     copy.metadata.get.getMessage shouldBe testException.getMessage
@@ -53,6 +53,8 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
           <Target>{value.target}</Target>
         </Pair>
       }
+
+      override def replaceableMetadata: Boolean = true
     }
 
     implicit val dpairTag = classOf[DPair[String]]

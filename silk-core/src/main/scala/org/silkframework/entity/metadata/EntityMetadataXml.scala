@@ -74,5 +74,7 @@ object EntityMetadataXml{
       * The identifier used to define metadata objects in the map of [[EntityMetadata]]
       */
     override def metadataId: String = METADATA_KEY
+
+    override def replaceableMetadata: Boolean = true    //has no importance for EntityMetadata
   }
 }
