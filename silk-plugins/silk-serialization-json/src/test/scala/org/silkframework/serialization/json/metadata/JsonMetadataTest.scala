@@ -106,7 +106,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
   it should "deal correctly with empty metadata objects" in{
     val emptyMap = EntityMetadataJson()
     val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(WriteContext[JsValue]())
-    stringVal shouldBe null
+    stringVal shouldBe ""
     val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(ReadContext())
     parsed shouldBe EntityMetadataJson()
   }
