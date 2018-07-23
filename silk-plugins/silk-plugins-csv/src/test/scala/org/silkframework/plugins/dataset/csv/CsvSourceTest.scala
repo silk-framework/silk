@@ -27,6 +27,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
   val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
   val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
+  val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -48,7 +49,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
-    val persons = source.retrieve(entityDesc).toIndexedSeq
+    val persons = source.retrieveEntities(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
@@ -159,6 +160,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
   it should "not fail when auto-configuring on empty CSV files" in {
     val autoConfigured = emptyCsv.autoConfigured
     autoConfigured.separator shouldBe "\\t"
+  }
+
+  it should "skip header detection when properties are provided" in {
+    val source = noHeaders.source
+    val entities: Seq[Entity] = getEntities(source)
+    entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
+    val top = entities.head
+    top.schema.propertyNames shouldBe IndexedSeq("vals1", "vals2", "vals3")
+    top.valueOf("vals2").head shouldBe "val2"
   }
 
   "CsvSourceHelper" should "escape and unescape standard fields correctly" in {

@@ -24,7 +24,7 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
     val objectResources = evaluate("/A/B", UriValueType)
     objectResources.size mustBe 6
     objectResources.map(_.take(14)).distinct mustBe Seq("urn:instance:B")
-    evaluate("/A", UriValueType) mustBe Seq("urn:instance:A1031906387")
+    evaluate("/A", UriValueType) mustBe Seq("urn:instance:A#1031906387")
     evaluate("/A", StringValueType) mustBe Seq()
     evaluate("/A", IntValueType) mustBe Seq()
   }

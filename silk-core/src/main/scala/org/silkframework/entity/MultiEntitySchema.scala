@@ -10,12 +10,11 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     getPivotSchema(pivot).subPath
   ){
 
-  //NOTE: make sure not to use parameters pivot and subs outside of the following two accessors (use those instead)
+  //NOTE: make sure not to use parameters pivot and subs (use these accessors instead)
   lazy val pivotSchema: EntitySchema = getPivotSchema(this)
 
-  //TODO containing all sub-schemata of subs and pivot!!! - order is not sufficiently ensured, should we rename TypePaths if duplicates?
   lazy val subSchemata: IndexedSeq[EntitySchema] = getNonPivotSchemata(this)
-  //NOTE: ---------------------------------------------------------------------------------------------------------
+  //NOTE: ----------------------------------------------------------------------------
 
   // TypedPaths of pivot and typedPaths of subSchemata (prepended with their sub-paths)
   override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++

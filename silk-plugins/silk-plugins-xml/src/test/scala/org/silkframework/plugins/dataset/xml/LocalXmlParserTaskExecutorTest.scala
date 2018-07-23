@@ -29,7 +29,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
         Seq("<root><a>some value2</a><b>other value2</b></root>")),
       inputEntitySchema)),
     entitySchema = inputEntitySchema,
-    taskOption = Some(PlainTask(Identifier("id"), task)))
+    task = PlainTask(Identifier("id"), task))
   )
 
   it should "return no result if no outputSchema was defined" in {

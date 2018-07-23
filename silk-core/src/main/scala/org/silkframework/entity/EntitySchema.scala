@@ -20,6 +20,7 @@ case class EntitySchema(
   filter: Restriction = Restriction.empty,
   subPath: Path = Path.empty
  ) extends Serializable {
+
   /**
     * overriding the default case class copy(). to deal with Sub-Schemata
     * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema

@@ -17,14 +17,13 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.Path
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import play.api.libs.json.JsValue
 
 
 class JsonReaderTest extends FlatSpec with Matchers {
 
   private val json = {
-    val resources = new ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonTraverser(resources.get("example.json"))
+    val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
+    JsonTraverser("alibi_task_id", resources.get("example.json"))
   }
 
   private val persons = json.select("persons" :: Nil)

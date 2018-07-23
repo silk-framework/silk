@@ -31,5 +31,4 @@ class SilkTest extends FlatSpec with Matchers {
     project.resources.delete("source.nt")
     project.resources.delete("target.nt")
   }
-
 }

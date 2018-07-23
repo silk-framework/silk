@@ -28,15 +28,15 @@ class Identifier(private val name: String) extends Serializable with Ordered[Ide
     "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
 
   /** Returns the identifier itself. */
-  override def toString = name
+  override def toString: String = name
 
-  override def equals(other: Any) = other match {
+  override def equals(other: Any): Boolean = other match {
     case otherId: Identifier => name.equals(otherId.name)
     case str: String => name.equals(str)
     case _ => false
   }
 
-  override def hashCode = name.hashCode
+  override def hashCode: Int = name.hashCode
 
   override def compare(that: Identifier): Int = {
     name.compare(that.name)
@@ -54,7 +54,7 @@ object Identifier {
    * Creates a new Identifier.
    * Will throw an exception if the given String is no valid Identifier.
    */
-  def apply(str: String) = new Identifier(str)
+  def apply(str: String): Identifier = new Identifier(str)
 
   /**
     * Checks if a given character is valid in identifiers.
@@ -66,14 +66,14 @@ object Identifier {
   /**
     * Creates a new Identifier only from the allowed characters in a given string.
     */
-  def fromAllowed(str: String) = {
+  def fromAllowed(str: String): Identifier = {
     new Identifier(str.filter(Identifier.isAllowed))
   }
 
   /**
    * Generates a new random identifier.
    */
-  def random = new Identifier("r" + UUID.randomUUID.toString)
+  def random: Identifier = new Identifier("r" + UUID.randomUUID.toString)
 
   /**
    * Converts a String to an Identifier.
