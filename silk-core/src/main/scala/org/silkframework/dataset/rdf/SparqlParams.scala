@@ -13,7 +13,7 @@ package org.silkframework.dataset.rdf
  * @param retryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
  * @param queryParameters Additional parameters to be appended to every request e.g. &soft-limit=1
  * @param strategy Strategy used for retrieving entities.
- * @param useOrderBy TODO @Robert Isele
+ * @param useOrderBy Enforce ordering by using ORDER BY in SPARQL select queries. May slow down reading.
 */
 case class SparqlParams(
    uri: String = "",
