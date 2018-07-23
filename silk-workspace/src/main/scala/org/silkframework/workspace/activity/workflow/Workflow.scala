@@ -7,7 +7,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.xml.{Elem, Node, Text}
+import scala.xml.{Node, Text}
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
@@ -361,7 +361,17 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
 
   def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
 
+  /**
+    * Returns all nodes that directly precede this node.
+    */
   def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
+
+  /**
+    * Returns all nodes that directly or indirectly precede this node.
+    */
+  def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
+    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+  }
 
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
