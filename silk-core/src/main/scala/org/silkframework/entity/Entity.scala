@@ -200,7 +200,11 @@ case class Entity private(
     }
   }
 
-  override def toString: String = uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
+  override def toString: String = failure match{
+    case Some(f) => uri + " failed with: " + f.getMessage
+    case None => uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
+  }
+
 
   override def equals(other: Any): Boolean = other match {
     case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema

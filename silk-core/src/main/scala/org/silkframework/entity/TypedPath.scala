@@ -48,7 +48,7 @@ object TypedPath {
   val META_FIELD_ORIGIN_NAME: String = "ORIGINAL_NAME"
 
   /**
-    *
+    * TODO
     * @param path
     * @param valueType
     * @param isAttribute
@@ -57,7 +57,7 @@ object TypedPath {
   def apply(path: Path, valueType: ValueType, isAttribute: Boolean): TypedPath = apply(path.operators, valueType, isAttribute)
 
   /**
-    *
+    * TODO
     * @param path
     * @param valueType
     * @param isAttribute
@@ -72,7 +72,7 @@ object TypedPath {
   }
 
   /**
-    *
+    * TODO
     * @param ops
     * @param valueType
     * @param isAttribute
