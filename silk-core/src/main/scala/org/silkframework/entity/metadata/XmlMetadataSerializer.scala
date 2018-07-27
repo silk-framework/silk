@@ -1,6 +1,7 @@
 package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization.{SerializationFormat, XmlFormat}
+import org.silkframework.util.ScalaReflectUtils
 
 import scala.reflect._
 import scala.xml.Node
@@ -8,7 +9,7 @@ import scala.xml.Node
 abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with MetadataSerializer {
 
   //we have to make sure that metadataId was not implemented as a val
-  if(runtime.currentMirror.classSymbol(this.getClass).toType.decls.exists(d => d.name.encodedName.toString == "metadataId" && !d.isMethod))
+  if(! ScalaReflectUtils.implementedAsDef("metadataId", this.getClass))
     throw new NotImplementedError("Method metadataId in " + this.getClass.getName + " was implemented as a val. Make sure to implement this method as a def!")
 
   //add metadata serializer to registry

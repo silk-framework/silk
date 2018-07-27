@@ -1,26 +1,47 @@
 package org.silkframework.serialization.json.metadata
 
 import org.silkframework.entity.metadata._
+import org.silkframework.failures.FailureClass
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
 
 case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]] = Map()) extends EntityMetadata[JsValue]{
 
-  override val serializer: SerializationFormat[EntityMetadata[JsValue], JsValue] =
-    EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadata[JsValue], JsValue]]
 
   override implicit val serTag: Class[JsValue] = EntityMetadataJson.JsValClass
 
-  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadata[JsValue] =
-    EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
-
-  override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
-
-  override def addFailure(failure: Throwable): EntityMetadata[JsValue] = {
-    val lm = IrreplaceableMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[Throwable])
+  /**
+    * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
+    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
+    *
+    * @param failure - the exception caught wrapped in a FailureClass
+    */
+  override def addFailure(failure: FailureClass): EntityMetadata[JsValue] = {
+    val lm = IrreplaceableMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[FailureClass])
     addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
   }
+
+  /**
+    * providing an empty instance
+    */
+  override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
+
+  /**
+    * The serializer used to serialize this EntityMetadata object
+    */
+  override val serializer: SerializationFormat[EntityMetadata[JsValue], JsValue] =
+    EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadata[JsValue], JsValue]]
+
+  /**
+    * Will insert a new [[LazyMetadata]] object into the metadata map
+    *
+    * @param key - string identifiers to specify the type of metadata (see for example: [[XmlMetadataSerializer.metadataId]])
+    * @param lm  - the [[LazyMetadata]] object
+    * @return - the updated map
+    */
+  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadata[JsValue] =
+    EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 }
 
 object EntityMetadataJson{
@@ -34,7 +55,7 @@ object EntityMetadataJson{
     new EntityMetadataJson(resMap)
   }
 
-  def apply(t: Throwable): EntityMetadataJson = apply(Map(EntityMetadata.FAILURE_KEY -> t))(classOf[Throwable])
+  def apply(t: FailureClass): EntityMetadataJson = apply(Map(EntityMetadata.FAILURE_KEY -> t))(classOf[FailureClass])
 
   def apply(base: EntityMetadata[JsValue]): EntityMetadataJson = EntityMetadataJson(base.metadata)
 

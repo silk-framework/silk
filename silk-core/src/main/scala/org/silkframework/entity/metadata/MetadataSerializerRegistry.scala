@@ -15,9 +15,12 @@ trait MetadataSerializerRegistry[Format <: Any] {
 
   private val SerializerRegistry = new mutable.HashMap[String, SerializationFormat[_, Format] with MetadataSerializer]
 
-  def registerSerializationFormat(key: String, sf: SerializationFormat[_, Format] with MetadataSerializer): Unit ={
+  def registerSerializationFormat(metadataId: String, sf: SerializationFormat[_, Format] with MetadataSerializer): Unit ={
     //add entry for each mime type
-    SerializerRegistry.put(key, sf)
+    SerializerRegistry.get(metadataId) match{
+      case Some(ser) if ser != sf => throw new IllegalStateException("Trying to define a second serializer for metadataId: " + metadataId)
+      case _ => SerializerRegistry.put(metadataId, sf)
+    }
   }
 
   def getSerializationFormat[T](key: String): Option[SerializationFormat[T, Format] with MetadataSerializer] ={

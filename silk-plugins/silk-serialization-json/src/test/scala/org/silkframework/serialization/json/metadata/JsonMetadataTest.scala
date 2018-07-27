@@ -1,8 +1,11 @@
 package org.silkframework.serialization.json.metadata
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.{config, dataset}
+import org.silkframework.dataset.EmptyDataset
 import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.failures.{EntityException, FailureClass}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.{DPair, Uri}
@@ -12,13 +15,14 @@ import play.api.libs.json.{JsObject, JsString, JsValue}
 class JsonMetadataTest extends FlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
 
-  implicit val throwableTag = classOf[Throwable]
+  implicit val throwableTag = classOf[FailureClass]
   implicit val dpairTag = classOf[DPair[String]]
   implicit val Tag = classOf[LazyMetadataJson[DPair[String]]]
 
-  val testException = new Exception("test", new IllegalArgumentException("some cause"))
+  val alibiTask = config.PlainTask("alibi", dataset.DatasetSpec(EmptyDataset))
+  val testException = new EntityException("", new Exception("test", new IllegalArgumentException("some cause")), alibiTask.id)
   val metadata = new EntityMetadataJson(
-    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataJson(testException, ExceptionSerializerJson()))
+    Map(EntityMetadata.FAILURE_KEY -> LazyMetadataJson(testException.failureClass, FailureClassSerializerJson()))
   )
 
   val TestSerializerCategoryName = "pair_test_metadata"
@@ -65,15 +69,15 @@ class JsonMetadataTest extends FlatSpec with Matchers {
   }
 
   it should "accept exception object as metadata and recognize it as a failed entity" in{
-    val lazyMetadata = metadata.getLazyMetadata[Throwable](EntityMetadata.FAILURE_KEY)
+    val lazyMetadata = metadata.getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY)
     // test if metadata is serialized as single string (no pretty printing is important for the internal metadata representation)
     lazyMetadata.toString.contains(System.getProperty("line.separator")) shouldBe false
     //create a copy deleting the initial exception (keeping only its serialized version, so that the call for lm.metadata triggers the parsing of the serialized data)
     val serialized = lazyMetadata.serialized
-    val copy = LazyMetadataJson(serialized, ExceptionSerializerJson())
+    val copy = LazyMetadataJson(serialized, FailureClassSerializerJson())
     //now compare any aspect of the origin exception and the parsed one
     copy.metadata.isDefined shouldBe true
-    compareExceptions(copy.metadata.get, testException)
+    compareExceptions(copy.metadata.get.rootCause, testException)
     //finally, since this is an exception provided with the FAILURE_KEY, the containing entity should recognize the failure and signal its failed state
     entity1.hasFailed shouldBe true
   }
@@ -91,16 +95,16 @@ class JsonMetadataTest extends FlatSpec with Matchers {
   it should "serialize the container EntityMetadata and parse it lazily" in{
     val newMetadata = new EntityMetadataJson(
       Map(
-        EntityMetadata.FAILURE_KEY -> LazyMetadataJson(testException, ExceptionSerializerJson()),
+        EntityMetadata.FAILURE_KEY -> LazyMetadataJson(FailureClass(testException, alibiTask.id), FailureClassSerializerJson()),
         TestSerializerCategoryName -> LazyMetadataJson(new DPair("s", "t"), serializer)
       )
     )
     val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(WriteContext[JsValue]())
     val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext())
-    val ex = readMetadata.getLazyMetadata[Throwable](EntityMetadata.FAILURE_KEY).metadata.get
+    val ex = readMetadata.getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY).metadata.get
     val pair = readMetadata.getLazyMetadata[DPair[String]](TestSerializerCategoryName).metadata.get
     pair.source + pair.target shouldEqual "st"    //test the DPair
-    compareExceptions(ex, testException)          //compare both exceptions
+    compareExceptions(ex.rootCause, testException.rootCause)          //compare both exceptions
   }
 
   it should "deal correctly with empty metadata objects" in{

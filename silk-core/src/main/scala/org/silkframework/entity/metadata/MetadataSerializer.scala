@@ -13,7 +13,6 @@ trait MetadataSerializer {
 
   /**
     * An indicator whether the LazyMetadata object produced with this serializer will be replaceable (overridable in the Metadata map)
-    * @return
     */
   def replaceableMetadata: Boolean
 }

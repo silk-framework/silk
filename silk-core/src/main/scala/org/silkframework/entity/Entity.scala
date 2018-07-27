@@ -17,6 +17,7 @@ package org.silkframework.entity
 import java.io.{DataInput, DataOutput}
 
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
+import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
 import scala.xml.Node
@@ -45,7 +46,7 @@ case class Entity private(
     schema: EntitySchema = this.schema,
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     metadata: EntityMetadata[_] = this.metadata,
-    failureOpt: Option[Throwable] = None,
+    failureOpt: Option[FailureClass] = None,
     projectValuesIfNewSchema: Boolean = true
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
@@ -74,15 +75,17 @@ case class Entity private(
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
-    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size)  // if sub entities size is not equal to sub schemata size
-      Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))
-    else if (! this.validate)                                                                                                 // if entity is not valid
+    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
+      Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))  // if sub entities size is not equal to sub schemata size
+    }
+    else if (! this.validate) { // if entity is not valid
       Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
-    else
+    }
+    else{
       None
-  }
+  }}
   else {
-    metadata.failure.metadata   //propagate former failure
+    metadata.failure.metadata.map(_.rootCause)   //propagate former failure
   }
 
   def hasFailed: Boolean = failure.isDefined
@@ -239,7 +242,7 @@ object Entity {
     new Entity(uri, values, schema)
   }
 
-  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[Throwable]): Entity = {
+  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[FailureClass]): Entity = {
     new Entity(uri, values, schema, subEntities, failureOpt match{
       case Some(t) => EntityMetadataXml(t)    //TODO validate this is working in Spark with Json
       case None => EntityMetadataXml()
@@ -253,22 +256,20 @@ object Entity {
     * NOTE: values are not recorded
     * @param uri - uri of the entity
     * @param schema - the EntitySchema pertaining to the Entity
-    * @param t - the Throwable which failed this Enity
+    * @param failure - the Throwable which failed this Enity as [[FailureClass]]
     * @return - the failed Entity
     */
-  //FIXME add property option CMEM-719
-  def apply(uri: Uri, schema: EntitySchema, t: Throwable): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(t))
+  def apply(uri: Uri, schema: EntitySchema, failure: FailureClass): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(failure))
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
     * @param uri - uri of the entity
     * @param values - the values applied for the failed Entity
     * @param schema - the EntitySchema pertaining to the Entity
-    * @param t - the Throwable which failed this Enity
+    * @param failure - the Throwable which failed this Enity as [[FailureClass]]
     * @return - the failed Entity
     */
-  //FIXME add property option CMEM-719 maybe only allow SparkInstanceException
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, t: Throwable): Entity = Entity(uri, values, schema, IndexedSeq())
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, failure: FailureClass): Entity = Entity(uri, values, schema, IndexedSeq(), Some(failure))
 
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {

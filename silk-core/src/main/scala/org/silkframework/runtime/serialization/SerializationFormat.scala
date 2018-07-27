@@ -1,7 +1,7 @@
 package org.silkframework.runtime.serialization
 
 import scala.collection.mutable
-import scala.reflect._
+import scala.reflect.ClassTag
 
 /**
   * Implementing classes support the serialization and deserialization of a specific type.

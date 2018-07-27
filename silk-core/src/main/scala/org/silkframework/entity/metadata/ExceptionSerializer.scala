@@ -95,7 +95,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 }
 
 object ExceptionSerializer{
-  val ID: String = EntityMetadata.FAILURE_KEY
+  val ID: String = "exception_class"
   val EXCEPTION: String = "Exception"
   val CLASS: String = "Class"
   val MESSAGE: String = "Message"

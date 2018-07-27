@@ -3,14 +3,14 @@ package org.silkframework.serialization.json.metadata
 import org.silkframework.entity.metadata.{MetadataSerializer, MetadataSerializerRegistry}
 import org.silkframework.runtime.serialization.SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
+import org.silkframework.util.ScalaReflectUtils
 import play.api.libs.json.JsValue
-
-import scala.reflect._
+import scala.reflect.ClassTag
 
 abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with MetadataSerializer {
 
   //we have to make sure that metadataId was not implemented as a val
-  if(runtime.currentMirror.classSymbol(this.getClass).toType.decls.exists(d => d.name.encodedName.toString == "metadataId" && !d.isMethod))
+  if(! ScalaReflectUtils.implementedAsDef("metadataId", this.getClass))
     throw new NotImplementedError("Method metadataId in " + this.getClass.getName + " was implemented as a val. Make sure to implement this method as a def!")
 
   //add metadata serializer to registry

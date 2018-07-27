@@ -1,6 +1,9 @@
 package org.silkframework.entity.metadata
 
+import org.silkframework.entity.Path
+import org.silkframework.failures.FailureClass
 import org.silkframework.runtime.serialization._
+import org.silkframework.util.Identifier
 
 import scala.collection.mutable
 
@@ -53,14 +56,23 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
   /**
     * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
     * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
-    * @param failure
+    * @param failure - the exception caught
+    * @param taskId - the identifier pointing out the current task
+    * @param property - the optional property pointer as [[Path]]
     */
-  def addFailure(failure: Throwable): EntityMetadata[Serialization]
+  def addFailure(failure: Throwable, taskId: Identifier, property: Option[Path] = None): EntityMetadata[Serialization] = addFailure(FailureClass(failure, taskId, property))
+
+  /**
+    * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
+    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
+    * @param failure - the exception caught wraped in a [[FailureClass]]
+    */
+  def addFailure(failure: FailureClass): EntityMetadata[Serialization]
 
   /**
     * @return - returning a Throwable for failed Entities
     */
-  def failure: LazyMetadata[Throwable, Serialization] = getLazyMetadata[Throwable](EntityMetadata.FAILURE_KEY)(classOf[Throwable])
+  def failure: LazyMetadata[FailureClass, Serialization] = getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY)(classOf[FailureClass])
 
   /* Map implementation */
   override def +[B1 >: LazyMetadata[_, Serialization]](kv: (String, B1)): Map[String, B1] = metadata.+[B1](kv)
@@ -75,7 +87,7 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
 }
 
 object EntityMetadata extends Serializable {
-  val FAILURE_KEY: String = "failure_metadata"
+  val FAILURE_KEY: String = "failure_class"
   val METADATA_KEY : String = "entity_metadata"
 
   /* EntityMetadata registry for different serialization formats */

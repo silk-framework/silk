@@ -53,7 +53,7 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     */
   val isReplaceable: Boolean = ! classOf[IrreplaceableMetadata].isAssignableFrom(this.getClass)
 
-  override def toString: String = metadata.map(x => serializer.toString(x,defaultMimeType)(WriteContext[Ser]())).getOrElse("")
+  override def toString: String = string
 }
 
 /**

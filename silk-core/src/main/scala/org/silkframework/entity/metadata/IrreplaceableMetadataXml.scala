@@ -16,7 +16,6 @@ object IrreplaceableMetadataXml{
   def apply[Typ](lm: LazyMetadataXml[Typ])(implicit typ: Class[Typ]): IrreplaceableMetadataXml[Typ] =
     new IrreplaceableMetadataXml[Typ](lm.obj, lm.serial, lm.str, lm.serializer)
 
-  //TODO mak serializer a broadcast, dont serialize it with the metadata
   def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): IrreplaceableMetadataXml[Typ] =
     new IrreplaceableMetadataXml[Typ](Option(obj), None, "", serializer)(typ)
 

@@ -2,6 +2,7 @@ package org.silkframework.entity.metadata
 
 import org.silkframework.entity.metadata.EntityMetadata.{FAILURE_KEY, METADATA_KEY}
 import org.silkframework.entity.metadata.EntityMetadataXml.XmlSerializer
+import org.silkframework.failures.FailureClass
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext, XmlFormat}
 
 import scala.xml.Node
@@ -13,19 +14,32 @@ case class EntityMetadataXml(override val metadata: Map[String, LazyMetadata[_, 
     this(XmlSerializer.fromString(rawMetadata, XmlFormat.MIME_TYPE_TEXT)(ReadContext()))
   }
 
-  override val serializer: SerializationFormat[EntityMetadata[Node], Node] = XmlSerializer
+  override def addFailure(failure: FailureClass): EntityMetadata[Node] = {
+    val lm = LazyMetadataXml(failure, EntityMetadata.FAILURE_KEY)(classOf[FailureClass])
+    addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
+  }
 
   override implicit val serTag: Class[Node] = classOf[Node]
 
-  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, Node]): EntityMetadata[Node] =
-    EntityMetadataXml((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
-
+  /**
+    * providing an empty instance
+    */
   override def emptyEntityMetadata: EntityMetadata[Node] = EntityMetadataXml()
 
-  override def addFailure(failure: Throwable): EntityMetadata[Node] = {
-    val lm = LazyMetadataXml(failure, EntityMetadata.FAILURE_KEY)(classOf[Throwable])
-    addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
-  }
+  /**
+    * The serializer used to serialize this EntityMetadata object
+    */
+  override val serializer: SerializationFormat[EntityMetadata[Node], Node] = XmlSerializer
+
+  /**
+    * Will insert a new [[LazyMetadata]] object into the metadata map
+    *
+    * @param key - string identifiers to specify the type of metadata (see for example: [[XmlMetadataSerializer.metadataId]])
+    * @param lm  - the [[LazyMetadata]] object
+    * @return - the updated map
+    */
+  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, Node]): EntityMetadata[Node] =
+    EntityMetadataXml((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 }
 
 object EntityMetadataXml{
@@ -42,7 +56,7 @@ object EntityMetadataXml{
     EntityMetadataXml(resMap)
   }
 
-  def apply(t: Throwable): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[Throwable])
+  def apply(t: FailureClass): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[FailureClass])
 
   def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(ReadContext())
 
