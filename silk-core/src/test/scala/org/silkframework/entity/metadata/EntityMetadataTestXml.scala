@@ -29,12 +29,11 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
     val lazyMetadata = entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).asInstanceOf[LazyMetadataXml[FailureClass]]
     val copy = LazyMetadataXml(lazyMetadata.serialized, FailureClassSerializer())
     copy.metadata.isDefined shouldBe true
-    copy.metadata.get.getClass.getCanonicalName shouldBe testException.getClass.getCanonicalName
-    copy.metadata.get.rootCause.getMessage shouldBe testException.getMessage
-    copy.metadata.get.rootCause.getStackTrace.length shouldBe testException.getStackTrace.length
-    copy.metadata.get.rootCause.getCause should not be  null.asInstanceOf[Throwable]
-    copy.metadata.get.rootCause.getCause.getClass shouldBe testException.getCause.getClass
-    copy.metadata.get.rootCause.getMessage shouldBe testException.getCause.getMessage
+    copy.metadata.get.rootCause.getClass.getCanonicalName shouldBe testException.rootCause.getClass.getCanonicalName
+    copy.metadata.get.rootCause.getMessage shouldBe testException.rootCause.getMessage
+    copy.metadata.get.rootCause.getStackTrace.length shouldBe testException.rootCause.getStackTrace.length
+    copy.metadata.get.rootCause.getClass shouldBe testException.rootCause.getClass
+    copy.metadata.get.rootCause.getMessage shouldBe testException.rootCause.getMessage
     entity1.hasFailed shouldBe true
   }
 

@@ -77,7 +77,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
     val copy = LazyMetadataJson(serialized, FailureClassSerializerJson())
     //now compare any aspect of the origin exception and the parsed one
     copy.metadata.isDefined shouldBe true
-    compareExceptions(copy.metadata.get.rootCause, testException)
+    compareExceptions(copy.metadata.get.rootCause, testException.rootCause)
     //finally, since this is an exception provided with the FAILURE_KEY, the containing entity should recognize the failure and signal its failed state
     entity1.hasFailed shouldBe true
   }
