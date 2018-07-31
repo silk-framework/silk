@@ -155,7 +155,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
-    val nodesWithInputs = nodes.filter(_.inputs.size > 0).map(_.nodeId)
+    val nodesWithInputs = nodes.filter(_.inputs.nonEmpty).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
   }
 
@@ -303,7 +303,7 @@ object Workflow {
     }
 
     private def parseOutputPriority(op: Node): Option[Double] = {
-      val node = ((op \ "@outputPriority"))
+      val node = op \ "@outputPriority"
       if (node.isEmpty) {
         None
       } else {
@@ -312,7 +312,7 @@ object Workflow {
     }
 
     private def parseNodeId(op: Node, task: String): String = {
-      val node = ((op \ "@id"))
+      val node = op \ "@id"
       if (node.isEmpty) {
         task
       } else {

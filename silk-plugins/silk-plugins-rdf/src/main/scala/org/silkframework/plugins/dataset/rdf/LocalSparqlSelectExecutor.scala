@@ -21,7 +21,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
         val entities = executeOnSparqlEndpointEntityTable(taskData, sparql)
-        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, Some(task)))
+        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
     }

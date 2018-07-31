@@ -5,5 +5,5 @@ import org.silkframework.entity.{Entity, EntitySchema}
 
 case class MultiEntityTable(entities: Traversable[Entity],
                             entitySchema: EntitySchema,
-                            taskOption: Option[Task[TaskSpec]],
+                            task: Task[TaskSpec],
                             subTables: Seq[LocalEntities]) extends LocalEntities

@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.util.Uri
 
-case class LinksTable(links: Seq[Link], linkType: Uri, taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
+case class LinksTable(links: Seq[Link], linkType: Uri, task: Task[TaskSpec]) extends LocalEntities {
 
   val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
