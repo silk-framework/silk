@@ -20,6 +20,11 @@ abstract class JsonMetadataSerializer[T : ClassTag] extends JsonFormat[T] with M
 }
 
 object JsonMetadataSerializer extends MetadataSerializerRegistry[JsValue] {
+
+  /* register basic serializers for failures which are needed to add failures to entities */
+  ExceptionSerializerJson()
+  FailureClassSerializerJson()
+
   /**
     * Each serialization format needs a dedicated Exception serializer
     */

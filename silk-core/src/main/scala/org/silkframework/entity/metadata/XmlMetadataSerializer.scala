@@ -19,6 +19,11 @@ abstract class XmlMetadataSerializer[T : ClassTag] extends XmlFormat[T] with Met
 }
 
 object XmlMetadataSerializer extends MetadataSerializerRegistry[Node] {
+
+  /* register basic serializers for failures which are needed to add failures to entities */
+  ExceptionSerializer()
+  FailureClassSerializer()
+
   /**
     * Each serialization format needs a dedicated Exception serializer
     */

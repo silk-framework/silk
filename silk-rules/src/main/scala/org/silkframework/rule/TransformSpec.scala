@@ -267,7 +267,7 @@ object TransformSpec {
       * If an object type path would come before the value path, the path input would take the wrong values. The other way round
       * is taken care of.
       */
-    valuePaths.diff(objectPaths) ++ objectPaths
+    valuePaths ++ objectPaths
   }
 
   implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
