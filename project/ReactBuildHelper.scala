@@ -2,7 +2,7 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 
-import scala.sys.process.{Process, ProcessLogger}
+import scala.sys.process.{BasicIO, Process, ProcessLogger}
 
 object ReactBuildHelper {
   /**
@@ -19,7 +19,7 @@ object ReactBuildHelper {
   /**
     * Checks if some common build tools are available on this system.
     */
-  def checkReactBuildTool(): Unit = {
+  def checkReactBuildTool(): Unit = BasicIO.synchronized {
     val missing = Seq(yarnCommand) filter { name =>
       scala.util.Try {
         process(name :: "--version" :: Nil) == ""
@@ -39,7 +39,7 @@ object ReactBuildHelper {
     * @param targetArtifactDirectory The directory where the built artifacts are copied to. This directory is deleted
     *                                prior to copying the files.
     */
-  def buildReactComponents(reactBuildRoot: File, targetArtifactDirectory: File, project: String): Unit = {
+  def buildReactComponents(reactBuildRoot: File, targetArtifactDirectory: File, project: String): Unit = BasicIO.synchronized {
     val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
     val productionBuild = buildEnv == "production"
     val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
