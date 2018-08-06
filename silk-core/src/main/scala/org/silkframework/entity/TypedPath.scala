@@ -44,24 +44,28 @@ case class TypedPath(
 
 object TypedPath {
 
-  val META_FIELD_XML_ATTRIBUTE: String = "IS_XML_ATTRIBUTE"
-  val META_FIELD_ORIGIN_NAME: String = "ORIGINAL_NAME"
+  val META_FIELD_XML_ATTRIBUTE: String = "isXmlAttribute"
+  val META_FIELD_ORIGIN_NAME: String = "originalName"
 
   /**
-    * TODO
-    * @param path
-    * @param valueType
-    * @param isAttribute
-    * @return
+    * @param path - the untyped path
+    * @param valueType - the ValueType
+    * @param isAttribute - indicates whether this is an XML attribute
     */
   def apply(path: Path, valueType: ValueType, isAttribute: Boolean): TypedPath = apply(path.operators, valueType, isAttribute)
 
+
   /**
-    * TODO
-    * @param path
-    * @param valueType
-    * @param isAttribute
-    * @return
+    * @param path - the untyped path
+    * @param valueType - the ValueType
+    * @param metadata - an immutable map that stores metadata objects
+    */
+  def apply(path: Path, valueType: ValueType,  metadata: Map[String, Any]): TypedPath = apply(path.operators, valueType, metadata)
+
+  /**
+    * @param path - the unparsed, untyped path
+    * @param valueType - the ValueType
+    * @param isAttribute - indicates whether this is an XML attribute
     */
   def apply(path: String, valueType: ValueType, isAttribute: Boolean = false)(implicit prefixes: Prefixes = Prefixes.empty): TypedPath = {
     val metadata = Map(
@@ -72,11 +76,9 @@ object TypedPath {
   }
 
   /**
-    * TODO
-    * @param ops
-    * @param valueType
-    * @param isAttribute
-    * @return
+    * @param ops - the path operators
+    * @param valueType - the ValueType
+    * @param isAttribute - indicates whether this is an XML attribute
     */
   def apply(ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean): TypedPath =
     apply(ops, valueType, if(isAttribute) Map(META_FIELD_XML_ATTRIBUTE -> true) else Map.empty[String, Any]) //if not an attribute, we can leave map empty, false is assumed
@@ -108,7 +110,7 @@ object TypedPath {
       * Serializes a value.
       */
     override def write(typedPath: TypedPath)(implicit writeContext: WriteContext[Node]): Node = {
-      implicit val p = writeContext.prefixes
+      implicit val p: Prefixes = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
         <Path>
           {typedPath.normalizedSerialization}

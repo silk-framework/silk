@@ -205,7 +205,7 @@ case class Entity private(
 
   override def toString: String = failure match{
     case Some(f) => uri + " failed with: " + f.getMessage
-    case None => uri + "\n{\n  " + values.mkString("\n  ") + "\n}"
+    case None => uri + "{\n  " + (values ++ subEntities.flatMap(oe => oe.map(_.values)).flatten).mkString("\n  ") + "\n}"
   }
 
 
