@@ -14,8 +14,6 @@ class LazyMetadataJson[Typ] private[metadata](
    val serializer: SerializationFormat[Typ, JsValue]
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, JsValue] {
 
-  assert(obj.nonEmpty || serial.nonEmpty || str.nonEmpty, "LazyMetadata without any data object.")
-
   override implicit val serTag: ClassTag[JsValue] = ClassTag(classOf[JsValue])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
   private implicit val nodeWc = WriteContext[JsValue]()
@@ -60,6 +58,11 @@ class LazyMetadataJson[Typ] private[metadata](
   else{
     serialized.toString()
   }
+
+  /**
+    * indicates whether this is an empty LazyMetadata instance
+    */
+  override def isEmpty: Boolean = obj.isEmpty && serial.isEmpty && str.trim.isEmpty
 }
 
 object LazyMetadataJson{

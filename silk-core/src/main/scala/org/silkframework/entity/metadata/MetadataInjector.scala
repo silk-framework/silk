@@ -6,7 +6,7 @@ import org.silkframework.runtime.serialization.SerializationFormat
 /**
   * Describes a transformation of a given Entity into a new metadata object, which is then stored in the [[org.silkframework.entity.Entity.metadata]] object
   */
-trait MetadataInjector[Typ, Ser] {
+trait MetadataInjector[Typ, Ser] extends Serializable {
 
   /**
     * The metadata serializer to be used
@@ -27,14 +27,14 @@ trait MetadataInjector[Typ, Ser] {
   /**
     * Computes e new LazyMetadata object for the given Entity
     */
-  def compute(entity: Entity, obj: Option[Typ]): Option[LazyMetadata[Typ, Ser]]
+  def compute(entity: Entity, obj: Option[Any]): Option[LazyMetadata[Typ, Ser]]
 
   /**
     * Will be executed after the last [[compute]]
     */
   def afterAll(): Unit = {}
 
-  private def computeAndValidate(entity: Entity, obj: Option[Typ]): Option[LazyMetadata[Typ, Ser]] ={
+  private def computeAndValidate(entity: Entity, obj: Option[Any]): Option[LazyMetadata[Typ, Ser]] ={
     compute(entity, obj).map(lm =>{
       //test whether the generated metadata object is (ir-)replaceable as defined in the pertaining serializer
       assert(lm.metadata.isEmpty || lm.isReplaceable == serializer.replaceableMetadata, "The generated metadata objects replaceable indicator does not match its serializer." +
@@ -51,7 +51,7 @@ trait MetadataInjector[Typ, Ser] {
   /**
     * Generates new metadata objects for each Entity and stores it under the metadataId in the EntityMetadata container
     */
-  def injectMetadata(entity: Entity, obj: Option[Typ]): Entity = {
+  def injectMetadata(entity: Entity, obj: Option[Any]): Entity = {
     computeAndValidate(entity, obj) match{
       case Some(lm) => entity.metadata match{
         case empty: EntityMetadata[_] if empty.isEmpty => entity.copy(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))

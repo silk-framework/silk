@@ -12,8 +12,6 @@ class LazyMetadataXml[Typ] private[metadata](
   val serializer: SerializationFormat[Typ, Node]
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, Node] {
 
-  assert(obj.nonEmpty || serial.nonEmpty || str.nonEmpty, "LazyMetadata without any data object.")
-
   override implicit val serTag: ClassTag[Node] = ClassTag(classOf[Node])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
   private implicit val nodeWc = WriteContext[Node]()
@@ -58,6 +56,11 @@ class LazyMetadataXml[Typ] private[metadata](
   else{
     serialized.toString()
   }
+
+  /**
+    * indicates whether this is an empty LazyMetadata instance
+    */
+  override def isEmpty: Boolean = obj.isEmpty && serial.isEmpty && str.trim.isEmpty
 }
 
 object LazyMetadataXml{

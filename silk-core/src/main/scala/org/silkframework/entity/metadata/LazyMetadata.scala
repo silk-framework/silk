@@ -53,6 +53,11 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     */
   val isReplaceable: Boolean = ! classOf[IrreplaceableMetadata].isAssignableFrom(this.getClass)
 
+  /**
+    * indicates whether this is an empty LazyMetadata instance
+    */
+  def isEmpty: Boolean
+
   override def toString: String = string
 }
 
@@ -115,6 +120,11 @@ object LazyMetadata extends Serializable {
       * Providing the default mime type to be used with the serializer
       */
     override val defaultMimeType: String = ""
+
+    /**
+      * indicates whether this is an empty LazyMetadata instance
+      */
+    override def isEmpty: Boolean = true
   }
 
   /**
@@ -151,5 +161,10 @@ object LazyMetadata extends Serializable {
       * Providing the default mime type to be used with the serializer
       */
     override val defaultMimeType: String = ""
+
+    /**
+      * indicates whether this is an empty LazyMetadata instance
+      */
+    override def isEmpty: Boolean = metadata.isEmpty
   }
 }
