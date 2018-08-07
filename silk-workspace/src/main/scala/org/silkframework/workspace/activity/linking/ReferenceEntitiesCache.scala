@@ -177,11 +177,9 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
         //Collect values from the existing and the new entity
         val completeValues =
           for (path <- entityDesc.typedPaths) yield {
-            val pathIndex = entity.schema.typedPaths.indexOf(path)
-            if (pathIndex != -1) {
-              entity.evaluate(pathIndex)
-            } else {
-              missingEntity.evaluate(path)
+            entity.schema.typedPaths.find(p => p == path) match{
+              case Some(fp) => entity.evaluate(fp)
+              case None => missingEntity.evaluate(path)
             }
           }
 

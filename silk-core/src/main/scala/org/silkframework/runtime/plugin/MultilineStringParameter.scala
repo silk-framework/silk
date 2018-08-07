@@ -9,7 +9,7 @@ case class MultilineStringParameter(str: String) {
 
   override def toString: String = str
 
-  def lines: Seq[String] = str.split('\n')
+  def lines: Seq[String] = str.split("[\\r\\n]+")
 
 }
 

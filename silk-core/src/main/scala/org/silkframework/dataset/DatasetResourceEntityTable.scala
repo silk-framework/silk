@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
 /**
   * An entity table that holds the input resource of a dataset and can be requested with the DatasetResourceEntitySchema schema.
   */
-class DatasetResourceEntityTable(resource: Resource, val taskOption: Option[Task[TaskSpec]]) extends LocalEntities {
+class DatasetResourceEntityTable(resource: Resource, val task: Task[TaskSpec]) extends LocalEntities {
   override def entitySchema: EntitySchema = EntitySchema.empty
 
   override def entities: Traversable[Entity] = Traversable.empty

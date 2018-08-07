@@ -1,12 +1,12 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
+import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.execution._
-import org.silkframework.rule.{LinkSpec, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
@@ -32,7 +32,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(output.linkSink))
     val linking = Activity(activity).startBlockingAndGetValue()
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, Some(PlainTask(task.id, linkSpec))))
+    Some(LinksTable(linking.links, linkSpec.rule.linkType, PlainTask(task.id, linkSpec)))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {
@@ -63,11 +63,18 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      *
+      * @return
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(table.task.id, DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with table.task???
   }
 
   private def updateSelection(linkSpec: LinkSpec, source: LocalEntities, target: LocalEntities): LinkSpec = {
-    val sourceSelection = linkSpec.dataSelections.source.copy(inputId = source.taskOption.getOrElse(throw new IllegalArgumentException).id)
-    val targetSelection = linkSpec.dataSelections.target.copy(inputId = target.taskOption.getOrElse(throw new IllegalArgumentException).id)
+    val sourceSelection = linkSpec.dataSelections.source.copy(inputId = source.task.id)
+    val targetSelection = linkSpec.dataSelections.target.copy(inputId = target.task.id)
     linkSpec.copy(dataSelections = DPair(sourceSelection, targetSelection))
   }
 }

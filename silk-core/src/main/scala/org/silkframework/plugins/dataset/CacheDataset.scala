@@ -17,8 +17,8 @@ package org.silkframework.plugins.dataset
 import java.io.File
 
 import org.silkframework.cache.FileEntityCache
-import org.silkframework.config.RuntimeConfig
-import org.silkframework.dataset.{DataSource, Dataset}
+import org.silkframework.config.{PlainTask, RuntimeConfig, Task}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Index, Path}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
@@ -47,5 +47,7 @@ case class CacheDataset(dir: String) extends Dataset {
     override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
+
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("cache_source", DatasetSpec(CacheDataset.this))
   }
 }

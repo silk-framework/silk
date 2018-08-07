@@ -25,13 +25,9 @@ abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType
   def apply(task: ProjectTask[TaskType]): Activity[ActivityType#ValueType]
 
   /**
-    * Checks, if this factory generates activities for a given task type
+    * Returns the type of the task for which this factory generates activities.
     */
-  def isTaskType[T: ClassTag]: Boolean = {
-    val requestedType = implicitly[ClassTag[T]].runtimeClass
-    val taskType = implicitly[ClassTag[TaskType]].runtimeClass
-    requestedType.isAssignableFrom(taskType)
-  }
+  def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
   /**
     * Returns the type of generated activities.

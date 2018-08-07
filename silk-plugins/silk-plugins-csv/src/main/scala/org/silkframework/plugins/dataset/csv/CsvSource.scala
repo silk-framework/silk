@@ -6,12 +6,12 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource}
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
-import scala.collection.mutable
 import scala.io.Codec
 
 class CsvSource(file: Resource,
@@ -34,19 +34,11 @@ class CsvSource(file: Resource,
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
-  lazy val propertyList: IndexedSeq[String] = {
+  val propertyList: IndexedSeq[String] = {
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      val parser = csvParser()
-      val firstLine = parser.parseNext()
-      parser.stopParsing()
-      if (firstLine.isDefined) {
-        val headerFields = firstLine.get
-        CsvSourceHelper.convertHeaderFields(headerFields, prefix)
-      } else {
-        mutable.IndexedSeq()
-      }
+      CsvSourceHelper.convertHeaderFields(firstLine, prefix)
     }
   }
 
@@ -91,7 +83,7 @@ class CsvSource(file: Resource,
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(prefix + property) :: Nil)
+        Path(ForwardOperator(Uri.parse(prefix + property)) :: Nil)
       }
     } catch {
       case e: MalformedInputException =>
@@ -142,24 +134,23 @@ class CsvSource(file: Resource,
                                 indices: IndexedSeq[Int]): Traversable[Entity] = {
     new Traversable[Entity] {
       def foreach[U](f: Entity => U) {
-        val parser: CsvParser = csvParser()
+        val parser: CsvParser = csvParser(properties.trim.isEmpty)
 
         // Compile the line regex.
         val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
 
         try {
-          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter
-          // the rows.
+          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
+
           var entryOpt = parser.parseNext()
           var index = 0
           while (entryOpt.isDefined) {
             val entry = entryOpt.get
-            if (!(properties.trim.isEmpty && 0 == index) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
+            if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
               if (propertyList.size <= entry.length) {
                 //Extract requested values
                 val values = indices.map(entry(_))
                 val entityURI = generateEntityUri(index, entry)
-
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
                   val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
@@ -183,7 +174,28 @@ class CsvSource(file: Resource,
     }
   }
 
-  private def handleBadLine[U](index: Int, entry: Array[String]) = {
+  /** Returns a generated entity URI.
+    * The default URI pattern is to use the prefix and the line number.
+    * However the user can specify a different URI pattern (in the *uri* property), which is then used to
+    * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
+    * as defined in the *properties* field. */
+  private def generateEntityUri(index: Int, entry: Array[String]) = {
+    if (uriPattern.isEmpty && prefix.isEmpty) {
+      genericEntityIRI(index.toString)
+    } else if (uriPattern.isEmpty) {
+      prefix + index
+    } else {
+      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
+        val propName = m.group(1)
+
+        assert(propertyList.contains(propName))
+        val value = entry(propertyList.indexOf(propName))
+        URLEncoder.encode(value, "UTF-8")
+      })
+    }
+  }
+
+  private def handleBadLine[U](index: Int, entry: Array[String]): Unit = {
     // Bad line
     if (!ignoreBadLines) {
       assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
@@ -201,32 +213,16 @@ class CsvSource(file: Resource,
     entityValues
   }
 
-  /** Returns a generated entity URI.
-    * The default URI pattern is to use the prefix and the line number.
-    * However the user can specify a different URI pattern (in the *uri* property), which is then used to
-    * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
-    * as defined in the *properties* field. */
-  private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uriPattern.isEmpty && prefix.isEmpty) {
-      "urn:" + URLEncoder.encode(file.name, "UTF-8") + "/" + (index + 1)
-    } else if (uriPattern.isEmpty) {
-      prefix + (index + 1)
-    } else {
-      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
-        val propName = m.group(1)
-
-        assert(propertyList.contains(propName))
-        val value = entry(propertyList.indexOf(propName))
-        URLEncoder.encode(value, "UTF-8")
-      })
-    }
-  }
-
-  private def csvParser(): CsvParser = {
+  private def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
     parser.beginParsing(reader)
+    if(skipFirst) parser.parseNext()
     parser
+  }
+
+  private def firstLine: Array[String] = {
+    csvParser().parseNext().getOrElse(Array())
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
@@ -303,6 +299,13 @@ class CsvSource(file: Resource,
 
     CsvAutoconfiguredParameters(detectedSeparator, csvSource.codecToUse.name, csvSource.skipLinesAutomatic)
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])

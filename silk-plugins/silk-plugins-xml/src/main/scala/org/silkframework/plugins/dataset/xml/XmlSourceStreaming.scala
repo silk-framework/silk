@@ -3,11 +3,12 @@ package org.silkframework.plugins.dataset.xml
 import java.io.InputStream
 
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml._
 
@@ -92,7 +93,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
 
     new Traversable[Entity] {
-      override def foreach[U](f: (Entity) => U): Unit = {
+      override def foreach[U](f: Entity => U): Unit = {
         val inputStream = file.inputStream
         try {
           val reader: XMLStreamReader = initStreamReader(inputStream)
@@ -323,4 +324,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }

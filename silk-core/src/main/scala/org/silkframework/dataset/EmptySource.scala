@@ -1,4 +1,5 @@
 package org.silkframework.dataset
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.util.Uri
 
@@ -22,4 +23,6 @@ object EmptySource extends DataSource {
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
     Seq.empty
   }
+
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("empty_dataset", DatasetSpec(EmptyDataset))
 }

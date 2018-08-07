@@ -2,12 +2,13 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.dataset.{DataSource, PeakDataSource}
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.sparql._
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 /**
  * A source for reading from SPARQL endpoints.
@@ -51,5 +52,19 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     SparqlTypesCollector(sparqlEndpoint, params.graph, limit)
   }
 
-  override def toString = sparqlEndpoint.toString
+  override def toString: String = sparqlEndpoint.toString
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = {
+    val taskId = params.graph match{
+      case Some(g) => Identifier.fromAllowed(g.substring(g.lastIndexOf("/")))
+      case None => Identifier("default_graph")
+    }
+
+    PlainTask(taskId, DatasetSpec(EmptyDataset))        //FIXME CMEM 1352 - replace with actual task
+  }
 }

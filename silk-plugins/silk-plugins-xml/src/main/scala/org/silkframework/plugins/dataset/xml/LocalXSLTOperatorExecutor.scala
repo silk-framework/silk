@@ -50,7 +50,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
         inMemoryResource.write() { os =>
           transformer.transform(text, new StreamResult(os))
         }
-        Some(new DatasetResourceEntityTable(inMemoryResource, Some(task)))
+        Some(new DatasetResourceEntityTable(inMemoryResource, task))
       case _ =>
         throw new ValidationException("XSLT operator executor did not receive a dataset resource table as input!")
     }

@@ -42,4 +42,5 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
     DefaultConfig.instance.refresh()
     super.afterAll()
   }
+
 }

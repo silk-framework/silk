@@ -58,7 +58,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Get all task activity factories for this task type
     implicit val prefixes: Prefixes = module.project.config.prefixes
     implicit val resources: ResourceManager = module.project.resources
-    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
+    val taskType = data.getClass
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
+        .map(_.apply()).filter(_.taskType.isAssignableFrom(taskType))
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
       try {

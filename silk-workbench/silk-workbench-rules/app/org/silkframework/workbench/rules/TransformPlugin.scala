@@ -3,10 +3,12 @@ package org.silkframework.workbench.rules
 import controllers.rules.routes.Assets
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.rules.TransformPlugin.{TransformTaskActions, TransformTaskType}
 import org.silkframework.workspace.ProjectTask
+
 import scala.language.existentials
 
 /**
@@ -62,7 +64,7 @@ object TransformPlugin {
       Some(s"transform/dialogs/editTransformTask/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
-    override def openPath: Option[String] =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       Some(s"transform/$project/$taskId/editor")
 
     /**

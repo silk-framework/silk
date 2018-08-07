@@ -21,8 +21,8 @@
 
   @for(entity <- entities) {
     <tr>
-      @for(i <- 0 until paths.size) {
-        <td>@entity.evaluate(i)<td>
+      @for(path <- paths) {
+        <td>@entity.evaluate(path)<td>
       }
     </tr>
   }
