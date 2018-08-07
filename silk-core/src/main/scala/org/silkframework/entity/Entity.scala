@@ -78,6 +78,9 @@ case class Entity private(
     if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
       Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))  // if sub entities size is not equal to sub schemata size
     }
+    else if(uri.uri.trim.isEmpty){
+      Some(new IllegalArgumentException("Entity with an empty URI is not allowed."))
+    }
     else if (! this.validate) { // if entity is not valid
       Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
     }
