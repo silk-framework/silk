@@ -1,10 +1,10 @@
-import org.apache.commons.io.FileUtils
-import sbt.Keys._
-import sbt.file
+import sbt._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
+
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
