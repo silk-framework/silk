@@ -1,11 +1,13 @@
 package org.silkframework.workbench.workflow
 
 import org.silkframework.config.TaskSpec
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.workflow.WorkflowPlugin.{WorkflowTaskActions, WorkflowTaskType}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.workflow.Workflow
+
 import scala.language.existentials
 
 case class WorkflowPlugin() extends WorkbenchPlugin[Workflow] {
@@ -56,7 +58,7 @@ object WorkflowPlugin {
     override def propertiesDialog = None
 
     /** The path to redirect to when the task is opened. */
-    override def openPath =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       Some(s"workflow/editor/$project/$taskId")
 
     /**

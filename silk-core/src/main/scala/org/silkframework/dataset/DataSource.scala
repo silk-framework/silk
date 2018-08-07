@@ -94,7 +94,7 @@ trait DataSource {
     * @param identifier - a unique identifier of the given entity (e.g. a unique property of the Entity itself or an index)
     * @return - the unique IRI
     */
-  def genericEntityIRI(identifier: Identifier): String = DataSource.generateEntityUri(underlyingTask.id, identifier)
+  protected def genericEntityIRI(identifier: Identifier): String = DataSource.generateEntityUri(underlyingTask.id, identifier)
 }
 
 object DataSource{
