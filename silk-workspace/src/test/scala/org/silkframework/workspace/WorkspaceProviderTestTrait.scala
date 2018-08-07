@@ -50,7 +50,11 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   private val repository = InMemoryResourceRepository()
 
-  private val workspace = new Workspace(workspaceProvider, repository)
+  private val workspace = {
+    val workspace = new Workspace(workspaceProvider, repository)
+    workspace.init()
+    workspace
+  }
 
   private val projectResources = repository.get(PROJECT_NAME)
 

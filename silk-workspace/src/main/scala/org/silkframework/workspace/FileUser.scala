@@ -64,7 +64,9 @@ object FileUser {
         }
 
       // Create workspace
-      new Workspace(provider, repository)
+      val workspace = new Workspace(provider, repository)
+      workspace.init()
+      workspace
     }
     catch {
       case ex: Exception => {

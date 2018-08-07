@@ -200,6 +200,7 @@ object Silk {
 
     // Create a workspace from the import and get task
     val workspace = new Workspace(workspaceProvider, resourceRepository)
+    workspace.init()
     val project = workspace.project(projectId)
     val task = project.task[Workflow](taskName)
 
