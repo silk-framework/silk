@@ -20,6 +20,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     val className = (node \ CLASS).text.trim
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
 
+    //FIXME introduce an automated registry for this switch?
     exceptionClass match{
     //NOTE: insert special Exception reading switch here
     //case ex: SpecialException => readSpecialException(..)
@@ -76,6 +77,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   }
 
   override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = ex.getClass match{
+    //FIXME introduce an automated registry for this switch?
   //case se: SpecialException => writeSpecialException(..)
     case _ => writeException(ex)
   }
