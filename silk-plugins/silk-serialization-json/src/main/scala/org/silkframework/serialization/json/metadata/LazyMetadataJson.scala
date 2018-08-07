@@ -72,7 +72,6 @@ object LazyMetadataJson{
     (key, LazyMetadataJson(t, serializer))
   }
 
-  //TODO mak serializer a broadcast, dont serialize it with the metadata
   def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
     new LazyMetadataJson(Option(obj), None, "", serializer)(typ)
 

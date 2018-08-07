@@ -19,7 +19,6 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
     var arguments = Seq[Object]()
-    //TODO this is not deterministic, there might be other constructors
     val constructor = if(cause != null){
       var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
       arguments = Seq(message, cause)
@@ -29,9 +28,13 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       }
       zw
     }
-    else{
+    else {
       arguments = Seq(message)
-      exceptionClass.getConstructor(classOf[String])
+      val const = exceptionClass.getConstructor(classOf[String])
+      const.getParameters.find(p => p.getName.contains("message") || p.getName.contains("msg")) match{
+        case Some(_) => const
+        case None => null
+      }
     }
 
     val exception = if(constructor != null){
@@ -57,7 +60,6 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = writeException(ex)
 
-  //TODO parameterize tag names
   private def writeException(ex: Throwable): Node ={
     <Exception>
       <Class>{ex.getClass.getCanonicalName}</Class>

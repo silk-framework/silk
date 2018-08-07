@@ -247,7 +247,7 @@ object Entity {
 
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[FailureClass]): Entity = {
     new Entity(uri, values, schema, subEntities, failureOpt match{
-      case Some(t) => EntityMetadataXml(t)    //TODO validate this is working in Spark with Json
+      case Some(t) => EntityMetadataXml(t)
       case None => EntityMetadataXml()
     })
   }
