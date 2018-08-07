@@ -1,6 +1,7 @@
 package org.silkframework.workbench
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 import org.silkframework.workspace.ProjectTask
 import play.api.mvc.Call
@@ -61,7 +62,7 @@ object WorkbenchPlugin {
     def propertiesDialog: Option[String]
 
     /** The path to redirect to when the task is opened. */
-    def openPath: Option[String]
+    def openPath(inWorkflow: Option[Identifier] = None, workflowOperatorId: Option[String]): Option[String]
 
     /** The paths to the tabs that should be shown for this task. */
     def tabs: Seq[Tab]

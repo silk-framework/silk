@@ -361,7 +361,17 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
 
   def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
 
+  /**
+    * Returns all nodes that directly precede this node.
+    */
   def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
+
+  /**
+    * Returns all nodes that directly or indirectly precede this node.
+    */
+  def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
+    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+  }
 
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (

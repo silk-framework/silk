@@ -2,11 +2,13 @@ package org.silkframework.workbench.workspace
 
 import controllers.workspace.routes.Assets
 import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.workspace.WorkbenchPluginCustomTask.{CustomTaskActions, CustomTaskType}
 import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTaskActions, DatasetTaskType}
 import org.silkframework.workspace.ProjectTask
+
 import scala.language.existentials
 
 case class WorkbenchPluginCustomTask() extends WorkbenchPlugin[CustomTask] {
@@ -49,7 +51,7 @@ object WorkbenchPluginCustomTask {
       Some(s"workspace/customTasks/editTaskDialog/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
-    override def openPath =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       None
 
     /**
