@@ -283,7 +283,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Collect child nodes
     var children = List[Node]()
     reader.next()
-    do {
+    while(!reader.isEndElement) {
       if(reader.isStartElement) {
         children ::= buildNode(reader)
       } else if(reader.isCharacters) {
@@ -292,7 +292,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       } else {
         reader.next()
       }
-    } while(!reader.isEndElement)
+    }
 
     // Move to the element after the end element.
     reader.next()
@@ -311,6 +311,12 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Move to first child element
     reader.next()
 
+    // If this is an empty tag, we return immediately
+    if(reader.isEndElement) {
+      return
+    }
+
+    // Skip contents
     do {
       if(reader.isStartElement) {
         skipElement(reader)

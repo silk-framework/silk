@@ -11,7 +11,7 @@ import scala.languageFeature.postfixOps
 //noinspection ScalaStyle
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
-  def xmlSource(uriPattern: String): DataSource with XmlSourceTrait
+  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait
 
   behavior of "XML Dataset"
 
@@ -157,7 +157,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
 
-    private val source = xmlSource(uriPattern)
+    private val source = xmlSource(name, uriPattern)
 
     def withUriPattern(pattern: String): XmlDoc = {
       copy(uriPattern = pattern)
