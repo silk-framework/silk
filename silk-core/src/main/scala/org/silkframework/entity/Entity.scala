@@ -51,7 +51,7 @@ case class Entity private(
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>
-      val actualVals = if(schema != this.schema && projectValuesIfNewSchema) applyNewSchema(schema) else values  //here we remap value indices for possible shifts of typed paths
+      val actualVals = if(schema != this.schema && projectValuesIfNewSchema) shiftProperties(schema) else values  //here we remap value indices for possible shifts of typed paths
       val actualSubs = if(schema != this.schema && projectValuesIfNewSchema) subEntities.map(o => o.map(e => e.copy(schema = schema))) else subEntities
       val actualMetadata = failureOpt match{
         case Some(f) if metadata.failure.metadata.isEmpty => metadata.addFailure(f)
@@ -65,13 +65,23 @@ case class Entity private(
     * @param es - the new schema
     * @return - the new value array
     */
-  private def applyNewSchema(es: EntitySchema): IndexedSeq[Seq[String]] ={
+  private def shiftProperties(es: EntitySchema): IndexedSeq[Seq[String]] ={
     es.typedPaths.map(tp => this.schema.typedPaths.find(t => t == tp) match{
-      case Some(fp) if fp != TypedPath.empty => this.evaluate(fp)
+      case Some(fp) => this.evaluate(fp)
       case None => Seq()
     })
   }
 
+  /**
+    * Convenience function for applying a new schema without validating (e.g. when renaaming properties)
+    * @param es - the schema
+    * @return
+    */
+  def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
+
+  /**
+    *
+    */
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
