@@ -56,7 +56,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity asynchronously.
     * Optionally applies a supplied configuration beforehand.
     */
-  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
     if(config.nonEmpty) {
       update(config)
     }
@@ -67,7 +67,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity blocking.
     * Optionally applies a supplied configuration beforehand.
     */
-  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
     if(config.nonEmpty) {
       update(config)
     }
