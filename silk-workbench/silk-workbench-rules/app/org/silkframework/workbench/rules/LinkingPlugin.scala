@@ -3,10 +3,12 @@ package org.silkframework.workbench.rules
 import controllers.rules.routes.Assets
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.LinkSpec
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.rules.LinkingPlugin.{LinkingTaskActions, LinkingTaskType}
 import org.silkframework.workspace.ProjectTask
+
 import scala.language.existentials
 
 /**
@@ -61,7 +63,7 @@ object LinkingPlugin {
       Some(s"linking/dialogs/editLinkingTask/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
-    override def openPath =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       Some(s"linking/$project/$taskId/editor")
 
     /**

@@ -76,6 +76,18 @@ module.exports = {
           // both options are optional
           filename: "style.css",
           chunkFilename: "[id].css"
-      })
+      }),
+      function()
+      {
+          // Outputs compilation errors to stderr
+          this.plugin("done", function(stats)
+          {
+              if (stats.compilation.errors && stats.compilation.errors.length)
+              {
+                  console.error(stats.compilation.errors);
+                  process.exit(1);
+              }
+          });
+      }
   ]
 };
