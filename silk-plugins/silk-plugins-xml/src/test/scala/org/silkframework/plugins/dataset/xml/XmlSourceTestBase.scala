@@ -20,7 +20,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   def personTests(fileName: String): Unit = {
 
-    val persons = XmlDoc("persons.xml")
+    val persons = XmlDoc(fileName)
 
     it should s"read the root element, if the base path is empty. ($fileName)" in {
       (persons atPath "").uris shouldBe Seq("Persons")
