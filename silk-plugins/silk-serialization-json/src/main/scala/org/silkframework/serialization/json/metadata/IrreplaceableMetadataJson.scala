@@ -21,7 +21,6 @@ object IrreplaceableMetadataJson{
   def apply[Typ](lm: LazyMetadataJson[Typ])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](lm.obj, lm.serial, lm.str, lm.serializer)
 
-  //TODO mak serializer a broadcast, dont serialize it with the metadata
   def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](Option(obj), None, "", serializer)(typ)
 

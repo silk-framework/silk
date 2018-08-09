@@ -14,12 +14,12 @@ case class FailureClass private[failures](
    rootCause: Throwable,
    originalMessage: String,
    taskId: Identifier,
-   property: Option[Path]                              //TODO TypedPath needs JsValue serializer
+   property: Option[Path]                              //FIXME TypedPath needs JsValue serializer - CMEM-1368
  ){
 
   assert(rootCause.getCause == null, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
 
-  private lazy val rootStackElement = Option(rootCause.getStackTrace).flatMap(s => s.headOption)      //TODO this might not be the most relevant code point?
+  private lazy val rootStackElement = Option(rootCause.getStackTrace).flatMap(s => s.headOption)
 
   def getRootLine: Int = rootStackElement.getOrElse(return 0).getLineNumber
 
@@ -64,7 +64,7 @@ class AccumulatedFailureClass private(
   rootCause: Throwable,
   originalMessage: String,
   taskId: Identifier,
-  property: Option[Path]                              //TODO TypedPath needs JsValue serializer
+  property: Option[Path]                              //FIXME TypedPath needs JsValue serializer CMEM-1368
 ) extends FailureClass (rootCause, originalMessage, taskId, property){
 
   def this(fc: FailureClass) = this(fc.rootCause, fc.originalMessage, fc.taskId, fc.property)

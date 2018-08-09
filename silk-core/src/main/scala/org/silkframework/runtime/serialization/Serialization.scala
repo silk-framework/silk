@@ -21,19 +21,6 @@ object Serialization {
 
   def availableFormats: Seq[SerializationFormat[Any, Any]] = serializationFormats
 
-  def hasSerialization(classToSerialize: Class[_], mimeType: String): Boolean = {
-    serializationFormat(classToSerialize, mimeType).isDefined
-  }
-
-  def serializationFormat(classToSerialize: Class[_], mimeType: String): Option[SerializationFormat[Any, Any]] = {
-    serializationFormats.find(f => f.valueType == classToSerialize && f.mimeTypes.contains(mimeType))
-  }
-
-  def hasSerialization[T: ClassTag](mimeType: String): Boolean = {
-    val valueType = implicitly[ClassTag[T]].runtimeClass
-    serializationFormats.exists(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*"))
-  }
-
   def formatForType[T: ClassTag, U: ClassTag]: SerializationFormat[T, U] = {
     val valueType = implicitly[ClassTag[T]].runtimeClass
     val serializedType = implicitly[ClassTag[U]].runtimeClass

@@ -5,40 +5,61 @@ import ExceptionSerializer._
 
 import scala.xml.{Elem, Node}
 
+/**
+  * XML serializer for exceptions
+  * NOTE: use [[readException]] and [[write]] to reference more specific Serializers for subclasses of Throwable
+  */
 case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
   def readException(node: Node): Throwable ={
-    if(node == null)
+    if(node == null || node.text.trim.isEmpty)
       return null
 
     val className = (node \ CLASS).text.trim
+    val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
+
+    //FIXME introduce an automated registry for this switch?
+    exceptionClass match{
+    //NOTE: insert special Exception reading switch here
+    //case ex: SpecialException => readSpecialException(..)
+      case _ => readDefaultThrowable(node, exceptionClass)
+    }
+  }
+
+  /**
+    * Here we try to guess the right constructor.
+    * Trying out combinations of String (message) and Throwable (cause), then only String.
+    * NOTE: some exceptions use thusly typed constructors differently or dont have any of such constructors.
+    * Please introduce your own serializer for such exception classes
+    * @param node - the XML node
+    * @param exceptionClass - the exception class in question
+    * @return
+    */
+  def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
     val message = (node \ MESSAGE).text.trim
     val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
-
-    val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
     var arguments = Seq[Object]()
-    //TODO this is not deterministic, there might be other constructors
-    val constructor = if(cause != null){
+    val constructor = if (cause != null) {
       var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
       arguments = Seq(message, cause)
-      if(zw == null) {
+      if (zw == null) {
         zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
         arguments = Seq(cause, message)
       }
       zw
     }
-    else{
+    else {
       arguments = Seq(message)
       exceptionClass.getConstructor(classOf[String])
     }
 
-    val exception = if(constructor != null){
-      exceptionClass.cast(constructor.newInstance(arguments:_*))
+    val exception = if (constructor != null) {
+      exceptionClass.cast(constructor.newInstance(arguments: _*))
     }
-    else{
-      new Exception("Emulated Exception of class: " + className + ", original message: " + message, cause)
+    else {
+      new Exception("Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message, cause)
     }
     exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
     exception
@@ -55,14 +76,19 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     stackTrace.toArray
   }
 
-  override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = writeException(ex)
+  override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = ex.getClass match{
+    //FIXME introduce an automated registry for this switch?
+  //case se: SpecialException => writeSpecialException(..)
+    case _ => writeException(ex)
+  }
 
-  //TODO parameterize tag names
   private def writeException(ex: Throwable): Node ={
     <Exception>
       <Class>{ex.getClass.getCanonicalName}</Class>
       <Message>{ex.getMessage}</Message>
-      <Cause>{if(ex.getCause != null) writeException(ex.getCause)}</Cause>
+      <Cause>
+        {if(ex.getCause != null) writeException(ex.getCause)}
+      </Cause>
       <StackTrace>
         {writeStackTrace(ex)}
       </StackTrace>
@@ -77,7 +103,6 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
         <MethodName>{ste.getMethodName}</MethodName>
         <LineNumber>{ste.getLineNumber}</LineNumber>
       </STE>
-
     }
   }
 
