@@ -45,16 +45,44 @@ object Serialization {
     }
   }
 
+  /**
+    * Checks if a format is available for a given MIME type.
+    */
+  def hasFormatFormMime[T: ClassTag](mimeType: String): Boolean = {
+    val valueType = implicitly[ClassTag[T]].runtimeClass
+    formatForMimeOption(valueType, mimeType).isDefined
+  }
+
+  /**
+    * Retrieves a format for a static value type and a given MIME type.
+    */
   def formatForMime[T: ClassTag](mimeType: String): SerializationFormat[T, Any] = {
     formatForMime(implicitly[ClassTag[T]].runtimeClass, mimeType).asInstanceOf[SerializationFormat[T, Any]]
   }
 
+  /**
+    * Retrieves a format for a dynamic value type and a given MIME type.
+    */
   def formatForMime(valueType: Class[_], mimeType: String): SerializationFormat[Any, Any] = {
-    serializationFormats.find(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*")) match {
+    formatForMimeOption(valueType, mimeType) match {
       case Some(format) =>
         format
       case None =>
         throw new NoSuchElementException(s"No serialization format for type $valueType for content type $mimeType available.")
     }
   }
+
+  /**
+    * Retrieves an optional format for a dynamic value type and a given MIME type.
+    */
+  def formatForMimeOption(valueType: Class[_], mimeType: String): Option[SerializationFormat[Any, Any]] = {
+    val formatOption = serializationFormats.find(f => f.valueType == valueType && (f.mimeTypes.contains(mimeType) || mimeType == "*/*"))
+    if(mimeType == "*/*" || mimeType == "text/plain") {
+      // If the caller accepts text/plain, fall back to the plain text format so something is shown to the user
+      Some(formatOption.getOrElse(PlainTextFormat.asInstanceOf[SerializationFormat[Any, Any]]))
+    } else {
+      formatOption
+    }
+  }
+
 }

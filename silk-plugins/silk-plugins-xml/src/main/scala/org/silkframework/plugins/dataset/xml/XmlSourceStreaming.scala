@@ -163,15 +163,18 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     var backwardPath = Seq[String]()
 
     while(reader.hasNext) {
-      reader.next()
       if(reader.isStartElement && backwardPath.isEmpty && reader.getLocalName == name) {
         return true
       } else if(reader.isStartElement && backwardPath.nonEmpty && backwardPath.head == reader.getLocalName) {
         backwardPath = backwardPath.drop(1)
+        reader.next()
       } else if(reader.isStartElement) {
         skipElement(reader)
       } else if(reader.isEndElement) {
         backwardPath = reader.getLocalName +: backwardPath
+        reader.next()
+      } else {
+        reader.next()
       }
     }
 
@@ -181,6 +184,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Collects all paths inside the current element.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
     assert(reader.isStartElement)
@@ -195,27 +199,30 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Iterate all child elements
     var paths = Seq[Path]()
     var startElements = Set[String]()
-    while(reader.isStartElement) {
-      if(!startElements.contains(reader.getLocalName)) {
+    while(!reader.isEndElement) {
+      if (reader.isStartElement && !startElements.contains(reader.getLocalName)) {
         // Get paths from children
-        val tagPath = path ++ Path(reader.getLocalName)
+        val localName = reader.getLocalName
+        val tagPath = path ++ Path(localName)
         val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes, depth - 1)
 
         // The depth check has to be done after collecting paths of the child, because all tags must be consumed by the reader
-        val depthAdjustedChildPaths = if(depth == 0) Seq() else childPaths
+        val depthAdjustedChildPaths = if (depth == 0) Seq() else childPaths
         // Collect all wanted paths
         val newPaths = choosePaths(onlyLeafNodes, onlyInnerNodes, childPaths, depthAdjustedChildPaths)
 
         // Append new paths
         paths ++= newPaths
-        startElements += reader.getLocalName
-      } else {
+        startElements += localName
+      } else if (reader.isStartElement) {
         // We already collected paths for this tag
         skipElement(reader)
+      } else {
+        reader.next()
       }
-
-      nextStartOrEndTag(reader)
     }
+
+    reader.next()
 
     val depthAdjustedAttributePaths = if(depth == 0) Seq() else attributePaths
 
@@ -259,6 +266,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Builds a XML node for a given start element that includes all its children.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def buildNode(reader: XMLStreamReader): Elem = {
     assert(reader.isStartElement)
@@ -274,14 +282,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     // Collect child nodes
     var children = List[Node]()
-    do {
-      reader.next()
+    reader.next()
+    while(!reader.isEndElement) {
       if(reader.isStartElement) {
         children ::= buildNode(reader)
       } else if(reader.isCharacters) {
         children ::= Text(reader.getText)
+        reader.next()
+      } else {
+        reader.next()
       }
-    } while(!reader.isEndElement)
+    }
 
     // Move to the element after the end element.
     reader.next()
@@ -292,17 +303,29 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Skips an element.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def skipElement(reader: XMLStreamReader): Unit = {
     assert(reader.isStartElement)
 
+    // Move to first child element
+    reader.next()
+
+    // If this is an empty tag, we return immediately
+    if(reader.isEndElement) {
+      return
+    }
+
+    // Skip contents
     do {
-      reader.next()
       if(reader.isStartElement) {
         skipElement(reader)
+      } else {
+        reader.next()
       }
     } while(!reader.isEndElement)
 
+    // Move to element that follows the skipped element
     reader.next()
   }
 

@@ -5,6 +5,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTaskActions, DatasetTaskType}
@@ -55,7 +56,7 @@ object WorkbenchPluginDataset {
     }
 
     /** The path to redirect to when the task is opened. */
-    override def openPath: Option[String] = {
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] = {
       Some(s"workspace/datasets/$project/$taskId/dataset")
     }
 

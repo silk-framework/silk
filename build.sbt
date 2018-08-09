@@ -1,10 +1,10 @@
-import org.apache.commons.io.FileUtils
-import sbt.Keys._
-import sbt.file
+import sbt._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
+
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
@@ -176,16 +176,8 @@ lazy val plugins = (project in file("silk-plugins"))
 // Silk React Components
 //////////////////////////////////////////////////////////////////////////////
 
-val silkReactRoot: Def.Initialize[File] = Def.setting {
-  baseDirectory.value
-}
-
 val silkWorkbenchRoot: Def.Initialize[File] = Def.setting {
   new File(baseDirectory.value, "../silk-workbench")
-}
-
-val silkLibRoot: Def.Initialize[File] = Def.setting {
-  new File(silkWorkbenchRoot.value, "silk-workbench-core/public/libs")
 }
 
 val silkDistRoot: Def.Initialize[File] = Def.setting {
@@ -197,15 +189,6 @@ val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree loda
 
 val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
 val buildSilkReact = taskKey[Unit]("Builds silk React module")
-val testSilkReact = taskKey[Unit]("Run tests for React component")
-
-val yarnCommand: String = sys.props.get("os.name") match {
-  case Some(os) if os.toLowerCase.contains("win") =>
-    // On windows, we need to provide the path of the yarn script manually
-    Process("where.exe" :: "yarn.cmd" :: Nil).!!.trim
-  case _ =>
-    "yarn"
-}
 
 lazy val reactComponents = (project in file("silk-react-components"))
   .settings(commonSettings: _*)
@@ -216,70 +199,35 @@ lazy val reactComponents = (project in file("silk-react-components"))
     //////////////////////////////////////////////////////////////////////////////
     /** Check that all necessary build tool for the JS pipeline are available */
     checkJsBuildTools := {
-      val missing = Seq(yarnCommand) filter { name =>
-        scala.util.Try {
-          Process(name :: "--version" :: Nil).!! == ""
-        } getOrElse true
-      }
-
-      missing foreach { m =>
-        println(s"Command line tool $m is missing for building JavaScript artifacts!")
-      }
-      assert(missing.isEmpty, "Required command line tools are missing")
+      ReactBuildHelper.checkReactBuildTool()
     },
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
-        val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
-        val productionBuild = buildEnv == "production"
-        val buildTask = if(productionBuild) "webpack-build" else "webpack-dev-build"
-        println(s"Building React components for $buildEnv, running task $buildTask...")
-
-        Process(yarnCommand :: Nil, baseDirectory.value).!! // Install dependencies
-        // Run build via gulp task, this has been the old way of building it
-        //          Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
-
-        // Run build via webpack only, uncomment source map copy instruction when using this
-        Process(yarnCommand :: buildTask :: Nil, baseDirectory.value).!! // Build main artifact
-
-        FileUtils.deleteDirectory(silkDistRoot.value)
-        FileUtils.forceMkdir(silkDistRoot.value)
-        val files = Seq( // React components build artifacts
-          new File(silkReactRoot.value, "dist/main.js"),
-          new File(silkReactRoot.value, "dist/main.js.map"),
-          new File(silkReactRoot.value, "dist/style.css"),
-          new File(silkReactRoot.value, "dist/style.css.map")
-        ).filter(f => !f.getName.endsWith(".map") || productionBuild)
-        for (file <- files) {
-          FileUtils.copyFileToDirectory(file, silkDistRoot.value)
-        }
-        FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
-        println("Finished building React components.")
+      if (Watcher.filesChanged(WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
+        ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
       }
-      val silkReactWorkbenchRoot = new File(silkReactRoot.value, "silk-workbench")
+      val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
       if(changedJsFiles.nonEmpty) {
         // Transpile JavaScript files to ES5
         for(file <- changedJsFiles) {
           val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
           val targetFile = new File(silkWorkbenchRoot.value, relativePath)
-          FileUtils.forceMkdir(targetFile.getParentFile)
-          println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath)
-          Process(yarnCommand :: "babel" :: file.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, baseDirectory.value).!!
+          ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
         }
       }
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
-      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "src")) yield {
+      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
         path._1
       }
       paths.toSeq
     },
     watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
-      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "silk-workbench")) yield {
+      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "silk-workbench")) yield {
         path._1
       }
       paths.toSeq.filter(_.getName.endsWith(".js"))
