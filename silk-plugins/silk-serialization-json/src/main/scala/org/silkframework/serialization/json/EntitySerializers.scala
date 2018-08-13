@@ -24,7 +24,7 @@ object EntitySerializers {
         }
       )
 
-      Json.obj("attributes" -> header, "values" -> valuesJson)
+      Json.obj("taskLabel" -> value.taskLabel,"attributes" -> header, "values" -> valuesJson)
     }
   }
 
