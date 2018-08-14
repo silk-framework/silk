@@ -229,5 +229,4 @@ object EntitySchema {
       </Paths>
     </EntityDescription>
   }
-
 }

@@ -37,4 +37,9 @@ object PlainTextFormat extends SerializationFormat[Any, String] {
   private def throwDeserializationException: Nothing = {
     throw new ValidationException("Cannot deserialize values from plain text (text/plain)")
   }
+
+  /**
+    * Read Serialization format from string
+    */
+  override def parse(value: String, mimeType: String): String = throwDeserializationException
 }
