@@ -7,7 +7,9 @@ import org.silkframework.util.{Identifier, Uri}
   * Denotes an equivalence class of exceptions dependent on Exception, the task it occurred in, the occurrence class and line number
  *
   * @param rootCause - the first exception of its kind (causing the creation of this class)
+  * @param originalMessage - the original exception message from the outer most exception
   * @param taskId - the task identifier associated with this kind of of exception
+  * @param property - the property which is associated/caused with the current failure
   */
 //noinspection ScalaStyle
 case class FailureClass private[failures](
@@ -60,6 +62,13 @@ case class FailureClass private[failures](
   }
 }
 
+/**
+  * Extension of [[FailureClass]] denoting the current instance as already collected by an [[FailureClassAccumulator]]
+  * @param rootCause - the first exception of its kind (causing the creation of this class)
+  * @param originalMessage - the original exception message from the outer most exception
+  * @param taskId - the task identifier associated with this kind of of exception
+  * @param property - the property which is associated/caused with the current failure
+  */
 class AccumulatedFailureClass private(
   rootCause: Throwable,
   originalMessage: String,
@@ -68,6 +77,7 @@ class AccumulatedFailureClass private(
 ) extends FailureClass (rootCause, originalMessage, taskId, property){
 
   def this(fc: FailureClass) = this(fc.rootCause, fc.originalMessage, fc.taskId, fc.property)
+
   /**
     * Indicates whether the current instance was has been forwarded to an accumulator
     */
