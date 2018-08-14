@@ -1,5 +1,4 @@
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.MetaData
 import org.silkframework.dataset._
 import org.silkframework.entity.UriValueType
 import org.silkframework.rule.MappingTarget

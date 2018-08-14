@@ -2,9 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{WritableResource, Resource}
-
-import scala.io.Codec
+import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "csv",

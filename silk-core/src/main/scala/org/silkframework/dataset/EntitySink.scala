@@ -38,7 +38,8 @@ trait EntitySink extends DataSink {
     * Writes a new entity.
     * @param entity - the entity to write
     */
-  def writeEntity(entity: Entity): Unit = if(! entity.hasFailed) writeEntity(entity.uri, entity.values)
+  def writeEntity(entity: Entity): Unit = if(! entity.hasFailed)
+    writeEntity(entity.uri, entity.values)
 }
 
 /**
