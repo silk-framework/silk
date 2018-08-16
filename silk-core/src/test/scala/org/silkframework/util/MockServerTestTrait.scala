@@ -36,7 +36,7 @@ trait MockServerTestTrait {
             case s: ServedContent =>
               s
             case DynamicContent(_, contentFN) =>
-              contentFN()
+              contentFN(httpExchange)
           }
           val response = responseContent.content
           val responseHeaders = httpExchange.getResponseHeaders
@@ -94,4 +94,10 @@ case class ServedContent(contextPath: String = "/",
                          contentType: String = "text/plain",
                          statusCode: Int = 200) extends ContentHandler
 
-case class DynamicContent(contextPath: String = "/", content: () => ServedContent) extends ContentHandler
+/**
+  * Serve dynamic content that changes over time
+  * @param contextPath The context path of the endpoint
+  * @param contentFn   The content function that returns the served content
+  */
+case class DynamicContent(contextPath: String = "/",
+                          contentFn: (HttpExchange) => ServedContent) extends ContentHandler
