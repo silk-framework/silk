@@ -80,13 +80,15 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String): Action[AnyContent] = Action { request =>
     val project = User().workspace.project(projectName)
+    val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
+    val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
     val datasetParams = request.queryString.mapValues(_.head)
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
-        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured))))
+        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
