@@ -1,10 +1,14 @@
 import java.io.File
+import java.util.logging.Logger
 
 import org.apache.commons.io.FileUtils
 
 import scala.sys.process.{BasicIO, Process, ProcessLogger}
 
 object ReactBuildHelper {
+  val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
+  final val WAIT_AFTER_PROCESS_ERROR_MS = 1000 // 1 second
+  final val MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION = 5
   /**
     * The Yarn command to execute, needs to be found on Windows first.
     */
@@ -43,9 +47,9 @@ object ReactBuildHelper {
     val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
     val productionBuild = buildEnv == "production"
     val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
-    println(s"Building $project React components for $buildEnv, running task $buildTask...")
+    log.info(s"Building $project React components for $buildEnv, running task $buildTask...")
 
-    process(yarnCommand :: Nil, reactBuildRoot) // Install dependencies
+    process(yarnCommand :: Nil, reactBuildRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
     // Run build via gulp task, this has been the old way of building it
     //          Process("yarn" :: "run" :: "deploy" :: Nil, reactBuildRoot).!! // Build main artifact
 
@@ -64,24 +68,35 @@ object ReactBuildHelper {
       FileUtils.copyFileToDirectory(file, targetArtifactDirectory)
     }
     FileUtils.copyDirectoryToDirectory(new File(reactBuildRoot, "dist/fonts"), targetArtifactDirectory)
-    println(s"Finished building $project React components.")
+    log.info(s"Finished building $project React components.")
   }
 
-  private def process(command: Seq[String], workingDir: File): String = {
-    val (out, err) = (new StringBuffer(), new StringBuffer())
-    val logger = ProcessLogger(
-      out.append(_),
-      err.append(_)
-    )
-    val proc = Process(command, workingDir)
-    val exitCode = proc.!(logger)
-    if(exitCode == 0) {
-      out.toString
-    } else {
-      throw new RuntimeException(s"Executing external process '${command.mkString(" ")}' in working directory " +
-          s"${workingDir.getCanonicalPath} failed with error code " + exitCode +
-          s" and error output: ${err.toString}")
+  private def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = {
+    var tries = 0
+    while(tries <= maxRetries) {
+      val (out, err) = (new StringBuffer(), new StringBuffer())
+      val logger = ProcessLogger(
+        out.append(_),
+        err.append(_)
+      )
+      val proc = Process(command, workingDir)
+      val exitCode = proc.!(logger)
+      if (exitCode == 0) {
+        return out.toString
+      } else {
+        val errorMessage = s"Executing external process '${command.mkString(" ")}' in working directory " +
+            s"${workingDir.getCanonicalPath} failed with error code " + exitCode +
+            s" and error output: ${err.toString}"
+        if(tries == maxRetries) {
+          throw new Error(errorMessage)
+        } else {
+          log.warning(errorMessage + "\nRetrying execution...")
+          Thread.sleep(WAIT_AFTER_PROCESS_ERROR_MS)
+        }
+      }
+      tries += 1
     }
+    throw new Error("Not executed!")
   }
 
   def process(command: Seq[String]): String = {
