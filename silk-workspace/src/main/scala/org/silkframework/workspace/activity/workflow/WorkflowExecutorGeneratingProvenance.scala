@@ -19,7 +19,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
   override def run(context: ActivityContext[WorkflowExecutionReportWithProvenance]): Unit = {
     val workflowExecutor: Activity[WorkflowExecutionReport] = workflowExecutionActivity()
     implicit val userContext: UserContext = context.userContext
-    val control = context.child(workflowExecutor, 0.8)
+    val control = context.child(workflowExecutor, 0.95)
     try {
       log.fine("Start child workflow executor activity")
       control.start()
