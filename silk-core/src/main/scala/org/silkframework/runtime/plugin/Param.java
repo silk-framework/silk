@@ -31,4 +31,9 @@ public @interface Param {
    * True, if this is an advanced parameter that should not be shown by default.
    */
   boolean advanced() default false;
+
+  /**
+   * True, if it can be edited in the UI plugin dialogs.
+   */
+  boolean visibleInDialog() default true;
 }
