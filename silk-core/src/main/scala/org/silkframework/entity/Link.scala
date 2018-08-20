@@ -73,6 +73,14 @@ class Link(source: String,
 }
 
 object Link {
+
+  def apply(source: String,
+            target: String,
+            confidence: Option[Double] = None,
+            entities: Option[DPair[Entity]] = None): Link = {
+    new Link(source, target, confidence, entities)
+  }
+
   def fromXML(node: Node, entityDescription: Option[EntitySchema]) = {
     new Link(
       source = (node \ "Source").text,
