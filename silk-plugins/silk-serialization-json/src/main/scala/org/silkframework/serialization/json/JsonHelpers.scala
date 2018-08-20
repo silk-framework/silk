@@ -17,6 +17,7 @@ object JsonHelpers {
 
   def mustBeJsObject[T](jsValue: JsValue)(block: JsObject => T): T = {
     jsValue match {
+      case null => null.asInstanceOf[T]             //valid object representation
       case jsObject: JsObject => block(jsObject)
       case _ => throw JsonParseException("Error while parsing. JSON value is not JSON object!")
     }
@@ -24,6 +25,7 @@ object JsonHelpers {
 
   def mustBeJsArray[T](jsValue: JsValue)(block: JsArray => T): T = {
     jsValue match {
+      case null => null.asInstanceOf[T]             //valid array representation
       case jsArray: JsArray => block(jsArray)
       case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array!")
     }

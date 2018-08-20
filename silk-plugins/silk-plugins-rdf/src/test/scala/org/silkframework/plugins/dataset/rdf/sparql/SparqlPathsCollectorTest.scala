@@ -131,7 +131,7 @@ object SparqlPathsCollectorBenchmark {
     def execute() {
       logger.info("Executing " + name + " test")
 
-      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
+      val endpoint = RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
       val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
       val limit = Some(50)
 
@@ -142,6 +142,8 @@ object SparqlPathsCollectorBenchmark {
       Timer("SparqlSamplePathsCollector") {
         SparqlSamplePathsCollector(endpoint, None, sparqlRestriction, limit).toList
       }
+
+
     }
   }
 }
