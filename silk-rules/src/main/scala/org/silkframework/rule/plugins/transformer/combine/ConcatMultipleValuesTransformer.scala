@@ -27,6 +27,16 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
   new TransformExample(
     input1 = Array("a", "b"),
     output = Array("ab")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "x"),
+    input1 = Array("a", "b"),
+    output = Array("axb")
+  ),
+  new TransformExample(
+    input1 = Array("a", "b"),
+    input2 = Array("1", "2"),
+    output = Array("ab", "12")
   )
 ))
 case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:Boolean = false) extends Transformer {
