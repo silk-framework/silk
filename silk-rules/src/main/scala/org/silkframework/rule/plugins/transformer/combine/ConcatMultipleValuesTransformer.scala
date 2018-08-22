@@ -41,5 +41,4 @@ case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:B
       }
     }
   }
-
 }

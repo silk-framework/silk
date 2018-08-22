@@ -14,7 +14,7 @@ object EntitySerializers {
 
     override def write(value: EntityHolder)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       // Append header
-      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.serialize(true)).toArray
+      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.serialize(stripForwardSlash = true)(writeContext.prefixes)).toArray
 
       // Convert entity values to a nested JSON array
       val valuesJson = JsArray(
@@ -27,5 +27,4 @@ object EntitySerializers {
       Json.obj("taskLabel" -> value.taskLabel,"attributes" -> header, "values" -> valuesJson)
     }
   }
-
 }
