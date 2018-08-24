@@ -22,6 +22,8 @@ import scala.xml.{Elem, Node}
 
 /**
  * Holds namespace prefixes.
+ *
+ * @param prefixMap The map of prefixes. This is an immutable.HashMap to make sure that it's always serializable.
  */
 case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serializable {
 
