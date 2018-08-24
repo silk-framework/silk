@@ -18,6 +18,10 @@ package org.silkframework.workspace
  * A user.
  */
 trait User {
+  /**
+    * Indicates whether an associated workspace was loaded or os ready
+    */
+  def workSpaceIsReady: Boolean
 
   /**
    * The current workspace of this user.

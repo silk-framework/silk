@@ -26,8 +26,8 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val resourceManager = InMemoryResourceManager()
-    implicit val prefixes = Prefixes.empty
+    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
+    implicit val prefixes: Prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider](singleWorkspaceProviderId, Map.empty)
     val replacementWorkspace = new Workspace(provider, InMemoryResourceRepository())
     val is = getClass.getClassLoader.getResourceAsStream(projectPathInClasspath)
@@ -38,6 +38,11 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
         * The current workspace of this user.
         */
       override def workspace: Workspace = replacementWorkspace
+
+      /**
+        * Indicates whether an associated workspace was loaded or os ready
+        */
+      override def workSpaceIsReady: Boolean = true
     }
     oldUserManager = User.userManager
     User.userManager = () => expectedUser

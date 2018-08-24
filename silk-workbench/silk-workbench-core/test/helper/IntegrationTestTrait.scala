@@ -90,6 +90,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
         * The current workspace of this user.
         */
       override def workspace: Workspace = replacementWorkspace
+
+      /**
+        * Indicates whether an associated workspace was loaded or os ready
+        */
+      override def workSpaceIsReady: Boolean = true
     }
     oldUserManager = User.userManager
     User.userManager = () => rdfWorkspaceUser
