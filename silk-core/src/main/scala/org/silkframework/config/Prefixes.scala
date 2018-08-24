@@ -16,15 +16,16 @@ package org.silkframework.config
 
 import org.silkframework.runtime.validation.ValidationException
 
+import scala.collection.immutable
 import scala.language.implicitConversions
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 /**
  * Holds namespace prefixes.
  */
-class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
+case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serializable {
 
-  override def toString = "Prefixes(" + prefixMap.toString + ")"
+  override def toString: String = "Prefixes(" + prefixMap.toString + ")"
 
   override def equals(other: Any): Boolean = other match {
     case o: Prefixes => this.prefixMap == o.prefixMap
@@ -34,15 +35,15 @@ class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
   /**
    * Combines two prefix objects.
    */
-  def ++(prefixes: Prefixes) = {
-    new Prefixes(prefixMap ++ prefixes.prefixMap)
+  def ++(prefixes: Prefixes): Prefixes = {
+    new Prefixes(immutable.HashMap[String, String]((this.prefixMap ++ prefixes.prefixMap).toSeq:_*))
   }
 
   /**
     * Combines two prefix objects.
     */
-  def ++(prefixMap: Map[String, String]) = {
-    new Prefixes(this.prefixMap ++ prefixMap)
+  def ++(prefixMap: Map[String, String]): Prefixes = {
+    new Prefixes(immutable.HashMap[String, String]((this.prefixMap ++ prefixMap).toSeq:_*))
   }
 
   /**
@@ -52,7 +53,7 @@ class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
    * @return The full URI e.g. http://www.w3.org/1999/02/22-rdf-syntax-ns#label
    * @see shorten
    */
-  def resolve(name: String) = name.split(":", 2) match {
+  def resolve(name: String): String = name.split(":", 2) match {
     case Array(prefix, suffix) => prefixMap.get(prefix) match {
       case Some(resolvedPrefix) => resolvedPrefix + suffix
       case None => throw new ValidationException(
@@ -79,7 +80,7 @@ class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
     uri
   }
 
-  def toXML = {
+  def toXML: Elem = {
     <Prefixes>
       {for ((key, value) <- prefixMap) yield {
         <Prefix id={key} namespace={value}/>
@@ -87,7 +88,7 @@ class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
     </Prefixes>
   }
 
-  def toSparql = {
+  def toSparql: String = {
     var sparql = ""
     for ((key, value) <- prefixMap) {
       sparql += "PREFIX " + key + ": <" + value + "> "
@@ -99,22 +100,22 @@ class Prefixes(val prefixMap: Map[String, String]) extends Serializable {
 
 object Prefixes {
 
-  val empty = new Prefixes(Map.empty)
+  def apply(map: Map[String, String]): Prefixes = new Prefixes(immutable.HashMap[String, String](map.toSeq:_*))
 
-  val default = {
-    new Prefixes(Map(
+  val empty = new Prefixes(immutable.HashMap[String, String]())
+
+  val default: Prefixes = {
+    new Prefixes(immutable.HashMap[String, String](
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
       "owl" -> "http://www.w3.org/2002/07/owl#" ))
   }
 
-  implicit def fromMap(map: Map[String, String]): Prefixes = new Prefixes(map)
+  implicit def fromMap(map: Map[String, String]): Prefixes = apply(map)
 
   implicit def toMap(prefixes: Prefixes): Map[String, String] = prefixes.prefixMap
 
-  def apply(map: Map[String, String]) = new Prefixes(map)
-
-  def fromXML(xml: Node) = {
-    new Prefixes((xml \ "Prefix").map(n => ((n \ "@id").text, (n \ "@namespace").text)).toMap)
+  def fromXML(xml: Node): Prefixes = {
+    new Prefixes(immutable.HashMap[String, String]((xml \ "Prefix").map(n => ((n \ "@id").text, (n \ "@namespace").text)):_*))
   }
 }

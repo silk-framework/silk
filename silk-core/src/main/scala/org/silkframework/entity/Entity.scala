@@ -16,6 +16,7 @@ package org.silkframework.entity
 
 import java.io.{DataInput, DataOutput}
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
@@ -160,7 +161,7 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
@@ -223,7 +224,7 @@ case class Entity private(
 
 
   override def equals(other: Any): Boolean = other match {
-    case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema
+      case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema
     case _ => false
   }
 
