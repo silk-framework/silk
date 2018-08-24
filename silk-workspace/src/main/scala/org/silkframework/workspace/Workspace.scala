@@ -44,7 +44,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     projects.find(_.name == name)
   }
 
-  def createProject(config: ProjectConfig): Project = {
+  def createProject(config: ProjectConfig): Project = synchronized {
     if(cachedProjects.exists(_.name == config.id)) {
       throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
     }
