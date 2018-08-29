@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task, TaskSpec}
@@ -10,25 +11,23 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, User}
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
 
 class TaskApi extends Controller with ControllerUtilsTrait {
 
-  def postTask(projectName: String): Action[AnyContent] = Action { implicit request => {
-    val project = User().workspace.project(projectName)
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
       Ok
     }
-  }}
+  }
 
-  def putTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def putTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
@@ -37,12 +36,11 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       project.updateAnyTask(task.id, task.data, task.metaData)
       Ok
     }
-  }}
+  }
 
-  def patchTask(projectName: String, taskName: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request => {
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def patchTask(projectName: String, taskName: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
     // Load current task
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val currentTask = project.anyTask(taskName)
 
     // Update task JSON
@@ -59,27 +57,24 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     project.updateAnyTask(updatedTask.id, updatedTask.data, updatedTask.metaData)
 
     Ok
-  }}
+  }
 
-  def getTask(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
-    implicit val project = User().workspace.project(projectName)
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def getTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
     SerializationUtils.serializeCompileTime[Task[TaskSpec]](task)
-  }}
+  }
 
-  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
     Ok
   }
 
-  def putTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action { implicit request => {
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def putTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     implicit val readContext = ReadContext()
 
@@ -87,11 +82,10 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       task.updateMetaData(metaData)
       Ok
     }
-  }}
+  }
 
-  def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
     val formatOptions =
@@ -111,15 +105,14 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     Ok(mergedJson)
   }
 
-  def cloneTask(projectName: String, oldTask: String, newTask: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def cloneTask(projectName: String, oldTask: String, newTask: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     project.addAnyTask(newTask, project.anyTask(oldTask))
     Ok
   }
 
-  def copyTask(projectName: String, taskName: String): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def copyTask(projectName: String,
+               taskName: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
     implicit val jsonReader = Json.reads[CopyTaskRequest]
     implicit val jsonWriter = Json.writes[CopyTaskResponse]
     validateJson[CopyTaskRequest] { copyRequest =>
@@ -128,9 +121,8 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     }
   }
 
-  def cachesLoaded(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def cachesLoaded(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
 
@@ -144,8 +136,8 @@ class TaskApi extends Controller with ControllerUtilsTrait {
 
     def copy(sourceProject: String, taskName: String)
             (implicit userContext: UserContext): CopyTaskResponse = {
-      val sourceProj = User().workspace.project(sourceProject)
-      val targetProj = User().workspace.project(targetProject)
+      val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
+      val targetProj = WorkspaceFactory().workspace.project(targetProject)
 
       sourceProj.synchronized {
         targetProj.synchronized {

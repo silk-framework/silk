@@ -45,7 +45,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
-  var oldUserManager: () => User = null
+  var oldWorkspaceFactory: WorkspaceFactory = _
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
@@ -89,18 +89,18 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     implicit val prefixes: Prefixes = Prefixes.empty
     val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
     val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
-    val rdfWorkspaceUser = new User {
+    val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
         */
-      override def workspace: Workspace = replacementWorkspace
+      override def workspace(implicit userContext: UserContext): Workspace = replacementWorkspace
     }
-    oldUserManager = User.userManager
-    User.userManager = () => rdfWorkspaceUser
+    oldWorkspaceFactory = WorkspaceFactory.factory
+    WorkspaceFactory.factory = rdfWorkspaceFactory
   }
 
   override protected def afterAll(): Unit = {
-    User.userManager = oldUserManager
+    WorkspaceFactory.factory = oldWorkspaceFactory
     deleteRecursively(tmpDir)
   }
 
@@ -226,7 +226,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
     * is RDF-enabled and implements the [[GraphStoreTrait]]. */
   def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
-    User.userManager.apply().workspace.provider match {
+    WorkspaceFactory.factory.workspace.provider match {
       case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
         val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
         graphStore.postDataToGraph(graph, contentType)

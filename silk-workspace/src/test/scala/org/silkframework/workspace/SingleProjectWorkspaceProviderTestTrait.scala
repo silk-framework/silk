@@ -22,8 +22,8 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
   def projectId: String
   def singleWorkspaceProviderId: String = "inMemoryRdfWorkspace"
 
-  private var oldUserManager: () => User = _
-  private var expectedUser: User = _
+  private var oldWorkspaceFactory: WorkspaceFactory = _
+  private var expectedWorkspaceFactory: WorkspaceFactory = _
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
@@ -35,22 +35,22 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     implicit val userContext: UserContext = UserContext.Empty
     replacementWorkspace.importProject(projectId, is, XmlZipProjectMarshaling())
-    expectedUser = new User {
+    expectedWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
         */
-      override def workspace: Workspace = replacementWorkspace
+      override def workspace(implicit userContext: UserContext): Workspace = replacementWorkspace
     }
-    oldUserManager = User.userManager
-    User.userManager = () => expectedUser
+    oldWorkspaceFactory = WorkspaceFactory.factory
+    WorkspaceFactory.factory = expectedWorkspaceFactory
   }
 
   override protected def afterAll(): Unit = {
-    User.userManager = oldUserManager
+    WorkspaceFactory.factory = oldWorkspaceFactory
     super.afterAll()
   }
 
   def project: Project = {
-    User().workspace.project(projectId)
+    WorkspaceFactory().workspace.project(projectId)
   }
 }

@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
@@ -42,8 +43,7 @@ class PeakTransformApi extends Controller {
     */
   def peak(projectName: String,
            taskName: String,
-           ruleName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+           ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -57,8 +57,7 @@ class PeakTransformApi extends Controller {
     */
   def peakChildRule(projectName: String,
                     taskName: String,
-                    ruleName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+                    ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -73,8 +72,8 @@ class PeakTransformApi extends Controller {
   }
 
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata)
-                      (implicit request: Request[AnyContent]): Result = {
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+                      (implicit request: Request[AnyContent],
+                       userContext: UserContext): Result = {
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
     val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     implicit val prefixes: Prefixes = project.config.prefixes

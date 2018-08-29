@@ -2,7 +2,7 @@ package org.silkframework.workbench
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.mvc.Request
 
 import scala.reflect.ClassTag
@@ -47,7 +47,7 @@ object Context {
    */
   def get[T <: TaskSpec : ClassTag](projectName: String, taskName: String, path: String)
                                    (implicit userContext: UserContext): Context[T] = {
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[T](taskName)
     Context(project, task, path)
   }

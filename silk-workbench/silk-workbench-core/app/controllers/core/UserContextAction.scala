@@ -14,11 +14,27 @@ object UserContextAction {
       block(userContext)
     }
   }
+
+  def apply[A](bodyParser: BodyParser[A])
+              (block: (UserContext) => Result): Action[A] = {
+    Action(bodyParser) { request =>
+      val userContext: UserContext = WebUserManager().userContext(request)
+      block(userContext)
+    }
+  }
 }
 
 object RequestUserContextAction {
   def apply(block: Request[AnyContent] => UserContext => Result): Action[AnyContent] = {
     Action { request =>
+      val userContext: UserContext = WebUserManager().userContext(request)
+      block(request)(userContext)
+    }
+  }
+
+  def apply[A](bodyParser: BodyParser[A])
+              (block: Request[A] => UserContext => Result): Action[A] = {
+    Action(bodyParser) { request =>
       val userContext: UserContext = WebUserManager().userContext(request)
       block(request)(userContext)
     }

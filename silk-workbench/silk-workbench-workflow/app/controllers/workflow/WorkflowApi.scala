@@ -12,7 +12,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.users.{WebUser, WebUserManager}
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
-import org.silkframework.workspace.{ProjectTask, User}
+import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
@@ -29,7 +29,7 @@ class WorkflowApi extends Controller {
     Ok(JsArray(workflowIdsJson))
   }
 
-  private def fetchProject(projectName: String) = User().workspace.project(projectName)
+  private def fetchProject(projectName: String) = WorkspaceFactory().workspace.project(projectName)
 
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
@@ -58,12 +58,11 @@ class WorkflowApi extends Controller {
   }
 
   def deleteWorkflow(project: String, task: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    User().workspace.project(project).removeTask[Workflow](task)
+    WorkspaceFactory().workspace.project(project).removeTask[Workflow](task)
     Ok
   }
 
-  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
+  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].control
@@ -116,8 +115,7 @@ class WorkflowApi extends Controller {
         val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
         implicit val resourceManager: ResourceManager = sinkResourceManager
         val sinks = createDatasets(xmlRoot, Some(sink2ResourceMap.keySet), xmlElementTag = "Sinks")
-        val webUser = WebUserManager.instance.user(request)
-        executeVariableWorkflow(workflowTask, dataSources, sinks, webUser)
+        executeVariableWorkflow(workflowTask, dataSources, sinks)
         Ok(variableSinkResultXML(resultResourceManager, sink2ResourceMap))
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
@@ -137,11 +135,10 @@ class WorkflowApi extends Controller {
 
   private def executeVariableWorkflow(task: ProjectTask[Workflow],
                                       replaceDataSources: Map[String, Dataset],
-                                      replaceSinks: Map[String, Dataset],
-                                      webUser: Option[WebUser]): Unit = {
+                                      replaceSinks: Map[String, Dataset])
+                                     (implicit userContext: UserContext): Unit = {
     val executor = LocalWorkflowExecutorGeneratingProvenance(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
     val activityExecution = Activity(executor)
-    implicit val userContext: UserContext = SimpleUserContext(webUser)
     activityExecution.startBlocking()
   }
 }

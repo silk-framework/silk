@@ -14,7 +14,7 @@ import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
@@ -34,7 +34,7 @@ object ProjectUtils {
   }
 
   def getProject(projectName: String): Project = {
-    User().workspace.project(projectName)
+    WorkspaceFactory().workspace.project(projectName)
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {

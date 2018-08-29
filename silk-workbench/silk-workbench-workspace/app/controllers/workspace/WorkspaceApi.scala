@@ -1,71 +1,61 @@
 package controllers.workspace
 
-import java.io.{ByteArrayOutputStream, File, FileInputStream}
+import java.io.File
 import java.net.URL
-import java.util.logging.{LogRecord, Logger}
 
-import controllers.core.{Stream, Widgets}
-import controllers.util.SerializationUtils
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.config._
-import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, UrlResource}
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, XmlSerialization}
-import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.UrlResource
+import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.users.WebUserManager
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.activity.{ProjectExecutor, WorkspaceActivity}
-import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import org.silkframework.workspace._
+import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, JsBoolean, JsObject}
 import play.api.mvc._
 
-import scala.language.existentials
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.existentials
 
 class WorkspaceApi extends Controller {
 
-  def reload: Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    User().workspace.reload()
+  def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
+    WorkspaceFactory().workspace.reload()
     Ok
   }
 
-  def projects: Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def projects: Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializer.projectsJson)
   }
 
-  def getProject(projectName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     Ok(JsonSerializer.projectJson(project))
   }
 
-  def newProject(project: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    if (User().workspace.projects.exists(_.name == project)) {
+  def newProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    if (WorkspaceFactory().workspace.projects.exists(_.name == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
-      val newProject = User().workspace.createProject(projectConfig)
+      val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
     }
   }
 
-  def deleteProject(project: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    User().workspace.removeProject(project)
+  def deleteProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    WorkspaceFactory().workspace.removeProject(project)
     Ok
   }
 
-  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val workspace = User().workspace
+  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val workspace = WorkspaceFactory().workspace
     val project = workspace.project(oldProject)
 
     val clonedProjectConfig = project.config.copy(id = newProject)
@@ -79,9 +69,8 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
-  def executeProject(projectName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
-    val project = User().workspace.project(projectName)
+  def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes = project.config.prefixes
     implicit val resources = project.resources
 
@@ -95,9 +84,8 @@ class WorkspaceApi extends Controller {
     }
   }
 
-  def importLinkSpec(projectName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def importLinkSpec(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources)
 
     request.body match {
@@ -116,9 +104,8 @@ class WorkspaceApi extends Controller {
     }
   }
 
-  def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    val project = User().workspace.project(projectName)
+  def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes = project.config.prefixes
 
@@ -127,23 +114,22 @@ class WorkspaceApi extends Controller {
     Ok(XmlSerialization.toXml(silkConfig))
   }
 
-  def updatePrefixes(project: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def updatePrefixes(project: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
-    val projectObj = User().workspace.project(project)
+    val projectObj = WorkspaceFactory().workspace.project(project)
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
 
     Ok
   }
 
   def getResources(projectName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
 
     Ok(JsonSerializer.projectResources(project))
   }
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.getInPath(resourcePath, File.separatorChar)
 
     val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
@@ -155,7 +141,7 @@ class WorkspaceApi extends Controller {
   }
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.inputStream)
 
@@ -163,7 +149,7 @@ class WorkspaceApi extends Controller {
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = Action { implicit request =>
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
 
     request.body match {
@@ -208,7 +194,7 @@ class WorkspaceApi extends Controller {
   }
 
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     project.resources.delete(resourceName)
 
     NoContent

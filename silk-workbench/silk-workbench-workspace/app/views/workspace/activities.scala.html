@@ -2,7 +2,7 @@
 @import controllers.workspace.routes.{ActivityApi, Assets, WorkspaceController}
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.activity.{CachedActivity, ProjectActivity, TaskActivity}
-@import org.silkframework.workspace.{Project, ProjectTask, User, Workspace}
+@import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory, Workspace}
 @import org.silkframework.runtime.activity.UserContext
 
 @**
@@ -94,7 +94,7 @@
 }
 
 @content = {
-  @workspaceActivities(User().workspace)
+  @workspaceActivities(WorkspaceFactory().workspace)
 
   <div id="statusCometIFrame"></div>
 }

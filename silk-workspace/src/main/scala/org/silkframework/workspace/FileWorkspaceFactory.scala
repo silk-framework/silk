@@ -19,17 +19,18 @@ import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
 import org.silkframework.config.{Config, DefaultConfig}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.resources.{PerProjectFileRepository, ResourceRepository}
 import org.silkframework.workspace.xml._
 
-class FileUser extends User {
+class FileWorkspaceFactory extends WorkspaceFactory {
 
-  override def workspace = FileUser.workspace
+  override def workspace(implicit userContext: UserContext): Workspace = FileWorkspaceFactory.workspace
 
 }
 
-object FileUser {
+object FileWorkspaceFactory {
   private val log: Logger = Logger.getLogger(this.getClass.getName.stripSuffix("$"))
   @Inject
   private var configMgr: Config = DefaultConfig.instance
@@ -70,7 +71,7 @@ object FileUser {
     }
     catch {
       case ex: Exception => {
-        Logger.getLogger(FileUser.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
+        Logger.getLogger(FileWorkspaceFactory.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
         throw ex
       }
     }

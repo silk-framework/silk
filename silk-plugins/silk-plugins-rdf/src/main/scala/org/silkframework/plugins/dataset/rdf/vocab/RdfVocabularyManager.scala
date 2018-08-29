@@ -4,7 +4,7 @@ import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.rule.vocab.{GenericInfo$, Vocabulary, VocabularyManager}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{RdfWorkspaceProvider, User}
+import org.silkframework.workspace.{RdfWorkspaceProvider, WorkspaceFactory}
 
 @Plugin(
   id = "rdf",
@@ -20,7 +20,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
   }
 
   private def workspaceSparqlEndpoint: SparqlEndpoint = {
-    User().workspace.provider match {
+    WorkspaceFactory().workspace.provider match {
       case w: RdfWorkspaceProvider =>
         w.endpoint
       case _ =>

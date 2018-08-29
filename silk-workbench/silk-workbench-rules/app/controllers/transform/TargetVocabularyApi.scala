@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import org.silkframework.rule.TransformSpec
@@ -12,7 +13,7 @@ import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.VocabularyCache
-import org.silkframework.workspace.{Project, User}
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, Controller}
 
@@ -22,8 +23,7 @@ import play.api.mvc.{Action, AnyContent, Controller}
 class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
 
   /** Returns meta data for a vocabulary class */
-  def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = task.activity[VocabularyCache].value
     val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
@@ -37,8 +37,9 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
   }
 
   /** Returns meta data for a vocabulary property */
-  def getPropertyInfo(projectName: String, transformTaskName: String, propertyUri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def getPropertyInfo(projectName: String,
+                      transformTaskName: String,
+                      propertyUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = task.activity[VocabularyCache].value
     val fullPropertyUri = Uri.parse(propertyUri, project.config.prefixes)
@@ -54,8 +55,9 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
   /**
     * Returns metadata for a vocabulary class or property.
     */
-  def getTypeOrPropertyInfo(projectName: String, transformTaskName: String, uri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def getTypeOrPropertyInfo(projectName: String,
+                            transformTaskName: String,
+                            uri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = task.activity[VocabularyCache].value
     val fullUri = Uri.parse(uri, project.config.prefixes)
@@ -78,9 +80,8 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
     * @param taskName    Name of task
     * @param classUri    Class URI
     */
-  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
-    implicit val project: Project = User().workspace.project(projectName)
+  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = false)
     serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
   }
@@ -140,8 +141,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
     Relation(vocabularyProperty, targetClass.get)
   }
 
-  def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = Action { implicit request =>
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
+  def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val project: Project = getProject(projectName)
     // Filter only object properties
     val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)

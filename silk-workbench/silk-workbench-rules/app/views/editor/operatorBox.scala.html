@@ -3,7 +3,7 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.ParameterType._
-@import org.silkframework.workspace.User
+@import org.silkframework.workspace.WorkspaceFactory
 @import org.silkframework.runtime.activity.UserContext
 
 @(opType: String,
@@ -57,7 +57,7 @@
       val resources = project.resources.listRecursive
       enumParameter(param, resources, resources, value)
     case ProjectReferenceType =>
-      val projectNames = User().workspace.projects.map(_.name.toString)
+      val projectNames = WorkspaceFactory().workspace.projects.map(_.name.toString)
       enumParameter(param, projectNames, projectNames, value)
     case TaskReferenceType =>
       val taskNames = project.allTasks.map(_.id.toString)

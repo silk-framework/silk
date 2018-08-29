@@ -14,25 +14,27 @@
 
 package org.silkframework.workspace
 
+import org.silkframework.runtime.activity.UserContext
+
 /**
- * A user.
+ * Workspace manager that returns the workspace
  */
-trait User {
+trait WorkspaceFactory {
 
   /**
    * The current workspace of this user.
    */
-  def workspace: Workspace
+  def workspace(implicit userContext: UserContext): Workspace
 }
 
-object User {
-  private lazy val defaultUser = new FileUser
+object WorkspaceFactory {
+  private lazy val defaultWorkspaceFactory = new FileWorkspaceFactory
 
-  @volatile
-  var userManager: () => User = () => defaultUser
+  @volatile // factory method for creating the workspace factory
+  var factory: WorkspaceFactory = defaultWorkspaceFactory
 
   /**
-   * Retrieves the current user.
+   * Retrieves the current workspace factory
    */
-  def apply() = userManager()
+  def apply(): WorkspaceFactory = factory
 }

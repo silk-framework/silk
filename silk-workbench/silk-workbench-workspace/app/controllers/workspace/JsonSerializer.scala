@@ -15,7 +15,7 @@ import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, User}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -27,7 +27,7 @@ object JsonSerializer {
 
   def projectsJson(implicit userContext: UserContext) = {
     JsArray(
-      for (project <- User().workspace.projects) yield {
+      for (project <- WorkspaceFactory().workspace.projects) yield {
         projectJson(project)
       }
     )

@@ -1,11 +1,11 @@
 @import org.silkframework.config.CustomTask
 @import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @import org.silkframework.rule.TransformSpec
-@import org.silkframework.workspace.{ProjectTask, User}
+@import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 @import org.silkframework.runtime.activity.UserContext
 @(projectName: String, modifier: String, inputId: Option[String])(implicit userContext: UserContext)
 
-@project = @{ User().workspace.project(projectName.toString) }
+@project = @{ WorkspaceFactory().workspace.project(projectName.toString) }
 @datasets = @{ project.tasks[GenericDatasetSpec] }
 @transformTasks = @{ project.tasks[TransformSpec] }
 @customTasksWithOutputSchema = @{ project.tasks[CustomTask].filter(_.outputSchemaOpt.isDefined) }

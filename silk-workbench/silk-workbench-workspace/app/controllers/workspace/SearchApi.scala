@@ -1,12 +1,13 @@
 package controllers.workspace
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
-import org.silkframework.workspace.{ProjectTask, User}
+import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, BodyParsers, Controller}
 
@@ -15,10 +16,9 @@ import play.api.mvc.{Action, BodyParsers, Controller}
   */
 class SearchApi extends Controller with ControllerUtilsTrait {
 
-  def search(): Action[JsValue] = Action(BodyParsers.parse.json) { implicit request =>
+  def search(): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
     implicit val responseOptionsReader = Json.reads[TaskFormatOptions]
     implicit val searchRequestReader = Json.reads[SearchRequest]
-    implicit val userContext: UserContext = WebUserManager().userContext(request)
     validateJson[SearchRequest] { searchRequest =>
       Ok(searchRequest())
     }
@@ -51,9 +51,9 @@ class SearchApi extends Controller with ControllerUtilsTrait {
     private def projects = {
       project match {
         case Some(projectName) =>
-          Seq(User().workspace.project(projectName))
+          Seq(WorkspaceFactory().workspace.project(projectName))
         case None =>
-          User().workspace.projects
+          WorkspaceFactory().workspace.projects
       }
     }
 
