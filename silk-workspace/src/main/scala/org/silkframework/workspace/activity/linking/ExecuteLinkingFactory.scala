@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{Execution, ExecutionException, ExecutionType, ExecutorRegistry}
+import org.silkframework.execution.{ExecutionException, ExecutionType, ExecutorRegistry}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext}
 import org.silkframework.runtime.plugin.Plugin
@@ -26,14 +26,14 @@ case class ExecuteLinkingFactory() extends TaskActivityFactory[LinkSpec, Execute
 
 class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
-  private lazy val execution = Execution.current()
-
   /**
     * Executes this activity.
     *
     * @param context Holds the context in which the activity is executed.
     */
   override def run(context: ActivityContext[Unit]): Unit = {
+    implicit val execution: ExecutionType = ExecutorRegistry.execution()
+
     // Execute inputs
     context.status.update("Loading inputs", 0.1)
     val inputs =
@@ -56,7 +56,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     }
   }
 
-  private def loadInput(selection: DatasetSelection, entitySchema: EntitySchema): ExecutionType#DataType = {
+  private def loadInput(selection: DatasetSelection, entitySchema: EntitySchema)(implicit execution: ExecutionType): ExecutionType#DataType = {
     val result =
       task.project.taskOption[TransformSpec](selection.inputId) match {
         case Some(transformTask) =>
