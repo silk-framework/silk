@@ -37,7 +37,7 @@ class WorkspacePlugins extends PluginModule {
     classOf[VocabularyCacheFactory] :: Nil
 
   def linkingActivities: List[Class[_]] =
-    classOf[GenerateLinksFactory] ::
+    classOf[EvaluateLinkingFactory] ::
     classOf[ExecuteLinkingFactory] ::
     classOf[LearningFactory] ::
     classOf[ActiveLearningFactory] ::

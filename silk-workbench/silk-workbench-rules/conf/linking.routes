@@ -8,11 +8,10 @@ GET           /:project/:task/editor/widgets/paths                              
 GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
 
 # Evaluate
-GET           /:project/:task/generateLinks                                                 controllers.linking.GenerateLinksView.generateLinks(project: String, task: String)
-GET           /:project/:task/generateLinksDialog                                           controllers.linking.GenerateLinksView.generateLinksDialog(project: String, task: String)
-GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                    controllers.linking.GenerateLinksView.links(project: String, task: String, sorting: String, filter: String, page: Int)
-GET           /:project/:task/generateLinks/linksStream                                     controllers.linking.GenerateLinksView.linksStream(project: String, task: String)
-GET           /:project/:task/generateLinks/statusStream                                    controllers.linking.GenerateLinksView.statusStream(project: String, task: String)
+GET           /:project/:task/evaluate                                                      controllers.linking.EvaluateLinkingController.generateLinks(project: String, task: String)
+GET           /:project/:task/evaluate/links/:sorting/:filter/:page                         controllers.linking.EvaluateLinkingController.links(project: String, task: String, sorting: String, filter: String, page: Int)
+GET           /:project/:task/evaluate/linksStream                                          controllers.linking.EvaluateLinkingController.linksStream(project: String, task: String)
+GET           /:project/:task/evaluate/statusStream                                         controllers.linking.EvaluateLinkingController.statusStream(project: String, task: String)
 
 # Execute
 GET           /:project/:task/execute                                                       controllers.linking.ExecuteLinkingController.execute(project: String, task: String)
@@ -56,8 +55,6 @@ PUT           /tasks/:project/:task/referenceLink                               
 DELETE        /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
 
 POST          /tasks/:project/:task/reloadCache                                     controllers.linking.LinkingTaskApi.reloadLinkingCache(project: String, task: String)
-PUT           /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.startGenerateLinksTask(project: String, task: String)
-DELETE        /tasks/:project/:task/generateLinks                                   controllers.linking.LinkingTaskApi.stopGenerateLinksTask(project: String, task: String)
 PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
 PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningActivity(project: String, task: String)
 PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningActivity(project: String, task: String)

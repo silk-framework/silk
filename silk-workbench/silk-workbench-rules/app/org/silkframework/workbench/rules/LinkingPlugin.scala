@@ -75,7 +75,7 @@ object LinkingPlugin {
         if (config.workbench.tabs.editor)
           tabs ::= Tab("Editor", s"linking/$project/$taskId/editor")
         if (config.workbench.tabs.generateLinks)
-          tabs ::= Tab("Evaluate", s"linking/$project/$taskId/generateLinks")
+          tabs ::= Tab("Evaluate", s"linking/$project/$taskId/evaluate")
         if (config.workbench.tabs.generateLinks)
           tabs ::= Tab("Execute", s"linking/$project/$taskId/execute")
         if (config.workbench.tabs.learn)

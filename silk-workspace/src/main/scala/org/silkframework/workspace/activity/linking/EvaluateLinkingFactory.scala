@@ -7,15 +7,15 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import GenerateLinksFactory._
+import EvaluateLinkingFactory._
 
 @Plugin(
-  id = "GenerateLinks",
-  label = "Generate Links",
+  id = "EvaluateLinking",
+  label = "Evaluate Linking",
   categories = Array("LinkSpecification"),
-  description = "Executes the link specification."
+  description = "Evaluates the linking task by generating links."
 )
-case class GenerateLinksFactory(
+case class EvaluateLinkingFactory(
   @Param("Do not generate a link for which there is a negative reference link while always generating positive reference links.")
   includeReferenceLinks: Boolean = false,
   @Param("Use a file cache. This avoids memory overflows for big files.")
@@ -28,7 +28,7 @@ case class GenerateLinksFactory(
   writeOutputs: Boolean = true,
   @Param("If defined, the execution will stop after the configured number of links is reached.\nThis is just a hint and the execution may produce slightly fewer or more links.")
   linkLimit: Int = DEFAULT_LINK_LIMIT
-  ) extends TaskActivityFactory[LinkSpec, GenerateLinks] {
+  ) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
 
   def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
@@ -39,16 +39,16 @@ case class GenerateLinksFactory(
         generateLinksWithEntities = generateLinksWithEntities,
         linkLimit = Some(linkLimit)
       )
-    new GenerateLinksActivity(task, runtimeConfig, writeOutputs)
+    new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
   }
 }
 
-class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeLinkingConfig, writeOutputs: Boolean) extends Activity[Linking] {
+class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeLinkingConfig, writeOutputs: Boolean) extends Activity[Linking] {
 
   @volatile
   private var generateLinks: Option[GenerateLinks] = None
 
-  override def name: String = "GenerateLinks"
+  override def name: String = "EvaluateLinking"
 
   override def initialValue: Option[Linking] = Some(Linking())
 
@@ -81,7 +81,7 @@ class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeL
 
 }
 
-object GenerateLinksFactory {
+object EvaluateLinkingFactory {
 
   val DEFAULT_PARTITION_SIZE = 100
 
