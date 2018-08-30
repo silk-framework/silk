@@ -25,7 +25,7 @@ case class EvaluateLinkingFactory(
   @Param("Generate detailed information about the matched entities. If set to false, the generated links won't be shown in the Workbench.")
   generateLinksWithEntities: Boolean = true,
   @Param("Write the generated links to the configured output of this task.")
-  writeOutputs: Boolean = true,
+  writeOutputs: Boolean = false,
   @Param("If defined, the execution will stop after the configured number of links is reached.\nThis is just a hint and the execution may produce slightly fewer or more links.")
   linkLimit: Int = DEFAULT_LINK_LIMIT
   ) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
