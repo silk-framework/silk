@@ -38,6 +38,7 @@ class WorkspacePlugins extends PluginModule {
 
   def linkingActivities: List[Class[_]] =
     classOf[GenerateLinksFactory] ::
+    classOf[ExecuteLinkingFactory] ::
     classOf[LearningFactory] ::
     classOf[ActiveLearningFactory] ::
     classOf[LinkingPathsCacheFactory] ::
