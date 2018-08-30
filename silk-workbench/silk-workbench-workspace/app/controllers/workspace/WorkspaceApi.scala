@@ -58,7 +58,7 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
-  def cloneProject(oldProject: String, newProject: String) = Action {
+  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = Action {
     val workspace = User().workspace
     val project = workspace.project(oldProject)
 

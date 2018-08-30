@@ -25,16 +25,17 @@ import org.silkframework.workspace.xml._
 
 class FileUser extends User {
 
-  override def workspace = FileUser.workspace
+  override def workspace: Workspace = FileUser.workspace
 
+  override def workSpaceIsReady: Boolean = FileUser.workspaceLoaded
 }
 
 object FileUser {
   private val log: Logger = Logger.getLogger(this.getClass.getName.stripSuffix("$"))
   @Inject
-  private var configMgr: Config = DefaultConfig.instance
+  private val configMgr: Config = DefaultConfig.instance
 
-  lazy val workspaceDir = {
+  lazy val workspaceDir: File = {
     val elds_home = System.getenv("ELDS_HOME")
     if(elds_home != null)
       new File(elds_home + "/var/dataintegration/workspace/")
@@ -42,7 +43,8 @@ object FileUser {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
 
-  lazy val workspace: Workspace = {
+  private var workspaceLoaded = false
+  private lazy val workspace: Workspace = {
     try {
       // Load the workspace provider from configuration or use the default file-based one
       val provider: WorkspaceProvider =
@@ -63,6 +65,7 @@ object FileUser {
           PerProjectFileRepository(workspaceDir.getAbsolutePath)
         }
 
+      workspaceLoaded = true
       // Create workspace
       new Workspace(provider, repository)
     }

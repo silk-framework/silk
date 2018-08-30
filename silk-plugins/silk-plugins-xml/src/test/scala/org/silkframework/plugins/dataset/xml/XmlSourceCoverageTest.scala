@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -13,7 +13,7 @@ import org.silkframework.util.Uri
 class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   behavior of "XML Source"
 
-  implicit val prefixes: Prefixes = Prefixes(Map.empty)
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "return 0% mapping coverage if there is no mapping" in {
     val source = xmlSource
@@ -43,7 +43,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
 
   it should "return correct value coverage" in {
     val source = xmlSource
-    implicit val prefixes = Prefixes(Map.empty)
+    implicit val prefixes = Prefixes.empty
     val result = source.valueCoverage(Path.parse("Person/Name"), paths("""Person[ID="1"]/Name"""))
     result.overallValues mustBe 2
     result.coveredValues mustBe 1
@@ -54,7 +54,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
 
   it should "return correct value coverage for more complicated path" in {
     val source = xmlSource
-    implicit val prefixes = Prefixes(Map.empty)
+    implicit val prefixes = Prefixes.empty
     val result = source.valueCoverage(Path.parse("Person/Properties/Property/Value"), paths("""Person/Properties/Property[Key!="2"]/Value"""))
     result.overallValues mustBe 3
     result.coveredValues mustBe 2
@@ -66,7 +66,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
 
   it should "return correct value coverage for '*' and '**' paths" in {
     val source = xmlSource
-    implicit val prefixes = Prefixes(Map.empty)
+    implicit val prefixes = Prefixes.empty
     val result = source.valueCoverage(
       Path.parse("Person/Properties/Property/Value"),
       paths("""Person/*/Property[Key="2"]/Value""", """**/Property[Key="1"]/Value"""))
