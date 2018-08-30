@@ -4,7 +4,6 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning

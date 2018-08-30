@@ -7,12 +7,15 @@ GET           /:project/:task/editor                                            
 GET           /:project/:task/editor/widgets/paths                                          controllers.linking.LinkingEditor.paths(project: String, task: String, groupPaths: Boolean ?= true)
 GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
 
-# Generate Links
+# Evaluate
 GET           /:project/:task/generateLinks                                                 controllers.linking.GenerateLinksView.generateLinks(project: String, task: String)
 GET           /:project/:task/generateLinksDialog                                           controllers.linking.GenerateLinksView.generateLinksDialog(project: String, task: String)
 GET           /:project/:task/generateLinks/links/:sorting/:filter/:page                    controllers.linking.GenerateLinksView.links(project: String, task: String, sorting: String, filter: String, page: Int)
 GET           /:project/:task/generateLinks/linksStream                                     controllers.linking.GenerateLinksView.linksStream(project: String, task: String)
 GET           /:project/:task/generateLinks/statusStream                                    controllers.linking.GenerateLinksView.statusStream(project: String, task: String)
+
+# Execute
+GET           /:project/:task/execute                                                       controllers.linking.ExecuteLinkingController.execute(project: String, task: String)
 
 # Reference Links
 GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)
