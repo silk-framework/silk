@@ -21,8 +21,8 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "min",
   categories = Array("All", "Recommended"),
-  label = "Or",
-  description = "At least one input score must be within the threshold. Selects the minimum score."
+  label = "And",
+  description = "All input scores must be within the threshold. Selects the minimum score."
 )
 case class MinimumAggregator() extends Aggregator {
   /**

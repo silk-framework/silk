@@ -21,8 +21,8 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "max",
   categories = Array("All", "Recommended"),
-  label = "And",
-  description = "All input scores must be within the threshold. Selects the maximum score."
+  label = "Or",
+  description = "At least one input score must be within the threshold. Selects the maximum score."
 )
 case class MaximumAggregator() extends Aggregator {
   /**
