@@ -3,7 +3,7 @@ package org.silkframework.workbench
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.mvc.Request
+import play.api.mvc.{Request, RequestHeader}
 
 import scala.reflect.ClassTag
 
@@ -31,7 +31,7 @@ object Context {
     * @return The generated context
     */
   def get[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
-                                   (implicit request: Request[_],
+                                   (implicit request: RequestHeader,
                                     userContext: UserContext): Context[T] = {
     get[T](projectName, taskName, request.path)
   }

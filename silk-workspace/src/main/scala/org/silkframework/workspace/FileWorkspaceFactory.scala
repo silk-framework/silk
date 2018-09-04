@@ -36,16 +36,17 @@ object FileWorkspaceFactory {
   private var configMgr: Config = DefaultConfig.instance
 
   lazy val workspaceDir: File = {
-    val elds_home = System.getenv("ELDS_HOME")
-    if(elds_home != null)
-      new File(elds_home + "/var/dataintegration/workspace/")
-    else
+    val eldsHome = System.getenv("ELDS_HOME")
+    if(eldsHome != null) {
+      new File(eldsHome + "/var/dataintegration/workspace/")
+    } else {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
+    }
   }
 
   private var _workspace: Option[Workspace] = None
 
-  def workspace(implicit userContext: UserContext): Workspace = _workspace.synchronized {
+  def workspace(implicit userContext: UserContext): Workspace = this.synchronized {
     _workspace match {
       case Some(w) => w
       case None =>

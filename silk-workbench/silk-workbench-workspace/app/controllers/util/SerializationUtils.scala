@@ -105,7 +105,7 @@ object SerializationUtils {
   def serializeIterableCompileTime[T: ClassTag](value: Iterable[T],
                                                 defaultMimeTypes: Seq[String] = defaultMimeTypes,
                                                 containerName: Option[String] = None)
-                                               (implicit request: Request[_],
+                                               (implicit request: RequestHeader,
                                                 project: Project): Result = {
     implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
