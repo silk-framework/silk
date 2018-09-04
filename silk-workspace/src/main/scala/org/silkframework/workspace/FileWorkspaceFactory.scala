@@ -28,6 +28,7 @@ class FileWorkspaceFactory extends WorkspaceFactory {
 
   override def workspace(implicit userContext: UserContext): Workspace = FileWorkspaceFactory.workspace
 
+  override def workSpaceIsReady: Boolean = true
 }
 
 object FileWorkspaceFactory {
