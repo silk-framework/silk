@@ -18,25 +18,23 @@ import java.io.File
 import java.util.logging.Logger
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.silkframework.rule.LinkSpec
+import org.silkframework.config.Task
+import org.silkframework.hadoop.impl.HadoopEntityCache
 import org.silkframework.rule.execution.CacheLoader
+import org.silkframework.rule.{LinkSpec, LinkingConfig}
+import org.silkframework.runtime.activity.{Activity, CombinedActivity, UserContext}
 import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.util.DPair
 
 import scala.xml.XML
-import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.rule.execution.CacheLoader
-import org.silkframework.hadoop.impl.HadoopEntityCache
-import org.silkframework.runtime.activity.{Activity, CombinedActivity}
-import org.silkframework.plugins.dataset.rdf.RdfPlugins
-import org.silkframework.config.Task
-import org.silkframework.rule.{LinkSpec, LinkingConfig}
 
 /**
  * Populates the entity cache.
  */
 class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[String], hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
+  implicit val userContext: UserContext = UserContext.Empty
   private val logger = Logger.getLogger(getClass.getName)
 
   def apply()

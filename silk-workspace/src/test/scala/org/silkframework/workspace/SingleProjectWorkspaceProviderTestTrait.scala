@@ -21,6 +21,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
   /** The id under which this project will be accessible */
   def projectId: String
   def singleWorkspaceProviderId: String = "inMemoryRdfWorkspace"
+  def userContext: UserContext
 
   private var oldWorkspaceFactory: WorkspaceFactory = _
   private var expectedWorkspaceFactory: WorkspaceFactory = _
@@ -51,6 +52,6 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
   }
 
   def project: Project = {
-    WorkspaceFactory().workspace.project(projectId)
+    WorkspaceFactory().workspace(userContext).project(projectId)
   }
 }

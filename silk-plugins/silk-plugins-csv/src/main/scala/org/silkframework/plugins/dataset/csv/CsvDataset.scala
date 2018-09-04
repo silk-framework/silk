@@ -55,7 +55,7 @@ case class CsvDataset
   /**
     * returns an auto-configured version of this plugin
     */
-  override def autoConfigured: CsvDataset = {
+  override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
     val autoConfig = csvSource.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,

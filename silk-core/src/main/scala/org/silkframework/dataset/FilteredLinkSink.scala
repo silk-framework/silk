@@ -17,16 +17,17 @@ case class FilteredLinkSink(linkSink: LinkSink, filterFn: Link => Boolean) exten
   /**
    * Filter the link before writing it to the underlying link sink.
    */
-  override def writeLink(link: Link, predicateUri: String): Unit = {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext): Unit = {
     if(filterFn(link)) {
       linkSink.writeLink(link, predicateUri)
     }
   }
 
-  override def close(): Unit = linkSink.close()
+  override def close()(implicit userContext: UserContext): Unit = linkSink.close()
 
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = linkSink.clear()
+  override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
 }

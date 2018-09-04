@@ -79,7 +79,7 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
-  override def reset(): Unit = {
+  override def reset()(implicit userContext: UserContext): Unit = {
     activity.initialValue.foreach(value.update)
     activity.reset()
   }

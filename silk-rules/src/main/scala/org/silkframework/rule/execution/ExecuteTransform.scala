@@ -47,7 +47,8 @@ class ExecuteTransform(input: UserContext => DataSource,
   private def transformEntities(dataSource: DataSource,
                                 rule: RuleSchemata,
                                 entitySink: EntitySink,
-                                context: ActivityContext[TransformReport]): Unit = {
+                                context: ActivityContext[TransformReport])
+                               (implicit userContext: UserContext): Unit = {
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)

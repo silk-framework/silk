@@ -35,7 +35,7 @@ trait ControllerUtilsTrait {
     (project, task)
   }
 
-  def getProject(projectName: String): Project = WorkspaceFactory().workspace.project(projectName)
+  def getProject(projectName: String)(implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectName)
 
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
                                     (implicit userContext: UserContext): ProjectTask[T] = {

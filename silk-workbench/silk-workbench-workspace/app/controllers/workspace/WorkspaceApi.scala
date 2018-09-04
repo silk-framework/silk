@@ -8,7 +8,7 @@ import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.UrlResource
+import org.silkframework.runtime.resource.{UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
@@ -16,6 +16,7 @@ import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeExcep
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
+import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
 
@@ -122,13 +123,13 @@ class WorkspaceApi extends Controller {
     Ok
   }
 
-  def getResources(projectName: String): Action[AnyContent] = Action {
+  def getResources(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
 
     Ok(JsonSerializer.projectResources(project))
   }
 
-  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = Action {
+  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.getInPath(resourcePath, File.separatorChar)
 
@@ -140,7 +141,7 @@ class WorkspaceApi extends Controller {
     Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
   }
 
-  def getResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
+  def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.inputStream)
@@ -148,31 +149,15 @@ class WorkspaceApi extends Controller {
     Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
   }
 
-  def putResource(projectName: String, resourceName: String): Action[AnyContent] = Action { implicit request =>
+  def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
 
     request.body match {
       case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
-        try {
-          val file = formData.files.head.ref.file
-          resource.writeFile(file)
-          NoContent
-        } catch {
-          case ex: Exception =>
-            ErrorResult(BadUserInputException(ex))
-        }
+        putResourceFromMultipartFormData(resource, formData)
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
-        try {
-          val dataParts = formData.dataParts("resource-url")
-          val url = dataParts.head
-          val urlResource = UrlResource(new URL(url))
-          resource.writeResource(urlResource)
-          NoContent
-        } catch {
-          case ex: Exception =>
-            ErrorResult(BadUserInputException(ex))
-        }
+        putResourceFromResourceUrl(resource, formData)
       case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
         // Put empty resource
         resource.writeBytes(Array[Byte]())
@@ -193,7 +178,31 @@ class WorkspaceApi extends Controller {
     }
   }
 
-  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = Action {
+  private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
+    try {
+      val file = formData.files.head.ref.file
+      resource.writeFile(file)
+      NoContent
+    } catch {
+      case ex: Exception =>
+        ErrorResult(BadUserInputException(ex))
+    }
+  }
+
+  private def putResourceFromResourceUrl(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]): Result = {
+    try {
+      val dataParts = formData.dataParts("resource-url")
+      val url = dataParts.head
+      val urlResource = UrlResource(new URL(url))
+      resource.writeResource(urlResource)
+      NoContent
+    } catch {
+      case ex: Exception =>
+        ErrorResult(BadUserInputException(ex))
+    }
+  }
+
+  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     project.resources.delete(resourceName)
 

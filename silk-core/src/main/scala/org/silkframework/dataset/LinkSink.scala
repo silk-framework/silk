@@ -15,7 +15,7 @@ trait LinkSink extends DataSink {
   /**
    * Writes a new link to this writer.
    */
-  def writeLink(link: Link, predicateUri: String): Unit
+  def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext): Unit
 
   /**
    * Writes a set of links.

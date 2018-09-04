@@ -45,11 +45,12 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     write(formatter.header)
   }
 
-  override def writeLink(link: Link, predicateUri: String) {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext): Unit = {
     write(formatter.format(link, predicateUri))
   }
 
-  override def close() {
+  override def close()(implicit userContext: UserContext): Unit = {
     formattedLinkWriter match {
       case Some(writer: StringWriter) =>
         write(formatter.footer)
@@ -70,7 +71,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     resource.delete()
   }
 }

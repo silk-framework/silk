@@ -35,7 +35,7 @@ object FileWorkspaceFactory {
   @Inject
   private var configMgr: Config = DefaultConfig.instance
 
-  lazy val workspaceDir = {
+  lazy val workspaceDir: File = {
     val elds_home = System.getenv("ELDS_HOME")
     if(elds_home != null)
       new File(elds_home + "/var/dataintegration/workspace/")
@@ -43,38 +43,49 @@ object FileWorkspaceFactory {
       new File(System.getProperty("user.home") + "/.silk/workspace/")
   }
 
-  lazy val workspace: Workspace = {
-    try {
-      // Load the workspace provider from configuration or use the default file-based one
-      val provider: WorkspaceProvider =
-        if(configMgr().hasPath("workspace.provider")) {
-          val provider = PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
-          log.info("Using configured workspace provider " + configMgr().getString("workspace.provider.plugin"))
-          provider
-        } else {
-          FileWorkspaceProvider(workspaceDir.getAbsolutePath)
-        }
+  private var _workspace: Option[Workspace] = None
 
-      val repository: ResourceRepository =
-        if(configMgr().hasPath("workspace.repository")) {
-          val repository = PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
-          log.info("Using configured workspace repository type " + configMgr().getString("workspace.repository.plugin"))
-          repository
-        } else {
-          PerProjectFileRepository(workspaceDir.getAbsolutePath)
+  def workspace(implicit userContext: UserContext): Workspace = _workspace.synchronized {
+    _workspace match {
+      case Some(w) => w
+      case None =>
+        try {
+          val w = initWorkspace
+          _workspace = Some(w)
+          w
+        } catch {
+          case ex: Exception => {
+            Logger.getLogger(FileWorkspaceFactory.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
+            throw ex
+          }
         }
-
-      // Create workspace
-      val workspace = new Workspace(provider, repository)
-      workspace.init()
-      workspace
     }
-    catch {
-      case ex: Exception => {
-        Logger.getLogger(FileWorkspaceFactory.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
-        throw ex
+  }
+
+  private def initWorkspace(implicit userContext: UserContext): Workspace = {
+    // Load the workspace provider from configuration or use the default file-based one
+    val provider: WorkspaceProvider =
+      if (configMgr().hasPath("workspace.provider")) {
+        val provider = PluginRegistry.createFromConfig[WorkspaceProvider]("workspace.provider")
+        log.info("Using configured workspace provider " + configMgr().getString("workspace.provider.plugin"))
+        provider
+      } else {
+        FileWorkspaceProvider(workspaceDir.getAbsolutePath)
       }
-    }
+
+    val repository: ResourceRepository =
+      if (configMgr().hasPath("workspace.repository")) {
+        val repository = PluginRegistry.createFromConfig[ResourceRepository]("workspace.repository")
+        log.info("Using configured workspace repository type " + configMgr().getString("workspace.repository.plugin"))
+        repository
+      } else {
+        PerProjectFileRepository(workspaceDir.getAbsolutePath)
+      }
+
+    // Create workspace
+    val workspace = new Workspace(provider, repository)
+    workspace.init()
+    workspace
   }
 }
 

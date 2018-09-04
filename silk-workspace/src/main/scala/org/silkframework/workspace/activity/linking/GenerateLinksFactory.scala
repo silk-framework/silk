@@ -26,7 +26,7 @@ case class GenerateLinksFactory(
   @Param("Write the generated links to the configured output of this task.")
   writeOutputs: Boolean = true) extends TaskActivityFactory[LinkSpec, GenerateLinks] {
 
-  def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
+  override def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
       RuntimeLinkingConfig(
         includeReferenceLinks = includeReferenceLinks,

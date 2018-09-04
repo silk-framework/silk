@@ -29,7 +29,8 @@ class WorkflowApi extends Controller {
     Ok(JsArray(workflowIdsJson))
   }
 
-  private def fetchProject(projectName: String) = WorkspaceFactory().workspace.project(projectName)
+  private def fetchProject(projectName: String)
+                          (implicit userContext: UserContext) = WorkspaceFactory().workspace.project(projectName)
 
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)

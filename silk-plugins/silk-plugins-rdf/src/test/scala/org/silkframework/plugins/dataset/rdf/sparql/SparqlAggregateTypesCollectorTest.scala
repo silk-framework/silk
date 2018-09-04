@@ -18,6 +18,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.runtime.activity.UserContext
 
 class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
 
@@ -25,6 +26,8 @@ class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers wit
   private val graphSchemaOrg = "http://example.org/schemaOrg"
 
   private lazy val endpoint = createEndpoint()
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   behavior of "SparqlAggregateTypesCollector"
 

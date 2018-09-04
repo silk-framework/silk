@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Elem, Utility, XML}
@@ -15,6 +16,8 @@ class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers
   behavior of "XML Sink #text feature"
   private final val TRANSFORM = "personTransform"
   private final val OUTPUT_RESOURCE = "person.xml"
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   override def singleWorkspaceProviderId: String = "inMemory"
 

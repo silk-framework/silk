@@ -1,7 +1,8 @@
 @import controllers.core.routes.Assets
 @import controllers.core.routes.Branding
 
-@(welcome: Html)(implicit session: play.api.mvc.Session)
+@import org.silkframework.runtime.activity.UserContext
+@(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @exampleName = @{ "movies" }
 

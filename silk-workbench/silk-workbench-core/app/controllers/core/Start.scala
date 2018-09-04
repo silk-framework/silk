@@ -1,12 +1,12 @@
 package controllers.core
 
 import config.WorkbenchConfig
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, AnyContent, Controller}
 import play.twirl.api.Html
 
 class Start extends Controller {
 
-  def index = Action { implicit req =>
+  def index: Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
     val welcome = Html(WorkbenchConfig.get.welcome.loadAsString)
     Ok(views.html.start(welcome))
   }

@@ -82,7 +82,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
     }
 
-    private class SampleOperator() extends SimilarityOperator {
+    private class SampleOperator(implicit userContext: UserContext) extends SimilarityOperator {
 
       val links = Array.fill(paths.size)(Seq[Link]())
 

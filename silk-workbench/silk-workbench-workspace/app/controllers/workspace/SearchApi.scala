@@ -48,7 +48,7 @@ class SearchApi extends Controller with ControllerUtilsTrait {
     /**
       * Retrieves all projects that are selected by the request.
       */
-    private def projects = {
+    private def projects(implicit userContext: UserContext) = {
       project match {
         case Some(projectName) =>
           Seq(WorkspaceFactory().workspace.project(projectName))

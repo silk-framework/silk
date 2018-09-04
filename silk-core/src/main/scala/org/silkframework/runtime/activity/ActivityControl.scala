@@ -62,7 +62,7 @@ trait ActivityControl[T] {
   /**
    * Resets the value of this activity to its initial value.
    */
-  def reset()
+  def reset()(implicit userContext: UserContext)
 
   /**
     * Returns the underlying activity.

@@ -49,13 +49,13 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.importLinkSpecDialog(project))
   }
 
-  def prefixDialog(project: String): Action[AnyContent] = Action {
+  def prefixDialog(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val prefixes = WorkspaceFactory().workspace.project(project).config.prefixes
 
     Ok(views.html.workspace.prefixDialog(project, prefixes, PrefixRegistry.all))
   }
 
-  def resourcesDialog(project: String): Action[AnyContent] = Action {
+  def resourcesDialog(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val resourceManager = WorkspaceFactory().workspace.project(project).resources
 
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))

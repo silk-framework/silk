@@ -33,7 +33,8 @@ object ProjectUtils {
     (project, task)
   }
 
-  def getProject(projectName: String): Project = {
+  def getProject(projectName: String)
+                (implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace.project(projectName)
   }
 
@@ -51,7 +52,8 @@ object ProjectUtils {
     */
   def createDataSource(xmlRoot: NodeSeq,
                        datasetId: Option[String])
-                      (implicit resourceLoader: ResourceManager): DataSource = {
+                      (implicit resourceLoader: ResourceManager,
+                       userContext: UserContext): DataSource = {
     val dataset = createDataset(xmlRoot, datasetId)
     dataset.source
   }
@@ -62,7 +64,8 @@ object ProjectUtils {
     */
   def createDataSources(xmlRoot: NodeSeq,
                         dataSourceIds: Option[Set[String]])
-                       (implicit resourceLoader: ResourceManager): Map[String, DataSource] = {
+                       (implicit resourceLoader: ResourceManager,
+                        userContext: UserContext): Map[String, DataSource] = {
     createDatasets(xmlRoot, dataSourceIds, "DataSources").mapValues(_.source)
   }
 
@@ -156,7 +159,8 @@ object ProjectUtils {
 
   // Create a data sink as specified in a REST request
   def createEntitySink(xmlRoot: NodeSeq)
-                      (implicit resourceManager: ResourceManager): (Model, EntitySink) = {
+                      (implicit resourceManager: ResourceManager,
+                       userContext: UserContext): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -170,7 +174,8 @@ object ProjectUtils {
   }
 
   def createLinkSink(xmlRoot: NodeSeq)
-                    (implicit resourceManager: ResourceManager): (Model, LinkSink) = {
+                    (implicit resourceManager: ResourceManager,
+                     userContext: UserContext): (Model, LinkSink) = {
     val linkSink = xmlRoot \ "linkSink"
     if (linkSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -191,7 +196,8 @@ object ProjectUtils {
     */
   def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
                                                 projectName: String,
-                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
+                                                withProjectResources: Boolean)
+                                               (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"

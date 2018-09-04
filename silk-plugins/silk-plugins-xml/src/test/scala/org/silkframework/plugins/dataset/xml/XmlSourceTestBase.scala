@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -10,6 +11,7 @@ import scala.languageFeature.postfixOps
 
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
+  implicit val userContext: UserContext = UserContext.Empty
   def xmlSource(uriPattern: String): DataSource with XmlSourceTrait
 
   val persons = XmlDoc("persons.xml")

@@ -3,13 +3,14 @@ package org.silkframework.plugins.dataset.rdf.vocab
 import org.apache.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
+import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
 
 private class VocabularyLoader(endpoint: SparqlEndpoint) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
-  def retrieveVocabulary(uri: String): Vocabulary = {
+  def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Vocabulary = {
     val classes = retrieveClasses(uri)
     Vocabulary(
       info = GenericInfo(uri, None, None, Seq.empty),
@@ -50,7 +51,8 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       |PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       |""".stripMargin
 
-  def retrieveClasses(uri: String): Traversable[VocabularyClass] = {
+  def retrieveClasses(uri: String)
+                     (implicit userContext: UserContext): Traversable[VocabularyClass] = {
     val classQuery =
       s"""
          | $prefixes
@@ -185,7 +187,8 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
     OWL.ObjectProperty.getURI
   )
 
-  def retrieveProperties(uri: String, classes: Traversable[VocabularyClass]): Traversable[VocabularyProperty] = {
+  def retrieveProperties(uri: String, classes: Traversable[VocabularyClass])
+                        (implicit userContext: UserContext): Traversable[VocabularyProperty] = {
     val propertyQuery = propertiesOfClassQuery(uri)
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap

@@ -32,7 +32,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     canceled = true
   }
 
-  override def reset(): Unit = {
+  override def reset()(implicit userContext: UserContext): Unit = {
     val pathsCache =  task.activity[LinkingPathsCache].control
     pathsCache.reset()
     pathsCache.start()

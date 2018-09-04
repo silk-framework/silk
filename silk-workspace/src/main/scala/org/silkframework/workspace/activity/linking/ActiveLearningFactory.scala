@@ -17,11 +17,13 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 )
 case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveLearning] {
 
-  def apply(task: ProjectTask[LinkSpec]): Activity[ActiveLearningState] = {
+  override def apply(task: ProjectTask[LinkSpec]): Activity[ActiveLearningState] = {
     Activity.regenerating {
       // Update reference entities cache
       val entitiesCache = task.activity[ReferenceEntitiesCache].control
       entitiesCache.waitUntilFinished()
+      //TODO: REMOVE
+      implicit val userContext: UserContext = UserContext.REMOVE_THIS
       entitiesCache.startBlocking()
 
       // Check if all links have been loaded

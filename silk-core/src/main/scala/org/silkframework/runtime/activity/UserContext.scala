@@ -3,8 +3,8 @@ package org.silkframework.runtime.activity
 import org.silkframework.runtime.users.User
 
 /**
-  * User context in which resources and tasks are created, modified, deleted, executed or queried. Used, among other things,
-  * for access control, provenance and logging.
+  * User context that should be propagated to all actions involving creating, modifying, deleting, executing or querying
+  * resources, tasks etc. Used, among other things, for access control, provenance and logging.
   */
 trait UserContext {
   def user: Option[User]
@@ -12,9 +12,14 @@ trait UserContext {
 
 object UserContext {
 
-  implicit object Empty extends UserContext {
+  /** User context that returns no user.
+    * This should be used where no user context makes sense, is not available or for tests. */
+  object Empty extends UserContext {
     def user: Option[User] = None
   }
+
+  // TODO: REMOVE
+  val REMOVE_THIS = Empty
 
 }
 

@@ -181,7 +181,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeEntities(sink: EntitySink, entityTable: LocalEntities): Unit = {
+  private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
+                           (implicit userContext: UserContext): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
@@ -256,7 +257,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable): Unit = {
+  private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
+                              (implicit userContext: UserContext): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)

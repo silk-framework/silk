@@ -22,7 +22,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     extends WorkspaceActivity {
 
   @volatile
-  private var currentControl = Activity(initialFactory(task))
+  private var currentControl = Activity{
+    //TODO: REMOVE
+    implicit val userContext: UserContext = UserContext.REMOVE_THIS
+    initialFactory(task)}
 
   @volatile
   private var currentFactory = initialFactory
@@ -47,7 +50,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
-  def reset(): Unit = {
+  def reset()(implicit userContext: UserContext): Unit = {
     currentControl.cancel()
     recreateControl()
   }
@@ -83,6 +86,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   private def recreateControl(): Unit = {
     val oldControl = currentControl
+    //TODO: REMOVE
+    implicit val userContext: UserContext = UserContext.REMOVE_THIS
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
     for (subscriber <- oldControl.status.subscribers) {

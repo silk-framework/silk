@@ -100,7 +100,8 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
-  def startDirty(taskActivity: ActivityControl[_]): Unit = {
+  def startDirty(taskActivity: ActivityControl[_])
+                (implicit userContext: UserContext): Unit = {
     dirty = true
 
     if(taskActivity.status().isRunning) {

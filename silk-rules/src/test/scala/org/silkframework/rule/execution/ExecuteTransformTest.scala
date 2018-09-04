@@ -18,13 +18,15 @@ import org.silkframework.util.{Identifier, Uri}
 class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
+  implicit val userContext: UserContext = UserContext.Empty
+
   it should "output faulty entities to error output" in {
     val prop = "http://prop"
     val prop2 = "http:// prop2"
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())).thenReturn(entities)
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(entities)
     val execute = new ExecuteTransform(
       input = _ => dataSourceMock,
       transform = TransformSpec(datasetSelection(), RootMappingRule("root", MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),

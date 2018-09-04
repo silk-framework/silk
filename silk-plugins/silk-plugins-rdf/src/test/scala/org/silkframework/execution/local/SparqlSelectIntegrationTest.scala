@@ -9,6 +9,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Loc
   * Tests the SPARQL select task in a workflow.
   */
 class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+  val userContext: UserContext = UserContext.Empty
   override def projectPathInClasspath: String = "org/silkframework/execution/SPARQLselect.zip"
 
   override def projectId: String = "sparqlSelectProject"

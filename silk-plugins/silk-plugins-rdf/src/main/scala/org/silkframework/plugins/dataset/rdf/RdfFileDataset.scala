@@ -90,12 +90,14 @@ case class RdfFileDataset(
     private var endpoint: JenaEndpoint = null
     private var lastModificationTime: Option[(Long, Int)] = None
 
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       load()
       EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
     }
 
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Seq[Entity] = {
       if (entities.isEmpty) {
         Seq.empty
       } else {
@@ -104,13 +106,15 @@ case class RdfFileDataset(
       }
     }
 
-    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                              (implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
       val restrictions = SparqlRestriction.forType(t)
       SparqlAggregatePathsCollector(endpoint, graphOpt, restrictions, limit)
     }
 
-    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    override def retrieveTypes(limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
       load()
       SparqlTypesCollector(endpoint, graphOpt, limit)
     }

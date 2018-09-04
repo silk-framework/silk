@@ -28,12 +28,13 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var byteCount = 0L
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext): Unit = {
     init()
     this.properties = properties
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
+  override def writeEntity(subject: String, values: Seq[Seq[String]])
+                          (implicit userContext: UserContext): Unit = {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       if(property.isBackwardProperty) {
         writeStatement(value, property.propertyUri, subject, property.valueType)
@@ -43,7 +44,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     }
   }
 
-  override def writeLink(link: Link, predicateUri: String): Unit = {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext): Unit = {
     val (newStatements, _) = formatLink(link, predicateUri)
     writeStatementString(newStatements)
   }
@@ -62,14 +64,16 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     Some(out)
   }
 
-  override def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
+  override def writeStatement(subject: String, property: String, value: String, valueType: ValueType)
+                             (implicit userContext: UserContext): Unit = {
     val stmtString: String = buildStatementString(subject, property, value, valueType)
     writeStatementString(stmtString)
     stmtCount += 1
   }
 
   // Writes an N-Triples statement to the output stream.
-  private def writeStatementString(stmtString: String) = {
+  private def writeStatementString(stmtString: String)
+                                  (implicit userContext: UserContext): Unit = {
     output match {
       case Some(o) =>
         val outBytes = stmtString.getBytes("UTF-8")
@@ -85,19 +89,20 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     }
   }
 
-  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType): Unit = {
+  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
     writeStatement(subject, predicate, obj, valueType)
   }
 
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     if(dropGraphOnClear) {
       graphStore.deleteGraph(graphUri)
     }
   }
 
-  override def closeTable(): Unit = {}
+  override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-  override def close(): Unit = {
+  override def close()(implicit userContext: UserContext): Unit = {
     output match {
       case Some(o) =>
         try {

@@ -23,24 +23,26 @@ object EmptyDataset extends Dataset {
    * Returns a dummy entity sink.
    */
   override def entitySink(implicit userContext: UserContext): EntitySink = new EntitySink {
-    override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {}
+    override def writeEntity(subject: String, values: Seq[Seq[String]])
+                            (implicit userContext: UserContext): Unit = {}
 
     /**
      * Initializes this writer.
      *
      * @param properties The list of properties of the entities to be written.
      */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {}
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                          (implicit userContext: UserContext): Unit = {}
 
-    override def closeTable(): Unit = {}
+    override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-    override def close(): Unit = {}
+    override def close()(implicit userContext: UserContext): Unit = {}
 
     /**
       * Makes sure that the next write will start from an empty dataset.
       * Does nothing as this dataset is always empty
       */
-    override def clear(): Unit = {}
+    override def clear()(implicit userContext: UserContext): Unit = {}
   }
 
   /**
@@ -55,14 +57,15 @@ object EmptyDataset extends Dataset {
     /**
      * Writes a new link to this writer.
      */
-    override def writeLink(link: Link, predicateUri: String): Unit = {}
+    override def writeLink(link: Link, predicateUri: String)
+                          (implicit userContext: UserContext): Unit = {}
 
-    override def close(): Unit = {}
+    override def close()(implicit userContext: UserContext): Unit = {}
 
     /**
       * Makes sure that the next write will start from an empty dataset.
       * Does nothing as this dataset is always empty
       */
-    override def clear(): Unit = {}
+    override def clear()(implicit userContext: UserContext): Unit = {}
   }
 }

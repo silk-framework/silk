@@ -40,7 +40,7 @@ class CacheLoader(source: DataSource,
     context.status.updateMessage(s"Entities loaded [ dataset :: ${source.toString} ].")
   }
 
-  private def load(context: ActivityContext[Unit]) = {
+  private def load(context: ActivityContext[Unit])(implicit userContext: UserContext) = {
     val startTime = System.currentTimeMillis()
     var entityCounter = 0
     breakable {
@@ -56,7 +56,7 @@ class CacheLoader(source: DataSource,
     }
   }
 
-  private def retrieveEntities = {
+  private def retrieveEntities(implicit userContext: UserContext) = {
     sampleSizeOpt match {
       case Some(sampleSize) =>
         source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter

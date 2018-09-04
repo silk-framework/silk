@@ -19,7 +19,7 @@ case class ExecuteTransformFactory(
                                    @Param("Limits the maximum number of entities that are transformed.")
                                    limit: Option[Int] = None) extends TaskActivityFactory[TransformSpec, ExecuteTransform] {
 
-  def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
+  override def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
     Activity.regenerating {
       new ExecuteTransform(
         // No user context here, defer fetching data sources

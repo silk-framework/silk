@@ -39,7 +39,8 @@ trait Activity[T] extends HasValue {
   /**
     * Can be overridden in implementing classes to implement reset behaviour in addition to resetting the activity value to its initial value.
     */
-  def reset(): Unit = { }
+  def reset()
+           (implicit userContext: UserContext): Unit = { }
 
   /**
    * The initial value of this activity, if any.
@@ -95,7 +96,7 @@ object Activity {
         currentActivity = None
       }
       override def cancelExecution(): Unit = currentActivity.foreach(_.cancelExecution())
-      override def reset(): Unit = currentActivity.foreach(_.reset())
+      override def reset()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.reset())
     }
   }
 
