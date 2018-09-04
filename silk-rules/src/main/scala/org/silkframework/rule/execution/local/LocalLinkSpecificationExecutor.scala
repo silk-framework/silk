@@ -32,7 +32,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
     val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(output.linkSink))
     val linking = Activity(activity).startBlockingAndGetValue()
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, PlainTask(task.id, linkSpec)))
+    Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {

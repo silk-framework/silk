@@ -38,13 +38,12 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * @return
     */
   final override def execute(
-                              task: Task[DatasetSpec[DatasetType]],
-                              inputs: Seq[ExecType#DataType],
-                              outputSchema: Option[EntitySchema],
-                              execution: ExecType,
-                              context: ActivityContext[ExecutionReport]
-                            )
-                            (implicit userContext: UserContext): Option[ExecType#DataType] = {
+    task: Task[DatasetSpec[DatasetType]],
+    inputs: Seq[ExecType#DataType],
+    outputSchema: Option[EntitySchema],
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport]
+  )(implicit userContext: UserContext): Option[ExecType#DataType] = {
 
     for (input <- inputs) {
       write(input, task, execution)

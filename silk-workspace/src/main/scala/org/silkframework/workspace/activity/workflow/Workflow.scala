@@ -175,11 +175,6 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     (inputs ++ nodesWithOutputs).distinct
   }
 
-  case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
-
-  case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
-                                     endNodes: Seq[WorkflowDependencyNode])
-
   /**
     * A workflow does not have any inputs.
     */
@@ -231,6 +226,14 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     }
   }
 }
+
+/** All IDs of variable datasets in a workflow */
+case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
+
+/** The workflow dependency graph */
+case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
+                                   endNodes: Seq[WorkflowDependencyNode])
+
 
 object Workflow {
 

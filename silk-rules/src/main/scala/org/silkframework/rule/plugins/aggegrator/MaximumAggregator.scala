@@ -21,21 +21,20 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "max",
   categories = Array("All", "Recommended"),
-  label = "Maximum",
-  description = "Selects the maximum value."
+  label = "Or",
+  description = "At least one input score must be within the threshold. Selects the maximum score."
 )
 case class MaximumAggregator() extends Aggregator {
   /**
    * Returns the maximum of the provided values.
    */
-  override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (values.isEmpty)
+  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
+    if (values.isEmpty) {
       None
-    else {
+    } else {
       var max = Double.MinValue
-      for(value <- values) {
-        if(value._2 > max)
-          max = value._2
+      for(value <- values if value._2 > max) {
+        max = value._2
       }
       Some(max)
     }
@@ -45,5 +44,5 @@ case class MaximumAggregator() extends Aggregator {
    * Combines two indexes into one.
    */
   //TODO change to merge?
-  override def combineIndexes(index1: Index, index2: Index)= index1 disjunction index2
+  override def combineIndexes(index1: Index, index2: Index): Index = index1 disjunction index2
 }

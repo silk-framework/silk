@@ -4,6 +4,7 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
 import scala.util.{Failure, Success, Try}
@@ -84,7 +85,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
             case Left(transformedValues) =>
               f(Entity(uri, transformedValues, entitySchema))
             case Right(throwable) =>
-              f(Entity(uri, entitySchema, throwable))
+              f(Entity(uri, entitySchema, FailureClass(throwable, source.underlyingTask.id)))
           }
         }
       }

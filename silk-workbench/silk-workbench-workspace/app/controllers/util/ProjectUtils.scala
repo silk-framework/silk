@@ -14,7 +14,11 @@ import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
@@ -74,6 +78,20 @@ object ProjectUtils {
                      xmlElementTag: String)
                     (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
     val datasets = createAllDatasets(xmlRoot, xmlElementTag, datasetIds)
+    datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
+  }
+
+  /**
+    * Create dataset objects from JSON serialization
+    * @param workflowJson The JSON
+    * @param datasetIds   Optional set of Dataset IDs that should be filtered.
+    * @param property     The property in the JSON representation under which the array of dataset JSON specs is stored.
+    */
+  def createDatasets(workflowJson: JsObject,
+                     datasetIds: Option[Set[String]],
+                     property: String)
+                    (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
+    val datasets = createAllDatasets(workflowJson, property, datasetIds)
     datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
@@ -157,6 +175,21 @@ object ProjectUtils {
     datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
   }
 
+  implicit val datasetTaskJsonFormat = new TaskJsonFormat[GenericDatasetSpec]()
+
+  /** Creates all datasets found in the JSON document */
+  private def createAllDatasets(workflowJson: JsValue,
+                                propertyName: String,
+                                datasetIds: Option[Set[String]])
+                               (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
+    val dataSources = (workflowJson \ propertyName).as[JsArray]
+    implicit val readContext: ReadContext = ReadContext(resourceLoader)
+    val datasets = for (dataSource <- dataSources.value) yield {
+      JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
+    }
+    datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
+  }
+
   // Create a data sink as specified in a REST request
   def createEntitySink(xmlRoot: NodeSeq)
                       (implicit resourceManager: ResourceManager,
@@ -205,7 +238,34 @@ object ProjectUtils {
           get(resourceId.text).
           writeString(inputResource.text)
     }
-    if(withProjectResources) {
+    wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
+  }
+
+  def createInMemoryResourceManagerForResources(workflowJson: JsValue,
+                                                projectName: String,
+                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
+    val resourceManager = InMemoryResourceManager()
+    val resources = (workflowJson \ "Resources").as[JsObject]
+    for ((resourceId, resourceJs) <- resources.fields){
+      val managedResource = resourceManager.
+          get(resourceId)
+      val resourceStringValue = resourceJs match {
+        case jsObject: JsObject =>
+          Json.stringify(jsObject)
+        case jsArray: JsArray =>
+          Json.stringify(jsArray)
+        case jsString: JsString =>
+          jsString.value
+        case _ =>
+          throw BadUserInputException("Resource value must be one of following JSON types: object, array or string")
+      }
+      managedResource.writeString(resourceStringValue)
+    }
+    wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
+  }
+
+  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager) = {
+    if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
       (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
     } else {

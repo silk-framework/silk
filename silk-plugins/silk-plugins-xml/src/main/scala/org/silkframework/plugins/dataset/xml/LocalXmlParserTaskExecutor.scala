@@ -27,10 +27,8 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
       val entities = entityTable.entities
 
       val pathIndex = spec.parsedInputPath match {
-        case Some(path) =>
-          entityTable.entitySchema.pathIndex(path)  //FIXME path Index should be called with ValueType
-        case None =>
-          0 // Take the value of the first path
+        case Some(path) => entityTable.entitySchema.pathIndex(path)  //FIXME path Index should be called with ValueType (TypedPath)
+        case None => 0 // Take the value of the first path
       }
 
       entities.headOption match {
@@ -41,7 +39,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
           } else {
             values(pathIndex).headOption match {
               case Some(xmlValue) =>
-                val resource = InMemoryResourceManager().get("temp", mustExist = false)
+                val resource = InMemoryResourceManager().get("temp")
                 resource.writeBytes(xmlValue.getBytes)
                 val dataset = XmlDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern, streaming = false)
                 val entities = dataset.source.retrieve(os)

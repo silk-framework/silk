@@ -67,6 +67,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
     libraryDependencies += "commons-io" % "commons-io" % "2.4"
   )
@@ -113,7 +114,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "1.5.6"
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.2.1"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -241,7 +242,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents)
-  .aggregate(workspace)
+  .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",

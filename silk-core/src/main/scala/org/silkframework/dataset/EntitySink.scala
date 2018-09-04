@@ -41,7 +41,8 @@ trait EntitySink extends DataSink {
     * @param entity - the entity to write
     */
   def writeEntity(entity: Entity)
-                 (implicit userContext: UserContext): Unit = if(! entity.hasFailed) writeEntity(entity.uri, entity.values)
+                 (implicit userContext: UserContext): Unit = if(! entity.hasFailed)
+    writeEntity(entity.uri, entity.values)
 }
 
 /**

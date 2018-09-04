@@ -3,9 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{Resource, WritableResource}
-
-import scala.io.Codec
+import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "csv",
@@ -36,7 +34,7 @@ case class CsvDataset
   @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
     linesToSkip: Int = 0,
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
-    maxCharsPerColumn: Int = 128000000,
+    maxCharsPerColumn: Int = 128000, /** Warning: Do NOT increase the default value here, it will request heap memory of this amount for every read operation of a column. */
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",

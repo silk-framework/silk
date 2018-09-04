@@ -147,7 +147,9 @@
     </div>
 
     @for(param <- plugin.parameters) {
-      @createField(plugin.id, param)
+      @if(param.visibleInDialog) {
+        @createField(plugin.id, param)
+      }
     }
 
   </div>

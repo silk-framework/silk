@@ -20,6 +20,10 @@ import org.silkframework.runtime.activity.UserContext
  * Workspace manager that returns the workspace
  */
 trait WorkspaceFactory {
+  /**
+    * Indicates whether an associated workspace was loaded or os ready
+    */
+  def workSpaceIsReady: Boolean
 
   /**
    * The current workspace of this user.
