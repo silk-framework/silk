@@ -101,8 +101,8 @@ class WorkflowApi extends Controller {
   def postVariableWorkflowInput(projectName: String,
                                 workflowTaskName: String): Action[AnyContent] = Action { request =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
-    val workflow = workflowTask.data
-    val variableDatasets = workflow.variableDatasets(project)
+    val variableDatasets = workflowTask.data.variableDatasets(project)
+
     // Create sinks and resources for variable datasets, all resources are returned in the response
     val variableSinks = variableDatasets.sinks
     val webUser = WebUserManager.instance.user(request)
@@ -114,9 +114,15 @@ class WorkflowApi extends Controller {
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
-    val sink2ResourceMap = variableSinks.map(s => (s, sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource"))).toMap
+    val sink2ResourceMap = sinkToResourceMapping(sinks, variableSinks)
     executeVariableWorkflow(workflowTask, dataSources, sinks, webUser)
     variableSinkResult(resultResourceManager, sink2ResourceMap, request)
+  }
+
+  private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {
+    variableSinks.map(s =>
+      (s,
+          sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource"))).toMap
   }
 
   private def createSourceSinksFromJson(projectName: String, variableDatasets: AllVariableDatasets, sinkIds: Set[String], json: JsValue) = {
