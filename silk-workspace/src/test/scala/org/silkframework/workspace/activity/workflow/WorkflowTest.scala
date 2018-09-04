@@ -56,7 +56,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   it should "generate a DAG of the node dependencies" in {
     val dag = testWorkflow.workflowDependencyGraph
-    dag mustBe testWorkflow.WorkflowDependencyGraph(
+    dag mustBe WorkflowDependencyGraph(
       startNodes = Set(
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
