@@ -5,6 +5,7 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 @import views.html.workspace.activity.taskActivityControl
+@import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
 
@@ -21,11 +22,11 @@
     var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id/referenceLink';
     var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
 
-    initLinks('generateLinks', 'links');
+    initLinks('evaluate', 'links');
 
     $( window ).on("load", function() {
         setTimeout(function() {
-            $("#links_stream_wrapper").append('<iframe src="generateLinks/linksStream" frameborder="0" height="0" width="100%"></iframe>');
+            $("#links_stream_wrapper").append('<iframe src="evaluate/linksStream" frameborder="0" height="0" width="100%"></iframe>');
         }, 1);
     });
   </script>
@@ -34,7 +35,7 @@
 @toolbar = {
   <ul>
     <li>
-      @taskActivityControl(context.task.activity[GenerateLinks], showButtons = true)
+      @taskActivityControl(context.task.activity[EvaluateLinkingActivity], showButtons = true)
     </li>
   </ul>
 }

@@ -4,7 +4,6 @@ import java.util.logging.{Level, Logger}
 
 import controllers.util.ProjectUtils._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
@@ -18,7 +17,7 @@ import org.silkframework.runtime.validation._
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, User}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
@@ -261,23 +260,6 @@ class LinkingTaskApi extends Controller {
     val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
     referenceEntitiesCache.reset()
     referenceEntitiesCache.start()
-    Ok
-  }
-
-  def startGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity].control
-    generateLinksActivity.start()
-    Ok
-  }
-
-  def stopGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = Action { request =>
-    val user = WebUserManager.instance.user(request)
-    val project = User().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity].control
-    generateLinksActivity.cancel()
     Ok
   }
 

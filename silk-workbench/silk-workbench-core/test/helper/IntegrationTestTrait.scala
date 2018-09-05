@@ -402,10 +402,10 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   /**
-    * Downloads the transform output.
+    * Downloads the task output.
     */
-  def downloadTransformOutput(projectId: String, transformTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId/downloadOutput")
+  def downloadTaskOutput(projectId: String, taskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/downloadOutput")
     val response = request.get()
     checkResponse(response)
   }
@@ -417,7 +417,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     * @param linkingTaskId
     */
   def executeLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/GenerateLinks/startBlocking")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/ExecuteLinking/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
