@@ -42,10 +42,6 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
         */
       override def workspace(implicit userContext: UserContext): Workspace = replacementWorkspace
 
-      /**
-        * Indicates whether an associated workspace was loaded or os ready
-        */
-      override def workSpaceIsReady: Boolean = true
     }
     oldWorkspaceFactory = WorkspaceFactory.factory
     WorkspaceFactory.factory = expectedWorkspaceFactory

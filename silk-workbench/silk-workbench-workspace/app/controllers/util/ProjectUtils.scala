@@ -16,7 +16,7 @@ import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryReso
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
+import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.Result
@@ -243,7 +243,8 @@ object ProjectUtils {
 
   def createInMemoryResourceManagerForResources(workflowJson: JsValue,
                                                 projectName: String,
-                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
+                                                withProjectResources: Boolean)
+                                               (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     val resources = (workflowJson \ "Resources").as[JsObject]
     for ((resourceId, resourceJs) <- resources.fields){
@@ -264,7 +265,8 @@ object ProjectUtils {
     wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
   }
 
-  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager) = {
+  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager)
+                                        (implicit userContext: UserContext)= {
     if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
       (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)

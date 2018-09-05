@@ -30,7 +30,7 @@ import scala.util.control.NonFatal
 
 
 /**
-  * A task that belongs to a project.
+  * A task that belongs to a project that has been loaded into the workspace.
   * [[ProjectTask]] instances are mutable, this means that the task data returned on successive calls can be different.
   *
   * @tparam TaskType The data type that specifies the properties of this task.
