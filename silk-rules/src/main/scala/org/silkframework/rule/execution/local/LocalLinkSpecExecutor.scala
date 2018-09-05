@@ -14,7 +14,7 @@ import org.silkframework.util.{DPair, Uri}
 /**
   * Created on 7/20/16.
   */
-class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] {
+class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
 
   override def execute(task: Task[LinkSpec],
                        inputs: Seq[LocalEntities],
