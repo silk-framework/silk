@@ -52,7 +52,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: 
     super.afterAll()
   }
 
-  def project: Project = {
+  def project(implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace(userContext).project(projectId)
   }
 }

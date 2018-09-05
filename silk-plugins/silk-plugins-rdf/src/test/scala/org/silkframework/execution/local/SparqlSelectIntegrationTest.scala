@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Loc
   * Tests the SPARQL select task in a workflow.
   */
 class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
-  val userContext: UserContext = UserContext.Empty
+  implicit val userContext: UserContext = UserContext.Empty
   override def projectPathInClasspath: String = "org/silkframework/execution/SPARQLselect.zip"
 
   override def projectId: String = "sparqlSelectProject"
@@ -22,7 +22,6 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
 
   it should "produce the correct result" in {
     checkOutputResource("sparqlOutput.csv", "s,v")
-    implicit val userContext: UserContext = UserContext.Empty
     val workflowTask = project.task[Workflow](workflow)
     val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()

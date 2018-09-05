@@ -84,9 +84,7 @@ object FileWorkspaceFactory {
       }
 
     // Create workspace
-    val workspace = new Workspace(provider, repository)
-    workspace.init()
-    workspace
+    new Workspace(provider, repository)
   }
 }
 

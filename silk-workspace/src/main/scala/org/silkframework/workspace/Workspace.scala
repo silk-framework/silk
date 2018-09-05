@@ -23,18 +23,31 @@ import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.util.control.NonFatal
 
+/**
+  * The workspace that manages loading of and access to workspace projects.
+  *
+  * @param provider
+  * @param repository
+  */
 class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
+
+  private var initialized = false
 
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
   def projects: Seq[Project] = cachedProjects
 
-  def init() // TODO: This needs to be called after creating the workspace
-          (implicit userContext: UserContext): Unit = synchronized {
-    cachedProjects = loadProjects()
+  /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
+    * executed once. */
+  private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
+    // FIXME: Extension for access control should happen here.
+    if (!initialized) {
+      cachedProjects = loadProjects()
+      initialized = true
+    }
   }
 
   /**
@@ -42,16 +55,21 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
-  def project(name: Identifier): Project = {
+  def project(name: Identifier)
+             (implicit userContext: UserContext): Project = {
+    loadUserProjects()
     findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  private def findProject(name: Identifier): Option[Project] = {
+  private def findProject(name: Identifier)
+                         (implicit userContext: UserContext): Option[Project] = {
+    loadUserProjects()
     projects.find(_.name == name)
   }
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
+    loadUserProjects()
     if(cachedProjects.exists(_.name == config.id)) {
       throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
     }
@@ -63,6 +81,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = {
+    loadUserProjects()
     project(name).activities.foreach(_.control.cancel())
     project(name).flush()
     provider.deleteProject(name)
@@ -79,6 +98,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext): String = {
+    loadUserProjects()
     marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
   }
 
@@ -93,6 +113,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                     inputStream: InputStream,
                     marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext) {
+    loadUserProjects()
     findProject(name) match {
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
@@ -107,8 +128,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush()
-           (implicit userContext: UserContext): Unit = {
+  def flush()(implicit userContext: UserContext): Unit = {
+    loadUserProjects()
     for {
       project <- projects // TODO: Should not work directly on all cached projects
       task <- project.allTasks
@@ -125,8 +146,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Reloads this workspace.
     */
-  def reload()
-            (implicit userContext: UserContext): Unit = {
+  def reload()(implicit userContext: UserContext): Unit = {
+    loadUserProjects()
     // Write all data
     flush()
     // Stop all activities
@@ -146,8 +167,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Removes all projects from this workspace.
     */
-  def clear()
-           (implicit userContext: UserContext): Unit = {
+  def clear()(implicit userContext: UserContext): Unit = {
+    loadUserProjects()
     for(project <- projects) {
       removeProject(project.config.id) // TODO: This works directly on the cached projects and not the ones the user can see
     }
