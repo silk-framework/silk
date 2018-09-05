@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.serialization.json.EntitySerializers.EntityHolderJsonFormat
+import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
 import org.silkframework.serialization.json.InputJsonSerializer.InputJsonFormat
 import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskJsonFormat, VocabularyPropertyJsonFormat, _}
 import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
@@ -31,6 +31,8 @@ class JsonPluginModule extends PluginModule {
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::
       classOf[WorkflowExecutionReportJsonFormat] ::
+      EntitySchemaJsonFormat.getClass ::
+      PairEntitySchemaJsonFormat.getClass ::
       EntityHolderJsonFormat.getClass ::
       Nil
 }
