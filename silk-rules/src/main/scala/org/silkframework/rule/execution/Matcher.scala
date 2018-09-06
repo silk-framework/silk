@@ -78,6 +78,10 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
         context.value.update(context.value() ++ result.get)
         finishedTasks += 1
 
+        for(linkLimit <- runtimeConfig.linkLimit if context.value().size >= linkLimit) {
+          canceled = true
+        }
+
         if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
           //Update status
           updateStatus(context, finishedTasks, scheduler.taskCount)

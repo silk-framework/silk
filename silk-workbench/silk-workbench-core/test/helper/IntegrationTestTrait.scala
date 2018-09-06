@@ -17,7 +17,8 @@ import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
-import play.api.libs.json.{JsBoolean, JsValue, Json}
+import play.api.http.Writeable
+import play.api.libs.json._
 import play.api.libs.ws.{WS, WSRequest, WSResponse}
 import play.api.mvc.{Call, Results}
 import play.api.test.FakeApplication
@@ -401,10 +402,10 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   /**
-    * Downloads the transform output.
+    * Downloads the task output.
     */
-  def downloadTransformOutput(projectId: String, transformTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId/downloadOutput")
+  def downloadTaskOutput(projectId: String, taskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/downloadOutput")
     val response = request.get()
     checkResponse(response)
   }
@@ -416,7 +417,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     * @param linkingTaskId
     */
   def executeLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/GenerateLinks/startBlocking")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/ExecuteLinking/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
@@ -448,30 +449,25 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     executeVariableWorkflow(projectId, workflowId, requestXML)
   }
 
-  def executeVariableWorkflow(projectId: String, workflowId: String, requestXML: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    val response = request.post(requestXML)
+  def executeVariableWorkflowJson(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
+    val requestJSON = JsObject(Seq(
+      "DataSources" -> {JsArray(datasetPayloads.filterNot(_.isSink).map(_.datasetJson))},
+      "Sinks" -> {JsArray(datasetPayloads.filter(_.isSink).map(_.datasetJson))},
+      "Resources" -> JsObject(datasetPayloads.flatMap(_.resourceJson))
+    ))
+    executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
+  }
+
+  def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
+    val request: WSRequest = executeOnPayloadUri(projectId, workflowId)
+      .withHeaders("Accept" -> accept)
+    val response = request.post(requestBody)
     checkResponse(response)
   }
 
-  def executeVariableWorkflowLocalExecutor(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestXML = {
-      <Workflow>
-        <DataSources>
-          {datasetPayloads.filterNot(_.isSink).map(_.datasetXml)}
-        </DataSources>
-        <Sinks>
-          {datasetPayloads.filter(_.isSink).map(_.datasetXml)}
-        </Sinks>{datasetPayloads.map(_.resourceXml)}
-      </Workflow>
-    }
-    executeVariableWorkflowLocalExecutor(projectId, workflowId, requestXML)
-  }
-
-  def executeVariableWorkflowLocalExecutor(projectId: String, workflowId: String, xmlBody: Elem): WSResponse = {
+  private def executeOnPayloadUri(projectId: String, workflowId: String) = {
     val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    val response = request.post(xmlBody)
-    checkResponse(response)
+    request
   }
 
   /**
@@ -543,6 +539,19 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
       </Dataset>
     }
 
+    lazy val datasetJson: JsValue = {
+      JsObject(Seq(
+        "id" -> JsString(datasetId),
+        "data" -> JsObject(Seq(
+          "taskType" -> JsString("Dataset"),
+          "type" -> JsString(datasetPluginType),
+          "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
+              key -> JsString(value)
+          })
+        ))
+      ))
+    }
+
     lazy val resourceXml = {
       payLoadOpt match {
         case Some(payload) =>
@@ -551,6 +560,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
           </resource>
         case None =>
           Null
+      }
+    }
+
+    lazy val resourceJson: Option[(String, JsValue)] = {
+      payLoadOpt map { payload =>
+        fileResourceId -> JsString(payload)
       }
     }
   }
