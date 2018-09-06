@@ -18,6 +18,7 @@ case class JsonDataset(
   file: Resource,
   @Param("The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
   basePath: String = "",
+  @deprecated("This will be removed in the next release.", "")
   @Param("A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements")
   uriPattern: String = "",
   @Param("The file encoding, e.g., UTF8, ISO-8859-1")

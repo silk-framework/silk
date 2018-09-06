@@ -23,8 +23,10 @@ case class CsvDataset
     arraySeparator: String = "",
   @Param("Character used to quote values.")
     quote: String = "\"",
+  @deprecated("This will be removed in the next release.", "")
   @Param("A URI prefix that should be used for generating schema entities like classes or properties, e.g. http://www4.wiwiss.fu-berlin.de/ontology/")
     prefix: String = "",
+  @deprecated("This will be removed in the next release.", "")
   @Param("A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.")
     uri: String = "",
   @Param("A regex filter used to match rows from the CSV file. If not set all the rows are used.")
