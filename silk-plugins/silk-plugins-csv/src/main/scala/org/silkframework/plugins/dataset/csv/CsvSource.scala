@@ -184,10 +184,8 @@ class CsvSource(file: Resource,
     * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
     * as defined in the *properties* field. */
   private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uriPattern.isEmpty && prefix.isEmpty) {
+    if (uriPattern.isEmpty) {
       genericEntityIRI(index.toString)
-    } else if (uriPattern.isEmpty) {
-      prefix + index
     } else {
       "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
         val propName = m.group(1)

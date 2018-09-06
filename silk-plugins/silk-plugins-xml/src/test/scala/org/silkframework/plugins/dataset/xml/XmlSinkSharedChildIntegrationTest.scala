@@ -17,7 +17,7 @@ class XmlSinkSharedChildIntegrationTest extends FlatSpec with MustMatchers with 
 
   override def projectId = "xmlSharedChildBug"
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val TRANSFORM_TASK = "transformRDF2XML"
   private val OUTPUT_XML_RESOURCE = "output.xml"

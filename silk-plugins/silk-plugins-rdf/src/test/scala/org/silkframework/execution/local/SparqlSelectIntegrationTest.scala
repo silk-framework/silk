@@ -14,7 +14,7 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
 
   override def projectId: String = "sparqlSelectProject"
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val workflow = "sparqlSelectWorkflow"
 
@@ -26,11 +26,11 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
     val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()
     val expectedResult = """s,v
-      |http://ns.eccenca.com/unemployment4,6.1
-      |http://ns.eccenca.com/unemployment1,6.2
-      |http://ns.eccenca.com/unemployment15,6.8
-      |http://ns.eccenca.com/unemployment12,6.3
-      |http://ns.eccenca.com/unemployment8,6""".stripMargin
+      |urn:instance:unemploymentcsv#8,6
+      |urn:instance:unemploymentcsv#11,6.2
+      |urn:instance:unemploymentcsv#13,6.5
+      |urn:instance:unemploymentcsv#10,6.1
+      |urn:instance:unemploymentcsv#2,6.2""".stripMargin
     checkOutputResource("sparqlOutput.csv", expectedResult)
   }
 

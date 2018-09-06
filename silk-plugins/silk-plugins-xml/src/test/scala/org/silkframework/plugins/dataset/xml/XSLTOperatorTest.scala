@@ -13,7 +13,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
 
   implicit val userContext: UserContext = UserContext.Empty
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <GroupedPerson>

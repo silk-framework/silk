@@ -19,7 +19,7 @@ class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers
 
   implicit val userContext: UserContext = UserContext.Empty
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <Persons>
