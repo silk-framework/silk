@@ -38,8 +38,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
-  def projects: Seq[Project] = cachedProjects
-
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
@@ -48,6 +46,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       cachedProjects = loadProjects()
       initialized = true
     }
+  }
+
+  def projects(implicit userContext: UserContext): Seq[Project] = {
+    loadUserProjects()
+    cachedProjects
   }
 
   /**
