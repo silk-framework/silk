@@ -33,6 +33,14 @@ trait Task[+TaskType <: TaskSpec] {
     */
   def findDependentTasks(recursive: Boolean): Seq[Identifier] = Seq.empty
 
+  /**
+    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
+    * @param maxLength the max length in characters
+    */
+  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
+    metaData.formattedLabel(id, maxLength)
+  }
+
   override def equals(obj: scala.Any) = obj match {
     case task: Task[_] =>
       id == task.id &&

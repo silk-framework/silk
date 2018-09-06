@@ -218,14 +218,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
     metaDataFields
   }
-
-  /**
-    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
-    * @param maxLength the max length in characters
-    */
-  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
-    metaData.formattedLabel(id, maxLength)
-  }
 }
 
 object ProjectTask {
