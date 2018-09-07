@@ -66,8 +66,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   registerExecutor(new LinkingTaskExecutor())
   registerExecutor(new TransformTaskExecutor())
 
-  def initTasks()
-               (implicit userContext: UserContext) { // TODO: This mus be called when this object is created
+  /** This must be executed once when the project was loaded into the workspace */
+  def initTasks()(implicit userContext: UserContext) {
     // Initialize Tasks
     allTasks.foreach(_.init())
   }
@@ -75,7 +75,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
     * The name of this project.
     */
-  def name = cachedConfig.id
+  def name: Identifier = cachedConfig.id
 
   /**
     * Retrieves all errors that occured during loading this project.
@@ -112,7 +112,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @return The activity control for the requested activity
     * @throws org.silkframework.runtime.validation.NotFoundException
     */
-  def activity(activityName: String) = {
+  def activity(activityName: String): ProjectActivity = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))

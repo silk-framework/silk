@@ -177,11 +177,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  private def loadProjects()
-                          (implicit userContext: UserContext): Seq[Project] = {
+  private def loadProjects()(implicit userContext: UserContext): Seq[Project] = {
     for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      new Project(projectConfig, provider, repository.get(projectConfig.id))
+      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+      project.initTasks()
+      project
     }
   }
 }
