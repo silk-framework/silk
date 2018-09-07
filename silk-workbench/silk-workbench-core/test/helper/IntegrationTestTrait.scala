@@ -31,7 +31,7 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderTestTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
