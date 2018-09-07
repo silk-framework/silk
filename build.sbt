@@ -34,6 +34,7 @@ lazy val commonSettings = Seq(
     "com.ning" % "async-http-client" % "1.9.39" % "test",
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
+    "org.apache.thrift" % "libthrift" % "0.9.3",
     "io.netty" % "netty" % "3.10.5.Final",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
