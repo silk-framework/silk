@@ -15,7 +15,7 @@ case class CombinedActivity(override val name: String,
     activities foreach(_.run(context))
   }
 
-  override def cancelExecution(): Unit = {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     activities foreach(_.cancelExecution())
   }
 }

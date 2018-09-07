@@ -34,13 +34,12 @@ trait Activity[T] extends HasValue {
   /**
    *  Can be overridden in implementing classes to allow cancellation of the activity.
    */
-  def cancelExecution(): Unit = { }
+  def cancelExecution()(implicit userContext: UserContext): Unit = { }
 
   /**
     * Can be overridden in implementing classes to implement reset behaviour in addition to resetting the activity value to its initial value.
     */
-  def reset()
-           (implicit userContext: UserContext): Unit = { }
+  def reset()(implicit userContext: UserContext): Unit = { }
 
   /**
    * The initial value of this activity, if any.
@@ -95,7 +94,7 @@ object Activity {
         currentActivity.get.run(context)
         currentActivity = None
       }
-      override def cancelExecution(): Unit = currentActivity.foreach(_.cancelExecution())
+      override def cancelExecution()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.cancelExecution())
       override def reset()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.reset())
     }
   }

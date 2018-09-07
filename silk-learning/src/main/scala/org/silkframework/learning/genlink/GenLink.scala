@@ -34,7 +34,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
   override def initialValue = Some(Result(Population.empty, 0, ""))
 
   override def run(context: ActivityContext[Result])
-                  (implicit userContext: UserContext)= {
+                  (implicit userContext: UserContext): Unit = {
     //Reset state
     stop = false
     iterations = 0
@@ -61,7 +61,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
     Result(population, iterations, learningStatus.toString)
   }
 
-  override def cancelExecution() {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     stop = true
   }
 

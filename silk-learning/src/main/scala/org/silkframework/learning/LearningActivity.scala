@@ -56,7 +56,7 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /**
    * Stops this learning task.
    */
-  override def cancelExecution() {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     stop = true
   }
 

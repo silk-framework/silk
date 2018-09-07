@@ -23,9 +23,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   @volatile
   private var currentControl = Activity{
-    //TODO: REMOVE
-    implicit val userContext: UserContext = UserContext.REMOVE_THIS
-    initialFactory(task)}
+    initialFactory(task)
+  }
 
   @volatile
   private var currentFactory = initialFactory
@@ -86,8 +85,6 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   private def recreateControl(): Unit = {
     val oldControl = currentControl
-    //TODO: REMOVE
-    implicit val userContext: UserContext = UserContext.REMOVE_THIS
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
     for (subscriber <- oldControl.status.subscribers) {

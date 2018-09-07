@@ -75,6 +75,6 @@ class GenerateLinksActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeL
     generateLinks = None
   }
 
-  override def cancelExecution() = generateLinks.foreach(_.cancelExecution())
+  override def cancelExecution()(implicit userContext: UserContext): Unit = generateLinks.foreach(_.cancelExecution())
 
 }

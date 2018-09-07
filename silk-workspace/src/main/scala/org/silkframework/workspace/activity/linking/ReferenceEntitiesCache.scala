@@ -28,7 +28,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 
   override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
 
-  override def cancelExecution(): Unit = {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     canceled = true
   }
 

@@ -26,29 +26,41 @@ import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Timer}
+import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
+import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 
 import scala.math.max
 
-class ActiveLearning(config: LearningConfiguration,
-                     fetchDatasources: (UserContext) => DPair[DataSource],
-                     linkSpec: LinkSpec,
-                     paths: DPair[Seq[TypedPath]],
-                     referenceEntities: ReferenceEntities = ReferenceEntities.empty,
+class ActiveLearning(task: ProjectTask[LinkSpec],
+                     config: LearningConfiguration,
                      initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
 
   override def initialValue: Option[ActiveLearningState] = Some(initialState)
 
   override def run(context: ActivityContext[ActiveLearningState])
                   (implicit userContext: UserContext): Unit = {
-    val datasets = fetchDatasources(userContext)
+    val linkSpec = task.data
+    val paths = task.activity[LinkingPathsCache].value.map(_.typedPaths)
+    val referenceEntities = task.activity[ReferenceEntitiesCache].value
+    // Update reference entities cache
+    val entitiesCache = task.activity[ReferenceEntitiesCache].control
+    entitiesCache.waitUntilFinished()
+    entitiesCache.startBlocking()
+
+    // Check if all links have been loaded
+    val entitiesSize = entitiesCache.value().positiveEntities.size + entitiesCache.value().negativeEntities.size
+    val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
+    assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
+    val datasets = task.dataSources
     // Update unlabeled pool
-    val pool = updatePool(datasets, context)
+    val pool = updatePool(linkSpec, datasets, context, paths)
 
     // Create linkage rule generator
-    val generator = linkageRuleGenerator(context)
+    val generator = linkageRuleGenerator(context, referenceEntities)
 
     // Build initial population, if still empty
-    buildPopulation(generator, context)
+    buildPopulation(linkSpec, generator, context)
 
     // Ensure that we got positive and negative reference links
     val completeEntities = CompleteReferenceLinks(referenceEntities, pool.links, context.value().population)
@@ -61,11 +73,13 @@ class ActiveLearning(config: LearningConfiguration,
     selectLinks(generator, completeEntities, fitnessFunction, context)
 
     // Clean population
-    cleanPopulation(generator, fitnessFunction, context)
+    cleanPopulation(referenceEntities, generator, fitnessFunction, context)
   }
 
-  private def updatePool(datasets: DPair[DataSource],
-                         context: ActivityContext[ActiveLearningState])
+  private def updatePool(linkSpec: LinkSpec,
+                         datasets: DPair[DataSource],
+                         context: ActivityContext[ActiveLearningState],
+                         paths: DPair[IndexedSeq[TypedPath]])
                         (implicit userContext: UserContext): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
@@ -93,15 +107,17 @@ class ActiveLearning(config: LearningConfiguration,
     pool
   }
 
-  private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState]): LinkageRuleGenerator = {
+  private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState],
+                                   referenceEntities: ReferenceEntities): LinkageRuleGenerator = {
     val generator = Timer("LinkageRuleGenerator") {
       LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(context.value().pool.links.map(_.entities.get), Nil), config.components)
     }
     context.value() = context.value().copy(generator = generator)
     generator
   }
-  
-  private def buildPopulation(generator: LinkageRuleGenerator,
+
+  private def buildPopulation(linkSpec: LinkSpec,
+                              generator: LinkageRuleGenerator,
                               context: ActivityContext[ActiveLearningState])
                              (implicit userContext: UserContext): Unit = Timer("Generating population") {
     var population = context.value().population
@@ -160,7 +176,9 @@ class ActiveLearning(config: LearningConfiguration,
     }
   }
 
-  private def cleanPopulation(generator: LinkageRuleGenerator, fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState])
+  private def cleanPopulation(referenceEntities: ReferenceEntities,
+                              generator: LinkageRuleGenerator,
+                              fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState])
                              (implicit userContext: UserContext): Unit = {
     if(referenceEntities.isDefined && !context.status().isInstanceOf[Canceling]) {
       val cleanedPopulation = context.child(new CleanPopulationTask(context.value().population, fitnessFunction, generator)).startBlockingAndGetValue()

@@ -80,7 +80,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  override def cancelExecution(): Unit = {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     canceled = true
   }
 

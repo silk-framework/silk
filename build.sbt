@@ -80,15 +80,15 @@ lazy val rules = (project in file("silk-rules"))
   )
 
 lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules)
+  .dependsOn(rules, workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Learning"
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, core % "test->test")
-  .aggregate(rules, learning)
+  .dependsOn(rules, core % "test->test")
+  .aggregate(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
@@ -264,7 +264,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile", learning)
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

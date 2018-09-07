@@ -114,7 +114,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
   }
 
-  override def cancelExecution() {
+  override def cancelExecution()(implicit userContext: UserContext) {
     canceled = true
   }
 

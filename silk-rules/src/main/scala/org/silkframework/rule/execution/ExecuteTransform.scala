@@ -66,7 +66,7 @@ class ExecuteTransform(input: UserContext => DataSource,
     entitySink.closeTable()
   }
 
-  override def cancelExecution(): Unit = {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     isCanceled = true
   }
 }
