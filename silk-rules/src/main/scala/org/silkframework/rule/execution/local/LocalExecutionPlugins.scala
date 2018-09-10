@@ -11,7 +11,7 @@ class LocalExecutionPlugins extends PluginModule {
 
   def executors = List(
     classOf[LocalDatasetExecutor],
-    classOf[LocalLinkSpecificationExecutor],
-    classOf[LocalTransformSpecificationExecutor]
+    classOf[LocalLinkSpecExecutor],
+    classOf[LocalTransformSpecExecutor]
   )
 }

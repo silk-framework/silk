@@ -177,7 +177,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  override def findDependentTasks(recursive: Boolean): Seq[Identifier] = {
+  override def findDependentTasks(recursive: Boolean): Set[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
@@ -185,7 +185,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     if(recursive) {
       allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
-    allDependentTaskIds.distinct
+    allDependentTaskIds.distinct.toSet
   }
 
   private object Writer extends Runnable {
