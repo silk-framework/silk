@@ -134,7 +134,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def flush()(implicit userContext: UserContext): Unit = {
     loadUserProjects()
     for {
-      project <- projects // TODO: Should not work directly on all cached projects
+      project <- projects // FIXME: Should not work directly on all cached projects. Will be fixed in CMEM-998
       task <- project.allTasks
     } {
       try {
@@ -173,7 +173,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def clear()(implicit userContext: UserContext): Unit = {
     loadUserProjects()
     for(project <- projects) {
-      removeProject(project.config.id) // TODO: This works directly on the cached projects and not the ones the user can see
+      removeProject(project.config.id) // FIXME: This works directly on the cached projects and not the ones the user can see. Will be fixed in CMEM-998
     }
   }
 
