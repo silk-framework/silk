@@ -54,10 +54,6 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    throw new UnsupportedOperationException("Retrieving single entities from XML is currently not supported")
-  }
-
   /**
     * Returns the XML nodes found at the base path and
     *

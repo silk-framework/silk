@@ -120,18 +120,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   }
 
   /**
-    * Retrieves a list of entities from this source.
-    *
-    * @param entitySchema The entity schema
-    * @param entities     The URIs of the entities to be retrieved.
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
-    */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    val uriSet = entities.map(_.uri).toSet
-    retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
-  }
-
-  /**
     * Moves the parser to a given path.
     * On return, the parser will be positioned on the first start element with the given path.
     * If the path is empty, the base path will be used.
