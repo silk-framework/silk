@@ -34,7 +34,7 @@ import scala.xml.XML
  */
 class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[String], hadoopConfig : org.apache.hadoop.conf.Configuration)
 {
-  implicit val userContext: UserContext = UserContext.Empty
+  implicit val userContext: UserContext = UserContext.Empty // No auth at this place possible atm
   private val logger = Logger.getLogger(getClass.getName)
 
   def apply()

@@ -1,6 +1,7 @@
 package org.silkframework.runtime.activity
 
-import org.silkframework.runtime.users.User
+import org.silkframework.config.SilkVocab
+import org.silkframework.runtime.users.{DefaultUserManager, User}
 
 /**
   * User context that should be propagated to all actions involving creating, modifying, deleting, executing or querying
@@ -20,6 +21,9 @@ object UserContext {
 
   // TODO: REMOVE
   val REMOVE_THIS = Empty
+
+  // A user that can be used at places where there is no user input and no real user context is needed
+  val INTERNAL_USER = SimpleUserContext(Some(DefaultUserManager.get(SilkVocab.internalUser))) // FIXME: Remove necessity for this context
 
 }
 

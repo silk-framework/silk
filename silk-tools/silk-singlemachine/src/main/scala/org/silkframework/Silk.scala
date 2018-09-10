@@ -42,8 +42,7 @@ object Silk {
   private var configMgr: Config = DefaultConfig.instance
   configMgr()
 
-  // Currently this cannot be used with a user context
-  implicit val userContext: UserContext = UserContext.Empty
+  implicit val userContext: UserContext = UserContext.Empty // No user context in single machine mode
 
   /**
    * The default number of threads to be used for matching.
