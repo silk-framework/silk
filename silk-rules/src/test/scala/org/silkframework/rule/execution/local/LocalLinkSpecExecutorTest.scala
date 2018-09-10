@@ -8,10 +8,10 @@ import org.silkframework.rule.LinkSpec
 /**
   * Created on 8/23/16.
   */
-class LocalLinkSpecificationExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
+class LocalLinkSpecExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
   behavior of "Local Link Specification Executor"
 
   it should "load from the registry" in {
-    executor(LinkSpec(), LocalExecution(false)).getClass mustBe classOf[LocalLinkSpecificationExecutor]
+    executor(LinkSpec(), LocalExecution(false)).getClass mustBe classOf[LocalLinkSpecExecutor]
   }
 }

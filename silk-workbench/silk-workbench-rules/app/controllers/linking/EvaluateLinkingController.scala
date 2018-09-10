@@ -6,17 +6,16 @@ import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
-import org.silkframework.rule.execution.GenerateLinks
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.mvc.{Action, AnyContent, Controller}
 
-class GenerateLinksView extends Controller {
+class EvaluateLinkingController extends Controller {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    Ok(views.html.evaluateLinking.evaluateLinking(context))
     Ok(views.html.generateLinks.generateLinks(context))
   }
 
@@ -31,7 +30,7 @@ class GenerateLinksView extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
-    val linking = task.activity[GenerateLinks].value
+    val linking = task.activity[EvaluateLinkingActivity].value
     val schemata = task.data.entityDescriptions
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
@@ -69,14 +68,14 @@ class GenerateLinksView extends Controller {
   def linksStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.activityValue(task.activity[GenerateLinks].control)
+    val stream = Stream.activityValue(task.activity[EvaluateLinkingActivity].control)
     Ok.chunked(Widgets.autoReload("updateLinks", stream))
   }
 
   def statusStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.status(task.activity[GenerateLinks].control.status)
+    val stream = Stream.status(task.activity[EvaluateLinkingActivity].control.status)
     Ok.chunked(Widgets.statusStream(stream))
   }
 

@@ -122,6 +122,14 @@ trait ExecutorRegistry {
 
 object ExecutorRegistry extends ExecutorRegistry {
 
+  private lazy val executionManager = {
+    PluginRegistry.createFromConfig[ExecutionManager]("execution.manager")
+  }
+
+  def execution(): ExecutionType = {
+    executionManager.current()
+  }
+
   /** Fetch the most specific, matching Executor and execute it on the provided parameters. */
   def execute[TaskType <: TaskSpec, ExecType <: ExecutionType](
     task: Task[TaskType],

@@ -18,7 +18,7 @@ import org.silkframework.runtime.validation._
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
@@ -261,22 +261,6 @@ class LinkingTaskApi extends Controller {
     val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
     referenceEntitiesCache.reset()
     referenceEntitiesCache.start()
-    Ok
-  }
-
-  def startGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity].control
-    generateLinksActivity.start()
-    Ok
-  }
-
-  def stopGenerateLinksTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val generateLinksActivity = task.activity[GenerateLinksActivity].control
-    generateLinksActivity.cancel()
     Ok
   }
 

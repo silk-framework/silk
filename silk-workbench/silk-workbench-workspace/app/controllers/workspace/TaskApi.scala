@@ -5,15 +5,20 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, WorkspaceFactory}
+import org.silkframework.util.Identifier
+import org.silkframework.workbench.utils.ErrorResult
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TaskApi extends Controller with ControllerUtilsTrait {
 
@@ -127,6 +132,25 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
 
     Ok(JsBoolean(cachesLoaded))
+  }
+
+  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action {
+    val project = User().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+
+    task.data.outputTasks.headOption match {
+      case Some(outputId) =>
+        project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
+          case Some(ds: ResourceBasedDataset) =>
+            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+          case Some(_) =>
+            ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
+          case None =>
+            ErrorResult(BAD_REQUEST, "Output dataset not found", s"The specified output dataset '$outputId' has not been found.")
+        }
+      case None =>
+        ErrorResult(BAD_REQUEST, "No output dataset", "This task does not specify an output dataset.")
+    }
   }
 
   /**

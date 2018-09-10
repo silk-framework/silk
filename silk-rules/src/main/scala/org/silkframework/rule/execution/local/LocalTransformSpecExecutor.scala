@@ -12,7 +12,7 @@ import scala.collection.mutable
 /**
   * Created on 7/20/16.
   */
-class LocalTransformSpecificationExecutor extends Executor[TransformSpec, LocalExecution] {
+class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution] {
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[LocalEntities],

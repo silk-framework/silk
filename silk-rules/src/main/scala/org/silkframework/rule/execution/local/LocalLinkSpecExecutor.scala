@@ -14,7 +14,7 @@ import org.silkframework.util.{DPair, Uri}
 /**
   * Created on 7/20/16.
   */
-class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] {
+class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
 
   override def execute(task: Task[LinkSpec],
                        inputs: Seq[LocalEntities],
@@ -22,7 +22,7 @@ class LocalLinkSpecificationExecutor extends Executor[LinkSpec, LocalExecution] 
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport]
                       )(implicit userContext: UserContext): Option[LocalEntities] = {
-    assert(inputs.size == 2, "LinkSpecificationExecutor did npt receive exactly two inputs (source, target).")
+    assert(inputs.size == 2, "LinkSpecificationExecutor did not receive exactly two inputs (source, target).")
     val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
     val sources = DPair[DataSource](
       entitySource(inputs.head, task.dataSelections.source.typeUri),

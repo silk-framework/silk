@@ -24,10 +24,8 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
-import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory, TaskExecutor}
+import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -47,9 +45,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  @volatile
-  private var executors = Map[String, TaskExecutor[_]]()
-
   /**
     * Holds all issues that occurred during loading project activities.
     */
@@ -62,9 +57,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   registerModule[LinkSpec]()
   registerModule[Workflow]()
   registerModule[CustomTask]()
-
-  registerExecutor(new LinkingTaskExecutor())
-  registerExecutor(new TransformTaskExecutor())
 
   /** This must be executed once when the project was loaded into the workspace */
   def initTasks()(implicit userContext: UserContext) {
@@ -298,13 +290,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
-   * Retrieves an executor for a specific task.
-   */
-  def getExecutor[T](taskData: T): Option[TaskExecutor[T]] = {
-    executors.get(taskData.getClass.getName).map(_.asInstanceOf[TaskExecutor[T]])
-  }
-
-  /**
    * Retrieves a module for a specific task type.
    *
    * @tparam T The task type
@@ -324,14 +309,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    */
   def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this)
-  }
-
-  /**
-   * Registers a new executor for a specific task type.
-   */
-  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]): Unit = {
-    val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
-    executors = executors.updated(taskClassName, executor)
   }
 
   /** Flush outstanding updates */
