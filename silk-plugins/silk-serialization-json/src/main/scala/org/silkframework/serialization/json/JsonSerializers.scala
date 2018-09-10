@@ -996,8 +996,8 @@ object JsonSerializers {
         "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
         "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
         "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
-        "dependentTasksDirect" -> JsArray(task.findDependentTasks(false).map(JsString(_))),
-        "dependentTasksAll" -> JsArray(task.findDependentTasks(true).map(JsString(_)))
+        "dependentTasksDirect" -> JsArray(task.findDependentTasks(false).map(JsString(_)).toSeq),
+        "dependentTasksAll" -> JsArray(task.findDependentTasks(true).map(JsString(_)).toSeq)
       )
     }
 
