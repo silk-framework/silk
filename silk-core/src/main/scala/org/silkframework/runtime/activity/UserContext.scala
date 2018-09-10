@@ -19,9 +19,6 @@ object UserContext {
     def user: Option[User] = None
   }
 
-  // TODO: REMOVE
-  val REMOVE_THIS = Empty
-
   // A user that can be used at places where there is no user input and no real user context is needed
   val INTERNAL_USER = SimpleUserContext(Some(DefaultUserManager.get(SilkVocab.internalUser))) // FIXME: Remove necessity for this context
 
