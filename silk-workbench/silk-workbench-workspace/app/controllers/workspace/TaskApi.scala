@@ -134,8 +134,8 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     Ok(JsBoolean(cachesLoaded))
   }
 
-  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
     task.data.outputTasks.headOption match {

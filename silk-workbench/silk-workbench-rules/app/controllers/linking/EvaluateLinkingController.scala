@@ -3,7 +3,6 @@ package controllers.linking
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.workbench.Context
@@ -16,14 +15,6 @@ class EvaluateLinkingController extends Controller {
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.evaluateLinking.evaluateLinking(context))
-    Ok(views.html.generateLinks.generateLinks(context))
-  }
-
-  def generateLinksDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val outputs = project.tasks[GenericDatasetSpec].map(_.id.toString())
-
-    Ok(views.html.generateLinks.generateLinksDialog(projectName, taskName, outputs))
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
