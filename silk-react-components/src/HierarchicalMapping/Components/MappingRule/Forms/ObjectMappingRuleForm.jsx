@@ -316,11 +316,12 @@ const ObjectMappingRuleForm = React.createClass({
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder={'Value path'}
+                    key={this.state.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={autoCompleteRuleId}
+                    ruleId={parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'
