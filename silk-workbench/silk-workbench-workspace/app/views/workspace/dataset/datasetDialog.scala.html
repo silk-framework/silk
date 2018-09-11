@@ -1,8 +1,8 @@
 @import org.silkframework.dataset.Dataset
 @import org.silkframework.workspace.Project
 @import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-
 @import org.silkframework.runtime.activity.UserContext
+
 @(project: Project, datasetName: String, dataset: Option[GenericDatasetSpec], title: String = "Edit Dataset", createDialog: Boolean = false)(implicit userContext: UserContext)
 
 @widgets.pluginDialog(

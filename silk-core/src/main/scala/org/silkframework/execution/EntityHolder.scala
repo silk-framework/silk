@@ -2,7 +2,6 @@ package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.util.Identifier
 
 /**
   * Holds entities that are exchanged between tasks.
@@ -31,15 +30,8 @@ trait EntityHolder {
   def task: Task[TaskSpec]
 
   /**
-    * Convenience function for unwrapping the task id
-    * NOTE: Caution when using with essential code, prefer taskOption.map(_.id) instead
-    * @return - the task id or a unified statement for a missing task id
-    */
-  def taskId: Identifier = task.id
-
-  /**
     * Convenience method to get either the task label if it exists or the task ID.
     * @return
     */
-  def taskLabel: String = task.metaData.formattedLabel(taskId)
+  def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
 }
