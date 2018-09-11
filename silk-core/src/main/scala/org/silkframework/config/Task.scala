@@ -34,7 +34,7 @@ trait Task[+TaskType <: TaskSpec] {
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
   def findDependentTasks(recursive: Boolean)
-                        (implicit userContext: UserContext): Seq[Identifier] = Seq.empty
+                        (implicit userContext: UserContext): Set[Identifier] = Set.empty
 
   override def equals(obj: scala.Any) = obj match {
     case task: Task[_] =>

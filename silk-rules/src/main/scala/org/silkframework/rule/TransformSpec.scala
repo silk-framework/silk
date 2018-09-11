@@ -24,6 +24,7 @@ import scala.language.implicitConversions
   * @param outputs            The identifier of the output to which all transformed entities are to be written
   * @param errorOutputs       The identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
+  * @param parentTask     May add additional references to tasks (in addition to input and output)
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
@@ -31,7 +32,9 @@ case class TransformSpec(selection: DatasetSelection,
                          mappingRule: RootMappingRule,
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
+                         targetVocabularies: Traversable[String] = Seq.empty,
+                         parentTask: Option[Identifier] = None
+                        ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
@@ -61,6 +64,12 @@ case class TransformSpec(selection: DatasetSelection,
     * The tasks that this task writes to.
     */
   override def outputTasks: Set[Identifier] = outputs.toSet
+
+  /**
+    * The tasks that are directly referenced by this task.
+    * This includes input tasks and output tasks.
+    */
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ parentTask
 
   /**
     * Input and output schemata of all object rules in the tree.

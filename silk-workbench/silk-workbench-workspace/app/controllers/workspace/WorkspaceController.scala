@@ -36,7 +36,7 @@ class WorkspaceController extends Controller {
   def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    val dependentTasks = task.findDependentTasks(false).map(_.toString)
+    val dependentTasks = task.findDependentTasks(false).map(_.toString).toSeq
 
     Ok(views.html.workspace.removeTaskDialog(projectName, taskName, dependentTasks))
   }
