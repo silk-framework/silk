@@ -77,7 +77,8 @@ object ParameterType {
     */
   private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType)
+      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      PasswordParameterType)
   }
 
   /**
@@ -340,6 +341,16 @@ object ParameterType {
     override def name: String = "multiline string"
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
+  }
+
+  object PasswordParameterType extends ParameterType[PasswordParameter] {
+    override def name: String = "password"
+
+    override def description: String = "A password string."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
+      PasswordParameter(str)
+    }
   }
 
   object SparqlEndpointDatasetParameterType extends ParameterType[SparqlEndpointDatasetParameter] {
