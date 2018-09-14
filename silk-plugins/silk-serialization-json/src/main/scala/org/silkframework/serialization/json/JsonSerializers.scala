@@ -75,6 +75,26 @@ object JsonSerializers {
     }
   }
 
+  class PairJsonFormat[T](implicit dataFormat: JsonFormat[T]) extends JsonFormat[DPair[T]] {
+
+    private val SOURCE = "source"
+    private val TARGET = "target"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): DPair[T] = {
+      DPair[T](
+        source = dataFormat.read(mustBeDefined(value, SOURCE)),
+        target = dataFormat.read(mustBeDefined(value, TARGET))
+      )
+    }
+
+    override def write(value: DPair[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SOURCE -> dataFormat.write(value.source),
+        TARGET -> dataFormat.write(value.target)
+      )
+    }
+  }
+
   implicit object JsonDatasetSpecFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
