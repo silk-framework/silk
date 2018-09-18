@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
+
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -26,7 +27,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     *
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     if(file.nonEmpty) {
       val inputStream = file.inputStream
       try {
@@ -61,7 +63,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param depth Only retrieve paths up to a certain length.
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
   }
 
@@ -87,7 +90,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit        Limits the maximum number of retrieved entities
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
@@ -117,18 +121,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         }
       }
     }
-  }
-
-  /**
-    * Retrieves a list of entities from this source.
-    *
-    * @param entitySchema The entity schema
-    * @param entities     The URIs of the entities to be retrieved.
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
-    */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    val uriSet = entities.map(_.uri).toSet
-    retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
   }
 
   /**

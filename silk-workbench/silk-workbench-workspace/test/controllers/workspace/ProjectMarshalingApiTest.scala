@@ -7,8 +7,9 @@ import com.ning.http.client.multipart.FilePart
 import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
-import org.silkframework.workspace.User
+import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.ws.WS
 import play.api.libs.ws.ning.NingWSResponse
 
@@ -25,7 +26,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val workspaceBytes = ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes
     importWorkspace(workspaceBytes)
 
-    User().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
+    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
   "export the entire workspace" in {
@@ -33,7 +34,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     clearWorkspace()
     importWorkspace(exportedWorkspace)
 
-    User().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
+    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
   "import single project workspace as project" in {
@@ -41,7 +42,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val projectZipBytes = ClasspathResource("controllers/workspace/singleProjectWorkspace.zip").loadAsBytes
     importProject(projectId, projectZipBytes)
 
-    User().workspace.projects.map(_.config.id).toSet must contain (projectId)
+    WorkspaceFactory().workspace.projects.map(_.config.id).toSet must contain (projectId)
   }
 
   "throw error if no project is found" in {
@@ -49,7 +50,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val projectZipBytes = ClasspathResource("controllers/workspace/nonProject.zip").loadAsBytes
     importProject(projectId, projectZipBytes, expectedResponseCodePrefix = '4')
 
-    User().workspace.projects.map(_.config.id).toSet must not contain projectId
+    WorkspaceFactory().workspace.projects.map(_.config.id).toSet must not contain projectId
   }
 
   private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
@@ -89,9 +90,10 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     result.bodyAsBytes
   }
 
-  private def clearWorkspace(): Unit = {
-    User().workspace.clear()
-    User().workspace.projects.map(_.config.id).toSet mustBe Set.empty
+  private def clearWorkspace()
+                            (implicit userContext: UserContext): Unit = {
+    WorkspaceFactory().workspace.clear()
+    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set.empty
   }
 
   private def executeAsyncRequest(asyncHttpClient: AsyncHttpClient,

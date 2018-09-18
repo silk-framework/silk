@@ -2,6 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 import org.silkframework.util.Uri._
 
@@ -11,7 +12,9 @@ import org.silkframework.util.Uri._
   */
 trait PathCoverageDataSource {
   this: DataSource =>
-  def pathCoverage(pathInputs: Seq[CoveragePathInput])(implicit prefixes: Prefixes): PathCoverageResult = {
+  def pathCoverage(pathInputs: Seq[CoveragePathInput])
+                  (implicit prefixes: Prefixes,
+                   userContext: UserContext): PathCoverageResult = {
     // This should get all paths defined for this source, depending on the implementation of the data source the depth might be limited to 1.
     val allPaths = retrievePaths("", depth = Int.MaxValue)
     val pathCoverages = for (sourcePath <- allPaths) yield {

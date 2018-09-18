@@ -11,6 +11,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transform
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.InputJsonSerializer._
@@ -72,6 +73,26 @@ object JsonSerializers {
         json += MODIFIED -> JsString(modified.toString)
       }
       json
+    }
+  }
+
+  class PairJsonFormat[T](implicit dataFormat: JsonFormat[T]) extends JsonFormat[DPair[T]] {
+
+    private val SOURCE = "source"
+    private val TARGET = "target"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): DPair[T] = {
+      DPair[T](
+        source = dataFormat.read(mustBeDefined(value, SOURCE)),
+        target = dataFormat.read(mustBeDefined(value, TARGET))
+      )
+    }
+
+    override def write(value: DPair[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SOURCE -> dataFormat.write(value.source),
+        TARGET -> dataFormat.write(value.target)
+      )
     }
   }
 
@@ -922,7 +943,8 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions())(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions(),
+                                      userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
     final val DATA = "data"
@@ -973,7 +995,8 @@ object JsonSerializers {
       if(options.includeTaskProperties.getOrElse(false)) {
         json += PROPERTIES -> writeTaskProperties(task)
       }
-      if(options.includeRelations.getOrElse(false)) {
+      if(options.includeRelations.getOrElse(false) && userContext.isDefined) {
+        implicit val uc = userContext.get // User context is needed to fetch dependent tasks
         json += RELATIONS -> writeTaskRelations(task)
       }
       if(options.includeSchemata.getOrElse(false)) {
@@ -991,13 +1014,15 @@ object JsonSerializers {
       )
     }
 
-    private def writeTaskRelations(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    private def writeTaskRelations(task: Task[T])
+                                  (implicit writeContext: WriteContext[JsValue],
+                                   userContext: UserContext): JsValue = {
       Json.obj(
         "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
         "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
         "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
-        "dependentTasksDirect" -> JsArray(task.findDependentTasks(false).map(JsString(_))),
-        "dependentTasksAll" -> JsArray(task.findDependentTasks(true).map(JsString(_)))
+        "dependentTasksDirect" -> JsArray(task.findDependentTasks(recursive = false).map(JsString(_)).toSeq),
+        "dependentTasksAll" -> JsArray(task.findDependentTasks(recursive = true).map(JsString(_)).toSeq)
       )
     }
 

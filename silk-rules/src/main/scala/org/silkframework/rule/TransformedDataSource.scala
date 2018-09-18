@@ -3,6 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
@@ -20,7 +21,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     *
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
-  override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int] = None)
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     for(TypeMapping(name, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
@@ -33,7 +35,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param depth Only retrieve paths up to a certain length. No effect on this data source as all paths are of length one.
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     transformRule.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
   }
 
@@ -44,7 +47,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit        Limits the maximum number of retrieved entities
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveEntities(entitySchema, None, limit)
   }
 
@@ -55,11 +59,13 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param entities     The URIs of the entities to be retrieved.
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Seq[Entity] = {
     retrieveEntities(entitySchema, Some(entities), None).toSeq
   }
 
-  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]): Traversable[Entity] = {
+  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[Entity] = {
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {

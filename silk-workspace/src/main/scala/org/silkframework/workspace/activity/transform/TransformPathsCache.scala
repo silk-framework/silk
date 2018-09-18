@@ -4,7 +4,7 @@ import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
@@ -24,7 +24,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
   /**
    * Loads the most frequent paths.
    */
-  override def run(context: ActivityContext[CachedEntitySchemata]): Unit = {
+  override def run(context: ActivityContext[CachedEntitySchemata])
+                  (implicit userContext: UserContext): Unit = {
     val transform = transformTask.data
 
     //Create an entity description from the transformation task

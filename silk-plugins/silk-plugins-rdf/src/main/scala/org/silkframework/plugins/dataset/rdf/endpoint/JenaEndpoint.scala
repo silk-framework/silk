@@ -20,6 +20,7 @@ import java.util.logging.{Level, Logger}
 import org.apache.jena.query._
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf.{BlankNode, DataTypeLiteral, LanguageLiteral, PlainLiteral, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedMap
@@ -50,7 +51,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def select(sparql: String, limit: Int): SilkResultSet = synchronized {
+  override def select(sparql: String, limit: Int)
+                     (implicit userContext: UserContext): SilkResultSet = synchronized {
     val query = QueryFactory.create(sparql)
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
@@ -74,7 +76,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes a construct query.
     */
-  override def construct(query: String): String = synchronized {
+  override def construct(query: String)
+                        (implicit userContext: UserContext): String = synchronized {
     val qe = createQueryExecution(QueryFactory.create(query))
     try {
       val resultModel = qe.execConstruct()
@@ -90,7 +93,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes an update query.
     */
-  override def update(query: String): Unit = synchronized {
+  override def update(query: String)
+                     (implicit userContext: UserContext): Unit = synchronized {
     createUpdateExecution(query).execute()
   }
 

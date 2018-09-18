@@ -30,15 +30,8 @@ trait EntityHolder {
   def task: Task[TaskSpec]
 
   /**
-    * Convenience function for unwrapping the task id
-    * NOTE: Caution when using with essential code, prefer taskOption.map(_.id) instead
-    * @return - the task id or a unified statement for a missing task id
-    */
-  def taskId: String = task.id.toString
-
-  /**
     * Convenience method to get either the task label if it exists or the task ID.
     * @return
     */
-  def taskLabel: String = task.metaData.formattedLabel(taskId)
+  def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
 }

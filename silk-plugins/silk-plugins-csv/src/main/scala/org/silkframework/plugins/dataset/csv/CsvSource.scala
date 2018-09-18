@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
@@ -80,7 +81,8 @@ class CsvSource(file: Resource,
 
   override def toString: String = file.toString
 
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     try {
       for (property <- propertyList) yield {
         Path(ForwardOperator(Uri.parse(prefix + property)) :: Nil)
@@ -91,7 +93,8 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
@@ -104,7 +107,8 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Seq[Entity] = {
     val entities = retrieveEntities(entitySchema)
     entities.toSeq
   }
@@ -180,10 +184,8 @@ class CsvSource(file: Resource,
     * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
     * as defined in the *properties* field. */
   private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uriPattern.isEmpty && prefix.isEmpty) {
+    if (uriPattern.isEmpty) {
       genericEntityIRI(index.toString)
-    } else if (uriPattern.isEmpty) {
-      prefix + index
     } else {
       "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
         val propName = m.group(1)
@@ -279,7 +281,8 @@ class CsvSource(file: Resource,
     codec
   }
 
-  override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int] = None)
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     Seq((classUri, 1.0))
   }
 

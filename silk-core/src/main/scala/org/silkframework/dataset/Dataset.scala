@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
 
@@ -16,7 +17,7 @@ trait DatasetPluginAutoConfigurable[T <: Dataset] {
   /**
    * returns an auto-configured version of this plugin
    */
-  def autoConfigured: T
+  def autoConfigured(implicit userContext: UserContext): T
 }
 
 /**

@@ -5,10 +5,13 @@ import java.io.StringReader
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/csv")
 

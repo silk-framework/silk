@@ -23,6 +23,7 @@ import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -38,11 +39,13 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
 
-  def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]]): DPair[DataSource] = {
+  def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
+                 (implicit userContext: UserContext): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
   }
 
-  def findOutputs(datasets: Traversable[Task[DatasetSpec[Dataset]]]): Seq[LinkSink] = {
+  def findOutputs(datasets: Traversable[Task[DatasetSpec[Dataset]]])
+                 (implicit userContext: UserContext): Seq[LinkSink] = {
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
 

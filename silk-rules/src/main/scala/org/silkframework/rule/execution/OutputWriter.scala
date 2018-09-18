@@ -16,7 +16,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.Uri
 
 /**
@@ -26,7 +26,8 @@ class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[LinkSink]) exte
 
   override def name = "Writing output"
 
-  override def run(context: ActivityContext[Unit]) {
+  override def run(context: ActivityContext[Unit])
+                  (implicit userContext: UserContext) {
     outputs.foreach(_.clear())
     outputs.foreach(_.init())
 

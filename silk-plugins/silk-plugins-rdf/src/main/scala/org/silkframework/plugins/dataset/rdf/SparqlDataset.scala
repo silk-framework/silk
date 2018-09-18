@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
 import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 
 @Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
@@ -55,11 +56,11 @@ case class SparqlDataset(
     RemoteSparqlEndpoint(params)
   }
 
-  override val source = new SparqlSource(params, sparqlEndpoint)
+  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint)
 
-  override val linkSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override val entitySink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink: TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }

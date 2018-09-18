@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 
@@ -22,8 +23,10 @@ case class CsvDataset
     arraySeparator: String = "",
   @Param("Character used to quote values.")
     quote: String = "\"",
+  @deprecated("This will be removed in the next release.", "")
   @Param("A URI prefix that should be used for generating schema entities like classes or properties, e.g. http://www4.wiwiss.fu-berlin.de/ontology/")
     prefix: String = "",
+  @deprecated("This will be removed in the next release.", "")
   @Param("A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.")
     uri: String = "",
   @Param("A regex filter used to match rows from the CSV file. If not set all the rows are used.")
@@ -40,11 +43,11 @@ case class CsvDataset
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset {
 
-  override def source: DataSource = csvSource
+  override def source(implicit userContext: UserContext): DataSource = csvSource
 
-  override def linkSink: LinkSink = new CsvLinkSink(file, csvSettings)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
 
-  override def entitySink: EntitySink = new CsvEntitySink(file, csvSettings)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
   private def csvSource = new CsvSource(file, csvSettings, properties, prefix, uri, regexFilter, codec,
     skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
@@ -52,7 +55,7 @@ case class CsvDataset
   /**
     * returns an auto-configured version of this plugin
     */
-  override def autoConfigured: CsvDataset = {
+  override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
     val autoConfig = csvSource.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,

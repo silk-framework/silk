@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
@@ -34,11 +35,11 @@ import scala.xml.Node
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
-  def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 
-  def linkSink: LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -81,11 +82,13 @@ object DatasetSpec {
 
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
-    override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+    override def retrieveTypes(limit: Option[Int] = None)
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 
-    override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+    override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
+                              (implicit userContext: UserContext): IndexedSeq[Path] = {
       source.retrievePaths(typeUri, depth, limit)
     }
 
@@ -96,7 +99,8 @@ object DatasetSpec {
       * @param limit        Limits the maximum number of retrieved entities
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities, adaptedSchema)
@@ -109,7 +113,8 @@ object DatasetSpec {
       * @param entities     The URIs of the entities to be retrieved.
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Seq[Entity] = {
       val adaptedSchema = adaptSchema(entitySchema)
       val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
       adaptUris(retrievedEntities, adaptedSchema).toSeq
@@ -164,7 +169,8 @@ object DatasetSpec {
     /**
       * Initializes this writer.
       */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                          (implicit userContext: UserContext){
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -180,7 +186,8 @@ object DatasetSpec {
       isOpen = true
     }
 
-    override def writeEntity(subject: String, values: Seq[Seq[String]]) {
+    override def writeEntity(subject: String, values: Seq[Seq[String]])
+                            (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriProperty match {
         case Some(_) =>
@@ -195,7 +202,7 @@ object DatasetSpec {
     /**
       * Closes the current table.
       */
-    override def closeTable() {
+    override def closeTable()(implicit userContext: UserContext) {
       if (entitySink != null) entitySink.closeTable()
       isOpen = false
     }
@@ -203,7 +210,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close() {
+    override def close()(implicit userContext: UserContext) {
       if (entitySink != null) entitySink.close()
       isOpen = false
       log.info(s"Wrote $entityCount entities.")
@@ -212,7 +219,7 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(): Unit = entitySink.clear()
+    override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
   }
 
   case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec[Dataset]) extends LinkSink {
@@ -223,7 +230,7 @@ object DatasetSpec {
 
     private var isOpen = false
 
-    override def init(): Unit = {
+    override def init()(implicit userContext: UserContext): Unit = {
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -235,7 +242,8 @@ object DatasetSpec {
     /**
       * Writes a new link to this writer.
       */
-    override def writeLink(link: Link, predicateUri: String) {
+    override def writeLink(link: Link, predicateUri: String)
+                          (implicit userContext: UserContext): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
       linkSink.writeLink(link, predicateUri)
@@ -245,7 +253,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close() {
+    override def close()(implicit userContext: UserContext) {
       if (linkSink != null) linkSink.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")
@@ -254,7 +262,7 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(): Unit = linkSink.clear()
+    override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
   }
 
   /**

@@ -20,6 +20,7 @@ import java.net.URLDecoder
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri
 
@@ -30,6 +31,8 @@ class FileDataSourceTest extends FlatSpec with Matchers {
     "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
     "do" -> "http://dbpedia.org/ontology/"
   )
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   val fileName = "test.nt"
 

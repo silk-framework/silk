@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -11,6 +12,7 @@ import scala.languageFeature.postfixOps
 //noinspection ScalaStyle
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
+  implicit val userContext: UserContext = UserContext.Empty
   def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait
 
   behavior of "XML Dataset"
@@ -147,6 +149,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
       (persons atPath "Person" limit 2 valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
     }
+
+    it should s"allow the retrieval of single entities ($fileName)" in {
+      (persons atPath "Person" entityWithUri "Person").uri shouldBe Uri("Person")
+    }
   }
 
 
@@ -189,6 +195,15 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     def valuesAt(pathStr: String): Seq[Seq[String]] = {
       val path = Path.parse(pathStr).asStringTypedPath
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
+    }
+
+    def entityWithUri(uri: Uri): Entity = {
+      val entityDesc =
+        EntitySchema(
+          typeUri = Uri(basePath),
+          typedPaths = IndexedSeq.empty
+        )
+      xmlSource.retrieveByUri(entityDesc, Seq(uri)).head
     }
 
     def entityURIsAt(pathStr: String): Seq[Seq[String]] = {

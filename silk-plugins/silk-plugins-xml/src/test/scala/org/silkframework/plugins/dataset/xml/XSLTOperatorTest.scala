@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
@@ -10,7 +11,9 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  implicit val userContext: UserContext = UserContext.Empty
+
+  override def workspaceProvider: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <GroupedPerson>
@@ -26,6 +29,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
   }
 
   it should "run the XSLT workflow and generate the correct result" in {
+    implicit val userContext: UserContext = UserContext.Empty
     project.task[Workflow](WORKFLOW).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
     val result = project.resources.get(OUTPUT_RESOURCE).loadAsString
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)

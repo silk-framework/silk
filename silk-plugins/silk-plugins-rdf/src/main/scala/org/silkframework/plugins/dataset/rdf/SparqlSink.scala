@@ -1,11 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.util.logging.Logger
-
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -18,21 +17,21 @@ class SparqlSink(params: SparqlParams,
                  statementsPerRequest: Int = 200,
                  dropGraphOnClear: Boolean = true) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
-  private val log = Logger.getLogger(classOf[SparqlSink].getName)
-
   private val body: StringBuilder = new StringBuilder
 
   private var statements = 0
 
   private var properties = Seq[TypedProperty]()
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                        (implicit userContext: UserContext): Unit = {
     this.properties = properties
   }
 
-  override def init() = {}
+  override def init()(implicit userContext: UserContext): Unit = {}
 
-  override def writeLink(link: Link, predicateUri: String) {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext): Unit = {
     val (newStatements, statementCount) = formatLink(link, predicateUri)
     if(body.isEmpty) {
       beginSparul()
@@ -45,7 +44,8 @@ class SparqlSink(params: SparqlParams,
     statements += statementCount
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
+  override def writeEntity(subject: String, values: Seq[Seq[String]])
+                          (implicit userContext: UserContext): Unit = {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       if(property.isBackwardProperty) {
         writeStatement(value, property.propertyUri, subject, property.valueType)
@@ -55,15 +55,15 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def closeTable() {}
+  override def closeTable()(implicit userContext: UserContext) {}
 
-  override def close() {
+  override def close()(implicit userContext: UserContext) {
     if(body.nonEmpty) {
       endSparql()
     }
   }
 
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     if(dropGraphOnClear) {
       params.graph match {
         case Some(graph) =>
@@ -74,7 +74,8 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit = {
+  def writeStatement(subject: String, property: String, value: String, valueType: ValueType)
+                    (implicit userContext: UserContext): Unit = {
     if(body.isEmpty) {
       beginSparul()
     } else if (statements + 1 > statementsPerRequest) {
@@ -104,7 +105,7 @@ class SparqlSink(params: SparqlParams,
   /**
    * Ends the current SPARQL/Update request.
    */
-  private def endSparql() {
+  private def endSparql()(implicit userContext: UserContext) {
     params.graph match {
       case None => body.append("}")
       case Some(g) => body.append("} }")
@@ -116,7 +117,8 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType): Unit = {
+  override def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
     writeStatement(subject, predicate, obj, valueType)
   }
 }

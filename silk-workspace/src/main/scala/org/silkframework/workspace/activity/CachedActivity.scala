@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import java.util.logging.Level
 
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.resource.{ResourceNotFoundException, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat}
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -37,7 +37,8 @@ trait CachedActivity[T] extends Activity[T] {
   @volatile
   var dirty: Boolean = false
 
-  override def run(context: ActivityContext[T]): Unit = {
+  override def run(context: ActivityContext[T])
+                  (implicit userContext: UserContext): Unit = {
     var currentDirty = true
     while(currentDirty) {
       dirty = false
@@ -59,7 +60,8 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
-  private def update(context: ActivityContext[T]) = {
+  private def update(context: ActivityContext[T])
+                    (implicit userContext: UserContext)= {
     // Listen for value updates
     var updated = false
     val updateFunc = (value: T) => { updated = true }
@@ -98,7 +100,8 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
-  def startDirty(taskActivity: ActivityControl[_]): Unit = {
+  def startDirty(taskActivity: ActivityControl[_])
+                (implicit userContext: UserContext): Unit = {
     dirty = true
 
     if(taskActivity.status().isRunning) {

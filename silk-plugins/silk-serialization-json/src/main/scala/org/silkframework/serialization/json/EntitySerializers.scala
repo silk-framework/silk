@@ -1,19 +1,15 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path, Restriction}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.util.DPair
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
 object EntitySerializers {
 
-  implicit object EntitySchemaJsonFormat extends JsonFormat[EntitySchema] {
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): EntitySchema = {
-      throw new UnsupportedOperationException("Parsing EntitySchema from Json is not supported at the moment")
-    }
+  implicit object EntitySchemaJsonFormat extends WriteOnlyJsonFormat[EntitySchema] {
 
     override def write(value: EntitySchema)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       implicit val prefixes: Prefixes = writeContext.prefixes
@@ -27,11 +23,7 @@ object EntitySerializers {
     }
   }
 
-  implicit object PairEntitySchemaJsonFormat extends JsonFormat[DPair[EntitySchema]] {
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): DPair[EntitySchema] = {
-      throw new UnsupportedOperationException("Parsing DPair[EntitySchema] from Json is not supported at the moment")
-    }
+  implicit object PairEntitySchemaJsonFormat extends WriteOnlyJsonFormat[DPair[EntitySchema]] {
 
     override def write(value: DPair[EntitySchema])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
@@ -41,11 +33,7 @@ object EntitySerializers {
     }
   }
 
-  implicit object EntityHolderJsonFormat extends JsonFormat[EntityHolder] {
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): EntityHolder = {
-      throw new UnsupportedOperationException("Parsing EntityHolders from Json is not supported at the moment")
-    }
+  implicit object EntityHolderJsonFormat extends WriteOnlyJsonFormat[EntityHolder] {
 
     override def write(value: EntityHolder)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       // Append header
@@ -60,6 +48,22 @@ object EntitySerializers {
       )
 
       Json.obj("taskLabel" -> value.taskLabel,"attributes" -> header, "values" -> valuesJson)
+    }
+  }
+
+  class EntityJsonFormat(includeSchema: Boolean = true) extends WriteOnlyJsonFormat[Entity] {
+
+    override def write(entity: Entity)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val entityJson =
+        Json.obj(
+          "values" -> entity.values.map(values => JsArray(values.map(JsString)))
+        )
+
+      if(includeSchema) {
+        entityJson ++ Json.obj("schema" -> EntitySchemaJsonFormat.write(entity.schema))
+      } else {
+        entityJson
+      }
     }
   }
 }

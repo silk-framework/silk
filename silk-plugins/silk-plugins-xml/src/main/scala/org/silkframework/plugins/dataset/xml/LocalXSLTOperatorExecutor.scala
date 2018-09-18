@@ -9,7 +9,7 @@ import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResour
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
@@ -23,7 +23,8 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
                        inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[LocalEntities] = {
+                       context: ActivityContext[ExecutionReport])
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     inputs.headOption match {
       case Some(et: DatasetResourceEntityTable) =>
         val xSLTOperator = task.data

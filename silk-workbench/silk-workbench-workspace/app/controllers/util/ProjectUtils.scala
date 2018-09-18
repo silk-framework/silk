@@ -11,12 +11,13 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetSpecFormat, TaskJsonFormat}
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
@@ -28,14 +29,17 @@ import scala.xml.{Node, NodeSeq}
   * Utility functions for [[Project]]
   */
 object ProjectUtils {
-  def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
+  def getProjectAndTask[T <: TaskSpec : ClassTag](projectName: String,
+                                                  taskName: String)
+                                                 (implicit userContext: UserContext): (Project, ProjectTask[T]) = {
     val project = getProject(projectName)
     val task = project.task[T](taskName)
     (project, task)
   }
 
-  def getProject(projectName: String): Project = {
-    User().workspace.project(projectName)
+  def getProject(projectName: String)
+                (implicit userContext: UserContext): Project = {
+    WorkspaceFactory().workspace.project(projectName)
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -52,9 +56,21 @@ object ProjectUtils {
     */
   def createDataSource(xmlRoot: NodeSeq,
                        datasetId: Option[String])
-                      (implicit resourceLoader: ResourceManager): DataSource = {
+                      (implicit resourceLoader: ResourceManager,
+                       userContext: UserContext): DataSource = {
     val dataset = createDataset(xmlRoot, datasetId)
     dataset.source
+  }
+
+  /**
+    * Extract all data sources from an XML document.
+    *
+    */
+  def createDataSources(xmlRoot: NodeSeq,
+                        dataSourceIds: Option[Set[String]])
+                       (implicit resourceLoader: ResourceManager,
+                        userContext: UserContext): Map[String, DataSource] = {
+    createDatasets(xmlRoot, dataSourceIds, "DataSources").mapValues(_.source)
   }
 
   def createDatasets(xmlRoot: NodeSeq,
@@ -176,7 +192,8 @@ object ProjectUtils {
 
   // Create a data sink as specified in a REST request
   def createEntitySink(xmlRoot: NodeSeq)
-                      (implicit resourceManager: ResourceManager): (Model, EntitySink) = {
+                      (implicit resourceManager: ResourceManager,
+                       userContext: UserContext): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -190,7 +207,8 @@ object ProjectUtils {
   }
 
   def createLinkSink(xmlRoot: NodeSeq)
-                    (implicit resourceManager: ResourceManager): (Model, LinkSink) = {
+                    (implicit resourceManager: ResourceManager,
+                     userContext: UserContext): (Model, LinkSink) = {
     val linkSink = xmlRoot \ "linkSink"
     if (linkSink.isEmpty) {
       val model = ModelFactory.createDefaultModel()
@@ -211,7 +229,8 @@ object ProjectUtils {
     */
   def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
                                                 projectName: String,
-                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
+                                                withProjectResources: Boolean)
+                                               (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -224,7 +243,8 @@ object ProjectUtils {
 
   def createInMemoryResourceManagerForResources(workflowJson: JsValue,
                                                 projectName: String,
-                                                withProjectResources: Boolean): (ResourceManager, ResourceManager) = {
+                                                withProjectResources: Boolean)
+                                               (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
     val resourceManager = InMemoryResourceManager()
     val resources = (workflowJson \ "Resources").as[JsObject]
     for ((resourceId, resourceJs) <- resources.fields){
@@ -245,7 +265,8 @@ object ProjectUtils {
     wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
   }
 
-  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager) = {
+  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager)
+                                        (implicit userContext: UserContext)= {
     if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
       (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)

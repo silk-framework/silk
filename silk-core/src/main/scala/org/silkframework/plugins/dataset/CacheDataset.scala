@@ -20,6 +20,7 @@ import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.{PlainTask, RuntimeConfig, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Index, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Uri
 
@@ -28,24 +29,28 @@ case class CacheDataset(dir: String) extends Dataset {
 
   private val file = new File(dir)
 
-  override def source = CacheSource
+  override def source(implicit userContext: UserContext) = CacheSource
 
-  override def entitySink = ???
+  override def entitySink(implicit userContext: UserContext) = ???
 
-  override def linkSink = ???
+  override def linkSink(implicit userContext: UserContext) = ???
 
   object CacheSource extends DataSource {
-    def retrieve(entityDesc: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+    override def retrieve(entityDesc: EntitySchema, limit: Option[Int])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
 
       entityCache.readAll
     }
 
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = Seq.empty
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Seq[Entity] = Seq.empty
 
-    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = Traversable.empty
+    override def retrieveTypes(limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
 
-    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = IndexedSeq.empty
+    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                              (implicit userContext: UserContext): IndexedSeq[Path] = IndexedSeq.empty
 
     override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("cache_source", DatasetSpec(CacheDataset.this))
   }

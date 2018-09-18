@@ -3,6 +3,7 @@
 @import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(project: Project,
     name: String,
     plugins: Seq[PluginDescription[_]],
@@ -11,7 +12,7 @@
     title: String = "Edit Properties",
     submitLabel: String = "OK",
     secondaryLabel: String = "Secondary",
-    createDialog: Boolean = false)(contents: Html)
+    createDialog: Boolean = false)(contents: Html)(implicit userContext: UserContext)
 
 @dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500, createDialog = createDialog) {
   <div id="plugintabs">
@@ -218,7 +219,7 @@
   @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description)
 }
 
-@createSparqlEndpointDatasetField(pluginId: String, param: Parameter) = {
+@createSparqlEndpointDatasetField(pluginId: String, param: Parameter)(implicit userContext: UserContext) = {
   @widgets.sparqlDatasetSelect(project.name, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 

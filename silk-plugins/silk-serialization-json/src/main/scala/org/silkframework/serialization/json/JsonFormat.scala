@@ -53,6 +53,14 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
   }
 }
 
+abstract class WriteOnlyJsonFormat[T: ClassTag] extends JsonFormat[T] {
+
+  override def read(value: JsValue)(implicit readContext: ReadContext): T = {
+    throw new UnsupportedOperationException(s"Parsing values of type ${implicitly[ClassTag[T]].runtimeClass.getSimpleName} from Json is not supported at the moment")
+  }
+
+}
+
 object JsonFormat{
   val MIME_TYPE_APPLICATION = "application/json"
 }

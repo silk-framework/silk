@@ -16,6 +16,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Task
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
 /**
@@ -37,7 +38,8 @@ trait DataSource {
    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
    *
    */
-  def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)]
+  def retrieveTypes(limit: Option[Int] = None)
+                   (implicit userContext: UserContext): Traversable[(String, Double)]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -53,7 +55,8 @@ trait DataSource {
    *
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
-  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path]
+  def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
+                   (implicit userContext: UserContext): IndexedSeq[Path]
 
   /**
    * Retrieves entities from this source which satisfy a specific entity schema.
@@ -63,7 +66,8 @@ trait DataSource {
    *
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity]
+  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+              (implicit userContext: UserContext): Traversable[Entity]
 
   /**
    * Retrieves a list of entities from this source.
@@ -73,7 +77,8 @@ trait DataSource {
    *
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
-  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity]
+  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                   (implicit userContext: UserContext): Seq[Entity]
 
   /**
    * Samples a fixed size set of entities from the whole dataset.
@@ -84,7 +89,8 @@ trait DataSource {
    */
   def sampleEntities(entityDesc: EntitySchema,
                      size: Int,
-                     filterOpt: Option[Entity => Boolean] = None): Seq[Entity] = {
+                     filterOpt: Option[Entity => Boolean] = None)
+                    (implicit userContext: UserContext): Seq[Entity] = {
     val entities = retrieve(entityDesc)
     SampleUtil.sample(entities, size, filterOpt)
   }

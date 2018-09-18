@@ -103,30 +103,13 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 
 object Path {
 
-  private var pathCache = Map[String, WeakReference[Path]]()
-
   def empty: Path = new Path(List.empty)
 
   /**
     * Creates a new path.
-    * Returns a cached copy if available.
     */
   def apply(operators: List[PathOperator]): Path = {
-    val path = new Path(operators)
-
-    val pathStr = path.serialize()
-
-    //Remove all garbage collected paths from the map and try to return a cached path
-    synchronized {
-      pathCache = pathCache.filter(_._2.get.isDefined)
-
-      pathCache.get(pathStr).flatMap(_.get) match {
-        case Some(cachedPath) => cachedPath
-        case None =>
-          pathCache += (pathStr -> new WeakReference(path))
-          path
-      }
-    }
+    new Path(operators)
   }
 
   def unapply(path: Path): Option[List[PathOperator]] = {

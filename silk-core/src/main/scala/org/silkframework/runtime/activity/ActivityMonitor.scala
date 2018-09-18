@@ -81,8 +81,6 @@ class ActivityMonitor[T](name: String,
     childControls = childControls.filter(_.status().isRunning)
   }
 
-  override def userContext: UserContext = UserContext.Empty
-
   /**
     * Will provide context information relevant for the Activity to be performed (if any)
     * @return - ActivityContextData of the specified type

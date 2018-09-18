@@ -23,7 +23,7 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, Status}
+import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
 
@@ -49,7 +49,8 @@ class GenerateLinks(id: Identifier,
 
   override def initialValue = Some(Linking())
 
-  override def run(context: ActivityContext[Linking]): Unit = {
+  override def run(context: ActivityContext[Linking])
+                  (implicit userContext: UserContext): Unit = {
     context.value.update(Linking())
 
     warningLog = CollectLogs() {
@@ -110,18 +111,4 @@ class GenerateLinks(id: Identifier,
       )
     }
   }
-}
-
-object GenerateLinks {
-
-  def fromSources(id: Identifier,
-                  datasets: Traversable[Task[DatasetSpec[Dataset]]],
-                  linkSpec: LinkSpec,
-                  runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) = {
-    val sourcePair = linkSpec.findSources(datasets)
-    val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
-    new GenerateLinks(id, sourcePair, linkSpec, outputs, runtimeConfig)
-  }
-
-  def empty = new GenerateLinks(Identifier.random, DPair.empty, LinkSpec(), Seq.empty)
 }

@@ -8,6 +8,7 @@ import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.sparql._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -19,12 +20,14 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
 
   private val entityUris: Seq[String] = params.entityRestriction
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
     entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), None)
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Seq[Entity] = {
     if(entities.isEmpty) {
       Seq.empty
     } else {
@@ -33,7 +36,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     }
   }
 
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     val restrictions = SparqlRestriction.forType(t)
 
     //Create an endpoint which fails after 3 retries
@@ -48,7 +52,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     }
   }
 
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     SparqlTypesCollector(sparqlEndpoint, params.graph, limit)
   }
 

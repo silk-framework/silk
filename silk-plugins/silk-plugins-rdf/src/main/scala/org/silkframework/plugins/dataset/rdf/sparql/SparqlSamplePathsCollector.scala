@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{ForwardOperator, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -39,7 +40,8 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path] = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
+           (implicit userContext: UserContext): Seq[Path] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
         getEntities(endpoint, graph, SparqlRestriction.fromSparql("a", "?a ?p ?o"))
@@ -50,7 +52,8 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     getEntitiesPaths(endpoint, graph, sampleEntities, restrictions.variable, limit.getOrElse(100))
   }
 
-  private def getEntities(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction): Traversable[String] = {
+  private def getEntities(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction)
+                         (implicit userContext: UserContext): Traversable[String] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT ?" + restrictions.variable
 
@@ -68,7 +71,8 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     results.bindings.map(_(restrictions.variable).value)
   }
 
-  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int): Seq[Path] = {
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int)
+                              (implicit userContext: UserContext): Seq[Path] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
     val entityArray = entities.toArray
@@ -88,7 +92,8 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     relevantProperties
   }
 
-  private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int): Traversable[Path] = {
+  private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)
+                                 (implicit userContext: UserContext): Traversable[Path] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT DISTINCT ?p \n"
 
