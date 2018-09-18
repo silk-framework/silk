@@ -2,15 +2,17 @@ package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
+import java.util.logging.Logger
 
-import org.silkframework.config.{Prefixes, ProjectReference, TaskReference}
+import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
 import scala.language.existentials
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * Represents a plugin parameter type and provides serialization.
@@ -71,6 +73,7 @@ sealed abstract class ParameterType[T: ClassTag] {
   * Provides all available parameter types.
   */
 object ParameterType {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**
     * All available static parameter types.
@@ -344,12 +347,26 @@ object ParameterType {
   }
 
   object PasswordParameterType extends ParameterType[PasswordParameter] {
+    // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
+    final val PREAMBLE = "PASSWORD_PARAMETER:"
     override def name: String = "password"
 
     override def description: String = "A password string."
 
+    lazy val key: String = {
+      Try(DefaultConfig.instance().getString("plugin.parameters.password.crypt.key")).getOrElse {
+        log.warning("No valid value set for plugin.parameters.password.crypt.key, using insecure default key!")
+        "1234567890123456"
+      }
+    }
+
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
-      PasswordParameter(str)
+      val encryptedPassword = if(str.startsWith(PREAMBLE)) {
+        str.stripPrefix(PREAMBLE)
+      } else {
+        AesCrypto.encrypt(key, str)
+      }
+      PasswordParameter(encryptedPassword)
     }
   }
 
