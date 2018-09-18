@@ -128,7 +128,9 @@ private class ActivityExecution[T](activity: Activity[T],
       } catch {
         case ex: Throwable =>
           status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
-          throw ex
+          if(!activity.wasCancelled()) {
+            throw ex
+          }
       } finally {
         lastResult = activityExecutionResult
         resetMetaData()
