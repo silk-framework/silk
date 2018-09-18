@@ -19,14 +19,11 @@ class ExecuteTransform(input: UserContext => DataSource,
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  @volatile
-  private var isCanceled: Boolean = false
-
   override val initialValue = Some(TransformReport())
 
   def run(context: ActivityContext[TransformReport])
          (implicit userContext: UserContext): Unit = {
-    isCanceled = false
+    cancelled = false
     // Get fresh data source and entity sink
     val dataSource = input(userContext)
     val entitySink = output(userContext)
@@ -58,15 +55,11 @@ class ExecuteTransform(input: UserContext => DataSource,
       for (entity <- transformedEntities) {
         entitySink.writeEntity(entity.uri, entity.values)
         count += 1
-        if (isCanceled || limit.exists(_ <= count)) {
+        if (cancelled || limit.exists(_ <= count)) {
           break
         }
       }
     }
     entitySink.closeTable()
-  }
-
-  override def cancelExecution()(implicit userContext: UserContext): Unit = {
-    isCanceled = true
   }
 }

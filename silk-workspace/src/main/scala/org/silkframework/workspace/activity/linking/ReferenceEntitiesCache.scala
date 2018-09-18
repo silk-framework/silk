@@ -21,16 +21,9 @@ import scala.collection.JavaConverters._
  */
 class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity[ReferenceEntities] {
 
-  @volatile
-  private var canceled = false
-
   override def name = s"Entities cache ${task.id}"
 
   override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
-
-  override def cancelExecution()(implicit userContext: UserContext): Unit = {
-    canceled = true
-  }
 
   override def reset()(implicit userContext: UserContext): Unit = {
     val pathsCache =  task.activity[LinkingPathsCache].control
@@ -40,7 +33,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 
   override def run(context: ActivityContext[ReferenceEntities])
                   (implicit userContext: UserContext): Unit = {
-    canceled = false
+    cancelled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control
     pathsCache.waitUntilFinished()
@@ -81,8 +74,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 
       val sourceEntityUrisNeedingUpdate = new util.HashSet[String]()
       val targetEntityUrisNeedingUpdate = new util.HashSet[String]()
-      for ((links, _) <- links.zip(loadLinkEntitiesFNs) if !canceled) {
-        for (link <- links if !canceled) {
+      for ((links, _) <- links.zip(loadLinkEntitiesFNs) if !cancelled) {
+        for (link <- links if !cancelled) {
           if (Thread.currentThread.isInterrupted) throw new InterruptedException()
           // Find existing source entity
           val existingSourceEntity = cache.sourceEntities.get(link.source).orElse(link.entities.map(_.source))

@@ -30,9 +30,6 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /** The time when the learning task has been started. */
   @volatile private var startTime = 0L
 
-  /** Set if the task has been stopped. */
-  @volatile private var stop = false
-
   /** Checks if this task is empty. */
   def isEmpty = input.trainingEntities.isEmpty
   
@@ -45,19 +42,12 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
                   (implicit userContext: UserContext): Unit = {
     // Reset state
     startTime = System.currentTimeMillis
-    stop = false
+    cancelled = false
 
     // Execute linkage rule learner
     val learnerActivity = context.child(learner.learn(input.trainingEntities, input.seedLinkageRules), 1.0)
     learnerActivity.value.subscribe(updateValue(context))
     learnerActivity.startBlocking()
-  }
-
-  /**
-   * Stops this learning task.
-   */
-  override def cancelExecution()(implicit userContext: UserContext): Unit = {
-    stop = true
   }
 
   private def updateValue(context: ActivityContext[LearningResult])(value: Result): Unit = {
