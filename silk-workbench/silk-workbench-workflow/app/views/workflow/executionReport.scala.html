@@ -9,7 +9,8 @@
 @import org.silkframework.config.Task
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workbench.Context
-@(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
+@import org.silkframework.runtime.activity.UserContext
+@(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
 }

@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
@@ -58,6 +59,7 @@ case class XmlDataset(
   file: WritableResource,
   @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
   basePath: String = "",
+  @deprecated("This will be removed in the next release.", "")
   @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
   @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
@@ -67,7 +69,7 @@ case class XmlDataset(
 
   validateOutputTemplate()
 
-  override def source: DataSource = {
+  override def source(implicit userContext: UserContext): DataSource = {
     if(streaming) {
       new XmlSourceStreaming(file, basePath, uriPattern)
     } else {
@@ -75,9 +77,9 @@ case class XmlDataset(
     }
   }
 
-  override def linkSink: LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
+  override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink: EntitySink = new XmlSink(file, outputTemplate.str)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, outputTemplate.str)
 
   /**
     * Validates the output template parameter

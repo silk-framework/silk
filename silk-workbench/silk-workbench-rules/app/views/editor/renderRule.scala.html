@@ -8,8 +8,9 @@
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(rule: org.silkframework.rule.Operator,
-  project: Project)
+  project: Project)(implicit userContext: UserContext)
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 200)
 

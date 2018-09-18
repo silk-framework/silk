@@ -22,7 +22,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     extends WorkspaceActivity {
 
   @volatile
-  private var currentControl = Activity(initialFactory(task))
+  private var currentControl = Activity{
+    initialFactory(task)
+  }
 
   @volatile
   private var currentFactory = initialFactory
@@ -47,7 +49,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
-  def reset(): Unit = {
+  def reset()(implicit userContext: UserContext): Unit = {
     currentControl.cancel()
     recreateControl()
   }
@@ -56,7 +58,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity asynchronously.
     * Optionally applies a supplied configuration beforehand.
     */
-  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
     if(config.nonEmpty) {
       update(config)
     }
@@ -67,7 +69,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity blocking.
     * Optionally applies a supplied configuration beforehand.
     */
-  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Unit = {
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
     if(config.nonEmpty) {
       update(config)
     }

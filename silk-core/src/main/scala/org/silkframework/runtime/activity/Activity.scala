@@ -28,17 +28,18 @@ trait Activity[T] extends HasValue {
    *
    * @param context Holds the context in which the activity is executed.
    */
-  def run(context: ActivityContext[T]): Unit
+  def run(context: ActivityContext[T])
+         (implicit userContext: UserContext): Unit
 
   /**
    *  Can be overridden in implementing classes to allow cancellation of the activity.
    */
-  def cancelExecution(): Unit = { }
+  def cancelExecution()(implicit userContext: UserContext): Unit = { }
 
   /**
     * Can be overridden in implementing classes to implement reset behaviour in addition to resetting the activity value to its initial value.
     */
-  def reset(): Unit = { }
+  def reset()(implicit userContext: UserContext): Unit = { }
 
   /**
    * The initial value of this activity, if any.
@@ -85,15 +86,16 @@ object Activity {
   def regenerating[ActivityType <: Activity[ActivityData] : ClassTag, ActivityData](generateActivity: => ActivityType): Activity[ActivityData] = {
     new Activity[ActivityData] {
       @volatile var currentActivity: Option[ActivityType] = None
-      override def name = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
-      override def initialValue = generateActivity.initialValue
-      override def run(context: ActivityContext[ActivityData]): Unit = {
+      override def name: String = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
+      override def initialValue: Option[ActivityData] = generateActivity.initialValue
+      override def run(context: ActivityContext[ActivityData])
+                      (implicit userContext: UserContext): Unit = {
         currentActivity = Some(generateActivity)
         currentActivity.get.run(context)
         currentActivity = None
       }
-      override def cancelExecution() = currentActivity.foreach(_.cancelExecution())
-      override def reset() = currentActivity.foreach(_.reset())
+      override def cancelExecution()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.cancelExecution())
+      override def reset()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.reset())
     }
   }
 

@@ -17,7 +17,7 @@ package org.silkframework.learning
 import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.genlink.GenLinkLearner
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 /**
  * Learns a linkage rule from reference links.
@@ -41,7 +41,8 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /**
    * Executes this learning task.
    */
-  override def run(context: ActivityContext[LearningResult]): Unit = {
+  override def run(context: ActivityContext[LearningResult])
+                  (implicit userContext: UserContext): Unit = {
     // Reset state
     startTime = System.currentTimeMillis
     stop = false
@@ -55,7 +56,7 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /**
    * Stops this learning task.
    */
-  override def cancelExecution() {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     stop = true
   }
 

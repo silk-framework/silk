@@ -3,6 +3,7 @@ package org.silkframework.workspace.xml
 import java.io.{InputStream, OutputStream}
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, ResourceManager, UrlResourceManager}
 import org.silkframework.runtime.validation.ValidationException
@@ -32,9 +33,10 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     * @return
     */
   override def marshalProject(project: ProjectConfig,
-                       outputStream: OutputStream,
-                       workspaceProvider: WorkspaceProvider,
-                       resourceManager: ResourceManager): String = {
+                              outputStream: OutputStream,
+                              workspaceProvider: WorkspaceProvider,
+                              resourceManager: ResourceManager)
+                             (implicit userContext: UserContext): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
     val xmlResourceManager = InMemoryResourceManager()
@@ -42,7 +44,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
     // Load project into temporary XML workspace provider
     exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
-                  Some(resourceManager), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
+      Some(resourceManager), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
 
     // Go through all files and create a ZIP entry for each
     putResources(zip, xmlResourceManager.child(project.id), "")
@@ -64,7 +66,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
   override def unmarshalProject(projectName: Identifier,
                                 workspaceProvider: WorkspaceProvider,
                                 resourceManager: ResourceManager,
-                                inputStream: InputStream): Unit = {
+                                inputStream: InputStream)
+                               (implicit userContext: UserContext): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(Some(projectName), inputStream)
     val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
     importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
@@ -72,7 +75,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   override def marshalWorkspace(outputStream: OutputStream,
                                 workspaceProvider: WorkspaceProvider,
-                                resourceRepository: ResourceRepository): String = {
+                                resourceRepository: ResourceRepository)
+                               (implicit userContext: UserContext): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
     val xmlResourceManager = InMemoryResourceManager()
@@ -96,7 +100,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   override def unmarshalWorkspace(workspaceProvider: WorkspaceProvider,
                                   resourceRepository: ResourceRepository,
-                                  inputStream: InputStream): Unit = {
+                                  inputStream: InputStream)
+                                 (implicit userContext: UserContext): Unit = {
     val xmlWorkspaceProvider = createWorkspaceFromInputStream(None, inputStream)
     val projects = xmlWorkspaceProvider.readProjects()
 

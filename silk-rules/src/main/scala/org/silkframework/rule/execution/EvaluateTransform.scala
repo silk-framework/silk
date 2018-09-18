@@ -6,6 +6,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * Evaluates a transformation rule.
@@ -22,9 +23,7 @@ class EvaluateTransform(source: DataSource,
   @volatile
   private var cachedValues = Seq[DetailedEntity]()
 
-  lazy val cache = { execute(); cachedValues }
-
-  def execute(): Seq[DetailedEntity] = {
+  def execute()(implicit userContext: UserContext): Seq[DetailedEntity] = {
     // Retrieve entities
     val entityDesc =
       EntitySchema(

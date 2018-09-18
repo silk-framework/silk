@@ -5,12 +5,15 @@ import org.silkframework.config.PlainTask
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 /**
   * Created on 8/22/16.
   */
 class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
+  implicit val userContext: UserContext = UserContext.Empty
+
   behavior of "Local XML Parser Task Executor"
 
   val localExecutionContext = LocalExecution(false)

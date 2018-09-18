@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
+import org.silkframework.runtime.activity.UserContext
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
@@ -39,13 +40,15 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
   override def postDataToGraph(graph: String,
                                contentType: String = "application/n-triples",
                                chunkedStreamingMode: Option[Int] = Some(1000),
-                               comment: Option[String] = None): OutputStream = {
+                               comment: Option[String] = None)
+                              (implicit userContext: UserContext): OutputStream = {
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))
     JenaDatasetWritingOutputStream(dataset, lang, graph)
   }
 
-  override def getDataFromGraph(graph: String, acceptType: String): InputStream = {
+  override def getDataFromGraph(graph: String, acceptType: String)
+                               (implicit userContext: UserContext): InputStream = {
     val strippedAccessType = acceptType.split(";").head
     val lang = Option(RDFLanguages.contentTypeToLang(strippedAccessType)).
         getOrElse(throw new IllegalArgumentException("Unknown accept type: " + acceptType))
@@ -61,7 +64,7 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
     new JenaDatasetEndpoint(dataset, sparqlParams)
   }
 
-  override def graphStoreHeaders(): Map[String, String] = Map.empty
+  override def graphStoreHeaders(userContext: UserContext): Map[String, String] = Map.empty
 }
 
 /**

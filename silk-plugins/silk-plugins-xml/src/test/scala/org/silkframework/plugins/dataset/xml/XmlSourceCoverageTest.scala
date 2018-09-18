@@ -4,6 +4,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
 import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -13,6 +14,7 @@ import org.silkframework.util.Uri
 class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   behavior of "XML Source"
 
+  implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "return 0% mapping coverage if there is no mapping" in {

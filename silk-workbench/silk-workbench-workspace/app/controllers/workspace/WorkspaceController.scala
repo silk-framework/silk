@@ -1,10 +1,10 @@
 package controllers.workspace
 
 import config.WorkbenchConfig
-import org.silkframework.runtime.validation.ValidationException
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
-import org.silkframework.workspace.{PrefixRegistry, User}
+import org.silkframework.workspace.{PrefixRegistry, WorkspaceFactory}
 import play.api.mvc.{Action, AnyContent, Controller}
 
 class WorkspaceController extends Controller {
@@ -13,11 +13,11 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.workspace())
   }
 
-  def tree: Action[AnyContent] = Action {
-    Ok(views.html.workspace.workspaceTree(User().workspace))
+  def tree: Action[AnyContent] = UserContextAction { implicit userContext =>
+    Ok(views.html.workspace.workspaceTree(WorkspaceFactory().workspace))
   }
 
-  def activities: Action[AnyContent] = Action { implicit request =>
+  def activities: Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     Ok(views.html.workspace.activities())
   }
 
@@ -33,8 +33,8 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.removeProjectDialog(project))
   }
 
-  def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val dependentTasks = task.findDependentTasks(false).map(_.toString).toSeq
 
@@ -49,41 +49,41 @@ class WorkspaceController extends Controller {
     Ok(views.html.workspace.importLinkSpecDialog(project))
   }
 
-  def prefixDialog(project: String): Action[AnyContent] = Action {
-    val prefixes = User().workspace.project(project).config.prefixes
+  def prefixDialog(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val prefixes = WorkspaceFactory().workspace.project(project).config.prefixes
 
     Ok(views.html.workspace.prefixDialog(project, prefixes, PrefixRegistry.all))
   }
 
-  def resourcesDialog(project: String): Action[AnyContent] = Action {
-    val resourceManager = User().workspace.project(project).resources
+  def resourcesDialog(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val resourceManager = WorkspaceFactory().workspace.project(project).resources
 
     Ok(views.html.workspace.resourcesDialog(project, resourceManager))
   }
 
-  def importExample(project: String): Action[AnyContent] = Action {
-    val workspace = User().workspace
+  def importExample(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val workspace = WorkspaceFactory().workspace
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").inputStream
     workspace.importProject(Identifier(project), inputStream, XmlZipProjectMarshaling())
 
-    User().workspace.reload()
+    WorkspaceFactory().workspace.reload()
 
     Ok
   }
 
-  def executeProjectDialog(projectName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def executeProjectDialog(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     Ok(views.html.workspace.executeProjectDialog(project))
   }
 
-  def projectActivityConfigDialog(projectName: String, activityName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def projectActivityConfigDialog(projectName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val activity = project.activity(activityName)
     Ok(views.html.workspace.activity.projectActivityConfigDialog(activity))
   }
 
-  def taskActivityConfigDialog(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def taskActivityConfigDialog(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val activity = task.activity(activityName)
     Ok(views.html.workspace.activity.taskActivityConfigDialog(activity))

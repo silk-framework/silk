@@ -3,13 +3,16 @@ package controllers.transform
 import java.net.URLDecoder
 import java.util.logging.Logger
 
+import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
-import org.silkframework.workspace.{ProjectTask, User}
+import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, Controller}
 
@@ -25,8 +28,8 @@ class AutoCompletionApi extends Controller {
   /**
     * Given a search term, returns all possible completions for source property paths.
     */
-  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
@@ -102,8 +105,8 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyPropertyCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
@@ -119,8 +122,8 @@ class AutoCompletionApi extends Controller {
     * @param term        The search term
     * @return
     */
-  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     var completions = vocabularyTypeCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
@@ -147,7 +150,8 @@ class AutoCompletionApi extends Controller {
     )
   }
 
-  private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): Completions = {
+  private def pathsCacheCompletions(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+                                   (implicit userContext: UserContext): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
       val serializedPaths = paths.map(_.serialize()(task.project.config.prefixes)).sorted.distinct
@@ -165,7 +169,8 @@ class AutoCompletionApi extends Controller {
     }
   }
 
-  private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): IndexedSeq[TypedPath] = {
+  private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val cachedSchemata = task.activity[TransformPathsCache].value
     cachedSchemata.fetchCachedPaths(task, sourcePath)
   }

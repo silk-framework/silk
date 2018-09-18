@@ -5,17 +5,15 @@ import java.net.URLDecoder
 
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatestplus.play.OneServerPerSuite
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json._
@@ -31,10 +29,9 @@ import scala.util.Random
 import scala.xml.{Elem, NodeSeq, Null, XML}
 
 /**
-  * Created on 3/17/16.
+  * Basis for integration tests.
   */
-//noinspection ScalaStyle
-trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
+trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderTestTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -45,15 +42,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
-  var oldUserManager: () => User = null
-  private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
-  tmpDir.delete()
-  tmpDir.mkdirs()
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
 
-  /** The workspace provider that is used for holding the test workspace. */
-  def workspaceProvider: String = "inMemoryRdfWorkspace"
+  // Assume by default that anonymous access is allowed
+  implicit def userContext: UserContext = UserContext.Empty
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
@@ -68,42 +61,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     */
   def request(call: Call): WSRequest = {
     WS.url(s"$baseUrl${call.url}")
-  }
-
-  def deleteRecursively(f: File): Unit = {
-    if (f.isDirectory) {
-      for (c <- f.listFiles())
-        deleteRecursively(c)
-    }
-    if (!f.delete()) {
-      throw new FileNotFoundException("Failed to delete file: " + f)
-    }
-  }
-
-  // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
-  override protected def beforeAll(): Unit = {
-    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
-    implicit val prefixes: Prefixes = Prefixes.empty
-    val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
-    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
-    val rdfWorkspaceUser = new User {
-      /**
-        * The current workspace of this user.
-        */
-      override def workspace: Workspace = replacementWorkspace
-
-      /**
-        * Indicates whether an associated workspace was loaded or os ready
-        */
-      override def workSpaceIsReady: Boolean = true
-    }
-    oldUserManager = User.userManager
-    User.userManager = () => rdfWorkspaceUser
-  }
-
-  override protected def afterAll(): Unit = {
-    User.userManager = oldUserManager
-    deleteRecursively(tmpDir)
   }
 
   /**
@@ -228,7 +185,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
     * is RDF-enabled and implements the [[GraphStoreTrait]]. */
   def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
-    User.userManager.apply().workspace.provider match {
+    WorkspaceFactory.factory.workspace.provider match {
       case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
         val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
         graphStore.postDataToGraph(graph, contentType)
@@ -570,7 +527,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     }
   }
 
-  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+  def reloadVocabularyCache(project: Project, transformTaskId: String)
+                           (implicit userContext: UserContext): Unit = {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
     control.reset()
     control.startBlocking()

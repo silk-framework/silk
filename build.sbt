@@ -34,6 +34,7 @@ lazy val commonSettings = Seq(
     "com.ning" % "async-http-client" % "1.9.39" % "test",
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
+    "org.apache.thrift" % "libthrift" % "0.9.3",
     "io.netty" % "netty" % "3.10.5.Final",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
@@ -80,15 +81,15 @@ lazy val rules = (project in file("silk-rules"))
   )
 
 lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules)
+  .dependsOn(rules, workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Learning"
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, core % "test->test")
-  .aggregate(rules, learning)
+  .dependsOn(rules, core % "test->test")
+  .aggregate(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
@@ -264,7 +265,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile", learning)
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

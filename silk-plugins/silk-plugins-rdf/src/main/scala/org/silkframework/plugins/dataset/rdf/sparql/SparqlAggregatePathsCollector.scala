@@ -19,6 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Timer, Uri}
 
 /**
@@ -37,14 +38,16 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   /**
    * Retrieves a list of properties which are defined on most entities.
    */
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): IndexedSeq[Path] = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
+           (implicit userContext: UserContext): IndexedSeq[Path] = {
     val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(200))
     val backwardPaths = getBackwardPaths(endpoint, graph, restrictions, 10)
 
     (forwardPaths ++ backwardPaths).toIndexedSeq.sortBy(-_._2).map(_._1)
   }
 
-  private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
+  private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
+                             (implicit userContext: UserContext): Traversable[(Path, Double)] = {
     Timer("Retrieving forward pathes for '" + restrictions + "'") {
       val variable = restrictions.variable
 
@@ -76,7 +79,8 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
     }
   }
 
-  private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int): Traversable[(Path, Double)] = {
+  private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
+                              (implicit userContext: UserContext): Traversable[(Path, Double)] = {
     Timer("Retrieving backward pathes for '" + restrictions + "'") {
       val variable = restrictions.variable
 

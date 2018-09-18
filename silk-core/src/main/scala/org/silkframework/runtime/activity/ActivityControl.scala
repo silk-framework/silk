@@ -37,19 +37,19 @@ trait ActivityControl[T] {
    *
    * @throws IllegalStateException If the activity is still running.
    */
-  def start()(implicit user: UserContext = UserContext.Empty): Unit
+  def start()(implicit user: UserContext): Unit
 
   /**
    * Starts this activity in the current thread and returns after the activity has been finished.
    */
-  def startBlocking()(implicit user: UserContext = UserContext.Empty): Unit
+  def startBlocking()(implicit user: UserContext): Unit
 
   /**
    * Starts this activity in the current thread and returns the final value after the activity has been finished.
    *
    * @return The final value of the activity
    */
-  def startBlockingAndGetValue(initialValue: Option[T] = None)(implicit user: UserContext = UserContext.Empty): T
+  def startBlockingAndGetValue(initialValue: Option[T] = None)(implicit user: UserContext): T
 
   /**
    * Requests to stop the execution of this activity.
@@ -57,12 +57,12 @@ trait ActivityControl[T] {
    * Activities need to override cancelExecution() to allow cancellation.
    * Calls cancelExecution() on child activities recursively
    */
-  def cancel()(implicit user: UserContext = UserContext.Empty)
+  def cancel()(implicit user: UserContext)
 
   /**
    * Resets the value of this activity to its initial value.
    */
-  def reset()
+  def reset()(implicit userContext: UserContext)
 
   /**
     * Returns the underlying activity.

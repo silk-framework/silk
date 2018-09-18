@@ -1,7 +1,9 @@
 package org.silkframework.config
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
+
 import scala.language.implicitConversions
 import scala.xml._
 
@@ -31,7 +33,8 @@ trait Task[+TaskType <: TaskSpec] {
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  def findDependentTasks(recursive: Boolean): Set[Identifier] = Set.empty
+  def findDependentTasks(recursive: Boolean)
+                        (implicit userContext: UserContext): Set[Identifier] = Set.empty
 
   override def equals(obj: scala.Any) = obj match {
     case task: Task[_] =>

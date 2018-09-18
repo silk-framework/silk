@@ -1,12 +1,13 @@
 package org.silkframework.rule.vocab
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
 
 trait VocabularyManager {
 
-  def get(uri: String, project: Identifier): Vocabulary
+  def get(uri: String, project: Identifier)(implicit userContext: UserContext): Vocabulary
 
 }
 

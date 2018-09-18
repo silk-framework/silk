@@ -6,6 +6,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
@@ -25,7 +26,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
-  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
@@ -45,7 +47,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     }
   }
 
-  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Seq[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
@@ -55,7 +58,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false)
   }
 
@@ -69,7 +73,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     }
   }
 
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     if(file.nonEmpty) {
       val json = JsonTraverser(underlyingTask.id, file)(codec)
       val selectedElements = json.select(basePathParts)
@@ -108,7 +113,8 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
     }
   }
 
-  override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
+  override def peak(entitySchema: EntitySchema, limit: Int)
+                   (implicit userContext: UserContext): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 

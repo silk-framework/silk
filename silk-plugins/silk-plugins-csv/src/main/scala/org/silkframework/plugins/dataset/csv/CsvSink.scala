@@ -4,6 +4,7 @@ import java.io.{File, IOException}
 import java.util.logging.Logger
 
 import org.silkframework.dataset.{DataSink, TypedProperty}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
 
@@ -13,7 +14,8 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
   @volatile
   private var writerOpt: Option[CsvWriter] = None
 
-  def openTable(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty) {
+  def openTable(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty)
+               (implicit userContext: UserContext){
     writerOpt = Some(new CsvWriter(resource, properties, settings))
   }
 
@@ -24,21 +26,19 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
     }
   }
 
-  def closeTable(): Unit = {
+  def closeTable()(implicit userContext: UserContext): Unit = {
     for(writer <- writerOpt) {
       writer.close()
     }
     writerOpt = None
   }
 
-  def close(): Unit = {
-
-  }
+  override def close()(implicit userContext: UserContext): Unit = {}
 
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     val resourceFile = new File(resource.path).getAbsoluteFile
     val resourcePath = resourceFile.toPath
     val crcFile = new File(resourcePath.getParent.toFile, s".${resourcePath.getFileName.toString}.crc")

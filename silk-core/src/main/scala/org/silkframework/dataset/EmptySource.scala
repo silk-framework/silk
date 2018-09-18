@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -8,19 +9,23 @@ import org.silkframework.util.Uri
   */
 object EmptySource extends DataSource {
 
-  override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int] = None)
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     Traversable.empty
   }
 
-  override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     IndexedSeq.empty
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     Traversable.empty
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Seq[Entity] = {
     Seq.empty
   }
 

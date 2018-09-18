@@ -1,10 +1,11 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(name: String,
 opType: String,
 pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_],
-project: Project)
+project: Project)(implicit userContext: UserContext)
 
 @for(plugin <- pluginGroup.availablePlugins) {
   <div id="search_@{opType}_@{plugin.id}" class="operator plugin search-invisible">

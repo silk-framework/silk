@@ -2,10 +2,10 @@ package org.silkframework.rule.execution.local
 
 import org.silkframework.config.Task
 import org.silkframework.entity.{EntitySchema, TypedPath}
-import org.silkframework.execution.local.{LocalEntities, GenericEntityTable, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
 import org.silkframework.rule._
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 import scala.collection.mutable
 
@@ -18,7 +18,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                        inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[LocalEntities] = {
+                       context: ActivityContext[ExecutionReport])
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     val input = inputs.headOption.getOrElse {
       throw TaskException("No input given to transform specification executor " + task.id + "!")
     }

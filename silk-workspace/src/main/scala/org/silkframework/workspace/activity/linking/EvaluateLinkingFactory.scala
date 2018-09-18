@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -30,7 +30,7 @@ case class EvaluateLinkingFactory(
   linkLimit: Int = DEFAULT_LINK_LIMIT
   ) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
 
-  def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
+  override def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
       RuntimeLinkingConfig(
         includeReferenceLinks = includeReferenceLinks,
@@ -57,7 +57,8 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     *
     * @param context Holds the context in which the activity is executed.
     */
-  override def run(context: ActivityContext[Linking]): Unit = {
+  override def run(context: ActivityContext[Linking])
+                  (implicit userContext: UserContext): Unit = {
     val linkSpec = task.data
 
     val inputs = task.dataSources
@@ -77,7 +78,7 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     generateLinks = None
   }
 
-  override def cancelExecution(): Unit = generateLinks.foreach(_.cancelExecution())
+  override def cancelExecution()(implicit userContext: UserContext): Unit = generateLinks.foreach(_.cancelExecution())
 
 }
 

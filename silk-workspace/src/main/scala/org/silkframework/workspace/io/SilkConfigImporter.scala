@@ -15,13 +15,15 @@
 package org.silkframework.workspace.io
 
 import org.silkframework.rule.LinkingConfig
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.Project
 
 /**
  * Imports a Silk SilkConfig into a project.
  */
 object SilkConfigImporter {
-  def apply(config: LinkingConfig, project: Project) {
+  def apply(config: LinkingConfig, project: Project)
+           (implicit userContext: UserContext){
     //Add all prefixes
     project.config = project.config.copy(prefixes = project.config.prefixes ++ config.prefixes)
 
