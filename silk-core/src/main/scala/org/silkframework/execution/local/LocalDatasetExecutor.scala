@@ -46,7 +46,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new DatasetResourceEntityTable(dsr.file, dataset)
+            new LocalDatasetResourceEntityTable(dsr.file, dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
