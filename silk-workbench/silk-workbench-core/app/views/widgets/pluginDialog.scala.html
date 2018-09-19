@@ -199,13 +199,14 @@
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
     case MultilineStringParameterType => createMultilineTextField(pluginId, param)
     case SparqlEndpointDatasetParameterType => createSparqlEndpointDatasetField(pluginId, param)
+    case PasswordParameterType => createTextField(pluginId, param, inputType = "password")
     case _ => createTextField(pluginId, param)
   }
 }
 
-@createTextField(pluginId: String, param: Parameter) = {
+@createTextField(pluginId: String, param: Parameter, inputType: String = "text") = {
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
+    <input class="mdl-textfield__input" type="@inputType" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
     <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
