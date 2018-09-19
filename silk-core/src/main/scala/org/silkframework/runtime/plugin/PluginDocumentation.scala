@@ -60,7 +60,8 @@ object PluginDocumentation {
     } else {
       sb ++= "This plugin does not require any parameters.\n"
     }
-    sb ++= s"The identifier for this plugin is `${plugin.id}` and it can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
+    sb ++= s"The identifier for this plugin is `${plugin.id}`\n\n"
+    sb ++= s"It can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
     sb ++= plugin.documentation + "\n"
   }
 
