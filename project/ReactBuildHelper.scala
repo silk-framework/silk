@@ -1,9 +1,11 @@
 import java.io.File
 import java.util.logging.Logger
+import java.util.regex.Pattern
 
 import org.apache.commons.io.FileUtils
 
 import scala.sys.process.{BasicIO, Process, ProcessLogger}
+import scala.util.matching.Regex
 
 object ReactBuildHelper {
   val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
@@ -112,7 +114,9 @@ object ReactBuildHelper {
     */
   def transpileJavaScript(reactBuildRoot: File, sourceFile: File, targetFile: File): Unit = {
     FileUtils.forceMkdir(targetFile.getParentFile)
-    println("Transpiling (ES5) " + sourceFile.getCanonicalPath + " to " + targetFile.getCanonicalPath)
-    process(yarnCommand :: "babel" :: sourceFile.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, reactBuildRoot)
+    if(Watcher.staleTargetFiles(WatchConfig(sourceFile.getParentFile, Pattern.quote(sourceFile.getName)), Seq(targetFile))) {
+      println("Transpiling (ES5) " + sourceFile.getCanonicalPath + " to " + targetFile.getCanonicalPath)
+      process(yarnCommand :: "babel" :: sourceFile.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, reactBuildRoot)
+    }
   }
 }

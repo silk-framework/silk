@@ -206,7 +206,9 @@ lazy val reactComponents = (project in file("silk-react-components"))
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      if (Watcher.filesChanged(WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
+      val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")
+      def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
+      if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
         ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
       }
       val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
