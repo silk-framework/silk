@@ -52,7 +52,7 @@ case class DateMetric() extends SimpleDistanceMeasure {
     }
   }
 
-  override def indexValue(str: String, limit: Double): Index = {
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     try {
       val date = dataTypeFactory.newXMLGregorianCalendar(str)
       val days = date.toGregorianCalendar.getTimeInMillis / millisPerDay

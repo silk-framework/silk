@@ -36,7 +36,7 @@ case class IntersectsMetric(blockingParameter: Double = 1.0) extends SimpleDista
     Utils.evaluateRelation(str1, str2, limit, Constants.INTERSECTS)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter)
   }
 }

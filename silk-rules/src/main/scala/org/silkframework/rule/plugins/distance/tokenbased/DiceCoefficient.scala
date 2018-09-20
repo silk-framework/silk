@@ -35,7 +35,7 @@ case class DiceCoefficient() extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / totalSize
   }
 
-  override def index(values: Seq[String], limit: Double): Index = {
+  override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
     val valueSet = values.toSet
     //The number of values we need to index
     val indexSize = math.round((2.0 * valueSet.size * limit / (1 + limit)) + 0.5).toInt
