@@ -47,7 +47,7 @@ class RelaxedEqualityMetric extends SimpleDistanceMeasure {
     if (collator.equals(value1, value2)) 0.0 else 1.0
   }
 
-  override def indexValue(value: String, limit: Double) = {
+  override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     Index.oneDim(Set(collator.getCollationKey(value).hashCode()))
   }
 }

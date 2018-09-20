@@ -36,7 +36,7 @@ case class JaccardDistance() extends DistanceMeasure {
     1.0 - intersectionSize.toDouble / unionSize
   }
 
-  override def index(values: Seq[String], limit: Double) = {
+  override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
     val valuesSet = values.toSet
     //The number of values we need to index
     val indexSize = math.round(valuesSet.size * limit + 0.5).toInt

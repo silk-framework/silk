@@ -54,7 +54,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     val targetRestriction = dataSelections.target.restriction
 
     val sourcePaths = rule.operator match {
-      case Some(operator) => collectPaths(sourceOrTarget = true)(operator)
+      case Some(operator) => collectPaths(true)(operator)
       case None => Set[TypedPath]()
     }
 

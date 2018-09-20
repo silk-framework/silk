@@ -49,7 +49,7 @@ case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceM
     }
   }
 
-  override def indexValue(str: String, limit: Double): Index = {
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     getCoordinates(str) match {
       case Some(coords) => {
         val latIndex= indexLatitude((coords.lat + 90.0) / 180.0, limit)

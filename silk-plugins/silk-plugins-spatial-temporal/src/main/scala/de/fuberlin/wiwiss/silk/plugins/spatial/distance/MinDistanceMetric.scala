@@ -34,7 +34,7 @@ case class MinDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDist
     Utils.evaluateDistance(str1, str2, limit, Constants.MIN_DISTANCE)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter, distance)
   }
 }

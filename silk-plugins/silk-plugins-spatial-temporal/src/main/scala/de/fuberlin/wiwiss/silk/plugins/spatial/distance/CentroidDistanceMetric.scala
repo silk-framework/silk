@@ -34,7 +34,7 @@ case class CentroidDistanceMetric(blockingParameter: Double = 1.0) extends Simpl
     Utils.evaluateDistance(str1, str2, limit, Constants.CENTROID_DISTANCE)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter, distance)
   }
 }
