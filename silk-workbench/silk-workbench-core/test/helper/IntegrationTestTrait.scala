@@ -379,6 +379,12 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
+  def evaluateLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/startBlocking")
+    val response = request.post("")
+    checkResponse(response)
+  }
+
   def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): WSResponse = {
     val executorName = if(sparkExecution) "ExecuteSparkWorkflow" else "ExecuteLocalWorkflow"
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/$executorName/startBlocking")
