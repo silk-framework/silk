@@ -156,7 +156,9 @@ class RulePlugins extends PluginModule {
         classOf[TokenwiseStringDistance] ::
         classOf[RelaxedEqualityMetric] ::
         classOf[CosineDistanceMetric] ::
-        classOf[ConstantMetric] :: Nil
+        classOf[ConstantMetric] ::
+        classOf[StartsWithDistance] ::
+        Nil
 
   private def aggregators =
     classOf[AverageAggregator] ::

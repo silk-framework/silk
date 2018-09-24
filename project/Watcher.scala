@@ -35,6 +35,22 @@ object Watcher {
     }
   }
 
+  /** Checks if the target files have a later modified timestamp than all of the source files */
+  def staleTargetFiles(sourceFilesWatchConfig: WatchConfig, targetFiles: Seq[File]): Boolean = {
+    val sourceModificationTimes = fetchWatchData(sourceFilesWatchConfig).files.map(_._2.modifiedTimestamp).toSeq
+    if(sourceModificationTimes.isEmpty || targetFiles.isEmpty) {
+      false // No source data or target data, safer to return false
+    } else {
+      if(targetFiles.exists(!_.exists())) {
+        true // One of the target files does not exist, generate
+      } else {
+        val maxSourceModificationTime = sourceModificationTimes.max
+        val minTargetModificationTime = targetFiles.map(_.lastModified()).min
+        minTargetModificationTime < maxSourceModificationTime
+      }
+    }
+  }
+
   private def fetchWatchData(watchConfig: WatchConfig): WatchData = {
     val fileInfos = fetchFileInfos(watchConfig)
     WatchData(fileInfos)

@@ -35,7 +35,7 @@ case class RelateMetric(blockingParameter: Double = 1.0, relation: String = "") 
     Utils.evaluateRelation(str1, str2, limit, relation)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter)
   }
 }

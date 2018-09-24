@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins.distance.characterbased
 
+import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
@@ -38,7 +39,7 @@ case class LevenshteinMetric(
     levenshtein.evaluate(str1, str2, limit * scale) / scale
   }
 
-  override def indexValue(str: String, limit: Double) = {
-    levenshtein.indexValue(str, limit * str.length)
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
+    levenshtein.indexValue(str, limit * str.length, sourceOrTarget)
   }
 }

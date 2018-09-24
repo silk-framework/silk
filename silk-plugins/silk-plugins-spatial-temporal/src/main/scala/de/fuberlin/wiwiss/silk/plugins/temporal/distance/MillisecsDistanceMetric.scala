@@ -34,7 +34,7 @@ case class MillisecsDistanceMetric(blockingParameter: Double = 1.0) extends Simp
     Utils.evaluateDistance(str1, str2, limit, Constants.MILLISECS_DISTANCE)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter, distance, Constants.MILLISECS_DISTANCE)
   }
 }

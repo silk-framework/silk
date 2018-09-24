@@ -42,8 +42,8 @@ class LevenshteinDistanceTest extends PluginTest {
   }
 
   "LevenshteinDistance" should "index correctly" in {
-    (metric.indexValue("Sunday", 3) matches metric.indexValue("Saturday", 3)) should equal(true)
-    (metric.indexValue("Sunday", 4) matches metric.indexValue("Saturday", 4)) should equal(true)
+    (metric.indexValue("Sunday", 3, sourceOrTarget = false) matches metric.indexValue("Saturday", 3, sourceOrTarget = false)) should equal(true)
+    (metric.indexValue("Sunday", 4, sourceOrTarget = false) matches metric.indexValue("Saturday", 4, sourceOrTarget = false)) should equal(true)
   }
 
   override def pluginObject = metric

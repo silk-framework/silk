@@ -65,18 +65,19 @@ case class Comparison(id: Identifier = Operator.generateId,
   }
 
   /**
-   * Indexes an entity.
-   *
-   * @param entity The entity to be indexed
-   * @param limit The similarity threshold.
-   * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
-   */
+    * Indexes an entity.
+    *
+    * @param entity         The entity to be indexed
+    * @param limit          The similarity threshold.
+    * @param sourceOrTarget If true the value comes from the source, else from the target.
+    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
+    */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
     val values = if(sourceOrTarget) inputs.source(entity) else inputs.target(entity)
 
     val distanceLimit = threshold * (1.0 - limit)
 
-    metric.index(values, distanceLimit)
+    metric.index(values, distanceLimit, sourceOrTarget)
   }
 
   override def children = inputs.toSeq
