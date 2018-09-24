@@ -11,7 +11,7 @@ import LinkingTaskUtils._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.workspace.activity.CachedActivity
+import org.silkframework.workspace.activity.{CachedActivity, CachedActivityStreaming}
 
 import scala.collection.JavaConverters._
 
@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 /**
  * For each reference link, the reference entities cache holds all values of the linked entities.
  */
-class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity[ReferenceEntities] {
+class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivityStreaming[ReferenceEntities] {
 
   @volatile
   private var canceled = false

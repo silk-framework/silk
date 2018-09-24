@@ -181,12 +181,6 @@ object ReferenceEntities {
       }
     }
 
-    private def checkNode(node: NodeSeq): Unit = {
-      if(node.length == 0) {
-        throw new RuntimeException("Mi")
-      }
-    }
-
     private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
       (for (entityNode <- (srcEntNode \ "Entity")) yield {
         val entity = Entity.fromXML(entityNode, entityDesc)
