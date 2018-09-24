@@ -4,14 +4,14 @@ import java.util
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.workspace.activity.{CachedActivity, CachedActivityStreaming}
+import org.silkframework.workspace.activity.CachedActivityStreaming
 
 import scala.collection.JavaConverters._
 
@@ -24,7 +24,9 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
   @volatile
   private var canceled = false
 
-  override def name = s"Entities cache ${task.id}"
+  override def name: String = s"Entities cache ${task.id}"
+
+  override protected val wrappedStreamXmlFormat = WrappedStreamXmlFormat()
 
   override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
 
@@ -133,65 +135,6 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
         sources.target)
     }
 
-    private def retrieveEntityPair(uris: DPair[String]): Option[DPair[Entity]] = {
-      for (source <- sources.source.retrieveByUri(entityDescs.source, uris.source :: Nil).headOption;
-           target <- sources.target.retrieveByUri(entityDescs.target, uris.target :: Nil).headOption) yield {
-        DPair(source, target)
-      }
-    }
-
-    private def updateEntityPair(entities: DPair[Entity]): Option[DPair[Entity]] = {
-      val source = updateEntity(entities.source, entityDescs.source, sources.source)
-      val target = updateEntity(entities.target, entityDescs.target, sources.target)
-      // If either source or target has been updated, we need to update the whole pair
-      if (source.isDefined || target.isDefined) {
-        Some(DPair(
-          source = source.getOrElse(entities.source),
-          target = target.getOrElse(entities.target)
-        ))
-      } else {
-        None
-      }
-    }
-
-    /**
-     * Updates an entity so that it conforms to a new entity description.
-     * All property paths values which are not available in the given entity are loaded from the source.
-     */
-    private def updateEntity(entity: Entity, entityDesc: EntitySchema, source: DataSource): Option[Entity] = {
-      if (entityMatchesDescription(entity, entityDesc)) {
-        // No updated needed as the given entity already contains all paths in the correct order.
-        None
-      } else {
-        //Compute the paths which are missing on the given entity
-        val existingPaths = entity.schema.typedPaths.toSet
-        val missingPaths = entityDesc.typedPaths.filterNot(existingPaths.contains)
-
-        //Retrieve an entity with all missing paths
-        val missingEntity =
-          source.retrieveByUri(
-            entitySchema = entity.schema.copy(typedPaths = missingPaths),
-            entities = entity.uri :: Nil
-          ).head
-
-        //Collect values from the existing and the new entity
-        val completeValues =
-          for (path <- entityDesc.typedPaths) yield {
-            entity.schema.typedPaths.find(p => p == path) match{
-              case Some(fp) => entity.evaluate(fp)
-              case None => missingEntity.evaluate(path)
-            }
-          }
-
-        //Return the updated entity
-        Some(Entity(
-          uri = entity.uri,
-          values = completeValues,
-          schema = entityDesc
-        ))
-      }
-    }
-
     private def getEntitiesByUri(entityUris: Seq[String],
                             entityDesc: EntitySchema,
                             source: DataSource): Map[String, Entity] = {
@@ -209,5 +152,4 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")
 
-  override protected val wrappedXmlFormat = WrappedXmlFormat()
 }

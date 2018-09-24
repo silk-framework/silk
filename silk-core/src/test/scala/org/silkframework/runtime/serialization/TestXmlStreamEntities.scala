@@ -1,46 +1,43 @@
 package org.silkframework.runtime.serialization
 
 import java.io.OutputStream
-import javax.xml.stream.{XMLStreamConstants, XMLStreamReader}
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMResult
-import javax.xml.transform.stax.StAXSource
+import javax.xml.stream.XMLStreamReader
+import javax.xml.transform.{Transformer, TransformerFactory}
 
 import org.silkframework.util.XMLUtils.toXMLUtils
 
-import scala.collection.mutable.ArrayBuffer
-
 /** Test classes for XML streaming format */
-case class TestXmlStreamEntities(entities: Seq[TestXmlStreamEntity])
+case class TestXmlStreamEntities(sourceEntities: Seq[TestXmlStreamEntity], targetEntities: Seq[TestXmlStreamEntity])
 
 object TestXmlStreamEntities {
   implicit object TestXmlStreamEntitiesStreamingFormat extends StreamXmlFormat[TestXmlStreamEntities] {
-    override def read(streamReader: XMLStreamReader)(implicit readContext: ReadContext): TestXmlStreamEntities = {
+    final val ROOT = "TestXmlStreamEntities"
+    final val ENTITIES = "Entities"
+    final val SOURCE_ENTITIES = "SourceEntities"
+    final val TARGET_ENTITIES = "TargetEntities"
 
-      val tf = TransformerFactory.newInstance()
-      val t = tf.newTransformer
-      val entityBuffer = ArrayBuffer[TestXmlStreamEntity]()
-      while(streamReader.nextTag() == XMLStreamConstants.START_ELEMENT) {
-        val result = new DOMResult()
-        println("ENTITY")
-        t.transform(new StAXSource(streamReader), result)
-        val node = asXml(result.getNode)
-        val entity = XmlSerialization.fromXml[TestXmlStreamEntity](node)
-        entityBuffer.append(entity)
-      }
-      TestXmlStreamEntities(entityBuffer)
+    override def read(implicit streamReader: XMLStreamReader, readContext: ReadContext): TestXmlStreamEntities = {
+      val transformerFactory = TransformerFactory.newInstance()
+      implicit val transformer: Transformer = transformerFactory.newTransformer
+      placeOnStartTag(SOURCE_ENTITIES)
+      streamReader.nextTag() // Place on first entity or end tag
+      val sourceEntities = readObjects[TestXmlStreamEntity](expectedTag =  Some("Entity"))
+      placeOnStartTag(TARGET_ENTITIES)
+      streamReader.nextTag() // Place on first entity or end tag
+      val targetEntities = readObjects[TestXmlStreamEntity](expectedTag =  Some("Entity"))
+      TestXmlStreamEntities(sourceEntities, targetEntities)
     }
 
     override def write(value: TestXmlStreamEntities, outputStream: OutputStream): Unit = {
-      for(c <- "<Entities>") {
-        outputStream.write(c)
-      }
-      for(entity <- value.entities) {
-        XmlSerialization.toXml[TestXmlStreamEntity](entity).write(outputStream)
-      }
-      for(c <- "</Entities>") {
-        outputStream.write(c)
-      }
+      implicit val os: OutputStream = outputStream
+      writeStartTag(ROOT)
+        writeStartTag(SOURCE_ENTITIES)
+          value.sourceEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream)}
+        writeEndTag(SOURCE_ENTITIES)
+        writeStartTag(TARGET_ENTITIES)
+          value.targetEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream)}
+        writeEndTag(TARGET_ENTITIES)
+      writeEndTag(ROOT)
     }
   }
 }

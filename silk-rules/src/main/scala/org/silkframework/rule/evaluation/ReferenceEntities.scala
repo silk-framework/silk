@@ -16,11 +16,14 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity._
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.DPair
+import java.io.OutputStream
+import javax.xml.stream.XMLStreamReader
+import javax.xml.transform.{Transformer, TransformerFactory}
 
-import scala.xml.{Node, NodeSeq}
+import org.silkframework.entity._
+import org.silkframework.runtime.serialization.{ReadContext, StreamXmlFormat, XmlSerialization}
+import org.silkframework.util.XMLUtils.toXMLUtils
+import org.silkframework.util.DPair
 
 /**
  * Holds the entities which correspond to a set of reference links.
@@ -156,76 +159,86 @@ object ReferenceEntities {
   /**
    * XML serialization format.
    */
-  implicit object ReferenceEntitiesFormat extends XmlFormat[ReferenceEntities] {
+  implicit object ReferenceEntitiesFormat extends StreamXmlFormat[ReferenceEntities] {
+    final val ENTITY = "Entity"
+    final val ENTITIES = "Entities"
+    final val SOURCE_ENTITIES = "SourceEntities"
+    final val TARGET_ENTITIES = "TargetEntities"
+    final val POSITIVE_LINKS = "PositiveLinks"
+    final val NEGATIVE_LINKS = "NegativeLinks"
+    final val UNLABELED_LINKS = "UnlabeledLinks"
+
     /**
      * Deserialize a value from XML.
      */
-    def read(node: Node)(implicit readContext: ReadContext): ReferenceEntities = {
-      val entityDescs = XmlSerialization.fromXml[DPair[EntitySchema]]((checkAndGet(node,  "Pair").head))
-
-      val sourceEntities = extractEntities(entityDescs.source, checkAndGet(node,  "SourceEntities"))
-      val targetEntities = extractEntities(entityDescs.target, checkAndGet(node, "TargetEntities"))
-      val positiveLinks: Set[Link] = extractLinks(checkAndGet(node,  "PositiveLinks"))
-      val negativeLinks: Set[Link] = extractLinks(checkAndGet(node,  "NegativeLinks"))
-      val unlabeledLinks: Set[Link] = extractLinks(checkAndGet(node,  "UnlabeledLinks"))
+    override def read(implicit streamReader: XMLStreamReader, readContext: ReadContext): ReferenceEntities = {
+      val transformerFactory = TransformerFactory.newInstance()
+      implicit val transformer: Transformer = transformerFactory.newTransformer
+      placeOnStartTag("Pair")
+      val entityDescs = readNextObject[DPair[EntitySchema]]
+      placeOnNextTagAfterStartTag(SOURCE_ENTITIES)
+      val sourceEntities = extractEntities(entityDescs.source)
+      placeOnNextTagAfterStartTag(TARGET_ENTITIES)
+      val targetEntities = extractEntities(entityDescs.source)
+      placeOnNextTagAfterStartTag(POSITIVE_LINKS)
+      val positiveLinks = extractLinks
+      placeOnNextTagAfterStartTag(NEGATIVE_LINKS)
+      val negativeLinks = extractLinks
+      placeOnNextTagAfterStartTag(UNLABELED_LINKS)
+      val unlabeledLinks = extractLinks
 
       ReferenceEntities(sourceEntities, targetEntities, positiveLinks, negativeLinks, unlabeledLinks)
     }
 
-    private def checkAndGet(node: Node, elementName: String): NodeSeq = {
-      val elem = node \ elementName
-      if(elem.length == 0) {
-        throw new RuntimeException(s"Element $elementName not found in XML ReferenceEntities serialization!")
-      } else {
-        elem
-      }
+    private def extractEntities(entityDesc: EntitySchema)
+                               (implicit transformer: Transformer, streamReader: XMLStreamReader, readContext: ReadContext): Map[String, Entity] = {
+      val entities = convertObjects(expectedTag = Some("Entity"), convert = (node) => {
+        Entity.fromXML(node, entityDesc)
+      })
+      entities.map(e => (e.uri.toString, e)).toMap
     }
 
-    private def extractEntities(entityDesc: EntitySchema, srcEntNode: NodeSeq): Map[String, Entity] = {
-      (for (entityNode <- (srcEntNode \ "Entity")) yield {
-        val entity = Entity.fromXML(entityNode, entityDesc)
-        (entity.uri.toString, entity)
-      }).toMap
-    }
-
-    private def extractLinks(linksNode: NodeSeq): Set[Link] = {
-      (for (linkNode <- (linksNode \ "LinkCandidate")) yield {
-        Link.fromXML(linkNode, None)
-      }).toSet
+    private def extractLinks(implicit transformer: Transformer, streamReader: XMLStreamReader, readContext: ReadContext): Set[Link] = {
+      val links = convertObjects(expectedTag = Some("LinkCandidate"), convert = (node) => {
+        Link.fromXML(node, None)
+      })
+      links.toSet
     }
 
     /**
      * Serialize a value to XML.
      */
-    def write(entities: ReferenceEntities)(implicit writeContext: WriteContext[Node]): Node = {
-      <Entities>
-        {XmlSerialization.toXml(entities.entitySchemas)}<SourceEntities>
-        {toXML(entities.sourceEntities)}
-      </SourceEntities>
-        <TargetEntities>
-          {toXML(entities.targetEntities)}
-        </TargetEntities>
-        <PositiveLinks>
-          {toXML(entities.positiveLinks)}
-        </PositiveLinks>
-        <NegativeLinks>
-          {toXML(entities.negativeLinks)}
-        </NegativeLinks>
-        <UnlabeledLinks>
-          {toXML(entities.unlabeledLinks)}
-        </UnlabeledLinks>
-      </Entities>
+    override def write(entities: ReferenceEntities, outputStream: OutputStream): Unit = {
+      implicit val os: OutputStream = outputStream
+      writeStartTag(ENTITIES)
+        XmlSerialization.toXml(entities.entitySchemas).write(outputStream)
+        writeStartTag(SOURCE_ENTITIES)
+          writeEntities(entities.sourceEntities)
+        writeEndTag(SOURCE_ENTITIES)
+        writeStartTag(TARGET_ENTITIES)
+          writeEntities(entities.targetEntities)
+        writeEndTag(TARGET_ENTITIES)
+        writeStartTag(POSITIVE_LINKS)
+          writeLinks(entities.positiveLinks)
+        writeEndTag(POSITIVE_LINKS)
+        writeStartTag(NEGATIVE_LINKS)
+          writeLinks(entities.negativeLinks)
+        writeEndTag(NEGATIVE_LINKS)
+        writeStartTag(UNLABELED_LINKS)
+          writeLinks(entities.unlabeledLinks)
+        writeEndTag(UNLABELED_LINKS)
+      writeEndTag(ENTITIES)
     }
 
-    private def toXML(links: Set[Link]) = {
+    private def writeLinks(links: Set[Link])(implicit outputStream: OutputStream): Unit = {
       for (link <- links) yield {
-        link.toXML
+        link.toXML.write(outputStream)
       }
     }
 
-    private def toXML(entities: Map[String, Entity]) = {
-      for ((uri, entity) <- entities) yield {
-        entity.toXML
+    private def writeEntities(entities: Map[String, Entity])(implicit outputStream: OutputStream): Unit = {
+      for ((_, entity) <- entities) yield {
+        entity.toXML.write(outputStream)
       }
     }
   }
