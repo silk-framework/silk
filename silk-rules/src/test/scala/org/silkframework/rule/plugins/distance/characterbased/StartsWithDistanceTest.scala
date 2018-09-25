@@ -18,10 +18,11 @@ class StartsWithDistanceTest extends FlatSpec with MustMatchers {
     val targetIndex = distance.indexValue(prefix, 1.0, sourceOrTarget = false).flatten
     targetIndex.size mustBe 1
     sourceIndex.size mustBe (prefix.length - 1)
-    sourceIndex.contains(targetIndex.head)
-    val a1 = distance.indexValue("http://somePrefix/43/43", 1.0, sourceOrTarget = true)
-    val a2 = distance.indexValue("http://somePrefix/107/107", 1.0, sourceOrTarget = false)
-    a2
+    sourceIndex must contain (targetIndex.head)
+    val a1 = distance.indexValue("http://somePrefix/43/43", 1.0, sourceOrTarget = true).flatten
+    val a2 = distance.indexValue("http://somePrefix/107/107", 1.0, sourceOrTarget = false).flatten
+    a2 must not contain targetIndex.head
+    a1 must contain (targetIndex.head)
   }
 
   it should "match the correct pairs" in {
