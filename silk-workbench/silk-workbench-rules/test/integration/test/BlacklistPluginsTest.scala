@@ -19,5 +19,6 @@ class BlacklistPluginsTest extends FlatSpec with MustMatchers with ConfigTestTra
     val plugins = PluginRegistry.availablePlugins[CustomTask]
     val pluginIds = plugins.map(_.id.toString)
     pluginIds must contain noneOf ("sparqlSelectOperator", "xsltOperator")
+    pluginIds must contain ("XmlParserOperator")
   }
 }
