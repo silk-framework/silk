@@ -21,6 +21,19 @@ object PluginRegistry {
   private var configMgr: Config = DefaultConfig.instance
 
   private val log = Logger.getLogger(getClass.getName)
+
+  final val PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
+
+  private def blacklistedPlugins: Set[String] = {
+    if(configMgr().hasPath(PLUGIN_BLACKLIST_CONFIG_PATH)) {
+      configMgr().getString(PLUGIN_BLACKLIST_CONFIG_PATH)
+          .split("\\s*,\\s*")
+          .map(_.trim)
+          .toSet
+    } else {
+      Set.empty
+    }
+  }
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   private var pluginTypes = Map[String, PluginType]()
@@ -168,10 +181,12 @@ object PluginRegistry {
     * Registers a single plugin.
     */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
-    for(superType <- getSuperTypes(pluginDesc.pluginClass)) {
-      val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
-      pluginTypes += ((superType.getName, pluginType))
-      pluginType.register(pluginDesc)
+    if(!blacklistedPlugins.contains(pluginDesc.id)) {
+      for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
+        val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
+        pluginTypes += ((superType.getName, pluginType))
+        pluginType.register(pluginDesc)
+      }
     }
   }
 
