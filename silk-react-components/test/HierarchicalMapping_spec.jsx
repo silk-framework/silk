@@ -6,27 +6,8 @@ import Adapter from 'enzyme-adapter-react-15';
 import nock from 'nock';
 import HierarchicalMapping from '../src/HierarchicalMapping/HierarchicalMapping';
 import SilkStore from '../src/SilkStore/silkStore'; // Required for the store to work.
-import data from 'data/mapping';
+import './server/HierarchicalMapping_server';
 
-nock('http://localhost:8080/transform/tasks/cmem/transform_datasetresource_Sacramentorealestatetransactions_csv/rules')
-    .get('')
-    .times(100)
-    .reply(200, () => {
-        return data
-    });
-
-nock('http://docker.local/dataintegration/transform/tasks/cmem/transform_datasetresource_Sacramentorealestatetransactions_csv/targetVocabulary/typeOrProperty?uri=city')
-    .get('')
-    .times(100)
-    .reply(404, e => { console.warn("failure"); return{} });
-
-nock('http://docker.local/dataintegration/transform/tasks/cmem/transform_datasetresource_Sacramentorealestatetransactions_csv/targetVocabulary/typeOrProperty?uri=street')
-    .get('')
-    .times(100)
-    .reply(404, e => { console.warn("failure"); return{} });
-
-chai.use(chaiEnzyme());
-Enzyme.configure({ adapter: new Adapter() });
 
 describe('HierarchicalMapping', () => {
 
