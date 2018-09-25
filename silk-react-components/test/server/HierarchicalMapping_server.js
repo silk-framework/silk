@@ -11,7 +11,6 @@ nock('http://docker.local')
     .get('/dataintegration/transform/tasks/cmem/transform_datasetresource_1537869610185_orgmap_xml/rules')
     .times(10)
     .reply(200, () => {
-        console.warn("data")
         return {"type":"root","id":"root","rules":{"uriRule":null,"typeRules":[{"type":"type","id":"type","typeUri":"<https://spec.edmcouncil.org/fibo/ontology/BE/OwnershipAndControl/Executives/Auditor>","metadata":{"label":"","description":""}}],"propertyRules":[{"type":"object","id":"object","sourcePath":"dept/manager","mappingTarget":{"uri":"<https://spec.edmcouncil.org/fibo/ontology/BE/OwnershipAndControl/Executives/elects>","valueType":{"nodeType":"UriValueType"},"isBackwardProperty":false,"isAttribute":false},"rules":{"uriRule":null,"typeRules":[],"propertyRules":[]},"metadata":{"label":"","description":""}}]},"metadata":{"label":"","description":""}};
     });
 
