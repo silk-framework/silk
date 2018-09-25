@@ -8,6 +8,7 @@ import javax.inject.Inject
 
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.util.Identifier
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
@@ -24,11 +25,11 @@ object PluginRegistry {
 
   final val PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
 
-  private def blacklistedPlugins: Set[String] = {
+  private def blacklistedPlugins: Set[Identifier] = {
     if(configMgr().hasPath(PLUGIN_BLACKLIST_CONFIG_PATH)) {
       configMgr().getString(PLUGIN_BLACKLIST_CONFIG_PATH)
           .split("\\s*,\\s*")
-          .map(_.trim)
+          .map(id => Identifier(id.trim))
           .toSet
     } else {
       Set.empty
@@ -113,7 +114,11 @@ object PluginRegistry {
    * Returns a list of all available plugins of a specific type.
    */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
-    pluginType[T].availablePlugins.asInstanceOf[Seq[PluginDescription[T]]].sortBy(_.label)
+    val blackList = blacklistedPlugins
+    pluginType[T]
+        .availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
+        .filterNot(p => blackList.contains(p.id))
+        .sortBy(_.label)
   }
 
   /**
