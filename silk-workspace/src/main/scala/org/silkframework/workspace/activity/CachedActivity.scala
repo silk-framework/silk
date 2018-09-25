@@ -73,7 +73,7 @@ trait CachedActivity[T] extends Activity[T] {
       writeValue(context)
   }
 
-  private def readValue(context: ActivityContext[T]): Option[T] = {
+  protected def readValue(context: ActivityContext[T]): Option[T] = {
     try {
       val xml = resource.read(XML.load)
       implicit val readContext = ReadContext()
@@ -90,7 +90,7 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
-  private def writeValue(context: ActivityContext[T]): Unit = {
+  protected def writeValue(context: ActivityContext[T]): Unit = {
     try {
       resource.write()(w => toXml[T](context.value()).write(w))
       context.log.info(s"Cache written to $resource.")

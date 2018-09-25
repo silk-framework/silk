@@ -218,13 +218,25 @@ class CsvSource(file: Resource,
   private def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
-    parser.beginParsing(reader)
-    if(skipFirst) parser.parseNext()
-    parser
+    try {
+      parser.beginParsing(reader)
+      if(skipFirst) parser.parseNext()
+      parser
+    } catch {
+      case e: Throwable =>
+        parser.stopParsing()
+        throw new RuntimeException("Problem during initialization of CSV parser.", e)
+    }
   }
 
   private def firstLine: Array[String] = {
-    csvParser().parseNext().getOrElse(Array())
+    var parser: Option[CsvParser] = None
+    try {
+      parser = Some(csvParser())
+      parser.get.parseNext().getOrElse(Array())
+    } finally {
+      parser foreach (_.stopParsing())
+    }
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
