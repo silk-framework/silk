@@ -43,6 +43,12 @@ abstract class StreamXmlFormat[T: ClassTag] {
     adapter.rootElem
   }
 
+  def withTag(tag: String)(block: => Unit)(implicit outputStream: OutputStream): Unit = {
+    writeStartTag(tag)
+    block
+    writeEndTag(tag)
+  }
+
   def writeStartTag(tag: String)(implicit outputStream: OutputStream): Unit = {
     for(c <- s"<$tag>") {
       outputStream.write(c)

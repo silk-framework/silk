@@ -210,24 +210,24 @@ object ReferenceEntities {
      */
     override def write(entities: ReferenceEntities, outputStream: OutputStream): Unit = {
       implicit val os: OutputStream = outputStream
-      writeStartTag(ENTITIES)
+      withTag(ENTITIES) {
         XmlSerialization.toXml(entities.entitySchemas).write(outputStream)
-        writeStartTag(SOURCE_ENTITIES)
+        withTag(SOURCE_ENTITIES) {
           writeEntities(entities.sourceEntities)
-        writeEndTag(SOURCE_ENTITIES)
-        writeStartTag(TARGET_ENTITIES)
+        }
+        withTag(TARGET_ENTITIES) {
           writeEntities(entities.targetEntities)
-        writeEndTag(TARGET_ENTITIES)
-        writeStartTag(POSITIVE_LINKS)
+        }
+        withTag(POSITIVE_LINKS) {
           writeLinks(entities.positiveLinks)
-        writeEndTag(POSITIVE_LINKS)
-        writeStartTag(NEGATIVE_LINKS)
+        }
+        withTag(NEGATIVE_LINKS) {
           writeLinks(entities.negativeLinks)
-        writeEndTag(NEGATIVE_LINKS)
-        writeStartTag(UNLABELED_LINKS)
+        }
+        withTag(UNLABELED_LINKS) {
           writeLinks(entities.unlabeledLinks)
-        writeEndTag(UNLABELED_LINKS)
-      writeEndTag(ENTITIES)
+        }
+      }
     }
 
     private def writeLinks(links: Set[Link])(implicit outputStream: OutputStream): Unit = {

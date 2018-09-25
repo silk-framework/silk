@@ -30,14 +30,14 @@ object TestXmlStreamEntities {
 
     override def write(value: TestXmlStreamEntities, outputStream: OutputStream): Unit = {
       implicit val os: OutputStream = outputStream
-      writeStartTag(ROOT)
-        writeStartTag(SOURCE_ENTITIES)
-          value.sourceEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream)}
-        writeEndTag(SOURCE_ENTITIES)
-        writeStartTag(TARGET_ENTITIES)
-          value.targetEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream)}
-        writeEndTag(TARGET_ENTITIES)
-      writeEndTag(ROOT)
+      withTag(ROOT) {
+        withTag(SOURCE_ENTITIES) {
+          value.sourceEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream) }
+        }
+        withTag(TARGET_ENTITIES) {
+          value.targetEntities foreach { entity => XmlSerialization.toXml(entity).write(outputStream) }
+        }
+      }
     }
   }
 }
