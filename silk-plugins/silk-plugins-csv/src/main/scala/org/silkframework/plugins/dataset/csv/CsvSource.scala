@@ -12,6 +12,7 @@ import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
+import Path.IDX_PATH_IDX
 
 import scala.io.Codec
 
@@ -123,9 +124,14 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          if(property == "#idx") {
+            IDX_PATH_IDX
+          } else {
+            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          }
+        } else {
+          propertyIndex
         }
-        propertyIndex
       }
 
     // Return new Traversable that generates an entity for each line
@@ -152,7 +158,7 @@ class CsvSource(file: Resource,
             if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
               if (propertyList.size <= entry.length) {
                 //Extract requested values
-                val values = indices.map(entry(_))
+                val values = collectValues(indices, entry, index)
                 val entityURI = generateEntityUri(index, entry)
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
@@ -174,6 +180,15 @@ class CsvSource(file: Resource,
           parser.stopParsing()
         }
       }
+    }
+  }
+
+  private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
+    indices map {
+      case IDX_PATH_IDX =>
+        entityIdx.toString
+      case idx: Int if idx >= 0 =>
+        entry(idx)
     }
   }
 
