@@ -58,6 +58,36 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @return - the index of the path in question
     */
   override def pathIndex(path: Path): Int = pivotSchema.pathIndex(path)
+
+  override def hashCode(): Int = {
+    val prime = 31
+    var hashCode = typeUri.hashCode()
+    hashCode = hashCode * prime + subPath.hashCode
+    hashCode = hashCode * prime + typedPaths.foldLeft(1)((hash,b) => hash * prime + b.hashCode())
+    hashCode
+  }
+
+  override def equals(obj: scala.Any): Boolean = {
+    if(obj != null) {
+      obj match {
+        case es: EntitySchema =>
+          es.typeUri == this.typeUri &&
+            es.typedPaths.size == this.typedPaths.size &&
+            es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
+            es.subPath == this.subPath &&
+            (es.filter.operator match{
+              case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
+              case None if this.filter.operator.isEmpty => true
+              case _ => false
+            })
+        case _ => false
+      }
+    }
+    else
+      false
+  }
+
+  override val uniqueId: Long = EntitySchemaRegistry.register(this)
 }
 
 object MultiEntitySchema{
