@@ -109,8 +109,10 @@ class CsvSource(file: Resource,
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext): Seq[Entity] = {
-    val entities = retrieveEntities(entitySchema)
-    entities.toSeq
+    val entitySet = entities.map(_.uri.toString).toSet
+    val entityTraversal = retrieveEntities(entitySchema)
+    val filteredEntities = entityTraversal filter (e => entitySet.contains(e.uri.toString))
+    filteredEntities.toSeq
   }
 
 
