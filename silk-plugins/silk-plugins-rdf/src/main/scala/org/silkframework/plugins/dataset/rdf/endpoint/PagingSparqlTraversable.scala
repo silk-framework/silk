@@ -12,7 +12,7 @@ import scala.xml.{Elem, Node, NodeSeq}
 /**
   * Given a SPARQL query, pages through the results by issuing multiple queries with sliding offsets.
   */
-object PagingSparqlTraversable {
+object  PagingSparqlTraversable {
 
   val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
 

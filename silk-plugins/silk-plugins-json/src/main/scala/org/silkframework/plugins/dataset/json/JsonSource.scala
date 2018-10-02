@@ -48,11 +48,15 @@ class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Co
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
-    val selectedElements = jsonTraverser.select(basePathParts)
-    new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet).toSeq
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      logger.log(Level.FINE, "Retrieving data from JSON.")
+      val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
+      val selectedElements = jsonTraverser.select(basePathParts)
+      new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+    }
   }
 
   /**

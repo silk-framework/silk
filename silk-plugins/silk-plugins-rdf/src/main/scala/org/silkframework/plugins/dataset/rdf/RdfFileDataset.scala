@@ -97,12 +97,12 @@ case class RdfFileDataset(
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Seq[Entity] = {
+                              (implicit userContext: UserContext): Traversable[Entity] = {
       if (entities.isEmpty) {
         Seq.empty
       } else {
         load()
-        EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+        EntityRetriever(endpoint).retrieve(entitySchema, entities, None)
       }
     }
 

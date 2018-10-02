@@ -60,8 +60,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    retrieveEntities(entitySchema, Some(entities), None).toSeq
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    retrieveEntities(entitySchema, Some(entities), None)
   }
 
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
