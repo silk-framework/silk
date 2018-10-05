@@ -18,9 +18,13 @@ trait XmlSourceTrait { this: DataSource =>
     * @param entities     The URIs of the entities to be retrieved.
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Seq[Entity] = {
-    val uriSet = entities.map(_.uri).toSet
-    retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      val uriSet = entities.map(_.uri.toString).toSet
+      retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))
+    }
   }
 
 }

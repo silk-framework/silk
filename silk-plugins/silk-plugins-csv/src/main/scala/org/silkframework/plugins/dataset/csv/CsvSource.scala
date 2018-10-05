@@ -108,9 +108,15 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    val entities = retrieveEntities(entitySchema)
-    entities.toSeq
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      val entitySet = entities.map(_.uri.toString).toSet
+      val entityTraversal = retrieveEntities(entitySchema)
+      val filteredEntities = entityTraversal filter (e => entitySet.contains(e.uri.toString))
+      filteredEntities
+    }
   }
 
 
@@ -218,13 +224,25 @@ class CsvSource(file: Resource,
   private def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
-    parser.beginParsing(reader)
-    if(skipFirst) parser.parseNext()
-    parser
+    try {
+      parser.beginParsing(reader)
+      if(skipFirst) parser.parseNext()
+      parser
+    } catch {
+      case e: Throwable =>
+        parser.stopParsing()
+        throw new RuntimeException("Problem during initialization of CSV parser.", e)
+    }
   }
 
   private def firstLine: Array[String] = {
-    csvParser().parseNext().getOrElse(Array())
+    var parser: Option[CsvParser] = None
+    try {
+      parser = Some(csvParser())
+      parser.get.parseNext().getOrElse(Array())
+    } finally {
+      parser foreach (_.stopParsing())
+    }
   }
 
   // Skip lines that are not part of the CSV file, headers may be included

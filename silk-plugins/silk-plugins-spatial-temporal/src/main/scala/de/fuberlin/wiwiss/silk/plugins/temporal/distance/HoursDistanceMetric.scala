@@ -34,7 +34,7 @@ case class HoursDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDi
     Utils.evaluateDistance(str1, str2, limit, Constants.HOURS_DISTANCE)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter, distance, Constants.HOURS_DISTANCE)
   }
 }

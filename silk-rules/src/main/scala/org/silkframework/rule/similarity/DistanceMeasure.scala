@@ -30,7 +30,7 @@ trait DistanceMeasure extends AnyPlugin {
    */
   def apply(values1: Seq[String], values2: Seq[String], limit: Double = Double.PositiveInfinity): Double
 
-  def index(values: Seq[String], limit: Double): Index = Index.default
+  def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = Index.default
 }
 
 object DistanceMeasure extends PluginFactory[DistanceMeasure]

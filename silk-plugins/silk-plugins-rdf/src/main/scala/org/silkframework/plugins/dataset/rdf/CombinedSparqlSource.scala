@@ -38,11 +38,15 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    val results = for (sparqlSource <- sparqlSources) yield {
-      sparqlSource.retrieveByUri(entitySchema, entities)
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      val results = for (sparqlSource <- sparqlSources) yield {
+        sparqlSource.retrieveByUri(entitySchema, entities)
+      }
+      results.flatten
     }
-    results.flatten
   }
 
   override def retrieveTypes(limit: Option[Int])

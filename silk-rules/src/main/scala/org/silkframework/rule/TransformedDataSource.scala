@@ -60,8 +60,12 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    retrieveEntities(entitySchema, Some(entities), None).toSeq
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      retrieveEntities(entitySchema, Some(entities), None)
+    }
   }
 
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
@@ -72,15 +76,24 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
         transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath))
       }
 
-    val sourceEntities = entities match {
-      case Some(uris) => source.retrieveByUri(inputSchema, uris)
-      case None => source.retrieve(inputSchema, limit)
+    val sourceEntities = source.retrieve(inputSchema, limit)
+    def transformedUri: (Entity) => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+    // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
+    val filterEntity: (Entity) => Boolean = entities match {
+      case Some(uris) =>
+        val uriSet = uris.map(_.uri.toString).toSet
+        (entity) =>  {
+          val uri = transformedUri(entity)
+          uriSet.contains(uri)
+        }
+      case None =>
+        (_) => true
     }
 
     new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
-        for (entity <- sourceEntities) yield {
-          val uri = subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+        for (entity <- sourceEntities if filterEntity(entity)) yield {
+          val uri = transformedUri(entity)
           transformedValues(pathRules, entity) match {
             case Left(transformedValues) =>
               f(Entity(uri, transformedValues, entitySchema))

@@ -47,11 +47,11 @@ class GenerateLinks(id: Identifier,
    */
   def warnings = warningLog
 
-  override def initialValue = Some(Linking())
+  override def initialValue = Some(Linking(rule = linkSpec.rule))
 
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Linking())
+    context.value.update(Linking(rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
       // Entity caches
@@ -66,7 +66,7 @@ class GenerateLinks(id: Identifier,
       // Execute matching
       val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-      val updateLinks = (links: Seq[Link]) => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size))))
+      val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
       matcher.start()
       matcher.waitUntilFinished()
@@ -84,7 +84,7 @@ class GenerateLinks(id: Identifier,
         filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
       }
 
-      context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
 
       //Output links
       // TODO dont commit links to context if the task is not configured to hold links

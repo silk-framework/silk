@@ -71,6 +71,18 @@ trait Resource {
   }
 
   /**
+    * Loads all lines of this resource into a sequence.
+    */
+  def loadLines(implicit codec: Codec): Seq[String] = {
+    val source = Source.fromInputStream(inputStream)(codec)
+    try {
+      source.getLines.toList
+    } finally {
+      source.close()
+    }
+  }
+
+  /**
     * Loads this resource into a byte array.
     */
   def loadAsBytes: Array[Byte] = {

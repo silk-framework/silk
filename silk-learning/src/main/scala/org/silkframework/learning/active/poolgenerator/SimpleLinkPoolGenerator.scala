@@ -16,11 +16,11 @@ package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.rule.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.plugins.transformer.normalize.TrimTransformer
-import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
@@ -143,7 +143,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           inputValues = inputValues.map(values => transform(Seq(values)))
         }
 
-        val index = inputValues.map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+        val index = inputValues.map(metric.index(_, maxDistance, sourceOrTarget).crop(maxIndices)).reduce(_ merge _)
 
         index
       }

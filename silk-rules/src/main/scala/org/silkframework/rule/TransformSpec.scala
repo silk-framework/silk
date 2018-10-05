@@ -299,7 +299,12 @@ object TransformSpec {
         if (oldRules.nonEmpty) {
           RootMappingRule("root", MappingRules.fromSeq(oldRules))
         } else {
-          RootMappingRuleFormat.read((node \ "RootMappingRule").head)
+          (node \ "RootMappingRule").headOption match {
+            case Some(node) =>
+              RootMappingRuleFormat.read(node)
+            case None =>
+              RootMappingRule.empty
+          }
         }
       }
 

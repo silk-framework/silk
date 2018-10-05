@@ -34,7 +34,7 @@ case class MeetsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMe
     Utils.evaluateRelation(str1, str2, Constants.MEETS)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter)
   }
 }

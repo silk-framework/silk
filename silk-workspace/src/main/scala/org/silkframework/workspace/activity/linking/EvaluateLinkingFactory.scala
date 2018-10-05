@@ -50,7 +50,7 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
 
   override def name: String = "EvaluateLinking"
 
-  override def initialValue: Option[Linking] = Some(Linking())
+  override def initialValue: Option[Linking] = Some(Linking(task.data.rule))
 
   /**
     * Executes this activity.
@@ -78,7 +78,15 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     generateLinks = None
   }
 
-  override def cancelExecution()(implicit userContext: UserContext): Unit = generateLinks.foreach(_.cancelExecution())
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
+    generateLinks.foreach(_.cancelExecution())
+    super.cancelExecution()
+  }
+
+  override def resetCancelFlag()(implicit userContext: UserContext): Unit = {
+    generateLinks foreach (_.resetCancelFlag())
+    super.resetCancelFlag()
+  }
 
 }
 

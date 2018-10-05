@@ -4,7 +4,7 @@ import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, Sparq
 import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, PasswordParameter, Plugin}
 
 @Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
@@ -13,7 +13,7 @@ case class SparqlDataset(
   @Param("Login required for authentication")
   login: String = null,
   @Param("Password required for authentication")
-  password: String = null,
+  password: PasswordParameter = PasswordParameter(null),
   @Param("Only retrieve entities from a specific graph")
   graph: String = null,
   @Param("The number of solutions to be retrieved per SPARQL query.")
@@ -40,7 +40,7 @@ case class SparqlDataset(
     SparqlParams(
       uri = endpointURI,
       user = login,
-      password = password,
+      password = password.decryptedString,
       graph = Option(graph).filterNot(_.isEmpty),
       pageSize = pageSize,
       entityList = entityList.str,
