@@ -96,8 +96,8 @@
           typeUri: $("#transformation_type").val(),
           restriction: $("#source").val()
         },
-        outputs: $("#output_dataset").val().split(" ").filter(String),
-        targetVocabularies: $("#target_vocabularies").val().split(" ").filter(String)
+        outputs: $("#output_dataset").val().split(/[,\s]+/).filter(String),
+        targetVocabularies: $("#target_vocabularies").val().split(/[,\s]+/).filter(String)
       }
     };
 
