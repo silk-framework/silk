@@ -159,11 +159,6 @@ case class EntitySchema(
     else
       false
   }
-
-  val uniqueId: Long = this match {
-    case mes: MultiEntitySchema => mes.uniqueId               //we have to do this, else NullPointerException
-    case _ => EntitySchemaRegistry.register(this)
-  }
 }
 
 object EntitySchema {
@@ -234,9 +229,4 @@ object EntitySchema {
       </Paths>
     </EntityDescription>
   }
-
-  /**
-    * Public interface for resolving unique EntitySchema ids
-    */
-  def getEntitySchema(uniqueId: Long): Option[EntitySchema] = EntitySchemaRegistry.get(uniqueId)
 }

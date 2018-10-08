@@ -86,8 +86,6 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     else
       false
   }
-
-  override val uniqueId: Long = EntitySchemaRegistry.register(this)
 }
 
 object MultiEntitySchema{
