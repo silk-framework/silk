@@ -197,6 +197,11 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.nonEmpty).map(_.task).toSet
 
   /**
+    * All tasks in this workflow.
+    */
+  override def referencedTasks: Set[Identifier] = nodes.map(_.task).toSet
+
+  /**
     * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
     */
   def autoLayout(layoutConfig: WorkflowLayoutConfig): Workflow = {
