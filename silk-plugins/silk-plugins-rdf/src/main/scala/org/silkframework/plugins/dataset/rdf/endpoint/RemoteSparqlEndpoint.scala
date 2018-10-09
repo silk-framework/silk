@@ -14,9 +14,8 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{IOException, OutputStreamWriter}
+import java.io.{IOException, InputStream, OutputStreamWriter}
 import java.net._
-import java.util.logging.Logger
 import javax.xml.bind.DatatypeConverter
 
 import org.silkframework.dataset.rdf._
@@ -24,7 +23,6 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.io.Source
-import scala.xml.{Elem, XML}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -42,7 +40,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   /**
     * Executes a single select query.
     */
-  def executeSelect(query: String): Elem = {
+  def executeSelect(query: String): InputStream = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
@@ -53,10 +51,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
 
     try {
-      val inputStream = httpConnection.getInputStream
-      val result = XML.load(inputStream)
-      inputStream.close()
-      result
+      httpConnection.getInputStream
     } catch {
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
@@ -66,8 +61,6 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
         } else {
           throw ex
         }
-    } finally {
-      httpConnection.disconnect()
     }
   }
 

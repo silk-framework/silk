@@ -1,10 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
+import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.charset.StandardCharsets
+
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.mutable.ArrayBuffer
-import scala.xml.{Elem, Null}
 
 /**
   * Paging SPARQL Traversable tests
@@ -17,8 +19,8 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   private final val LANG_LITERAL = "languageLiteral"
   private final val DATA_TYPE_LITERAL = "dataTypeLiteral"
 
-  private val sparqlResults: Elem = {
-    <sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  private def sparqlResults(nrResults: Int): InputStream = {
+    val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
       <head>
         <variable name={URI}/>
         <variable name={BNODE}/>
@@ -28,6 +30,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
       </head>
 
       <results>
+        { for(_ <- 1 to nrResults) yield {
         <result>
           <binding name={URI}>
             <uri>http://this.is.a.uri.com</uri>
@@ -45,30 +48,33 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
             <literal datatype="http://www.w3.org/2001/XMLSchema#integer">42</literal>
           </binding>
         </result>
+      }}
       </results>
     </sparql>
+    new ByteArrayInputStream(("<?xml version=\"1.0\"?>\n" + result.toString()).getBytes(StandardCharsets.UTF_8))
   }
 
   it should "return correctly typed query results" in {
-    val results = PagingSparqlTraversable("select * where {?s ?p ?o}", _ => sparqlResults, SparqlParams(), Int.MaxValue)
-    val result = results.bindings.head
+    val results = PagingSparqlTraversable("select * where {?s ?p ?o}", _ => sparqlResults(2), SparqlParams(), Int.MaxValue).bindings.toArray
+    val result = results.head
     result(URI) mustBe Resource("http://this.is.a.uri.com")
     result(BNODE) mustBe a[BlankNode]
     result(PLAIN_LITERAL) mustBe PlainLiteral("plain")
     result(LANG_LITERAL) mustBe LanguageLiteral("in English", "en")
     result(DATA_TYPE_LITERAL) mustBe DataTypeLiteral("42", "http://www.w3.org/2001/XMLSchema#integer")
+    results.length mustBe 2
   }
 
   it should "handle graph parameter" in {
     val queries = ArrayBuffer[String]()
-    val queryCollector: String => Elem = { query =>
+    val queryCollector: String => InputStream = { query =>
       queries.append(query)
-      sparqlResults // just a dummy
+      sparqlResults(1) // just a dummy
     }
     val GRAPH_URI = "http://graph.com/graph"
     val sparqlParams = SparqlParams(graph = Some(GRAPH_URI), pageSize = 1)
     val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", queryCollector, sparqlParams, Int.MaxValue)
-    result.bindings.take(3).toArray
+    val results = result.bindings.take(3).toArray
     val requestedQueries = queries.toList
     requestedQueries.size mustBe 3
     for(i <- 0 to 2) {
@@ -79,9 +85,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
 
   it should "not set limit and offset if already in query" in {
     val queries = ArrayBuffer[String]()
-    val queryCollector: String => Elem = { query =>
+    val queryCollector: String => InputStream = { query =>
       queries.append(query)
-      sparqlResults // just a dummy
+      sparqlResults(1) // just a dummy
     }
     val sparqlParams = SparqlParams(pageSize = 1)
     val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o } LIMIT 1000", queryCollector, sparqlParams, Int.MaxValue)

@@ -30,7 +30,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
     implicit val xmlStreamReader = new StreamReaderDelegate(xmlInputFactory.createXMLStreamReader(inputStream)) {
       override def getVersion: String = "1.0" // This is needed because else this will result in a NullPointerException
     }
-    xmlStreamReader.nextTag()
+    placeOnNextTag()
     read
   }
 
@@ -63,14 +63,22 @@ abstract class StreamXmlFormat[T: ClassTag] {
 
   def placeOnStartTag(tag: String)(implicit streamReader: XMLStreamReader): Unit = {
     while((streamReader.getEventType != XMLStreamConstants.START_ELEMENT || streamReader.getLocalName != tag) && streamReader.hasNext) {
-      streamReader.nextTag()
+      streamReader.next()
     }
   }
 
   def placeOnNextTagAfterStartTag(tag: String)(implicit streamReader: XMLStreamReader): Unit = {
     placeOnStartTag(tag)
     if(streamReader.hasNext) {
-      streamReader.nextTag()
+      placeOnNextTag()
+    }
+  }
+
+  // Place stream reader on next start or end tag
+  def placeOnNextTag()(implicit streamReader: XMLStreamReader): Unit = {
+    streamReader.next()
+    while((streamReader.getEventType != XMLStreamConstants.START_ELEMENT && streamReader.getEventType != XMLStreamConstants.END_ELEMENT) && streamReader.hasNext) {
+      streamReader.next()
     }
   }
 
@@ -82,7 +90,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
     while(streamReader.getEventType == XMLStreamConstants.START_ELEMENT && expectedTag.forall(_ == streamReader.getLocalName)) {
       val entity = readNextObject[U]
       entityBuffer.append(entity)
-      streamReader.nextTag()
+      placeOnNextTag()
     }
     entityBuffer
   }
@@ -95,7 +103,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
     while(streamReader.getEventType == XMLStreamConstants.START_ELEMENT && expectedTag.forall(_ == streamReader.getLocalName)) {
       val node = readCurrentElementAsNode
       entityBuffer.append(convert(node))
-      streamReader.nextTag()
+      placeOnNextTag()
     }
     entityBuffer
   }
