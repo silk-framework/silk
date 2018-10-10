@@ -97,4 +97,18 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     queries.head.split("\\s+") must not contain oneOf("FROM", "NAMED", "OFFSET")
     queries.head.contains("1000") mustBe true
   }
+
+  it should "reduce the page size to the limit if the page size if greater" in {
+    val lowLimit = 42
+    val queries = ArrayBuffer[String]()
+    val queryCollector: String => InputStream = { query =>
+      queries.append(query)
+      sparqlResults(1) // just a dummy
+    }
+    val sparqlParams = SparqlParams(pageSize = 1000000)
+    val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", queryCollector, sparqlParams, lowLimit)
+    result.bindings.head // execute
+    queries must have size 1
+    queries.head.contains(lowLimit) mustBe true
+  }
 }

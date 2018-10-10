@@ -38,7 +38,8 @@ object PagingSparqlTraversable {
 
   private class ResultsTraversable(query: String,
                                    queryExecutor: (String) => InputStream,
-                                   params: SparqlParams, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+                                   params: SparqlParams,
+                                   limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
 
     private var blankNodeCount = 0
 
