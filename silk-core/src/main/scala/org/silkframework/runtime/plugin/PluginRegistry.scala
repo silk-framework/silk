@@ -25,7 +25,7 @@ object PluginRegistry {
 
   final val PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
 
-  def blacklistedPlugins: Set[Identifier] = {
+  private def blacklistedPlugins: Set[Identifier] = {
     if(configMgr().hasPath(PLUGIN_BLACKLIST_CONFIG_PATH)) {
       configMgr().getString(PLUGIN_BLACKLIST_CONFIG_PATH)
           .split("\\s*,\\s*")
