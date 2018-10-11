@@ -114,10 +114,14 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Seq[Entity] = {
-      val adaptedSchema = adaptSchema(entitySchema)
-      val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-      adaptUris(retrievedEntities, adaptedSchema).toSeq
+                              (implicit userContext: UserContext): Traversable[Entity] = {
+      if(entities.isEmpty) {
+        Seq.empty
+      } else {
+        val adaptedSchema = adaptSchema(entitySchema)
+        val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
+        adaptUris(retrievedEntities, adaptedSchema)
+      }
     }
 
     /**

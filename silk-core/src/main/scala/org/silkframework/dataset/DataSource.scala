@@ -78,7 +78,7 @@ trait DataSource {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                   (implicit userContext: UserContext): Seq[Entity]
+                   (implicit userContext: UserContext): Traversable[Entity]
 
   /**
    * Samples a fixed size set of entities from the whole dataset.

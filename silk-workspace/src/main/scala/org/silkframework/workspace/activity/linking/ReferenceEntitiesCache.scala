@@ -131,11 +131,15 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     private def getEntitiesByUri(entityUris: Seq[String],
                             entityDesc: EntitySchema,
                             source: DataSource): Map[String, Entity] = {
-      val entities = source.retrieveByUri(
-        entitySchema = entityDesc,
-        entities = entityUris map Uri.apply
-      )
-      entities.map{ e => (e.uri.toString, e)}.toMap
+      if(entityUris.isEmpty) {
+        Map.empty
+      } else {
+        val entities = source.retrieveByUri(
+          entitySchema = entityDesc,
+          entities = entityUris map Uri.apply
+        )
+        entities.map{ e => (e.uri.toString, e) }.toMap
+      }
     }
 
     private def entityMatchesDescription(entity: Entity, entityDesc: EntitySchema): Boolean = {
