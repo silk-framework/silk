@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.LazyMetadata
+import org.silkframework.entity.metadata.{LazyMetadata, MetadataSerializer}
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
@@ -11,7 +11,7 @@ class LazyMetadataJson[Typ] private[metadata](
    private[metadata] val obj: Option[Typ],
    private[metadata] val serial: Option[JsValue],
    private[metadata] val str: String,
-   val serializer: SerializationFormat[Typ, JsValue]
+   val serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, JsValue] {
 
   override implicit val serTag: ClassTag[JsValue] = ClassTag(classOf[JsValue])
@@ -72,13 +72,13 @@ object LazyMetadataJson{
     (key, LazyMetadataJson(t, serializer))
   }
 
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
     new LazyMetadataJson(Option(obj), None, "", serializer)(typ)
 
-  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
     new LazyMetadataJson(None, Option(node), "", serializer)(typ)
 
-  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
+  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataJson[Typ] =
     new LazyMetadataJson(None, None, ser, serializer)(typ)
 
   @throws[IllegalArgumentException]

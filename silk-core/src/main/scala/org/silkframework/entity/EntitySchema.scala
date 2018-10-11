@@ -13,7 +13,6 @@ import scala.xml.Node
   * @param filter A filter for restricting the entity set
   * @param subPath Specifies the path starting from the root that is used for enumerating the entities.
   */
-//noinspection ScalaStyle
 case class EntitySchema(
   typeUri: Uri,
   typedPaths: IndexedSeq[TypedPath],
@@ -136,6 +135,7 @@ case class EntitySchema(
   override def hashCode(): Int = {
     val prime = 31
     var hashCode = typeUri.hashCode()
+    hashCode = hashCode * prime + subPath.hashCode
     hashCode = hashCode * prime + typedPaths.foldLeft(1)((hash,b) => hash * prime + b.hashCode())
     hashCode
   }

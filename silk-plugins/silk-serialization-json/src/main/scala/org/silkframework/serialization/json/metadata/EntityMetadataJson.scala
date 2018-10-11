@@ -6,8 +6,9 @@ import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
 
-case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]] = Map()) extends EntityMetadata[JsValue]{
+case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) extends EntityMetadata[JsValue]{
 
+  def this() = this(Map())
 
   override implicit val serTag: Class[JsValue] = EntityMetadataJson.JsValClass
 
@@ -49,6 +50,8 @@ object EntityMetadataJson{
   type CT >: Any <: Any
 
   implicit val JsValClass: Class[JsValue] = classOf[JsValue]
+
+  def apply(): EntityMetadataJson = new EntityMetadataJson()
 
   def apply[Typ](map: Map[String, Typ])(implicit typTag: Class[Typ]): EntityMetadataJson = {
     val resMap = map.map(ent => LazyMetadataJson.createLazyMetadata[Typ](ent._1, ent._2))
