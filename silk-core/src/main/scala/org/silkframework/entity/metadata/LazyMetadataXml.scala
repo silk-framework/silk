@@ -9,7 +9,7 @@ class LazyMetadataXml[Typ] private[metadata](
   private[metadata] val obj: Option[Typ],
   private[metadata] val serial: Option[Node],
   private[metadata] val str: String,
-  val serializer: SerializationFormat[Typ, Node]
+  override val serializer: SerializationFormat[Typ, Node] with MetadataSerializer
  )(implicit val typ: Class[Typ]) extends LazyMetadata[Typ, Node] {
 
   override implicit val serTag: ClassTag[Node] = ClassTag(classOf[Node])
@@ -65,13 +65,13 @@ class LazyMetadataXml[Typ] private[metadata](
 
 object LazyMetadataXml{
 
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, Node] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
     new LazyMetadataXml(Some(obj), None, "", serializer)(typ)
 
-  def apply[Typ](node: Node, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+  def apply[Typ](node: Node, serializer: SerializationFormat[Typ, Node] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
     new LazyMetadataXml(None, Some(node), "", serializer)(typ)
 
-  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, Node])(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
+  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, Node] with MetadataSerializer)(implicit typ: Class[Typ]): LazyMetadataXml[Typ] =
     new LazyMetadataXml(None, None, ser, serializer)(typ)
 
   @throws[IllegalArgumentException]

@@ -32,3 +32,7 @@ export const trimValueLabelObject = object => {
     }
     return object;
 };
+
+export const trimUriPattern = pattern => {
+    return _.trim(pattern);
+};

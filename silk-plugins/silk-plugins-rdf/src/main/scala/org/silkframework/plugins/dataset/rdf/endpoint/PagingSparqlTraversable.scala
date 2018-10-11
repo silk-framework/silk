@@ -1,13 +1,16 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.IOException
+import java.io.{IOException, InputStream}
 import java.util.logging.{Level, Logger}
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
 import org.apache.jena.query.{QueryFactory, Syntax}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap
-import scala.xml.{Elem, Node, NodeSeq}
+import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
+import scala.xml.{Node, XML}
 
 /**
   * Given a SPARQL query, pages through the results by issuing multiple queries with sliding offsets.
@@ -15,6 +18,7 @@ import scala.xml.{Elem, Node, NodeSeq}
 object PagingSparqlTraversable {
 
   val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+  private val xmlFactory = XMLInputFactory.newInstance()
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -22,23 +26,26 @@ object PagingSparqlTraversable {
     * Given a SPARQL query, pages through the results by issuing multiple queries with sliding offsets.
     *
     * @param query The original query. If the query already contains an limit or offset automatic paging is disabled
-    * @param queryExecutor A function that executes a SPARQL query and returns the XML result.
+    * @param queryExecutor A function that executes a SPARQL query and returns a Traversable over the SPARQL results.
     * @param params The SPARQL parameters
     * @param limit The maximum number of SPARQL results returned in total (not per single query)
     */
-  def apply(query: String, queryExecutor: String => Elem, params: SparqlParams, limit: Int): SparqlResults = {
+  def apply(query: String, queryExecutor: (String) => InputStream, params: SparqlParams, limit: Int): SparqlResults = {
     SparqlResults(
       bindings = new ResultsTraversable(query, queryExecutor, params, limit)
     )
   }
 
   private class ResultsTraversable(query: String,
-                                   queryExecutor: String => Elem,
-                                   params: SparqlParams, limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+                                   queryExecutor: (String) => InputStream,
+                                   params: SparqlParams,
+                                   limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
 
     private var blankNodeCount = 0
 
     private var lastQueryTime = 0L
+
+    private val RESULT_TAG = "result"
 
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)
@@ -48,67 +55,139 @@ object PagingSparqlTraversable {
           parsedQuery.addGraphURI(graphURI)
         }
       }
+
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
-        val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
-        val resultsXml = xml \ "results" \ "result"
-        for (resultXml <- resultsXml) {
-          f(parseResult(resultXml))
+        val (xmlReader, inputStream) = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
+        try {
+          outputResults(xmlReader, f)
+        } finally {
+          inputStream.close()
         }
       } else {
         for (offset <- 0 until limit by params.pageSize) {
           parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
           parsedQuery.setOffset(offset)
-          val xml = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
-          val resultsXml = xml \ "results" \ "result"
-          for (resultXml <- resultsXml) {
-            f(parseResult(resultXml))
+          val (xmlReader, inputStream) = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
+          try {
+            val resultCount = outputResults(xmlReader, f)
+            logger.fine("Run: " + offset + ", " + limit + ", " + params.pageSize)
+            if (resultCount < params.pageSize) return
+          } finally {
+            inputStream.close()
           }
-          if (resultsXml.size < params.pageSize) return
         }
       }
     }
 
-    private def parseResult(resultXml: NodeSeq): SortedMap[String, RdfNode] = {
-      val bindings = resultXml \ "binding"
+    private def isResult(xmlReader: XMLStreamReader) = {
+      xmlReader.isStartElement && xmlReader.getLocalName == RESULT_TAG
+    }
 
-      val uris = for (binding <- bindings; node <- binding \ "uri") yield ((binding \ "@name").text, Resource(node.text))
-
-      val literals = for (binding <- bindings; node <- binding \ "literal") yield {
-        parseLiteral(binding, node)
+    def outputResults[U](xmlReader: XMLStreamReader,
+                         f: SortedMap[String, RdfNode] => U): Int = {
+      placeOnTag(xmlReader, RESULT_TAG)
+      var resultCount = 0
+      while (isResult(xmlReader)) {
+        resultCount += 1
+        f(parseResult(xmlReader))
+        placeOnTag(xmlReader, RESULT_TAG)
       }
+      xmlReader.close()
+      resultCount
+    }
 
-      val bNodes = for (binding <- bindings; _ <- binding \ "bnode") yield {
-        blankNodeCount += 1
-        ((binding \ "@name").text, BlankNode("bnode" + blankNodeCount))
+    // Place stream reader on next start or end tag
+    def placeOnNextTag(streamReader: XMLStreamReader): Unit = {
+      if(streamReader.hasNext) {
+        streamReader.next()
+        while (streamReader.getEventType != XMLStreamConstants.START_ELEMENT && streamReader.getEventType != XMLStreamConstants.END_ELEMENT && streamReader.hasNext) {
+          streamReader.next()
+        }
       }
+    }
 
-      SortedMap(uris ++ literals ++ bNodes: _*)
+    def placeOnTag(streamReader: XMLStreamReader, tag: String, eventType: Int = XMLStreamConstants.START_ELEMENT): Unit = {
+      while(streamReader.hasNext() && !(streamReader.getEventType() == eventType && streamReader.getLocalName == tag)) {
+        streamReader.next()
+      }
+    }
+
+    private def parseResult(xmlReader: XMLStreamReader): SortedMap[String, RdfNode] = {
+      val resultBuffer = ArrayBuffer[(String, RdfNode)]()
+      placeOnNextTag(xmlReader)
+      while(xmlReader.isStartElement && xmlReader.getLocalName == "binding") {
+        val name = xmlReader.getAttributeValue(null, "name")
+        placeOnNextTag(xmlReader) // Place on e.g. <literal>
+        val rdfNode = parseRdfNode(xmlReader)
+        resultBuffer.append((name, rdfNode))
+        placeOnTag(xmlReader, "binding", eventType = XMLStreamConstants.END_ELEMENT)
+        placeOnNextTag(xmlReader) // This might be <binding> or </result>
+      }
+      SortedMap(resultBuffer: _*)
+    }
+
+    private def parseRdfNode(xmlReader: XMLStreamReader): RdfNode = {
+      def text = {
+        xmlReader.next()
+        assert(xmlReader.getEventType == XMLStreamConstants.CHARACTERS)
+        xmlReader.getText
+
+      }
+      xmlReader.getLocalName match {
+        case "bnode" =>
+          BlankNode(text)
+        case "uri" =>
+          Resource(text)
+        case "literal" =>
+          val lang = Option(xmlReader.getAttributeValue(XML.namespace, "lang"))
+          val dataType = Option(xmlReader.getAttributeValue(null, "datatype"))
+          (lang, dataType) match {
+            case (Some(l), _) =>
+              LanguageLiteral(text, l)
+            case (_, Some(dt)) =>
+              DataTypeLiteral(text, dt)
+            case _ =>
+              PlainLiteral(text)
+           }
+      }
     }
 
     /**
       * Executes a SPARQL SELECT query.
       *
       * @param query The SPARQL query to be executed
-      * @return Query result in SPARQL Query Results XML Format
+      * @return an XML stream reader positioned on the <results> tag.
       */
-    private def executeQuery(query: String): Elem = {
+    private def executeQuery(query: String): (XMLStreamReader, InputStream) = {
       //Wait until pause time is elapsed since last query
       synchronized {
         while (System.currentTimeMillis < lastQueryTime + params.pauseTime) Thread.sleep(params.pauseTime / 10)
         lastQueryTime = System.currentTimeMillis
       }
-
       //Execute query
       logger.fine("Executing query on \n" + query)
 
-      var result: Elem = null
+      var xmlStreamReader: XMLStreamReader = null
+      var inputStream: InputStream = null
       var retries = 0
       val retryPause = params.retryPause
-      while (result == null) {
-        try {
-          result = queryExecutor(query)
+
+      def closeInputStream() = {
+        if (inputStream != null) {
+          Try(inputStream.close())
         }
-        catch {
+      }
+
+      while (xmlStreamReader == null) {
+        try {
+          val is = queryExecutor(query)
+          inputStream = is
+          val reader = xmlFactory.createXMLStreamReader(is)
+          while(reader.hasNext && !(reader.isStartElement && reader.getLocalName == "results")) {
+            placeOnNextTag(reader)
+          }
+          xmlStreamReader = reader
+        } catch {
           case ex: IOException =>
             retries += 1
             if (retries > params.retryCount) {
@@ -117,31 +196,17 @@ object PagingSparqlTraversable {
             logger.info(s"Query failed:\n$query\nError Message: '${ex.getMessage}'.\nRetrying in $retryPause ms. ($retries/${params.retryCount})")
 
             Thread.sleep(retryPause)
+            closeInputStream()
             //Double the retry pause up to a maximum of 1 hour
             //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
           case ex: Exception =>
             logger.log(Level.SEVERE, "Could not execute query:\n" + query, ex)
+            closeInputStream()
             throw ex
         }
       }
-
       //Return result
-      result
+      (xmlStreamReader, inputStream)
     }
-  }
-
-  private def parseLiteral(binding: Node, node: Node) = {
-    val attrMap = node.attributes.asAttrMap
-    val value = node.text
-    val bindingName = (binding \ "@name").text
-    val literal = (attrMap.get("xml:lang"), attrMap.get("datatype")) match {
-      case (Some(lang), _) =>
-        LanguageLiteral(value, lang)
-      case (_, Some(dataType)) =>
-        DataTypeLiteral(value, dataType)
-      case _ =>
-        PlainLiteral(value)
-    }
-    (bindingName, literal)
   }
 }

@@ -35,7 +35,7 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     * NOTE: should be implemented as def (is transient)
     * usually pass the metadata category key and get the serializer from the serialization type registry
     */
-  @transient def serializer: SerializationFormat[Typ, Ser]
+  @transient def serializer: SerializationFormat[Typ, Ser] with MetadataSerializer
 
   /**
     * the final metadata object lazily computed
@@ -70,7 +70,7 @@ object LazyMetadata extends Serializable {
 
   type Schema = Any
 
-  def nullSerializer[Typ, Ser](implicit ct: ClassTag[Typ], st: ClassTag[Ser]): SerializationFormat[Typ, Ser] = new SerializationFormat[Typ, Ser] {
+  def nullSerializer[Typ, Ser](implicit ct: ClassTag[Typ], st: ClassTag[Ser]): SerializationFormat[Typ, Ser] with MetadataSerializer = new SerializationFormat[Typ, Ser] with MetadataSerializer {
     override def mimeTypes: Set[String] = Set()
     override def read(value: Ser)(implicit readContext: ReadContext): Typ = null.asInstanceOf[Typ]
     override def write(value: Typ)(implicit writeContext: WriteContext[Ser]): Ser = null.asInstanceOf[Ser]
@@ -78,9 +78,11 @@ object LazyMetadata extends Serializable {
     override def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): Typ = null.asInstanceOf[Typ]
     override def toString(value: Iterable[Typ], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[Ser]): String = ""
     override def parse(value: String, mimeType: String): Ser = null.asInstanceOf[Ser]
+    override def metadataId: String = "NULL_SERIALIZER"
+    override def replaceableMetadata: Boolean = true
   }
 
-  def singleValueSerializer[Typ](theVal: Typ)(implicit ct: ClassTag[Typ]): SerializationFormat[Typ, String] = new SerializationFormat[Typ, String] {
+  def singleValueSerializer[Typ](theVal: Typ)(implicit ct: ClassTag[Typ]): SerializationFormat[Typ, String] with MetadataSerializer = new SerializationFormat[Typ, String] with MetadataSerializer {
     override def mimeTypes: Set[String] = Set()
     override def read(value: String)(implicit readContext: ReadContext): Typ = theVal
     override def write(value: Typ)(implicit writeContext: WriteContext[String]): String = theVal.toString
@@ -88,6 +90,8 @@ object LazyMetadata extends Serializable {
     override def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): Typ = theVal
     override def toString(value: Iterable[Typ], mimeType: String, containerName: Option[String])(implicit writeContext: WriteContext[String]): String = theVal.toString
     override def parse(value: String, mimeType: String): String = theVal.toString
+    override def metadataId: String = "SINGLE_VALUE_SERIALIZER"
+    override def replaceableMetadata: Boolean = true
   }
 
   def empty[Typ, Ser <: Any](implicit tt: Class[Typ], st: Class[Ser]): LazyMetadata[Typ, Ser] = new LazyMetadata[Typ, Ser] {
@@ -106,7 +110,7 @@ object LazyMetadata extends Serializable {
     /**
       * the parser function to parse the target type
       */
-    override val serializer: SerializationFormat[Typ, Ser] = nullSerializer[Typ, Ser]
+    override val serializer: SerializationFormat[Typ, Ser] with MetadataSerializer = nullSerializer[Typ, Ser]
     /**
       * String representation of the serialized object
       */
@@ -142,7 +146,7 @@ object LazyMetadata extends Serializable {
     /**
       * the parser function to parse the target type
       */
-    override val serializer: SerializationFormat[Typ, String] = singleValueSerializer(value)
+    override val serializer: SerializationFormat[Typ, String] with MetadataSerializer = singleValueSerializer(value)
     /**
       * the raw, un-parsed metadata
       */

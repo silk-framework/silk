@@ -81,7 +81,6 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
       <Alignment>
         { serializeLinks(positive, "=") }
         { serializeLinks(negative, "!=") }
-        { serializeLinks(unlabeled, "?") }
       </Alignment>
     </rdf:RDF>
   }

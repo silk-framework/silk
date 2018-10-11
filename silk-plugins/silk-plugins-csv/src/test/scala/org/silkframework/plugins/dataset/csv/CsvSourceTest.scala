@@ -197,4 +197,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
       "unnamed_col1","field2","unnamed_col3_2","unnamed_col3","unnamed_col6_3","unnamed_col6_4","unnamed_col7"
     )
   }
+
+  "Csv Source" should "fetch entities by URI" in {
+    val es = EntitySchema("", IndexedSeq())
+    val entities = source.retrieve(es)
+    entities.size shouldBe 3
+    source.retrieveByUri(es, Seq(entities.head.uri)).size shouldBe 1
+  }
 }
