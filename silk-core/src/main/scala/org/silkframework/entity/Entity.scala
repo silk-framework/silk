@@ -224,7 +224,7 @@ case class Entity private(
 
 
   override def equals(other: Any): Boolean = other match {
-      case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema
+    case o: Entity => this.uri.toString == o.uri.toString && this.values == o.values && this.schema == o.schema
     case _ => false
   }
 
