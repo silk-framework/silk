@@ -13,7 +13,13 @@ object WorkbenchPlugins {
     * Holds all registered workbench plugins.
     */
   private lazy val allPlugins: Seq[WorkbenchPlugin[_ <: TaskSpec]] = {
-    PluginRegistry.availablePlugins[WorkbenchPlugin[_ <: TaskSpec]].map(_.apply()(Prefixes.empty)).sortBy(_.taskType.typeName)
+    val workbenchPlugins = PluginRegistry.availablePlugins[WorkbenchPlugin[_ <: TaskSpec]].map(_.apply()(Prefixes.empty)).sortBy(_.taskType.typeName)
+    val scriptTaskBlackListed = PluginRegistry.blacklistedPlugins.contains("script")
+    if(scriptTaskBlackListed) {
+      workbenchPlugins.filterNot(_.taskType.typeName == "Script Task") // FIXME: This won't work if the name changes
+    } else {
+      workbenchPlugins
+    }
   }
 
   /**
