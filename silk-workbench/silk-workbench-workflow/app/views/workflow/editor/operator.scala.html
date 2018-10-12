@@ -1,31 +1,29 @@
-@import org.silkframework.workspace.Project
-@import plugins.WorkbenchPlugin.TaskActions
 @import controllers.workflow.routes.Assets
+@import org.silkframework.workbench.WorkbenchPlugin.TaskActions
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.activity.workflow.Workflow
-@import org.silkframework.config.TaskSpec
 
-@(project: Project, task: ProjectTask[_ <: TaskSpec], taskActions: TaskActions[_], pos: Option[(Int, Int)] = None)
+@(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
-<div class="operator" title="@task.id" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
+<div class="operator" title="@taskActions.task.taskLabel(maxLength = 1024)" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
      data-input-cardinality="@inputCardinality()">
   <div class="operatorHeader">
     <div class="operatorHeaderText">
-      @taskActions.name
+      @taskActions.taskType.typeName
     </div>
     <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="editor.removeElement($(this).parent().parent().attr('id'))"/>
   </div>
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
-    @task.id
-    @for(path <- taskActions.open(project.name, task.id)) {
+    @taskActions.task.taskLabel()
+    @for(path <- taskActions.openPath(Some(workflow.id), Some(taskActions.task.id.toString))) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
   </div>
 </div>
 
 @inputCardinality() = @{
-  task.data.inputSchemataOpt match {
+  taskActions.task.data.inputSchemataOpt match {
     case Some(inputs) => {
       inputs.size
     }

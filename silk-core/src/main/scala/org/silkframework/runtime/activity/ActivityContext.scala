@@ -2,6 +2,8 @@ package org.silkframework.runtime.activity
 
 import java.util.logging.Logger
 
+import scala.reflect.ClassTag
+
 /**
  * Holds the context in which a activity is executed.
  * Called to publish updates to the state of the activity and to execute child activities.
@@ -19,6 +21,12 @@ trait ActivityContext[T] {
   def status: StatusHolder
 
   /**
+    * Will provide context information relevant for the Activity to be performed (if any)
+    * @return - ActivityContextData of the specified type
+    */
+  def contextObject[C](implicit ct:ClassTag[C]): Option[ActivityContextData[C]] = None
+
+  /**
    * Retrieves the logger to be used by the activity.
    */
   def log: Logger
@@ -33,9 +41,4 @@ trait ActivityContext[T] {
    * @return The activity control for the child activity.
    */
   def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R]
-
-  /**
-    * The user context the activity is executed in.
-    */
-  def userContext: UserContext
 }

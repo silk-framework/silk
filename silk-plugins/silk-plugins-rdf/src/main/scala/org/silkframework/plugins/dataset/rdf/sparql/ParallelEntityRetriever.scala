@@ -20,6 +20,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -44,7 +45,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     canceled = false
     if(entitySchema.typedPaths.size <= 1) {
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
@@ -56,12 +58,13 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
+  private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int])
+                                 (implicit userContext: UserContext)extends Traversable[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path.path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path)
 
       pathRetrievers.foreach(_.start())
 
@@ -71,7 +74,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
           val uri = pathValues.head.uri
           if (pathValues.tail.forall(_.uri == uri)) {
-            f(new Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
+            f(Entity(uri, pathValues.map(_.values).toIndexedSeq, entitySchema))
             counter += 1
           }
           else {
@@ -111,7 +114,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path) extends Thread {
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path)
+                             (implicit userContext: UserContext)extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
@@ -146,17 +150,19 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    private def queryPath() = {
+    private def queryPath()(implicit userContext: UserContext) = {
       //Select
       val sparql = new StringBuilder
-      sparql append "SELECT "
+      sparql append "SELECT DISTINCT "
       sparql append "?" + entityDesc.variable + " "
       sparql append "?" + varPrefix + "0\n"
 
+      //Graph
+      for (graph <- graphUri if !graph.isEmpty) sparql append "FROM <" + graph + ">\n"
+
       //Body
       sparql append "WHERE {\n"
-      //Graph
-      for (graph <- graphUri if !graph.isEmpty) sparql append "GRAPH <" + graph + "> {\n"
+
 
       if (entityDesc.restrictions.toSparql.isEmpty) {
         sparql append "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
@@ -165,7 +171,6 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
       sparql append SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
 
-      for (graph <- graphUri if !graph.isEmpty) sparql append "}\n"
       sparql append "}" // END WHERE
 
       if (useOrderBy) {

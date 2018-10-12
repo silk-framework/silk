@@ -1,4 +1,6 @@
-@(context: plugins.Context[org.silkframework.dataset.DatasetSpec],
+@import org.silkframework.workbench.Context
+
+@(context: Context[org.silkframework.dataset.DatasetSpec.GenericDatasetSpec],
   endpoint: org.silkframework.dataset.rdf.SparqlEndpoint,
   query: String,
   queryResults: Option[org.silkframework.dataset.rdf.SparqlResults])(implicit session: play.api.mvc.Session)
@@ -43,4 +45,4 @@ LIMIT 20} else {@query}
 </table>
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

@@ -5,7 +5,7 @@
 ###  Helper methods for BASH scripts ###
 ###  ------------------------------- ###
 
-# Path of the directory this file is placed in
+#   Path of the directory this file is placed in
 projectPath=${0%sbt}
 echo "Project path is $projectPath"
 
@@ -41,6 +41,8 @@ is_cygwin() {
   local os=$(uname -s)
   case "$os" in
     CYGWIN*) return 0 ;;
+    MINGW*) return 0 ;;
+    MSYS*) return 0 ;;
     *)  return 1 ;;
   esac
 }
@@ -96,9 +98,11 @@ Usage: $script_name [options]
 
   # jvm options and output control
   JAVA_OPTS          environment variable, if unset uses "$java_opts"
+  .jvmopts           if this file exists in the current directory, its contents
+                     are appended to JAVA_OPTS
   SBT_OPTS           environment variable, if unset uses "$default_sbt_opts"
-  .sbtopts           if this file exists in the current directory, it is
-                     prepended to the runner args
+  .sbtopts           if this file exists in the current directory, its contents
+                     are prepended to the runner args
   /etc/sbt/sbtopts   if this file exists, it is prepended to the runner args
   -Dkey=val          pass -Dkey=val directly to the java runtime
   -J-X               pass option -X directly to the java runtime 
@@ -134,21 +138,23 @@ process_my_args () {
 }
 
 loadConfigFile() {
-  cat "$1" | sed '/^\#/d' | while read line; do
+  # Make sure the last line is read even if it doesn't have a terminating \n
+  cat "$1" | sed $'/^\#/d;s/\r$//' | while read -r line || [[ -n "$line" ]]; do
     eval echo $line
   done
 }
 
-# TODO - Pull in config based on operating system... (MSYS + cygwin should pull in txt file).
-# Here we pull in the global settings configuration.
-JAVA_OPTS=$(loadConfigFile "$etc_sbt_opts_file")
-# [[ -f "$etc_sbt_opts_file" ]] && set -- $(loadConfigFile "$etc_sbt_opts_file") "$@" && echo "sbtopts recognized" && export SBT_OPTS=$(loadConfigFile "$etc_sbt_opts_file")
-# -- Windows behavior stub'd
-# JAVA_OPTS=$(cat "$WDIR/sbtconfig.txt" | sed -e 's/\r//g' -e 's/^#.*$//g' | sed ':a;N;$!ba;s/\n/ /g')
+# Here we pull in the default settings configuration.
+[[ -f "$dist_sbt_opts_file" ]] && set -- $(loadConfigFile "$dist_sbt_opts_file") "$@"
 
+# Here we pull in the global settings configuration.
+[[ -f "$etc_sbt_opts_file" ]] && set -- $(loadConfigFile "$etc_sbt_opts_file") "$@"
 
 #  Pull in the project-level config file, if it exists.
 [[ -f "$sbt_opts_file" ]] && set -- $(loadConfigFile "$sbt_opts_file") "$@"
+
+#  Pull in the project-level java config, if it exists.
+[[ -f ".jvmopts" ]] && export JAVA_OPTS="$JAVA_OPTS $(loadConfigFile .jvmopts)"
 
 run "$@"
 

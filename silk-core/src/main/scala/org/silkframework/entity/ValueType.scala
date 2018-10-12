@@ -1,7 +1,7 @@
 package org.silkframework.entity
 
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.XSD
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -12,6 +12,7 @@ import scala.xml.Node
 
 /**
   * The type of a value.
+  * (Atomic Types)
   */
 sealed trait ValueType {
 
@@ -28,12 +29,20 @@ sealed trait ValueType {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   def uri: Option[String]
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  def ordering: Ordering[String]
 }
 
 object ValueType {
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final val CUSTOM_VALUE_TYPE = "CustomValueType"
   final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
+
+  val DefaultOrdering: Ordering[String] = Ordering.String
+  val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{
+    date1.compare(date2) < 0
+  })
 
   implicit object ValueTypeFormat extends XmlFormat[ValueType] {
     /**
@@ -113,7 +122,7 @@ object ValueType {
   }
 
   /** All [[ValueType]] classes/singletons */
-  val allValueType: Seq[Either[(String, Class[_]), ValueType]] = Seq(
+  val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
     Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])),
     Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
     Right(IntValueType),
@@ -135,18 +144,12 @@ object ValueType {
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map { case (id, classOrObj) =>
-    classOrObj match {
-      case Left(clazz) => (clazz, id)
-      case Right(obj) => (obj.getClass, id)
+  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map(ei =>
+    ei._2 match {
+      case Left(clazz) => (clazz, ei._1)
+      case Right(obj) => (obj.getClass, ei._1)
     }
-  }.toMap
-}
-
-object Test {
-  def main(args: Array[String]): Unit = {
-    println(ValueType.valueTypeMapByStringId.keys.toSeq.sorted.mkString("\n"))
-  }
+  ).toMap
 }
 
 /**
@@ -164,6 +167,9 @@ case object AutoDetectValueType extends ValueType with Serializable {
   override def uri: Option[String] = None
 
   override def id: String = "AutoDetectValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 /** A custom type that is used for all types not covered by any other types. */
@@ -178,6 +184,9 @@ case class CustomValueType(typeUri: String) extends ValueType {
   override def uri: Option[String] = Some(typeUri)
 
   override def id: String = ValueType.CUSTOM_VALUE_TYPE
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 /** Represents language tagged strings. */
@@ -190,6 +199,9 @@ case class LanguageValueType(language: String) extends ValueType {
   override def uri: Option[String] = None // These are always strings
 
   override def id: String = ValueType.LANGUAGE_VALUE_TYPE
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 case object IntValueType extends ValueType with Serializable {
@@ -204,6 +216,9 @@ case object IntValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "int")
 
   override def id: String = "IntValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toInt)
 }
 
 case object LongValueType extends ValueType with Serializable {
@@ -218,6 +233,9 @@ case object LongValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "long")
 
   override def id: String = "LongValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toLong)
 }
 
 case object StringValueType extends ValueType with Serializable {
@@ -231,6 +249,9 @@ case object StringValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "string") // In RDF this can be omitted
 
   override def id: String = "StringValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 case object FloatValueType extends ValueType with Serializable {
@@ -245,6 +266,9 @@ case object FloatValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "float")
 
   override def id: String = "FloatValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toFloat)
 }
 
 case object DoubleValueType extends ValueType with Serializable {
@@ -259,6 +283,9 @@ case object DoubleValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "double")
 
   override def id: String = "DoubleValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toDouble)
 }
 
 case object BooleanValueType extends ValueType with Serializable {
@@ -273,6 +300,9 @@ case object BooleanValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "boolean")
 
   override def id: String = "BooleanValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toBoolean)
 }
 
 case object IntegerValueType extends ValueType with Serializable {
@@ -289,11 +319,14 @@ case object IntegerValueType extends ValueType with Serializable {
   override def uri: Option[String] = Some(XSD + "integer")
 
   override def id: String = "IntegerValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toInt)
 }
 
 case object UriValueType extends ValueType with Serializable {
 
-  override def label = "Resource"
+  override def label = "Uri"
 
   override def validate(lexicalString: String): Boolean = {
     new Uri(lexicalString).isValidUri
@@ -303,6 +336,9 @@ case object UriValueType extends ValueType with Serializable {
   override def uri: Option[String] = None
 
   override def id: String = "UriValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 case object BlankNodeValueType extends ValueType with Serializable {
@@ -315,6 +351,9 @@ case object BlankNodeValueType extends ValueType with Serializable {
   override def uri: Option[String] = None
 
   override def id: String = "BlankNodeValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
 case object DateValueType extends ValueType with Serializable {
@@ -353,6 +392,9 @@ case object DateValueType extends ValueType with Serializable {
     val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
     qName.getNamespaceURI + "#" + qName.getLocalPart
   }
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => datatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
 }
 
 case object DateTimeValueType extends ValueType with Serializable {
@@ -377,4 +419,7 @@ case object DateTimeValueType extends ValueType with Serializable {
     val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
     qName.getNamespaceURI + "#" + qName.getLocalPart
   }
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => datatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
 }

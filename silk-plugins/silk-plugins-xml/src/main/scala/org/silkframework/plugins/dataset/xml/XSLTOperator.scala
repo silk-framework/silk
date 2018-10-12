@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.Resource
   id = "xsltOperator",
   label = "XSLT task",
   description =
-      """A task that converts an XML resource via an XSLT script and outputs the transformed XML as a [[org.silkframework.runtime.resource.Resource]].
+      """A task that converts an XML resource via an XSLT script and outputs the transformed XML into a file resource.
       """
 )
 case class XSLTOperator(@Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")

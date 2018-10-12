@@ -1,7 +1,9 @@
 package org.silkframework.rule
 
+import java.util.NoSuchElementException
+
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -22,6 +24,7 @@ import scala.language.implicitConversions
   * @param outputs            The identifier of the output to which all transformed entities are to be written
   * @param errorOutputs       The identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
+  * @param parentTask     May add additional references to tasks (in addition to input and output)
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
@@ -29,16 +32,44 @@ case class TransformSpec(selection: DatasetSelection,
                          mappingRule: RootMappingRule,
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
+                         targetVocabularies: Traversable[String] = Seq.empty,
+                         parentTask: Option[Identifier] = None
+                        ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
+
+  /**
+    * Retrieves a rule by its identifier.
+    * Searches in the entire rule tree.
+    *
+    * @throws NoSuchElementException If no rule with the given identifier could be found.
+    */
+  def ruleById(ruleId: Identifier): TransformRule = {
+    nestedRuleAndSourcePath(ruleId)
+      .getOrElse(throw new NoSuchElementException(s"No rule with identifier 'ruleId' has been found."))
+      ._1
+  }
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
 
   override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
 
-  override lazy val referencedTasks = Set(selection.inputId)
+  /**
+    * The tasks that this task reads from.
+    */
+  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+
+  /**
+    * The tasks that this task writes to.
+    */
+  override def outputTasks: Set[Identifier] = outputs.toSet
+
+  /**
+    * The tasks that are directly referenced by this task.
+    * This includes input tasks and output tasks.
+    */
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ parentTask
 
   /**
     * Input and output schemata of all object rules in the tree.
@@ -51,7 +82,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema))
+    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -59,7 +90,16 @@ case class TransformSpec(selection: DatasetSelection,
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
+    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema).toIndexedSeq)
+  }
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    Seq(
+      ("Source", selection.inputId.toString),
+      ("Type", selection.typeUri.toString),
+      ("Restriction", selection.restriction.toString)
+    )
   }
 
   /**
@@ -240,6 +280,9 @@ object TransformSpec {
   }
 
   implicit object TransformSpecFormat extends XmlFormat[TransformSpec] {
+
+    override def tagNames: Set[String] = Set("TransformSpec")
+
     /**
       * Deserialize a value from XML.
       */
@@ -256,7 +299,12 @@ object TransformSpec {
         if (oldRules.nonEmpty) {
           RootMappingRule("root", MappingRules.fromSeq(oldRules))
         } else {
-          RootMappingRuleFormat.read((node \ "RootMappingRule").head)
+          (node \ "RootMappingRule").headOption match {
+            case Some(node) =>
+              RootMappingRuleFormat.read(node)
+            case None =>
+              RootMappingRule.empty
+          }
         }
       }
 

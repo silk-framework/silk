@@ -36,6 +36,10 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
     val oldLocalFile = new File(System.getProperty("user.home") + "/.silk/datasets/" + name)
     // Current method of searching for files in the configured base dir
     val newFile = new File(baseDir, name)
+    if(!newFile.getCanonicalPath.startsWith(baseDir.getCanonicalPath)) {
+      throw new IllegalArgumentException("Illegal resource access: '" + name +
+        "'. Requesting resources outside of the resource base directory is not permitted.")
+    }
 
     // Try to find the file in all locations
     val file =

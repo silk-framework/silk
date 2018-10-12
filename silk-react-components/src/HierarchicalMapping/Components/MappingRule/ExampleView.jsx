@@ -1,5 +1,5 @@
 import React from 'react';
-import {Spinner, Chip} from 'ecc-gui-elements';
+import {Spinner, Chip} from '@eccenca/gui-elements';
 import ErrorView from './ErrorView';
 import _ from 'lodash';
 
@@ -118,7 +118,7 @@ const ExampleView = React.createClass({
                                         key="path"
                                         className="ecc-silk-mapping__rulesviewer__examples-table__path">
                                         {sourcePath ? (
-                                            <Chip>{sourcePath}</Chip>
+                                            <Chip>&lrm;{sourcePath}</Chip>
                                         ) : (
                                             false
                                         )}

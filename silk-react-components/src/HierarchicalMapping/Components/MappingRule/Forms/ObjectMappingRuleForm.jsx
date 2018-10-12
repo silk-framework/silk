@@ -11,13 +11,13 @@ import {
     TextField,
     Spinner,
     ScrollingMixin,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
-import {newValueIsIRI, wasTouched} from './helpers';
+import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -26,6 +26,7 @@ import {
     MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_URI,
     trimValueLabelObject,
+    trimUriPattern,
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -139,10 +140,14 @@ const ObjectMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
-                    targetProperty: trimValueLabelObject(this.state.targetProperty),
+                    sourceProperty: trimValueLabelObject(
+                        this.state.sourceProperty
+                    ),
+                    targetProperty: trimValueLabelObject(
+                        this.state.targetProperty
+                    ),
                     targetEntityType: this.state.targetEntityType,
-                    pattern: this.state.pattern,
+                    pattern: trimUriPattern(this.state.pattern),
                     entityConnection: this.state.entityConnection === 'to',
                 },
             })
@@ -200,7 +205,7 @@ const ObjectMappingRuleForm = React.createClass({
         hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
     },
     getExampleView() {
-        if (this.state.pattern){
+        if (this.state.pattern) {
             return (
                 <ExampleView
                     id={this.props.parentId || 'root'}
@@ -211,17 +216,17 @@ const ObjectMappingRuleForm = React.createClass({
                     ruleType={MAPPING_RULE_TYPE_URI}
                 />
             );
+        } else if (this.state.uriRule) {
+            return (
+                <ExampleView
+                    id={this.props.parentId || 'root'}
+                    rawRule={this.state.uriRule}
+                    ruleType={this.state.uriRule.type}
+                />
+            );
         }
-        else if (this.state.uriRule) {
-            return <ExampleView
-                id={this.props.parentId || 'root'}
-                rawRule={this.state.uriRule}
-                ruleType={this.state.uriRule.type}
-            />;
-        }
-        else {
-            return false;
-        }
+
+        return false;
     },
     // template rendering
     render() {
@@ -264,6 +269,7 @@ const ObjectMappingRuleForm = React.createClass({
                     placeholder={'Target property'}
                     className="ecc-silk-mapping__ruleseditor__targetProperty"
                     entity="targetProperty"
+                    newOptionCreator={convertToUri}
                     isValidNewOption={newValueIsIRI}
                     creatable
                     ruleId={autoCompleteRuleId}
@@ -311,11 +317,12 @@ const ObjectMappingRuleForm = React.createClass({
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder={'Value path'}
+                    key={this.state.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={autoCompleteRuleId}
+                    ruleId={parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'

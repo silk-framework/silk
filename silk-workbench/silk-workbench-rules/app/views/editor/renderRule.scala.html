@@ -8,8 +8,9 @@
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(rule: org.silkframework.rule.Operator,
-  project: Project)
+  project: Project)(implicit userContext: UserContext)
 
 @drawLevel(Seq(rule), (countLevels(rule) - 1) * 250, maxWidth(rule) * 200)
 
@@ -67,7 +68,7 @@
       @transformationBox(id, transformer.pluginSpec, parameterValues(transformer, transformer.pluginSpec), x, y, true, project)
     }
     case PathInput(id, path) => {
-      @pathBox(id, isSourceInput(op), path.serialize(project.config.prefixes), x, y, true, project)
+      @pathBox(id, isSourceInput(op), path.serialize()(project.config.prefixes), x, y, true, project)
     }
   }
 }
@@ -139,14 +140,14 @@
       }
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilarityTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
+      var @targetEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilarityTarget);
+      var @sourceEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       @for(op <- operators) {
         jsPlumb.connect({
-        source: endpoint_@{op.id}_source,
-        target: endpoint_@{id}_target
+        source: @sourceEndpoint(op.id),
+        target: @targetEndpoint(id)
         });
       }
     }
@@ -156,17 +157,17 @@
       @connectOperator(inputs.target)
 
       @* Create endpoints *@
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
+      var @targetEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var @sourceEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       jsPlumb.connect({
-      source: endpoint_@{inputs.source.id}_source,
-      target: endpoint_@{id}_target
+      source: @sourceEndpoint(inputs.source.id),
+      target: @targetEndpoint(id)
       });
       jsPlumb.connect({
-      source: endpoint_@{inputs.target.id}_source,
-      target: endpoint_@{id}_target
+      source: @sourceEndpoint(inputs.target.id),
+      target: @targetEndpoint(id)
       });
     }
     case TransformInput(id, transformer, inputs) => {
@@ -175,19 +176,27 @@
         @connectOperator(input)
       }
 
-      var endpoint_@{id}_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
+      var @targetEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var @sourceEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
 
       @* Connect children *@
       @for(input <- inputs) {
         jsPlumb.connect({
-        source: endpoint_@{input.id}_source,
-        target: endpoint_@{id}_target
+        source: @sourceEndpoint(input.id),
+        target: @targetEndpoint(id)
         });
       }
     }
     case PathInput(id, path) => {
-      var endpoint_@{id}_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
+      var @sourceEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueSource);
     }
   }
+}
+
+@sourceEndpoint(id: String) = @{
+  "endpoint_" + id.replace('-', '$') + "_source"
+}
+
+@targetEndpoint(id: String) = @{
+  "endpoint_" + id.replace('-', '$') + "_target"
 }

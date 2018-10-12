@@ -1,13 +1,13 @@
-@import plugins.Context
-@import org.silkframework.rule.{TransformRule, TransformSpec}
-@import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
+@import controllers.rules.routes.Assets
 @import org.silkframework.entity.ValueType
+@import org.silkframework.rule.{TransformRule, TransformSpec}
 @import org.silkframework.runtime.serialization.XmlSerialization.toXml
+@import org.silkframework.workbench.Context
+@import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
-@import org.silkframework.workspace.User
 @import org.silkframework.rule.input.Transformer
 
 @header = {
@@ -119,7 +119,7 @@
 
 @content = {
   <div class="draggables mdl-shadow--2dp">
-    <div class="palette-header">
+    <div id="palette-header">
     </div>
 
     <div id="operators-grouped">
@@ -152,4 +152,4 @@
   </div>
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

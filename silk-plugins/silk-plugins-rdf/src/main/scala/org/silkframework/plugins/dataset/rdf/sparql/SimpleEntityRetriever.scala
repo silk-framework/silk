@@ -17,6 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -25,7 +26,8 @@ import org.silkframework.util.Uri
 class SimpleEntityRetriever(endpoint: SparqlEndpoint,
                             pageSize: Int = SimpleEntityRetriever.DEFAULT_PAGE_SIZE,
                             graphUri: Option[String] = None,
-                            useOrderBy: Boolean = true, useSubSelect: Boolean = true) extends EntityRetriever {
+                            useOrderBy: Boolean = true,
+                            useSubSelect: Boolean = false) extends EntityRetriever {
   private val varPrefix = "v"
 
   /**
@@ -35,7 +37,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveAll(entitySchema, limit, entities)
   }
 
@@ -45,7 +48,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entitySchema The entity schema
    * @return The retrieved entities
    */
-  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri]): Traversable[Entity] = {
+  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
     //Select
     val sparql = new StringBuilder
@@ -54,10 +58,13 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     sparql append selectVariables
     sparql append "\n"
 
+    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
+    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+
     //Body
     sparql append "WHERE {\n"
-    //Graph
-    for (graph <- graphUri if !graph.isEmpty) sparql append s"GRAPH <$graph> {\n"
+    // GRAPH in subselect case
+    for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"GRAPH <$graph> {\n"
 
     if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
       sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
@@ -66,7 +73,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
     }
 
     sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
-    for (graph <- graphUri if !graph.isEmpty) sparql append "}\n" // END graph
+    // End GRAPH in subselect case
+    for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE
     if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
 
@@ -118,7 +126,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
           if (resultSubject != curSubject) {
             for (curSubjectUri <- curSubject) {
-              f(new Entity(curSubjectUri, values, entitySchema))
+              f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
               counter += 1
               if(limit.exists(counter >= _))
                 return
@@ -140,7 +148,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
       }
 
       for (curSubjectUri <- curSubject) {
-        f(new Entity(curSubjectUri, values, entitySchema))
+        f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
       }
     }
   }

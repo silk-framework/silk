@@ -3,15 +3,16 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.plugin.Parameter
 @import org.silkframework.runtime.plugin.ParameterType._
+@import org.silkframework.workspace.WorkspaceFactory
+@import org.silkframework.runtime.activity.UserContext
 
-@import org.silkframework.workspace.User
 @(opType: String,
   id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int,
   display: Boolean,
-  project: Project)(additionalContent: Html)
+  project: Project)(additionalContent: Html)(implicit userContext: UserContext)
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div"
      style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
@@ -56,7 +57,7 @@
       val resources = project.resources.listRecursive
       enumParameter(param, resources, resources, value)
     case ProjectReferenceType =>
-      val projectNames = User().workspace.projects.map(_.name.toString)
+      val projectNames = WorkspaceFactory().workspace.projects.map(_.name.toString)
       enumParameter(param, projectNames, projectNames, value)
     case TaskReferenceType =>
       val taskNames = project.allTasks.map(_.id.toString)

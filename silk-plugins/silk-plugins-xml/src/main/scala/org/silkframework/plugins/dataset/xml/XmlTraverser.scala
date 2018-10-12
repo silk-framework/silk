@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import java.net.URLEncoder
 
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 
 import scala.xml.{Node, Text}
@@ -52,7 +53,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def generateUri(uriPattern: String): String = {
     if (uriPattern.isEmpty) {
-      "urn:instance:" + node.label + nodeId
+      DataSource.generateEntityUri(node.label, nodeId)
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)
@@ -124,7 +125,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def evaluatePathAsString(path: TypedPath, uriPattern: String): Seq[String] = {
     val fetchEntityUri = path.valueType == UriValueType
-    val xml = evaluatePath(path.path)
+    val xml = evaluatePath(path)
     xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
   }
 

@@ -18,7 +18,7 @@ import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.{Individual, Population}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 import scala.util.Random
 
@@ -33,7 +33,8 @@ class Reproduction(population: Population,
 
   private val mutation = new MutationFunction(crossover, generator)
 
-  override def run(context: ActivityContext[Population]): Unit = {
+  override def run(context: ActivityContext[Population])
+                  (implicit userContext: UserContext): Unit = {
     //Get the best individuals and recompute their fitness as the reference links may have changed
     val elite = individuals.sortBy(-_.fitness)
                            .take(config.reproduction.elitismCount)

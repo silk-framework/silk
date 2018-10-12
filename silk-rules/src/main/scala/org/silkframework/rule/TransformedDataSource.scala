@@ -1,10 +1,13 @@
 package org.silkframework.rule
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.config.Task
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
   * A data source that transforms all entities using a provided transformation.
@@ -18,7 +21,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     *
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
-  override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int] = None)
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     for(TypeMapping(name, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
@@ -31,7 +35,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param depth Only retrieve paths up to a certain length. No effect on this data source as all paths are of length one.
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     transformRule.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
   }
 
@@ -42,7 +47,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit        Limits the maximum number of retrieved entities
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveEntities(entitySchema, None, limit)
   }
 
@@ -53,38 +59,69 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param entities     The URIs of the entities to be retrieved.
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    retrieveEntities(entitySchema, Some(entities), None).toSeq
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      retrieveEntities(entitySchema, Some(entities), None)
+    }
   }
 
-  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int]) = {
+  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[Entity] = {
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
-      for(typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.path))
+      for (typedPath <- entitySchema.typedPaths) yield {
+        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath))
       }
 
-    val allRules = (subjectRule ++ pathRules.flatten).toSeq
-
-    val sourceEntities = entities match {
-      case Some(uris) => source.retrieveByUri(inputSchema, uris)
-      case None => source.retrieve(inputSchema, limit)
+    val sourceEntities = source.retrieve(inputSchema, limit)
+    def transformedUri: (Entity) => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+    // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
+    val filterEntity: (Entity) => Boolean = entities match {
+      case Some(uris) =>
+        val uriSet = uris.map(_.uri.toString).toSet
+        (entity) =>  {
+          val uri = transformedUri(entity)
+          uriSet.contains(uri)
+        }
+      case None =>
+        (_) => true
     }
 
-    for(entity <- sourceEntities.view) yield {
-      val uri = subjectRule.flatMap(_(entity).headOption).getOrElse(entity.uri)
-      val values =
-        for(rules <- pathRules) yield {
-          try {
-            rules.flatMap(rule => rule(entity))
-          } catch {
-            case NonFatal(ex) =>
-              // TODO forward error
-              Seq.empty
+    new Traversable[Entity] {
+      override def foreach[U](f: Entity => U): Unit = {
+        for (entity <- sourceEntities if filterEntity(entity)) yield {
+          val uri = transformedUri(entity)
+          transformedValues(pathRules, entity) match {
+            case Left(transformedValues) =>
+              f(Entity(uri, transformedValues, entitySchema))
+            case Right(throwable) =>
+              f(Entity(uri, entitySchema, FailureClass(throwable, source.underlyingTask.id)))
           }
         }
-
-      new Entity(uri, values, entitySchema)
+      }
     }
   }
+
+  private def transformedValues[U](pathRules: IndexedSeq[Seq[TransformRule]], entity: Entity): Either[IndexedSeq[Seq[String]], Throwable] = {
+    val transformedValues = (for (rules <- pathRules) yield {
+      Try {
+        rules.flatMap(rule => rule(entity))
+      }
+    }).map {
+      case Success(v) => v
+      case Failure(f) =>
+        return Right(f)
+    }
+    Left(transformedValues)
+  }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
 }

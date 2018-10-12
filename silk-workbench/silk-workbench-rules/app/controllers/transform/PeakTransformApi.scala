@@ -1,18 +1,22 @@
 package controllers.transform
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
@@ -39,8 +43,7 @@ class PeakTransformApi extends Controller {
     */
   def peak(projectName: String,
            taskName: String,
-           ruleName: String): Action[AnyContent] = Action { implicit request =>
-
+           ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -54,8 +57,7 @@ class PeakTransformApi extends Controller {
     */
   def peakChildRule(projectName: String,
                     taskName: String,
-                    ruleName: String): Action[AnyContent] = Action { implicit request =>
-
+                    ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -70,14 +72,14 @@ class PeakTransformApi extends Controller {
   }
 
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata)
-                      (implicit request: Request[AnyContent]): Result = {
-
+                      (implicit request: Request[AnyContent],
+                       userContext: UserContext): Result = {
     val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
     val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     project.anyTask(inputTaskId).data match {
-      case dataset: DatasetSpec =>
+      case dataset: GenericDatasetSpec =>
         dataset.plugin.source match {
           case peakDataSource: PeakDataSource =>
             try {
@@ -111,18 +113,20 @@ class PeakTransformApi extends Controller {
                                        limit: Int,
                                        maxTryEntities: Int,
                                        sparqlSelectTask: SparqlSelectCustomTask)
-                                      (implicit prefixes: Prefixes): Result = {
+                                      (implicit prefixes: Prefixes,
+                                       userContext: UserContext): Result = {
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset.toString == "") {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
           s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
-      project.task[DatasetSpec](sparqlDataset).data.plugin match {
+      val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
+      datasetTask.data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
-          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, rdfDataset))
+          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
           val executor = LocalSparqlSelectExecutor()
           val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities)
-          val entityDatasource = EntityDatasource(entities, sparqlSelectTask.outputSchema)
+          val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)
             generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
@@ -203,7 +207,8 @@ class PeakTransformApi extends Controller {
     }
   }
 
-  private def projectAndTask(projectName: String, taskName: String) = {
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 

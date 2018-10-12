@@ -17,26 +17,29 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{Identifier, SampleUtil, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
 import scala.xml.Node
 
 /**
   * A dataset of entities.
+  *
+  * @param uriProperty Setting this URI will generate an additional property for each entity.
+                       The additional property contains the URI of each entity.
   */
-case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends TaskSpec with Dataset {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  private val log = Logger.getLogger(DatasetSpec.getClass.getName)
+  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
-  def source: DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 
-  def entitySink: EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
-
-  def linkSink: LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -44,34 +47,49 @@ case class DatasetSpec(plugin: Dataset, uriProperty: Option[Uri] = None) extends
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = None
 
+  /** The resources that are referenced by this dataset. */
+  override def referencedResources: Seq[Resource] = plugin.referencedResources
+
+  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    var properties =
+      plugin match {
+        case Dataset(p, params) =>
+          Seq(("type", p.label)) ++ params
+      }
+    for(uriProperty <- uriProperty) {
+      properties :+= ("URI Property", uriProperty.uri)
+    }
+    properties
+  }
+
   override def toString: String = DatasetSpec.toString
 
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec, metaData: MetaData = MetaData.empty) extends Task[DatasetSpec]
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]]
 
 object DatasetSpec {
 
-  implicit def toTransformTask(task: Task[DatasetSpec]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
+  /**
+    * A DatasetSpec that is agnostic of the actual Dataset type.
+    */
+  type GenericDatasetSpec = DatasetSpec[Dataset]
 
-  def empty = {
-    new DatasetSpec(EmptyDataset)
-  }
+  implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
-  case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec) extends DataSource {
+  def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
 
-    override def retrieveTypes(limit: Option[Int] = None): Traversable[(String, Double)] = {
+  case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
+
+    override def retrieveTypes(limit: Option[Int] = None)
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 
-    override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None): IndexedSeq[Path] = {
+    override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
+                              (implicit userContext: UserContext): IndexedSeq[Path] = {
       source.retrievePaths(typeUri, depth, limit)
-    }
-
-    override def sampleEntities(entityDesc: EntitySchema,
-                                size: Int,
-                                filterOpt: Option[Entity => Boolean]): Seq[Entity] = {
-      sampleEntities(entityDesc, size, filterOpt)
     }
 
     /**
@@ -81,7 +99,8 @@ object DatasetSpec {
       * @param limit        Limits the maximum number of retrieved entities
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities, adaptedSchema)
@@ -94,10 +113,15 @@ object DatasetSpec {
       * @param entities     The URIs of the entities to be retrieved.
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-      val adaptedSchema = adaptSchema(entitySchema)
-      val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-      adaptUris(retrievedEntities, adaptedSchema).toSeq
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Traversable[Entity] = {
+      if(entities.isEmpty) {
+        Seq.empty
+      } else {
+        val adaptedSchema = adaptSchema(entitySchema)
+        val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
+        adaptUris(retrievedEntities, adaptedSchema)
+      }
     }
 
     /**
@@ -118,21 +142,27 @@ object DatasetSpec {
     private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          val uriIndex = entitySchema.pathIndex(Path.parse(property.uri))
           for (entity <- entities) yield {
-            new Entity(
-              uri = entity.evaluate(uriIndex).headOption.getOrElse(entity.uri),
+            Entity(
+              uri = new Uri(entity.singleValue(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
-              desc = entity.desc
+              schema = entity.schema
             )
           }
         case None =>
           entities
       }
     }
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      *
+      * @return
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -143,7 +173,8 @@ object DatasetSpec {
     /**
       * Initializes this writer.
       */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                          (implicit userContext: UserContext){
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -159,10 +190,11 @@ object DatasetSpec {
       isOpen = true
     }
 
-    override def writeEntity(subject: String, values: Seq[Seq[String]]) {
+    override def writeEntity(subject: String, values: Seq[Seq[String]])
+                            (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriProperty match {
-        case Some(property) =>
+        case Some(_) =>
           entitySink.writeEntity(subject, Seq(subject) +: values)
         case None =>
           entitySink.writeEntity(subject, values)
@@ -174,7 +206,7 @@ object DatasetSpec {
     /**
       * Closes the current table.
       */
-    override def closeTable() {
+    override def closeTable()(implicit userContext: UserContext) {
       if (entitySink != null) entitySink.closeTable()
       isOpen = false
     }
@@ -182,7 +214,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close() {
+    override def close()(implicit userContext: UserContext) {
       if (entitySink != null) entitySink.close()
       isOpen = false
       log.info(s"Wrote $entityCount entities.")
@@ -191,10 +223,10 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(): Unit = entitySink.clear()
+    override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
   }
 
-  case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec) extends LinkSink {
+  case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec[Dataset]) extends LinkSink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -202,7 +234,7 @@ object DatasetSpec {
 
     private var isOpen = false
 
-    override def init(): Unit = {
+    override def init()(implicit userContext: UserContext): Unit = {
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -214,7 +246,8 @@ object DatasetSpec {
     /**
       * Writes a new link to this writer.
       */
-    override def writeLink(link: Link, predicateUri: String) {
+    override def writeLink(link: Link, predicateUri: String)
+                          (implicit userContext: UserContext): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
       linkSink.writeLink(link, predicateUri)
@@ -224,7 +257,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close() {
+    override def close()(implicit userContext: UserContext) {
       if (linkSink != null) linkSink.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")
@@ -233,17 +266,19 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(): Unit = linkSink.clear()
+    override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
   }
 
   /**
     * XML serialization format.
     */
-  implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec] {
+  implicit object DatasetSpecFormat extends XmlFormat[DatasetSpec[Dataset]] {
 
-    def read(node: Node)(implicit readContext: ReadContext): DatasetSpec = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resources = readContext.resources
+    override def tagNames: Set[String] = Set("Dataset")
+
+    def read(node: Node)(implicit readContext: ReadContext): DatasetSpec[Dataset] = {
+      implicit val prefixes: Prefixes = readContext.prefixes
+      implicit val resources: ResourceManager = readContext.resources
 
       // Check if the data source still uses the old outdated XML format
       if (node.label == "DataSource" || node.label == "Output") {
@@ -265,7 +300,7 @@ object DatasetSpec {
       }
     }
 
-    def write(value: DatasetSpec)(implicit writeContext: WriteContext[Node]): Node = {
+    def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriProperty.map(_.uri).getOrElse("")}>
@@ -277,11 +312,11 @@ object DatasetSpec {
 
   implicit object DatasetTaskXmlFormat extends XmlFormat[DatasetTask] {
     override def read(value: Node)(implicit readContext: ReadContext): DatasetTask = {
-      new TaskFormat[DatasetSpec].read(value)
+      new TaskFormat[DatasetSpec[Dataset]].read(value)
     }
 
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[Node]): Node = {
-      new TaskFormat[DatasetSpec].write(value)
+      new TaskFormat[DatasetSpec[Dataset]].write(value)
     }
   }
 

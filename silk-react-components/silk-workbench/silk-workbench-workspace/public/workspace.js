@@ -93,8 +93,19 @@ silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.s
 silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
 */
 function reloadWorkspace() {
+    // Get the scroll position of the content container and set it after reloading
+    const contentScrollTop = document.getElementsByClassName(
+        'mdl-layout__content'
+    )[0].scrollTop;
     $.get(`${baseUrl}/workspace/tree`, function(data) {
         $('#workspace_tree').html(data);
+        if (contentScrollTop > 50) {
+            setTimeout(function() {
+                document.getElementsByClassName(
+                    'mdl-layout__content'
+                )[0].scrollTop = contentScrollTop;
+            }, 200);
+        }
     }).fail(function(request) {
         alert(`Error reloading workspace: ${request.responseText}`);
     });
@@ -118,41 +129,55 @@ function workspaceDialog(relativePath) {
     showDialog(`${baseUrl}/${relativePath}`);
 }
 
+function handleError(request, callback) {
+    let responseMessage;
+    try {
+        const responseJson = JSON.parse(request.responseText);
+        responseMessage = responseJson.message; // Old format
+        if (responseMessage === undefined) {
+            if (responseJson.title === 'Bad Request') {
+                responseMessage = 'Task could not be saved! Details: ';
+            } else {
+                responseMessage = '';
+            }
+            let finestDetail = responseJson;
+            while (finestDetail.cause !== null) {
+                finestDetail = finestDetail.cause;
+            }
+            responseMessage += finestDetail.title;
+            responseMessage = `${responseMessage}: ${finestDetail.detail}`;
+        }
+    } catch (e) {
+        responseMessage = 'Task could not be saved!';
+
+        if (request.responseText && request.responseText.length > 0) {
+            responseMessage += ` Details: ${request.responseText}`;
+        }
+    }
+    callback(responseMessage);
+}
+
 /* exported putTask
 silk-workbench/silk-workbench-workspace/app/views/workspace/customTask/customTaskDialog.scala.html
 silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
  */
 function putTask(
-    path,
-    xml,
+    project,
+    task,
+    json,
     callbacks = {
         success() {},
         error() {},
     }
 ) {
     $.ajax({
-        type: 'PUT',
-        url: path,
-        contentType: 'text/xml;charset=UTF-8',
+        type: 'PATCH',
+        url: `${baseUrl}/workspace/projects/${project}/tasks/${task}`,
+        contentType: 'application/json;charset=UTF-8',
         processData: false,
-        data: xml,
+        data: JSON.stringify(json),
         error(request) {
-            const responseJson = JSON.parse(request.responseText);
-            var responseMessage = responseJson.message; // Old format
-            if (responseMessage === undefined) {
-                if (responseJson.title === 'Bad Request') {
-                    responseMessage = 'Task could not be saved! Details: ';
-                } else {
-                    responseMessage = '';
-                }
-                var finestDetail = responseJson;
-                while (finestDetail.cause !== null) {
-                    finestDetail = finestDetail.cause;
-                }
-                responseMessage = `${responseMessage +
-                    finestDetail.title}: ${finestDetail.detail}`;
-            }
-            callbacks.error(responseMessage);
+            handleError(request, callbacks.error);
         },
         success() {
             reloadWorkspace();
@@ -162,42 +187,27 @@ function putTask(
 }
 
 function postTask(
-    path,
-    xml,
+    project,
+    json,
     callbacks = {
-      success() {},
-      error() {},
+        success() {},
+        error() {},
     }
 ) {
-  $.ajax({
-    type: 'POST',
-    url: path,
-    contentType: 'text/xml;charset=UTF-8',
-    processData: false,
-    data: xml,
-    error(request) {
-      const responseJson = JSON.parse(request.responseText);
-      var responseMessage = responseJson.message; // Old format
-      if (responseMessage === undefined) {
-        if (responseJson.title === 'Bad Request') {
-          responseMessage = 'Task could not be saved! Details: ';
-        } else {
-          responseMessage = '';
-        }
-        var finestDetail = responseJson;
-        while (finestDetail.cause !== null) {
-          finestDetail = finestDetail.cause;
-        }
-        responseMessage = `${responseMessage +
-        finestDetail.title}: ${finestDetail.detail}`;
-      }
-      callbacks.error(responseMessage);
-    },
-    success() {
-      reloadWorkspace();
-      callbacks.success();
-    },
-  });
+    $.ajax({
+        type: 'POST',
+        url: `${baseUrl}/workspace/projects/${project}/tasks`,
+        contentType: 'application/json;charset=UTF-8',
+        processData: false,
+        data: JSON.stringify(json),
+        error(request) {
+            handleError(request, callbacks.error);
+        },
+        success() {
+            reloadWorkspace();
+            callbacks.success();
+        },
+    });
 }
 
 /* exported deleteProject

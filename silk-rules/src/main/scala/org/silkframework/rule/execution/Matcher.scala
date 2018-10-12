@@ -15,12 +15,13 @@
 package org.silkframework.rule.execution
 
 import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -45,41 +46,41 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
   private val log = Logger.getLogger(getClass.getName)
 
-  /** Indicates if this task has been canceled. */
-  @volatile private var canceled = false
-
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
+  override def run(context: ActivityContext[IndexedSeq[Link]])
+                  (implicit userContext: UserContext): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
     context.value.update(IndexedSeq.empty)
-    canceled = false
+    cancelled = false
 
     //Create execution service for the matching tasks
     val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
-    val scheduler = new SchedulerThread(executor)
+    val error = new AtomicReference[Option[String]](None)
+    val scheduler = new SchedulerThread(executor, error)
     scheduler.start()
-
-    // Wait for completion of loaders
-    loaders.foreach(_.waitUntilFinished())
 
     //Process finished tasks
     var finishedTasks = 0
     var lastLog: Long = 0
     val minLogDelayInMs = 1000
-    while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount)) {
+    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && error.get().isEmpty) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
         finishedTasks += 1
 
-        if(System.currentTimeMillis() - lastLog > minLogDelayInMs || finishedTasks == scheduler.taskCount) {
+        for(linkLimit <- runtimeConfig.linkLimit if context.value().size >= linkLimit) {
+          cancelled = true
+        }
+
+        if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
           //Update status
           updateStatus(context, finishedTasks, scheduler.taskCount)
           lastLog = System.currentTimeMillis()
@@ -87,35 +88,37 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
-      context.value.update(context.value() ++ result.get)
+    error.get() match {
+      case Some(schedulerThreadErrorMessage) =>
+        throw new RuntimeException("" + schedulerThreadErrorMessage)
+      case None =>
+        for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
+          context.value.update(context.value() ++ result.get)
+          updateStatus(context, finishedTasks, scheduler.taskCount)
+        }
     }
 
     //Shutdown
     if (scheduler.isAlive)
       scheduler.interrupt()
 
-    if(canceled)
+    if(cancelled)
       executorService.shutdownNow()
     else
       executorService.shutdown()
   }
 
   private def updateStatus(context: ActivityContext[IndexedSeq[Link]], finishedTasks: Int, nrOfTasks: Int): Unit = {
-    val statusPrefix = "Matching:"
+    val statusPrefix = if (loaders.exists(_.status().isRunning)) "Matching (loading):" else "Matching:"
     val statusTasks = " " + finishedTasks + " tasks "
     val statusLinks = " " + context.value().size + " links."
     context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
   }
 
-  override def cancelExecution() {
-    canceled = true
-  }
-
   /**
    * Monitors the entity caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]]) extends Thread {
+  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]], error: AtomicReference[Option[String]]) extends Thread {
     @volatile var taskCount = 0
 
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
@@ -125,17 +128,26 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       try {
         var sourceLoading = true
         var targetLoading = true
+        var loaderSuccessful = true
 
         do {
           sourceLoading = loaders.source.status().isRunning
           targetLoading = loaders.target.status().isRunning
+          loaderSuccessful = !Seq(loaders.source, loaders.target).exists(_.status.get.exists(_.failed))
 
           updateSourcePartitions(!sourceLoading)
           updateTargetPartitions(!targetLoading)
 
-        } while(sourceLoading || targetLoading)
+          Thread.sleep(500)
+
+        } while((sourceLoading || targetLoading) && loaderSuccessful)
+        val failedLoaders = Seq(loaders.source, loaders.target).filter(_.status.get.exists(_.failed))
+        if(failedLoaders.nonEmpty) { // One of the loaders failed
+          val loaderErrorMessages = failedLoaders.map(l => s"${l.name} task failed: ${l.status.get.get.message}").mkString(", ")
+          error.set(Some(loaderErrorMessages))
+        }
       } catch {
-        case ex: InterruptedException =>
+        case _: InterruptedException =>
       }
     }
 

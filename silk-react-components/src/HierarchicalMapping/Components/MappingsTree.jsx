@@ -11,7 +11,7 @@ import {
     Card,
     CardTitle,
     CardContent,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 
 import Navigation from '../Mixins/Navigation';
 import UseMessageBus from '../UseMessageBusMixin';
@@ -73,7 +73,6 @@ const MappingsTree = React.createClass({
                 });
             },
             err => {
-                console.warn('err MappingsTree: hierarchy.get', err);
                 this.setState({loading: false});
             }
         );
@@ -161,9 +160,11 @@ const MappingsTree = React.createClass({
             return (
                 <div>
                     <div
-                        className={`ecc-silk-mapping__treenav--item${isHighlighted
-                            ? ' ecc-silk-mapping__treenav--item-active'
-                            : ''}`}>
+                        className={`ecc-silk-mapping__treenav--item${
+                            isHighlighted
+                                ? ' ecc-silk-mapping__treenav--item-active'
+                                : ''
+                        }`}>
                         {!_.isEmpty(childs) ? (
                             <Button
                                 className="ecc-silk-mapping__treenav--item-toggler"

@@ -14,10 +14,11 @@
 
 package org.silkframework.rule.plugins
 
+import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
-import org.silkframework.rule.TransformSpec.TransformTaskXmlFormat
+import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
@@ -37,7 +38,7 @@ import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransform
 import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, ValuesToIndexesTransformer}
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
-import org.silkframework.rule.plugins.transformer.validation.{ValidateDateAfter, ValidateDateRange, ValidateNumericRange, ValidateRegex}
+import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
 import org.silkframework.runtime.plugin.PluginModule
 
@@ -67,6 +68,7 @@ class RulePlugins extends PluginModule {
         classOf[StripPrefixTransformer] ::
         classOf[StripPostfixTransformer] ::
         classOf[StripUriPrefixTransformer] ::
+        classOf[UriFixTransformer] ::
         classOf[AlphaReduceTransformer] ::
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::
@@ -108,6 +110,7 @@ class RulePlugins extends PluginModule {
         classOf[CompareNumbersTransformer] ::
         classOf[CountTransformer] ::
         classOf[PhysicalQuantityExtractor] ::
+        classOf[FormatNumber] ::
         // Date
         classOf[TimestampToDateTransformer] ::
         classOf[DateToTimestampTransformer] ::
@@ -124,6 +127,7 @@ class RulePlugins extends PluginModule {
         classOf[ValidateNumericRange] ::
         classOf[ValidateDateAfter] ::
         classOf[ValidateRegex] ::
+        classOf[ValidateNumberOValues] ::
         // Sequence
         classOf[GetValueByIndexTransformer] ::
         classOf[ValuesToIndexesTransformer] ::
@@ -152,7 +156,9 @@ class RulePlugins extends PluginModule {
         classOf[TokenwiseStringDistance] ::
         classOf[RelaxedEqualityMetric] ::
         classOf[CosineDistanceMetric] ::
-        classOf[ConstantMetric] :: Nil
+        classOf[ConstantMetric] ::
+        classOf[StartsWithDistance] ::
+        Nil
 
   private def aggregators =
     classOf[AverageAggregator] ::
@@ -162,9 +168,11 @@ class RulePlugins extends PluginModule {
         classOf[GeometricMeanAggregator] :: Nil
 
   private def serializers =
+    TransformSpecFormat.getClass ::
     TransformTaskXmlFormat.getClass ::
     TransformRuleFormat.getClass ::
     MappingRulesFormat.getClass ::
     RootMappingRuleFormat.getClass ::
+    LinkSpecificationFormat.getClass ::
     Nil
 }

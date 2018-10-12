@@ -34,7 +34,7 @@ case class SecsDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDis
     Utils.evaluateDistance(str1, str2, limit, Constants.SECS_DISTANCE)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter, distance, Constants.SECS_DISTANCE)
   }
 }

@@ -2,9 +2,9 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.entity.TypedPath
 import org.silkframework.rule.DatasetSelection
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
@@ -16,9 +16,10 @@ trait PathsCacheTrait {
   def retrievePathsOfInput(taskId: Identifier,
                            dataSelection: Option[DatasetSelection],
                            task: ProjectTask[_],
-                           context: ActivityContext[CachedEntitySchemata]): IndexedSeq[TypedPath] = {
+                           context: ActivityContext[CachedEntitySchemata])
+                          (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     task.project.anyTask(taskId).data match {
-      case dataset: DatasetSpec =>
+      case dataset: DatasetSpec[Dataset] =>
         val source = dataset.source
         //Retrieve most frequent paths
         context.status.update("Retrieving frequent paths", 0.0)

@@ -7,7 +7,7 @@ import {
     Radio,
     RadioGroup,
     NotAvailable,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
@@ -213,7 +213,15 @@ const ObjectRule = React.createClass({
 
         let uriPatternLabel = `URI pattern`;
         let tooltipText;
-        let removeButton = false;
+        let removeButton = (
+            <Button
+                raised
+                iconName="delete"
+                className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
+                onClick={this.removeUriRule}
+                tooltip="Reset to default pattern"
+            />
+        );
 
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
             uriPattern = (
@@ -235,26 +243,18 @@ const ObjectRule = React.createClass({
                     URI uses {paths.length} value{' '}
                     {paths.length > 1 ? 'paths' : 'path'}:&nbsp;
                     <code>{paths.join(', ')}</code>&nbsp;and {operators.length}&nbsp;
-                    operator {operators.length > 1
-                        ? 'functions'
-                        : 'function'}:&nbsp;<code>{operators.join(', ')}</code>.
+                    operator {operators.length > 1 ? 'functions' : 'function'}:&nbsp;<code>
+                        {operators.join(', ')}
+                    </code>.
                 </span>
             );
             tooltipText = 'Edit URI formula';
-            removeButton = (
-                <Button
-                    raised
-                    iconName="delete"
-                    className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
-                    onClick={this.removeUriRule}
-                    tooltip="Remove URI formula"
-                />
-            );
         } else {
             uriPattern = (
                 <NotAvailable label="automatic default pattern" inline />
             );
             tooltipText = 'Create URI formula';
+            removeButton = false;
         }
 
         uriPattern = (
@@ -372,7 +372,8 @@ const ObjectRule = React.createClass({
                                 uri: this.props.mappingTarget.uri,
                                 type: this.props.type,
                                 parent: this.props.parentId,
-                            })}>
+                            })
+                    }>
                     Remove
                 </DisruptiveButton>
             );

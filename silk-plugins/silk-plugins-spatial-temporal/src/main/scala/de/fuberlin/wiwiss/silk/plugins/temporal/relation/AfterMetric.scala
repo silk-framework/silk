@@ -34,7 +34,7 @@ case class AfterMetric() extends SimpleDistanceMeasure {
     Utils.evaluateRelation(str1, str2, Constants.AFTER)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Index.default
   }
 }

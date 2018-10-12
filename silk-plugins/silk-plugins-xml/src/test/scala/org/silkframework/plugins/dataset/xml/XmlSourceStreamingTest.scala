@@ -5,9 +5,9 @@ import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryReso
 
 class XmlSourceStreamingTest extends XmlSourceTestBase {
 
-  override def xmlSource(uriPattern: String): DataSource with XmlSourceTrait = {
+  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml/")
-    val source = new XmlSourceStreaming(resources.get("persons.xml"), "", uriPattern)
+    val source = new XmlSourceStreaming(resources.get(name), "", uriPattern)
     source
   }
 
@@ -25,6 +25,6 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
     xmlResource.writeString(xml)
     val xmlDataset = XmlDataset(xmlResource)
     val paths = xmlDataset.source.retrievePaths("")
-    paths.map(_.serialize) shouldBe Seq("/AdditionalAttribute")
+    paths.map(_.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
   }
 }

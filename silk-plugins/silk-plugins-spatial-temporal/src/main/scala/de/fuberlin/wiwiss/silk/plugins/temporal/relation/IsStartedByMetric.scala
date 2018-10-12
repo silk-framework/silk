@@ -34,7 +34,7 @@ case class IsStartedByMetric(blockingParameter: Double = 1.0) extends SimpleDist
     Utils.evaluateRelation(str1, str2, Constants.IS_STARTED_BY)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter)
   }
 }

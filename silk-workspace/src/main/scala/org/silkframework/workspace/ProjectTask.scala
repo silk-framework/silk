@@ -14,12 +14,14 @@
 
 package org.silkframework.workspace
 
+import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, MetaData, TaskSpec}
-import org.silkframework.runtime.activity.{HasValue, Status}
+import org.silkframework.config._
+import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -28,32 +30,37 @@ import scala.util.control.NonFatal
 
 
 /**
-  * A task that belongs to a project.
+  * A task that belongs to a project that has been loaded into the workspace.
   * [[ProjectTask]] instances are mutable, this means that the task data returned on successive calls can be different.
   *
   * @tparam TaskType The data type that specifies the properties of this task.
   */
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
-                                                   initialData: TaskType,
-                                                   initialMetaData: MetaData,
-                                                   module: Module[TaskType]) extends Task[TaskType] {
+                                                   private val initialData: TaskType,
+                                                   private val initialMetaData: MetaData,
+                                                   private val module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  @volatile
-  private var currentData: TaskType = initialData
+  // Should be used to observe the task data
+  val dataValueHolder: ValueHolder[TaskType] = new ValueHolder(Some(initialData))
 
-  @volatile
-  private var currentMetaData: MetaData = initialMetaData
+  // Should be used to observe the meta data
+  val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(
+    // Make sure that the modified timestamp is set
+    initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
+  ))
 
   @volatile
   private var scheduledWriter: Option[ScheduledFuture[_]] = None
 
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes = module.project.config.prefixes
-    implicit val resources = module.project.resources
-    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]].map(_.apply()).filter(_.isTaskType[TaskType])
+    implicit val prefixes: Prefixes = module.project.config.prefixes
+    implicit val resources: ResourceManager = module.project.resources
+    val taskType = data.getClass
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
+        .map(_.apply()).filter(_.taskType.isAssignableFrom(taskType))
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
       try {
@@ -76,14 +83,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current data of this task.
     */
-  override def data: TaskType = currentData
+  override def data: TaskType = dataValueHolder()
 
   /**
     * Retrieves the current meta data of this task.
     */
-  override def metaData = currentMetaData
+  override def metaData: MetaData = metaDataValueHolder()
 
-  def init(): Unit = {
+  def init()(implicit userContext: UserContext): Unit = {
     // Start auto-run activities
     for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
@@ -92,18 +99,34 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None)
+            (implicit userContext: UserContext): Unit = synchronized {
     // Update data
-    currentData = newData
+    dataValueHolder.update(newData)
     for(md <- newMetaData) {
-      currentMetaData = md
+      metaDataValueHolder.update(md)
     }
+
+    // Update modified timestamp if not already set in new meta data object
+    metaDataValueHolder.update(
+      metaDataValueHolder().copy(
+        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
+      )
+    )
     // (Re)Schedule write
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(new Writer(), ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
+  }
+
+  /**
+    * Updates the meta data of this task.
+    */
+  def updateMetaData(newMetaData: MetaData)
+                    (implicit userContext: UserContext): Unit = {
+    update(dataValueHolder(), Some(newMetaData))
   }
 
   /**
@@ -111,13 +134,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush(): Unit = synchronized {
+  def flush()
+           (implicit userContext: UserContext): Unit = synchronized {
     // Cancel any scheduled writer
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     // Write now
-    Writer.run()
+    new Writer().run()
   }
 
   /**
@@ -156,33 +180,47 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  def findDependentTasks(recursive: Boolean): Seq[ProjectTask[_]] = {
+  override def findDependentTasks(recursive: Boolean)
+                                 (implicit userContext: UserContext): Set[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
-    if(!recursive) {
-      dependentTasks
-    } else {
-      val indirectlyDependendTasks = dependentTasks.flatMap(_.findDependentTasks(true))
-      indirectlyDependendTasks ++ dependentTasks
+    var allDependentTaskIds = dependentTasks.map(_.id)
+    if(recursive) {
+      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
+    allDependentTaskIds.distinct.toSet
   }
 
-  private object Writer extends Runnable {
+  private class Writer(implicit userContext: UserContext) extends Runnable {
     override def run(): Unit = {
       // Write task
       module.provider.putTask(project.name, ProjectTask.this)
       log.info(s"Persisted task '$id' in project '${project.name}'")
       // Update caches
       for (activity <- taskActivities if activity.autoRun) {
-        if(!activity.control.status().isRunning)
+        if(!activity.control.status().isRunning) {
           activity.control.start()
+        }
       }
     }
   }
 
   override def toString: String = {
-    s"ProjectTask(id=$id, data=${currentData.toString}, metaData=${metaData.toString})"
+    s"ProjectTask(id=$id, data=${dataValueHolder().toString}, metaData=${metaData.toString})"
+  }
+
+  // Returns all non-empty meta data fields as key value pairs
+  def metaDataFields(): Seq[(String, String)] = {
+    // ID is part of the metaData
+    var metaDataFields: Vector[(String, String)] = Vector(("Task identifier", id.toString))
+    if(metaData.label.trim != "") {
+      metaDataFields = metaDataFields :+ "Label" -> metaData.label
+    }
+    if(metaData.description.trim != "") {
+      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    }
+    metaDataFields
   }
 }
 

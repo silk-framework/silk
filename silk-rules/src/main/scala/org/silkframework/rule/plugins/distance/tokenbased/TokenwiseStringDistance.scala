@@ -335,7 +335,7 @@ case class TokenwiseStringDistance(
    * Very simple indexing function that requires at least one common token in strings for them to
    * be compared
    */
-  override def indexValue(value: String, limit: Double): Index = {
+  override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val tokens = tokenize(value)
     if (tokens.isEmpty) {
       Index.empty
@@ -347,7 +347,7 @@ case class TokenwiseStringDistance(
         }
       }
       //Set(tokens.map(_.hashCode % blockCounts.head).toSeq)
-      val tokenIndexes = for (token <- tokens.distinct) yield metric.indexValue(token, limit)
+      val tokenIndexes = for (token <- tokens.distinct) yield metric.indexValue(token, limit, sourceOrTarget)
 
       tokenIndexes.reduce(_ merge _)
     }

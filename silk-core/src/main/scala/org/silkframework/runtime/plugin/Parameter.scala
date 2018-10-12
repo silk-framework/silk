@@ -28,6 +28,7 @@ import scala.language.existentials
   * @param defaultValue The default value, if any
   * @param exampleValue An example value for this parameter
   * @param advanced     Is this an advanced parameter that should only be changed by experienced users.
+  * @param visibleInDialog True, if it can be edited in the UI plugin dialogs.
   */
 case class Parameter(name: String,
                      dataType: ParameterType[_],
@@ -35,7 +36,8 @@ case class Parameter(name: String,
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None,
-                     advanced: Boolean) {
+                     advanced: Boolean,
+                     visibleInDialog: Boolean) {
 
   /**
    * Retrieves the current value of this parameter.

@@ -1,7 +1,7 @@
 package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Path, TypedPath}
 import org.silkframework.learning.active.UnlabeledLinkPool
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.Activity
@@ -11,6 +11,6 @@ trait LinkPoolGenerator {
 
   def generator(inputs: DPair[DataSource],
                 linkSpec: LinkSpec,
-                paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool]
+                paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool]
 
 }

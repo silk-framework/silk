@@ -1,6 +1,7 @@
 package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
@@ -8,11 +9,12 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Loc
   * Tests the SPARQL select task in a workflow.
   */
 class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+  implicit val userContext: UserContext = UserContext.Empty
   override def projectPathInClasspath: String = "org/silkframework/execution/SPARQLselect.zip"
 
   override def projectId: String = "sparqlSelectProject"
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val workflow = "sparqlSelectWorkflow"
 
@@ -24,11 +26,11 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
     val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()
     val expectedResult = """s,v
-      |http://ns.eccenca.com/unemployment20,7.2
-      |http://ns.eccenca.com/unemployment18,6.9
-      |http://ns.eccenca.com/unemployment4,6.2
-      |http://ns.eccenca.com/unemployment10,6
-      |http://ns.eccenca.com/unemployment19,7.1""".stripMargin
+      |urn:instance:unemploymentcsv#8,6
+      |urn:instance:unemploymentcsv#11,6.2
+      |urn:instance:unemploymentcsv#13,6.5
+      |urn:instance:unemploymentcsv#10,6.1
+      |urn:instance:unemploymentcsv#2,6.2""".stripMargin
     checkOutputResource("sparqlOutput.csv", expectedResult)
   }
 

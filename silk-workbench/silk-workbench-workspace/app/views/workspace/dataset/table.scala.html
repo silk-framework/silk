@@ -1,9 +1,9 @@
 @import org.silkframework.entity.Path
 @import org.silkframework.entity.Entity
-@import org.silkframework.dataset.DatasetSpec
-@import plugins.Context
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+@import org.silkframework.workbench.Context
 
-@(context: plugins.Context[DatasetSpec], paths: IndexedSeq[Path], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
+@(context: Context[GenericDatasetSpec], paths: IndexedSeq[Path], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
 
 @header = {
 }
@@ -21,12 +21,12 @@
 
   @for(entity <- entities) {
     <tr>
-      @for(i <- 0 until paths.size) {
-        <td>@entity.evaluate(i)<td>
+      @for(path <- paths) {
+        <td>@entity.evaluate(path)<td>
       }
     </tr>
   }
 </table>
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

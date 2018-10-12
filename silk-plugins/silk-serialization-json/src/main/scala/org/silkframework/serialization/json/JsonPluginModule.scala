@@ -1,16 +1,21 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.serialization.json.JsonSerializers.{JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskJsonFormat}
-import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, TransformRuleJsonFormat, VocabularyPropertyJsonFormat}
+import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
 import org.silkframework.serialization.json.InputJsonSerializer.InputJsonFormat
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskJsonFormat, VocabularyPropertyJsonFormat, _}
+import org.silkframework.serialization.json.LinkingSerializers.LinkingJsonFormat
+import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
 
 class JsonPluginModule extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
+      TaskSpecJsonFormat.getClass ::
+      GenericTaskJsonFormat.getClass ::
       JsonDatasetSpecFormat.getClass ::
+      CustomTaskJsonFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
+      LinkSpecJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
       DatasetTaskJsonFormat.getClass ::
@@ -25,5 +30,11 @@ class JsonPluginModule extends PluginModule {
       GenericInfoJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
+      WorkflowJsonFormat.getClass ::
+      classOf[WorkflowExecutionReportJsonFormat] ::
+      EntitySchemaJsonFormat.getClass ::
+      PairEntitySchemaJsonFormat.getClass ::
+      EntityHolderJsonFormat.getClass ::
+      LinkingJsonFormat.getClass ::
       Nil
 }

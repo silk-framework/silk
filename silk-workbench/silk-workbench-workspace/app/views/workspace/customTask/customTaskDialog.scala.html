@@ -1,8 +1,9 @@
 @import org.silkframework.config.CustomTask
 @import org.silkframework.runtime.plugin.PluginRegistry
 @import org.silkframework.workspace.Project
+@import org.silkframework.runtime.activity.UserContext
 
-@(project: Project, taskName: String, taskPlugin: Option[CustomTask], createDialog: Boolean)
+@(project: Project, taskName: String, taskPlugin: Option[CustomTask], createDialog: Boolean)(implicit userContext: UserContext)
 
 @widgets.pluginDialog(
   project,
@@ -14,22 +15,22 @@
 
     <script type="text/javascript">
       function savePlugin(pluginId, name, parameters, callbacks) {
-        // Build dataset xml
-        var ctDoc = document.implementation.createDocument("", "CustomTask", null);
-        var ct = ctDoc.documentElement;
-        ct.setAttribute('id', name);
-        ct.setAttribute('type', pluginId);
-        for(var i in parameters) {
-          var param = ctDoc.createElement('Param');
-          param.setAttribute('name', parameters[i].name);
-          param.appendChild(ctDoc.createCDATASection(parameters[i].value));
-          ct.appendChild(param);
-        }
-        var oSerializer = new XMLSerializer();
-        var xml = oSerializer.serializeToString(ctDoc);
+        // Build task json
+        var json = {
+          id: name,
+          data: {
+            taskType: "CustomTask",
+            type: pluginId,
+            parameters: parameters
+          }
+        };
 
         // Submit task
-        putTask('@config.baseUrl/workspace/projects/@project.name/customTasks/' + name, xml, callbacks);
+        @if(createDialog) {
+          postTask('@project.name', json, callbacks);
+        } else {
+          putTask('@project.name', name, json, callbacks);
+        }
       }
     </script>
 }

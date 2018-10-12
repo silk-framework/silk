@@ -1,9 +1,10 @@
-@(project: String, task: String)
+@import org.silkframework.runtime.activity.UserContext
+@(project: String, task: String)(implicit userContext: UserContext)
 
-@import org.silkframework.workspace.User
+@import org.silkframework.workspace.WorkspaceFactory
 @import org.silkframework.workspace.activity.workflow.Workflow
 
-@workflowTask = @{ User().workspace.project(project).tasks[Workflow].find(_.id == task) }
+@workflowTask = @{ WorkspaceFactory().workspace.project(project).tasks[Workflow].find(_.id == task) }
 
 @widgets.dialog(title = "Workflow Task") {
   @if(task.isEmpty) {
@@ -25,9 +26,14 @@
       return;
     }
 
+    var url = '@config.baseUrl/workflow/workflows/@project';
+    @if(!task.isEmpty) {
+      url = url + '/' + values.name;
+    }
+
     $.ajax({
-      type: 'PUT',
-      url: '@config.baseUrl/workflow/workflows/@project/' + values.name,
+      type: @if(task.isEmpty) {'POST'} else {'PUT'},
+      url: url,
       contentType: 'text/xml;charset=UTF-8',
       processData: false,
       data: '<Workflow id="' + values.name + '"></Workflow>',

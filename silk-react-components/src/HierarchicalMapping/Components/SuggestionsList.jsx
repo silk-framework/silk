@@ -17,14 +17,14 @@ import {
     Checkbox,
     ProgressButton,
     Tooltip,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
-import {SUGGESTION_TYPES} from "../helpers";
+import {SUGGESTION_TYPES} from '../helpers';
 
 const SuggestionsListWrapper = props => (
     <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
@@ -52,7 +52,7 @@ const SuggestionsList = React.createClass({
     },
     onChecked(v) {
         const data = this.state.data;
-        const index = _.findIndex(data, (d) => d.id === v.id);
+        const index = _.findIndex(data, d => d.id === v.id);
         data[index].checked = !data[index].checked;
         this.setState({data});
     },
@@ -70,17 +70,17 @@ const SuggestionsList = React.createClass({
             })
             .subscribe(
                 response => {
-                    const rawData = response.suggestions.map(v => { return {
+                    const rawData = response.suggestions.map(v => ({
                         ...v,
                         checked: this.defaultCheckValue,
                         type: v.type || SUGGESTION_TYPES[0],
-                    }})
+                    }));
                     this.setState({
                         loading: false,
-                        rawData: rawData,
-                        data: this.state.showDefaultProperties ?
-                            rawData :
-                            rawData.filter(v => !!v.targetProperty)
+                        rawData,
+                        data: this.state.showDefaultProperties
+                            ? rawData
+                            : rawData.filter(v => !!v.targetProperty),
                     });
                 },
                 err => {
@@ -90,7 +90,7 @@ const SuggestionsList = React.createClass({
     },
     onTypeChanged(v) {
         const data = this.state.data;
-        const index = _.findIndex(data, (d) => d.id === v.id);
+        const index = _.findIndex(data, d => d.id === v.id);
         data[index].type = v.type;
         this.setState({data});
     },
@@ -113,9 +113,7 @@ const SuggestionsList = React.createClass({
                 modal
                 title="Discard selection?"
                 confirmButton={
-                    <DisruptiveButton
-                        disabled={false}
-                        onClick={this.onDiscard}>
+                    <DisruptiveButton disabled={false} onClick={this.onDiscard}>
                         Discard
                     </DisruptiveButton>
                 }
@@ -135,11 +133,13 @@ const SuggestionsList = React.createClass({
             saving: true,
         });
 
-        const correspondences = this.state.data.filter(v => v.checked).map(v => {return {
-            sourcePath: v.sourcePath,
-            targetProperty: v.targetProperty,
-            type: v.type,
-        }});
+        const correspondences = this.state.data
+            .filter(v => v.checked)
+            .map(v => ({
+                sourcePath: v.sourcePath,
+                targetProperty: v.targetProperty,
+                type: v.type,
+            }));
         hierarchicalMappingChannel
             .request({
                 topic: 'rules.generate',
@@ -153,8 +153,8 @@ const SuggestionsList = React.createClass({
                     hierarchicalMappingChannel
                         .subject('ruleView.close')
                         .onNext({id: 0});
-                    this.props.onClose();
                     hierarchicalMappingChannel.subject('reload').onNext(true);
+                    this.props.onClose();
                 },
                 err => {
                     // If we have a list of failedRules, we want to show them, otherwise something
@@ -171,13 +171,12 @@ const SuggestionsList = React.createClass({
     },
     toggleDefaultProperties() {
         if (this.state.data.filter(v => v.checked).length !== 0) {
-            this.setState({askForDiscard:true});
-        }
-        else {
+            this.setState({askForDiscard: true});
+        } else {
             this.setState({
-                data: !this.state.showDefaultProperties ?
-                    this.state.rawData :
-                    this.state.rawData.filter(v => !!v.targetProperty),
+                data: !this.state.showDefaultProperties
+                    ? this.state.rawData
+                    : this.state.rawData.filter(v => !!v.targetProperty),
                 showDefaultProperties: !this.state.showDefaultProperties,
             });
         }
@@ -187,10 +186,10 @@ const SuggestionsList = React.createClass({
             event.stopPropagation();
         }
         this.setState({
-            data: this.state.data.map(a => {return {
+            data: this.state.data.map(a => ({
                 ...a,
-                checked: true
-            }}),
+                checked: true,
+            })),
             checked: true,
         });
     },
@@ -199,24 +198,24 @@ const SuggestionsList = React.createClass({
             event.stopPropagation();
         }
         this.setState({
-            data: this.state.data.map(a => {return {
+            data: this.state.data.map(a => ({
                 ...a,
-                checked: false
-            }}),
+                checked: false,
+            })),
             checked: false,
         });
     },
     onDiscard() {
         this.setState({
-            data: !this.state.showDefaultProperties ?
-                this.state.rawData :
-                this.state.rawData.filter(v => !!v.targetProperty),
+            data: !this.state.showDefaultProperties
+                ? this.state.rawData
+                : this.state.rawData.filter(v => !!v.targetProperty),
             showDefaultProperties: !this.state.showDefaultProperties,
             askForDiscard: false,
         });
     },
     onCancelDiscard() {
-        this.setState({askForDiscard: false})
+        this.setState({askForDiscard: false});
     },
     // template rendering
     render() {
@@ -229,13 +228,15 @@ const SuggestionsList = React.createClass({
                     <CardTitle>Saving...</CardTitle>
                     <CardContent>
                         <p>
-                            The {_.size(_.filter(this.state.data, d => d.checked))} rules you have
-                            selected are being created.
+                            The{' '}
+                            {_.size(_.filter(this.state.data, d => d.checked))}{' '}
+                            rules you have selected are being created.
                         </p>
                     </CardContent>
                     <CardActions fixed>
                         <ProgressButton
                             progress={0}
+                            id="suggestion-save-btn"
                             progressTopic={hierarchicalMappingChannel.subject(
                                 'rule.suggestions.progress'
                             )}
@@ -338,22 +339,30 @@ const SuggestionsList = React.createClass({
                             </div>
                         </div>
                     </li>
-                    {_.map(suggestions, suggestion => {
-                        return (
-                            <SuggestionsRule
-                                suggestion={suggestion}
-                                onChecked={this.onChecked}
-                                onTypeChanged={this.onTypeChanged}
-                                pos={suggestion.id}
-                                key={suggestion.id+suggestion.checked+suggestion.type}
-                            />
-                    )})}
+                    {_.map(suggestions, suggestion => (
+                        <SuggestionsRule
+                            suggestion={suggestion}
+                            onChecked={this.onChecked}
+                            onTypeChanged={this.onTypeChanged}
+                            pos={suggestion.id}
+                            key={
+                                suggestion.id +
+                                suggestion.checked +
+                                suggestion.type
+                            }
+                        />
+                    ))}
                 </ol>
             );
         }
 
-        const suggestionsToBeSave = _.filter(this.state.data, entry => entry.checked);
-        const confirmDialog = this.state.askForDiscard ? this.discardDialog() : false;
+        const suggestionsToBeSave = _.filter(
+            this.state.data,
+            entry => entry.checked
+        );
+        const confirmDialog = this.state.askForDiscard
+            ? this.discardDialog()
+            : false;
         return (
             <SuggestionsListWrapper>
                 {confirmDialog}
@@ -366,7 +375,10 @@ const SuggestionsList = React.createClass({
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-all"
                                 onClick={this.toggleDefaultProperties}>
-                                {this.state.showDefaultProperties ? "Hide" : "Show" } default properties
+                                {this.state.showDefaultProperties
+                                    ? 'Hide'
+                                    : 'Show'}{' '}
+                                default properties
                             </MenuItem>
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-all"
@@ -385,6 +397,7 @@ const SuggestionsList = React.createClass({
                 <CardActions fixed>
                     <AffirmativeButton
                         raised
+                        id="suggestion-save-btn"
                         className="ecc-hm-suggestions-save"
                         onClick={this.handleAddSuggestions}
                         disabled={_.size(suggestionsToBeSave) === 0}>

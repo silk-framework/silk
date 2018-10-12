@@ -14,9 +14,13 @@
 
 package org.silkframework.plugins
 
-import org.silkframework.dataset.VariableDataset
+import org.silkframework.config.CustomTask.CustomTaskFormat
+import org.silkframework.config.Task.GenericTaskFormat
+import org.silkframework.config.TaskSpec.TaskSpecXmlFormat
 import org.silkframework.dataset.DatasetSpec.{DatasetSpecFormat, DatasetTaskXmlFormat}
+import org.silkframework.dataset.VariableDataset
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
+import org.silkframework.execution.local.LocalExecutionManager
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.plugin.PluginModule
 
@@ -27,7 +31,7 @@ import scala.language.existentials
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses = datasets ++ serializers
+  override def pluginClasses = datasets ++ serializers :+ classOf[LocalExecutionManager]
 
   private def datasets =
     classOf[InternalDataset] ::
@@ -35,7 +39,10 @@ class CorePlugins extends PluginModule {
     Nil
 
   private def serializers =
+    TaskSpecXmlFormat.getClass ::
+    GenericTaskFormat.getClass ::
     DatasetSpecFormat.getClass ::
     DatasetTaskXmlFormat.getClass ::
+    CustomTaskFormat.getClass ::
     EntitySchemaFormat.getClass :: Nil
 }

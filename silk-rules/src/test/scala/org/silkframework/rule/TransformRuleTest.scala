@@ -11,17 +11,6 @@ import scala.util.Try
 class TransformRuleTest extends FlatSpec with MustMatchers {
   behavior of "Transform Rule"
 
-  it should "validate illegal target URIs" in {
-    val illegalUri = "http://fsdfds "
-    val emptyUri = ""
-    val relativeUri = "relativePath"
-    intercept[ValidationException] {
-      checkTargetUri(illegalUri)
-    }
-    checkTargetUri(emptyUri)
-    checkTargetUri(relativeUri)
-  }
-
   val duplicated1 = "duplicated1"
   val duplicated2 = "duplicated2"
 

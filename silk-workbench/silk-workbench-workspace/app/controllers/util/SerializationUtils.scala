@@ -16,7 +16,7 @@ import scala.xml.{Elem, Node}
 
 object SerializationUtils {
 
-  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle")
+  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle", "text/plain")
 
   /**
     * Tries to serialize a given value based on the accept header. The compile time type is used instead of the runtime
@@ -105,7 +105,7 @@ object SerializationUtils {
   def serializeIterableCompileTime[T: ClassTag](value: Iterable[T],
                                                 defaultMimeTypes: Seq[String] = defaultMimeTypes,
                                                 containerName: Option[String] = None)
-                                               (implicit request: Request[_],
+                                               (implicit request: RequestHeader,
                                                 project: Project): Result = {
     implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
@@ -182,15 +182,6 @@ object SerializationUtils {
     }
   }
 
-//  def deserializeTask[T: ClassTag](formatters: Seq[SerializationFormat[T, _]]): Result = {
-//    val xmlFormat = Task.taskFormat[T]
-//    val jsonFormat = new TaskJsonFormat[T]
-//
-//
-//
-//    Ok
-//  }
-
   /**
     * Tries to deserialize the value found in the request. Uses the compile type instead of the runtime type.
     *
@@ -231,9 +222,9 @@ object SerializationUtils {
                                     defaultMimeTypes: Seq[String]): Option[String] = {
     val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)
     if (mimeTypes.isEmpty) {
-      defaultMimeTypes.find(Serialization.hasSerialization[T])
+      defaultMimeTypes.find(Serialization.hasFormatFormMime[T])
     } else {
-      mimeTypes.find(Serialization.hasSerialization[T])
+      mimeTypes.find(Serialization.hasFormatFormMime[T])
     }
   }
 
@@ -266,7 +257,7 @@ object SerializationUtils {
 
   private def findSerializationFormatByMimeType(classToSerialize: Class[_], mimeTypes: Seq[String]) = {
     mimeTypes.
-        map(mt => (mt, Serialization.serializationFormat(classToSerialize, mt))).
+        map(mt => (mt, Serialization.formatForMimeOption(classToSerialize, mt))).
         find { case (mimeType, serializeFormat) => serializeFormat.isDefined }.
         map(tuple => (tuple._1, tuple._2.get))
   }

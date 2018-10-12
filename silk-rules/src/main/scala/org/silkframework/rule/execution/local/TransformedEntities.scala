@@ -28,7 +28,7 @@ class TransformedEntities(entities: Traversable[Entity],
   override def foreach[U](f: (Entity) => U): Unit = {
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
-      for(path <- outputSchema.typedPaths.map(_.path)) yield {
+      for(path <- outputSchema.typedPaths) yield {
         propertyRules.filter(_.target.get.asPath() == path)
       }
 
@@ -36,17 +36,17 @@ class TransformedEntities(entities: Traversable[Entity],
     for(entity <- entities) {
       errorFlag = false
 
-      val uriOption = subjectRule match {
-        case Some(rule) => rule(entity).headOption
-        case None => Some(entity.uri)
+      val uris = subjectRule match {
+        case Some(rule) => rule(entity)
+        case None => Seq(entity.uri.toString)
       }
 
-      for(uri <- uriOption) {
+      for(uri <- uris) {
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
-          val uriTypePaths = entity.desc.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
+          val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
           val typedPaths = uriTypePaths.map(_._1)
           val values = uriTypePaths.map(_._2)
-          Entity(entity.uri, values, entity.desc.copy(typedPaths = typedPaths))
+          Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))
         }
         def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
           if(rule.representsDefaultUriRule) {
@@ -60,7 +60,7 @@ class TransformedEntities(entities: Traversable[Entity],
             rules.flatMap(evalRule)
           }
 
-        f(new Entity(uri, values, outputSchema))
+        f(Entity(uri, values, outputSchema))
 
         report.incrementEntityCounter()
         if (errorFlag) {

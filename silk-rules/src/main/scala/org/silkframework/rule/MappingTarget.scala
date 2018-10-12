@@ -38,7 +38,7 @@ case class MappingTarget(propertyUri: Uri,
 
   /** Representation of the mapping target as Silk Path */
   def asPath(): Path = {
-    val op = if (isBackwardProperty) BackwardOperator(propertyUri) else ForwardOperator(propertyUri)
+    val op = if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
     Path(List(op))
   }
 }

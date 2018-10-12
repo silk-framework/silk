@@ -1,8 +1,8 @@
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.MetaData
 import org.silkframework.dataset._
 import org.silkframework.entity.UriValueType
 import org.silkframework.rule.MappingTarget
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 
@@ -32,7 +32,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 }
 
 case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
-  override def source: DataSource = ???
-  override def linkSink: LinkSink = ???
-  override def entitySink: EntitySink = ???
+  override def source(implicit userContext: UserContext): DataSource = ???
+  override def linkSink(implicit userContext: UserContext): LinkSink = ???
+  override def entitySink(implicit userContext: UserContext): EntitySink = ???
 }

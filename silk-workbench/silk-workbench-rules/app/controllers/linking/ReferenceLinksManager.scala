@@ -1,25 +1,33 @@
 package controllers.linking
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
-import org.silkframework.workspace.User
+import org.silkframework.workbench.Context
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.{Action, Controller}
-import plugins.Context
+import play.api.mvc.{Action, AnyContent, Controller}
 
 class ReferenceLinksManager extends Controller {
 
-  def referenceLinksView(project: String, task: String) = Action { implicit request =>
+  def referenceLinksView(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }
 
-  def referenceLinks(projectName: String, taskName: String, linkType: String, sorting: String, filter: String, page: Int) = Action {
-    val project = User().workspace.project(projectName)
+  def referenceLinks(projectName: String,
+                     taskName: String,
+                     linkType: String,
+                     sorting: String,
+                     filter: String,
+                     page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data
@@ -29,8 +37,8 @@ class ReferenceLinksManager extends Controller {
 
     // Checks if a pair of entities provides values for all paths in the current linkage rule
     def hasPaths(entities: DPair[Entity]): Boolean = {
-      linkSpec.entityDescriptions.source.typedPaths.forall(entities.source.desc.typedPaths.contains) &&
-      linkSpec.entityDescriptions.target.typedPaths.forall(entities.target.desc.typedPaths.contains)
+      linkSpec.entityDescriptions.source.typedPaths.forall(entities.source.schema.typedPaths.contains) &&
+      linkSpec.entityDescriptions.target.typedPaths.forall(entities.target.schema.typedPaths.contains)
     }
 
     val links = linkType match {

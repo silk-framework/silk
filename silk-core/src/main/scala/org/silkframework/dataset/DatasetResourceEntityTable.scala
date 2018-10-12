@@ -2,20 +2,17 @@ package org.silkframework.dataset
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.EntityTable
+import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.util.Uri
 
 /**
   * An entity table that holds the input resource of a dataset and can be requested with the DatasetResourceEntitySchema schema.
   */
-class DatasetResourceEntityTable(resource: Resource, val task: Task[TaskSpec]) extends EntityTable {
-  override def entitySchema: EntitySchema = EntitySchema.empty
-
-  override def entities: Traversable[Entity] = Traversable.empty
+trait DatasetResourceEntityTable {
 
   /** The resource of the dataset this was requested from, as read-only resource. */
-  def datasetResource: ReadOnlyResource = ReadOnlyResource(resource)
+  def datasetResource: ReadOnlyResource
 }
 
 object DatasetResourceEntitySchema {
@@ -23,4 +20,16 @@ object DatasetResourceEntitySchema {
     typeUri = Uri(SilkVocab.DatasetResourceSchemaType),
     typedPaths = IndexedSeq.empty
   )
+}
+
+/**
+  * Local implementation of the DatasetResourceEntityTable.
+  */
+class LocalDatasetResourceEntityTable(resource: Resource, val task: Task[TaskSpec]) extends LocalEntities with DatasetResourceEntityTable {
+  override def entitySchema: EntitySchema = EntitySchema.empty
+
+  override def entities: Traversable[Entity] = Traversable.empty
+
+  /** The resource of the dataset this was requested from, as read-only resource. */
+  def datasetResource: ReadOnlyResource = ReadOnlyResource(resource)
 }

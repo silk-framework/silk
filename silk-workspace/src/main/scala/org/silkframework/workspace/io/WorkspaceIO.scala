@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -23,7 +24,8 @@ object WorkspaceIO {
     * Copies all projects in one workspace to another workspace.
     */
   def copyProjects(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
-                   inputResources: Option[ResourceRepository], outputResources: Option[ResourceRepository]): Unit = {
+                   inputResources: Option[ResourceRepository], outputResources: Option[ResourceRepository])
+                  (implicit userContext: UserContext): Unit = {
     for(project <- inputWorkspace.readProjects()) {
       copyProject(inputWorkspace, outputWorkspace,
         inputResources.map(_.get(project.id)), outputResources.map(_.get(project.id)), project)
@@ -35,13 +37,14 @@ object WorkspaceIO {
     */
   def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
                   inputResources: Option[ResourceManager], outputResources: Option[ResourceManager],
-                  project: ProjectConfig): Unit = {
+                  project: ProjectConfig)
+                 (implicit userContext: UserContext): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
     val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager))
-    copyTasks[DatasetSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
+    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
@@ -60,8 +63,8 @@ object WorkspaceIO {
     for(resourceName <- inputResources.list) {
       val input = inputResources.get(resourceName)
       val output = outputResources.get(resourceName, mustExist = false)
-      if(!output.exists) {
-        output.writeStream(input.inputStream)
+      if(inputResources.basePath != outputResources.basePath || !output.exists) {
+        output.writeResource(input)
       }
     }
     // Copy child resources recursively
@@ -70,7 +73,11 @@ object WorkspaceIO {
     }
   }
 
-  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, resources: ResourceManager, projectName: Identifier): Unit = {
+  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider,
+                                                  outputWorkspace: WorkspaceProvider,
+                                                  resources: ResourceManager,
+                                                  projectName: Identifier)
+                                                 (implicit userContext: UserContext): Unit = {
     for(task <- inputWorkspace.readTasks[T](projectName, resources)) {
       outputWorkspace.putTask(projectName, task)
     }

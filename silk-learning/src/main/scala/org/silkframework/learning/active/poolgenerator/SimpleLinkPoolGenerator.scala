@@ -15,16 +15,16 @@
 package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, Index, Link, Path}
-import org.silkframework.rule.execution.{GenerateLinks, Linking}
+import org.silkframework.entity._
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.rule.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.plugins.transformer.normalize.TrimTransformer
-import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Random
@@ -33,7 +33,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
-                         paths: DPair[Seq[Path]]): Activity[UnlabeledLinkPool] = {
+                         paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
@@ -41,7 +41,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   class LinkPoolGenerator(inputs: DPair[DataSource],
                           linkSpec: LinkSpec,
-                          paths: DPair[Seq[Path]]) extends Activity[UnlabeledLinkPool] {
+                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
 
     override val initialValue = Some(UnlabeledLinkPool.empty)
 
@@ -49,14 +49,18 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
     private var generateLinksActivity: ActivityControl[Linking] = _
 
-    override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
-      val entityDesc = DPair(linkSpec.entityDescriptions.source.copy(typedPaths = paths.source.toIndexedSeq.map(_.asStringTypedPath)),
-        linkSpec.entityDescriptions.target.copy(typedPaths = paths.target.toIndexedSeq.map(_.asStringTypedPath)))
+    override def run(context: ActivityContext[UnlabeledLinkPool])
+                    (implicit userContext: UserContext): Unit = {
+      val entitySchemata =
+        DPair(
+          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source.asStringTypedPath).distinct.toIndexedSeq),
+          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target.asStringTypedPath).distinct.toIndexedSeq)
+        )
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
       val generateLinks = new GenerateLinks("PoolGenerator", inputs, linkSpec2, Seq.empty, runtimeConfig) {
-         override def entityDescs = entityDesc
+         override def entityDescs = entitySchemata
       }
 
       generateLinksActivity = context.child(generateLinks, 0.8)
@@ -66,7 +70,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
       context.status.updateProgress(0.0)
 
-      generateLinksActivity.value.onUpdate(listener)
+      generateLinksActivity.value.subscribe(listener)
       generateLinksActivity.startBlocking()
 
       val generatedLinks = op.getLinks()
@@ -74,16 +78,16 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       if(generatedLinks.nonEmpty) {
         val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
-        context.value.update(UnlabeledLinkPool(entityDesc, generatedLinks ++ shuffledLinks))
+        context.value.update(UnlabeledLinkPool(entitySchemata, generatedLinks ++ shuffledLinks))
       }
     }
 
-    private class SampleOperator() extends SimilarityOperator {
+    private class SampleOperator(implicit userContext: UserContext) extends SimilarityOperator {
 
-      val links = Array.fill(paths.source.size, paths.target.size)(Seq[Link]())
+      val links = Array.fill(paths.size)(Seq[Link]())
 
       def getLinks() = {
-        val a = links.flatten.flatten.distinct
+        val a = links.flatten.distinct
         //val c = a.groupBy(_.source).values.map(randomElement(_))
         //         .groupBy(_.target).values.map(randomElement(_))
         Random.shuffle(a.toSeq).take(maxLinks)
@@ -99,22 +103,20 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val maxIndices = 5
 
       def apply(entities: DPair[Entity], limit: Double = 0.0): Option[Double] = {
-        for ((sourcePath, sourceIndex) <- paths.source.zipWithIndex;
-             (targetPath, targetIndex) <- paths.target.zipWithIndex) {
+        for ((DPair(sourcePath, targetPath), index) <- paths.zipWithIndex) {
           var sourceValues = entities.source.evaluate(sourcePath)
           var targetValues = entities.target.evaluate(targetPath)
           for(transform <- transforms) {
             sourceValues = transform(Seq(sourceValues))
             targetValues = transform(Seq(targetValues))
           }
-          val size = links(sourceIndex)(targetIndex).size
-          val labelLinks = links(0)(0).size
+          val size = links(index).size
 
           if (size <= maxLinks && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
-            links(sourceIndex)(targetIndex) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
+            links(index) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
           }
 
-          if (size > maxLinks && labelLinks > 100)
+          if (size > maxLinks)
             generateLinksActivity.cancel()
         }
 
@@ -129,9 +131,9 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val indexing = true
 
-      private val sourceInputs = paths.source.map(p => PathInput(path = p))
+      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p))
 
-      private val targetInputs = paths.target.map(p => PathInput(path = p))
+      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p))
 
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
         val inputs = if(sourceOrTarget) sourceInputs else targetInputs
@@ -141,7 +143,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           inputValues = inputValues.map(values => transform(Seq(values)))
         }
 
-        val index = inputValues.map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+        val index = inputValues.map(metric.index(_, maxDistance, sourceOrTarget).crop(maxIndices)).reduce(_ merge _)
 
         index
       }

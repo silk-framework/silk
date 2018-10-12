@@ -43,7 +43,7 @@ case class LevenshteinDistance(
       evaluateDistance(str1, str2)
   }
 
-  override def indexValue(str: String, limit: Double): Index = {
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val qGrams = str.qGrams(q)
     val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 

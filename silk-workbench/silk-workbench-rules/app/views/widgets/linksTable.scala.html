@@ -112,7 +112,7 @@
 }
 
 @renderLink(link: EvalLink, counter: Int) = {
-  <div class="link" id="@id(link)">
+  <div class="link @{link.linkType.name}" id="@id(link)">
     <div class="@if(counter % 2 == 0) {link-header grey} else {link-header}" onmouseover="$(this).addClass('link-over');" onmouseout="$(this).removeClass('link-over');">
       <div id="@id(link, "toggle")">
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
@@ -187,8 +187,8 @@
       @project.config.prefixes.shorten(entity.uri)
     </span>
     <ul>
-      @for((path, index) <- entity.desc.typedPaths.map(_.path).zipWithIndex) {
-        @renderValues(path, entity.evaluate(index), divClassPrefix)
+      @for(path <- entity.schema.typedPaths) {
+        @renderValues(path, entity.evaluate(path), divClassPrefix)
       }
     </ul>
   </li>
@@ -196,7 +196,7 @@
 
 @renderValues(path: Path, values: Seq[String], divClassPrefix: String) = {
   <li>
-    @path.serializeSimplified(project.config.prefixes)
+    @path.serialize()(project.config.prefixes)
     @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{project.config.prefixes.shorten(v)}</span>)
     @if(values.size > 10) {...} else {}
   </li>
@@ -251,7 +251,7 @@
   case InputValue(input, values, error) => {
     <li>
       <span class="input">
-        Input: @input.path.serializeSimplified(project.config.prefixes) (@input.id)
+        Input: @input.path.serialize()(project.config.prefixes) (@input.id)
         @for(v <- values) {
           <span class="@(divClassPrefix)-value">@convertToLinkIfDetected(v)</span>
         }

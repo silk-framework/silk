@@ -22,7 +22,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
@@ -41,6 +41,8 @@ object Silk {
   @Inject
   private var configMgr: Config = DefaultConfig.instance
   configMgr()
+
+  implicit val userContext: UserContext = UserContext.Empty // No user context in single machine mode
 
   /**
    * The default number of threads to be used for matching.
@@ -110,7 +112,8 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
+  def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
+                 (implicit userContext: UserContext): Unit = {
     implicit val readContext: ReadContext = ReadContext(new FileResourceManager(configFile.getAbsoluteFile.getParentFile))
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
@@ -124,7 +127,8 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  def executeConfig(config: LinkingConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true) {
+  def executeConfig(config: LinkingConfig, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
+                   (implicit userContext: UserContext): Unit = {
 
     if (linkSpecID != null) {
 
@@ -158,7 +162,8 @@ object Silk {
    * @param numThreads The number of threads to be used for matching.
    * @param reload Specifies if the entity cache is to be reloaded before executing the matching. Default: true
    */
-  private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true): Unit = {
+  private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
+                             (implicit userContext: UserContext): Unit = {
     val generateLinks =
       new GenerateLinks(
         id = linkSpec.id,
@@ -178,7 +183,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform(input, transform.data, new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
+    Activity(new ExecuteTransform((_) => input, transform.data, (_) => new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
   }
 
   /**

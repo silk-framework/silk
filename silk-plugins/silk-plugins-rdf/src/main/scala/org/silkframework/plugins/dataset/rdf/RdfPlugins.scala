@@ -7,7 +7,7 @@ class RdfPlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
     Seq(
-      classOf[FileDataset],
+      classOf[RdfFileDataset],
       classOf[SparqlDataset],
       classOf[AlignmentDataset],
       classOf[InMemoryDataset],

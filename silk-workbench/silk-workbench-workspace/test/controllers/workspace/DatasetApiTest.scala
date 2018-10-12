@@ -25,6 +25,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
         <MetaData>
           <Label>label 1</Label>
           <Description>description 1</Description>
+          <Modified>2018-03-08T15:01:06.609Z</Modified>
         </MetaData>
         <Param name="graphUri" value="urn:dataset1"/>
       </Dataset>
@@ -38,18 +39,21 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     request = request.withHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
+        "taskType" -> "Dataset",
         "id" -> dataset,
         "metadata" ->
           Json.obj(
             "label" -> "label 2",
             "description" -> "description 2"
           ),
-        "uriProperty" -> "URI",
-        "type" -> "internal",
-        "parameters" ->
-          Json.obj(
-            "graphUri" -> "urn:dataset2"
-          )
+        "data" -> Json.obj(
+          "uriProperty" -> "URI",
+          "type" -> "internal",
+          "parameters" ->
+            Json.obj(
+              "graphUri" -> "urn:dataset2"
+            )
+        )
       )
     )
     checkResponse(response)
@@ -63,14 +67,20 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     response.json mustBe
       Json.obj(
         "id" -> dataset,
+        "project" -> project,
         "metadata" ->
           Json.obj(
             "label" -> "label 1",
-            "description" -> "description 1"
+            "description" -> "description 1",
+            "modified" -> "2018-03-08T15:01:06.609Z"
           ),
-        "type" -> "internal",
-        "parameters" -> Json.obj(
-          "graphUri" -> "urn:dataset1"
+        "taskType" -> "Dataset",
+        "data" -> Json.obj(
+          "taskType" -> "Dataset",
+          "type" -> "internal",
+          "parameters" -> Json.obj(
+            "graphUri" -> "urn:dataset1"
+          )
         )
       )
   }

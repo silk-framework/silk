@@ -14,7 +14,6 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.test.PluginTest
 
 class NumberToDurationTransformerTest extends PluginTest {

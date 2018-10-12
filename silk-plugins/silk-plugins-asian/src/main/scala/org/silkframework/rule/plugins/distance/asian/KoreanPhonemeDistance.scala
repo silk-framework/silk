@@ -217,7 +217,7 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
      * Fast implementation of the levenshtein distance.
      * Based on: Gonzalo Navarro - A guided tour to approximate string matching
      */
-	override def indexValue(str: String, limit: Double): Index = {
+	override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
       val qGrams = str.qGrams(q)
       val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 

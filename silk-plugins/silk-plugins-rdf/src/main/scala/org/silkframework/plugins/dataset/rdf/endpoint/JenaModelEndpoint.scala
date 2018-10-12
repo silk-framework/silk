@@ -5,6 +5,7 @@ import org.apache.jena.rdf.model.Model
 import org.apache.jena.sparql.core.DatasetGraphFactory
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.
@@ -21,24 +22,27 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
     this.synchronized {
-      val graphStore = DatasetGraphFactory.createOneGraph(model.getGraph)
+      val graphStore = DatasetGraphFactory.wrap(model.getGraph)
       UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
     }
   }
 
-  override def select(sparql: String, limit: Int): SparqlResults = {
+  override def select(sparql: String, limit: Int)
+                     (implicit userContext: UserContext): SparqlResults = {
     this.synchronized {
       super.select(sparql, limit)
     }
   }
 
-  override def construct(query: String): String = {
+  override def construct(query: String)
+                        (implicit userContext: UserContext): String = {
     this.synchronized {
       super.construct(query)
     }
   }
 
-  override def update(query: String): Unit = {
+  override def update(query: String)
+                     (implicit userContext: UserContext): Unit = {
     this.synchronized {
       super.update(query)
     }

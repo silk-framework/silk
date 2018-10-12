@@ -2,15 +2,14 @@ package org.silkframework.plugins.dataset.xml
 
 import javax.xml.transform.TransformerConfigurationException
 import javax.xml.transform.stream.{StreamResult, StreamSource}
-
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
 import org.silkframework.config.Task
-import org.silkframework.dataset.DatasetResourceEntityTable
+import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.execution.local.{EntityTable, LocalExecution, LocalExecutor}
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
@@ -21,10 +20,11 @@ import org.silkframework.runtime.validation.ValidationException
   */
 case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
   override def execute(task: Task[XSLTOperator],
-                       inputs: Seq[EntityTable],
+                       inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
+                       context: ActivityContext[ExecutionReport])
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     inputs.headOption match {
       case Some(et: DatasetResourceEntityTable) =>
         val xSLTOperator = task.data
@@ -49,7 +49,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
         inMemoryResource.write() { os =>
           transformer.transform(text, new StreamResult(os))
         }
-        Some(new DatasetResourceEntityTable(inMemoryResource, task))
+        Some(new LocalDatasetResourceEntityTable(inMemoryResource, task))
       case _ =>
         throw new ValidationException("XSLT operator executor did not receive a dataset resource table as input!")
     }

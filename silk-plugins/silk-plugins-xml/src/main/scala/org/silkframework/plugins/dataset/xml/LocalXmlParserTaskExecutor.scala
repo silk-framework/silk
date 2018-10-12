@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.config.Task
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, TaskException}
-import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, LocalExecutor}
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 /**
@@ -13,10 +13,11 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
   */
 case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
   override def execute(task: Task[XmlParserTask],
-                       inputs: Seq[EntityTable],
+                       inputs: Seq[LocalEntities],
                        outputSchemaOpt: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)): Option[EntityTable] = {
+                       context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     val spec = task.data
     if (inputs.size != 1) {
       throw TaskException("XmlParserTask takes exactly one input!")
@@ -24,11 +25,10 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
     outputSchemaOpt map { os =>
       val entityTable = inputs.head
       val entities = entityTable.entities
+
       val pathIndex = spec.parsedInputPath match {
-        case Some(path) =>
-          entityTable.entitySchema.pathIndex(path)
-        case None =>
-          0 // Take the value of the first path
+        case Some(path) => entityTable.entitySchema.pathIndex(path)  //FIXME path Index should be called with ValueType (TypedPath)
+        case None => 0 // Take the value of the first path
       }
 
       entities.headOption match {
@@ -39,9 +39,9 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
           } else {
             values(pathIndex).headOption match {
               case Some(xmlValue) =>
-                val resource = InMemoryResourceManager().get("temp", mustExist = false)
+                val resource = InMemoryResourceManager().get("temp")
                 resource.writeBytes(xmlValue.getBytes)
-                val dataset = XmlDataset(resource, spec.basePath, entity.uri + spec.uriSuffixPattern, streaming = false)
+                val dataset = XmlDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern, streaming = false)
                 val entities = dataset.source.retrieve(os)
                 GenericEntityTable(entities, os, task)
               case None =>

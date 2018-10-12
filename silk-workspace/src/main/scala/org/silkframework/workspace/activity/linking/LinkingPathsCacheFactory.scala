@@ -17,12 +17,9 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 )
 case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpec, LinkingPathsCache] {
 
-  override def autoRun = true
+  override def autoRun: Boolean = true
 
   def apply(task: ProjectTask[LinkSpec]): Activity[DPair[EntitySchema]] = {
-    new CachedActivity(
-      activity = new LinkingPathsCache(task),
-      resource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")
-    )
+    new LinkingPathsCache(task)
   }
 }

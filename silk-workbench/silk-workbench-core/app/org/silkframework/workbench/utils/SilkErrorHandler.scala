@@ -3,8 +3,7 @@ package org.silkframework.workbench.utils
 import java.util.logging.{Level, Logger}
 import javax.inject.Provider
 
-import org.silkframework.runtime.validation.RequestException
-import org.silkframework.serialization.json.JsonParseException
+import org.silkframework.runtime.validation.{BadUserInputException, ForbiddenException, NotAuthorizedException, RequestException}
 import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
 import play.api._
@@ -122,6 +121,12 @@ class SilkErrorHandler (env: Environment,
 
   private def handleError(requestPath: String, ex: Throwable): Result = {
     ex match {
+      case ex: NotAuthorizedException =>
+        ErrorResult(UNAUTHORIZED, "Unauthorized", ex.msg)
+      case ex: ForbiddenException =>
+        ErrorResult(FORBIDDEN, "Forbidden", ex.msg)
+      case ex: BadUserInputException =>
+        ErrorResult(BAD_REQUEST, "Bad request", ex.msg)
       case _: ExceptionSource if Option(ex.getCause).isDefined =>
         handleError(requestPath, ex.getCause)
       case executionException: ExecutionException =>

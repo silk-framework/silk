@@ -1,20 +1,15 @@
-@import org.silkframework.workspace.{Project, User}
-@import org.silkframework.workspace.ProjectTask
-@import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.activity.ProjectActivity
-@import org.silkframework.workspace.activity.TaskActivity
 @import controllers.core.routes.{Assets => CoreAssets}
-@import scala.runtime.BoxedUnit
-@import controllers.workspace.routes.ActivityApi
-@import controllers.workspace.routes.WorkspaceController
-@import controllers.workspace.routes.Assets
+@import controllers.workspace.routes.{ActivityApi, Assets, WorkspaceController}
 @import org.silkframework.config.TaskSpec
-@import org.silkframework.workspace.activity.CachedActivity
+@import org.silkframework.workspace.activity.{CachedActivity, ProjectActivity, TaskActivity}
+@import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory, Workspace}
+@import org.silkframework.runtime.activity.UserContext
 
 @**
  * Overview page of all activities and their status
  *@
-@()(implicit session: play.api.mvc.Session)
+
+@()(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
@@ -27,7 +22,16 @@
       .on('before_open.jstree', function (e, data) {
         loadCometStream();
       });
-      loadCometStream();
+      setTimeout(function() {loadCometStream();}, 1);
+      // Restore scroll position on reload
+      setTimeout(function() {
+        const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
+        console.log(scrollTop);
+        if(!isNaN(scrollTop) && scrollTop > 50) {
+          document.getElementsByClassName("mdl-layout__content")[0].scrollTop = scrollTop;
+        }
+        sessionStorage.removeItem("activityViewScrollPosition");
+      }, 1000);
     });
 
     function loadCometStream() {
@@ -90,7 +94,7 @@
 }
 
 @content = {
-  @workspaceActivities(User().workspace)
+  @workspaceActivities(WorkspaceFactory().workspace)
 
   <div id="statusCometIFrame"></div>
 }
@@ -124,7 +128,11 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @task.id
+    @if(task.metaData.label.trim != "") {
+      @task.metaData.label.trim (@task.id)
+    } else {
+      @task.id
+    }
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)
@@ -173,7 +181,7 @@
       }
     </div>
     <div class="activity-button-value">
-      @if(activity.valueType != classOf[BoxedUnit]) {
+      @if(!activity.isUnitValueType) {
         <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
       }
     </div>

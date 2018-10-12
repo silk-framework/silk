@@ -14,28 +14,46 @@
 
 package org.silkframework.entity
 
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an RDF path.
   */
-final class Path private(val operators: List[PathOperator]) extends Serializable {
+class Path private[entity](val operators: List[PathOperator]) extends Serializable {
 
-  private val serializedFull = serialize()
+  /**
+    * The normalized serialization using the Silk RDF path language.
+    * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
+    */
+  lazy val normalizedSerialization: String = serializePath(Prefixes.empty, stripForwardSlash = true)
 
   /**
     * Serializes this path using the Silk RDF path language.
+    *
+    * @param stripForwardSlash If true and if the path beginns with a forward operator, the first forward slash is stripped.
+    * @param prefixes The prefixes used to shorten the path. If no prefixes are provided the normalized serialization is returned.
     */
-  def serialize(implicit prefixes: Prefixes = Prefixes.empty): String = operators.map(_.serialize).mkString
+  def serialize(stripForwardSlash: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): String = prefixes match {
+    case Prefixes.empty if stripForwardSlash => normalizedSerialization
+    case _ => serializePath(prefixes, stripForwardSlash)
+  }
 
   /**
-    * Serializes this path using the simplified notation.
+    * Internal path serialization function.
     */
-  def serializeSimplified(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    operators.map(_.serialize).mkString.stripPrefix("/")
+  private def serializePath(prefixes: Prefixes, stripForwardSlash: Boolean): String = {
+    val pathStr = operators.map(_.serialize(prefixes)).mkString
+    if(stripForwardSlash) {
+      pathStr.stripPrefix("/")
+    } else {
+      pathStr
+    }
   }
 
   /**
@@ -47,6 +65,9 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     case _ => None
   }
 
+  /**
+    * Returns the number of operators in this path.
+    */
   def size: Int = operators.size
 
   /**
@@ -59,57 +80,36 @@ final class Path private(val operators: List[PathOperator]) extends Serializable
     */
   def ++(path: Path): Path = Path(operators ::: path.operators)
 
-  override def toString: String = serializedFull
+  override def toString: String = normalizedSerialization
 
   /**
     * Tests if this path equals another path
     */
   override def equals(other: Any): Boolean = {
-    //Because of the path cache it is sufficient to compare by reference
-    //    other match {
-    //      case otherPath: Path => this eq otherPath
-    //      case _ => false
-    //    }
-    // As paths are serializable now, comparing by reference no longer suffices
     other match {
-      case p: Path => serializedFull == p.serializedFull
+      case p: Path => normalizedSerialization == p.normalizedSerialization
       case _ => false
     }
-
   }
 
-  override def hashCode: Int = toString.hashCode
+  override def hashCode: Int = normalizedSerialization.hashCode
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
-  def asStringTypedPath: TypedPath = TypedPath(this, StringValueType, isAttribute = false)
+  def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
+
+  /** Returns a [[org.silkframework.entity.TypedPath]] from this path with auto detect type. */
+  def asAutoDetectTypedPath: TypedPath = TypedPath(this.operators, AutoDetectValueType, isAttribute = false)
 }
 
 object Path {
-  private var pathCache = Map[String, WeakReference[Path]]()
 
-  def empty = new Path(List.empty)
+  def empty: Path = new Path(List.empty)
 
   /**
     * Creates a new path.
-    * Returns a cached copy if available.
     */
   def apply(operators: List[PathOperator]): Path = {
-    val path = new Path(operators)
-
-    val pathStr = path.serialize
-
-    //Remove all garbage collected paths from the map and try to return a cached path
-    synchronized {
-      pathCache = pathCache.filter(_._2.get.isDefined)
-
-      pathCache.get(pathStr).flatMap(_.get) match {
-        case Some(cachedPath) => cachedPath
-        case None => {
-          pathCache += (pathStr -> new WeakReference(path))
-          path
-        }
-      }
-    }
+    new Path(operators)
   }
 
   def unapply(path: Path): Option[List[PathOperator]] = {
@@ -119,22 +119,38 @@ object Path {
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: String): Path = {
-    apply(Uri(property))
-  }
+  def apply(property: String): Path = apply(Uri(property))
 
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: Uri): Path = {
-    apply(ForwardOperator(property) :: Nil)
+  def apply(uri: Uri): Path = {
+    if(uri.isValidUri || Uri("http://ex.org/" + uri.uri).isValidUri) {
+      apply(ForwardOperator(uri) :: Nil)
+    }
+    else {
+      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
+    }
   }
 
   /**
-    * Parses a path string.
-    * Returns a cached copy if available.
+    * Convenience function for non-strict path parsing. This will always return a Path object (either parsed or fail save wrapped).
+    * @param propertyOrPath - the input string (might be serialized path or new (non-encoded) field name)
+    * @param prefixes - will be forwarded to parser
+    * @return - a Path
     */
-  def parse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
-    new PathParser(prefixes).parse(pathStr)
+  def saveApply(propertyOrPath: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = parse(propertyOrPath, strict = false)
+
+  /**
+    * Parses a path string.
+    * @param pathStr - the path string
+    * @param strict - Dictates the behaviour when PathParser fails. If false, the erroneous path string is wrapped inside an Uri without syntax test.
+    * @return - a Path
+    */
+  def parse(pathStr: String, strict: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
+    Try{new PathParser(prefixes).parse(pathStr)} match{
+      case Success(p) => p
+      case Failure(f) => if(strict) throw f else apply(Uri(pathStr))
+    }
   }
 }

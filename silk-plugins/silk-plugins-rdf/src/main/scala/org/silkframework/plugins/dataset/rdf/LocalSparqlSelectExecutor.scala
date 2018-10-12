@@ -2,20 +2,21 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
-import org.silkframework.execution.local.{EntityTable, GenericEntityTable, LocalExecution, LocalExecutor}
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, TaskException}
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
   */
 case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomTask] {
   override def execute(task: Task[SparqlSelectCustomTask],
-                       inputs: Seq[EntityTable],
+                       inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]): Option[EntityTable] = {
+                       context: ActivityContext[ExecutionReport])
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     val taskData = task.data
 
     inputs match {
@@ -29,7 +30,8 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
   def executeOnSparqlEndpointEntityTable(sparqlSelectTask: SparqlSelectCustomTask,
                                          sparql: SparqlEndpointEntityTable,
-                                         limit: Int = Integer.MAX_VALUE): Traversable[Entity] = {
+                                         limit: Int = Integer.MAX_VALUE)
+                                        (implicit userContext: UserContext): Traversable[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val results = sparql.select(sparqlSelectTask.selectQuery.str, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
@@ -42,7 +44,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         case Some(prop) =>
           prop.uri
         case _ =>
-          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.path.serializeSimplified)
+          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.normalizedSerialization)
       }
     }
     vars
@@ -57,7 +59,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       val values = vars map { v =>
         binding.get(v).toSeq.map(_.value)
       }
-      new Entity(s"urn:entity:$count", values = values, desc = taskData.outputSchema)
+      Entity(s"urn:entity:$count", values = values, schema = taskData.outputSchema)
     }
     entities
   }

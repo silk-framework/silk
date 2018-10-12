@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.transform.AutoCompletionApi.Categories
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.PlainTask
 import org.silkframework.entity.Path
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
@@ -21,7 +21,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Set("/rdf:type", "/source:name", "/source:age", "/source:address")
+      expectedValues = Seq("rdf:type", "source:address", "source:address/source:city", "source:address/source:country", "source:age", "source:name")
     )
   }
 
@@ -30,7 +30,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Set("/source:name")
+      expectedValues = Seq("source:name")
     )
   }
 
@@ -39,7 +39,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Set("/source:name")
+      expectedValues = Seq("source:name")
     )
   }
 
@@ -48,7 +48,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyTypes,
-      expectedValues = Set("foaf:Agent", "foaf:Person", "foaf:PersonalProfileDocument")
+      expectedValues = Seq("foaf:Agent", "foaf:Person", "foaf:PersonalProfileDocument")
     )
   }
 
@@ -57,7 +57,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyProperties,
-      expectedValues = Set("foaf:givenname", "foaf:givenName")
+      expectedValues = Seq("foaf:givenname", "foaf:givenName")
     )
   }
 
@@ -66,7 +66,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.vocabularyProperties,
-      expectedValues = Set("foaf:img", "foaf:depiction")
+      expectedValues = Seq("foaf:img", "foaf:depiction")
     )
   }
 
@@ -121,10 +121,10 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
   private implicit class AutoCompletionChecks(json: JsValue) {
 
-    def checkCompletionValues(category: String, expectedValues: Set[String]): Unit = {
+    def checkCompletionValues(category: String, expectedValues: Seq[String]): Unit = {
       val filteredCompletions = json.as[JsArray].value.filter(c => (c \ "category").get == JsString(category))
       val values = filteredCompletions.map(c => (c \ "value").as[JsString].value)
-      values.toSet mustBe expectedValues
+      values must contain theSameElementsAs expectedValues
     }
   }
 

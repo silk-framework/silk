@@ -19,6 +19,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
   private val writer: Writer = resource match {
     case f: FileResource =>
       // Use a buffered writer that directly writes to the file
+      f.file.getParentFile.mkdirs()
       new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f.file), "UTF-8"))
     case _ =>
       new StringWriter()
@@ -39,8 +40,11 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     * Closes this writer.
     */
   def close(): Unit = {
-    csvWriter.close()
-    writer.close()
+    try {
+      csvWriter.close()
+    } finally {
+      writer.close()
+    }
     // If we are using a string writer, we still need to write the data to the resource
     writer match {
       case stringWriter: StringWriter =>

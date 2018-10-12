@@ -1,11 +1,12 @@
-@import plugins.Context
 @import org.silkframework.rule.execution.TransformReport
 @import org.silkframework.rule.execution.TransformReport.RuleResult
 @import org.silkframework.rule.execution.TransformReport.RuleError
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.config.Prefixes
+@import org.silkframework.config.Task
+@import org.silkframework.workbench.Context
 
-@(statistics: TransformReport, prefixes: Prefixes)
+@(task: Task[TransformSpec], statistics: TransformReport, prefixes: Prefixes)
 
 @if(statistics.ruleResults.isEmpty) {
   <div>
@@ -27,9 +28,9 @@
     </thead>
     <tbody>
 
-    @for((ruleName, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
+    @for((ruleId, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
       <tr class="mdl-color--blue-grey-100">
-        <td><b>@ruleName</b></td>
+        <td><b>@task.data.ruleById(ruleId).metaData.formattedLabel(defaultLabel = ruleId, maxLength = 100)</b></td>
         <td></td>
         <td></td>
         <td></td>

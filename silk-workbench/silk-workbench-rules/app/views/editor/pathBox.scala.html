@@ -1,10 +1,11 @@
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(id: String,
   isSource: Boolean,
   path: String,
   x: Int, y: Int, display: Boolean,
-  project: Project)
+  project: Project)(implicit userContext: UserContext)
 
 @import org.silkframework.runtime.plugin.PluginDescription
 

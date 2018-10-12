@@ -52,11 +52,11 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
   private def variable = "?" ~> identifier
 
   private def forwardOperator = "/" ~> identifier ^^ {
-    s => ForwardOperator(Uri.parse(s, prefixes))
+    s => ForwardOperator(Uri.parse(s, prefixes).uri)
   }
 
   private def backwardOperator = "\\" ~> identifier ^^ {
-    s => BackwardOperator(Uri.parse(s, prefixes))
+    s => BackwardOperator(Uri.parse(s, prefixes).uri)
   }
 
   private def filterOperator = "[" ~> (langFilter | propFilter) <~ "]"

@@ -17,7 +17,7 @@ package org.silkframework.learning
 import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.genlink.GenLinkLearner
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 /**
  * Learns a linkage rule from reference links.
@@ -30,9 +30,6 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /** The time when the learning task has been started. */
   @volatile private var startTime = 0L
 
-  /** Set if the task has been stopped. */
-  @volatile private var stop = false
-
   /** Checks if this task is empty. */
   def isEmpty = input.trainingEntities.isEmpty
   
@@ -41,22 +38,16 @@ class LearningActivity(input: LearningInput = LearningInput.empty,
   /**
    * Executes this learning task.
    */
-  override def run(context: ActivityContext[LearningResult]): Unit = {
+  override def run(context: ActivityContext[LearningResult])
+                  (implicit userContext: UserContext): Unit = {
     // Reset state
     startTime = System.currentTimeMillis
-    stop = false
+    cancelled = false
 
     // Execute linkage rule learner
     val learnerActivity = context.child(learner.learn(input.trainingEntities, input.seedLinkageRules), 1.0)
-    learnerActivity.value.onUpdate(updateValue(context))
+    learnerActivity.value.subscribe(updateValue(context))
     learnerActivity.startBlocking()
-  }
-
-  /**
-   * Stops this learning task.
-   */
-  override def cancelExecution() {
-    stop = true
   }
 
   private def updateValue(context: ActivityContext[LearningResult])(value: Result): Unit = {

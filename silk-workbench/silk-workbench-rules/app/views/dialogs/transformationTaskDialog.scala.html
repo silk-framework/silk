@@ -1,18 +1,19 @@
-@import org.silkframework.dataset.DatasetSpec
+@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @import org.silkframework.rule.TransformSpec
-@import org.silkframework.workspace.User
+@import org.silkframework.workspace.WorkspaceFactory
 
-@(project: String, task: String, createDialog: Boolean)
+@import org.silkframework.runtime.activity.UserContext
+@(project: String, task: String, createDialog: Boolean)(implicit userContext: UserContext)
 
-@datasets = @{ User().workspace.project(project).tasks[DatasetSpec].toSeq }
+@datasets = @{ WorkspaceFactory().workspace.project(project).tasks[GenericDatasetSpec].toSeq }
 
-@transformationTask = @{ User().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
+@transformationTask = @{ WorkspaceFactory().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
 
 @currentInput = @{ transformationTask.map(_.data.selection) }
 
 @currentOutput = @{ transformationTask.flatMap(_.data.outputs.headOption) }
 
-@prefixes = @{ User().workspace.project(project).config.prefixes }
+@prefixes = @{ WorkspaceFactory().workspace.project(project).config.prefixes }
 
 @restrictionTooltip = @{
   """Additional restrictions on the enumerated entities.
@@ -86,31 +87,39 @@
   });
 
   function submit() {
-    var values = {
-      name: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
-      source: $("#source_dataset").val(),
-      sourceType: $("#transformation_type").val(),
-      restriction: $("#source").val(),
-      output: $("#output_dataset").val(),
-      targetVocabularies: $("#target_vocabularies").val()
+    const values = {
+      id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
+      data: {
+        taskType: "Transform",
+        selection: {
+          inputId: $("#source_dataset").val(),
+          typeUri: $("#transformation_type").val(),
+          restriction: $("#source").val()
+        },
+        outputs: $("#output_dataset").val().split(/[,\s]+/).filter(String),
+        targetVocabularies: $("#target_vocabularies").val().split(/[,\s]+/).filter(String)
+      }
     };
 
-    if(values.name.length === 0) {
+    if(values.id.length === 0) {
       alert("Task name is empty.");
       return;
     }
 
-    $.ajax({
-      type: 'PUT',
-      url: '@config.baseUrl/transform/tasks/@project/' + values.name,
-      data: values,
-      success: function(data) {
+    var callbacks = {
+      success: function() {
         closeDialog();
-        reloadWorkspace();
       },
-      error: function(request) {
-        alert(request.responseText);
+      error: function(msg) {
+        $("#primary_dialog .dialog__error-msg .mdl-alert__content").text(msg);
+        $("#primary_dialog .dialog__error-msg").fadeIn();
       }
-    });
+    };
+
+    @if(createDialog) {
+      postTask('@project', values, callbacks);
+    } else {
+      putTask('@project', values.id, values, callbacks);
+    }
   }
 </script>

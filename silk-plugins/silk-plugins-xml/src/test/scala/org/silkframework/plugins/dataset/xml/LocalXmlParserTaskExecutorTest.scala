@@ -5,12 +5,15 @@ import org.silkframework.config.PlainTask
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 /**
   * Created on 8/22/16.
   */
 class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
+  implicit val userContext: UserContext = UserContext.Empty
+
   behavior of "Local XML Parser Task Executor"
 
   val localExecutionContext = LocalExecution(false)
@@ -22,14 +25,15 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
   )
   val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1").asStringTypedPath, Path("http://prop2").asStringTypedPath))
   val inputs = Seq(GenericEntityTable(
-    entities = Seq(new Entity(
+    entities = Seq(Entity(
       "http://entity1",
       IndexedSeq(
         Seq("<root><a>some value</a><b>other value</b></root>"),
         Seq("<root><a>some value2</a><b>other value2</b></root>")),
       inputEntitySchema)),
     entitySchema = inputEntitySchema,
-    task = PlainTask(Identifier("id"), task)))
+    task = PlainTask(Identifier("id"), task))
+  )
 
   it should "return no result if no outputSchema was defined" in {
     val result = exec.execute(PlainTask(Identifier("id"), task), inputs = inputs, outputSchemaOpt = None, execution = localExecutionContext)

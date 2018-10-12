@@ -1,10 +1,12 @@
 @import controllers.core.routes.Assets
+@import controllers.core.routes.Branding
 
-@(welcome: Html)(implicit session: play.api.mvc.Session)
+@import org.silkframework.runtime.activity.UserContext
+@(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @exampleName = @{ "movies" }
 
-@projects = @{ org.silkframework.workspace.User().workspace.projects }
+@projects = @{ org.silkframework.workspace.WorkspaceFactory().workspace.projects }
 
 @header = {
   <link rel="stylesheet" href="@Assets.at("start.css")" type="text/css" />
@@ -15,6 +17,7 @@
 
 @content = {
   <div id="welcome">
+    <img class="logo" src="@Branding.logo.url"/>
     @welcome
   </div>
 
@@ -22,7 +25,7 @@
     Your current workspace contains @projects.size project(s).
   </p>
 
-  <button class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
+  <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
   @if(!projects.exists(_.name == exampleName)) {
     <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
   }

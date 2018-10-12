@@ -14,7 +14,7 @@ import {
     Spinner,
     DisruptiveButton,
     DismissiveButton,
-} from 'ecc-gui-elements';
+} from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
@@ -129,9 +129,9 @@ const MappingRule = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        hierarchicalMappingChannel.subject('request.rule.orderRule')
-            .onNext({toPos, fromPos, reload: true})
-
+        hierarchicalMappingChannel
+            .subject('request.rule.orderRule')
+            .onNext({toPos, fromPos, reload: true});
     },
     // template rendering
     render() {
@@ -220,7 +220,7 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                {label || (<ThingName id={mappingTarget.uri} />)}
+                {label || <ThingName id={mappingTarget.uri} />}
             </div>,
             <div
                 key={'sl3'}

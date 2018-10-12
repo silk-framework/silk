@@ -86,8 +86,8 @@ object LinkSelectorTest extends App {
     val targetEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(Path.parse("?b/<label>").asStringTypedPath, Path.parse("?b/<date>").asStringTypedPath))
 
     DPair(
-      source = new Entity(label1 + date1, IndexedSeq(Seq(label1), Seq(date1)), sourceEntityDesc),
-      target = new Entity(label2 + date2, IndexedSeq(Seq(label2), Seq(date2)), targetEntityDesc)
+      source = Entity(label1 + date1, IndexedSeq(Seq(label1), Seq(date1)), sourceEntityDesc),
+      target = Entity(label2 + date2, IndexedSeq(Seq(label2), Seq(date2)), targetEntityDesc)
     )
   }
 }

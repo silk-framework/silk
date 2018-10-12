@@ -34,6 +34,8 @@ import org.silkframework.rule.execution.ExecutionMethod
  * @param homeDir The directory used by Silk to store persistent information such as caches.
  * @param sampleSizeOpt Load all entities if set to None, else only load a random sample of max. the configured size
  *                      from each data source to be linked.
+ * @param linkLimit If defined, the execution will stop after the configured number of links is reached.
+  *                 This is just a hint and the execution may produce slightly fewer or more links.
  */
 case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                                 blocking: Blocking = Blocking(),
@@ -46,7 +48,8 @@ case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMeth
                                 generateLinksWithEntities: Boolean = false,
                                 homeDir: String = System.getProperty("user.home") + "/.silk/",
                                 logLevel: Level = Level.INFO,
-                                sampleSizeOpt: Option[Int] = None) extends RuntimeConfig {
+                                sampleSizeOpt: Option[Int] = None,
+                                linkLimit: Option[Int] = None) extends RuntimeConfig {
 
   require(partitionSize > 1, "partitionSize must be greater than 0 (partitionSize=" + partitionSize + ")")
 }

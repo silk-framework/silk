@@ -1,5 +1,6 @@
 package org.silkframework.config
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
@@ -26,6 +27,22 @@ trait Task[+TaskType <: TaskSpec] {
     * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
     */
   def taskTrait: Task[TaskType] = this.asInstanceOf[Task[TaskType]]
+
+  /**
+    * Finds all tasks that reference this task.
+    *
+    * @param recursive Whether to return tasks that indirectly refer to this task.
+    */
+  def findDependentTasks(recursive: Boolean)
+                        (implicit userContext: UserContext): Set[Identifier] = Set.empty
+
+  /**
+    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
+    * @param maxLength the max length in characters
+    */
+  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
+    metaData.formattedLabel(id, maxLength)
+  }
 
   override def equals(obj: scala.Any) = obj match {
     case task: Task[_] =>
@@ -94,4 +111,6 @@ object Task {
       node
     }
   }
+
+  implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
 }

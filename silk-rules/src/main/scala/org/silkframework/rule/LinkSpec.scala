@@ -16,13 +16,14 @@ package org.silkframework.rule
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -38,11 +39,13 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
 
-  def findSources(datasets: Traversable[Task[DatasetSpec]]): DPair[DataSource] = {
+  def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
+                 (implicit userContext: UserContext): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
   }
 
-  def findOutputs(datasets: Traversable[Task[DatasetSpec]]): Seq[LinkSink] = {
+  def findOutputs(datasets: Traversable[Task[DatasetSpec[Dataset]]])
+                 (implicit userContext: UserContext): Seq[LinkSink] = {
     outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
 
@@ -51,7 +54,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     val targetRestriction = dataSelections.target.restriction
 
     val sourcePaths = rule.operator match {
-      case Some(operator) => collectPaths(sourceOrTarget = true)(operator)
+      case Some(operator) => collectPaths(true)(operator)
       case None => Set[TypedPath]()
     }
 
@@ -100,7 +103,20 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     */
   override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
 
-  override lazy val referencedTasks = dataSelections.map(_.inputId).toSet
+  override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
+
+  override def outputTasks: Set[Identifier] = outputs.toSet
+
+  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+    Seq(
+      ("Source", dataSelections.source.inputId.toString),
+      ("Target", dataSelections.target.inputId.toString),
+      ("Source Type", dataSelections.source.typeUri.toString),
+      ("Target Type", dataSelections.target.typeUri.toString),
+      ("Source Restriction", dataSelections.source.restriction.toString),
+      ("Target Restriction", dataSelections.target.restriction.toString)
+    )
+  }
 }
 
 object LinkSpec {
@@ -114,6 +130,8 @@ object LinkSpec {
   implicit object LinkSpecificationFormat extends XmlFormat[LinkSpec] {
 
     private val schemaLocation = "org/silkframework/LinkSpecificationLanguage.xsd"
+
+    override def tagNames: Set[String] = Set("Interlink")
 
     /**
      * Deserialize a value from XML.

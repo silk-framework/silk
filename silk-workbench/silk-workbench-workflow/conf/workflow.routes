@@ -5,8 +5,9 @@ GET        /report/:project/:task                               controllers.work
 
 GET        /workflows/:project                                  controllers.workflow.WorkflowApi.getWorkflows(project: String)
 
-GET        /workflows/:project/:task                            controllers.workflow.WorkflowApi.getWorkflow(project: String, task: String)
+POST       /workflows/:project                                  controllers.workflow.WorkflowApi.postWorkflow(project: String)
 PUT        /workflows/:project/:task                            controllers.workflow.WorkflowApi.putWorkflow(project: String, task: String)
+GET        /workflows/:project/:task                            controllers.workflow.WorkflowApi.getWorkflow(project: String, task: String)
 DELETE     /workflows/:project/:task                            controllers.workflow.WorkflowApi.deleteWorkflow(project: String, task: String)
 
 PUT        /workflows/:project/:task/execute                    controllers.workflow.WorkflowApi.executeWorkflow(project: String, task: String)

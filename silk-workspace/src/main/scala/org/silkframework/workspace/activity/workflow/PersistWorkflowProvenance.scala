@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
-import org.silkframework.runtime.activity.ActivityExecutionResult
+import org.silkframework.runtime.activity.{ActivityExecutionResult, UserContext}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
 
@@ -16,7 +16,8 @@ trait PersistWorkflowProvenance {
     * @param activityResult The result of executing the workflow
     */
   def persistWorkflowProvenance(workflowTask: ProjectTask[Workflow],
-                                activityResult: ActivityExecutionResult[WorkflowExecutionReport]): Unit
+                                activityResult: ActivityExecutionResult[WorkflowExecutionReport])
+                               (implicit userContext: UserContext): Unit
 }
 
 @Plugin(
@@ -27,7 +28,8 @@ trait PersistWorkflowProvenance {
 case class NopPersistWorkflowProvenance() extends PersistWorkflowProvenance {
   val log: Logger = Logger.getLogger(this.getClass.getName)
   override def persistWorkflowProvenance(workflowTask: ProjectTask[Workflow],
-                                         activityResult: ActivityExecutionResult[WorkflowExecutionReport]): Unit = {
+                                         activityResult: ActivityExecutionResult[WorkflowExecutionReport])
+                                        (implicit userContext: UserContext): Unit = {
     log.fine("Workflow provenance data ist not written. No valid plugin specified. Please set provenance.persistWorkflowProvenancePlugin")
   }
 }

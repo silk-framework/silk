@@ -3,6 +3,7 @@
 @import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 
+@import org.silkframework.runtime.activity.UserContext
 @(project: Project,
     name: String,
     plugins: Seq[PluginDescription[_]],
@@ -11,7 +12,7 @@
     title: String = "Edit Properties",
     submitLabel: String = "OK",
     secondaryLabel: String = "Secondary",
-    createDialog: Boolean = false)(contents: Html)
+    createDialog: Boolean = false)(contents: Html)(implicit userContext: UserContext)
 
 @dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500, createDialog = createDialog) {
   <div id="plugintabs">
@@ -141,12 +142,14 @@
     </p>
 
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"  @if(currentObj.isDefined) { disabled="true" } />
+      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"  @if(!createDialog) { disabled="true" } />
       <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
     </div>
 
     @for(param <- plugin.parameters) {
-      @createField(plugin.id, param)
+      @if(param.visibleInDialog) {
+        @createField(plugin.id, param)
+      }
     }
 
   </div>
@@ -161,13 +164,10 @@
       }
 
       // Retrieve all plugin parameters
-      var parameters = [
-        @for(param <- plugin.parameters) {
-          { name: '@param.name',
-            value: $('[name=\'@(plugin.id)_@(param.name)\']').val()
-          },
-        }
-      ];
+      var parameters = {};
+      @for(param <- plugin.parameters) {
+        parameters['@param.name'] = $('[name=\'@(plugin.id)_@(param.name)\']').val();
+      }
 
       // Submit dialog
       if(!onlyAutoConfigure) {
@@ -199,13 +199,14 @@
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
     case MultilineStringParameterType => createMultilineTextField(pluginId, param)
     case SparqlEndpointDatasetParameterType => createSparqlEndpointDatasetField(pluginId, param)
+    case PasswordParameterType => createTextField(pluginId, param, inputType = "password")
     case _ => createTextField(pluginId, param)
   }
 }
 
-@createTextField(pluginId: String, param: Parameter) = {
+@createTextField(pluginId: String, param: Parameter, inputType: String = "text") = {
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
+    <input class="mdl-textfield__input" type="@inputType" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
     <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
@@ -219,7 +220,7 @@
   @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description)
 }
 
-@createSparqlEndpointDatasetField(pluginId: String, param: Parameter) = {
+@createSparqlEndpointDatasetField(pluginId: String, param: Parameter)(implicit userContext: UserContext) = {
   @widgets.sparqlDatasetSelect(project.name, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 

@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity.{Entity, Path, TypedPath}
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.FunctionNode
 import org.silkframework.rule.evaluation.ReferenceEntities
@@ -44,9 +44,6 @@ class CompatiblePathsGenerator(components: Components) {
         //Return all path pairs
         val pathPairs = PairGenerator(distinctPaths, entities)
 
-        //pathPairs.foreach(p => printLink(p, instances))
-        //pathPairs.foreach(println)
-
         pathPairs.flatMap(createGenerators)
       }
       else {
@@ -58,34 +55,20 @@ class CompatiblePathsGenerator(components: Components) {
     }
   }
 
-  //TODO remove
-  //  private def printLink(pathPair: DPair[Path], instances: ReferenceEntities) {
-  //    println("-------------------------------------")
-  //    println(pathPair.mkString(" - "))
-  //    println("P")
-  //    for(instancePair <- instances.positive.values) {
-  //      println(instancePair.source.evaluate(pathPair.source).mkString(", ") + "\n---\n" + instancePair.target.evaluate(pathPair.target).mkString(", "))
-  //    }
-  //    println("N")
-  //    for(instancePair <- instances.negative.values) {
-  //      println(instancePair.source.evaluate(pathPair.source).mkString(", ") + "\n---\n" + instancePair.target.evaluate(pathPair.target).mkString(", "))
-  //    }
-  //  }
-
-  private def createGenerators(pathPair: DPair[Path]) = {
-    new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
-        new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
-        // Substring is currently to slow new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::
-        new ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("date", Nil, DistanceMeasure), 1000.0) :: Nil
+  private def createGenerators(pathPair: DPair[TypedPath]) = {
+    ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
+    ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
+    // Substring is currently too slow ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::
+    ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("date", Nil, DistanceMeasure), 1000.0) :: Nil
   }
 
   /**
     * Retrieves all paths except sameAs paths
     */
   private object PathsRetriever {
-    def apply(entities: ReferenceEntities): DPair[Traversable[Path]] = {
+    def apply(entities: ReferenceEntities): DPair[Traversable[TypedPath]] = {
       val pair = entities.positiveEntities.head
-      val allPaths = pair.map(e => Path(Nil) +: e.desc.typedPaths.map(_.path))
+      val allPaths = pair.map(e => e.schema.typedPaths)
       allPaths.
           map(_.filterNot(_.toString.contains("sameAs"))).
           map(_.filterNot(_.toString.contains("abstract"))).
@@ -97,7 +80,7 @@ class CompatiblePathsGenerator(components: Components) {
     * Removes paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
     */
   private object DuplicateRemover {
-    def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
+    def apply(paths: DPair[Traversable[TypedPath]], entities: ReferenceEntities): DPair[Traversable[TypedPath]] = {
       val sourceValues = entities.positiveEntities.map(_.source) ++ entities.negativeEntities.map(_.source)
       val targetValues = entities.positiveEntities.map(_.target) ++ entities.negativeEntities.map(_.target)
 
@@ -107,17 +90,17 @@ class CompatiblePathsGenerator(components: Components) {
       )
     }
 
-    private def removeDuplicatePaths(entities: Traversable[Entity], paths: Traversable[Path]): Traversable[Path] = {
+    private def removeDuplicatePaths(entities: Traversable[Entity], paths: Traversable[TypedPath]): Traversable[TypedPath] = {
       val pathTails = paths.toList.tails.toTraversable.par
       val distinctPaths = for (path :: tail <- pathTails if !tail.exists(p => pathsMatch(entities, DPair(path, p)))) yield path
       distinctPaths.seq
     }
 
-    private def pathsMatch(entities: Traversable[Entity], pathPair: DPair[Path]): Boolean = {
+    private def pathsMatch(entities: Traversable[Entity], pathPair: DPair[TypedPath]): Boolean = {
       entities.forall(pathsMatch(_, pathPair))
     }
 
-    private def pathsMatch(entities: Entity, pathPair: DPair[Path]): Boolean = {
+    private def pathsMatch(entities: Entity, pathPair: DPair[TypedPath]): Boolean = {
       val values = pathPair.map(entities.evaluate)
 
       val valuePairs = for (v1 <- values.source; v2 <- values.target) yield DPair(v1, v2)
@@ -132,7 +115,7 @@ class CompatiblePathsGenerator(components: Components) {
   private object PairGenerator {
     private val transformers = Tokenizer() :: StripUriPrefixTransformer() :: LowerCaseTransformer() :: Nil
 
-    def apply(paths: DPair[Traversable[Path]], entities: ReferenceEntities) = {
+    def apply(paths: DPair[Traversable[TypedPath]], entities: ReferenceEntities): Iterable[DPair[TypedPath]] = {
       val pathPairs = for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
       val posEntities = entities.positiveEntities.map(transformEntities)
       val negEntities = entities.negativeEntities.map(transformEntities)
@@ -142,10 +125,10 @@ class CompatiblePathsGenerator(components: Components) {
 
     @inline private def transformEntities(entities: DPair[Entity]) = {
       for (entity <- entities) yield {
-        new Entity(
+        Entity(
           uri = transformValues(Seq(entity.uri)).head,
           values = for (values <- entity.values) yield transformValues(values),
-          desc = entity.desc
+          schema = entity.schema
         )
       }
     }
@@ -154,19 +137,13 @@ class CompatiblePathsGenerator(components: Components) {
       transformers.foldLeft(values)((v, trans) => trans(Seq(v)))
     }
 
-    private def pathValuesMatch(posEntities: Traversable[DPair[Entity]], negEntities: Traversable[DPair[Entity]], pathPair: DPair[Path]): Boolean = {
+    private def pathValuesMatch(posEntities: Traversable[DPair[Entity]], negEntities: Traversable[DPair[Entity]], pathPair: DPair[TypedPath]): Boolean = {
       val positive = posEntities.count(i => matches(i, pathPair)).toDouble / posEntities.size
 
-      //      if(!negEntities.isEmpty) {
-      //        val negative = negEntities.count(i => matches(i, pathPair)).toDouble / negEntities.size
-      //        positive > minFrequency && positive * 2.0 >= negative
-      //      }
-      //      else {
       positive > minFrequency
-      //      }
     }
 
-    private def matches(entityPair: DPair[Entity], pathPair: DPair[Path]): Boolean = {
+    private def matches(entityPair: DPair[Entity], pathPair: DPair[TypedPath]): Boolean = {
       val sourceValues = entityPair.source.evaluate(pathPair.source)
       val targetValues = entityPair.target.evaluate(pathPair.target).toSet
 

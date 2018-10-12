@@ -17,14 +17,17 @@ package org.silkframework.rule.execution
 import java.util.Locale
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Link, Path}
 import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.rule.execution.methods._
 import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import org.silkframework.rule.{LinkingConfig, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
+import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.util.Identifier
 
 import scala.io.Source
 import scala.xml.XML
@@ -45,6 +48,7 @@ object GenerateLinksTest {
 
   private val sourceKey = Path.parse("?a/<label>")
   private val targetKey = Path.parse("?b/<label>")
+  private implicit val userContext: UserContext = UserContext.Empty
 
   private val tests =
     Test("Full", Full()) ::
@@ -147,13 +151,22 @@ object GenerateLinksTest {
       elapsedTime
     }
 
+    private def fromSources(id: Identifier,
+                            datasets: Traversable[Task[DatasetSpec[org.silkframework.dataset.Dataset]]],
+                            linkSpec: LinkSpec,
+                            runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
+      val sourcePair = linkSpec.findSources(datasets)
+      val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
+      new GenerateLinks(id, sourcePair, linkSpec, outputs, runtimeConfig)
+    }
+
     private def run(runtimeConfig: RuntimeLinkingConfig): Set[Link] = {
       val config = dataset.config
       val linkTask = config.linkSpecs.head
 
       // Execute Matching
       val activity =
-        GenerateLinks.fromSources(
+        fromSources(
           id = linkTask.id,
           datasets = config.sources,
           linkSpec = linkTask.data,

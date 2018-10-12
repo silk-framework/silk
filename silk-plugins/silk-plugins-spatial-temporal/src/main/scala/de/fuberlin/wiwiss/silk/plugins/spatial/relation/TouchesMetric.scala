@@ -36,7 +36,7 @@ case class TouchesMetric(blockingParameter: Double = 1.0) extends SimpleDistance
     Utils.evaluateRelation(str1, str2, limit, Constants.TOUCHES)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter)
   }
 }

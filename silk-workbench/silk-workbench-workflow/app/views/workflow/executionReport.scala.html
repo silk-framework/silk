@@ -1,4 +1,3 @@
-@import plugins.Context
 @import org.silkframework.workspace.activity.workflow.WorkflowExecutionReport
 @import org.silkframework.rule.execution.TransformReport
 @import views.html.executeTransform.transformStatistics
@@ -7,8 +6,11 @@
 @import org.silkframework.execution.ExecutionReport
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.rule.execution.Linking
-
-@(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session)
+@import org.silkframework.config.Task
+@import org.silkframework.rule.TransformSpec
+@import org.silkframework.workbench.Context
+@import org.silkframework.runtime.activity.UserContext
+@(report: WorkflowExecutionReport, prefixes: Prefixes, context: Context[Workflow])(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
 }
@@ -31,25 +33,44 @@
 
     @for(taskId <- tasks) {
       <div class="mdl-tabs__panel @if(taskId == tasks.head) {is-active}" id="tab-@taskId">
-      @renderTaskReport(report.taskReports(taskId))
+      @renderTaskReport(context.project.anyTask(taskId), report.taskReports(taskId))
       </div>
     }
 
   </div>
 }
 
-@renderTaskReport(taskReport: ExecutionReport) = {
+@renderTaskReport(task: Task[_], taskReport: ExecutionReport) = {
   @taskReport match {
     case transformReport: TransformReport => {
-      @transformStatistics(transformReport, prefixes)
+      @transformStatistics(task.asInstanceOf[Task[TransformSpec]], transformReport, prefixes)
     }
     case linking: Linking => {
       @linkingReport(linking.statistics, linking.links.size)
     }
     case _ => {
-      No report
+      @renderGenericReport(taskReport)
     }
   }
 }
 
-@main(Some(context))(header)(toolbar)(content)
+@renderGenericReport(taskReport: ExecutionReport) = {
+  <table class="mdl-data-table mdl-js-data-table">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for((key, value) <- taskReport.summary) {
+        <tr>
+          <td>@key</td>
+          <td>@value</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

@@ -5,9 +5,12 @@ import java.util.logging.{Level, Logger}
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
 import org.silkframework.dataset._
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -28,11 +31,12 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
-  def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(file)(codec)
+    val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
     val selectedElements = jsonTraverser.select(basePathParts)
-    val subPath = entitySchema.subPath ++ Path.parse(entitySchema.typeUri.uri)
+    val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
       selectedElements.flatMap(_.select(subPath.operators))
     } else { selectedElements }
@@ -52,17 +56,23 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
 
   private val basePathLength = basePathParts.length
 
-  def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(file)(codec)
-    val selectedElements = jsonTraverser.select(basePathParts)
-    new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet).toSeq
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      logger.log(Level.FINE, "Retrieving data from JSON.")
+      val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
+      val selectedElements = jsonTraverser.select(basePathParts)
+      new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+    }
   }
 
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1)
   }
 
@@ -71,7 +81,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
                         limit: Option[Int],
                         leafPathsOnly: Boolean,
                         innerPathsOnly: Boolean,
-                        json: JsonTraverser = JsonTraverser(file)(codec)): IndexedSeq[Path] = {
+                        json: JsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)): IndexedSeq[Path] = {
     val subSelectedElements: Seq[JsonTraverser] = navigateToType(typePath, json)
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
          path <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth)) yield {
@@ -85,8 +95,9 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     subSelectedElements
   }
 
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
-    retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p.serialize, 1.0))
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+    retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p.normalizedSerialization, 1.0))
   }
 
   private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
@@ -96,7 +107,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            index.toString
+            genericEntityIRI(index.toString)
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = Path.parse(m.group(1))
@@ -108,14 +119,15 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.path)
-          f(new Entity(uri, values, entityDesc))
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path)
+          f(Entity(uri, values, entityDesc))
         }
       }
     }
   }
 
-  override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
+  override def peak(entitySchema: EntitySchema, limit: Int)
+                   (implicit userContext: UserContext): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 
@@ -193,4 +205,11 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
       analyzedValues += values.size
     }
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }

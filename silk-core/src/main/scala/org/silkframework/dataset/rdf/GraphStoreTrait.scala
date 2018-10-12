@@ -1,10 +1,11 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{InputStream, OutputStream}
+import java.io.{BufferedOutputStream, InputStream, OutputStream}
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.util.control.NonFatal
@@ -16,7 +17,8 @@ trait GraphStoreTrait {
 
   def graphStoreEndpoint(graph: String): String
 
-  def graphStoreHeaders(): Map[String, String] = Map.empty
+  /** HTTP headers to add to the graph store requests */
+  def graphStoreHeaders(userContext: UserContext): Map[String, String] = Map.empty
 
   /**
     * Handles a connection error.
@@ -40,12 +42,13 @@ trait GraphStoreTrait {
     *
     * @param graph
    * @param contentType
-   * @return
+   * @return A buffered output stream
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000),
-                      comment: Option[String] = None): OutputStream = {
+                      comment: Option[String] = None)
+                     (implicit userContext: UserContext): OutputStream = {
     val connection: HttpURLConnection = initConnection(graph, comment)
     connection.setDoInput(true)
     connection.setDoOutput(true)
@@ -55,7 +58,8 @@ trait GraphStoreTrait {
     ConnectionClosingOutputStream(connection, handleError)
   }
 
-  def deleteGraph(graph: String): Unit = {
+  def deleteGraph(graph: String)
+                 (implicit userContext: UserContext): Unit = {
     val connection = initConnection(graph)
     connection.setRequestMethod("DELETE")
     if(connection.getResponseCode / 100 != 2) {
@@ -63,7 +67,8 @@ trait GraphStoreTrait {
     }
   }
 
-  private def initConnection(graph: String, comment: Option[String] = None): HttpURLConnection = {
+  private def initConnection(graph: String, comment: Option[String] = None)
+                            (implicit userContext: UserContext): HttpURLConnection = {
     var graphStoreUrl = graphStoreEndpoint(graph)
     for(c <- comment) {
       graphStoreUrl += "&comment=" + URLEncoder.encode(c, "UTF8")
@@ -71,7 +76,7 @@ trait GraphStoreTrait {
     val url = new URL(graphStoreUrl)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
-    for ((header, headerValue) <- graphStoreHeaders()) {
+    for ((header, headerValue) <- graphStoreHeaders(userContext)) {
       connection.setRequestProperty(header, headerValue)
     }
     connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
@@ -80,7 +85,8 @@ trait GraphStoreTrait {
   }
 
   def getDataFromGraph(graph: String,
-                       acceptType: String = "text/turtle; charset=utf-8"): InputStream = {
+                       acceptType: String = "text/turtle; charset=utf-8")
+                      (implicit userContext: UserContext): InputStream = {
     val connection: HttpURLConnection = initConnection(graph)
     connection.setRequestMethod("GET")
     connection.setDoInput(true)
@@ -97,7 +103,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   private lazy val outputStream = {
     connection.connect()
-    connection.getOutputStream()
+    new BufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {
@@ -106,13 +112,12 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
 
   override def close(): Unit = {
     try {
-      outputStream.flush()
       outputStream.close()
       val responseCode = connection.getResponseCode
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        errorHandler(connection, s"Could not write to HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -134,7 +139,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       connection.getInputStream
     } catch {
       case NonFatal(_) =>
-        errorHandler(connection, s"Could not read from HTTP connection. Got ${connection.getResponseCode} response code.")
+        errorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
     }
   }
 
@@ -147,7 +152,7 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        errorHandler(connection, s"Could not read from HTTP connection. Got $responseCode response code.")
+        errorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
       }
     } finally {
       connection.disconnect()

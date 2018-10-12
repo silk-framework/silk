@@ -271,3 +271,25 @@ div#newproject {
   /* prevent horizontal scrollbar */
   overflow-x: hidden;
 }
+
+
+#tab-bar .di_tab_task_title {
+    /* Workaround 2: title is on the left, problem with overlapping is minimized */
+    position: absolute;
+    /*width: calc(25% - 48px);*/
+    display: inline-block;
+    margin: 0px 0px 0px 14px;
+    font-size: 16px;
+    line-height: 48px;
+    height: 48px;
+    left: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+.mdl-tabs__tab {
+    /* Workaround 2 Addon A: overlapping still happens but tab items have bg color and so they are readable */
+    background-color: #fff;
+}

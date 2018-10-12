@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.methods
 
-import org.mockito.Matchers.{eq => mockitoEq, _}
 import org.mockito.Mockito._
+import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, EntitySink}
@@ -9,7 +9,7 @@ import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule._
-import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
+import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -18,22 +18,25 @@ import org.silkframework.util.{Identifier, Uri}
 class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
+  implicit val userContext: UserContext = UserContext.Empty
+
   it should "output faulty entities to error output" in {
     val prop = "http://prop"
     val prop2 = "http:// prop2"
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())).thenReturn(entities)
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(entities)
     val execute = new ExecuteTransform(
-      input = dataSourceMock,
+      input = _ => dataSourceMock,
       transform = TransformSpec(datasetSelection(), RootMappingRule("root", MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
-      output = outputMock
+      output = _ => outputMock
     )
     val contextMock = mock[ActivityContext[TransformReport]]
     val executeTransformResultHolder = new ValueHolder[TransformReport](None)
     when(contextMock.value).thenReturn(executeTransformResultHolder)
     when(contextMock.status).thenReturn(mock[StatusHolder])
+    implicit val userContext: UserContext = UserContext.Empty
     execute.run(contextMock)
     verify(outputMock).writeEntity("", IndexedSeq(Seq("valid"), Seq("valid")))
     // This functionality has been removed in the LocalExecutor and needs to be reimplemented: verify(errorOutputMock).writeEntity("", IndexedSeq(Seq("invalid"), Seq("valid")))
@@ -72,7 +75,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    new Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties map (Path.apply) map (_.asStringTypedPath)))
+    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties map (Path.apply) map (_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {

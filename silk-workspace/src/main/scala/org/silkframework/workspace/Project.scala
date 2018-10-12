@@ -19,14 +19,13 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.linking.LinkingTaskExecutor
-import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory, TaskExecutor}
+import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -46,9 +45,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  @volatile
-  private var executors = Map[String, TaskExecutor[_]]()
-
   /**
     * Holds all issues that occurred during loading project activities.
     */
@@ -56,22 +52,22 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
 
   // Register all default modules
-  registerModule[DatasetSpec]()
+  registerModule[DatasetSpec[Dataset]]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
   registerModule[Workflow]()
   registerModule[CustomTask]()
 
-  registerExecutor(new LinkingTaskExecutor())
-  registerExecutor(new TransformTaskExecutor())
-
-  // Initialize Tasks
-  allTasks.foreach(_.init())
+  /** This must be executed once when the project was loaded into the workspace */
+  def initTasks()(implicit userContext: UserContext) {
+    // Initialize Tasks
+    allTasks.foreach(_.init())
+  }
 
   /**
     * The name of this project.
     */
-  def name = cachedConfig.id
+  def name: Identifier = cachedConfig.id
 
   /**
     * Retrieves all errors that occured during loading this project.
@@ -108,7 +104,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @return The activity control for the requested activity
     * @throws org.silkframework.runtime.validation.NotFoundException
     */
-  def activity(activityName: String) = {
+  def activity(activityName: String): ProjectActivity = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
@@ -122,7 +118,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Writes the updated project configuration.
    */
-  def config_=(project : ProjectConfig) {
+  def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
     provider.putProject(project)
     cachedConfig = project
   }
@@ -130,14 +126,14 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Retrieves all tasks in this project.
    */
-  def allTasks: Seq[ProjectTask[_ <: TaskSpec]] = {
+  def allTasks(implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
     for(module <- modules; task <- module.tasks) yield task.asInstanceOf[ProjectTask[_ <: TaskSpec]]
   }
 
   /**
    * Retrieves all tasks of a specific type.
    */
-  def tasks[T <: TaskSpec : ClassTag]: Seq[ProjectTask[T]] = {
+  def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[ProjectTask[T]] = {
     val targetType = implicitly[ClassTag[T]].runtimeClass
     module[T].tasks.filter(task => targetType.isAssignableFrom(task.data.getClass))
   }
@@ -149,11 +145,13 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @tparam T The task type
    * @throws java.util.NoSuchElementException If no task with the given name has been found
    */
-  def task[T <: TaskSpec : ClassTag](taskName: Identifier): ProjectTask[T] = {
+  def task[T <: TaskSpec : ClassTag](taskName: Identifier)
+                                    (implicit userContext: UserContext): ProjectTask[T] = {
     module[T].task(taskName)
   }
 
-  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier): Option[ProjectTask[T]] = {
+  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
+                                          (implicit userContext: UserContext): Option[ProjectTask[T]] = {
     module[T].taskOption(taskName)
   }
 
@@ -163,7 +161,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @throws org.silkframework.workspace.TaskNotFoundException If no task with the given name has been found
    */
-  def anyTask(taskName: Identifier): ProjectTask[_ <: TaskSpec] = {
+  def anyTask(taskName: Identifier)
+             (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
     modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
            .getOrElse(throw TaskNotFoundException(config.id, taskName, "Task"))
   }
@@ -173,7 +172,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param taskName The name of the task
     */
-  def anyTaskOption(taskName: Identifier): Option[ProjectTask[_ <: TaskSpec]] = {
+  def anyTaskOption(taskName: Identifier)
+                   (implicit userContext: UserContext): Option[ProjectTask[_ <: TaskSpec]] = {
     modules.flatMap(_.taskOption(taskName).asInstanceOf[Option[ProjectTask[_ <: TaskSpec]]]).headOption
   }
 
@@ -184,8 +184,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+                                       (implicit userContext: UserContext): Unit = synchronized {
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     module[T].add(name, taskData, metaData)
   }
 
@@ -195,8 +198,11 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty): Unit = {
-    require(!allTasks.exists(_.id == name), s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+                (implicit userContext: UserContext): Unit = synchronized {
+    if(allTasks.exists(_.id == name)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+    }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
@@ -211,12 +217,34 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty): Unit = {
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+                                          (implicit userContext: UserContext): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         task.update(taskData, Some(metaData))
       case None =>
         addTask[T](name, taskData, metaData)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    */
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+                   (implicit userContext: UserContext): Unit = synchronized {
+    modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
+      case Some(module) =>
+        module.taskOption(name) match {
+          case Some(task) =>
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+          case None =>
+            addAnyTask(name, taskData, metaData)
+        }
+      case None =>
+        throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
 
@@ -227,7 +255,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * @param taskName The name of the task
    * @tparam T The task type
    */
-  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier): Unit = {
+  def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier)
+                                          (implicit userContext: UserContext): Unit = synchronized {
     module[T].remove(taskName)
   }
 
@@ -238,16 +267,17 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
-  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean): Unit = {
+  def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
+                   (implicit userContext: UserContext): Unit = synchronized {
     if(removeDependentTasks) {
       // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = true)) {
-        removeAnyTask(dependentTask.id, removeDependentTasks = false)
+      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
+        removeAnyTask(dependentTask, removeDependentTasks = true)
       }
     } else {
       // Make sure that no other task depends on this task
       for(task <- allTasks) {
-        if(task.data.referencedTasks.contains(taskName)) {
+        if(task.data.inputTasks.contains(taskName)) {
           throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
         }
       }
@@ -257,13 +287,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
       m.remove(taskName)
     }
-  }
-
-  /**
-   * Retrieves an executor for a specific task.
-   */
-  def getExecutor[T](taskData: T): Option[TaskExecutor[T]] = {
-    executors.get(taskData.getClass.getName).map(_.asInstanceOf[TaskExecutor[T]])
   }
 
   /**
@@ -284,15 +307,20 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag](): Unit = {
+  def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this)
   }
 
-  /**
-   * Registers a new executor for a specific task type.
-   */
-  def registerExecutor[T : ClassTag](executor: TaskExecutor[T]): Unit = {
-    val taskClassName = implicitly[ClassTag[T]].runtimeClass.getName
-    executors = executors.updated(taskClassName, executor)
+  /** Flush outstanding updates */
+  def flush()
+           (implicit userContext: UserContext): Unit = synchronized {
+    for(task <- allTasks) {
+      try {
+        task.flush()
+      } catch {
+        case NonFatal(ex) =>
+          logger.log(Level.WARNING, s"Could not persist task ${task.id} of project ${config.id} to workspace provider.", ex)
+      }
+    }
   }
 }

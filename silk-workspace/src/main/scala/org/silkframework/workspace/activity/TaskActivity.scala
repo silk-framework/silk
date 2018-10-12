@@ -1,13 +1,14 @@
 package org.silkframework.workspace.activity
 
-import java.lang.reflect.{ParameterizedType, Type}
+import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 
 import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.activity.{Activity, HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.ProjectTask
 
 import scala.reflect.ClassTag
+import scala.runtime.BoxedUnit
 
 /**
   * Holds an activity that is part of an task.
@@ -21,7 +22,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     extends WorkspaceActivity {
 
   @volatile
-  private var currentControl = Activity(initialFactory(task))
+  private var currentControl = Activity{
+    initialFactory(task)
+  }
 
   @volatile
   private var currentFactory = initialFactory
@@ -46,36 +49,58 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
 
-  def reset() = {
+  def reset()(implicit userContext: UserContext): Unit = {
     currentControl.cancel()
     recreateControl()
   }
 
-  def update(config: Map[String, String]) = {
+  /**
+    * Starts the activity asynchronously.
+    * Optionally applies a supplied configuration beforehand.
+    */
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
+    if(config.nonEmpty) {
+      update(config)
+    }
+    control.start()
+  }
+
+  /**
+    * Starts the activity blocking.
+    * Optionally applies a supplied configuration beforehand.
+    */
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Unit = {
+    if(config.nonEmpty) {
+      update(config)
+    }
+    control.startBlocking()
+  }
+
+  def update(config: Map[String, String]): Unit = {
     implicit val prefixes = task.project.config.prefixes
     implicit val resources = task.project.resources
     currentFactory = PluginDescription(currentFactory.getClass)(config)
     recreateControl()
   }
 
-  private def recreateControl() = {
+  private def recreateControl(): Unit = {
     val oldControl = currentControl
     currentControl = Activity(currentFactory(task))
     // Keep subscribers
     for (subscriber <- oldControl.status.subscribers) {
-      currentControl.status.onUpdate(subscriber)
+      currentControl.status.subscribe(subscriber)
     }
     for (subscriber <- oldControl.value.subscribers) {
-      currentControl.value.onUpdate(subscriber)
+      currentControl.value.subscribe(subscriber)
     }
   }
 
   def activityType: Class[_] = currentFactory.activityType
 
   /**
-    * Retrieves the value type of the activity.
+    * Checks if the value type of the activity is Unit.
     */
-  def valueType: Class[_] = {
+  def isUnitValueType: Boolean = {
     val activityClassName = classOf[Activity[_]].getName
     val activityInterface = {
       val at = activityType
@@ -90,9 +115,11 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     val valueType = activityInterface.getActualTypeArguments.apply(0)
     val valueClass = valueType match {
       case pt: ParameterizedType => pt.getRawType.asInstanceOf[Class[_]]
+      // FIXME: This is not correct in general. For type variables we would have to dig deeper what the actual type is, but this works correctly for all cases currently, since CachedActivities always have a value.
+      case tv: TypeVariable[_] => tv.getGenericDeclaration.asInstanceOf[Class[_]]
       case t: Type => t.asInstanceOf[Class[_]]
     }
-    valueClass
+    valueClass == classOf[BoxedUnit]
   }
 
   private def getAllInterfacesRecursively(clazz: Type, stopAtClassPrefix: String): List[Type] = {
@@ -102,7 +129,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
       val recursiveTypes: List[Type] = clazz match {
         case c: Class[_] =>
           val genericInterfaces = c.getGenericInterfaces.toList
-          genericInterfaces ++ genericInterfaces.flatMap(getAllInterfacesRecursively(_, stopAtClassPrefix))
+          val transitiveInterfaces = (genericInterfaces ++ Option(c.getSuperclass).toSeq).flatMap(getAllInterfacesRecursively(_, stopAtClassPrefix))
+          genericInterfaces ++ transitiveInterfaces
         case pt: ParameterizedType =>
           getAllInterfacesRecursively(pt.getRawType, stopAtClassPrefix)
         case t: Type =>

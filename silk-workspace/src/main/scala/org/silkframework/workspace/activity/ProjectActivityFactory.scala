@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.runtime.activity.Activity
+import org.silkframework.runtime.activity.{Activity}
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.workspace.Project
 

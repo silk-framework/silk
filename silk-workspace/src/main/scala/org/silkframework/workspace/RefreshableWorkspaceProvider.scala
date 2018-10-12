@@ -1,7 +1,5 @@
 package org.silkframework.workspace
 
-import org.silkframework.util.Identifier
-
 /**
   *
   */

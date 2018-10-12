@@ -192,26 +192,21 @@ silkStore
             .connect();
     });
 
-silkStore.subject('transform.task.rule.rules.reorder').subscribe( ({data, replySubject}) => {
-
-    const {
-        baseUrl,
-        project,
-        transformTask,
-        id,
-        childrenRules,
-    } = data;
-    superagent
-        .post(
-            `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${id}/rules/reorder`
-        )
-        .accept('application/json')
-        .send(childrenRules)
-        .type('application/json')
-        .observe()
-        .multicast(replySubject)
-        .connect();
-});
+silkStore
+    .subject('transform.task.rule.rules.reorder')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask, id, childrenRules} = data;
+        superagent
+            .post(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${id}/rules/reorder`
+            )
+            .accept('application/json')
+            .send(childrenRules)
+            .type('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
 
 silkStore
     .subject('transform.task.rule.completions.sourcePaths')
