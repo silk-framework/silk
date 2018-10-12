@@ -95,7 +95,7 @@ trait SampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
         val analyzerResult = pathAnalyzerResults(path)
         ExtractedSchemaProperty(Path(path.last), analyzerResult)
       }
-      ExtractedSchemaClass(Path(typ.map(ForwardOperator(_))).serialize, extractedSchemaPaths)
+      ExtractedSchemaClass(Path(typ.map(ForwardOperator(_))).normalizedSerialization, extractedSchemaPaths)
     }
     progress(1.0)
     ExtractedSchema(schemaClasses)

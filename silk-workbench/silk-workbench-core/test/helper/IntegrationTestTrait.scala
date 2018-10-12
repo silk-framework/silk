@@ -48,7 +48,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
   // Assume by default that anonymous access is allowed
   implicit def userContext: UserContext = UserContext.Empty
 
-  def workspaceProject(projectId: String): Project = User().workspace.project(projectId)
+  def workspaceProject(projectId: String)
+                      (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
