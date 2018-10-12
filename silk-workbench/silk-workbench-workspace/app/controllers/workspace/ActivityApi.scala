@@ -5,8 +5,7 @@ import java.util.logging.{LogRecord, Logger}
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, ActivityControl, SimpleUserContext, UserContext}
-import org.silkframework.runtime.users.WebUserManager
+import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
@@ -67,10 +66,17 @@ class ActivityApi extends Controller {
     Ok
   }
 
-  def restartActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+  def restartActivity(projectName: String,
+                      taskName: String,
+                      activityName: String,
+                      blocking: Boolean): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
     activity.reset()
-    activity.start()
+    if(blocking) {
+      activity.startBlocking()
+    } else {
+      activity.start()
+    }
     Ok
   }
 
