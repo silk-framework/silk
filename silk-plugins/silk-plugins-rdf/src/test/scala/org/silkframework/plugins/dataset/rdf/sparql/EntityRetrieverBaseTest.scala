@@ -164,6 +164,12 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
     }
   }
 
+  it should "respect the configured query limit" in {
+    val entitySchema = schema(Person, Seq(path(name)))
+    val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = Some(1)).toArray.toSeq
+    entities.size mustBe 1
+  }
+
   private def schema(typeUri: String,
                      typedPaths: Seq[TypedPath],
                      filter: Restriction = Restriction.empty,

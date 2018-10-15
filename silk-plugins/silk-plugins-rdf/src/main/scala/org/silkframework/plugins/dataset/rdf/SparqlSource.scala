@@ -23,7 +23,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
                        (implicit userContext: UserContext): Traversable[Entity] = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-    entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), None)
+    entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])

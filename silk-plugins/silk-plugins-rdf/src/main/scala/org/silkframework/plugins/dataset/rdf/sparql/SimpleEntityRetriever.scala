@@ -84,7 +84,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
       sparql.toString()
     }
 
-    val sparqlResults = endpoint.select(sparqlQuery)
+    val sparqlResults = endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
 
     new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
   }

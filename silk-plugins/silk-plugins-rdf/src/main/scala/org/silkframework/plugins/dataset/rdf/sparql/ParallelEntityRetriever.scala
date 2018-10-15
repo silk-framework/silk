@@ -64,7 +64,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path, limit)
 
       pathRetrievers.foreach(_.start())
 
@@ -114,7 +114,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path)
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path, limit: Option[Int])
                              (implicit userContext: UserContext)extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
@@ -177,7 +177,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         sparql append " ORDER BY " + "?" + entityDesc.variable
       }
 
-      endpoint.select(sparql.toString())
+      endpoint.select(sparql.toString(), limit.getOrElse(Int.MaxValue))
     }
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None): Unit = {
