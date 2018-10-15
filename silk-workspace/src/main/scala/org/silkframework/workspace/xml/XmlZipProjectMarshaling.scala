@@ -1,11 +1,11 @@
 package org.silkframework.workspace.xml
 
 import java.io.{InputStream, OutputStream}
-import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+import java.util.zip.{ZipInputStream, ZipOutputStream}
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceLoader, ResourceManager, UrlResourceManager}
+import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager, UrlResourceManager}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
@@ -20,6 +20,7 @@ import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, Work
   description = "XML zip marshalling of Silk projects for importing and exporting."
 )
 case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
+
   val id = "xmlZip"
 
   val name = "XML zip file"
@@ -39,15 +40,12 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                              (implicit userContext: UserContext): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
-    val xmlResourceManager = InMemoryResourceManager()
-    val xmlWorkspaceProvider = new XmlWorkspaceProvider(xmlResourceManager)
+    val zipResourceManager = ZipOutputStreamResourceManager(zip)
+    val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
 
     // Load project into temporary XML workspace provider
     exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
       Some(resourceManager), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
-
-    // Go through all files and create a ZIP entry for each
-    putResources(zip, xmlResourceManager.child(project.id), "")
 
     // Close ZIP
     zip.close()
@@ -79,17 +77,14 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                (implicit userContext: UserContext): String = {
     // Open ZIP
     val zip = new ZipOutputStream(outputStream)
-    val xmlResourceManager = InMemoryResourceManager()
-    val xmlWorkspaceProvider = new XmlWorkspaceProvider(xmlResourceManager)
+    val zipResourceManager = ZipOutputStreamResourceManager(zip)
+    val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
 
     // Load all projects into temporary XML workspace provider
     for(project <- workspaceProvider.readProjects()) {
       exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
         Some(resourceRepository.get(project.id)), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
     }
-
-    // Go through all files and create a ZIP entry for each
-    putResources(zip, xmlResourceManager, "")
 
     // Close ZIP
     zip.close()
@@ -160,16 +155,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   private def getProjectResources(provider: XmlWorkspaceProvider, project: Identifier): ResourceManager = {
     provider.resources.child(project).child("resources")
-  }
-
-  private def putResources(zip: ZipOutputStream, loader: ResourceLoader, basePath: String): Unit = {
-    for (resName <- loader.list) {
-      zip.putNextEntry(new ZipEntry(basePath + resName))
-      zip.write(loader.get(resName).loadAsBytes)
-    }
-    for (childName <- loader.listChildren) {
-      putResources(zip, loader.child(childName), basePath + childName + "/")
-    }
   }
 
   /** Handler for file suffix */
