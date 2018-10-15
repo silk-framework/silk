@@ -1,9 +1,6 @@
 package org.silkframework.runtime.resource
 
 import java.io._
-import java.net.URL
-
-import scala.util.{Success, Try}
 
 /**
  * A resource manager that loads files from a base directory.
@@ -38,10 +35,7 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
     // We still need to support the deprecated method of putting files in a dataset directory in the user home
     val oldLocalFile = new File(System.getProperty("user.home") + "/.silk/datasets/" + name)
     // Current method of searching for files in the configured base dir
-    val newFile = Try(new URL(if(name.startsWith("file://")) name else "file://" + name)) match{
-      case Success(u) if u.getFile.trim.nonEmpty => new File(u.toString.replace("file://", ""))
-      case _ => new File(baseDir, name)
-    }
+    val newFile = new File(baseDir, name)
     if(!newFile.getCanonicalPath.startsWith(baseDir.getCanonicalPath)) {
       throw new IllegalArgumentException("Illegal resource access: '" + name +
         "'. Requesting resources outside of the resource base directory is not permitted.")
