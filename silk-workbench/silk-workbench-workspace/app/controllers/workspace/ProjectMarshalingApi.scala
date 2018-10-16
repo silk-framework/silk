@@ -8,9 +8,10 @@ import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.JsArray
 import play.api.mvc._
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ProjectMarshalingApi extends Controller {
 
@@ -59,26 +60,16 @@ class ProjectMarshalingApi extends Controller {
     }
   }
 
-  def exportProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val marshaller = marshallerById("xmlZip").get
-    // Export the project into a byte array
-    val outputStream = new ByteArrayOutputStream()
-    val fileName = WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
-    val bytes = outputStream.toByteArray
-    outputStream.close()
-
-    Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
-  }
+  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, "xmlZip")
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      // Export the project into a byte array
-      val outputStream = new ByteArrayOutputStream()
-      val fileName = WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
-      val bytes = outputStream.toByteArray
-      outputStream.close()
+      val enumerator = Enumerator.outputStream { outputStream =>
+        val fileName = WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
+        outputStream.close()
+      }
 
-      Ok(bytes).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(enumerator).withHeaders("Content-Disposition" -> s"attachment; filename=export.zip")
     }
   }
 
