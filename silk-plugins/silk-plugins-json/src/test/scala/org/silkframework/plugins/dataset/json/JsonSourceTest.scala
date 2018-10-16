@@ -226,9 +226,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("/persons", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
-    classes(2) mustBe ExtractedSchemaClass("/persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
-    classes(3) mustBe ExtractedSchemaClass("/organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
   }
 
   it should "extract schema with value sample limit" in {
@@ -236,18 +236,18 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("/persons", Seq(ExtractedSchemaProperty(Path("id"),Some("0")), ExtractedSchemaProperty(Path("name"),Some("John"))))
-    classes(2) mustBe ExtractedSchemaClass("/persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("home")), ExtractedSchemaProperty(Path("number"),Some("123"))))
-    classes(3) mustBe ExtractedSchemaClass("/organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"),Some("0")), ExtractedSchemaProperty(Path("name"),Some("John"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("home")), ExtractedSchemaProperty(Path("number"),Some("123"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
   }
 
   it should "extract schema with base path set" in {
-    for(basePath <- Seq("/persons", "persons")) {
+    for(basePath <- Seq("persons", "persons")) {
       val schema = jsonExampleSource.copy(basePath = basePath).extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = None)
       schema.classes.size mustBe 2
       val classes = schema.classes
       classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
-      classes(1) mustBe ExtractedSchemaClass("/phoneNumbers",
+      classes(1) mustBe ExtractedSchemaClass("phoneNumbers",
         Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
     }
   }
