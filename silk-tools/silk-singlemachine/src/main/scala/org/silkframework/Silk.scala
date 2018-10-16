@@ -14,10 +14,10 @@
 
 package org.silkframework
 
-import java.io.{File, FileInputStream, OutputStreamWriter}
+import java.io.File
 import java.util.logging.{Level, Logger}
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -200,7 +200,7 @@ object Silk {
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)
-    marshaller.unmarshalProject(projectId, workspaceProvider, resourceRepository.get(projectId), new FileInputStream(projectFile))
+    marshaller.unmarshalProject(projectId, workspaceProvider, resourceRepository.get(projectId), projectFile)
 
     // Create a workspace from the import and get task
     val workspace = new Workspace(workspaceProvider, resourceRepository)

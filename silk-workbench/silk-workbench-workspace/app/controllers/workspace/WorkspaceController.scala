@@ -1,5 +1,7 @@
 package controllers.workspace
 
+import java.nio.file.Files
+
 import config.WorkbenchConfig
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.util.Identifier
@@ -63,8 +65,20 @@ class WorkspaceController extends Controller {
 
   def importExample(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val workspace = WorkspaceFactory().workspace
+
+    // Load example and write it to a temporary file
+    val exampleFile = Files.createTempFile("example", ".zip")
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").inputStream
-    workspace.importProject(Identifier(project), inputStream, XmlZipProjectMarshaling())
+
+    try {
+      Files.copy(inputStream, exampleFile)
+      // Import project
+      workspace.importProject(Identifier(project), exampleFile.toFile, XmlZipProjectMarshaling())
+    } finally {
+      // Clean up
+      Files.delete(exampleFile)
+      inputStream.close()
+    }
 
     WorkspaceFactory().workspace.reload()
 
