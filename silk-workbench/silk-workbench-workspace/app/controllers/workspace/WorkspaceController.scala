@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import java.nio.file.Files
+import java.nio.file.{CopyOption, Files, StandardCopyOption}
 
 import config.WorkbenchConfig
 import controllers.core.{RequestUserContextAction, UserContextAction}
@@ -71,7 +71,7 @@ class WorkspaceController extends Controller {
     val inputStream = WorkbenchConfig.getResourceLoader.get("example.zip").inputStream
 
     try {
-      Files.copy(inputStream, exampleFile)
+      Files.copy(inputStream, exampleFile, StandardCopyOption.REPLACE_EXISTING)
       // Import project
       workspace.importProject(Identifier(project), exampleFile.toFile, XmlZipProjectMarshaling())
     } finally {
