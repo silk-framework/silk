@@ -1,4 +1,4 @@
-package org.silkframework.workspace.xml
+package org.silkframework.runtime.resource
 
 import java.util.zip.ZipFile
 

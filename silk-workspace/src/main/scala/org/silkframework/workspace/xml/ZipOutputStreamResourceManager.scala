@@ -8,7 +8,7 @@ import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
 
 /**
   * A resource manager that writes all data to a ZIP output stream.
-  * Does not support reading or any modification to already written data.
+  * Does not support reading data or any modification to already written data.
   */
 case class ZipOutputStreamResourceManager(zip: ZipOutputStream, basePath: String = "") extends ResourceManager {
 

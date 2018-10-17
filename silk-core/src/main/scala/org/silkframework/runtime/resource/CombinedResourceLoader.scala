@@ -1,8 +1,13 @@
-package org.silkframework.workspace.xml
+package org.silkframework.runtime.resource
 
-import org.silkframework.runtime.resource.{Resource, ResourceLoader}
-
-class NestedResourceLoader(resources: List[Resource] = Nil, children: Map[String, ResourceLoader] = Map.empty) extends ResourceLoader {
+/**
+  * A resource loader whose resources are provided in the constructor.
+  * Can be used to combine multiple resources loaders or to nest a resource loader under a specific path.
+  *
+  * @param resources All resources at the root.
+  * @param children All child resource loaders.
+  */
+class CombinedResourceLoader(resources: List[Resource] = Nil, children: Map[String, ResourceLoader] = Map.empty) extends ResourceLoader {
 
   val basePath: String = ""
 

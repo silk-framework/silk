@@ -1,13 +1,17 @@
-package org.silkframework.workspace.xml
+package org.silkframework.runtime.resource
 
 import java.io.InputStream
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipFile}
-
-import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
-
 import scala.collection.JavaConversions._
 
+/**
+  * A resource loader that loads all resources from a zip file.
+  *
+  * @param zip The zip file to read all resources from.
+  * @param basePath The based path inside the zip from which the resources are loaded.
+  *                 If empty, the resources from the root are loaded.
+  */
 case class ZipResourceLoader(zip: ZipFile, basePath: String = "") extends ResourceLoader {
 
   /**

@@ -79,7 +79,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
           throw new NotFoundException("No project found in given zip file. Imported nothing.")
         }
       }
-      resourceLoader = new NestedResourceLoader(children = Map(projectName.toString -> resourceLoader))
+      resourceLoader = new CombinedResourceLoader(children = Map(projectName.toString -> resourceLoader))
       val importResources = ReadOnlyResourceManager(resourceLoader)
 
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(importResources)
