@@ -93,7 +93,12 @@ class ProjectMarshalingApi extends Controller {
 
     ec.execute(new Runnable {
       override def run(): Unit = {
-        serializeFunc(outputStream)
+        try {
+          serializeFunc(outputStream)
+        } finally {
+          // We need to make sure to close the output stream to stop the Enumerator
+          outputStream.close()
+        }
       }
     })
 
