@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset._
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
@@ -84,7 +84,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -143,6 +143,14 @@ case class RdfFileDataset(
       * @return
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset)) //FIXME CMEM 1352 replace with actual task
+
+    override def sampleValues(typeUri: Option[Uri],
+                              typedPaths: Seq[TypedPath],
+                              valueSampleLimit: Option[Int])
+                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).sampleValues(typeUri, typedPaths, valueSampleLimit)
+    }
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
