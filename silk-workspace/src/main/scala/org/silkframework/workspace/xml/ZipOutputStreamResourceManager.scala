@@ -1,6 +1,6 @@
 package org.silkframework.workspace.xml
 
-import java.io.{InputStream, OutputStream}
+import java.io.{BufferedOutputStream, InputStream, OutputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
@@ -35,7 +35,9 @@ case class ZipOutputStreamResourceManager(zip: ZipOutputStream, basePath: String
 
     override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
       zip.putNextEntry(new ZipEntry(path))
-      write(zip)
+      val buffered = new BufferedOutputStream(zip)
+      write(buffered)
+      buffered.flush()
     }
 
     override def exists: Boolean = false
