@@ -13,8 +13,6 @@ trait CsvDatasetTrait {
   def arraySeparator: String
   /** Character used to quote values, should default to '"' */
   def quote: String
-  /**  A URI prefix that should be used for generating schema entities like classes or properties, e.g. http://www4.wiwiss.fu-berlin.de/ontology/ */
-  def prefix: String
   /** The file encoding, e.g., UTF8, ISO-8859-1. Should default to "UTF-8" */
   def charset: String
   /** The number of lines to skip in the beginning, e.g. copyright, meta information etc. Should default to zero. */
