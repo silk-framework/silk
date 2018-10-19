@@ -63,7 +63,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     it should s"allow wildcard ** path elements ($fileName)" in {
-      (persons atPath "" valuesAt "Person/**/Key") shouldBe Seq(Seq("1", "2", "3"))
+      (persons atPath "" valuesAt "Person/**/Value") shouldBe Seq(Seq("V1", "V2", "V3"))
     }
 
     it should s"generate unique IDs ($fileName)" in {
@@ -84,8 +84,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     it should s"generate correct URIs for non-leaf nodes when the URI pattern is defined ($fileName)" in {
-      (persons withUriPattern "http://example.org/Property{Key}" atPath "Person" valuesAt "Properties/Property") shouldBe
-        Seq(Seq("http://example.org/Property1", "http://example.org/Property2", "http://example.org/Property3"), Seq())
+      (persons withUriPattern "http://example.org/Property{Value}" atPath "Person" valuesAt "Properties/Property") shouldBe
+        Seq(Seq("http://example.org/PropertyV1", "http://example.org/PropertyV2", "http://example.org/PropertyV3"), Seq())
     }
 
     it should s"list all base paths as types ($fileName)" in {
