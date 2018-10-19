@@ -25,7 +25,7 @@ import scala.io.Codec
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
 case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource
-    with PeakDataSource with SampleValueAnalyzerExtractionSource {
+    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 

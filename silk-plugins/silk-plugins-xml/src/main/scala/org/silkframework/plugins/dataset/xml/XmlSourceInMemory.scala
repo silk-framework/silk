@@ -13,7 +13,7 @@ import org.silkframework.util.{Identifier, Uri}
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with SampleValueAnalyzerExtractionSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 

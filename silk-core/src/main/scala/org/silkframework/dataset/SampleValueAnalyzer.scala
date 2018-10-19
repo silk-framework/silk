@@ -55,7 +55,10 @@ case class SampleValueAnalyzer[T](sampleLimit: Int,
   }
 }
 
-trait SampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
+/** A trait that can be implemented by hierarchical data models, e.g. JSON, XML for fast schema extraction.
+  * This also offers fast value analysis on sampled values.
+  * */
+trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
   this: DataSource =>
 
   /**

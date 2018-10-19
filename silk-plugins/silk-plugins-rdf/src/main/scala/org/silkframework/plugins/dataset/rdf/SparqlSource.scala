@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
@@ -14,7 +14,7 @@ import org.silkframework.util.{Identifier, Uri}
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource {
+class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource with SamplingDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -72,4 +72,45 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
 
     PlainTask(taskId, DatasetSpec(EmptyDataset))        //FIXME CMEM 1352 - replace with actual task
   }
+
+  override def sampleValues(typeUri: Option[Uri],
+                            typedPaths: Seq[TypedPath],
+                            valueSampleLimit: Option[Int])
+                           (implicit userContext: UserContext): Seq[Traversable[String]] = {
+    typedPaths map { typedPath =>
+      new ValueTraverser(typeUri, typedPath, valueSampleLimit)
+    }
+  }
+
+  class ValueTraverser(typeUri: Option[Uri],
+                       typedPath: TypedPath,
+                       limit: Option[Int])
+                      (implicit userContext: UserContext) extends Traversable[String] {
+    override def foreach[U](f: String => U): Unit = {
+      val pathQuery = ParallelEntityRetriever.pathQuery(
+        "a",
+        typeUri.map(SparqlRestriction.forType).getOrElse(SparqlRestriction.empty),
+        Path(typedPath.operators),
+        useDistinct = false,
+        graphUri = params.graph,
+        useOrderBy = false,
+        varPrefix = "v"
+      )
+      val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
+      for(result <- results.bindings;
+          value <- result.get("v0")) {
+        f(value.value)
+      }
+    }
+  }
+
+  /** Fast schema extraction, this implementation ignores the analyzer factory and thus does not allow to analyze values. */
+//  override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+//                                pathLimit: Int,
+//                                sampleLimit: Option[Int],
+//                                progressFN: Double => Unit): ExtractedSchema[T] = {
+//    val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
+//    entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
+//  }
+
 }

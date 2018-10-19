@@ -20,7 +20,7 @@ import scala.xml._
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with SampleValueAnalyzerExtractionSource {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
