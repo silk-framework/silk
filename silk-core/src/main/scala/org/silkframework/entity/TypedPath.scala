@@ -112,9 +112,8 @@ object TypedPath {
     override def write(typedPath: TypedPath)(implicit writeContext: WriteContext[Node]): Node = {
       implicit val p: Prefixes = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
-        <Path>
-          {typedPath.normalizedSerialization}
-        </Path>{XmlSerialization.toXml(typedPath.valueType)}
+        <Path>{typedPath.normalizedSerialization}</Path>
+        {XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }
   }
