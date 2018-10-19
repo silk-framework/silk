@@ -4,17 +4,24 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
+import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource with SamplingDataSource {
+class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
+    extends DataSource
+    with PeakDataSource
+    with SchemaExtractionSource
+    with SamplingDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -104,13 +111,60 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     }
   }
 
-  /** Fast schema extraction, this implementation ignores the analyzer factory and thus does not allow to analyze values. */
-//  override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
-//                                pathLimit: Int,
-//                                sampleLimit: Option[Int],
-//                                progressFN: Double => Unit): ExtractedSchema[T] = {
-//    val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-//    entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
-//  }
+  /** Fast schema extraction, this implementation ignores the analyzer factory and thus does not allow to analyze values,
+    * because else it cannot be done quickly. */
+  override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                pathLimit: Int,
+                                sampleLimit: Option[Int],
+                                progressFN: Double => Unit)
+                               (implicit userContext: UserContext): ExtractedSchema[T] = {
+    val classProperties = mutable.HashMap[String, List[Path]]()
+    addForwardPaths(classProperties)
+    addBackwardPaths(classProperties)
+    val schemaClasses = for((classUri, classProperties) <- classProperties) yield {
+      val extractedSchemaPaths = classProperties map { property =>
+        ExtractedSchemaProperty(property, None.asInstanceOf[Option[T]])
+      }
+      ExtractedSchemaClass[T](classUri, extractedSchemaPaths)
+    }
+    ExtractedSchema(schemaClasses.toSeq)
+  }
 
+  private def addBackwardPaths[T](classProperties: mutable.HashMap[String, List[Path]])
+                                 (implicit userContext: UserContext): Unit = {
+    val backwardResults = sparqlEndpoint.select(
+      """
+        |SELECT DISTINCT ?class ?property
+        |WHERE {
+        |  ?s a ?class .
+        |  ?v ?property ?s
+        |}
+      """.stripMargin)
+    for (binding <- backwardResults.bindings;
+         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+      val classUri = binding("class").value
+      val propertyUri = binding("property").value
+      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+      classProperties.put(classUri, Path(BackwardOperator(propertyUri) :: Nil) :: currentProperties)
+    }
+  }
+
+  private def addForwardPaths[T](classProperties: mutable.HashMap[String, List[Path]])
+                                (implicit userContext: UserContext): Unit = {
+    val forwardResults = sparqlEndpoint.select(
+      """
+        |SELECT DISTINCT ?class ?property
+        |WHERE {
+        |  ?s a ?class ;
+        |     ?property ?v
+        |}
+      """.stripMargin)
+    for (binding <- forwardResults.bindings;
+         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+      val classUri = binding("class").value
+      val propertyUri = binding("property").value
+      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+      classProperties.put(classUri, Path(propertyUri) :: currentProperties)
+    }
+  }
 }

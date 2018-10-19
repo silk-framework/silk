@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.{ForwardOperator, Path}
+import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -73,7 +74,8 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
   override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
                                 pathLimit: Int,
                                 sampleLimit: Option[Int],
-                                progress: (Double) => Unit = (_) => {}): ExtractedSchema[T] = {
+                                progress: (Double) => Unit = (_) => {})
+                               (implicit userContext: UserContext): ExtractedSchema[T] = {
     val sampleValueAnalyzer = SampleValueAnalyzer(sampleLimit.getOrElse(DEFAULT_VALUE_SAMPLE_LIMIT), analyzerFactory)
     val collectValues: (List[String], String) => Unit = (path, value) => { sampleValueAnalyzer.addValue(path, value) }
     val allPaths = collectPaths(pathLimit, collectValues)

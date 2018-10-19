@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.Path
+import org.silkframework.runtime.activity.UserContext
 
 /**
   * A data source extension for quick schema extraction.
@@ -24,7 +25,8 @@ trait SchemaExtractionSource {
   def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
                        pathLimit: Int,
                        sampleLimit: Option[Int],
-                       progressFN: (Double) => Unit = (_) => {}): ExtractedSchema[T]
+                       progressFN: (Double) => Unit = (_) => {})
+                      (implicit userContext: UserContext): ExtractedSchema[T]
 }
 
 case class ExtractedSchema[T](classes: Seq[ExtractedSchemaClass[T]])

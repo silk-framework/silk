@@ -84,7 +84,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource with SchemaExtractionSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -150,6 +150,15 @@ case class RdfFileDataset(
                              (implicit userContext: UserContext): Seq[Traversable[String]] = {
       load()
       new SparqlSource(SparqlParams(), endpoint).sampleValues(typeUri, typedPaths, valueSampleLimit)
+    }
+
+    override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                  pathLimit: Int,
+                                  sampleLimit: Option[Int],
+                                  progressFN: Double => Unit)
+                                 (implicit userContext: UserContext): ExtractedSchema[T] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
     }
   }
 
