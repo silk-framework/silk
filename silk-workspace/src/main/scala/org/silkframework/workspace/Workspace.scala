@@ -109,11 +109,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
     * @param name project name
-    * @param inputStream the input stream to read the project to import from
+    * @param file the file to read the project to import from
     * @param marshaller object that defines how the project should be unmarshaled.
     */
   def importProject(name: Identifier,
-                    inputStream: InputStream,
+                    file: File,
                     marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext) {
     loadUserProjects()
@@ -121,7 +121,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
-        marshaller.unmarshalProject(name, provider, repository.get(name), inputStream)
+        marshaller.unmarshalProject(name, provider, repository.get(name), file)
         reload()
     }
   }
