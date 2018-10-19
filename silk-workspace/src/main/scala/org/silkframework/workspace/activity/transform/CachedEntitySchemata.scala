@@ -8,8 +8,6 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
-
-import scala.util.parsing.combinator.token.StdTokens
 import scala.xml.{Node, Null}
 
 /**
