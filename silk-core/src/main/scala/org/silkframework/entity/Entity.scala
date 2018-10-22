@@ -19,7 +19,7 @@ import java.io.{DataInput, DataOutput}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
 import org.silkframework.failures.FailureClass
-import org.silkframework.util.Uri
+import org.silkframework.util.{DatasetEntityIdentifier, Uri}
 
 import scala.xml.Node
 import scala.language.existentials
@@ -32,13 +32,15 @@ import scala.language.existentials
   * @param subEntities - optional, each entity can be composed of multiple sub-entities if defined with a suitable MultiEntitiySchema
   * @param metadata    - metadata object containing all available metadata information about this object
   *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
+  * @param internalId  - optional, an internal, unique identifier (parallel and independent of the URI) for internal usage (e.g. used in SPARK to identify Entities
   */
 case class Entity private(
     uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
     schema: EntitySchema,
     subEntities: IndexedSeq[Option[Entity]] = IndexedSeq.empty,
-    metadata: EntityMetadata[_] = EntityMetadataXml()
+    metadata: EntityMetadata[_] = Entity.defaultEmptyMetadata,
+    internalId: Option[DatasetEntityIdentifier] = None
   ) extends Serializable {
 
   def copy(
@@ -48,7 +50,8 @@ case class Entity private(
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     metadata: EntityMetadata[_] = this.metadata,
     failureOpt: Option[FailureClass] = None,
-    projectValuesIfNewSchema: Boolean = true
+    projectValuesIfNewSchema: Boolean = true,
+    internalId: Option[DatasetEntityIdentifier] = this.internalId
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>
@@ -58,7 +61,7 @@ case class Entity private(
         case Some(f) if metadata.failure.metadata.isEmpty => metadata.addFailure(f)
         case _ => metadata
       }
-      new Entity(uri, actualVals, schema, actualSubs, actualMetadata)
+      new Entity(uri, actualVals, schema, actualSubs, actualMetadata, internalId)
   }
 
   /**
@@ -238,29 +241,17 @@ case class Entity private(
 
 object Entity {
 
-  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq.empty, EntitySchema.empty)
+  def defaultEmptyMetadata = EntityMetadataXml()
 
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
-    new Entity(uri, values, schema, subEntities)
-  }
+  def empty(uri: Uri): Entity = new Entity(uri, IndexedSeq.empty, EntitySchema.empty, IndexedSeq.empty, defaultEmptyMetadata, None)
 
-  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]]): Entity = {
-    new Entity(uri, values, schema, subEntities)
-  }
-
-  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
-    new Entity(uri, values, schema)
-  }
-
-  def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = {
-    new Entity(uri, values, schema)
-  }
+  def apply(uri: Uri, values: IndexedSeq[Seq[String]], schema: EntitySchema): Entity = apply(uri, values, schema, IndexedSeq.empty, defaultEmptyMetadata, None)
 
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, subEntities: IndexedSeq[Option[Entity]], failureOpt: Option[FailureClass]): Entity = {
-    new Entity(uri, values, schema, subEntities, failureOpt match{
+    apply(uri, values, schema, subEntities, failureOpt match{
       case Some(t) => EntityMetadataXml(t)
       case None => EntityMetadataXml()
-    })
+    }, None)
   }
 
   def handleNullsInValueSeq(valueSeq: Seq[String]): Seq[String] = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
@@ -287,9 +278,9 @@ object Entity {
 
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
-    new Entity(
+    apply(
       uri = (node \ "@uri").text.trim,
-      vals = {
+      values = {
         for (valNode <- node \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }
@@ -306,6 +297,6 @@ object Entity {
     def readValue = Seq.fill(stream.readInt)(stream.readUTF)
     val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
 
-    new Entity(uri, values, desc)
+    apply(uri, values, desc)
   }
 }

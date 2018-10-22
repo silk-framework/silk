@@ -35,14 +35,12 @@ final class BitsetIndex private(private val index: Set[Int], private val bitset:
   /**
    * Checks if this index matches another index.
    */
-  def matches(other: BitsetIndex) = {
+  def matches(other: BitsetIndex): Boolean = {
     (mask & other.mask) != 0 && bitsetMatches(other) && indexMatches(other)
   }
 
   @inline
-  private def indexMatches(other: BitsetIndex) = {
-    !(index intersect other.index).isEmpty
-  }
+  private def indexMatches(other: BitsetIndex) = (index intersect other.index).nonEmpty
 
   @inline
   private def bitsetMatches(other: BitsetIndex) = {
@@ -76,7 +74,7 @@ object BitsetIndex {
    */
   private val Size = 64
 
-  def build(index: Set[Int]) = {
+  def build(index: Set[Int]): BitsetIndex = {
     val array = new Array[Long](Size)
 
     for (i <- index) {
@@ -88,7 +86,7 @@ object BitsetIndex {
     new BitsetIndex(index, array)
   }
 
-  def deserialize(stream: DataInput) = {
+  def deserialize(stream: DataInput): BitsetIndex = {
     val indexSize = stream.readInt()
     val index = Array.fill(indexSize)(stream.readInt).toSet
     val bitset = Array.fill(Size)(stream.readLong)
