@@ -158,15 +158,12 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @param projectId
     * @param datasetId
     * @param fileResourceId
-    * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
-    *                  the header line.
     */
   def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
-                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
+                           uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
@@ -303,8 +300,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     *
     * @param projectId
     * @param datasetId
-    * @param uriPrefix    The URI prefix for the generated target property URIs of the mapping. This should be the same
-    *                     as the prefix used for the schema extraction.
     * @param propertyUris A sequence of URIs to select the properties for the default mapping.
     */
   def createDefaultMapping(projectId: String,

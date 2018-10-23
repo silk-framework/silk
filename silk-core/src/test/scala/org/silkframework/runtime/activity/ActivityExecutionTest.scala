@@ -20,7 +20,7 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
     }
     activityExecution.startBlocking()
     val passedTime = System.currentTimeMillis() - start
-    val STILL_SHORT_TIME = 500L
+    val STILL_SHORT_TIME = 1000L
     passedTime must be < STILL_SHORT_TIME
   }
 }
