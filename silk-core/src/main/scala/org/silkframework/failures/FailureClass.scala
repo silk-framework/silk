@@ -17,7 +17,7 @@ case class FailureClass private[failures](
    originalMessage: String,
    taskId: Identifier,
    property: Option[Path]                              //FIXME TypedPath needs JsValue serializer - CMEM-1368
- ){
+ ) extends Serializable {
 
   assert(rootCause.getCause == null, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
 

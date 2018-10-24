@@ -2,8 +2,9 @@ package org.silkframework.util
 
 import scala.reflect._
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.universe._
 import scala.reflect.api
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Utility function for scala reflection
@@ -30,10 +31,16 @@ object ScalaReflectUtils {
     * @param name - the full class name
     * @return
     */
-  def stringToTypeTag(name: String): Try[ru.TypeTag[CA]] = Try{
-    val c = Class.forName(name)  // obtain java.lang.Class object from a string
-    val mirror = ru.runtimeMirror(c.getClassLoader)  // obtain runtime mirror
-    val sym = mirror.staticClass(name)  // obtain class symbol for `c`
+  def stringToTypeTag(name: String): Try[ru.TypeTag[CA]] = classToTypeTag(Class.forName(name))
+
+  /**
+    *
+    * @param cls
+    * @return
+    */
+  def classToTypeTag(cls: Class[_]): Try[ru.TypeTag[CA]] = Try{
+    val mirror = ru.runtimeMirror(cls.getClassLoader)  // obtain runtime mirror
+    val sym = mirror.classSymbol(cls)  // obtain class symbol for `c`
     val tpe = sym.selfType  // obtain type object for `c`
     // create a type tag which contains above type object
     ru.TypeTag(mirror, new api.TypeCreator {
@@ -55,6 +62,52 @@ object ScalaReflectUtils {
   def companionOf[T](implicit tt: ru.TypeTag[T]): Any  = {
     val companionMirror = ru.runtimeMirror(getClass.getClassLoader).reflectModule(ru.typeOf[T].typeSymbol.companion.asModule)
     companionMirror.instance
+  }
+
+  /**
+    *
+    * @param memberName
+    * @param obj
+    * @param methodParams
+    * @tparam T
+    * @return
+    */
+  def retrieveClassMember[R](memberName: String, obj: Any, methodParams: Array[Any] = Array()): Option[R] =
+    classToTypeTag(obj.getClass) match{
+      case Success(typeTag) =>
+        val symbol = typeTag.tpe.member(TermName(memberName)).asMethod
+        val m = ru.runtimeMirror(obj.getClass.getClassLoader)
+        val im = m.reflect(obj)
+        if(symbol.isMethod){
+          Option(im.reflectMethod(symbol).apply(methodParams).asInstanceOf[R])
+        }
+        else{  //else we assume you want a field
+          Option(im.reflectField(symbol).get.asInstanceOf[R])
+        }
+      case Failure(f)=> throw f
+  }
+
+  /**
+    *
+    * @param cls
+    * @param params
+    * @param paramTypes
+    * @tparam R
+    * @return
+    */
+  def createNewInstance[R](cls: Class[_], params: Array[Object], paramTypes: Array[Class[_]] = Array()): Option[R] = {
+    val types = if(params.nonEmpty && paramTypes.length != params.length){
+      params.map(_.getClass)
+    }
+    else{
+      paramTypes
+    }
+    val zw = Try {
+      val constructor = cls.getConstructor(types:_*)
+      constructor.setAccessible(true)
+      constructor.newInstance(params:_*).asInstanceOf[R]
+    }
+    zw.toOption
   }
 
   /**

@@ -10,7 +10,7 @@ case class UrlResourceManager(localResourceManager: ResourceManager) extends Res
 
   override def get(name: String, mustExist: Boolean): WritableResource = {
     if(name.startsWith("http:") || name.startsWith("https:") || name.startsWith("ftp:")) {
-      new ReadOnlyResource(UrlResource(new URL(name)))
+      ReadOnlyResource(UrlResource(new URL(name)))
     } else {
       localResourceManager.get(name, mustExist = mustExist)
     }
