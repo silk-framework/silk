@@ -8,7 +8,7 @@ import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
 
 import scala.util.control.NonFatal
@@ -34,19 +34,18 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                  useLocalInternalDatasets: Boolean = false)
     extends WorkflowExecutor[LocalExecution] {
 
-  val log = Logger.getLogger(getClass.getName)
-
-  @volatile
-  private var canceled = false
+  private val log = Logger.getLogger(getClass.getName)
 
   override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport())
 
-  override def run(context: ActivityContext[WorkflowExecutionReport]): Unit = {
-    canceled = false
+  override def run(context: ActivityContext[WorkflowExecutionReport])
+                  (implicit userContext: UserContext): Unit = {
+    cancelled = false
 
     implicit val workflowRunContext = WorkflowRunContext(
       activityContext = context,
-      workflow = currentWorkflow
+      workflow = currentWorkflow,
+      userContext = userContext
     )
 
     checkVariableDatasets()
@@ -63,29 +62,26 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
     } catch {
       case e: WorkflowException =>
-        if(!canceled) {
+        if(!cancelled) {
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     }
   }
 
   private def clearOutputDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     // Clear all internal datasets and input datasets that are configured so
-    for (datasetTask <- workflow.outputDatasets(project)) {
+    for (datasetTask <- workflow.outputDatasets(project)(workflowRunContext.userContext)) {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       usedDatasetTask.data.entitySink.clear()
     }
-  }
-
-  override def cancelExecution(): Unit = {
-    canceled = true
   }
 
   def executeWorkflowNode(node: WorkflowDependencyNode,
                           entitySchemaOpt: Option[EntitySchema])
                          (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Execute this node
-    if (!canceled) {
+    if (!cancelled) {
       node.workflowNode match {
         case dataset: WorkflowDataset =>
           executeWorkflowDataset(node, entitySchemaOpt, dataset)
@@ -116,7 +112,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     try {
-      project.anyTaskOption(operator.task) match {
+      project.anyTaskOption(operator.task)(workflowRunContext.userContext) match {
         case Some(operatorTask) =>
           val schemataOpt = operatorTask.data.inputSchemataOpt
           val inputs = operatorNode.inputNodes
@@ -221,6 +217,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
@@ -233,6 +230,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   def readFromDataset(workflowDataset: WorkflowDataset,
                       entitySchema: EntitySchema)
                      (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
       case Some(datasetTask) =>
         val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
@@ -260,7 +258,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                      (implicit workflowRunContext: WorkflowRunContext): Unit = {
     // Get the error sinks for this operator
     val errorOutputs = operator match {
-      case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_))
+      case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_)(workflowRunContext.userContext))
       case _ => Seq()
     }
     var errorSinks: Seq[DatasetWriteAccess] = errorOutputSinks(errorOutputs)

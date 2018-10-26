@@ -4,8 +4,9 @@
 @import org.silkframework.rule.{TransformRule, TransformSpec}
 @import org.silkframework.runtime.serialization.XmlSerialization.toXml
 @import org.silkframework.workbench.Context
+@import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @import org.silkframework.rule.input.Transformer
 

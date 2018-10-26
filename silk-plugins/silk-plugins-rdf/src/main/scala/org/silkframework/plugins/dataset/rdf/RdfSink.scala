@@ -5,13 +5,15 @@ import java.io.ByteArrayOutputStream
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
+import org.silkframework.runtime.activity.UserContext
 
 /**
   *
   */
 trait RdfSink {
 
-  def writeStatement(subject: String, property: String, value: String, valueType: ValueType): Unit
+  def writeStatement(subject: String, property: String, value: String, valueType: ValueType)
+                    (implicit userContext: UserContext): Unit
 
   def formatterOpt: Option[RdfFormatter]
 

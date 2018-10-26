@@ -5,9 +5,10 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.User
+import org.silkframework.workspace.WorkspaceFactory
 
 @Plugin(
   id = "rdfFiles",
@@ -18,9 +19,10 @@ case class RdfFilesVocabularyManager() extends VocabularyManager {
 
   private val prefix = "urn:"
 
-  override def get(uri: String, project: Identifier): Vocabulary = {
+  override def get(uri: String, project: Identifier)
+                  (implicit userContext: UserContext): Vocabulary = {
     // Get resource
-    val vocabularyResource = User().workspace.project(project).resources.get(uri)
+    val vocabularyResource = WorkspaceFactory().workspace.project(project).resources.get(uri)
 
     // Load into Jena model
     val model = ModelFactory.createDefaultModel()

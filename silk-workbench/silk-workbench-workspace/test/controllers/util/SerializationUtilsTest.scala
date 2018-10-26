@@ -4,7 +4,6 @@ import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.Path
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -18,7 +17,10 @@ import play.api.mvc.{AnyContent, AnyContentAsJson, Request}
   */
 class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSugar {
   behavior of "Serialization Utils"
+
   private val APPLICATION_JSON = "application/json"
+  private val TEXT_PLAIN = "text/plain"
+  private val WILDCARD = "*/*"
 
   val testObject = new TestSubSubClass()
   implicit val project: Project = mock[Project]
@@ -50,6 +52,15 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
     typ(SerializationUtils.serializeToStringRuntimeType(testTraitImpl, Seq(APPLICATION_JSON))) mustBe None
     val testSubClass = new TestSubClass()
     typ(SerializationUtils.serializeToStringRuntimeType(testSubClass, Seq(APPLICATION_JSON))) mustBe Some(SUB_TEST_CLASS)
+  }
+
+  it must "serialize to plain text, if no more specific serialization format is available and the MIME type includes text/plain" in {
+    implicit val r = request
+    val objectWithoutFormatter = new ClassWithoutFormatter
+    SerializationUtils.serializeToStringCompileType(objectWithoutFormatter, Seq(APPLICATION_JSON)) mustBe None
+    SerializationUtils.serializeToStringCompileType(objectWithoutFormatter, Seq(TEXT_PLAIN)) mustBe Some("ClassWithoutFormatter")
+    SerializationUtils.serializeToStringCompileType[ClassWithoutFormatter](objectWithoutFormatter, Seq(WILDCARD)) mustBe Some("ClassWithoutFormatter")
+    SerializationUtils.serializeToStringRuntimeType(objectWithoutFormatter, Seq(TEXT_PLAIN, WILDCARD)) mustBe Some("ClassWithoutFormatter")
   }
 
   private def typ(jsString: Option[String]): Option[String] = {
@@ -96,6 +107,11 @@ class TestSubClass() extends TestTrait {
 
 class TestSubSubClass() extends TestSubClass {
   override def m: String = "SubSubTestClass"
+}
+
+class ClassWithoutFormatter extends TestTrait {
+  override def m: String = "ClassWithoutFormatter"
+  override def toString = "ClassWithoutFormatter"
 }
 
 class TestTraitFormatter extends JsonFormat[TestTrait] {

@@ -34,7 +34,7 @@ case class EqualsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceM
     Utils.evaluateRelation(str1, str2, limit, Constants.EQUALS)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexGeometriesByEnvelope(str, blockingParameter)
   }
 }

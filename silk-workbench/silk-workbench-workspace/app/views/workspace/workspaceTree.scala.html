@@ -1,12 +1,12 @@
 @import controllers.workspace.routes.Assets
-@import org.silkframework.config.TaskSpec
 @import org.silkframework.runtime.plugin.PluginRegistry
-@import org.silkframework.workspace.{Project, ProjectTask, Workspace}
-@import org.silkframework.workspace.activity.ProjectExecutor
+@import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 @import org.silkframework.workbench.WorkbenchPlugins
-@import org.silkframework.workbench.WorkbenchPlugin.{TaskType, TaskActions}
+@import org.silkframework.workspace.activity.ProjectExecutor
+@import org.silkframework.workspace.{Project, Workspace}
+@import org.silkframework.runtime.activity.UserContext
 
-@(workspace: Workspace)
+@(workspace: Workspace)(implicit userContext: UserContext)
 
 <script type="text/javascript" >
   $(function () {
@@ -169,7 +169,7 @@
     @for(path <- actions.propertiesDialog) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }
-    @for(path <- actions.openPath) {
+    @for(path <- actions.openPath(None, None)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + "/" + path)
     }
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${actions.task.id}')")

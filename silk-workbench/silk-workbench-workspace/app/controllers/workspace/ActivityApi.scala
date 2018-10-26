@@ -2,7 +2,7 @@ package controllers.workspace
 
 import java.util.logging.{LogRecord, Logger}
 
-import controllers.core.{Stream, Widgets}
+import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity._
@@ -10,8 +10,11 @@ import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext}
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
@@ -20,21 +23,24 @@ import scala.language.existentials
 
 class ActivityApi extends Controller {
 
-  def getProjectActivities(projectName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     Ok(JsonSerializer.projectActivities(project))
   }
 
-  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     Ok(JsonSerializer.taskActivities(task))
   }
 
-  def startActivity(projectName: String, taskName: String, activityName: String, blocking: Boolean): Action[AnyContent] = Action { request =>
-    val project = User().workspace.project(projectName)
+  def startActivity(projectName: String,
+                    taskName: String,
+                    activityName: String,
+                    blocking: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
+    val w = WorkspaceFactory.factory.workspace
+    val project = w.project(projectName)
     val config = activityConfig(request)
-    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
     val activity: WorkspaceActivity[_ <: HasValue] =
       if (taskName.nonEmpty) {
         project.anyTask(taskName).activity(activityName)
@@ -55,23 +61,28 @@ class ActivityApi extends Controller {
     }
   }
 
-  def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
+  def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
     activity.cancel()
     Ok
   }
 
-  def restartActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
-    implicit val userContext: UserContext = SimpleUserContext(WebUserManager().user(request))
+  def restartActivity(projectName: String,
+                      taskName: String,
+                      activityName: String,
+                      blocking: Boolean): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
     activity.reset()
-    activity.start()
+    if(blocking) {
+      activity.startBlocking()
+    } else {
+      activity.start()
+    }
     Ok
   }
 
-  def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val activityConfig =
       if (taskName.nonEmpty) {
         val task = project.anyTask(taskName)
@@ -83,10 +94,12 @@ class ActivityApi extends Controller {
     Ok(JsonSerializer.activityConfig(activityConfig))
   }
 
-  def postActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { request =>
+  def postActivityConfig(projectName: String,
+                         taskName: String,
+                         activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
     val config = activityConfig(request)
     if (config.nonEmpty) {
-      val project = User().workspace.project(projectName)
+      val project = WorkspaceFactory().workspace.project(projectName)
       if (taskName.nonEmpty) {
         val task = project.anyTask(taskName)
         task.activity(activityName).update(config)
@@ -99,8 +112,8 @@ class ActivityApi extends Controller {
     }
   }
 
-  def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
       val activity = task.activity(activityName)
@@ -111,16 +124,18 @@ class ActivityApi extends Controller {
     }
   }
 
-  def getActivityValue(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action { implicit request =>
-    implicit val project: Project = User().workspace.project(projectName)
+  def getActivityValue(projectName: String,
+                       taskName: String,
+                       activityName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)
   }
 
-  def recentActivities(maxCount: Int): Action[AnyContent] = Action {
+  def recentActivities(maxCount: Int): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     // Get all projects and tasks
-    val projects = User().workspace.projects
+    val projects = WorkspaceFactory().workspace.projects
     val tasks: Seq[ProjectTask[_]] = projects.flatMap(_.allTasks)
 
     // Get all activities
@@ -141,10 +156,12 @@ class ActivityApi extends Controller {
     Ok(JsonSerializer.logRecords(ActivityLog.records))
   }
 
-  def activityUpdates(projectName: String, taskName: String, activityName: String): Action[AnyContent] = Action {
+  def activityUpdates(projectName: String,
+                      taskName: String,
+                      activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val projects =
-      if (projectName.nonEmpty) User().workspace.project(projectName) :: Nil
-      else User().workspace.projects
+      if (projectName.nonEmpty) WorkspaceFactory().workspace.project(projectName) :: Nil
+      else WorkspaceFactory().workspace.projects
 
     def tasks(project: Project) =
       if (taskName.nonEmpty) project.anyTask(taskName) :: Nil
@@ -171,8 +188,9 @@ class ActivityApi extends Controller {
     Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
   }
 
-  private def activityControl(projectName: String, taskName: String, activityName: String): ActivityControl[_] = {
-    val project = User().workspace.project(projectName)
+  private def activityControl(projectName: String, taskName: String, activityName: String)
+                             (implicit userContext: UserContext): ActivityControl[_] = {
+    val project = WorkspaceFactory().workspace.project(projectName)
     val activityId: Identifier = activityName
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)

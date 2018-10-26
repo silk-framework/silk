@@ -24,6 +24,7 @@ import scala.language.implicitConversions
   * @param outputs            The identifier of the output to which all transformed entities are to be written
   * @param errorOutputs       The identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
+  * @param parentTask     May add additional references to tasks (in addition to input and output)
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
@@ -31,7 +32,9 @@ case class TransformSpec(selection: DatasetSelection,
                          mappingRule: RootMappingRule,
                          outputs: Seq[Identifier] = Seq.empty,
                          errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Traversable[String] = Seq.empty) extends TaskSpec {
+                         targetVocabularies: Traversable[String] = Seq.empty,
+                         parentTask: Option[Identifier] = None
+                        ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
@@ -63,6 +66,12 @@ case class TransformSpec(selection: DatasetSelection,
   override def outputTasks: Set[Identifier] = outputs.toSet
 
   /**
+    * The tasks that are directly referenced by this task.
+    * This includes input tasks and output tasks.
+    */
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ parentTask
+
+  /**
     * Input and output schemata of all object rules in the tree.
     */
   lazy val ruleSchemata: Seq[RuleSchemata] = {
@@ -73,7 +82,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema))
+    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -81,7 +90,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema))
+    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema).toIndexedSeq)
   }
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
@@ -248,7 +257,7 @@ object TransformSpec {
       val outputSchema = EntitySchema(
         typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
-          val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri.uri) else ForwardOperator(mt.propertyUri.uri)
+          val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
           TypedPath(Path(List(path)), mt.valueType, mt.isAttribute)
         }.distinct.toIndexedSeq
       )
@@ -290,7 +299,12 @@ object TransformSpec {
         if (oldRules.nonEmpty) {
           RootMappingRule("root", MappingRules.fromSeq(oldRules))
         } else {
-          RootMappingRuleFormat.read((node \ "RootMappingRule").head)
+          (node \ "RootMappingRule").headOption match {
+            case Some(node) =>
+              RootMappingRuleFormat.read(node)
+            case None =>
+              RootMappingRule.empty
+          }
         }
       }
 

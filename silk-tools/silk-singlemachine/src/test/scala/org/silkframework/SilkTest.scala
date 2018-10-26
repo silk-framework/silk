@@ -4,11 +4,12 @@ import java.io.File
 import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.util.ConfigTestTrait
+import org.silkframework.runtime.activity.UserContext
 
 import scala.io.Source
 
 class SilkTest extends FlatSpec with Matchers {
+  implicit val userContext: UserContext = UserContext.Empty
 
   val exampleDir = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")
   val linkSpecFile = new File(exampleDir, "linkSpec.xml")
@@ -31,5 +32,4 @@ class SilkTest extends FlatSpec with Matchers {
     project.resources.delete("source.nt")
     project.resources.delete("target.nt")
   }
-
 }

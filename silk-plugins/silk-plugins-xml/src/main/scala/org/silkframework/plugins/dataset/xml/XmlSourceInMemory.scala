@@ -2,12 +2,13 @@ package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.XML
 
@@ -18,14 +19,16 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
 
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
     for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)) yield {
       (path.normalizedSerialization, 1.0 / path.operators.size)
     }
   }
 
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
    retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
   }
 
@@ -39,7 +42,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val nodes = loadXmlNodes(entitySchema.typeUri.uri)
@@ -52,10 +56,6 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
       case Some(max) => entities.take(max)
       case None => entities
     }
-  }
-
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    throw new UnsupportedOperationException("Retrieving single entities from XML is currently not supported")
   }
 
   /**
@@ -93,9 +93,17 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 
-  override def peak(entitySchema: EntitySchema, limit: Int): Traversable[Entity] = {
+  override def peak(entitySchema: EntitySchema, limit: Int)
+                   (implicit userContext: UserContext): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
+
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }
 
 

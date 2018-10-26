@@ -21,7 +21,7 @@ trait MockServerTestTrait {
   var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
-  def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
+  def withAdditionalServer(servedContent: Traversable[ContentHandler])(withPort: Int => Unit): Unit = {
     val port = startServer(servedContent)
     withPort(port)
   }
@@ -32,19 +32,14 @@ trait MockServerTestTrait {
     for (servedContent <- servedContents) {
       val handler = new HttpHandler {
         override def handle(httpExchange: HttpExchange): Unit = {
-          val responseContent = servedContent match {
+          servedContent match {
             case s: ServedContent =>
-              s
+              respond(httpExchange, s)
             case DynamicContent(_, contentFN) =>
-              contentFN()
+              respond(httpExchange, contentFN(httpExchange))
+            case FullControl(_, handleExchange) =>
+              handleExchange(httpExchange)
           }
-          val response = responseContent.content
-          val responseHeaders = httpExchange.getResponseHeaders
-          responseHeaders.add("content-type", responseContent.contentType)
-          httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
-          val os = httpExchange.getResponseBody
-          os.write(response.getBytes("UTF-8"))
-          os.close()
         }
       }
       server.createContext(servedContent.contextPath, handler)
@@ -53,6 +48,16 @@ trait MockServerTestTrait {
     server.start()
     servers ::= server
     server.getAddress.getPort
+  }
+
+  private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
+    val response = responseContent.content
+    val responseHeaders = httpExchange.getResponseHeaders
+    responseHeaders.add("content-type", responseContent.contentType)
+    httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
+    val os = httpExchange.getResponseBody
+    os.write(response.getBytes("UTF-8"))
+    os.close()
   }
 
   def stopAllRegisteredServers(): Unit = {
@@ -94,4 +99,18 @@ case class ServedContent(contextPath: String = "/",
                          contentType: String = "text/plain",
                          statusCode: Int = 200) extends ContentHandler
 
-case class DynamicContent(contextPath: String = "/", content: () => ServedContent) extends ContentHandler
+/**
+  * Serve dynamic content that changes over time
+  * @param contextPath The context path of the endpoint
+  * @param contentFn   The content function that returns the served content
+  */
+case class DynamicContent(contextPath: String = "/",
+                          contentFn: (HttpExchange) => ServedContent) extends ContentHandler
+
+/**
+  * Gives full control over the HTTP Exchange.
+  * @param contextPath     The context path of the endpoint
+  * @param handleRequestFn Handle the HTTP exchange, i.e. send data via output stream and close it, etc.
+  */
+case class FullControl(contextPath: String = "/",
+                       handleRequestFn: (HttpExchange) => Unit) extends ContentHandler

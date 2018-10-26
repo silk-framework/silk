@@ -5,10 +5,13 @@ import java.io.StringReader
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/csv")
 
@@ -27,6 +30,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
   val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
   val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
+  val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -48,7 +52,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
-    val persons = source.retrieve(entityDesc).toIndexedSeq
+    val persons = source.retrieveEntities(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
@@ -161,6 +165,22 @@ class CsvSourceTest extends FlatSpec with Matchers {
     autoConfigured.separator shouldBe "\\t"
   }
 
+  it should "skip header detection when properties are provided" in {
+    val source = noHeaders.source
+    val entities: Seq[Entity] = getEntities(source)
+    entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
+    val top = entities.head
+    top.schema.propertyNames shouldBe IndexedSeq("vals1", "vals2", "vals3")
+    top.valueOf("vals2").head shouldBe "val2"
+  }
+
+  it should "support #idx special forward path" in {
+    val s = source
+    val schema = EntitySchema("", typedPaths = IndexedSeq(Path("#idx").asStringTypedPath))
+    val entities = s.retrieve(schema, limitOpt = Some(3))
+    entities.map(_.values.flatten.head) shouldBe Seq("0", "1", "2")
+  }
+
   "CsvSourceHelper" should "escape and unescape standard fields correctly" in {
     val input = """I said: "What, It escaped?""""
     val line = CsvSourceHelper.serialize(Seq(input, input, input))
@@ -176,5 +196,12 @@ class CsvSourceTest extends FlatSpec with Matchers {
     emptyHeaderFieldsDataset.propertyList shouldBe Seq(
       "unnamed_col1","field2","unnamed_col3_2","unnamed_col3","unnamed_col6_3","unnamed_col6_4","unnamed_col7"
     )
+  }
+
+  "Csv Source" should "fetch entities by URI" in {
+    val es = EntitySchema("", IndexedSeq())
+    val entities = source.retrieve(es)
+    entities.size shouldBe 3
+    source.retrieveByUri(es, Seq(entities.head.uri)).size shouldBe 1
   }
 }

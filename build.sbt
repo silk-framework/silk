@@ -1,10 +1,10 @@
-import org.apache.commons.io.FileUtils
-import sbt.Keys._
-import sbt.file
+import sbt._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
+
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
@@ -34,6 +34,7 @@ lazy val commonSettings = Seq(
     "com.ning" % "async-http-client" % "1.9.39" % "test",
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
+    "org.apache.thrift" % "libthrift" % "0.9.3",
     "io.netty" % "netty" % "3.10.5.Final",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
@@ -67,27 +68,28 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
     libraryDependencies += "commons-io" % "commons-io" % "2.4"
   )
 
 lazy val rules = (project in file("silk-rules"))
-  .dependsOn(core % "test->test;compile->compile")
+  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules"
   )
 
 lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules)
+  .dependsOn(rules, workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Learning"
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, learning, core % "test->test")
-  .aggregate(rules, learning)
+  .dependsOn(rules, core % "test->test")
+  .aggregate(rules)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
@@ -113,7 +115,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "1.5.6"
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.2.1"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -175,16 +177,8 @@ lazy val plugins = (project in file("silk-plugins"))
 // Silk React Components
 //////////////////////////////////////////////////////////////////////////////
 
-val silkReactRoot: Def.Initialize[File] = Def.setting {
-  baseDirectory.value
-}
-
 val silkWorkbenchRoot: Def.Initialize[File] = Def.setting {
   new File(baseDirectory.value, "../silk-workbench")
-}
-
-val silkLibRoot: Def.Initialize[File] = Def.setting {
-  new File(silkWorkbenchRoot.value, "silk-workbench-core/public/libs")
 }
 
 val silkDistRoot: Def.Initialize[File] = Def.setting {
@@ -196,15 +190,6 @@ val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree loda
 
 val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
 val buildSilkReact = taskKey[Unit]("Builds silk React module")
-val testSilkReact = taskKey[Unit]("Run tests for React component")
-
-val yarnCommand: String = sys.props.get("os.name") match {
-  case Some(os) if os.toLowerCase.contains("win") =>
-    // On windows, we need to provide the path of the yarn script manually
-    Process("where.exe" :: "yarn.cmd" :: Nil).!!.trim
-  case _ =>
-    "yarn"
-}
 
 lazy val reactComponents = (project in file("silk-react-components"))
   .settings(commonSettings: _*)
@@ -215,70 +200,37 @@ lazy val reactComponents = (project in file("silk-react-components"))
     //////////////////////////////////////////////////////////////////////////////
     /** Check that all necessary build tool for the JS pipeline are available */
     checkJsBuildTools := {
-      val missing = Seq(yarnCommand) filter { name =>
-        scala.util.Try {
-          Process(name :: "--version" :: Nil).!! == ""
-        } getOrElse true
-      }
-
-      missing foreach { m =>
-        println(s"Command line tool $m is missing for building JavaScript artifacts!")
-      }
-      assert(missing.isEmpty, "Required command line tools are missing")
+      ReactBuildHelper.checkReactBuildTool()
     },
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
       checkJsBuildTools.value // depend on check
-      if (Watcher.filesChanged(WatchConfig(new File(silkReactRoot.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")).nonEmpty) {
-        val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
-        val productionBuild = buildEnv == "production"
-        val buildTask = if(productionBuild) "webpack-build" else "webpack-dev-build"
-        println(s"Building React components for $buildEnv, running task $buildTask...")
-
-        Process(yarnCommand :: Nil, baseDirectory.value).!! // Install dependencies
-        // Run build via gulp task, this has been the old way of building it
-        //          Process("yarn" :: "run" :: "deploy" :: Nil, baseDirectory.value).!! // Build main artifact
-
-        // Run build via webpack only, uncomment source map copy instruction when using this
-        Process(yarnCommand :: buildTask :: Nil, baseDirectory.value).!! // Build main artifact
-
-        FileUtils.deleteDirectory(silkDistRoot.value)
-        FileUtils.forceMkdir(silkDistRoot.value)
-        val files = Seq( // React components build artifacts
-          new File(silkReactRoot.value, "dist/main.js"),
-          new File(silkReactRoot.value, "dist/main.js.map"),
-          new File(silkReactRoot.value, "dist/style.css"),
-          new File(silkReactRoot.value, "dist/style.css.map")
-        ).filter(f => !f.getName.endsWith(".map") || productionBuild)
-        for (file <- files) {
-          FileUtils.copyFileToDirectory(file, silkDistRoot.value)
-        }
-        FileUtils.copyDirectoryToDirectory(new File(silkReactRoot.value, "dist/fonts"), silkDistRoot.value)
-        println("Finished building React components.")
+      val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")
+      def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
+      if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
+        ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
       }
-      val silkReactWorkbenchRoot = new File(silkReactRoot.value, "silk-workbench")
+      val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
       if(changedJsFiles.nonEmpty) {
         // Transpile JavaScript files to ES5
         for(file <- changedJsFiles) {
           val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
           val targetFile = new File(silkWorkbenchRoot.value, relativePath)
-          FileUtils.forceMkdir(targetFile.getParentFile)
-          println("Transpiling (ES5) " + relativePath + " to " + targetFile.getCanonicalPath)
-          Process(yarnCommand :: "babel" :: file.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, baseDirectory.value).!!
+          ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
         }
       }
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
-      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "src")) yield {
+      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
         path._1
       }
       paths.toSeq
     },
     watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
-      val paths = for(path <- Path.allSubpaths(silkReactRoot.value / "silk-workbench")) yield {
+      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "silk-workbench")) yield {
         path._1
       }
       paths.toSeq.filter(_.getName.endsWith(".js"))
@@ -293,7 +245,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents)
-  .aggregate(workspace)
+  .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",
@@ -315,7 +267,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile", learning)
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

@@ -1,7 +1,9 @@
 @import controllers.workflow.routes.Assets
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
+@import org.silkframework.workspace.ProjectTask
+@import org.silkframework.workspace.activity.workflow.Workflow
 
-@(taskActions: TaskActions, pos: Option[(Int, Int)] = None)
+@(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
 <div class="operator" title="@taskActions.task.taskLabel(maxLength = 1024)" style="@if(pos.isEmpty) {display:none;} else {left: @pos.get._1, top: @pos.get._2}"
      data-input-cardinality="@inputCardinality()">
@@ -14,7 +16,7 @@
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
     @taskActions.task.taskLabel()
-    @for(path <- taskActions.openPath) {
+    @for(path <- taskActions.openPath(Some(workflow.id), Some(taskActions.task.id.toString))) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
     }
   </div>

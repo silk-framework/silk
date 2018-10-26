@@ -14,10 +14,13 @@
 
 package org.silkframework.entity
 
+import java.net.URLEncoder
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.ref.WeakReference
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents an RDF path.
@@ -93,35 +96,24 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
+
+  /** Returns a [[org.silkframework.entity.TypedPath]] from this path with auto detect type. */
+  def asAutoDetectTypedPath: TypedPath = TypedPath(this.operators, AutoDetectValueType, isAttribute = false)
 }
 
 object Path {
 
-  private var pathCache = Map[String, WeakReference[Path]]()
+  /** Special path indexes that have a specific meaning for all datasets, where they are used */
+  final val IDX_PATH_IDX = -2 // #idx (returns the index of the entity, e.g. in a CSV file the line number)
+  final val IDX_PATH_OPERATORS = Seq(ForwardOperator("#idx"))
 
-  def empty = new Path(List.empty)
+  def empty: Path = new Path(List.empty)
 
   /**
     * Creates a new path.
-    * Returns a cached copy if available.
     */
   def apply(operators: List[PathOperator]): Path = {
-    val path = new Path(operators)
-
-    val pathStr = path.serialize()
-
-    //Remove all garbage collected paths from the map and try to return a cached path
-    synchronized {
-      pathCache = pathCache.filter(_._2.get.isDefined)
-
-      pathCache.get(pathStr).flatMap(_.get) match {
-        case Some(cachedPath) => cachedPath
-        case None => {
-          pathCache += (pathStr -> new WeakReference(path))
-          path
-        }
-      }
-    }
+    new Path(operators)
   }
 
   def unapply(path: Path): Option[List[PathOperator]] = {
@@ -131,22 +123,38 @@ object Path {
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: String): Path = {
-    apply(ForwardOperator(property) :: Nil)
-  }
+  def apply(property: String): Path = apply(Uri(property))
 
   /**
     * Creates a path consisting of a single property
     */
-  def apply(property: Uri): Path = {
-    apply(property.uri)
+  def apply(uri: Uri): Path = {
+    if(uri.isValidUri || Uri("http://ex.org/" + uri.uri).isValidUri) {
+      apply(ForwardOperator(uri) :: Nil)
+    }
+    else {
+      apply(ForwardOperator(Uri(URLEncoder.encode(uri.uri, "UTF-8"))) :: Nil)
+    }
   }
 
   /**
-    * Parses a path string.
-    * Returns a cached copy if available.
+    * Convenience function for non-strict path parsing. This will always return a Path object (either parsed or fail save wrapped).
+    * @param propertyOrPath - the input string (might be serialized path or new (non-encoded) field name)
+    * @param prefixes - will be forwarded to parser
+    * @return - a Path
     */
-  def parse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
-    new PathParser(prefixes).parse(pathStr)
+  def saveApply(propertyOrPath: String)(implicit prefixes: Prefixes = Prefixes.empty): Path = parse(propertyOrPath, strict = false)
+
+  /**
+    * Parses a path string.
+    * @param pathStr - the path string
+    * @param strict - Dictates the behaviour when PathParser fails. If false, the erroneous path string is wrapped inside an Uri without syntax test.
+    * @return - a Path
+    */
+  def parse(pathStr: String, strict: Boolean = true)(implicit prefixes: Prefixes = Prefixes.empty): Path = {
+    Try{new PathParser(prefixes).parse(pathStr)} match{
+      case Success(p) => p
+      case Failure(f) => if(strict) throw f else apply(Uri(pathStr))
+    }
   }
 }

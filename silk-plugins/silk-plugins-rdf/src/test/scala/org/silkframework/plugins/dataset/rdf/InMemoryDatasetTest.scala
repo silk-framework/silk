@@ -4,11 +4,14 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf.Resource
 import org.silkframework.entity.{Path, TypedPath, UriValueType}
+import org.silkframework.runtime.activity.UserContext
 
 /**
   *
   */
 class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
+  private implicit val userContext: UserContext = UserContext.Empty
+
   behavior of "In-memory Dataset"
 
   it should "write correct RDF when given entities with backward paths" in {

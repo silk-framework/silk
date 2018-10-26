@@ -3,8 +3,9 @@
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.runtime.activity.HasValue
 @import scala.language.existentials
+@import org.silkframework.runtime.activity.UserContext
 
-@(activity: ProjectActivity[_ <: HasValue])
+@(activity: ProjectActivity[_ <: HasValue])(implicit userContext: UserContext)
 
 @widgets.pluginDialog(
     activity.project,

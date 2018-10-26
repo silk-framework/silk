@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.entity.{Entity, _}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 import scala.xml.{Node, PrettyPrinter, XML}
@@ -274,6 +275,7 @@ class XmlSinkTest extends FlatSpec with ShouldMatchers {
   }
 
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
+    implicit val userContext: UserContext = UserContext.Empty
     // Create in-memory XML sink
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")

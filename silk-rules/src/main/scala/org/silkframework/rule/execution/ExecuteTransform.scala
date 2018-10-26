@@ -5,26 +5,28 @@ import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+
 import scala.util.control.Breaks._
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: => EntitySink, limit: Option[Int] = None) extends Activity[TransformReport] {
+class ExecuteTransform(input: UserContext => DataSource,
+                       transform: TransformSpec,
+                       output: UserContext => EntitySink,
+                       limit: Option[Int] = None) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  @volatile
-  private var isCanceled: Boolean = false
-
   override val initialValue = Some(TransformReport())
 
-  def run(context: ActivityContext[TransformReport]): Unit = {
-    isCanceled = false
+  def run(context: ActivityContext[TransformReport])
+         (implicit userContext: UserContext): Unit = {
+    cancelled = false
     // Get fresh data source and entity sink
-    val dataSource = input
-    val entitySink = output
+    val dataSource = input(userContext)
+    val entitySink = output(userContext)
 
     // Clear outputs before writing
     entitySink.clear()
@@ -42,7 +44,8 @@ class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: =
   private def transformEntities(dataSource: DataSource,
                                 rule: RuleSchemata,
                                 entitySink: EntitySink,
-                                context: ActivityContext[TransformReport]): Unit = {
+                                context: ActivityContext[TransformReport])
+                               (implicit userContext: UserContext): Unit = {
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)
@@ -52,15 +55,11 @@ class ExecuteTransform(input: => DataSource, transform: TransformSpec, output: =
       for (entity <- transformedEntities) {
         entitySink.writeEntity(entity.uri, entity.values)
         count += 1
-        if (isCanceled || limit.exists(_ <= count)) {
+        if (cancelled || limit.exists(_ <= count)) {
           break
         }
       }
     }
     entitySink.closeTable()
-  }
-
-  override def cancelExecution(): Unit = {
-    isCanceled = true
   }
 }

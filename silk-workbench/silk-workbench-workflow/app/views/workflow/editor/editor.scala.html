@@ -5,7 +5,8 @@
 @import models.workflow.WorkflowConfig
 @import org.silkframework.workbench.Context
 
-@(context: Context[Workflow])(implicit session: play.api.mvc.Session)
+@import org.silkframework.runtime.activity.UserContext
+@(context: Context[Workflow])(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
@@ -37,7 +38,7 @@
 }
 
 @content = {
-@toolbox(context.project)
+@toolbox(context.project, context.task)
 
 <div id="editorContent" style="position: relative;" class="mdl-shadow--2dp">
 </div>

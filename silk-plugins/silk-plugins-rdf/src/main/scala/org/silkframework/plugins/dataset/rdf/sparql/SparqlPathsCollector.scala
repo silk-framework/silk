@@ -17,16 +17,19 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.Path
 import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * Retrieves the most frequent property paths.
  */
 trait SparqlPathsCollector {
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]): Seq[Path]
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
+           (implicit userContext: UserContext): Seq[Path]
 }
 
 object SparqlPathsCollector {
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int]) = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
+           (implicit userContext: UserContext)= {
     SparqlSamplePathsCollector(endpoint, graph, restrictions, limit)
   }
 }

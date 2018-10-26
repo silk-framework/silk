@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, FormattedLinkSink}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
 
@@ -18,17 +19,17 @@ case class AlignmentDataset(
   /**
    * Returns a data source for reading entities from the data set.
    */
-  override def source: DataSource = throw new UnsupportedOperationException("This dataset only support writing alignments.")
+  override def source(implicit userContext: UserContext): DataSource = throw new UnsupportedOperationException("This dataset only support writing alignments.")
 
   /**
    * Returns a link sink for writing data to the data set.
    */
-  override def linkSink: LinkSink = new FormattedLinkSink(file, new AlignmentLinkFormatter)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new FormattedLinkSink(file, new AlignmentLinkFormatter)
 
   /**
    * Returns a entity sink for writing data to the data set.
    */
-  override def entitySink: EntitySink = ???
+  override def entitySink(implicit userContext: UserContext): EntitySink = ???
 
   override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
     this.copy(file = writableResource)

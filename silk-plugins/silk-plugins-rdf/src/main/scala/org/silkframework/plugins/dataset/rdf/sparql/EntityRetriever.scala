@@ -16,6 +16,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlEndpoint}
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -29,7 +30,8 @@ trait EntityRetriever {
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity]
+  def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+              (implicit userContext: UserContext): Traversable[Entity]
 }
 
 /**
@@ -40,7 +42,13 @@ object EntityRetriever {
   /**
    * Creates a new EntityRetriever instance for specific strategy.
    */
-  def apply(endpoint: SparqlEndpoint, strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel, pageSize: Int = 1000, graphUri: Option[String] = None, useOrderBy: Boolean = true): EntityRetriever = {
+  def apply(
+   endpoint: SparqlEndpoint,
+   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
+   pageSize: Int = 1000,
+   graphUri: Option[String] = None,
+   useOrderBy: Boolean = true
+ ): EntityRetriever = {
     strategy match {
       case EntityRetrieverStrategy.simple =>
         new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy, useSubSelect = false)

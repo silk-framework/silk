@@ -20,6 +20,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -44,7 +45,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     canceled = false
     if(entitySchema.typedPaths.size <= 1) {
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
@@ -56,7 +58,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int]) extends Traversable[Entity] {
+  private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int])
+                                 (implicit userContext: UserContext)extends Traversable[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0
@@ -111,7 +114,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path) extends Thread {
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path)
+                             (implicit userContext: UserContext)extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
@@ -146,7 +150,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    private def queryPath() = {
+    private def queryPath()(implicit userContext: UserContext) = {
       //Select
       val sparql = new StringBuilder
       sparql append "SELECT DISTINCT "

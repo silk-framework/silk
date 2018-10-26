@@ -34,7 +34,7 @@ case class ContainsMetric(blockingParameter: Double = 1.0) extends SimpleDistanc
     Utils.evaluateRelation(str1, str2, Constants.CONTAINS)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter)
   }
 }

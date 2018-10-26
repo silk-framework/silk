@@ -19,7 +19,7 @@ import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.runtime.activity.{HasValue, Status, ValueHolder}
+import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
@@ -29,7 +29,7 @@ import scala.util.control.NonFatal
 
 
 /**
-  * A task that belongs to a project.
+  * A task that belongs to a project that has been loaded into the workspace.
   * [[ProjectTask]] instances are mutable, this means that the task data returned on successive calls can be different.
   *
   * @tparam TaskType The data type that specifies the properties of this task.
@@ -55,11 +55,11 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes = module.project.config.prefixes
-    implicit val resources = module.project.resources
+    implicit val prefixes: Prefixes = module.project.config.prefixes
+    implicit val resources: ResourceManager = module.project.resources
     val taskType = data.getClass
-    val activityPlugins = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
-
+    val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
+        .map(_.apply()).filter(_.taskType.isAssignableFrom(taskType))
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (plugin <- activityPlugins) {
       try {
@@ -92,7 +92,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
-  def init(): Unit = {
+  def init()(implicit userContext: UserContext): Unit = {
     // Start auto-run activities
     for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
       activity.control.start()
@@ -101,7 +101,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None): Unit = synchronized {
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None)
+            (implicit userContext: UserContext): Unit = synchronized {
     // Update data
     dataValueHolder.update(newData)
     for(md <- newMetaData) {
@@ -118,14 +119,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(Writer, ProjectTask.writeInterval, TimeUnit.SECONDS))
+    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(new Writer(), ProjectTask.writeInterval, TimeUnit.SECONDS))
     log.info("Updated task '" + id + "'")
   }
 
   /**
     * Updates the meta data of this task.
     */
-  def updateMetaData(newMetaData: MetaData): Unit = {
+  def updateMetaData(newMetaData: MetaData)
+                    (implicit userContext: UserContext): Unit = {
     update(dataValueHolder(), Some(newMetaData))
   }
 
@@ -134,13 +136,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
     * This method forces the writing and returns after all data has been written.
     */
-  def flush(): Unit = synchronized {
+  def flush()
+           (implicit userContext: UserContext): Unit = synchronized {
     // Cancel any scheduled writer
     for (writer <- scheduledWriter) {
       writer.cancel(false)
     }
     // Write now
-    Writer.run()
+    new Writer().run()
   }
 
   /**
@@ -179,7 +182,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
     */
-  override def findDependentTasks(recursive: Boolean): Seq[Identifier] = {
+  override def findDependentTasks(recursive: Boolean)
+                                 (implicit userContext: UserContext): Set[Identifier] = {
     // Find all tasks that reference this task
     val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
 
@@ -187,10 +191,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     if(recursive) {
       allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
-    allDependentTaskIds.distinct
+    allDependentTaskIds.distinct.toSet
   }
 
-  private object Writer extends Runnable {
+  private class Writer(implicit userContext: UserContext) extends Runnable {
     override def run(): Unit = {
       // Write task
       module.provider.putTask(project.name, ProjectTask.this)
@@ -219,14 +223,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       metaDataFields = metaDataFields :+ "Description" -> metaData.description
     }
     metaDataFields
-  }
-
-  /**
-    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
-    * @param maxLength the max length in characters
-    */
-  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
-    metaData.formattedLabel(id, maxLength)
   }
 }
 

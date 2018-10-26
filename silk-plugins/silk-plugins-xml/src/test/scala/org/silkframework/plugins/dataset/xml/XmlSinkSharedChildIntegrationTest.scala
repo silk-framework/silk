@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Utility, XML}
@@ -10,11 +11,13 @@ import scala.xml.{Utility, XML}
 class XmlSinkSharedChildIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "XML Sink"
 
+  implicit val userContext: UserContext = UserContext.Empty
+
   override def projectPathInClasspath = "org/silkframework/plugins/dataset/xml/cmem-1023-xmlSharedChild.zip"
 
   override def projectId = "xmlSharedChildBug"
 
-  override def singleWorkspaceProviderId: String = "inMemory"
+  override def workspaceProvider: String = "inMemory"
 
   private val TRANSFORM_TASK = "transformRDF2XML"
   private val OUTPUT_XML_RESOURCE = "output.xml"

@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
@@ -20,9 +20,11 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
 
   override def initialValue: Option[DPair[EntitySchema]] = Some(DPair.fill(EntitySchema.empty))
 
-  /** The purpose of this val is to store the change notify callback function
+  /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
-  private val transformSpecObserverFunctions: (TransformSpec) => Unit = {
+  private var transformSpecObserverFunctions: Option[(TransformSpec) => Unit] = None
+
+  private def setTransformSpecObserverFunction()(implicit userContext: UserContext) {
     val fn: (TransformSpec) => Unit = (_) => {
       this.startDirty(task.activity[LinkingPathsCache].control)
     }
@@ -33,13 +35,17 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         inputTask.dataValueHolder.subscribe(fn)
       }
     }
-    fn
+    transformSpecObserverFunctions = Some(fn)
   }
 
   /**
    * Loads the most frequent property paths.
    */
-  override def run(context: ActivityContext[DPair[EntitySchema]]): Unit = {
+  override def run(context: ActivityContext[DPair[EntitySchema]])
+                  (implicit userContext: UserContext): Unit = {
+    if(transformSpecObserverFunctions.isEmpty) {
+      setTransformSpecObserverFunction()
+    }
     context.status.update("Retrieving frequent property paths", 0.0)
 
     //Create an entity description from the link specification
@@ -74,12 +80,14 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   }
 
   private def updateSchema(datasetSelection: DatasetSelection,
-                           entitySchema: EntitySchema): EntitySchema = {
+                           entitySchema: EntitySchema)
+                          (implicit userContext: UserContext): EntitySchema = {
     val paths = retrievePaths(datasetSelection)
     entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths.map(_.asStringTypedPath)).distinct)
   }
 
-  private def retrievePaths(datasetSelection: DatasetSelection) = {
+  private def retrievePaths(datasetSelection: DatasetSelection)
+                           (implicit userContext: UserContext)= {
     // Retrieve the data source
     val source = task.dataSource(datasetSelection)
     // Retrieve most frequent paths

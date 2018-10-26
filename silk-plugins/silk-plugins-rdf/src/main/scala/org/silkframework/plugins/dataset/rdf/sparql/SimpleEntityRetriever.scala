@@ -17,6 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -36,7 +37,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveAll(entitySchema, limit, entities)
   }
 
@@ -46,7 +48,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entitySchema The entity schema
    * @return The retrieved entities
    */
-  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri]): Traversable[Entity] = {
+  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
     //Select
     val sparql = new StringBuilder

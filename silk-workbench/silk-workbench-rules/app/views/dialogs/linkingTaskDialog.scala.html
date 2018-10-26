@@ -1,21 +1,21 @@
-@import org.silkframework.dataset.Dataset
-@import org.silkframework.rule.{LinkSpec, TransformSpec}
-@import org.silkframework.workspace.User
 @import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+@import org.silkframework.rule.{LinkSpec, TransformSpec}
+@import org.silkframework.workspace.WorkspaceFactory
+@import org.silkframework.runtime.activity.UserContext
 
-@(project: String, task: String, createDialog: Boolean)
+@(project: String, task: String, createDialog: Boolean)(implicit userContext: UserContext)
 
-@datasets = @{ User().workspace.project(project).tasks[GenericDatasetSpec] }
+@datasets = @{ WorkspaceFactory().workspace.project(project).tasks[GenericDatasetSpec] }
 
-@transformTasks = @{ User().workspace.project(project).tasks[TransformSpec] }
+@transformTasks = @{ WorkspaceFactory().workspace.project(project).tasks[TransformSpec] }
 
-@linkingTask = @{ User().workspace.project(project).tasks[LinkSpec].find(_.id == task) }
+@linkingTask = @{ WorkspaceFactory().workspace.project(project).tasks[LinkSpec].find(_.id == task) }
 
 @currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 
 @currentOutput = @{ linkingTask.flatMap(_.data.outputs.headOption) }
 
-@prefixes = @{ User().workspace.project(project).config.prefixes }
+@prefixes = @{ WorkspaceFactory().workspace.project(project).config.prefixes }
 
 @tooltip = @{
   """Additional restrictions on the enumerated entities.

@@ -26,14 +26,14 @@ import org.silkframework.entity.rdf.SparqlRestriction
 case class Restriction(operator: Option[Restriction.Operator]) {
 
   /** True if this restriction is empty, i.e., no filtering should be applied. */
-  def isEmpty = operator.isEmpty
+  def isEmpty: Boolean = operator.isEmpty
 
   /** Retrieves all paths that are used by this restriction. */
-  def paths = operator.map(_.paths).getOrElse(Set.empty)
+  def paths: Set[Path] = operator.map(_.paths).getOrElse(Set.empty)
 
-  def serialize = operator.map(_.serialize).mkString
+  def serialize: String = operator.map(_.serialize).mkString
 
-  override def toString = operator.mkString
+  override def toString: String = operator.mkString
 }
 
 /**
@@ -44,9 +44,9 @@ object Restriction {
   /**
    * Returns an empty restriction
    */
-  def empty = Restriction(None)
+  def empty: Restriction = Restriction(None)
 
-  def custom(restriction: String)(implicit prefixes: Prefixes) = {
+  def custom(restriction: String)(implicit prefixes: Prefixes): Restriction = {
     if(restriction.trim.nonEmpty) {
       val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction).toSparql
       Restriction(Some(CustomOperator(sparqlRestriction)))
@@ -59,7 +59,7 @@ object Restriction {
    * Parses a condition.
    * Currently all conditions are parsed into custom conditions.
    */
-  def parse(restriction: String)(implicit prefixes: Prefixes) = {
+  def parse(restriction: String)(implicit prefixes: Prefixes): Restriction = {
     if(restriction.trim.isEmpty)
       Restriction.empty
     else
@@ -87,7 +87,7 @@ object Restriction {
 
     def paths: Set[Path] = Set.empty
 
-    def serialize = expression
+    def serialize: String = expression
   }
 
   /**
@@ -100,9 +100,9 @@ object Restriction {
    */
   case class Condition(path: Path, value: String) extends LogicalOperator {
 
-    def paths = Set(path)
+    def paths: Set[Path] = Set(path)
 
-    def serialize = s"$path = $value"
+    def serialize: String = s"$path = $value"
   }
 
   /**
@@ -111,9 +111,9 @@ object Restriction {
    */
   case class Not(op: Operator) extends LogicalOperator {
 
-    def paths = op.paths
+    def paths: Set[Path] = op.paths
 
-    def serialize = "!" + op.serialize
+    def serialize: String = "!" + op.serialize
   }
 
   /**
@@ -121,9 +121,9 @@ object Restriction {
    */
   case class And(children: Traversable[Operator]) extends LogicalOperator {
 
-    def paths = children.flatMap(_.paths).toSet
+    def paths: Set[Path] = children.flatMap(_.paths).toSet
 
-    def serialize = children.mkString(" & ")
+    def serialize: String = children.mkString(" & ")
   }
 
   /**
@@ -131,9 +131,9 @@ object Restriction {
    */
   case class Or(children: Traversable[Operator]) extends LogicalOperator {
 
-    def paths = children.flatMap(_.paths).toSet
+    def paths: Set[Path] = children.flatMap(_.paths).toSet
 
-    def serialize = children.mkString(" ' ")
+    def serialize: String = children.mkString(" ' ")
 
   }
 

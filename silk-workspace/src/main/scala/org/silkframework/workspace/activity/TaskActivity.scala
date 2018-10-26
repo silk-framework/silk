@@ -24,7 +24,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     extends WorkspaceActivity[ActivityType] {
 
   @volatile
-  private var currentControl = Activity(defaultFactory(task))
+  private var currentControl = Activity{
+    defaultFactory(task)
+  }
 
   @volatile
   private var controls: Map[Identifier, ActivityControl[ActivityType#ValueType]] = Map()
@@ -55,7 +57,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def config: Map[String, String] = PluginDescription(defaultFactory.getClass).parameterValues(defaultFactory)(Prefixes.empty)
 
-  def reset(): Unit = {
+  def reset()(implicit userContext: UserContext): Unit = {
     currentControl.cancel()
     createControl(config)
   }
@@ -64,7 +66,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity asynchronously.
     * Optionally applies a supplied configuration.
     */
-  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Identifier = {
+  def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
     val (id, control) = createControl(config)
     control.start()
     id
@@ -74,7 +76,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     * Starts the activity blocking.
     * Optionally applies a supplied configuration.
     */
-  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext = UserContext.Empty): Identifier = {
+  def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
     val (id, control) = createControl(config)
     control.startBlocking()
     id

@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset._
 import org.silkframework.entity.rdf.SparqlRestriction
@@ -9,9 +10,10 @@ import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = "file",
@@ -73,11 +75,11 @@ case class RdfFileDataset(
     new JenaModelEndpoint(model)
   }
 
-  override def source: FileSource.type = FileSource
+  override def source(implicit userContext: UserContext): FileSource.type = FileSource
 
-  override def linkSink: FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 
-  override def entitySink: FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(file, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
@@ -88,27 +90,31 @@ case class RdfFileDataset(
     private var endpoint: JenaEndpoint = null
     private var lastModificationTime: Option[(Long, Int)] = None
 
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       load()
       EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
     }
 
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Traversable[Entity] = {
       if (entities.isEmpty) {
         Seq.empty
       } else {
         load()
-        EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+        EntityRetriever(endpoint).retrieve(entitySchema, entities, None)
       }
     }
 
-    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                              (implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
       val restrictions = SparqlRestriction.forType(t)
       SparqlAggregatePathsCollector(endpoint, graphOpt, restrictions, limit)
     }
 
-    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    override def retrieveTypes(limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
       load()
       SparqlTypesCollector(endpoint, graphOpt, limit)
     }
@@ -130,7 +136,14 @@ case class RdfFileDataset(
         }
       }
     }
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      *
+      * @return
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset)) //FIXME CMEM 1352 replace with actual task
   }
 
-  override def tripleSink: TripleSink = new FormattedEntitySink(file, formatter)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
 }

@@ -21,7 +21,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -46,18 +46,16 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
   private val log = Logger.getLogger(getClass.getName)
 
-  /** Indicates if this task has been canceled. */
-  @volatile private var canceled = false
-
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext[IndexedSeq[Link]]): Unit = {
+  override def run(context: ActivityContext[IndexedSeq[Link]])
+                  (implicit userContext: UserContext): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
     context.value.update(IndexedSeq.empty)
-    canceled = false
+    cancelled = false
 
     //Create execution service for the matching tasks
     val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
@@ -72,11 +70,15 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     var finishedTasks = 0
     var lastLog: Long = 0
     val minLogDelayInMs = 1000
-    while (!canceled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && error.get().isEmpty) {
+    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && error.get().isEmpty) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
         finishedTasks += 1
+
+        for(linkLimit <- runtimeConfig.linkLimit if context.value().size >= linkLimit) {
+          cancelled = true
+        }
 
         if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
           //Update status
@@ -100,7 +102,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     if (scheduler.isAlive)
       scheduler.interrupt()
 
-    if(canceled)
+    if(cancelled)
       executorService.shutdownNow()
     else
       executorService.shutdown()
@@ -111,10 +113,6 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val statusTasks = " " + finishedTasks + " tasks "
     val statusLinks = " " + context.value().size + " links."
     context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
-  }
-
-  override def cancelExecution() {
-    canceled = true
   }
 
   /**

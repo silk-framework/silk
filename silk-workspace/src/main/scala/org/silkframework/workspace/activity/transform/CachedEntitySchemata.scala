@@ -4,6 +4,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.workspace.ProjectTask
 
@@ -24,7 +25,8 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
     * @param sourcePath The complete source path at which position the paths are requested, e.g. for auto-completion
     * @return
     */
-  def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator]): IndexedSeq[TypedPath] = {
+  def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+                      (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     if(task.selection.typeUri.uri.nonEmpty && sourcePath.nonEmpty && isRdfInput(task) && untypedSchema.isDefined) {
       untypedSchema.get.typedPaths
     } else {
@@ -32,7 +34,8 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
     }
   }
 
-  def isRdfInput(task: ProjectTask[TransformSpec]): Boolean = task.project.taskOption[GenericDatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
+  def isRdfInput(task: ProjectTask[TransformSpec])
+                (implicit userContext: UserContext): Boolean = task.project.taskOption[GenericDatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
 }
 
 object CachedEntitySchemata {

@@ -1,9 +1,8 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.activity.{Activity, HasValue, UserContext}
 import org.silkframework.runtime.plugin.AnyPlugin
-import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.workspace.ProjectTask
 
 import scala.reflect.ClassTag

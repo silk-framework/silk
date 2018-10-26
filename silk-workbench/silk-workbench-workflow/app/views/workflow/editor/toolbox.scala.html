@@ -1,9 +1,10 @@
-@import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workbench.WorkbenchPlugins
-
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
-@(project: org.silkframework.workspace.Project)
+@import org.silkframework.workspace.activity.workflow.Workflow
+@import org.silkframework.runtime.activity.UserContext
+
+@(project: org.silkframework.workspace.Project, workflow: ProjectTask[Workflow])(implicit userContext: UserContext)
 
 <div id="toolbox" style="height: 67.9px;">
   <div id="operatorToolbox">
@@ -35,9 +36,9 @@
     @*<img src="@icon">*@
     @taskActions.task.taskLabel()
     @if(taskActions.taskType.typeName != "Dataset") {
-      @operator(taskActions)
+      @operator(taskActions, workflow)
     } else {
-      @dataset(taskActions)
+      @dataset(taskActions, workflow)
     }
   </div>
 }

@@ -1,4 +1,5 @@
 package org.silkframework.dataset
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -6,31 +7,33 @@ import org.silkframework.util.Uri
   */
 class CombinedEntitySink(sinks: Seq[EntitySink]) extends EntitySink {
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                        (implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.openTable(typeUri, properties)
     }
   }
 
-  override def closeTable(): Unit = {
+  override def closeTable()(implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.closeTable()
     }
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]]): Unit = {
+  override def writeEntity(subject: String, values: Seq[Seq[String]])
+                          (implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.writeEntity(subject, values)
     }
   }
 
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.clear()
     }
   }
 
-  override def close(): Unit = {
+  override def close()(implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.close()
     }

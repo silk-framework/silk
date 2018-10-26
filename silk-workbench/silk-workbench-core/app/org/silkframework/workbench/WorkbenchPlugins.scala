@@ -1,6 +1,7 @@
 package org.silkframework.workbench
 
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
@@ -12,13 +13,18 @@ object WorkbenchPlugins {
     * Holds all registered workbench plugins.
     */
   private lazy val allPlugins: Seq[WorkbenchPlugin[_ <: TaskSpec]] = {
-    PluginRegistry.availablePlugins[WorkbenchPlugin[_ <: TaskSpec]].map(_.apply()(Prefixes.empty)).sortBy(_.taskType.typeName)
+    val plugins = PluginRegistry.availablePlugins[WorkbenchPlugin[_ <: TaskSpec]].map(_.apply()(Prefixes.empty)).sortBy(_.taskType.typeName)
+
+    // If a WorkbenchPlugin covers a custom task, we only load it, if that custom task is actually loaded as a plugin (and not blacklisted)
+    val customTaskTypes = PluginRegistry.availablePlugins[CustomTask].map(_.pluginClass)
+    plugins.filter(p => !classOf[CustomTask].isAssignableFrom(p.taskClass) || customTaskTypes.exists(p.taskClass.isAssignableFrom) )
   }
 
   /**
     * Given a project, returns all tasks actions grouped by task type.
     */
-  def byType(project: Project): Seq[(TaskType, Seq[TaskActions])] = {
+  def byType(project: Project)
+            (implicit userContext: UserContext): Seq[(TaskType, Seq[TaskActions])] = {
     for {
       plugin <- allPlugins
     } yield {

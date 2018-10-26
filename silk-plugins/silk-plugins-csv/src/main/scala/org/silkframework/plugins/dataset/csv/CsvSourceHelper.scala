@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import java.net.URLEncoder
 
-import org.silkframework.entity.SparkCompatibleEncoding
+import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
 import scala.collection.immutable
@@ -52,7 +52,7 @@ object CsvSourceHelper {
   }
 
   /** Converts the field names to a representation that can be used in URIs */
-  def convertHeaderFields(headerFields: Array[String], prefix: String): immutable.IndexedSeq[String] = {
+  def convertHeaderFields(headerFields: Array[String]): immutable.IndexedSeq[String] = {
     val existingUnnamedMap: Map[Int, Int] = unnamedColumnClashes(headerFields)
     headerFields.zipWithIndex
         .map {
@@ -64,8 +64,9 @@ object CsvSourceHelper {
               case None => columnName
             }
           case (s, _) =>
-            if (Uri(s).isValidUri) {
-              s
+            val u = Uri.parse(s)
+            if (u.isValidUri) {
+              u.uri
             } else {
               URLEncoder.encode(s, "UTF-8")
             }

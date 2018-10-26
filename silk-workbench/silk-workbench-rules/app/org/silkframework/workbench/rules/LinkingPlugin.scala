@@ -3,10 +3,12 @@ package org.silkframework.workbench.rules
 import controllers.rules.routes.Assets
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.LinkSpec
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.rules.LinkingPlugin.{LinkingTaskActions, LinkingTaskType}
 import org.silkframework.workspace.ProjectTask
+
 import scala.language.existentials
 
 /**
@@ -61,7 +63,7 @@ object LinkingPlugin {
       Some(s"linking/dialogs/editLinkingTask/$project/$taskId")
 
     /** The path to redirect to when the task is opened. */
-    override def openPath =
+    override def openPath(inWorkflow: Option[Identifier], workflowOperatorId: Option[String]): Option[String] =
       Some(s"linking/$project/$taskId/editor")
 
     /**
@@ -73,7 +75,9 @@ object LinkingPlugin {
         if (config.workbench.tabs.editor)
           tabs ::= Tab("Editor", s"linking/$project/$taskId/editor")
         if (config.workbench.tabs.generateLinks)
-          tabs ::= Tab("Generate Links", s"linking/$project/$taskId/generateLinks")
+          tabs ::= Tab("Evaluate", s"linking/$project/$taskId/evaluate")
+        if (config.workbench.tabs.generateLinks)
+          tabs ::= Tab("Execute", s"linking/$project/$taskId/execute")
         if (config.workbench.tabs.learn)
           tabs ::= Tab("Learn", s"linking/$project/$taskId/learnStart")
         if (config.workbench.tabs.referenceLinks)

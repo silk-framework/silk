@@ -26,6 +26,7 @@ import {
     MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_URI,
     trimValueLabelObject,
+    trimUriPattern,
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
@@ -146,7 +147,7 @@ const ObjectMappingRuleForm = React.createClass({
                         this.state.targetProperty
                     ),
                     targetEntityType: this.state.targetEntityType,
-                    pattern: this.state.pattern,
+                    pattern: trimUriPattern(this.state.pattern),
                     entityConnection: this.state.entityConnection === 'to',
                 },
             })
@@ -316,11 +317,12 @@ const ObjectMappingRuleForm = React.createClass({
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder={'Value path'}
+                    key={this.state.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
                     value={this.state.sourceProperty}
-                    ruleId={autoCompleteRuleId}
+                    ruleId={parentId}
                     onChange={this.handleChangeSelectBox.bind(
                         null,
                         'sourceProperty'

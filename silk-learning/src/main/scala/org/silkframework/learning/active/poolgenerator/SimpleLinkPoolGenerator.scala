@@ -16,15 +16,15 @@ package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.rule.execution.{GenerateLinks, Linking}
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.plugins.transformer.normalize.TrimTransformer
-import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Random
@@ -49,7 +49,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
     private var generateLinksActivity: ActivityControl[Linking] = _
 
-    override def run(context: ActivityContext[UnlabeledLinkPool]): Unit = {
+    override def run(context: ActivityContext[UnlabeledLinkPool])
+                    (implicit userContext: UserContext): Unit = {
       val entitySchemata =
         DPair(
           source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source.asStringTypedPath).distinct.toIndexedSeq),
@@ -81,7 +82,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
     }
 
-    private class SampleOperator() extends SimilarityOperator {
+    private class SampleOperator(implicit userContext: UserContext) extends SimilarityOperator {
 
       val links = Array.fill(paths.size)(Seq[Link]())
 
@@ -142,7 +143,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           inputValues = inputValues.map(values => transform(Seq(values)))
         }
 
-        val index = inputValues.map(metric.index(_, maxDistance).crop(maxIndices)).reduce(_ merge _)
+        val index = inputValues.map(metric.index(_, maxDistance, sourceOrTarget).crop(maxIndices)).reduce(_ merge _)
 
         index
       }

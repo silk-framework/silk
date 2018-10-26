@@ -1,13 +1,15 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-
 import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
-import org.silkframework.dataset.{DataSource, PathCoverageDataSource, PeakDataSource, ValueCoverageDataSource}
+
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml._
 
@@ -25,7 +27,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     *
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
-  override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     if(file.nonEmpty) {
       val inputStream = file.inputStream
       try {
@@ -60,7 +63,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param depth Only retrieve paths up to a certain length.
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext): IndexedSeq[Path] = {
     retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
   }
 
@@ -86,13 +90,14 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit        Limits the maximum number of retrieved entities
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
 
     new Traversable[Entity] {
-      override def foreach[U](f: (Entity) => U): Unit = {
+      override def foreach[U](f: Entity => U): Unit = {
         val inputStream = file.inputStream
         try {
           val reader: XMLStreamReader = initStreamReader(inputStream)
@@ -116,18 +121,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         }
       }
     }
-  }
-
-  /**
-    * Retrieves a list of entities from this source.
-    *
-    * @param entitySchema The entity schema
-    * @param entities     The URIs of the entities to be retrieved.
-    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
-    */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
-    val uriSet = entities.map(_.uri).toSet
-    retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri)).toSeq
   }
 
   /**
@@ -162,15 +155,18 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     var backwardPath = Seq[String]()
 
     while(reader.hasNext) {
-      reader.next()
       if(reader.isStartElement && backwardPath.isEmpty && reader.getLocalName == name) {
         return true
       } else if(reader.isStartElement && backwardPath.nonEmpty && backwardPath.head == reader.getLocalName) {
         backwardPath = backwardPath.drop(1)
+        reader.next()
       } else if(reader.isStartElement) {
         skipElement(reader)
       } else if(reader.isEndElement) {
         backwardPath = reader.getLocalName +: backwardPath
+        reader.next()
+      } else {
+        reader.next()
       }
     }
 
@@ -180,6 +176,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Collects all paths inside the current element.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
     assert(reader.isStartElement)
@@ -194,27 +191,30 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Iterate all child elements
     var paths = Seq[Path]()
     var startElements = Set[String]()
-    while(reader.isStartElement) {
-      if(!startElements.contains(reader.getLocalName)) {
+    while(!reader.isEndElement) {
+      if (reader.isStartElement && !startElements.contains(reader.getLocalName)) {
         // Get paths from children
-        val tagPath = path ++ Path(reader.getLocalName)
+        val localName = reader.getLocalName
+        val tagPath = path ++ Path(localName)
         val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes, depth - 1)
 
         // The depth check has to be done after collecting paths of the child, because all tags must be consumed by the reader
-        val depthAdjustedChildPaths = if(depth == 0) Seq() else childPaths
+        val depthAdjustedChildPaths = if (depth == 0) Seq() else childPaths
         // Collect all wanted paths
         val newPaths = choosePaths(onlyLeafNodes, onlyInnerNodes, childPaths, depthAdjustedChildPaths)
 
         // Append new paths
         paths ++= newPaths
-        startElements += reader.getLocalName
-      } else {
+        startElements += localName
+      } else if (reader.isStartElement) {
         // We already collected paths for this tag
         skipElement(reader)
+      } else {
+        reader.next()
       }
-
-      nextStartOrEndTag(reader)
     }
+
+    reader.next()
 
     val depthAdjustedAttributePaths = if(depth == 0) Seq() else attributePaths
 
@@ -258,6 +258,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Builds a XML node for a given start element that includes all its children.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def buildNode(reader: XMLStreamReader): Elem = {
     assert(reader.isStartElement)
@@ -273,14 +274,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     // Collect child nodes
     var children = List[Node]()
-    do {
-      reader.next()
+    reader.next()
+    while(!reader.isEndElement) {
       if(reader.isStartElement) {
         children ::= buildNode(reader)
       } else if(reader.isCharacters) {
         children ::= Text(reader.getText)
+        reader.next()
+      } else {
+        reader.next()
       }
-    } while(!reader.isEndElement)
+    }
 
     // Move to the element after the end element.
     reader.next()
@@ -291,17 +295,30 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   /**
     * Skips an element.
     * The parser must be positioned on the start element when calling this method.
+    * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def skipElement(reader: XMLStreamReader): Unit = {
     assert(reader.isStartElement)
 
-    do {
+    // Move to first child element
+    reader.next()
+
+    // If this is an empty tag, we return immediately
+    if(reader.isEndElement) {
       reader.next()
+      return
+    }
+
+    // Skip contents
+    do {
       if(reader.isStartElement) {
         skipElement(reader)
+      } else {
+        reader.next()
       }
     } while(!reader.isEndElement)
 
+    // Move to element that follows the skipped element
     reader.next()
   }
 
@@ -323,4 +340,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
   }
 
+  /**
+    * The dataset task underlying the Datset this source belongs to
+    *
+    * @return
+    */
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }

@@ -3,7 +3,7 @@ package org.silkframework.execution
 import org.silkframework.config.Task
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 /**
   * Writes and/or reads a data set.
@@ -22,9 +22,11 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     task.data
   }
 
-  protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType): ExecType#DataType
+  protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
+                    (implicit userContext: UserContext): ExecType#DataType
 
-  protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType): Unit
+  protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType)
+                     (implicit userContext: UserContext): Unit
 
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
@@ -36,12 +38,12 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * @return
     */
   final override def execute(
-                              task: Task[DatasetSpec[DatasetType]],
-                              inputs: Seq[ExecType#DataType],
-                              outputSchema: Option[EntitySchema],
-                              execution: ExecType,
-                              context: ActivityContext[ExecutionReport]
-                            ): Option[ExecType#DataType] = {
+    task: Task[DatasetSpec[DatasetType]],
+    inputs: Seq[ExecType#DataType],
+    outputSchema: Option[EntitySchema],
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport]
+  )(implicit userContext: UserContext): Option[ExecType#DataType] = {
 
     for (input <- inputs) {
       write(input, task, execution)

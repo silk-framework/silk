@@ -1,11 +1,12 @@
 @import controllers.core.routes.Assets
 @import controllers.core.routes.Branding
 
-@(welcome: Html)(implicit session: play.api.mvc.Session)
+@import org.silkframework.runtime.activity.UserContext
+@(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @exampleName = @{ "movies" }
 
-@projects = @{ org.silkframework.workspace.User().workspace.projects }
+@projects = @{ org.silkframework.workspace.WorkspaceFactory().workspace.projects }
 
 @header = {
   <link rel="stylesheet" href="@Assets.at("start.css")" type="text/css" />
