@@ -105,7 +105,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @return The activity control for the requested activity
     * @throws org.silkframework.runtime.validation.NotFoundException
     */
-  def activity(activityName: String): ProjectActivity = {
+  def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))

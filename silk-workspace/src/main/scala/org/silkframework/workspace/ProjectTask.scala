@@ -18,9 +18,10 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
@@ -61,15 +62,12 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
         .map(_.apply()).filter(_.taskType.isAssignableFrom(taskType))
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
-    for (plugin <- activityPlugins) {
+    for (factory <- factories) {
       try {
-        val factory = plugin.apply()
-        if(factory.taskType.isAssignableFrom(taskType)) {
-          activities ::= new TaskActivity(this, factory)
-        }
+        activities ::= new TaskActivity(this, factory)
       } catch {
         case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not load task activity '$plugin' in task '$id' in project '${module.project.name}'.", ex)
+          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$id' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse
