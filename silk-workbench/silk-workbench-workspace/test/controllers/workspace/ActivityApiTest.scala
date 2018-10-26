@@ -4,10 +4,10 @@ import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.{ProjectConfig, ProjectTask, User}
+import org.silkframework.workspace.{ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
 class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
@@ -25,7 +25,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     PluginRegistry.registerPlugin(classOf[SimpleActivityFactory])
     PluginRegistry.registerPlugin(classOf[MultiActivityFactory])
 
-    val project = User().workspace.createProject(ProjectConfig(projectId))
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
     project.addTask[MessageTask](taskId, MessageTask(message))
   }
 
@@ -62,7 +62,8 @@ case class SimpleActivityFactory() extends TaskActivityFactory[MessageTask, Acti
 
   def apply(task: ProjectTask[MessageTask]): Activity[String] = {
     new Activity[String] {
-      override def run(context: ActivityContext[String]): Unit = {
+      override def run(context: ActivityContext[String])
+                      (implicit userContext: UserContext): Unit = {
         context.value() = task.data.message
       }
     }
@@ -76,7 +77,8 @@ case class MultiActivityFactory(message: String = "") extends TaskActivityFactor
 
   def apply(task: ProjectTask[MessageTask]): Activity[String] = {
     new Activity[String] {
-      override def run(context: ActivityContext[String]): Unit = {
+      override def run(context: ActivityContext[String])
+                      (implicit userContext: UserContext): Unit = {
         context.value() = message
       }
     }
