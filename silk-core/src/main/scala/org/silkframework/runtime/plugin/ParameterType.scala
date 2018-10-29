@@ -363,6 +363,8 @@ object ParameterType {
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
       val encryptedPassword = if(str.startsWith(PREAMBLE)) {
         str.stripPrefix(PREAMBLE)
+      } else if(str == null || str == "") {
+        str // Handle empty string as empty password and vice versa
       } else {
         AesCrypto.encrypt(key, str)
       }
