@@ -53,7 +53,8 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def autoRun: Boolean = defaultFactory.autoRun
 
-  def isSingleton: Boolean = defaultFactory.isSingleton
+  /** True, if there is always exactly one instance of this activity */
+  override def isSingleton: Boolean = defaultFactory.isSingleton
 
   def config: Map[String, String] = PluginDescription(defaultFactory.getClass).parameterValues(defaultFactory)(Prefixes.empty)
 

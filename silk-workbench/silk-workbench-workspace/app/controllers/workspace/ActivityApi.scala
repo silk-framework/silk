@@ -5,13 +5,9 @@ import java.util.logging.{LogRecord, Logger}
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
 import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity._
-import org.silkframework.runtime.users.WebUserManager
+import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext, _}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
-import org.silkframework.workbench.utils.ErrorResult
-import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext}
-import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -48,7 +44,7 @@ class ActivityApi extends Controller {
         project.activity(activityName)
       }
 
-    if (activity.status.isRunning) {
+    if (activity.isSingleton && activity.status.isRunning) {
       ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
     } else {
       if (blocking) {
@@ -113,15 +109,8 @@ class ActivityApi extends Controller {
   }
 
   def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    if (taskName.nonEmpty) {
-      val task = project.anyTask(taskName)
-      val activity = task.activity(activityName)
-      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status, activity.startTime))
-    } else {
-      val activity = project.activity(activityName)
-      Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status, activity.startTime))
-    }
+    val activity = activityControl(projectName, taskName, activityName)
+    Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status(), activity.startTime))
   }
 
   def getActivityValue(projectName: String,

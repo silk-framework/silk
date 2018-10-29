@@ -44,6 +44,9 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     val activity1 = client.start(multiActivityId, Map("message" -> "1"))
     val activity2 = client.start(multiActivityId, Map("message" -> "2"))
 
+    client.waitForActivity(activity1)
+    client.waitForActivity(activity2)
+
     client.activityValue(activity1) mustBe JsString("1")
     client.activityValue(activity2) mustBe JsString("2")
   }
@@ -79,6 +82,8 @@ case class MultiActivityFactory(message: String = "") extends TaskActivityFactor
     new Activity[String] {
       override def run(context: ActivityContext[String])
                       (implicit userContext: UserContext): Unit = {
+        // Sleep a bit to make sure that multiple activities have to be run at the same time.
+        Thread.sleep(2000)
         context.value() = message
       }
     }

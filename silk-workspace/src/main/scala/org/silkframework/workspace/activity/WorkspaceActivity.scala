@@ -47,6 +47,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag] {
   def startTime: Option[Long] = control.startTime
 
   /**
+    * True, if there is always exactly one instance of this activity.
+    */
+  def isSingleton: Boolean = false
+
+  /**
     * Starts an activity and returns immediately.
     *
     * @param config The activity parameters
