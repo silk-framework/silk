@@ -1,9 +1,9 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator, WorkflowPayload}
 import play.api.libs.json.{JsArray, _}
-import JsonHelpers._
 
 object WorkflowSerializers {
 
@@ -80,6 +80,18 @@ object WorkflowSerializers {
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ID -> op.nodeId.toString,
         OUTPUT_PRIORITY -> op.outputPriority
+      )
+    }
+  }
+
+  implicit object WorkflowPayloadJsonFormat extends WriteOnlyJsonFormat[WorkflowPayload] {
+
+    override def write(value: WorkflowPayload)
+                      (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val resources = value.dataSinks.values.flatMap(_.referencedResources)
+      val resourceMap = resources.map(res => (res.name, res.loadAsString)).toMap
+      Json.obj(
+        "resources" -> resourceMap
       )
     }
   }

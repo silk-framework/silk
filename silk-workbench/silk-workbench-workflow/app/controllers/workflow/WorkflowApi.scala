@@ -6,16 +6,14 @@ import org.silkframework.config.{MetaData, Task}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
-import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
 
 import scala.xml.NodeSeq
 
@@ -116,6 +114,30 @@ class WorkflowApi extends Controller {
     val sink2ResourceMap = sinkToResourceMapping(sinks, variableSinks)
     executeVariableWorkflow(workflowTask, dataSources, sinks)
     variableSinkResult(resultResourceManager, sink2ResourceMap, request)
+  }
+
+  def postVariableWorkflowInput2(projectName: String,
+                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val variableDatasets = workflowTask.data.variableDatasets(project)
+
+    // Create sinks and resources for variable datasets, all resources are returned in the response
+    val variableSinks = variableDatasets.sinks
+    val (dataSources, sinks, resultResourceManager) = request.body match {
+      case AnyContentAsXml(xmlRoot) =>
+        createSourcesSinksFromXml(projectName, variableDatasets, variableSinks.toSet, xmlRoot)
+      case AnyContentAsJson(json) =>
+        createSourceSinksFromJson(projectName, variableDatasets, variableSinks.toSet, json)
+      case _ =>
+        throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
+    }
+    val sink2ResourceMap = sinkToResourceMapping(sinks, variableSinks)
+
+    //executeVariableWorkflow(workflowTask, dataSources, sinks)
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor].control
+    activity.asInstanceOf[ActivityContext[WorkflowPayload]].value() = WorkflowPayload(dataSources, sinks)
+    activity.startBlocking()
+    Ok
   }
 
   private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {

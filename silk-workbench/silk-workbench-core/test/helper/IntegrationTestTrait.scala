@@ -3,7 +3,7 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, NodeSeq, Null, XML}
+import scala.xml.{Elem, Null, XML}
 
 /**
   * Basis for integration tests.
@@ -414,6 +414,9 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
       "Resources" -> JsObject(datasetPayloads.flatMap(_.resourceJson))
     ))
     executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
+
+    val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteWorkflowWithPayload/value").get()
+    checkResponse(response)
   }
 
   def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
@@ -424,7 +427,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
   }
 
   private def executeOnPayloadUri(projectId: String, workflowId: String) = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
+    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload2")
     request
   }
 
