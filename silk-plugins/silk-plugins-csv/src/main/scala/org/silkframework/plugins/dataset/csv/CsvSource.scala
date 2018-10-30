@@ -15,6 +15,7 @@ import org.silkframework.util.{Identifier, Uri}
 import Path.IDX_PATH_IDX
 
 import scala.io.Codec
+import scala.util.Try
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -244,8 +245,8 @@ class CsvSource(file: Resource,
       parser
     } catch {
       case e: Throwable =>
-        parser.stopParsing()
-        throw new RuntimeException("Problem during initialization of CSV parser.", e)
+        Try(parser.stopParsing())
+        throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
     }
   }
 

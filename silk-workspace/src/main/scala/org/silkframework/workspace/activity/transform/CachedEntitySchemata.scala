@@ -6,8 +6,8 @@ import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
-
 import scala.xml.{Node, Null}
 
 /**
@@ -17,7 +17,7 @@ import scala.xml.{Node, Null}
   * @param untypedSchema    The optional schema of the input without type. This is stored for some datasets, currently
   *                         only RDF datasets, in order to make services like auto-completion work in hierarchical mappings.
   */
-case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: Option[EntitySchema]) {
+case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: Option[EntitySchema], inputTaskId: Identifier) {
   /**
     * Returns the cached paths. Depending on the provided context either the configured or the untyped
     * cached paths are returned.
@@ -41,13 +41,14 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema, untypedSchema: O
 object CachedEntitySchemata {
   implicit object CachedEntitySchemaXmlFormat extends XmlFormat[CachedEntitySchemata] {
     override def read(value: Node)(implicit readContext: ReadContext): CachedEntitySchemata = {
+      val inputTaskId = Identifier((value \ "@inputTaskId").text)
       val configured = XmlSerialization.fromXml[EntitySchema]((value \ "ConfiguredEntitySchema" \ "EntityDescription").head)
       val untyped = (value \ "UnTypedEntitySchema" \ "EntityDescription").headOption.map(XmlSerialization.fromXml[EntitySchema])
-      CachedEntitySchemata(configured, untyped)
+      CachedEntitySchemata(configured, untyped, inputTaskId)
     }
 
     override def write(value: CachedEntitySchemata)(implicit writeContext: WriteContext[Node]): Node = {
-      <CachedEntitySchemata>
+      <CachedEntitySchemata inputTaskId={value.inputTaskId.toString}>
         <ConfiguredEntitySchema>
           {XmlSerialization.toXml(value.configuredSchema)}
         </ConfiguredEntitySchema>
