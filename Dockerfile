@@ -10,10 +10,10 @@ RUN \
   && echo "\ncurrent maven version:" \
   && /opt/maven/bin/mvn --version \
   && echo "fetch jai-core to fix bug with missing maven artifacts" \
-  && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp \
-  && ./sbt "project workbench" universal:package-zip-tarball || echo "" \
-  && ./sbt "project workbench" universal:package-zip-tarball || echo "" \
-  && mkdir -p /build/app \
+  && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp
+RUN ./sbt "project workbench" universal:package-zip-tarball || echo "" \
+  && ./sbt "project workbench" universal:package-zip-tarball || echo ""
+RUN mkdir -p /build/app \
   && tar -xvzf /build/silk-workbench/target/universal/silk-workbench*.tgz -C /build/app
 
 FROM openjdk:8u151-jre
@@ -26,21 +26,21 @@ ENV \
   DEFAULT_JAVA_OPTS="-server -Djava.security.egd=file:/dev/./urandom" \
   JAVA_OPTS="-Xms1g -Xmx2g" \
   # configure application port and expose it
-  SERVER_PORT=80 \
+  PORT=80 \
   SERVER_CONTEXTPATH="/"
 
 # add configuration & webapp
 COPY --from=builder /build/app/silk-workbench* /silk-workbench
 
 # expose port
-EXPOSE ${SERVER_PORT}
+EXPOSE ${PORT}
 
 # set working dir
 WORKDIR ${WORKDIR}
 VOLUME "${WORKDIR}"
 
 HEALTHCHECK --interval=5s --timeout=10s --retries=20 \
-  CMD curl "http://localhost:${SERVER_PORT}${SERVER_CONTEXTPATH}"
+  CMD curl "http://localhost:${PORT}${SERVER_CONTEXTPATH}"
 
 # start application
-CMD [ "/silk-workbench/bin/silk-workbench", "-Dplay.server.http.port=${SERVER_PORT}", "-Dpidfile.path=/dev/null" ]
+CMD [ "/silk-workbench/bin/silk-workbench", "-Dplay.server.http.port=$PORT", "-Dpidfile.path=/dev/null" ]
