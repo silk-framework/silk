@@ -4,11 +4,5 @@
   "repository": "https://github.com/hknochi/silk",
   "image": "silkframework/silk-workbench:develop",
   "keywords": ["docker", "silkframework"],
-  "stack": "container",
-  "env": {
-    "SERVER_PORT": {
-      "description": "The default port where the application is bind to.",
-      "value": "8080"
-    }
-  }
+  "stack": "container"
 }
