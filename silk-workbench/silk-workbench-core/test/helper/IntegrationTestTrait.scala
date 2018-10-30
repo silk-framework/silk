@@ -31,7 +31,7 @@ import scala.xml.{Elem, NodeSeq, Null, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -148,21 +148,25 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
+  def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
+                    .withHeaders("accept" -> contentType)
+    val response = request.get()
+    checkResponse(response)
+  }
+
   /**
     * Creates a CSV dataset from a file resources.
     *
     * @param projectId
     * @param datasetId
     * @param fileResourceId
-    * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
-    *                  the header line.
     */
   def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
-                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
+                           uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
@@ -304,8 +308,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     *
     * @param projectId
     * @param datasetId
-    * @param uriPrefix    The URI prefix for the generated target property URIs of the mapping. This should be the same
-    *                     as the prefix used for the schema extraction.
     * @param propertyUris A sequence of URIs to select the properties for the default mapping.
     */
   def createDefaultMapping(projectId: String,
@@ -317,12 +319,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
       "pathSelection" -> Seq(propertyUris.mkString(" ")),
       "uriPrefix" -> Seq(uriPrefix)
     ))
-    checkResponse(response)
-  }
-
-  def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
-    val response = request.put(taskJson)
     checkResponse(response)
   }
 
@@ -468,13 +464,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     */
   def file(path: String): File = {
     new File(URLDecoder.decode(getClass.getClassLoader.getResource(path).getFile, "UTF-8"))
-  }
-
-  def checkResponse(futureResponse: Future[WSResponse],
-                    responseCodePrefix: Char = '2'): WSResponse = {
-    val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
-    response
   }
 
   def checkResponseCode(futureResponse: Future[WSResponse],

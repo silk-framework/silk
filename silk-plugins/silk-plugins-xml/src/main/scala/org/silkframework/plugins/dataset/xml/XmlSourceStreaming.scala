@@ -321,6 +321,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     // If this is an empty tag, we return immediately
     if(reader.isEndElement) {
+      reader.next()
       return
     }
 

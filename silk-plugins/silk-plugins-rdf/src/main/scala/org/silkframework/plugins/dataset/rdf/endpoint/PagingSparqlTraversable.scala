@@ -2,22 +2,23 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io.{IOException, InputStream}
 import java.util.logging.{Level, Logger}
-import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 import org.apache.jena.query.{QueryFactory, Syntax}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
-import scala.xml.{Node, XML}
+import scala.util.matching.Regex
+import scala.xml.XML
 
 /**
   * Given a SPARQL query, pages through the results by issuing multiple queries with sliding offsets.
   */
 object PagingSparqlTraversable {
 
-  val graphPatternRegex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+  val graphPatternRegex: Regex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
   private val xmlFactory = XMLInputFactory.newInstance()
 
   private val logger = Logger.getLogger(getClass.getName)
@@ -30,14 +31,14 @@ object PagingSparqlTraversable {
     * @param params The SPARQL parameters
     * @param limit The maximum number of SPARQL results returned in total (not per single query)
     */
-  def apply(query: String, queryExecutor: (String) => InputStream, params: SparqlParams, limit: Int): SparqlResults = {
+  def apply(query: String, queryExecutor: String => InputStream, params: SparqlParams, limit: Int): SparqlResults = {
     SparqlResults(
       bindings = new ResultsTraversable(query, queryExecutor, params, limit)
     )
   }
 
   private class ResultsTraversable(query: String,
-                                   queryExecutor: (String) => InputStream,
+                                   queryExecutor: String => InputStream,
                                    params: SparqlParams,
                                    limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
 
@@ -107,7 +108,7 @@ object PagingSparqlTraversable {
     }
 
     def placeOnTag(streamReader: XMLStreamReader, tag: String, eventType: Int = XMLStreamConstants.START_ELEMENT): Unit = {
-      while(streamReader.hasNext() && !(streamReader.getEventType() == eventType && streamReader.getLocalName == tag)) {
+      while(streamReader.hasNext && !(streamReader.getEventType == eventType && streamReader.getLocalName == tag)) {
         streamReader.next()
       }
     }

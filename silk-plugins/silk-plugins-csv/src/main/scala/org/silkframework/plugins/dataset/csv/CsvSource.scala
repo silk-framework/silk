@@ -12,13 +12,14 @@ import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
+import Path.IDX_PATH_IDX
 
 import scala.io.Codec
+import scala.util.Try
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
                 properties: String = "",
-                prefix: String = "",
                 uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
@@ -39,7 +40,7 @@ class CsvSource(file: Resource,
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      CsvSourceHelper.convertHeaderFields(firstLine, prefix)
+      CsvSourceHelper.convertHeaderFields(firstLine)
     }
   }
 
@@ -85,7 +86,7 @@ class CsvSource(file: Resource,
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(prefix + property)) :: Nil)
+        Path(ForwardOperator(Uri.parse(property)) :: Nil)
       }
     } catch {
       case e: MalformedInputException =>
@@ -127,12 +128,17 @@ class CsvSource(file: Resource,
     // Retrieve the indices of the request paths
     val indices =
       for (path <- entityDesc.typedPaths) yield {
-        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
+        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          if(property == "#idx") {
+            IDX_PATH_IDX
+          } else {
+            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          }
+        } else {
+          propertyIndex
         }
-        propertyIndex
       }
 
     // Return new Traversable that generates an entity for each line
@@ -159,7 +165,7 @@ class CsvSource(file: Resource,
             if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
               if (propertyList.size <= entry.length) {
                 //Extract requested values
-                val values = indices.map(entry(_))
+                val values = collectValues(indices, entry, index)
                 val entityURI = generateEntityUri(index, entry)
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
@@ -181,6 +187,15 @@ class CsvSource(file: Resource,
           parser.stopParsing()
         }
       }
+    }
+  }
+
+  private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
+    indices map {
+      case IDX_PATH_IDX =>
+        entityIdx.toString
+      case idx: Int if idx >= 0 =>
+        entry(idx)
     }
   }
 
@@ -230,8 +245,8 @@ class CsvSource(file: Resource,
       parser
     } catch {
       case e: Throwable =>
-        parser.stopParsing()
-        throw new RuntimeException("Problem during initialization of CSV parser.", e)
+        Try(parser.stopParsing())
+        throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
     }
   }
 
@@ -304,7 +319,7 @@ class CsvSource(file: Resource,
     Seq((classUri, 1.0))
   }
 
-  private def classUri = prefix + file.name
+  private def classUri = file.name
 
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
@@ -312,7 +327,7 @@ class CsvSource(file: Resource,
   override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
-    val csvSource = new CsvSource(file, csvSettings, properties, prefix, uriPattern, regexFilter, codec,
+    val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString

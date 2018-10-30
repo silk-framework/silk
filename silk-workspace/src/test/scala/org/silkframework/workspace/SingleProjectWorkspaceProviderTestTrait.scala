@@ -1,5 +1,7 @@
 package org.silkframework.workspace
 
+import java.io.File
+
 import org.scalatest._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
@@ -21,7 +23,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    val is = getClass.getClassLoader.getResourceAsStream(projectPathInClasspath)
+    val is = new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     implicit val userContext: UserContext = UserContext.Empty
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())

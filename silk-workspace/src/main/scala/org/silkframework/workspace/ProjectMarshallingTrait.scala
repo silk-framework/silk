@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import java.io.{InputStream, OutputStream}
+import java.io.{File, OutputStream}
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -44,12 +44,12 @@ trait ProjectMarshallingTrait {
     *
     * @param projectName
     * @param workspaceProvider The workspace provider the project should be imported into.
-    * @param inputStream       The marshaled project data from an [[InputStream]].
+    * @param file       The marshaled project file.
     */
   def unmarshalProject(projectName: Identifier,
                        workspaceProvider: WorkspaceProvider,
                        resourceManager: ResourceManager,
-                       inputStream: InputStream)
+                       file: File)
                       (implicit userContext: UserContext): Unit
 
   /**
@@ -69,12 +69,12 @@ trait ProjectMarshallingTrait {
     * Unmarshals and imports the entire workspace.
     *
     * @param workspaceProvider The workspace provider the projects should be imported into.
-    * @param inputStream       The marshaled project data from an [[InputStream]].
+    * @param file       The marshaled project file.
     * @return
     */
   def unmarshalWorkspace(workspaceProvider: WorkspaceProvider,
                          resourceRepository: ResourceRepository,
-                         inputStream: InputStream)
+                         file: File)
                         (implicit userContext: UserContext): Unit
 
   /**
