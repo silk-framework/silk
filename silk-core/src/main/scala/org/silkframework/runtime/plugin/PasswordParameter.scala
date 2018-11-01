@@ -10,11 +10,15 @@ import org.silkframework.util.AesCrypto
   */
 case class PasswordParameter(str: String) {
 
-  override def toString: String = PasswordParameterType.PREAMBLE + str
+  override def toString: String = if(str == null || str == "") {
+    str // Handle empty string as empty password and vice versa
+  } else {
+    PasswordParameterType.PREAMBLE + str
+  }
 
   def decryptedString: String = {
     if(str == null || str == "") {
-      str
+      str // Handle empty string as empty password and vice versa
     } else {
       AesCrypto.decrypt(PasswordParameterType.key, str)
     }

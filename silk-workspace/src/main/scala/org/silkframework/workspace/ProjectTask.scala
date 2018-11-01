@@ -227,7 +227,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
-  private val writeInterval = 3
+  val writeInterval = 3
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 }

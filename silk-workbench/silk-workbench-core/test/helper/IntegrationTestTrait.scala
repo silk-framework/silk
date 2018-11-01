@@ -31,7 +31,7 @@ import scala.xml.{Elem, Null, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -142,6 +142,13 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
   def executeTaskActivity(projectId: String, taskId: String, activityId: String, parameters: Map[String, String]): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/startBlocking")
     val response = request.post(parameters map { case (k, v) => (k, Seq(v)) })
+    checkResponse(response)
+  }
+
+  def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
+                    .withHeaders("accept" -> contentType)
+    val response = request.get()
     checkResponse(response)
   }
 
@@ -307,12 +314,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
-  def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
-    val response = request.put(taskJson)
-    checkResponse(response)
-  }
-
   /**
     * Create a linking task.
     *
@@ -448,13 +449,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     */
   def file(path: String): File = {
     new File(URLDecoder.decode(getClass.getClassLoader.getResource(path).getFile, "UTF-8"))
-  }
-
-  def checkResponse(futureResponse: Future[WSResponse],
-                    responseCodePrefix: Char = '2'): WSResponse = {
-    val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
-    response
   }
 
   def checkResponseCode(futureResponse: Future[WSResponse],

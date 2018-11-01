@@ -17,7 +17,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   override def name: String = s"Paths cache ${transformTask.id}"
 
-  override def initialValue: Option[CachedEntitySchemata] = Some(CachedEntitySchemata(EntitySchema.empty, None))
+  override def initialValue: Option[CachedEntitySchemata] = Some(CachedEntitySchemata(EntitySchema.empty, None, inputId))
 
   private def inputId = transformTask.data.selection.inputId
 
@@ -32,7 +32,9 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
     val currentEntityDesc = transform.inputSchema
 
     //Check if paths have not been loaded yet or if the restriction has been changed
-    if (context.value().configuredSchema.typedPaths.isEmpty || currentEntityDesc.typeUri != context.value().configuredSchema.typeUri) {
+    if (context.value().configuredSchema.typedPaths.isEmpty ||
+        currentEntityDesc.typeUri != context.value().configuredSchema.typeUri ||
+        inputId != context.value().inputTaskId) {
       // Retrieve the data sources
       val inputTaskId = inputId
       val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask, context)
@@ -50,7 +52,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
         None
       }
       //Add the frequent paths to the entity description
-      context.value() = CachedEntitySchemata(configuredEntitySchema, unTypedEntitySchema)
+      context.value() = CachedEntitySchemata(configuredEntitySchema, unTypedEntitySchema, inputTaskId)
     }
   }
 

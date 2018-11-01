@@ -76,7 +76,8 @@ case class Table(name: String,
       val lineValues = scala.collection.mutable.ListBuffer.empty[String]
       for(cell <- row.zip(columnWidthInCharacters)) {
         val cellValue = {
-          var truncatedValue = cell._1.toString.take(MAX_CHARACTERS)
+          val value = cell._1
+          var truncatedValue = if(value != null) value.toString.take(MAX_CHARACTERS) else "*null*"
           val newLineIdx = truncatedValue.lastIndexOf('\n')
           if(truncatedValue.length >= MAX_CHARACTERS && newLineIdx > 0) {
             logger.warning(s"Had to truncate cell value of in table $name because it exceeded the max length of $MAX_CHARACTERS characters.")
