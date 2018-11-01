@@ -1,5 +1,7 @@
 package org.silkframework.serialization.json
 
+import org.silkframework.dataset.Dataset
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator, WorkflowPayload}
@@ -88,12 +90,33 @@ object WorkflowSerializers {
 
     override def write(value: WorkflowPayload)
                       (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val resources = value.dataSinks.values.flatMap(_.referencedResources)
-      val resourceMap = resources.map(res => (res.name, res.loadAsString)).toMap
-      Json.obj(
-        "resources" -> resourceMap
+//      val resources = value.dataSinks.values.flatMap(_.referencedResources)
+//      val resourceMap = resources.map(res => (res.name, res.loadAsString)).toMap
+//      Json.obj("resources" -> resourceMap)
+
+      val sink2ResourceMap = sinkToResourceMapping(value.dataSinks, value.variableSinks)
+      variableSinkResultJson(value.resourceManager, sink2ResourceMap)
+    }
+
+    private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {
+      variableSinks.map(s =>
+        s -> sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource")
+      ).toMap
+    }
+
+    private def variableSinkResultJson(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]) = {
+      JsArray(
+        for ((sinkId, resourceId) <- sink2ResourceMap.toSeq if resourceManager.exists(resourceId)) yield {
+          val resource = resourceManager.get(resourceId, mustExist = true)
+          JsObject(Seq(
+            "sinkId" -> JsString(sinkId),
+            "textContent" -> JsString(resource.loadAsString)
+          ))
+        }
       )
     }
+
+
   }
 
 }

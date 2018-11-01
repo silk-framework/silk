@@ -2,6 +2,7 @@ package controllers.workflow
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
+import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
@@ -117,8 +118,8 @@ class WorkflowApi extends Controller {
   }
 
   def postVariableWorkflowInput2(projectName: String,
-                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     val variableDatasets = workflowTask.data.variableDatasets(project)
 
     // Create sinks and resources for variable datasets, all resources are returned in the response
@@ -135,9 +136,10 @@ class WorkflowApi extends Controller {
 
     //executeVariableWorkflow(workflowTask, dataSources, sinks)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor].control
-    activity.asInstanceOf[ActivityContext[WorkflowPayload]].value() = WorkflowPayload(dataSources, sinks)
+    activity.asInstanceOf[ActivityContext[WorkflowPayload]].value() = WorkflowPayload(dataSources, sinks, variableSinks, resultResourceManager)
     activity.startBlocking()
-    Ok
+
+    SerializationUtils.serializeCompileTime(activity.value())
   }
 
   private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {

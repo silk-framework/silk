@@ -415,8 +415,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     ))
     executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
 
-    val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteWorkflowWithPayload/value").get()
-    checkResponse(response)
+    //val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteWorkflowWithPayload/value").get()
+    //checkResponse(response)
   }
 
   def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
