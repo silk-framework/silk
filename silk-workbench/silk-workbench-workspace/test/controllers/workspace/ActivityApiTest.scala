@@ -31,13 +31,13 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
 
   "start activity in blocking mode" in {
     client.startBlocking(simpleActivityId)
-    client.activityValue(simpleActivityId) mustBe JsString(message)
+    client.activityJsonValue(simpleActivityId) mustBe JsString(message)
   }
 
   "start activity asynchronously" in {
     client.start(simpleActivityId)
     client.waitForActivity(simpleActivityId)
-    client.activityValue(simpleActivityId) mustBe JsString(message)
+    client.activityJsonValue(simpleActivityId) mustBe JsString(message)
   }
 
   "run multiple non singleton activity" in {
@@ -47,8 +47,8 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     client.waitForActivity(activity1)
     client.waitForActivity(activity2)
 
-    client.activityValue(activity1) mustBe JsString("1")
-    client.activityValue(activity2) mustBe JsString("2")
+    client.activityJsonValue(activity1) mustBe JsString("1")
+    client.activityJsonValue(activity2) mustBe JsString("2")
   }
 
   override def workspaceProvider: String = "inMemory"

@@ -23,10 +23,14 @@ class ActivityClient(baseUrl: String, projectId: Identifier, taskId: Identifier)
     checkResponse(startActivityRequest.post(parameters map { case (k, v) => (k, Seq(v)) }))
   }
 
-  def activityValue(activityId: String): JsValue = {
+  def activityValue(activityId: String): WSResponse = {
     val getActivityValueRequest = WS.url(s"$activities/$activityId/value")
     val response = getActivityValueRequest.withHeaders(("ACCEPT", "application/json")).get()
-    checkResponse(response).json
+    checkResponse(response)
+  }
+
+  def activityJsonValue(activityId: String): JsValue = {
+    activityValue(activityId).json
   }
 
   def activityStatus(activityId: String): JsValue = {

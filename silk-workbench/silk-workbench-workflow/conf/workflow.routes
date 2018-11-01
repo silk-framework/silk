@@ -17,5 +17,5 @@ GET        /workflows/:project/:task/status                     controllers.work
 GET        /assets/*file                                        controllers.workflow.Assets.at(path="/public/lib/silk-workbench-workflow", file)
 
 # Execution
-POST       /workflows/:project/:task/executeOnPayload           controllers.workflow.WorkflowApi.postVariableWorkflowInput(project: String, task: String)
-POST       /workflows/:project/:task/executeOnPayload2          controllers.workflow.WorkflowApi.postVariableWorkflowInput2(project: String, task: String)
+POST       /workflows/:project/:task/executeOnPayload             controllers.workflow.WorkflowApi.postVariableWorkflowInput(project: String, task: String)
+POST       /workflows/:project/:task/executeOnPayloadAsynchronous controllers.workflow.WorkflowApi.postVariableWorkflowInputAsynchronous(project: String, task: String)

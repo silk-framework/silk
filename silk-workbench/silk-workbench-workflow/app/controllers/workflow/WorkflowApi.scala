@@ -108,12 +108,16 @@ class WorkflowApi extends Controller {
     SerializationUtils.serializeCompileTime(activity.value)
   }
 
-  def postVariableWorkflowInput2(projectName: String,
+  /**
+    * Run a variable workflow in background, where some of the tasks are configured at request time and dataset payload may be
+    * delivered inside the request.
+    */
+  def postVariableWorkflowInputAsynchronous(projectName: String,
                                 workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val id = activity.startBlocking(workflowConfiguration)
+    val id = activity.start(workflowConfiguration)
 
     Ok(Json.obj(("activityId", id.toString)))
   }
