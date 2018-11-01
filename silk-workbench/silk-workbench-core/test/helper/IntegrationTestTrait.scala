@@ -393,7 +393,7 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
-  def executeVariableWorkflow(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
+  def executeVariableWorkflowXml(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload], blocking: Boolean = true): WSResponse = {
     val requestXML = {
       <Workflow>
         <DataSources>
@@ -404,30 +404,42 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
         </Sinks>{datasetPayloads.map(_.resourceXml)}
       </Workflow>
     }
-    executeVariableWorkflow(projectId, workflowId, requestXML)
+    executeVariableWorkflow(projectId, workflowId, requestXML, "application/xml", blocking)
   }
 
-  def executeVariableWorkflowJson(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
+  def executeVariableWorkflowJson(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload], blocking: Boolean = true): WSResponse = {
     val requestJSON = JsObject(Seq(
       "DataSources" -> {JsArray(datasetPayloads.filterNot(_.isSink).map(_.datasetJson))},
       "Sinks" -> {JsArray(datasetPayloads.filter(_.isSink).map(_.datasetJson))},
       "Resources" -> JsObject(datasetPayloads.flatMap(_.resourceJson))
     ))
-    executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
-
-    //val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteWorkflowWithPayload/value").get()
-    //checkResponse(response)
+    executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json", blocking)
   }
 
-  def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
+  def executeVariableWorkflow[T](projectId: String,
+                                 workflowId: String,
+                                 requestBody: T,
+                                 accept: String = "application/xml",
+                                 blocking: Boolean = true)(implicit wrt: Writeable[T]): WSResponse = {
+
     val request: WSRequest = executeOnPayloadUri(projectId, workflowId)
       .withHeaders("Accept" -> accept)
     val response = request.post(requestBody)
-    checkResponse(response)
+    val result = checkResponse(response)
+
+    if(blocking) {
+      result
+    } else {
+      // Wait for activity to finish
+      //TODO
+      // Retrieve final value
+      WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteWorkflowWithPayload/value").get()
+      checkResponse(response)
+    }
   }
 
   private def executeOnPayloadUri(projectId: String, workflowId: String) = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload2")
+    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
     request
   }
 
