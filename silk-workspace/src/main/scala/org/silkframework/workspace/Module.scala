@@ -8,7 +8,9 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 /**
@@ -103,15 +105,44 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
                   (implicit userContext: UserContext): Unit = synchronized {
     if(cachedTasks == null) {
       try {
-        val tasks = provider.readTasks(project.name, project.resources)
+        val tasks = provider.readTasksSafe[TaskData](project.name, project.resources)
+        val exceptions = ArrayBuffer[Throwable]()
         cachedTasks = TreeMap()(TaskOrdering) ++ {
-          for (task <- tasks) yield (task.id, new ProjectTask(task.id, task.data, task.metaData, this))
+          (for (taskTry <- tasks) yield {
+            taskTry match {
+              case Success(task) =>
+                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, this)))
+              case Failure(ex) =>
+                exceptions.append(ex)
+                None
+            }
+          }).flatten
         }
+        handleTaskExceptions(exceptions)
       } catch {
         case NonFatal(ex) =>
-          cachedTasks = TreeMap()(TaskOrdering)
-          error = Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
-          logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
+          handleUnexpectedException(ex)
+      }
+    }
+  }
+
+  private def handleUnexpectedException(ex: Throwable): Unit = {
+    cachedTasks = TreeMap()(TaskOrdering)
+    error = Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+    logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
+  }
+
+  private def handleTaskExceptions(exceptions: ArrayBuffer[Throwable]): Unit = {
+    if (exceptions.nonEmpty) {
+      error = if (exceptions.size == 1) {
+        val ex = exceptions.head
+        Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+      } else {
+        Some(new ValidationException(s"There were errors loading ${exceptions.size} tasks of type ${taskType.getName}. " +
+            s"Details: ${exceptions.map(_.getMessage).mkString(", ")}"))
+      }
+      for (ex <- exceptions) {
+        logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
       }
     }
   }

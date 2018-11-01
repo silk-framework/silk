@@ -6,6 +6,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
+import scala.util.Try
 
 trait WorkspaceProvider {
 
@@ -32,7 +33,15 @@ trait WorkspaceProvider {
   /**
    * Reads all tasks of a specific type from a project.
    */
-  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Task[T]]
+  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
+                                         (implicit user: UserContext): Seq[Task[T]] = {
+    readTasksSafe[T](project, projectResources).map(_.get)
+  }
+
+  /**
+    * Version of readTasks that returns a Seq[Try[Task[T]]]
+    **/
+  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]]
 
   /**
    * Adds/Updates a task in a project.

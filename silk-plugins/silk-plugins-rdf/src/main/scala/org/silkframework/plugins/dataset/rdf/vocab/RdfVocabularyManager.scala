@@ -16,7 +16,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
 
   private def loader(implicit userContext: UserContext) = new VocabularyLoader(workspaceSparqlEndpoint)
 
-  override def get(uri: String, project: Identifier)(implicit userContext: UserContext): Vocabulary = {
+  override def get(uri: String, project: Identifier)(implicit userContext: UserContext): Option[Vocabulary] = {
     loader.retrieveVocabulary(uri)
   }
 

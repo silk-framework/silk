@@ -22,6 +22,7 @@ import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 
+import scala.util.Try
 import scala.xml.XML
 
 /**
@@ -32,18 +33,6 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   private val logger = Logger.getLogger(classOf[CustomTaskXmlSerializer].getName)
 
   override def prefix = "custom"
-
-  /**
-   * Loads all tasks of this module.
-   */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[CustomTask]] = {
-    val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-    val tasks = for (name <- names) yield {
-      loadTask(name, resources, projectResources)
-    }
-
-    tasks
-  }
 
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
     implicit val res = projectResources
@@ -70,5 +59,19 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name.toString + ".xml")
     resources.delete(name.toString + "_cache.xml")
+  }
+
+  override def loadTasksSafe(resources: ResourceLoader,
+                             projectResources: ResourceManager): List[Try[Task[CustomTask]]] = {
+    val names = taskNames(resources)
+    val tasks = for (name <- names) yield {
+      Try(loadTask(name, resources, projectResources))
+    }
+
+    tasks
+  }
+
+  private def taskNames(resources: ResourceLoader) = {
+    resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
   }
 }

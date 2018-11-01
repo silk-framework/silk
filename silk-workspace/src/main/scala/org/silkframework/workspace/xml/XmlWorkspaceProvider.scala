@@ -10,6 +10,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.XML
 
@@ -103,5 +104,11 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   override def refresh(): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
+  }
+
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)
+                                                      (implicit user: UserContext): Seq[Try[Task[T]]] = {
+    plugin[T].loadTasksSafe(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 }
