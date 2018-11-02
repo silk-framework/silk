@@ -6,7 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.activity.TaskActivityFactory
+import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 import org.silkframework.workspace.{ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
@@ -41,14 +41,28 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "run multiple non singleton activity" in {
-    val activity1 = client.start(multiActivityId, Map("message" -> "1"))
-    val activity2 = client.start(multiActivityId, Map("message" -> "2"))
+    val activity1 = client.start(multiActivityId, Map("message" -> "1", "sleepTime" -> "2000"))
+    val activity2 = client.start(multiActivityId, Map("message" -> "2", "sleepTime" -> "2000"))
 
     client.waitForActivity(activity1)
     client.waitForActivity(activity2)
 
     client.activityJsonValue(activity1) mustBe JsString("1")
     client.activityJsonValue(activity2) mustBe JsString("2")
+  }
+
+  "limit the number of activities that are held in memory" in {
+    val createdControlIds =
+      for(i <- 0 until TaskActivity.MAX_CONTROLS_PER_ACTIVITY + 1) yield {
+        client.start(multiActivityId, Map("message" -> i.toString)).toString
+      }
+
+    val activityArray = client.activitiesList().as[JsArray].value
+    val multiActivity = activityArray.find(activity => (activity \ "name").get == JsString(multiActivityId)).get
+    val runningControls = (multiActivity \ "controls").as[JsArray].value
+    val runningControlIds = runningControls.map(control => (control \ "id").as[JsString].value)
+
+    runningControlIds mustBe createdControlIds.drop(1)
   }
 
   override def workspaceProvider: String = "inMemory"
@@ -74,7 +88,7 @@ case class SimpleActivityFactory() extends TaskActivityFactory[MessageTask, Acti
 
 }
 
-case class MultiActivityFactory(message: String = "") extends TaskActivityFactory[MessageTask, Activity[String]] {
+case class MultiActivityFactory(message: String = "", sleepTime: Int = 0) extends TaskActivityFactory[MessageTask, Activity[String]] {
 
   override def isSingleton: Boolean = false
 
@@ -83,7 +97,9 @@ case class MultiActivityFactory(message: String = "") extends TaskActivityFactor
       override def run(context: ActivityContext[String])
                       (implicit userContext: UserContext): Unit = {
         // Sleep a bit to make sure that multiple activities have to be run at the same time.
-        Thread.sleep(2000)
+        if(sleepTime > 0) {
+          Thread.sleep(sleepTime)
+        }
         context.value() = message
       }
     }

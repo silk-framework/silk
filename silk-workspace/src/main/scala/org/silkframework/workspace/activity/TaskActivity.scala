@@ -9,6 +9,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.runtime.BoxedUnit
 
@@ -29,7 +30,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
   }
 
   @volatile
-  private var controls: Map[Identifier, ActivityControl[ActivityType#ValueType]] = Map()
+  private var controls: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
 
   private val identifierGenerator = new IdentifierGenerator(defaultFactory.pluginSpec.id)
 
@@ -41,9 +42,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   override def control: ActivityControl[ActivityType#ValueType] = currentControl
 
-  def allControls: Map[Identifier, ActivityControl[ActivityType#ValueType]] = {
+  def allControls: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = {
     if(defaultFactory.isSingleton) {
-      Map((name, control))
+      ListMap((name, control))
     } else {
       controls
     }
@@ -103,6 +104,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
         newControl.value.subscribe(subscriber)
       }
     } else {
+      if(controls.size >= TaskActivity.MAX_CONTROLS_PER_ACTIVITY) {
+        controls = controls.drop(1)
+      }
       controls += ((identifier, newControl))
     }
 
@@ -154,4 +158,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
       clazz :: recursiveTypes
     }
   }
+}
+
+object TaskActivity {
+
+  val MAX_CONTROLS_PER_ACTIVITY: Int = 10
+
 }

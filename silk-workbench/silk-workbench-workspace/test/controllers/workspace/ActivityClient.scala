@@ -12,6 +12,11 @@ class ActivityClient(baseUrl: String, projectId: Identifier, taskId: Identifier)
 
   private val activities = s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities"
 
+  def activitiesList(): JsValue = {
+    val response = WS.url(activities).get()
+    checkResponse(response).json
+  }
+
   def start(activityId: String, parameters: Map[String, String] = Map.empty): Identifier = {
     val startActivityRequest = WS.url(s"$activities/$activityId/start")
     val response = startActivityRequest.post(parameters map { case (k, v) => (k, Seq(v)) })

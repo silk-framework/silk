@@ -97,11 +97,23 @@ object JsonSerializer {
     }
   )
 
-  def taskActivities(task: ProjectTask[_ <: TaskSpec]) = JsArray(
-    for (activity <- task.activities) yield {
-      JsString(activity.name)
-    }
-  )
+  def taskActivities(task: ProjectTask[_ <: TaskSpec]): JsValue = {
+    JsArray(
+      for (activity <- task.activities) yield {
+        Json.obj(
+          "name" -> activity.name.toString,
+          "controls" ->
+            JsArray(
+              for (control <- activity.allControls.keys.toSeq) yield {
+                Json.obj(
+                  "id" -> control.toString
+                )
+              }
+            )
+        )
+      }
+    )
+  }
 
   def activityConfig(config: Map[String, String]) = JsArray(
     for ((name, value) <- config.toSeq) yield
