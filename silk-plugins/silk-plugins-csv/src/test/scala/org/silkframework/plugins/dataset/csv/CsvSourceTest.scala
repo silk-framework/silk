@@ -178,7 +178,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(Path("#idx").asStringTypedPath))
     val entities = s.retrieve(schema, limitOpt = Some(3))
-    entities.map(_.values.flatten.head) shouldBe Seq("0", "1", "2")
+    entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
   }
 
   "CsvSourceHelper" should "escape and unescape standard fields correctly" in {
