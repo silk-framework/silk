@@ -56,7 +56,7 @@ object CsvSourceHelper {
     val existingUnnamedMap: Map[Int, Int] = unnamedColumnClashes(headerFields)
     headerFields.zipWithIndex
         .map {
-          case (null, idx) =>
+          case (colName, idx) if colName == null || colName.startsWith("_c") =>
             val colIdx = idx + 1
             val columnName = UNNAMED_COLUMN_PREFIX + colIdx
             existingUnnamedMap.get(colIdx) match {
