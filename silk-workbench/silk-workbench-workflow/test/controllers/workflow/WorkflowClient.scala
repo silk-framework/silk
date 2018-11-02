@@ -50,7 +50,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
       result
     } else {
       val activity = new ActivityClient(baseUrl, projectId, workflowId)
-      val activityId = "ExecuteWorkflowWithPayload"
+      val activityId = (result.json \ "activityId").as[JsString].value
       activity.waitForActivity(activityId)
       activity.activityValue(activityId)
     }
