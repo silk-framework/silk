@@ -23,14 +23,14 @@ import scala.xml.{Node, NodeSeq, XML}
 case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(""), configurationType: String = "application/json")
   extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
 
-  def apply(task: ProjectTask[Workflow]): Activity[WorkflowPayload] = {
+  def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
     new WorkflowWithPayloadExecutor(task, configuration.str, configurationType)
   }
 }
 
-class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: String, configurationType: String) extends Activity[WorkflowPayload] {
+class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: String, configurationType: String) extends Activity[WorkflowOutput] {
 
-  override def run(context: ActivityContext[WorkflowPayload])
+  override def run(context: ActivityContext[WorkflowOutput])
                   (implicit userContext: UserContext): Unit = {
 
     val projectName = task.project.name
@@ -48,7 +48,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
-    context.value() = WorkflowPayload(dataSources, sinks, variableSinks, resultResourceManager)
+    context.value() = WorkflowOutput(sinks, variableSinks, resultResourceManager)
 
     val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true)
     context.child(activity, 1.0).startBlocking()
@@ -84,13 +84,13 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
   }
 }
 
-case class WorkflowPayload(dataSources: Map[String, Dataset], dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager)
+case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager)
 
-object WorkflowPayload {
+object WorkflowOutput {
 
-  implicit object WorkflowPayloadJsonFormat extends WriteOnlyJsonFormat[WorkflowPayload] {
+  implicit object WorkflowOutputJsonFormat extends WriteOnlyJsonFormat[WorkflowOutput] {
 
-    override def write(value: WorkflowPayload)
+    override def write(value: WorkflowOutput)
                       (implicit writeContext: WriteContext[JsValue]): JsValue = {
       val sink2ResourceMap = sinkToResourceMapping(value.dataSinks, value.variableSinks)
       variableSinkResultJson(value.resourceManager, sink2ResourceMap)
@@ -109,13 +109,13 @@ object WorkflowPayload {
     }
   }
 
-  implicit object WorkflowPayloadXmlFormat extends XmlFormat[WorkflowPayload] {
+  implicit object WorkflowOutputXmlFormat extends XmlFormat[WorkflowOutput] {
 
-    override def read(value: Node)(implicit readContext: ReadContext): WorkflowPayload = {
+    override def read(value: Node)(implicit readContext: ReadContext): WorkflowOutput = {
       throw new UnsupportedOperationException(s"Parsing values of type WorkflowPayload from Xml is not supported at the moment")
     }
 
-    override def write(value: WorkflowPayload)(implicit writeContext: WriteContext[Node]): Node = {
+    override def write(value: WorkflowOutput)(implicit writeContext: WriteContext[Node]): Node = {
       val sink2ResourceMap = sinkToResourceMapping(value.dataSinks, value.variableSinks)
       variableSinkResultXml(value.resourceManager, sink2ResourceMap)
     }

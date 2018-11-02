@@ -1,7 +1,7 @@
 package org.silkframework.workbench.workflow
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.workbench.workflow.WorkflowPayload.{WorkflowPayloadJsonFormat, WorkflowPayloadXmlFormat}
+import org.silkframework.workbench.workflow.WorkflowOutput.{WorkflowOutputJsonFormat, WorkflowOutputXmlFormat}
 
 class WorkflowPlugins extends PluginModule {
 
@@ -9,7 +9,7 @@ class WorkflowPlugins extends PluginModule {
     Seq(
       classOf[WorkflowPlugin],
       classOf[WorkflowWithPayloadExecutorFactory],
-      WorkflowPayloadJsonFormat.getClass,
-      WorkflowPayloadXmlFormat.getClass
+      WorkflowOutputJsonFormat.getClass,
+      WorkflowOutputXmlFormat.getClass
     )
 }
