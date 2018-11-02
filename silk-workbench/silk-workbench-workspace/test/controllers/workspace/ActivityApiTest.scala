@@ -6,7 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory, WorkspaceActivity}
 import org.silkframework.workspace.{ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
@@ -53,7 +53,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
 
   "limit the number of activities that are held in memory" in {
     val createdControlIds =
-      for(i <- 0 until TaskActivity.MAX_CONTROLS_PER_ACTIVITY + 1) yield {
+      for(i <- 0 until WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY + 1) yield {
         client.start(multiActivityId, Map("message" -> i.toString)).toString
       }
 
