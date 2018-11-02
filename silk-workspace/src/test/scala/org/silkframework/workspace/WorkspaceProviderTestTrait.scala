@@ -74,14 +74,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   val metaData =
     MetaData(
       label = "Task Label",
-      description = "Some Task Description",
+      description = Some("Some Task Description"),
       modified = Some(Instant.now)
     )
 
   val metaDataUpdated =
     MetaData(
       label = "Updated Task Label",
-      description = "Updated Task Description",
+      description = Some("Updated Task Description"),
       modified = Some(Instant.now)
     )
 
@@ -108,9 +108,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
                 MappingRules(DirectMapping(
                   id = TRANSFORM_ID,
                   sourcePath = Path("prop1"),
-                  metaData = MetaData("Direct Rule Label", "Direct Rule Description")
+                  metaData = MetaData("Direct Rule Label", Some("Direct Rule Description"))
                 )),
-              metaData = MetaData("Root Rule Label", "Root Rule Description"))
+              metaData = MetaData("Root Rule Label", Some("Root Rule Description")))
         ),
       metaData = metaData
   )
@@ -125,9 +125,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
             MappingRules(DirectMapping(
               id = TRANSFORM_ID + 2,
               sourcePath = Path("prop5"),
-              metaData = MetaData("Direct Rule New Label", "Direct Rule New Description")
+              metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
             )),
-          metaData = MetaData("Root Rule New Label", "Root Rule New Description")
+          metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
         )),
       metaData = metaDataUpdated
     )
@@ -291,11 +291,11 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
     val linkingTask = project.task[LinkSpec](LINKING_TASK_ID)
     val label = "Linking Task 1"
     val description = "Description of linking task"
-    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, MetaData(label, description))
+    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, MetaData(label, Some(description)))
     withWorkspaceRefresh(PROJECT_NAME) {
       val task = project.task[LinkSpec](LINKING_TASK_ID)
       task.metaData.label shouldBe label
-      task.metaData.description shouldBe description
+      task.metaData.description shouldBe Some(description)
     }
   }
 

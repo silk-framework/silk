@@ -128,72 +128,73 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustMatchJson {
       """
         {
-          "type" : "root",
-          "id" : "root",
-          "rules" : {
-            "uriRule" : {
-              "type" : "uri",
-              "id" : "uri",
-              "pattern" : "http://example.org/{PersonID}",
-              "metadata" : {
-                "label" : "",
-                "description" : ""
-              }
-            },
-            "typeRules" : [ {
-              "type" : "type",
-              "id" : "explicitlyDefinedId",
-              "typeUri" : "target:Person",
-              "metadata" : {
-                "label" : "",
-                "description" : ""
-              }
-            } ],
-            "propertyRules" : [ {
-              "type" : "direct",
-              "id" : "directRule",
-              "sourcePath" : "source:name",
-              "mappingTarget" : {
-                "uri" : "target:name",
-                "valueType" : {
-                  "nodeType" : "StringValueType"
-                },
-                "isBackwardProperty" : false,
-                "isAttribute": false
-              },
-              "metadata" : {
-                "label" : "updated direct rule label",
-                "description" : "updated direct rule description"
-              }
-            }, {
-              "type" : "object",
-              "id" : "objectRule",
-              "sourcePath" : "source:address",
-              "mappingTarget" : {
-                "uri" : "target:address",
-                "valueType" : {
-                  "nodeType" : "UriValueType"
-                },
-                "isBackwardProperty" : false,
-                "isAttribute": false
-              },
-              "rules" : {
-                "uriRule" : null,
-                "typeRules" : [ ],
-                "propertyRules" : [ ]
-              },
-              "metadata" : {
-                "label" : "",
-                "description" : ""
-              }
-            } ]
-          },
-          "metadata" : {
-            "label" : "",
-            "description" : ""
-          }
-        }
-      """
+ |    "id": "root",
+ |    "metadata": {
+ |        "label": ""
+ |    },
+ |    "rules": {
+ |        "propertyRules": [
+ |            {
+ |                "id": "directRule",
+ |                "mappingTarget": {
+ |                    "isAttribute": false,
+ |                    "isBackwardProperty": false,
+ |                    "uri": "target:name",
+ |                    "valueType": {
+ |                        "nodeType": "StringValueType"
+ |                    }
+ |                },
+ |                "metadata": {
+ |                    "description": "updated direct rule description",
+ |                    "label": "updated direct rule label"
+ |                },
+ |                "sourcePath": "source:name",
+ |                "type": "direct"
+ |            },
+ |            {
+ |                "id": "objectRule",
+ |                "mappingTarget": {
+ |                    "isAttribute": false,
+ |                    "isBackwardProperty": false,
+ |                    "uri": "target:address",
+ |                    "valueType": {
+ |                        "nodeType": "UriValueType"
+ |                    }
+ |                },
+ |                "metadata": {
+ |                    "label": ""
+ |                },
+ |                "rules": {
+ |                    "propertyRules": [],
+ |                    "typeRules": [],
+ |                    "uriRule": null
+ |                },
+ |                "sourcePath": "source:address",
+ |                "type": "object"
+ |            }
+ |        ],
+ |        "typeRules": [
+ |            {
+ |                "id": "explicitlyDefinedId",
+ |                "metadata": {
+ |                    "label": ""
+ |                },
+ |                "type": "type",
+ |                "typeUri": "target:Person"
+ |            }
+ |        ],
+ |        "uriRule": {
+ |            "id": "uri",
+ |            "metadata": {
+ |                "label": ""
+ |            },
+ |            "pattern": "http://example.org/{PersonID}",
+ |            "type": "uri"
+ |        }
+ |    },
+ |    "type": "root"
+ |}
+      """.stripMargin
 
     }
   }
@@ -219,8 +220,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "propertyRules" : [ ]
           },
           "metadata" : {
-            "label" : "",
-            "description" : ""
+            "label" : ""
           }
         }
       """

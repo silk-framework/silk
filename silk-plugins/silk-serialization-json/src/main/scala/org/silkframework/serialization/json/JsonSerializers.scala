@@ -58,7 +58,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = stringValueOption(value, LABEL).getOrElse(""),
-        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        description = stringValueOption(value, DESCRIPTION),
         modified = stringValueOption(value, MODIFIED).map(Instant.parse)
       )
     }
@@ -66,11 +66,13 @@ object JsonSerializers {
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
-          LABEL -> JsString(value.label),
-          DESCRIPTION -> JsString(value.description)
+          LABEL -> JsString(value.label)
         )
       for(modified <- value.modified) {
         json += MODIFIED -> JsString(modified.toString)
+      }
+      for(description <- value.description if description.nonEmpty) {
+        json += DESCRIPTION -> JsString(description)
       }
       json
     }
