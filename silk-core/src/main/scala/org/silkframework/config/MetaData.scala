@@ -7,7 +7,7 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: Option[String], modified: Option[Instant] = None) {
+case class MetaData(label: String, description: Option[String] = None, modified: Option[Instant] = None) {
 
   /**
     * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
