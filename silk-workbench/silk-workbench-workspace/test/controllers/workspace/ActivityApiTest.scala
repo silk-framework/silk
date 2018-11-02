@@ -6,7 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory, WorkspaceActivity}
+import org.silkframework.workspace.activity.{TaskActivityFactory, WorkspaceActivity}
 import org.silkframework.workspace.{ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
@@ -59,7 +59,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
 
     val activityArray = client.activitiesList().as[JsArray].value
     val multiActivity = activityArray.find(activity => (activity \ "name").get == JsString(multiActivityId)).get
-    val runningControls = (multiActivity \ "controls").as[JsArray].value
+    val runningControls = (multiActivity \ "instances").as[JsArray].value
     val runningControlIds = runningControls.map(control => (control \ "id").as[JsString].value)
 
     runningControlIds mustBe createdControlIds.drop(1)

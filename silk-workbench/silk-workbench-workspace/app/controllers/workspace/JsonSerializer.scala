@@ -71,7 +71,7 @@ object JsonSerializer {
     directResources ++ childResources.flatten
   }
 
-  def resourceProperties(resource: Resource, pathPrefix: String = "") = {
+  def resourceProperties(resource: Resource, pathPrefix: String = ""): JsValue = {
     val sizeValue = resource.size match {
       case Some(size) => JsNumber(BigDecimal.decimal(size))
       case None => JsNull
@@ -91,27 +91,33 @@ object JsonSerializer {
     )
   }
 
-  def projectActivities(project: Project) = JsArray(
-    for (activity <- project.activities) yield {
-      JsString(activity.name)
-    }
-  )
+  def projectActivities(project: Project): JsValue = {
+    JsArray(
+      for (activity <- project.activities) yield {
+        workspaceActivity(activity)
+      }
+    )
+  }
 
   def taskActivities(task: ProjectTask[_ <: TaskSpec]): JsValue = {
     JsArray(
       for (activity <- task.activities) yield {
-        Json.obj(
-          "name" -> activity.name.toString,
-          "controls" ->
-            JsArray(
-              for (control <- activity.allControls.keys.toSeq) yield {
-                Json.obj(
-                  "id" -> control.toString
-                )
-              }
-            )
-        )
+        workspaceActivity(activity)
       }
+    )
+  }
+
+  def workspaceActivity(activity: WorkspaceActivity[_]): JsValue = {
+    Json.obj(
+      "name" -> activity.name.toString,
+      "instances" ->
+        JsArray(
+          for (control <- activity.allInstances.keys.toSeq) yield {
+            Json.obj(
+              "id" -> control.toString
+            )
+          }
+        )
     )
   }
 

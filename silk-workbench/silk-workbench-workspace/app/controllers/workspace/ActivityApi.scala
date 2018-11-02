@@ -82,9 +82,9 @@ class ActivityApi extends Controller {
     val activityConfig =
       if (taskName.nonEmpty) {
         val task = project.anyTask(taskName)
-        task.activity(activityName).config
+        task.activity(activityName).defaultConfig
       } else {
-        project.activity(activityName).config
+        project.activity(activityName).defaultConfig
       }
 
     Ok(JsonSerializer.activityConfig(activityConfig))
@@ -183,7 +183,7 @@ class ActivityApi extends Controller {
     val activityId: Identifier = activityName
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
-      val activities = task.activities.flatMap(_.allControls.get(activityId).asInstanceOf[Option[ActivityControl[_]]].toSeq)
+      val activities = task.activities.flatMap(_.allInstances.get(activityId).asInstanceOf[Option[ActivityControl[_]]].toSeq)
       activities match {
         case Seq(activity) => activity
         case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")

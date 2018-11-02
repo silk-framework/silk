@@ -156,7 +156,7 @@
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, "", activity.name).url')" />
     </div>
-    @if(activity.config.nonEmpty) {
+    @if(activity.defaultConfig.nonEmpty) {
       <div class="activity-button-edit">
         <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.name, activity.name).url')" />
       </div>
@@ -178,7 +178,7 @@
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, task.id, activity.name).url')" />
     </div>
     <div class="activity-button-edit">
-      @if(activity.config.nonEmpty) {
+      @if(activity.defaultConfig.nonEmpty) {
         <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
       }
     </div>

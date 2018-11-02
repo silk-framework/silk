@@ -17,7 +17,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   private val identifierGenerator = new IdentifierGenerator(name)
 
   @volatile
-  private var currentControl = createControl(Map.empty)
+  private var currentInstance = createInstance(Map.empty)
 
   @volatile
   private var controls: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
@@ -40,16 +40,18 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * Creates a new control for this activity type.
     */
-  protected def createControl(config: Map[String, String]): ActivityControl[ActivityType#ValueType] // Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
+  protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] // Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
 
   /**
     * The name of this activity.
     */
   final def name: Identifier = factory.pluginSpec.id
 
-  final def config: Map[String, String] = PluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
-
-  def allControls: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = {
+  /**
+    * Retrieves all held instances of this activity type.
+    * Instances are ordered from oldest to newest.
+    */
+  def allInstances: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = {
     if(isSingleton) {
       ListMap((name, control))
     } else {
@@ -60,7 +62,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The most recent activity control that holds the status, value etc.
     */
-  final def control: ActivityControl[ActivityType#ValueType] = currentControl
+  final def control: ActivityControl[ActivityType#ValueType] = currentInstance
 
   /**
     * Convenience method to retrieve the current activity status.
@@ -89,10 +91,10 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     *
     * @param config The activity parameters
     * @param user The user context
-    * @return The identifier of the started activity
+    * @return The identifier of the started activity instance
     */
   final def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
-    val (id, control) = updateControl(config)
+    val (id, control) = addInstance(config)
     control.start()
     id
   }
@@ -106,26 +108,35 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @return The identifier of the started activity
     */
   final def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
-    val (id, control) = updateControl(config)
+    val (id, control) = addInstance(config)
     control.startBlocking()
     id
   }
 
+  /**
+    * The default configuration of this activity type.
+    */
+  final def defaultConfig: Map[String, String] = PluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
+
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {
-    updateControl(config)
+    addInstance(config)
   }
 
-  protected final def updateControl(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
-    val newControl = createControl(config)
+  /**
+    * Creates a new instance of this activity type.
+    * If this is a singleton activity, this will replace the previous instance.
+    */
+  protected final def addInstance(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
+    val newControl = createInstance(config)
     val identifier = if(isSingleton) name else identifierGenerator.generate("")
 
     if(isSingleton) {
       // Keep subscribers
-      for (subscriber <- currentControl.status.subscribers) {
+      for (subscriber <- currentInstance.status.subscribers) {
         newControl.status.subscribe(subscriber)
       }
-      for (subscriber <- currentControl.value.subscribers) {
+      for (subscriber <- currentInstance.value.subscribers) {
         newControl.value.subscribe(subscriber)
       }
     } else {
@@ -135,7 +146,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
       controls += ((identifier, newControl))
     }
 
-    currentControl = newControl
+    currentInstance = newControl
     (identifier, newControl)
   }
 }

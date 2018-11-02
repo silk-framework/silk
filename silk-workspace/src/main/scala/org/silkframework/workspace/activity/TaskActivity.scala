@@ -30,7 +30,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def autoRun: Boolean = defaultFactory.autoRun
 
-  protected override def createControl(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+  protected override def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
     Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
@@ -38,7 +38,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def reset()(implicit userContext: UserContext): Unit = {
     control.cancel()
-    updateControl(config)
+    addInstance(defaultConfig)
   }
 
   def activityType: Class[_] = defaultFactory.activityType
