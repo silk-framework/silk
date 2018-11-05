@@ -41,8 +41,10 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
                                  accept: String = "application/xml",
                                  blocking: Boolean = true)(implicit wrt: Writeable[T]): WSResponse = {
 
-    val request: WSRequest = executeOnPayloadUri(projectId, workflowId)
-      .withHeaders("Accept" -> accept)
+    var request: WSRequest = executeOnPayloadUri(projectId, workflowId, blocking)
+    if(blocking) {
+      request = request.withHeaders("Accept" -> accept)
+    }
     val response = request.post(requestBody)
     val result = checkResponse(response)
 
@@ -52,12 +54,13 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
       val activity = new ActivityClient(baseUrl, projectId, workflowId)
       val activityId = (result.json \ "activityId").as[JsString].value
       activity.waitForActivity(activityId)
-      activity.activityValue(activityId)
+      activity.activityValue(activityId, accept)
     }
   }
 
-  private def executeOnPayloadUri(projectId: String, workflowId: String) = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
+  private def executeOnPayloadUri(projectId: String, workflowId: String, blocking: Boolean) = {
+    val urlPostfix = if(blocking) "" else "Asynchronous"
+    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload$urlPostfix")
     request
   }
 

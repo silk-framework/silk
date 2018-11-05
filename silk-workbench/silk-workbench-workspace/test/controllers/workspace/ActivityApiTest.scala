@@ -31,13 +31,13 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
 
   "start activity in blocking mode" in {
     client.startBlocking(simpleActivityId)
-    client.activityJsonValue(simpleActivityId) mustBe JsString(message)
+    client.activityValue(simpleActivityId).json mustBe JsString(message)
   }
 
   "start activity asynchronously" in {
     client.start(simpleActivityId)
     client.waitForActivity(simpleActivityId)
-    client.activityJsonValue(simpleActivityId) mustBe JsString(message)
+    client.activityValue(simpleActivityId).json mustBe JsString(message)
   }
 
   "run multiple non singleton activity" in {
@@ -47,8 +47,8 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     client.waitForActivity(activity1)
     client.waitForActivity(activity2)
 
-    client.activityJsonValue(activity1) mustBe JsString("1")
-    client.activityJsonValue(activity2) mustBe JsString("2")
+    client.activityValue(activity1).json mustBe JsString("1")
+    client.activityValue(activity2).json mustBe JsString("2")
   }
 
   "limit the number of activities that are held in memory" in {
