@@ -7,7 +7,7 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: String, modified: Option[Instant] = None) {
+case class MetaData(label: String, description: Option[String] = None, modified: Option[Instant] = None) {
 
   /**
     * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
@@ -36,7 +36,7 @@ object MetaData {
 
   val DEFAULT_LABEL_MAX_LENGTH = 50
 
-  def empty: MetaData = MetaData("", "")
+  def empty: MetaData = MetaData("", None)
 
   /**
     * XML serialization format.
@@ -48,7 +48,7 @@ object MetaData {
     def read(node: Node)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = (node \ "Label").text,
-        description = (node \ "Description").text,
+        description = Some((node \ "Description").text).filter(_.nonEmpty),
         modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text))
       )
     }
@@ -59,7 +59,7 @@ object MetaData {
     def write(data: MetaData)(implicit writeContext: WriteContext[Node]): Node = {
       <MetaData>
         <Label>{data.label}</Label>
-        <Description>{data.description}</Description>
+        <Description>{data.description.getOrElse("")}</Description>
         { data.modified.map(instant => <Modified>{instant.toString}</Modified>).toSeq }
       </MetaData>
     }

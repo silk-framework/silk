@@ -217,8 +217,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     if(metaData.label.trim != "") {
       metaDataFields = metaDataFields :+ "Label" -> metaData.label
     }
-    if(metaData.description.trim != "") {
-      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    metaData.description foreach { description =>
+      metaDataFields = metaDataFields :+ "Description" -> description
     }
     metaDataFields
   }

@@ -10,13 +10,13 @@ import scala.collection.immutable.SortedMap
 private class VocabularyLoader(endpoint: SparqlEndpoint) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
-  def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Vocabulary = {
+  def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
     val classes = retrieveClasses(uri)
-    Vocabulary(
+    Some(Vocabulary(
       info = GenericInfo(uri, None, None, Seq.empty),
       classes = classes,
       properties = retrieveProperties(uri, classes)
-    )
+    ))
   }
 
   def genericInfoPropertiesPattern(varName: String): String =

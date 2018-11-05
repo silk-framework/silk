@@ -68,7 +68,7 @@ class SearchApi extends Controller with ControllerUtilsTrait {
     private def matchesSearchTerm(lowerCaseSearchTerm: String, task: ProjectTask[_ <: TaskSpec]): Boolean = {
       val idMatch = task.id.toLowerCase.contains(lowerCaseSearchTerm)
       val labelMatch = task.metaData.label.toLowerCase.contains(lowerCaseSearchTerm)
-      val descriptionMatch = task.metaData.description.toLowerCase.contains(lowerCaseSearchTerm)
+      val descriptionMatch = task.metaData.description.getOrElse("").toLowerCase.contains(lowerCaseSearchTerm)
       val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(_._2.toLowerCase.contains(lowerCaseSearchTerm))
       idMatch || labelMatch || descriptionMatch || propertiesMatch
     }

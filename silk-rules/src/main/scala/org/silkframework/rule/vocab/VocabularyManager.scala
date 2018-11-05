@@ -7,7 +7,7 @@ import org.silkframework.util.Identifier
 
 trait VocabularyManager {
 
-  def get(uri: String, project: Identifier)(implicit userContext: UserContext): Vocabulary
+  def get(uri: String, project: Identifier)(implicit userContext: UserContext): Option[Vocabulary]
 
 }
 
