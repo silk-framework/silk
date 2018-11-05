@@ -66,6 +66,9 @@ object PagingSparqlTraversable {
         }
       } else {
         for (offset <- 0 until limit by params.pageSize) {
+          if(Thread.currentThread().isInterrupted) {
+            return
+          }
           parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
           parsedQuery.setOffset(offset)
           val (xmlReader, inputStream) = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
