@@ -14,13 +14,23 @@ import scala.reflect.ClassTag
   */
 abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
+  /**
+    * Generates new identifiers for created activity instances.
+    */
   private val identifierGenerator = new IdentifierGenerator(name)
 
+  /**
+    * Each workspace activity does have a current instance that's always defined.
+    */
   @volatile
-  private var currentInstance = createInstance(Map.empty)
+  private var currentInstance: ActivityControl[ActivityType#ValueType] = createInstance(Map.empty)
 
+  /**
+    * For non-singleton activities, this holds all instances.
+    * If there are more instances than [[WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY]], the oldest ones are removed.
+    */
   @volatile
-  private var controls: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
+  private var instances: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
 
   /**
     * The project this activity belongs to.
@@ -40,7 +50,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * Creates a new control for this activity type.
     */
-  protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] // Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
+  protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType]
 
   /**
     * The name of this activity.
@@ -55,7 +65,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     if(isSingleton) {
       ListMap((name, control))
     } else {
-      controls
+      instances
     }
   }
 
@@ -124,7 +134,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
-    * Creates a new instance of this activity type.
+    * Adds a new instance of this activity type.
     * If this is a singleton activity, this will replace the previous instance.
     */
   protected final def addInstance(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
@@ -140,10 +150,10 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
         newControl.value.subscribe(subscriber)
       }
     } else {
-      if(controls.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
-        controls = controls.drop(1)
+      if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
+        instances = instances.drop(1)
       }
-      controls += ((identifier, newControl))
+      instances += ((identifier, newControl))
     }
 
     currentInstance = newControl
@@ -154,8 +164,8 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 object WorkspaceActivity {
 
   /**
-    * The maximum number of controls that are held in memory for each activity type.
-    * If more controls are created, the oldest ones are removed.
+    * The maximum number of instances that are held in memory for each activity type.
+    * If more instances are created, the oldest ones are removed.
     */
   val MAX_CONTROLS_PER_ACTIVITY: Int = 10
 

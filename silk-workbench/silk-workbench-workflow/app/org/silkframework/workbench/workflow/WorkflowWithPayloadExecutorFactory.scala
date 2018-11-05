@@ -13,6 +13,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import play.api.libs.json._
 import scala.xml.{Node, NodeSeq, XML}
+import WorkflowWithPayloadExecutorFactory._
 
 @Plugin(
   id = "ExecuteWorkflowWithPayload",
@@ -20,12 +21,53 @@ import scala.xml.{Node, NodeSeq, XML}
   categories = Array("WorkflowExecution"),
   description = "Executes a workflow with custom payload."
 )
-case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(""), configurationType: String = "application/json")
+case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(DEFAULT_CONFIGURATION),
+                                              configurationType: String = "application/json")
   extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
     new WorkflowWithPayloadExecutor(task, configuration.str, configurationType)
   }
+}
+
+object WorkflowWithPayloadExecutorFactory {
+
+  val DEFAULT_CONFIGURATION: String =
+    """
+      |{
+      |  "DataSources": [
+      |    {
+      |      "id": "inputDataset",
+      |      "data": {
+      |        "taskType": "Dataset",
+      |        "type": "json",
+      |        "parameters": {
+      |          "file": "test_file_resource"
+      |        }
+      |      }
+      |    }
+      |  ],
+      |  "Sinks": [
+      |    {
+      |      "id": "outputDataset",
+      |      "data": {
+      |        "taskType": "Dataset",
+      |        "type": "file",
+      |        "parameters": {
+      |          "file": "outputResource",
+      |          "format": "N-Triples"
+      |        }
+      |      }
+      |    }
+      |  ],
+      |  "Resources": {
+      |    "test_file_resource": [
+      |      {"id":"1"},
+      |      {"id":"2" }
+      |    ]
+      |  }
+      |}
+    """.stripMargin
 }
 
 class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: String, configurationType: String) extends Activity[WorkflowOutput] {
