@@ -15,14 +15,13 @@
 package org.silkframework.rule.execution
 
 import java.io.File
+import java.util.UUID
 import java.util.logging.LogRecord
 
 import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
-import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
+import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
@@ -70,6 +69,7 @@ class GenerateLinks(id: Identifier,
       matcher.value.subscribe(updateLinks)
       matcher.start()
       matcher.waitUntilFinished()
+      caches.foreach(_.clear())
       if(context.status.isCanceling) return
 
       // Filter links
@@ -98,11 +98,11 @@ class GenerateLinks(id: Identifier,
     val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
 
     if (runtimeConfig.useFileCache) {
-      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id)
+      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id + UUID.randomUUID().toString)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "/source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "_target/", runtimeConfig)
       )
     } else {
       DPair(

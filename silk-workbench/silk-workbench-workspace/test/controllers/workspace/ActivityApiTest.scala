@@ -40,7 +40,14 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     client.activityValue(simpleActivityId).json mustBe JsString(message)
   }
 
-  "run multiple non singleton activity" in {
+  "do not allow running multiple singleton activities concurrently" in {
+    client.start(simpleActivityId, Map("sleepTime" -> "2000"))
+    an[AssertionError] should be thrownBy {
+      client.start(simpleActivityId)
+    }
+  }
+
+  "run multiple non singleton activities" in {
     val activity1 = client.start(multiActivityId, Map("message" -> "1", "sleepTime" -> "2000"))
     val activity2 = client.start(multiActivityId, Map("message" -> "2", "sleepTime" -> "2000"))
 
@@ -75,12 +82,16 @@ case class MessageTask(message: String) extends CustomTask {
   override def outputSchemaOpt: Option[EntitySchema] = None
 }
 
-case class SimpleActivityFactory() extends TaskActivityFactory[MessageTask, Activity[String]] {
+case class SimpleActivityFactory(sleepTime: Int = 0) extends TaskActivityFactory[MessageTask, Activity[String]] {
 
   def apply(task: ProjectTask[MessageTask]): Activity[String] = {
     new Activity[String] {
       override def run(context: ActivityContext[String])
                       (implicit userContext: UserContext): Unit = {
+        // Sleep a bit to make sure that multiple activities have to be run at the same time.
+        if(sleepTime > 0) {
+          Thread.sleep(sleepTime)
+        }
         context.value() = task.data.message
       }
     }

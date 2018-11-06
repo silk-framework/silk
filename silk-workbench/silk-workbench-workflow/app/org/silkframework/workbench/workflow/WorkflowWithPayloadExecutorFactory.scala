@@ -25,6 +25,8 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
                                               configurationType: String = "application/json")
   extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
 
+  override def isSingleton: Boolean = false
+
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
     new WorkflowWithPayloadExecutor(task, configuration.str, configurationType)
   }

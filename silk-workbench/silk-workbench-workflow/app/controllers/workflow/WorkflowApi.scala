@@ -4,20 +4,16 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import org.silkframework.config.{MetaData, Task}
-import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
-import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow._
-import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
-
-import scala.xml.NodeSeq
 
 class WorkflowApi extends Controller {
 
@@ -103,9 +99,9 @@ class WorkflowApi extends Controller {
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    activity.startBlocking(workflowConfiguration)
+    val id = activity.startBlocking(workflowConfiguration)
 
-    SerializationUtils.serializeCompileTime(activity.value)
+    SerializationUtils.serializeCompileTime(activity.instance(id).value())
   }
 
   /**

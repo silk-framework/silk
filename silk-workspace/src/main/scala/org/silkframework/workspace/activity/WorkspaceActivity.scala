@@ -69,6 +69,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     }
   }
 
+  def instance(id: Identifier): ActivityControl[ActivityType#ValueType] = {
+    allInstances.get(id) match {
+      case Some(i) => i
+      case None =>
+        throw new NoSuchElementException(s"No activity instance with id $id.")
+    }
+  }
+
   /**
     * The most recent activity control that holds the status, value etc.
     */
