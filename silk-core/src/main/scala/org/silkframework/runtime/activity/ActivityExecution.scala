@@ -1,6 +1,6 @@
 package org.silkframework.runtime.activity
 
-import java.util.concurrent.ForkJoinTask
+import java.util.concurrent.{ForkJoinTask, TimeUnit}
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 

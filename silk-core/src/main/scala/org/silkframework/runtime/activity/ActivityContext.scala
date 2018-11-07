@@ -41,4 +41,10 @@ trait ActivityContext[T] {
    * @return The activity control for the child activity.
    */
   def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R]
+
+  /**
+    * Yields the current thread and allows other tasks to execute in this thread before returning.
+    * This should be called whenever this task is waiting and cannot join a child activity by calling waitUntilFinished.
+    */
+  def yieldThread(): Unit
 }

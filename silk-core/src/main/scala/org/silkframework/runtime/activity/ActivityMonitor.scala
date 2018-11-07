@@ -1,4 +1,5 @@
 package org.silkframework.runtime.activity
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 import scala.reflect.ClassTag._
@@ -57,6 +58,10 @@ class ActivityMonitor[T](name: String,
     val execution = new ActivityExecution(activity, Some(this), progressContribution)
     addChild(execution)
     execution
+  }
+
+  def yieldThread(): Unit = {
+    Activity.forkJoinPool.awaitQuiescence(500, TimeUnit.MILLISECONDS)
   }
 
   /**

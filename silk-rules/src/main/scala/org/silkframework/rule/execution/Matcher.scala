@@ -86,7 +86,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
           lastLog = System.currentTimeMillis()
         }
       } else {
-        Activity.forkJoinPool.awaitQuiescence(500, TimeUnit.MILLISECONDS)
+        context.yieldThread()
       }
     }
 
