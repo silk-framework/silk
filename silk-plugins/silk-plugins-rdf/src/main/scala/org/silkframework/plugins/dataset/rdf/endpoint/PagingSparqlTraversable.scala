@@ -130,9 +130,12 @@ object PagingSparqlTraversable {
     private def parseRdfNode(xmlReader: XMLStreamReader): RdfNode = {
       def text = {
         xmlReader.next()
-        assert(xmlReader.getEventType == XMLStreamConstants.CHARACTERS)
-        xmlReader.getText
-
+        if(xmlReader.getEventType == XMLStreamConstants.END_ELEMENT) {
+          ""
+        } else {
+          assert(xmlReader.getEventType == XMLStreamConstants.CHARACTERS, "Expected characters, but found type " + xmlReader.getEventType)
+          xmlReader.getText
+        }
       }
       xmlReader.getLocalName match {
         case "bnode" =>

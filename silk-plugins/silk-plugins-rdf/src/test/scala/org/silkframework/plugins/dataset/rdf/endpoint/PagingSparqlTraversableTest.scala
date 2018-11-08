@@ -18,6 +18,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   private final val PLAIN_LITERAL = "plainLiteral"
   private final val LANG_LITERAL = "languageLiteral"
   private final val DATA_TYPE_LITERAL = "dataTypeLiteral"
+  private final val EMPTY_LITERAL = "emptyLiteral"
 
   private def sparqlResults(nrResults: Int): InputStream = {
     val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
@@ -47,6 +48,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
           <binding name={DATA_TYPE_LITERAL}>
             <literal datatype="http://www.w3.org/2001/XMLSchema#integer">42</literal>
           </binding>
+          <binding name={EMPTY_LITERAL}>
+            <literal></literal>
+          </binding>
         </result>
       }}
       </results>
@@ -62,6 +66,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     result(PLAIN_LITERAL) mustBe PlainLiteral("plain")
     result(LANG_LITERAL) mustBe LanguageLiteral("in English", "en")
     result(DATA_TYPE_LITERAL) mustBe DataTypeLiteral("42", "http://www.w3.org/2001/XMLSchema#integer")
+    result(EMPTY_LITERAL) mustBe PlainLiteral("")
     results.length mustBe 2
   }
 
