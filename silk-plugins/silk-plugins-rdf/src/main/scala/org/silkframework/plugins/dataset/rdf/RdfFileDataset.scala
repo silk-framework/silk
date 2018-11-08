@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.rdf
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
@@ -84,7 +84,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SparqlRestrictionDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -139,10 +139,15 @@ case class RdfFileDataset(
 
     /**
       * The dataset task underlying the Datset this source belongs to
-      *
-      * @return
       */
-    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset)) //FIXME CMEM 1352 replace with actual task
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = {
+      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
+    } //FIXME CMEM 1352 replace with actual task
+
+    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).retrievePathsSparqlRestriction(sparqlRestriction, limit)
+    }
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)

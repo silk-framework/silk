@@ -1,6 +1,10 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.entity.EntitySchema
+import org.silkframework.config.DefaultConfig
+import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
+import org.silkframework.entity.Restriction.CustomOperator
+import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
@@ -13,6 +17,16 @@ import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
  * Holds the most frequent paths.
  */
 class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPair[EntitySchema]] with PathsCacheTrait {
+
+  final val MAX_PATHS_DEFAULT = 50
+
+  private val maxLinks = {
+    val cfg = DefaultConfig.instance()
+    val key = "caches.linkingPathCache.maxLinks"
+    if(cfg.hasPath(key)) {
+      cfg.getInt(key)
+    } else { MAX_PATHS_DEFAULT }
+  }
 
   private def linkSpec = task.data
 
@@ -87,11 +101,22 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   }
 
   private def retrievePaths(datasetSelection: DatasetSelection)
-                           (implicit userContext: UserContext)= {
+                           (implicit userContext: UserContext): IndexedSeq[Path] = {
     // Retrieve the data source
-    val source = task.dataSource(datasetSelection)
-    // Retrieve most frequent paths
-    source.retrievePaths(datasetSelection.typeUri, 1, Some(50))
+    task.dataSource(datasetSelection) match {
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
+        val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
+        val sparqlRestriction = datasetSelection.restriction.operator match {
+          case Some(CustomOperator(sparqlExpression)) =>
+            SparqlRestriction.fromSparql("a", sparqlExpression).merge(typeRestriction)
+          case _ =>
+            typeRestriction
+        }
+        ds.retrievePathsSparqlRestriction(sparqlRestriction, Some(maxLinks))
+      case source: DataSource =>
+        // Retrieve most frequent paths
+        source.retrievePaths(datasetSelection.typeUri, 1, Some(maxLinks))
+    }
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")
