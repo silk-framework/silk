@@ -85,8 +85,6 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
           updateStatus(context, finishedTasks, scheduler.taskCount)
           lastLog = System.currentTimeMillis()
         }
-      } else {
-        context.yieldThread()
       }
     }
 
