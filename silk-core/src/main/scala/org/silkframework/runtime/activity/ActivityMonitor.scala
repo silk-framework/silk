@@ -60,10 +60,6 @@ class ActivityMonitor[T](name: String,
     execution
   }
 
-  def yieldThread(): Unit = {
-    Activity.forkJoinPool.awaitQuiescence(500, TimeUnit.MILLISECONDS)
-  }
-
   /**
     * The current children of this activity.
     */
