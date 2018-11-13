@@ -115,7 +115,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.2.1"
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.7.6"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
