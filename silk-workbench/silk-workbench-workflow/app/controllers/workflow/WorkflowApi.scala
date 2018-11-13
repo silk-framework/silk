@@ -8,6 +8,7 @@ import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
@@ -116,6 +117,16 @@ class WorkflowApi extends Controller {
     val id = activity.start(workflowConfiguration)
 
     Ok(Json.obj(("activityId", id.toString)))
+  }
+
+  def removeVariableWorkflowExecution(projectName: String,
+                                      workflowTaskName: String,
+                                      workflowExecutionId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContest =>
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    activity.removeActivityInstance(Identifier(workflowExecutionId))
+    NoContent
   }
 
   private def workflowConfiguration(implicit request: Request[AnyContent]): Map[String, String] = {

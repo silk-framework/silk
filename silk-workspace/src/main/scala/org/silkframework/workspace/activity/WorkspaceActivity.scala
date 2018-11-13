@@ -1,5 +1,7 @@
 package org.silkframework.workspace.activity
 
+import java.util.logging.Logger
+
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginDescription
@@ -18,6 +20,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * Generates new identifiers for created activity instances.
     */
   private val identifierGenerator = new IdentifierGenerator(name)
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**
     * Each workspace activity does have a current instance that's always defined.
@@ -159,6 +162,8 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
       }
     } else {
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
+        log.warning(s"In project ${project.name} activity $name: Dropping an activity control instance because the control " +
+            s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
         instances = instances.drop(1)
       }
       instances += ((identifier, newControl))
@@ -166,6 +171,10 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
     currentInstance = newControl
     (identifier, newControl)
+  }
+
+  final def removeActivityInstance(instanceId: Identifier): Unit = synchronized {
+    instances = instances - instanceId
   }
 }
 
