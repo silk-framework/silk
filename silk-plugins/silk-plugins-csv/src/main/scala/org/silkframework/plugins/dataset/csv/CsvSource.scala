@@ -245,7 +245,7 @@ class CsvSource(file: Resource,
       parser
     } catch {
       case e: Throwable =>
-        Try(parser.stopParsing())
+        parser.stopParsing()
         throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
     }
   }
