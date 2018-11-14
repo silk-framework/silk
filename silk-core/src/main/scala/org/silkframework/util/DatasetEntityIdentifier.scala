@@ -25,7 +25,8 @@ object DatasetEntityIdentifier{
    entityId: Long,
    urnPrefix: String
  ): String = {
-    assert(urnPrefix.trim.endsWith(":"), "A default id prefix (option 'project.resourceUriPrefix') has to end with an colon, since it is used to create URNs.")
+    val lastChar = urnPrefix.last
+    assert(lastChar == ':' || lastChar == '/', "A default id prefix (option 'project.resourceUriPrefix') has to end either in a colon (for URNs) or slash (for URIs).")
     assert(entityId >= 0, "Entity internal identifiers only except positive numbers.")
     urnPrefix + dataset.toString + "#" + entityId
   }

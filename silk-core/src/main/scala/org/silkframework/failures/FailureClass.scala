@@ -11,7 +11,6 @@ import org.silkframework.util.{Identifier, Uri}
   * @param taskId - the task identifier associated with this kind of of exception
   * @param property - the property which is associated/caused with the current failure
   */
-//noinspection ScalaStyle
 case class FailureClass private[failures](
    rootCause: Throwable,
    originalMessage: String,
@@ -31,7 +30,7 @@ case class FailureClass private[failures](
   }
 
   /**
-    * Indicates whether the current instance was has been forwarded to an accumulator
+    * Indicates whether the current instance has been forwarded to an accumulator
     */
   def accumulated(): Boolean = false
 
