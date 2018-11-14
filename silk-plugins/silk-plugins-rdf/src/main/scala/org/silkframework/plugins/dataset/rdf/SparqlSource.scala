@@ -14,7 +14,7 @@ import org.silkframework.util.{Identifier, Uri}
 /**
  * A source for reading from SPARQL endpoints.
  */
-class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource {
+class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) extends DataSource with PeakDataSource with SparqlRestrictionDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -40,16 +40,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
     val restrictions = SparqlRestriction.forType(t)
 
-    //Create an endpoint which fails after 3 retries
-    val failFastEndpoint = sparqlEndpoint.withSparqlParams(params.copy(retryCount = 3, retryPause = 1000))
-
-    try {
-      SparqlAggregatePathsCollector(failFastEndpoint, params.graph, restrictions, limit)
-    } catch {
-      case ex: Exception =>
-        log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
-        SparqlSamplePathsCollector(sparqlEndpoint, params.graph, restrictions, limit).toIndexedSeq
-    }
+    retrievePathsSparqlRestriction(restrictions, limit)
   }
 
   override def retrieveTypes(limit: Option[Int])
@@ -71,5 +62,20 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint) ext
     }
 
     PlainTask(taskId, DatasetSpec(EmptyDataset))        //FIXME CMEM 1352 - replace with actual task
+  }
+
+  override def retrievePathsSparqlRestriction(restriction: SparqlRestriction,
+                                              limit: Option[Int])
+                                             (implicit userContext: UserContext): IndexedSeq[Path] = {
+    //Create an endpoint which fails after 3 retries
+    val failFastEndpoint = sparqlEndpoint.withSparqlParams(params.copy(retryCount = 3, retryPause = 1000))
+
+    try {
+      SparqlAggregatePathsCollector(failFastEndpoint, params.graph, restriction, limit)
+    } catch {
+      case ex: Exception =>
+        log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
+        SparqlSamplePathsCollector(sparqlEndpoint, params.graph, restriction, limit).toIndexedSeq
+    }
   }
 }
