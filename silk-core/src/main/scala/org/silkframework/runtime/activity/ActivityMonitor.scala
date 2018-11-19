@@ -1,4 +1,5 @@
 package org.silkframework.runtime.activity
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 import scala.reflect.ClassTag._

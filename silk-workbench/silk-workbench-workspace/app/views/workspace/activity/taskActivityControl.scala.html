@@ -8,5 +8,5 @@
   showProgressBar = true,
   showStartButton = showButtons,
   showRestartButton = showButtons && classOf[CachedActivity[_]].isAssignableFrom(activity.control.underlying.getClass),
-  showConfigButton = showButtons && activity.config.nonEmpty
+  showConfigButton = showButtons && activity.defaultConfig.nonEmpty
 )

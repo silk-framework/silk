@@ -8,6 +8,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.{HasValue, Status}
 import org.silkframework.runtime.activity.{Status, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
@@ -70,7 +71,7 @@ object JsonSerializer {
     directResources ++ childResources.flatten
   }
 
-  def resourceProperties(resource: Resource, pathPrefix: String = "") = {
+  def resourceProperties(resource: Resource, pathPrefix: String = ""): JsValue = {
     val sizeValue = resource.size match {
       case Some(size) => JsNumber(BigDecimal.decimal(size))
       case None => JsNull
@@ -90,17 +91,35 @@ object JsonSerializer {
     )
   }
 
-  def projectActivities(project: Project) = JsArray(
-    for (activity <- project.activities) yield {
-      JsString(activity.name)
-    }
-  )
+  def projectActivities(project: Project): JsValue = {
+    JsArray(
+      for (activity <- project.activities) yield {
+        workspaceActivity(activity)
+      }
+    )
+  }
 
-  def taskActivities(task: ProjectTask[_ <: TaskSpec]) = JsArray(
-    for (activity <- task.activities) yield {
-      JsString(activity.name)
-    }
-  )
+  def taskActivities(task: ProjectTask[_ <: TaskSpec]): JsValue = {
+    JsArray(
+      for (activity <- task.activities) yield {
+        workspaceActivity(activity)
+      }
+    )
+  }
+
+  def workspaceActivity(activity: WorkspaceActivity[_]): JsValue = {
+    Json.obj(
+      "name" -> activity.name.toString,
+      "instances" ->
+        JsArray(
+          for (control <- activity.allInstances.keys.toSeq) yield {
+            Json.obj(
+              "id" -> control.toString
+            )
+          }
+        )
+    )
+  }
 
   def activityConfig(config: Map[String, String]) = JsArray(
     for ((name, value) <- config.toSeq) yield
@@ -113,8 +132,8 @@ object JsonSerializer {
   }.toMap
 
 
-  def activityStatus(activity: WorkspaceActivity): JsValue = {
-    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.status, activity.startTime)
+  def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
+    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.control.status(), activity.startTime)
   }
 
   def activityStatus(project: String, task: String, activity: String, status: Status, startTime: Option[Long]): JsValue = {

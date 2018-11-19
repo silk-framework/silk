@@ -43,8 +43,7 @@ class WorkspacePlugins extends PluginModule {
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
   def workflowActivities: List[Class[_]] =
-    classOf[LocalWorkflowExecutorFactory] ::
-        Nil
+    classOf[LocalWorkflowExecutorFactory] :: Nil
 
   def formats: List[Class[_]] = {
     TypesFormat.getClass ::

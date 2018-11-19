@@ -1,6 +1,7 @@
 package org.silkframework.runtime.activity
 
-import java.util.concurrent.ForkJoinTask
+import java.util.concurrent.ForkJoinPool.ManagedBlocker
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask, TimeUnit}
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 
@@ -58,7 +59,7 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startBlocking()(implicit user: UserContext): Unit = synchronized {
     setStartMetaData(user)
-    runActivity()
+    ForkJoinPool.managedBlock(new BlockingRunner())
   }
 
   private def setStartMetaData(user: UserContext) = {
@@ -177,6 +178,21 @@ private class ActivityExecution[T](activity: Activity[T],
     override def exec(): Boolean = {
       runActivity()
       true
+    }
+  }
+
+  private class BlockingRunner(implicit userContext: UserContext) extends ManagedBlocker {
+    @volatile
+    private var releasable = false
+
+    override def block(): Boolean = {
+      runActivity()
+      releasable = true
+      true
+    }
+
+    override def isReleasable: Boolean = {
+      releasable
     }
   }
 }
