@@ -38,7 +38,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
       }
-      project.updateAnyTask(task.id, task.data, task.metaData)
+      project.updateAnyTask(task.id, task.data, Some(task.metaData))
       Ok
     }
   }
@@ -59,7 +59,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
     if(updatedTask.id.toString != taskName) {
       throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")
     }
-    project.updateAnyTask(updatedTask.id, updatedTask.data, updatedTask.metaData)
+    project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData))
 
     Ok
   }
@@ -173,7 +173,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
           // Copy tasks
           if(!dryRun.contains(true)) {
             for (task <- tasksToCopy) {
-              targetProj.updateAnyTask(task.id, task.data, task.metaData)
+              targetProj.updateAnyTask(task.id, task.data, Some(task.metaData))
               // Copy resources
               if(copyResources) {
                 for (resource <- task.referencedResources) {

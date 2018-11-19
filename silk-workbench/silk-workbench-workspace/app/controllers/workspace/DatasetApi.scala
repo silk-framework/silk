@@ -1,9 +1,9 @@
 package controllers.workspace
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
@@ -11,7 +11,6 @@ import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 import org.silkframework.workbench.Context
@@ -60,7 +59,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data, dataset.metaData)
+          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData))
           NoContent
         }
       }

@@ -4,3 +4,4 @@
 ->         /core                        core.Routes
 ->         /workspace                   workspace.Routes
 ->         /transform                   transform.Routes
+->         /linking                     linking.Routes

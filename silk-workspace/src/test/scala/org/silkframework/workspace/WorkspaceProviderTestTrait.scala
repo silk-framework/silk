@@ -293,7 +293,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
     val linkingTask = project.task[LinkSpec](LINKING_TASK_ID)
     val label = "Linking Task 1"
     val description = "Description of linking task"
-    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, MetaData(label, Some(description)))
+    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, Some(MetaData(label, Some(description))))
     withWorkspaceRefresh(PROJECT_NAME) {
       val task = project.task[LinkSpec](LINKING_TASK_ID)
       task.metaData.label shouldBe label

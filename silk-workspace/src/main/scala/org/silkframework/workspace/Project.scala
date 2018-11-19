@@ -215,15 +215,16 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param name The name of the task.
     * @param taskData The task data.
+    * @param metaData The task meta data. If not provided, no changes to the meta data are made.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)
                                           (implicit userContext: UserContext): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
-        task.update(taskData, Some(metaData))
+        task.update(taskData, metaData)
       case None =>
-        addTask[T](name, taskData, metaData)
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty))
     }
   }
 
@@ -232,16 +233,17 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
+    * @param metaData The task meta data. If not provided, no changes to the meta data are made.
     */
-  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None)
                    (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, metaData)
           case None =>
-            addAnyTask(name, taskData, metaData)
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
