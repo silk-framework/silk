@@ -2,20 +2,18 @@ package controllers.workflow
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
-import org.silkframework.config.{MetaData, Task}
+import org.silkframework.config.Task
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
 
 import scala.xml.NodeSeq
 
@@ -46,9 +44,7 @@ class WorkflowApi extends Controller {
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
-    // The workflow that is sent to this endpoint by the editor does not contain the metadata
-    val metaData = project.anyTaskOption(taskName).map(_.metaData).getOrElse(MetaData.empty)
-    project.updateTask[Workflow](taskName, workflow, metaData)
+    project.updateTask[Workflow](taskName, workflow)
 
     Ok
   }
