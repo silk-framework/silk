@@ -3,7 +3,7 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, NodeSeq, Null, XML}
+import scala.xml.{Elem, Null, XML}
 
 /**
   * Basis for integration tests.
@@ -314,6 +314,12 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     checkResponse(response)
   }
 
+  def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
+    val response = request.put(taskJson)
+    checkResponse(response)
+  }
+
   /**
     * Create a linking task.
     *
@@ -394,41 +400,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     checkResponse(response)
   }
 
-  def executeVariableWorkflow(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestXML = {
-      <Workflow>
-        <DataSources>
-          {datasetPayloads.filterNot(_.isSink).map(_.datasetXml)}
-        </DataSources>
-        <Sinks>
-          {datasetPayloads.filter(_.isSink).map(_.datasetXml)}
-        </Sinks>{datasetPayloads.map(_.resourceXml)}
-      </Workflow>
-    }
-    executeVariableWorkflow(projectId, workflowId, requestXML)
-  }
-
-  def executeVariableWorkflowJson(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestJSON = JsObject(Seq(
-      "DataSources" -> {JsArray(datasetPayloads.filterNot(_.isSink).map(_.datasetJson))},
-      "Sinks" -> {JsArray(datasetPayloads.filter(_.isSink).map(_.datasetJson))},
-      "Resources" -> JsObject(datasetPayloads.flatMap(_.resourceJson))
-    ))
-    executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
-  }
-
-  def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
-    val request: WSRequest = executeOnPayloadUri(projectId, workflowId)
-      .withHeaders("Accept" -> accept)
-    val response = request.post(requestBody)
-    checkResponse(response)
-  }
-
-  private def executeOnPayloadUri(projectId: String, workflowId: String) = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    request
-  }
-
   /**
     * Retrieves a file from the resources directory.
     */
@@ -466,61 +437,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   }
 
   def resourceAsSource(resourceClassPath: String): Source = Source.createBufferedSource(getClass.getClassLoader.getResourceAsStream(resourceClassPath))
-
-  case class VariableDatasetPayload(datasetId: String,
-                                    datasetPluginType: String,
-                                    pluginParams: Map[String, String],
-                                    payLoadOpt: Option[String],
-                                    isSink: Boolean) {
-    var fileResourceId: String = datasetId + "_file_resource"
-
-    private val additionalParam = if(pluginParams.contains("file")) {
-      fileResourceId = pluginParams("file")
-      Map()
-    } else {
-      Map("file" -> fileResourceId)
-    }
-
-    lazy val datasetXml: Elem = {
-      <Dataset id={datasetId}>
-        <DatasetPlugin type={datasetPluginType}>
-          {for ((key, value) <- pluginParams ++ additionalParam) yield {
-            <Param name={key} value={value}/>
-        }}
-        </DatasetPlugin>
-      </Dataset>
-    }
-
-    lazy val datasetJson: JsValue = {
-      JsObject(Seq(
-        "id" -> JsString(datasetId),
-        "data" -> JsObject(Seq(
-          "taskType" -> JsString("Dataset"),
-          "type" -> JsString(datasetPluginType),
-          "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
-              key -> JsString(value)
-          })
-        ))
-      ))
-    }
-
-    lazy val resourceXml = {
-      payLoadOpt match {
-        case Some(payload) =>
-          <resource name={fileResourceId}>
-            {payload}
-          </resource>
-        case None =>
-          Null
-      }
-    }
-
-    lazy val resourceJson: Option[(String, JsValue)] = {
-      payLoadOpt map { payload =>
-        fileResourceId -> JsString(payload)
-      }
-    }
-  }
 
   def reloadVocabularyCache(project: Project, transformTaskId: String)
                            (implicit userContext: UserContext): Unit = {

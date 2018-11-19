@@ -18,7 +18,7 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config._
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -147,7 +147,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * All activities that belong to this task.
     */
-  def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
+  def activities: Seq[TaskActivity[TaskType, _ <: HasValue]] = taskActivities
 
   /**
     * Retrieves an activity by type.

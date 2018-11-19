@@ -19,6 +19,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.HasValue
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -75,8 +76,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def loadingErrors: Seq[ValidationException] = modules.flatMap(_.loadingError) ++ activityLoadingErrors
 
   private val projectActivities = {
-    val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList
-    var activities = List[ProjectActivity]()
+    val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
+    var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
         activities ::= new ProjectActivity(this, factory()(config.prefixes, resources))
@@ -93,7 +94,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
     * Available activities for this project.
     */
-  def activities: Seq[ProjectActivity] = {
+  def activities: Seq[ProjectActivity[_ <: HasValue]] = {
     projectActivities
   }
 
@@ -104,7 +105,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @return The activity control for the requested activity
     * @throws org.silkframework.runtime.validation.NotFoundException
     */
-  def activity(activityName: String): ProjectActivity = {
+  def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
