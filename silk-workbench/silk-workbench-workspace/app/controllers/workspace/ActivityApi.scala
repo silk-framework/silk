@@ -194,6 +194,27 @@ class ActivityApi extends Controller {
     }
   }
 
+  /** Only affects activities with singleton==false setting, removes activity control instance */
+  def removeActivityControl(projectName: String,
+                            taskName: String,
+                            activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val activity = activityControl(projectName, taskName, activityName)
+    activity.cancel()
+    Ok
+  }
+
+  private def removeActivityControl(projectName: String, taskName: String, activityName: String)
+                                   (implicit userContext: UserContext): Unit = {
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val activityId: Identifier = activityName
+    if (taskName.nonEmpty) {
+      val task = project.anyTask(taskName)
+      task.activities.foreach(_.removeActivityInstance(activityId))
+    } else {
+      project.activity(activityName).removeActivityInstance(activityId)
+    }
+  }
+
   private def activityConfig(request: Request[AnyContent]): Map[String, String] = {
     request.body match {
       case AnyContentAsFormUrlEncoded(values) =>

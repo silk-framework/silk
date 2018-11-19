@@ -116,7 +116,8 @@ class WorkflowApi extends Controller {
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfiguration)
 
-    Ok(Json.obj(("activityId", id.toString)))
+    Created(Json.obj(("activityId", id.toString)))
+        .withHeaders("Location" -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
   }
 
   def removeVariableWorkflowExecution(projectName: String,

@@ -53,6 +53,11 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
     } else {
       val activity = new ActivityClient(baseUrl, projectId, workflowId)
       val activityId = (result.json \ "activityId").as[JsString].value
+      val location = result.header("Location")
+      assert(location.isDefined
+          && location.get.startsWith("/workflow/workflows/")
+          && location.get.filter(_.isLetter).endsWith("executionExecuteWorkflowWithPayload"),
+        "Location header is not set or has wrong value! Value: " + location)
       activity.waitForActivity(activityId)
       activity.activityValue(activityId, accept)
     }

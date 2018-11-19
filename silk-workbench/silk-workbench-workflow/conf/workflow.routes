@@ -19,4 +19,4 @@ GET        /assets/*file                                        controllers.work
 # Execution
 POST       /workflows/:project/:task/executeOnPayload              controllers.workflow.WorkflowApi.postVariableWorkflowInput(project: String, task: String)
 POST       /workflows/:project/:task/executeOnPayloadAsynchronous  controllers.workflow.WorkflowApi.postVariableWorkflowInputAsynchronous(project: String, task: String)
-POST       /workflows/:project/:task/removeExecution/:executionId  controllers.workflow.WorkflowApi.removeVariableWorkflowExecution(project: String, task: String, executionId: String)
+DELETE     /workflows/:project/:task/execution/:executionId        controllers.workflow.WorkflowApi.removeVariableWorkflowExecution(project: String, task: String, executionId: String)
