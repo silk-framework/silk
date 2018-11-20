@@ -29,7 +29,8 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
+                maxLinesToDetectCodec: Option[Int] = None,
+                ignoreMalformedInputExceptionInPropertyList: Boolean = false) extends DataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -40,7 +41,16 @@ class CsvSource(file: Resource,
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      CsvSourceHelper.convertHeaderFields(firstLine)
+      try {
+        CsvSourceHelper.convertHeaderFields(firstLine)
+      } catch {
+        case ex: RuntimeException =>
+          if(ignoreMalformedInputExceptionInPropertyList) {
+            IndexedSeq.empty
+          } else {
+            throw ex
+          }
+      }
     }
   }
 

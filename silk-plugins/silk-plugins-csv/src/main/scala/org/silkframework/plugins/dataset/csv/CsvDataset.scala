@@ -40,20 +40,21 @@ case class CsvDataset
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset {
 
-  override def source(implicit userContext: UserContext): DataSource = csvSource
+  override def source(implicit userContext: UserContext): DataSource = csvSource()
 
   override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
-  private def csvSource = new CsvSource(file, csvSettings, properties, uri, regexFilter, codec,
-    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines)
+  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri, regexFilter, codec,
+    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = ignoreMalformed)
 
   /**
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
-    val autoConfig = csvSource.autoConfigure()
+    val source = csvSource(ignoreMalformed = true)
+    val autoConfig = source.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,
       charset = autoConfig.codecName,
