@@ -134,7 +134,6 @@ private class ActivityExecution[T](activity: Activity[T],
           }
       } finally {
         lastResult = activityExecutionResult
-        resetMetaData()
         forkJoinRunner = None
         ThreadLock.synchronized {
           runningThread = None
