@@ -15,13 +15,15 @@ class SparqlSink(params: SparqlParams,
                  val formatterOpt: Option[RdfFormatter] = None,
                  /**Maximum number of statements per request. */
                  statementsPerRequest: Int = 200,
-                 dropGraphOnClear: Boolean = true) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                 dropGraphOnClear: Boolean = true) extends EntitySink with LinkSink with TripleSink with RdfSink with SparqlEndpointSink {
 
   private val body: StringBuilder = new StringBuilder
 
   private var statements = 0
 
   private var properties = Seq[TypedProperty]()
+
+  override def sparqlEndpoint: SparqlEndpoint = sparqlEndpoint
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
                         (implicit userContext: UserContext): Unit = {
