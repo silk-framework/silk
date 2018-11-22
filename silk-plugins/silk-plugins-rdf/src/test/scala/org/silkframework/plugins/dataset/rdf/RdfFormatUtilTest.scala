@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
+import org.apache.jena.datatypes.xsd.XSDDatatype
+import org.apache.jena.graph.NodeFactory
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity._
 
@@ -114,5 +116,12 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   it should "serialize triples with AutoDetectValueType as String if the value is an invalid URI" in {
     format("example.org/resource", AutoDetectValueType) mustBe
       s"""$S_P "example.org/resource" .$NL"""
+  }
+
+  it should "serialize single RDF nodes" in {
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("some string")) mustBe "\"some string\""
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createURI("urn:test:test1")) mustBe "<urn:test:test1>"
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("value", "en")) mustBe "\"value\"@en"
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("42.23", XSDDatatype.XSDdecimal)) mustBe "\"42.23\"^^<http://www.w3.org/2001/XMLSchema#decimal>"
   }
 }

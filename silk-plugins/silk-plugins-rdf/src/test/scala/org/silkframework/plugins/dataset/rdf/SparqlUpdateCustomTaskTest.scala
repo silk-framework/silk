@@ -55,6 +55,19 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
     )
   }
 
+  it should "generate the correct SPARQL Update query from the template" in {
+    SparqlUpdateCustomTask(sparqlUpdateTemplate).generate(Map(
+      "PROP_FROM_ENTITY_SCHEMA1" -> "urn:some:uri",
+      "PROP_FROM_ENTITY_SCHEMA2" -> "the old label",
+      "PROP_FROM_ENTITY_SCHEMA3" ->
+        """The new
+          |label with some "'weird characters""".stripMargin
+    )) mustBe
+      """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
+        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" }""".stripMargin
+  }
+
   def parse(sparqlUpdateTemplate: String): Seq[SparqlUpdateTemplatePart] = {
     SparqlUpdateCustomTask(sparqlUpdateTemplate).sparqlUpdateTemplateParts
   }

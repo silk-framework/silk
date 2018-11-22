@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.apache.jena.query.QueryFactory
+import org.apache.jena.graph.NodeFactory
 import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.entity._
@@ -100,6 +100,24 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
       throw new ValidationException("The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
           parseError.getMessage + ", example query: " + sparql)
     }
+  }
+
+  def generate(placeholderAssignments: Map[String, String]): String = {
+    def assignmentValue(prop: String): String = placeholderAssignments.get(prop) match {
+      case Some(value) => value
+      case None => throw new ValidationException(s"No value assignment for placeholder property $prop")
+    }
+    (sparqlUpdateTemplateParts map {
+      case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
+        val value = assignmentValue(prop)
+        RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral(value))
+      case SparqlUpdateTemplateURIPlaceholder(prop) =>
+        val value = assignmentValue(prop)
+        validateUri(value)
+        RdfFormatUtil.serializeSingleNode(NodeFactory.createURI(value))
+      case SparqlUpdateTemplateStaticPart(partialSparql) =>
+        partialSparql
+    }).mkString
   }
 
   private def validateUri(uri: String): Unit = {
