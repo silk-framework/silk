@@ -21,8 +21,10 @@ import scala.util.matching.Regex
 case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
                                          example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")
                                   sparqlUpdateTemplate: MultilineStringParameter,
-                                  @Param(label = "batch size", value = "How many entities should be handled in a single update request.")
+                                  @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
                                   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize) extends CustomTask {
+  assert(batchSize >= 1, "Batch size must be greater zero!")
+
   /** The template disassembled into its atomic parts */
   val sparqlUpdateTemplateParts: Seq[SparqlUpdateTemplatePart] = {
     val uriPlaceholder = """\$\{<(\S+)>\}""".r
@@ -35,23 +37,23 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
     val templateParts = ArrayBuffer[SparqlUpdateTemplatePart]()
     val templateStr = sparqlUpdateTemplate.str
 
-    def handleUriMatch(uriMatch: Regex.Match) = {
-      if(uriMatch.start < currentIndex) {
-        throw new ValidationException("Invalid SPARQL Update template. URI placeholder at illegal position. Placeholder: " + uriMatch.group(0))
-      } else if (uriMatch.start > currentIndex) {
-        templateParts.append(SparqlUpdateTemplateStaticPart(templateStr.substring(currentIndex, uriMatch.start)))
+    def handleStaticPartBeforeMatch(m: Regex.Match, placeHolderLabel: String): Unit = {
+      if (m.start < currentIndex) {
+        throw new ValidationException(s"Invalid SPARQL Update template. $placeHolderLabel placeholder at illegal position. Placeholder: " + m.group(0))
+      } else if (m.end > currentIndex) {
+        templateParts.append(SparqlUpdateTemplateStaticPart(templateStr.substring(currentIndex, m.start)))
       }
+    }
+
+    def handleUriMatch(uriMatch: Regex.Match): Int = {
+      handleStaticPartBeforeMatch(uriMatch, "URI")
       templateParts.append(SparqlUpdateTemplateURIPlaceholder(uriMatch.group(1)))
       nextUriMatch = None
       uriMatch.end
     }
 
-    def handleLiteralMatch(literalMatch: Regex.Match) = {
-      if(literalMatch.start < currentIndex) {
-        throw new ValidationException("Invalid SPARQL Update template. Literal placeholder at illegal position. Placeholder: " + literalMatch.group(0))
-      } else if (literalMatch.end > currentIndex) {
-        templateParts.append(SparqlUpdateTemplateStaticPart(templateStr.substring(currentIndex, literalMatch.start)))
-      }
+    def handleLiteralMatch(literalMatch: Regex.Match): Int = {
+      handleStaticPartBeforeMatch(literalMatch, "Literal")
       templateParts.append(SparqlUpdateTemplatePlainLiteralPlaceholder(literalMatch.group(1)))
       nextLiteralMatch = None
       literalMatch.end
@@ -85,6 +87,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 
   validateSparql()
 
+  /** Validate the generated SPARQL of the template and check for batch execution characteristics */
   private def validateSparql(): Unit = {
     val sparql = (sparqlUpdateTemplateParts map {
       case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
@@ -100,8 +103,20 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
       throw new ValidationException("The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
           parseError.getMessage + ", example query: " + sparql)
     }
+    if(batchSize > 1) {
+      val batchSparql = sparql + "\n" + sparql
+      Try(UpdateFactory.create(batchSparql)).failed.toOption foreach { parseError =>
+        throw new ValidationException("The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+            parseError.getMessage + ", example batch query: " + batchSparql)
+      }
+    }
   }
 
+  /**
+    * Generates The SPARQL Update query based on the placeholder assignments.
+    * @param placeholderAssignments For each placeholder in the query template
+    * @return
+    */
   def generate(placeholderAssignments: Map[String, String]): String = {
     def assignmentValue(prop: String): String = placeholderAssignments.get(prop) match {
       case Some(value) => value
@@ -127,11 +142,15 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
   }
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
+    Some(Seq(expectedInputSchema))
+  }
+
+  def expectedInputSchema: EntitySchema = {
     val properties = sparqlUpdateTemplateParts.
         filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
         map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
         distinct
-    Some(Seq(EntitySchema("", properties.map(p => Path(p).asAutoDetectTypedPath).toIndexedSeq)))
+    EntitySchema("", properties.map(p => Path(p).asAutoDetectTypedPath).toIndexedSeq)
   }
 
   override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)

@@ -9,7 +9,7 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
   private val sparqlUpdateTemplate =
     """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       |DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
-      |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} }""".stripMargin
+      |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin
 
   it should "parse the SPARQL Update template correctly" in {
     parse(sparqlUpdateTemplate) mustBe Seq(
@@ -21,27 +21,32 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
       SparqlUpdateTemplateURIPlaceholder("PROP_FROM_ENTITY_SCHEMA1"),
       SparqlUpdateTemplateStaticPart(" rdf:label "),
       SparqlUpdateTemplatePlainLiteralPlaceholder("PROP_FROM_ENTITY_SCHEMA3"),
-      SparqlUpdateTemplateStaticPart(" }")
+      SparqlUpdateTemplateStaticPart(" } ;")
     )
   }
 
   it should "raise a validation error when the template is invalid" in {
     intercept[ValidationException] {
-      parse("""DELETE DATA { ${<${"PROP_FROM_ENTITY_SCHEMA2"}>} rdf:label "label" }""")
+      parse("""DELETE DATA { ${<${"PROP_FROM_ENTITY_SCHEMA2"}>} rdf:label "label" } ;""")
     }
     intercept[ValidationException] {
-      parse("""DELETE DATA { <urn:a:b> rdf:label ${"${<PROP_FROM_ENTITY_SCHEMA1>}"} }""")
+      parse("""DELETE DATA { <urn:a:b> rdf:label ${"${<PROP_FROM_ENTITY_SCHEMA1>}"} } ;""")
     }
     intercept[ValidationException] {
-      parse("""DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
-              |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} }""".stripMargin)
+      // No rdf prefix defined
+      parse("""DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
+              |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin)
     }
     intercept[ValidationException] {
       parse("""PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
               |
               |WITH <http://example/addresses>
               |DELETE { ?person ?property ?value }
-              |WHERE { ?person ?property ?value ; foaf:givenName 'Fred } """.stripMargin) // Missing closing ' for literal
+              |WHERE { ?person ?property ?value ; foaf:givenName 'Fred } ;""".stripMargin) // Missing closing ' for literal
+    }
+    parse(sparqlUpdateTemplate.dropRight(1), batchSize = 1) // Dropped ';' at the end, not batch supported, but batch size is 1
+    intercept[ValidationException] {
+      parse(sparqlUpdateTemplate.dropRight(1)) // Dropped ';' at the end, not batch supported
     }
   }
 
@@ -65,10 +70,10 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
     )) mustBe
       """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
-        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" }""".stripMargin
+        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
   }
 
-  def parse(sparqlUpdateTemplate: String): Seq[SparqlUpdateTemplatePart] = {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate).sparqlUpdateTemplateParts
+  def parse(sparqlUpdateTemplate: String, batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize): Seq[SparqlUpdateTemplatePart] = {
+    SparqlUpdateCustomTask(sparqlUpdateTemplate, batchSize).sparqlUpdateTemplateParts
   }
 }
