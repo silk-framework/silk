@@ -133,10 +133,25 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
+      case sparqlUpdateTable: SparqlUpdateEntityTable =>
+        executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
         withEntitySink(dataset) { entitySink =>
           writeEntities(entitySink, et)
         }
+    }
+  }
+
+  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]], sparqlUpdateTable: SparqlUpdateEntityTable) = {
+    dataset.plugin match {
+      case rdfDataset: RdfDataset =>
+        val endpoint = rdfDataset.sparqlEndpoint
+        for (entity <- sparqlUpdateTable.entities) {
+          assert(entity.values.size == 1 && entity.values.head.size == 1)
+          endpoint.update(entity.values.head.head)
+        }
+      case _ =>
+        throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
     }
   }
 

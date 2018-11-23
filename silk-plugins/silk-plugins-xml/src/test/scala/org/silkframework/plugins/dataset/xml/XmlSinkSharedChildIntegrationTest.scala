@@ -11,8 +11,6 @@ import scala.xml.{Utility, XML}
 class XmlSinkSharedChildIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "XML Sink"
 
-  implicit val userContext: UserContext = UserContext.Empty
-
   override def projectPathInClasspath = "org/silkframework/plugins/dataset/xml/cmem-1023-xmlSharedChild.zip"
 
   override def projectId = "xmlSharedChildBug"

@@ -19,31 +19,42 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                       (implicit userContext: UserContext): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
+
+    // Generate SPARQL Update queries for input entities
+    def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U],
+                          expectedProperties: IndexedSeq[String],
+                          input: LocalEntities): Unit = {
+      val inputProperties = getInputProperties(input.entitySchema).distinct
+      checkInputSchema(expectedProperties, inputProperties.toSet)
+      for (entity <- input.entities;
+           values = expectedSchema.typedPaths.map(entity.evaluate) if values.forall(_.nonEmpty)) {
+        val it = CrossProductIterator(values, expectedProperties)
+        while (it.hasNext) {
+          batchEmitter.update(updateTask.generate(it.next()))
+        }
+      }
+    }
+
     val traversable = new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
-        for(input <- inputs) {
-          val inputProperties = getInputProperties(input.entitySchema).distinct
-          checkInputSchema(expectedProperties, inputProperties.toSet)
-          for(entity <- input.entities;
-              values = expectedSchema.typedPaths.map(entity.evaluate) if values.forall(_.nonEmpty)) {
-            if(inputProperties.isEmpty) {
-              batchEmitter.update(updateTask.generate(Map.empty))
-            } else {
-              val it = CrossProductIterator(values, expectedProperties)
-              while(it.hasNext) {
-                batchEmitter.update(updateTask.generate(it.next()))
-              }
-            }
+        if (expectedProperties.isEmpty) {
+          // Static template needs only to be executed once
+          batchEmitter.update(updateTask.generate(Map.empty))
+        } else {
+          for (input <- inputs) {
+            executeOnInput(batchEmitter, expectedProperties, input)
           }
         }
         batchEmitter.close()
       }
     }
+
     Some(SparqlUpdateEntityTable(traversable, task))
   }
 
+  // Check that expected schema is subset of input schema
   private def checkInputSchema[U](expectedProperties: Seq[String], inputProperties: Set[String]): Unit = {
     if (expectedProperties.exists(p => !inputProperties.contains(p))) {
       val missingProperties = expectedProperties.filterNot(inputProperties.contains)

@@ -17,8 +17,8 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
   def projectPathInClasspath: String
 
   /** The id under which this project will be accessible */
-  def projectId: String
-  def userContext: UserContext
+  def projectId: String = "singleProject"
+  implicit def userContext: UserContext = UserContext.Empty
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()

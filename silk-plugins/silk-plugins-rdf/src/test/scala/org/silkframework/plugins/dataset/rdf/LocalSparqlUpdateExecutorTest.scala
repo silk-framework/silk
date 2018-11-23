@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, SparqlUpdateEntitySchema}
 import org.silkframework.rule.TransformSpec
@@ -19,7 +19,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   private val executor = LocalSparqlUpdateExecutor()
   private val batchSize = 5
   private val task = PlainTask("task", SparqlUpdateCustomTask(s"""INSERT DATA { $${<s>} <urn:prop> $${"v"} } ;""", batchSize = batchSize))
-  private val schema = EntitySchema("", typedPaths = IndexedSeq("s", "v").map(Path(_).asAutoDetectTypedPath))
+  private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", UriValueType), TypedPath("v", StringValueType)))
   private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
     Entity("", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
@@ -54,5 +54,13 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     intercept[ValidationException] {
       executor.execute(task, input, None, LocalExecution(true), context).get.entities.head
     }
+  }
+
+  it should "output only one UPDATE query when the template contains no placeholders" in {
+    val staticTemplate = """INSERT DATA { <urn:s> <urn:prop> "" } ;"""
+    val staticTemplateTask = PlainTask("task", SparqlUpdateCustomTask(staticTemplate, batchSize = batchSize))
+    val entities = executor.execute(staticTemplateTask, input, None, LocalExecution(true), context).get.entities
+    entities.size mustBe 1
+    entities.head.values mustBe IndexedSeq(Seq(staticTemplate))
   }
 }
