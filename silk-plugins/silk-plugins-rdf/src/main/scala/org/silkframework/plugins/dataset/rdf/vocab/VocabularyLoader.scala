@@ -33,13 +33,14 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
       |     OPTIONAL { ?$varName dct:title ?dctTitle }
       |     OPTIONAL { ?$varName skos:prefLabel ?skosPrefLabel }
       |     OPTIONAL { ?$varName dc:identifier ?dcIdentifier }
+      |     OPTIONAL { ?$varName dct:identifier ?dctIdentifier }
       |     OPTIONAL { ?$varName foaf:name ?foafName }
       |     OPTIONAL { ?$varName skos:notation ?skosNotation }
     """.stripMargin
 
   val commentVars: Seq[String] = Seq("rdfsComment", "skosDefinition", "dctDescription", "scopeNote")
   val labelVars: Seq[String] = Seq("label", "skosPrefLabel")
-  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "skosPrefLabel", "dcIdentifier", "foafName", "skosNotation")
+  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
 
   val prefixes: String =
     """PREFIX owl: <http://www.w3.org/2002/07/owl#>
