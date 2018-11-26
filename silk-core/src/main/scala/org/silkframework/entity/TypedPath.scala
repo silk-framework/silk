@@ -40,6 +40,16 @@ case class TypedPath(
     case BackwardOperator(prop) :: Nil  => Some(TypedProperty(prop.uri, valueType, isBackwardProperty = true, isAttribute = isAttribute))
     case _ => None
   }
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case tp: TypedPath =>
+        normalizedSerialization == tp.normalizedSerialization &&
+          valueType == tp.valueType
+    }
+  }
+
+  override def hashCode: Int = super.hashCode + 113 * valueType.hashCode()
 }
 
 object TypedPath {
