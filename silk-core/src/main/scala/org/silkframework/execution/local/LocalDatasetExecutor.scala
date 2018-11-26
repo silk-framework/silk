@@ -142,7 +142,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]], sparqlUpdateTable: SparqlUpdateEntityTable) = {
+  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
+                                         sparqlUpdateTable: SparqlUpdateEntityTable)
+                                        (implicit userContext: UserContext) = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint

@@ -8,7 +8,7 @@ import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
@@ -26,12 +26,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, XML}
 
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -44,9 +44,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   val baseUrl = s"http://localhost:$port"
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
-
-  // Assume by default that anonymous access is allowed
-  implicit def userContext: UserContext = UserContext.Empty
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
