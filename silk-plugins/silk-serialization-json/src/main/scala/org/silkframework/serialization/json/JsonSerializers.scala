@@ -18,6 +18,7 @@ import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.util.StringUtils._
 import play.api.libs.json._
 
 /**
@@ -350,7 +351,9 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(identifier(value, "root"), fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY)), metaData(value))
+      val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
+      val id = identifier(value, mappingRules.typeRules.flatMap(_.typeUri.localName).headOption.getOrElse("RootMapping"))
+      RootMappingRule(id, mappingRules, metaData(value))
     }
 
     /**
@@ -497,9 +500,9 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): DirectMapping = {
-      val name = identifier(value, "direct")
-      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
       val mappingTarget = fromJson[MappingTarget](requiredValue(value, MAPPING_TARGET_PROPERTY))
+      val name = identifier(value, mappingTarget.propertyUri.localName.getOrElse("ValueMapping"))
+      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
       DirectMapping(name, sourcePath, mappingTarget, metaData(value))
     }
 
@@ -531,10 +534,10 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
-      val name = identifier(value, "object")
-      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
+      val name = identifier(value, mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping"))
+      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
       ObjectMapping(name, sourcePath, mappingTarget, children, metaData(value))(readContext.prefixes)
     }
 
@@ -585,7 +588,7 @@ object JsonSerializers {
           toOption.
           map(fromJson[MappingTarget])
       val complex = ComplexMapping(
-        id = identifier(jsValue, "complex"),
+        id = identifier(jsValue, mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")),
         operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
         metaData(jsValue)
