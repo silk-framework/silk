@@ -26,9 +26,9 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
     val executeActivity = workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executeActivity.control.startBlocking()
     val expectedResult = """s,v
-      |urn:instance:unemploymentcsv#8,6
-      |urn:instance:unemploymentcsv#11,6.2
-      |urn:instance:unemploymentcsv#13,6.5
+      |urn:instance:unemploymentcsv#14,6.5
+      |urn:instance:unemploymentcsv#17,6.9
+      |urn:instance:unemploymentcsv#6,5.8
       |urn:instance:unemploymentcsv#10,6.1
       |urn:instance:unemploymentcsv#2,6.2""".stripMargin
     checkOutputResource("sparqlOutput.csv", expectedResult)

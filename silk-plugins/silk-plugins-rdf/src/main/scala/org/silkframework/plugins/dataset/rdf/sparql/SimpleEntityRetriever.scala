@@ -51,42 +51,57 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
   private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri])
                          (implicit userContext: UserContext): Traversable[Entity] = {
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
+    val sparqlQuery: String = buildSparqlQuery(sparqlEntitySchema, useDistinct = true)
+
+    val sparqlResults = endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
+
+    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+  }
+
+  def buildSparqlQuery(sparqlEntitySchema: SparqlEntitySchema, useDistinct: Boolean): String = {
     //Select
     val sparql = new StringBuilder
-    sparql append "SELECT DISTINCT "
+    sparql append "SELECT "
+    if(useDistinct) {
+      sparql append "DISTINCT "
+    }
     val selectVariables = genSelectVariables(sparqlEntitySchema)
     sparql append selectVariables
     sparql append "\n"
 
-    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
-    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+    addFrom(sparql)
 
     //Body
     sparql append "WHERE {\n"
     // GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"GRAPH <$graph> {\n"
 
-    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
-      sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
-    } else {
-      sparql append s"?${sparqlEntitySchema.variable} ?${varPrefix}_p ?${varPrefix}_o .\n"
-    }
+    addRestrictions(sparqlEntitySchema, sparql)
 
     sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
     // End GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE
-    if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
+    if (useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
 
-    val sparqlQuery = if(useSubSelect) {
+    if (useSubSelect) {
       s"SELECT $selectVariables\nWHERE {\n${sparql.toString}\n}"
     } else {
       sparql.toString()
     }
+  }
 
-    val sparqlResults = endpoint.select(sparqlQuery)
+  private def addFrom(sparql: StringBuilder) = {
+    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
+    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+  }
 
-    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+  private def addRestrictions(sparqlEntitySchema: SparqlEntitySchema, sparql: StringBuilder) = {
+    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
+      sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
+    } else {
+      sparql append s"?${sparqlEntitySchema.variable} ?${varPrefix}_p ?${varPrefix}_o .\n"
+    }
   }
 
   private def genSelectVariables(sparqlEntitySchema: SparqlEntitySchema) = {

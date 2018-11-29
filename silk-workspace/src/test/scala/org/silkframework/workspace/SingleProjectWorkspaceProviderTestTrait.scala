@@ -3,6 +3,7 @@ package org.silkframework.workspace
 import java.io.File
 
 import org.scalatest._
+import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 
@@ -34,5 +35,14 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
 
   def project(implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace(userContext).project(projectId)
+  }
+
+  def workspaceEndpoint(implicit userContext: UserContext): SparqlEndpoint = {
+    WorkspaceFactory().workspace(userContext).provider match {
+      case rdfWorkspace: RdfWorkspaceProvider =>
+        rdfWorkspace.endpoint
+      case _ =>
+        throw new RuntimeException("Not an RDF workspace provider configured!")
+    }
   }
 }

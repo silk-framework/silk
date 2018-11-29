@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf._
@@ -115,5 +116,29 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     result.bindings.head // execute
     queries must have size 1
     queries.head.contains(lowLimit) mustBe true
+  }
+
+  it should "stop paging when the thread is interrupted" in {
+    val sparqlParams = SparqlParams(pageSize = 1)
+    val infiniteLoop: String => InputStream = { _ =>
+      sparqlResults(1)
+    }
+    val count = new AtomicInteger(0)
+    val thread = new Thread {
+      override def run(): Unit = {
+        val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", infiniteLoop, sparqlParams, limit = Int.MaxValue)
+        for(_ <- result.bindings) {
+          count.incrementAndGet()
+        }
+      }
+    }
+    thread.start()
+    val start = System.currentTimeMillis()
+    while(thread.isAlive) {
+      if(count.get() > 10) {
+        thread.interrupt()
+      }
+    }
+    System.currentTimeMillis() - start must be < 5 * 1000L // If it is not interrupted this should run for minutes
   }
 }

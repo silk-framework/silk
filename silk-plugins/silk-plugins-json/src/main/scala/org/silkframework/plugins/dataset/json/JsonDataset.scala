@@ -26,7 +26,7 @@ case class JsonDataset(
 
   private val codec = Codec(charset)
 
-  override def source(implicit userContext: UserContext): DataSource = new JsonSource(file, basePath, uriPattern, codec)
+  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern, codec)
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 

@@ -1,12 +1,14 @@
 package org.silkframework.entity
+
+
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.ValueType.XSD
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
 import scala.util.Try
 import scala.xml.Node
-import ValueType.XSD
 
 /**
   * The type of a value.

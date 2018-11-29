@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
@@ -84,7 +84,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable with SparqlRestrictionDataSource {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource with SchemaExtractionSource with SparqlRestrictionDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -147,6 +147,23 @@ case class RdfFileDataset(
     override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
       new SparqlSource(SparqlParams(), endpoint).retrievePathsSparqlRestriction(sparqlRestriction, limit)
+    }
+
+    override def sampleValues(typeUri: Option[Uri],
+                              typedPaths: Seq[TypedPath],
+                              valueSampleLimit: Option[Int])
+                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).sampleValues(typeUri, typedPaths, valueSampleLimit)
+    }
+
+    override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                  pathLimit: Int,
+                                  sampleLimit: Option[Int],
+                                  progressFN: Double => Unit)
+                                 (implicit userContext: UserContext): ExtractedSchema[T] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
     }
   }
 
