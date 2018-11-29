@@ -180,9 +180,9 @@ case class RootMappingRule(id: Identifier,
 
 object RootMappingRule {
 
-  def empty: RootMappingRule = RootMappingRule("root", MappingRules.empty)
+  def empty: RootMappingRule = RootMappingRule("RootMapping", MappingRules.empty)
 
-  def apply(rules: MappingRules): RootMappingRule = RootMappingRule("root", rules)
+  def apply(rules: MappingRules): RootMappingRule = RootMappingRule("RootMapping", rules)
 
   /**
     * XML serialization format.
