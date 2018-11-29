@@ -1,7 +1,9 @@
 package org.silkframework.config
 
 import java.time.Instant
+
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.StringUtils._
 import scala.xml._
 
 /**
@@ -37,6 +39,13 @@ object MetaData {
   val DEFAULT_LABEL_MAX_LENGTH = 50
 
   def empty: MetaData = MetaData("", None)
+
+  /**
+    * Generates a nice label from an identifier.
+    */
+  def labelFromId(id: String): String = {
+    id.undoCamelCase
+  }
 
   /**
     * XML serialization format.

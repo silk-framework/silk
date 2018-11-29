@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -54,8 +54,8 @@ class TransformTaskApi extends Controller {
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
-            val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-            project.addTask(taskName, transformSpec)
+            val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty, MetaData("Root Mapping")), outputs, Seq.empty, targetVocabularies)
+            project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
 
         Ok
