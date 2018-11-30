@@ -4,22 +4,21 @@ import java.io.File
 
 import org.scalatest._
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 
 /**
   * Trait that can be mixed in to replace the workspace provider with an in-memory version
   * that has a project pre-loaded from the Classpath.
   */
-trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait { this: Suite =>
+trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait with TestUserContextTrait { this: Suite =>
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
     */
   def projectPathInClasspath: String
 
   /** The id under which this project will be accessible */
-  def projectId: String
-  def userContext: UserContext
+  def projectId: String = "singleProject"
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()

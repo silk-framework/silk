@@ -13,11 +13,13 @@ class RdfPlugins extends PluginModule {
       classOf[InMemoryDataset],
       classOf[RdfVocabularyManager],
       classOf[RdfFilesVocabularyManager],
-      classOf[SparqlSelectCustomTask]
+      classOf[SparqlSelectCustomTask],
+      classOf[SparqlUpdateCustomTask]
     ) ++ executors
 
   val executors = Seq(
-    classOf[LocalSparqlSelectExecutor]
+    classOf[LocalSparqlSelectExecutor],
+    classOf[LocalSparqlUpdateExecutor]
   )
 
 }

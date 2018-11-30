@@ -63,9 +63,11 @@ case class RdfFileDataset(
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    val inputStream = file.inputStream
-    RDFDataMgr.read(dataset, inputStream, lang)
-    inputStream.close()
+    if(file.exists) {
+      val inputStream = file.inputStream
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
+    }
 
     // Retrieve model
     val model =

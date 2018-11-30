@@ -8,7 +8,7 @@ import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
@@ -26,12 +26,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, XML}
 
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
