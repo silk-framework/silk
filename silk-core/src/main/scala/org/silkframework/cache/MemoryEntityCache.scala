@@ -93,7 +93,7 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
       else {
         entities.append(ArrayBuffer(entity))
         indices.append(ArrayBuffer(index))
-        logger.log(runtimeConfig.logLevel, "Written partition " + (entities.size - 2) + " of block " + block)
+        logger.log(Level.FINE, "Written partition " + (entities.size - 2) + " of block " + block)
       }
     }
 
