@@ -47,14 +47,15 @@ class TransformTaskApi extends Controller {
         val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
         val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
-        project.tasks[TransformSpec].find(_.id == taskName) match {
+        project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task
           case Some(oldTask) if !createOnly =>
             val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
-            val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty, MetaData("Root Mapping")), outputs, Seq.empty, targetVocabularies)
+            val rule = RootMappingRule(RootMappingRule.defaultId, MappingRules.empty, MetaData("Root Mapping"))
+            val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
             project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
 

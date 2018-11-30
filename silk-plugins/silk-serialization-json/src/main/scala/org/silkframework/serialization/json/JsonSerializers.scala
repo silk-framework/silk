@@ -363,7 +363,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
-      val id = identifier(value, typeName.getOrElse("root"))
+      val id = identifier(value, RootMappingRule.defaultId)
       RootMappingRule(id, mappingRules, metaData(value, typeName.getOrElse("RootMapping")))
     }
 
