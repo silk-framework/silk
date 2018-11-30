@@ -133,13 +133,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   }
 
   private def handleTaskExceptions(exceptions: ArrayBuffer[Throwable]): Unit = {
+    def exceptionString(ex: Throwable): String = s"${ex.getClass.getSimpleName} (message: ${ex.getMessage})"
     if (exceptions.nonEmpty) {
       error = if (exceptions.size == 1) {
         val ex = exceptions.head
-        Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${ex.getMessage}", ex))
+        Some(new ValidationException(s"Error loading tasks of type ${taskType.getName}. Details: ${exceptionString(ex)}", ex))
       } else {
         Some(new ValidationException(s"There were errors loading ${exceptions.size} tasks of type ${taskType.getName}. " +
-            s"Details: ${exceptions.map(_.getMessage).mkString(", ")}"))
+            s"Details: ${exceptions.map(exceptionString).mkString(", ")}"))
       }
       for (ex <- exceptions) {
         logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", ex)
