@@ -385,7 +385,7 @@
   width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
-  min-width: 320px;
+  min-width: 800px;
 }
 
 .mdl-dialog .mdl-data-table {
@@ -394,6 +394,27 @@
 
 .mdl-dialog .mdl-data-table td .mdl-textfield {
   padding: 0px;
+  width: 700px;
+}
+
+#dialog-form {
+  max-width: 800px;
+}
+
+#dialog-form .mdl-textfield {
+  min-width: 700px;
+}
+
+#dialog-form .mdl-selectfield {
+  min-width: 700px;
+}
+
+#dialog-form p {
+  min-width: 700px;
+}
+
+#dialog-form .plugin-dialog-multi-line-textfield {
+  min-height: 400px;
 }
 
 .mdl-dialog .mdl-data-table td {

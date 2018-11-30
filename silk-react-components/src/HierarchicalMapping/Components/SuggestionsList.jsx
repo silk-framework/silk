@@ -48,6 +48,7 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
+            matchFromDataset: true
         };
     },
     onChecked(v) {
@@ -66,6 +67,7 @@ const SuggestionsList = React.createClass({
                 data: {
                     targetClassUris: this.props.targetClassUris,
                     ruleId: this.props.ruleId,
+                    matchFromDataset: this.state.matchFromDataset,
                 },
             })
             .subscribe(

@@ -355,13 +355,19 @@ hierarchicalMappingChannel
 
                     const suggestions = [];
 
-                    _.forEach(body, (sources, target) => {
-                        _.forEach(sources, ({uri, type, confidence}) => {
+                    _.forEach(body, (sources, sourcePathOrUri) => {
+                        _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
+                            let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
+                            let mapTo = candidateUri;
+                            if(!data.matchFromDataset) {
+                                mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
+                                mapTo = sourcePathOrUri;
+                            }
                             suggestions.push(
                                 new Suggestion(
-                                    uri,
+                                    mapFrom,
                                     type,
-                                    target,
+                                    mapTo,
                                     confidence
                                 )
                             );

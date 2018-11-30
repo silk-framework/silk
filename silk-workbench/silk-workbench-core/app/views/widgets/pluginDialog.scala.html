@@ -217,7 +217,7 @@
 }
 
 @createMultilineTextField(pluginId: String, param: Parameter) = {
-  @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description)
+  @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description, additionalInputElementsClass = "plugin-dialog-multi-line-textfield")
 }
 
 @createSparqlEndpointDatasetField(pluginId: String, param: Parameter)(implicit userContext: UserContext) = {

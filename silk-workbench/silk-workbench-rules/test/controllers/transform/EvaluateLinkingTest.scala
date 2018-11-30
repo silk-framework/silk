@@ -12,8 +12,6 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
 
   override def projectPathInClasspath: String = "controllers/transform/linkingMovies.zip"
 
-  override def projectId: String = "movies"
-
   def linkingTaskId: String = "movies"
 
   override def routes: Option[String] = Some("test.Routes")

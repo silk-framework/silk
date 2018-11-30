@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, SparqlRestriction}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
@@ -64,7 +64,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var inconsistentOrder = false
       var counter = 0
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path)
+      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path, limit)
 
       pathRetrievers.foreach(_.start())
 
@@ -114,7 +114,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path)
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path, limit: Option[Int])
                              (implicit userContext: UserContext)extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
@@ -151,33 +151,10 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
 
     private def queryPath()(implicit userContext: UserContext) = {
-      //Select
-      val sparql = new StringBuilder
-      sparql append "SELECT DISTINCT "
-      sparql append "?" + entityDesc.variable + " "
-      sparql append "?" + varPrefix + "0\n"
+      val sparqlQuery = ParallelEntityRetriever.pathQuery(entityDesc.variable, entityDesc.restrictions, path,
+        useDistinct = true, graphUri = graphUri, useOrderBy = useOrderBy, varPrefix = varPrefix)
 
-      //Graph
-      for (graph <- graphUri if !graph.isEmpty) sparql append "FROM <" + graph + ">\n"
-
-      //Body
-      sparql append "WHERE {\n"
-
-
-      if (entityDesc.restrictions.toSparql.isEmpty) {
-        sparql append "?" + entityDesc.variable + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
-      } else {
-        sparql append entityDesc.restrictions.toSparql + "\n"
-      }
-      sparql append SparqlPathBuilder(path :: Nil, "?" + entityDesc.variable, "?" + varPrefix)
-
-      sparql append "}" // END WHERE
-
-      if (useOrderBy) {
-        sparql append " ORDER BY " + "?" + entityDesc.variable
-      }
-
-      endpoint.select(sparql.toString())
+      endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
     }
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None): Unit = {
@@ -225,4 +202,55 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
   private case class PathValues(uri: String, values: Seq[String])
 
+}
+
+object ParallelEntityRetriever {
+  /** Returns a query to access values of a single path of a resource.
+    *
+    * @param subjectVar  The variable name of the subject
+    * @param restriction A SPARQL restriction defined on the subject. Must have the same variable name as the subjectVar
+    * @param path        The path that should be retrieved
+    * @param useDistinct Get distinct values. This can only happen with multi-hop paths.
+    * @param graphUri    An optional graph URI
+    * @param useOrderBy  Should the results be ordered by the subjectVar
+    * @param varPrefix   The variable prefix. The result value can be accessed via varPrefix + "0"
+    */
+  def pathQuery(subjectVar: String,
+                restriction: SparqlRestriction,
+                path: Path,
+                useDistinct: Boolean,
+                graphUri: Option[String],
+                useOrderBy: Boolean,
+                varPrefix: String): String = {
+    //Select
+    val sparql = new StringBuilder
+    sparql append "SELECT "
+    if(useDistinct) {
+      sparql append "DISTINCT "
+    }
+
+    sparql append "?" + subjectVar + " "
+    sparql append "?" + varPrefix + "0\n"
+
+    //Graph
+    for (graph <- graphUri if !graph.isEmpty) sparql append "FROM <" + graph + ">\n"
+
+    //Body
+    sparql append "WHERE {\n"
+
+
+    if (restriction.toSparql.isEmpty) {
+      sparql append "?" + subjectVar + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
+    } else {
+      sparql append restriction.toSparql + "\n"
+    }
+    sparql append SparqlPathBuilder(path :: Nil, "?" + subjectVar, "?" + varPrefix)
+
+    sparql append "}" // END WHERE
+
+    if (useOrderBy) {
+      sparql append " ORDER BY " + "?" + subjectVar
+    }
+    sparql.toString
+  }
 }

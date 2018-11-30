@@ -169,7 +169,7 @@ class CsvSource(file: Resource,
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
 
           var entryOpt = parser.parseNext()
-          var index = 0
+          var index = 1
           while (entryOpt.isDefined) {
             val entry = entryOpt.get
             if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {

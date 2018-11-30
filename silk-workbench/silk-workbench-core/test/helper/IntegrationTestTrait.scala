@@ -7,12 +7,12 @@ import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
-import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
-import org.silkframework.workspace.activity.transform.VocabularyCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.Application
 import play.api.http.Writeable
@@ -26,12 +26,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, Null, XML}
+import scala.xml.{Elem, XML}
 
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -45,14 +45,14 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
 
-  // Assume by default that anonymous access is allowed
-  implicit def userContext: UserContext = UserContext.Empty
+  def workspaceProject(projectId: String)
+                      (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
 
   override implicit lazy val app: Application = {
-    var routerConf = routes.map(r => "play.http.router" -> r).toMap
+    val routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
   }
 
@@ -198,6 +198,18 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     }
   }
 
+  /** Deletes a graph from the RDF store of the workspace, , i.e. this only works if the workspace provider
+    * is RDF-enabled. */
+  def deleteBackendGraph(graph: String): Unit = {
+    WorkspaceFactory.factory.workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider =>
+        val graphStore = rdfStore.endpoint
+        graphStore.update(s"DROP SILENT GRAPH <$graph>")
+      case e: Any =>
+        fail(s"Not a RDF-enabled workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
   def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
     val out = loadRdfIntoGraph(graph, contentType)
     val outWriter = new BufferedOutputStream(out)
@@ -238,11 +250,16 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     *                   application must supply a meaningful resource URI.
     * @return
     */
-  def executeSchemaExtractionAndDataProfiling(projectId: String, datasetId: String, datasetUri: String, uriPrefix: String): WSResponse = {
+  def executeSchemaExtractionAndDataProfiling(projectId: String,
+                                              datasetId: String,
+                                              datasetUri: String,
+                                              uriPrefix: String,
+                                              classProfilingLimit: Int = 10): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri),
-      "uriPrefix" -> Seq(uriPrefix)
+      "uriPrefix" -> Seq(uriPrefix),
+      "classProfilingLimit" -> Seq(classProfilingLimit.toString)
     ))
     checkResponse(response)
   }
@@ -333,6 +350,28 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
     val response = request.withQueryString("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
     checkResponse(response)
+  }
+
+  /**
+    * Create an empty transform task.
+    * @param projectId
+    * @param transformTaskId ID of the transform task to create.
+    * @param sourceId
+    * @param targetId
+    * @return
+    */
+  def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    checkResponse(response)
+    workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
+  }
+
+  /** Updates the root mapping rule with new mapping rules */
+  def updateTransformRules(projectId: String, transformTaskId: String, mappingRules: MappingRules): Unit = {
+    val oldTransformSpec = workspaceProject(projectId).task[TransformSpec](transformTaskId).data
+    val newTransformTask = oldTransformSpec.copy(mappingRule = oldTransformSpec.mappingRule.copy(rules = mappingRules))
+    workspaceProject(projectId).updateTask(transformTaskId, newTransformTask)
   }
 
   /**
