@@ -16,7 +16,9 @@ import scala.util.matching.Regex
 @Plugin(
   id = "sparqlUpdateOperator",
   label = "SPARQL Update Task",
-  description = "A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template. The output can be interpreted by SPARQL datasets."
+  description =
+"""A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template.
+The output of this operator should be connected to the SPARQL datasets to which the results should be written."""
 )
 case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
                                          example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")
