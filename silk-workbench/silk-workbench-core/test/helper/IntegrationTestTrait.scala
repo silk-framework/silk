@@ -198,6 +198,18 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     }
   }
 
+  /** Deletes a graph from the RDF store of the workspace, , i.e. this only works if the workspace provider
+    * is RDF-enabled. */
+  def deleteBackendGraph(graph: String): Unit = {
+    WorkspaceFactory.factory.workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider =>
+        val graphStore = rdfStore.endpoint
+        graphStore.update(s"DROP SILENT GRAPH <$graph>")
+      case e: Any =>
+        fail(s"Not a RDF-enabled workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
   def loadRdfAsStringIntoGraph(rdfString: String, graph: String, contentType: String = "application/n-triples"): Unit = {
     val out = loadRdfIntoGraph(graph, contentType)
     val outWriter = new BufferedOutputStream(out)
