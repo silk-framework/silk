@@ -45,9 +45,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
 
-  // Assume by default that anonymous access is allowed
-  implicit def userContext: UserContext = UserContext.Empty
-
   def workspaceProject(projectId: String)
                       (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
