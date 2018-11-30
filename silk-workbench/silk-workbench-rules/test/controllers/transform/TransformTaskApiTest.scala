@@ -87,7 +87,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
-    (json \ "metadata" \ "label").as[String] mustBe "Name"
+    (json \ "metadata" \ "label").as[String] mustBe "name"
   }
 
   "Update meta data of direct mapping rule" in {
@@ -126,7 +126,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
-    (json \ "metadata" \ "label").as[String] mustBe "Address"
+    (json \ "metadata" \ "label").as[String] mustBe "address"
   }
 
   "Retrieve full mapping rule tree" in {
@@ -141,7 +141,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |            "id": "uri",
  |            "pattern": "http://example.org/{PersonID}",
  |            "metadata": {
- |                "label": "Uri"
+ |                "label": "uri"
  |            }
  |        },
  |        "typeRules": [
@@ -190,7 +190,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |                },
  |                "sourcePath": "source:address",
  |                "metadata": {
- |                    "label": "Address"
+ |                    "label": "address"
  |                }
 
  |            }
@@ -226,7 +226,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "propertyRules" : [ ]
           },
           "metadata" : {
-            "label" : "Address"
+            "label" : "address"
           }
         }
       """
