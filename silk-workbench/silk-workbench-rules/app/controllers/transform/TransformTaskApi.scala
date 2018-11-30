@@ -54,7 +54,7 @@ class TransformTaskApi extends Controller {
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
-            val rule = RootMappingRule(rules = MappingRules.empty, metaData = MetaData("Root Mapping"))
+            val rule = RootMappingRule(rules = MappingRules.empty)
             val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
             project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
@@ -63,7 +63,7 @@ class TransformTaskApi extends Controller {
       case _ =>
         catchExceptions {
           deserializeCompileTime[TransformTask]() { task =>
-            project.updateTask(task.id, task.data)
+            project.updateTask(task.id, task.data, Some(task.metaData))
             Ok
           }
         }
