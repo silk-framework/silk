@@ -137,8 +137,8 @@ sealed trait ValueTransformRule extends TransformRule
   * @param rules     The rules of this mapping.
   * @param metaData  The metadata.
   */
-case class RootMappingRule(id: Identifier = RootMappingRule.defaultId,
-                           override val rules: MappingRules,
+case class RootMappingRule(override val rules: MappingRules,
+                           id: Identifier = RootMappingRule.defaultId,
                            metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
   /** Fails on the first rule it encounters that's invalid */
   override def validate(): Unit = {
@@ -182,7 +182,7 @@ object RootMappingRule {
 
   def defaultId: String = "root"
 
-  def empty: RootMappingRule = RootMappingRule(defaultId, MappingRules.empty)
+  def empty: RootMappingRule = RootMappingRule(MappingRules.empty)
 
   /**
     * XML serialization format.

@@ -54,7 +54,7 @@ class TransformTaskApi extends Controller {
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
-            val rule = RootMappingRule(RootMappingRule.defaultId, MappingRules.empty, MetaData("Root Mapping"))
+            val rule = RootMappingRule(rules = MappingRules.empty, metaData = MetaData("Root Mapping"))
             val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
             project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }

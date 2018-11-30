@@ -364,7 +364,7 @@ object JsonSerializers {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
       val id = identifier(value, RootMappingRule.defaultId)
-      RootMappingRule(id, mappingRules, metaData(value, typeName.getOrElse("RootMapping")))
+      RootMappingRule(id = id, rules = mappingRules, metaData = metaData(value, typeName.getOrElse("RootMapping")))
     }
 
     /**

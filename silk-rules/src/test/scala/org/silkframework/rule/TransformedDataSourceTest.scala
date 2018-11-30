@@ -24,7 +24,7 @@ class TransformedDataSourceTest extends FlatSpec with MustMatchers {
     val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(Path("ID")).map(_.asStringTypedPath))
     val entities = csvDataset.source.retrieve(entitySchema)
     val entityUris = entities.map(_.uri.toString).toSet
-    val mappingRule = RootMappingRule("root", MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
+    val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
       DirectMapping(sourcePath = Path("ID"), mappingTarget = MappingTarget("ID"))))
     val transformedDataSource = new TransformedDataSource(csvDataset.source, entitySchema, mappingRule)
     val transformedEntities = transformedDataSource.retrieve(entitySchema)
