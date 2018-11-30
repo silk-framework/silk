@@ -3,7 +3,6 @@ package org.silkframework.config
 import java.time.Instant
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
-import org.silkframework.util.StringUtils._
 import scala.xml._
 
 /**
@@ -44,7 +43,20 @@ object MetaData {
     * Generates a nice label from an identifier.
     */
   def labelFromId(id: String): String = {
-    id.undoCamelCase
+    val sb = new StringBuilder(id.head.toString)
+    for(i <- 1 until id.length) {
+      val c = id.charAt(i)
+      val prev = id.charAt(i - 1)
+      if(c == '_') {
+        sb += ' '
+      } else if(c.isUpper && !prev.isUpper && prev != '_') {
+        sb += ' '
+        sb += c
+      } else {
+        sb += c
+      }
+    }
+    sb.toString
   }
 
   /**
