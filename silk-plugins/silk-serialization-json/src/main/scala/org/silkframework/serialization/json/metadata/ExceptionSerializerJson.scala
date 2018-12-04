@@ -1,10 +1,10 @@
 package org.silkframework.serialization.json.metadata
 
+import java.lang.reflect.Constructor
 import org.silkframework.entity.metadata.{EntityMetadata, ExceptionSerializer}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json._
-
 import scala.util.Try
 
 case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
@@ -24,7 +24,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
         val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
         var arguments = Seq[Object]()
-        val constructor = if (cause != null) {
+        val constructor: Constructor[Throwable] = if (cause != null) {
           var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
           arguments = Seq(message.orNull, cause)
           if (zw == null) {
@@ -35,7 +35,14 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         }
         else {
           arguments = Seq(message.orNull)
-          exceptionClass.getConstructor(classOf[String])
+          try {
+            exceptionClass.getConstructor(classOf[String])
+          }
+          catch {
+            case ex: java.lang.NoSuchMethodException => null
+            case _: Throwable => throw new RuntimeException("Construction of exception representation failed for unknown reasons")
+          }
+
         }
 
         val exception = if (constructor != null) {
@@ -56,9 +63,9 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
       val className = stringValue(ste, ExceptionSerializer.CLASSNAME)
       val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
-      val fileName = Try{stringValue(ste, ExceptionSerializer.FILENAME)}.toOption
-      val lineNumber = Try{numberValue(ste, ExceptionSerializer.LINENUMBER)}.toOption
-      new StackTraceElement(className, methodName, fileName.orNull, lineNumber.map(_.toInt).getOrElse(-1))
+      val fileName = stringValue(ste, ExceptionSerializer.FILENAME)
+      val lineNumber = numberValue(ste, ExceptionSerializer.LINENUMBER)
+      new StackTraceElement(className, methodName, fileName, if(lineNumber != null) lineNumber.toInt else 0)
     }
     stackTrace.toArray
   }
