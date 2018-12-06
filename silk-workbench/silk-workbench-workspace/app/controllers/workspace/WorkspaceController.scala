@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import java.nio.file.{CopyOption, Files, StandardCopyOption}
+import java.nio.file.{Files, StandardCopyOption}
 
 import config.WorkbenchConfig
 import controllers.core.{RequestUserContextAction, UserContextAction}
@@ -38,9 +38,9 @@ class WorkspaceController extends Controller {
   def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    val dependentTasks = task.findDependentTasks(false).map(_.toString).toSeq
+    val dependentTasks = task.findDependentTasks(recursive = false).map(project.anyTask(_).taskLabel()).toSeq
 
-    Ok(views.html.workspace.removeTaskDialog(projectName, taskName, dependentTasks))
+    Ok(views.html.workspace.removeTaskDialog(projectName, taskName, task.taskLabel(), dependentTasks))
   }
 
   def removeResourceDialog(name: String, path: String): Action[AnyContent] = Action {
