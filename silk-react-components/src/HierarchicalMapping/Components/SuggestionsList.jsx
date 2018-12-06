@@ -10,6 +10,7 @@ import {
     CardActions,
     ConfirmationDialog,
     Info,
+    Warning,
     ContextMenu,
     MenuItem,
     Spinner,
@@ -72,12 +73,13 @@ const SuggestionsList = React.createClass({
             })
             .subscribe(
                 response => {
-                    const rawData = response.suggestions.map(v => ({
+                    const rawData = _.map(response.suggestions, v => ({
                         ...v,
                         checked: this.defaultCheckValue,
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
+                        warnings: response.warnings,
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -291,6 +293,9 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
+        const warnings = <Warning>
+            {_.map(this.state.warnings, warn =>warn.response.error.message).join(", ")}
+        </Warning>
 
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
@@ -299,6 +304,7 @@ const SuggestionsList = React.createClass({
                         No suggestions found for{' '}
                         <ParentElement parent={this.props.parent} />.
                     </Info>
+                    {warnings}
                 </CardContent>
             );
         } else {
@@ -395,6 +401,7 @@ const SuggestionsList = React.createClass({
                         </ContextMenu>
                     </CardMenu>
                 </CardTitle>
+                {warnings}
                 {suggestionsList}
                 <CardActions fixed>
                     <AffirmativeButton
