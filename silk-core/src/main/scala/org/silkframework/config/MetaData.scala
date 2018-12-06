@@ -82,9 +82,9 @@ object MetaData {
       case GraphDatasetRegex(number) =>
         Some(s"Graph $number")
       case DatasetRegex(number, name) =>
-        Some(s"Dataset ${splitId(name)}")
+        Some(s"Dataset ${splitId(name)} ($number)")
       case TransformRegex(number, name) =>
-        Some(s"Transform ${splitId(name)}")
+        Some(s"Transform ${splitId(name)} ($number)")
       case LinkingRegex(number1, name1, number2, name2) =>
         Some(s"Linking '${splitId(name1)}' - '${splitId(name2)}'")
       case _ =>

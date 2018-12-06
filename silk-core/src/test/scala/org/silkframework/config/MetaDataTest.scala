@@ -16,9 +16,9 @@ class MetaDataTest extends FlatSpec with MustMatchers {
   }
 
   it should "clean eccenca Corporate Memory identifiers" in {
-    labelFromId("datasetresource_1544099996423_customers_csv") mustBe "Dataset customers csv"
+    labelFromId("datasetresource_1544099996423_customers_csv") mustBe "Dataset customers csv (1544099996423)"
     labelFromId("datasetresource_1544100251496_newResource_eccencaDataPlatform") mustBe "Graph 1544100251496"
-    labelFromId("transform_datasetresource_1544099996423_customers_csv") mustBe "Transform customers csv"
+    labelFromId("transform_datasetresource_1544099996423_customers_csv") mustBe "Transform customers csv (1544099996423)"
     labelFromId("linking_transform_datasetresource_1544100171360_loans_csv_transform_datasetresource_1544099996423_customers_csv") mustBe
       "Linking 'loans csv' - 'customers csv'"
   }
