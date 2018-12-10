@@ -3,6 +3,7 @@
 @import org.silkframework.entity.AutoDetectValueType
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
+@import java.util.UUID
 
 @(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
 
@@ -45,7 +46,7 @@
 @renderEntity(entity: DetailedEntity, counter: Int) = {
   <div class="entity">
     <div class="@if(counter % 2==0) {entity-header grey} else {entity-header white}" onclick="$(this).next().slideToggle()" >
-      @prefixes.shorten(entity.uri)
+      @renderUris(entity.uris)
     </div>
     <div class="entity-details" style="display: none">
       <ul class="entity-tree">
@@ -69,13 +70,21 @@
   </div>
 }
 
+@renderUris(uris: Seq[String]) = {
+  @if(uris.isEmpty) {
+    @renderError("The URI pattern did not generate any URI for this entity.")
+  } else {
+    @uris.map(uri => prefixes.shorten(uri)).mkString(", ")
+  }
+}
+
 @renderValue(value: Value) = { @value match {
   case TransformedValue(transform, values, children, error) => {
     <li>
       <span class="input">
     Transform:@transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
-        @renderError(error)
+        @renderException(error)
       </span>
       @if(children.size > 0) {
         <ul>
@@ -89,19 +98,25 @@
       <span class="input">
     Input: @input.path.serialize()(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
-        @renderError(error)
+        @renderException(error)
       </span>
     </li>
   }
 }}
 
-@renderError(error: Option[Throwable]) = {
+@renderException(error: Option[Throwable]) = {
   @for(ex <- error) {
-    <span id="error-@error.hashCode()">
-      <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
-    </span>
-    <div class="mdl-tooltip mdl-tooltip--large mdl-tooltip--left" for="error-@error.hashCode()">
-      @ex.getMessage
-    </div>
+    @renderError(ex.getMessage)
   }
+}
+
+@renderError(error: String, id: String = UUID.randomUUID.toString) = {
+  <span>
+  <span id="error-@id">
+    <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
+  </span>
+  <div class="mdl-tooltip mdl-tooltip--large" for="error-@id">
+    @error
+  </div>
+  </span>
 }
