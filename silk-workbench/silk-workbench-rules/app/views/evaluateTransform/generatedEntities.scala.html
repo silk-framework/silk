@@ -111,12 +111,10 @@
 }
 
 @renderError(error: String, id: String = UUID.randomUUID.toString) = {
-  <span>
   <span id="error-@id">
     <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
   </span>
   <div class="mdl-tooltip mdl-tooltip--large" for="error-@id">
     @error
   </div>
-  </span>
 }
