@@ -33,7 +33,7 @@ case class CsvDataset
   @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
     linesToSkip: Int = 0,
   @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
-    maxCharsPerColumn: Int = 128000, /** Warning: Do NOT increase the default value here, it will request heap memory of this amount for every read operation of a column. */
+    maxCharsPerColumn: Int = CsvDataset.DEFAULT_MAX_CHARS_PER_COLUMN,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
@@ -75,4 +75,23 @@ case class CsvDataset
     }
     quote
   }
+}
+
+object CsvDataset {
+
+  /** Warning: Do NOT increase the default value here, it will request heap memory of this amount for every read operation of a column. */
+  val DEFAULT_MAX_CHARS_PER_COLUMN = 128000
+
+  def fromSettings(settings: CsvSettings, file: WritableResource, ignoreBadLines: Boolean = false): CsvDataset = {
+    new CsvDataset(
+      file = file,
+      separator = settings.separator.toString,
+      arraySeparator = settings.arraySeparator.map(_.toString).getOrElse(""),
+      quote = settings.quote.map(_.toString).getOrElse(""),
+      maxCharsPerColumn = settings.maxCharsPerColumn.getOrElse(DEFAULT_MAX_CHARS_PER_COLUMN),
+      quoteEscapeCharacter = settings.quoteEscapeChar.toString,
+      ignoreBadLines = ignoreBadLines
+    )
+  }
+
 }
