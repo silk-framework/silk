@@ -425,7 +425,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      PatternUriMapping(name, pattern, metaData(value, "uri"))(readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"))(readContext.prefixes)
     }
 
     /**

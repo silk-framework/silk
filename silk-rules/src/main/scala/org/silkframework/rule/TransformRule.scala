@@ -251,7 +251,7 @@ case class PatternUriMapping(id: Identifier = "uri",
                              metaData: MetaData = MetaData.empty)
                              (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern)
+  override val operator: Input = UriPattern.parse(pattern.trim())
 
   override val target: Option[MappingTarget] = None
 
