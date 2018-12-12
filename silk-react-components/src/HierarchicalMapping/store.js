@@ -350,7 +350,9 @@ hierarchicalMappingChannel
                     data: {...apiDetails, ...data},
                 })
                 .catch(err => {
-                    return Rx.Observable.return({error: err})
+                    if (err.status !== 404)
+                        return Rx.Observable.return({error: err})
+                    return Rx.Observable.return(null);
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
@@ -391,7 +393,9 @@ hierarchicalMappingChannel
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
                 .catch(err =>{
-                    return Rx.Observable.return(null)
+                    if (err.status !== 404)
+                        return Rx.Observable.return({error: err})
+                    return Rx.Observable.return(null);
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);

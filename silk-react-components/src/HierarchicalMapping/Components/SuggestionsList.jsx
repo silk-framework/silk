@@ -293,9 +293,14 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
-        const warnings = <Warning>
-            {_.map(this.state.warnings, warn =>warn.response.error.message).join(", ")}
-        </Warning>
+        const warnings = (
+            <Warning>
+                {_.map(
+                    this.state.warnings,
+                    warn => <div><b>{warn.title}</b><div>{warn.detail}</div></div>
+                )}
+            </Warning>
+        );
 
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
