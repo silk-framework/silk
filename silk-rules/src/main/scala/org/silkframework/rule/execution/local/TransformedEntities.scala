@@ -29,7 +29,7 @@ class TransformedEntities(entities: Traversable[Entity],
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
       for(path <- outputSchema.typedPaths) yield {
-        propertyRules.filter(_.target.get.asPath() == path)
+        propertyRules.filter(_.target.get.asTypedPath() == path)
       }
 
     var count = 0

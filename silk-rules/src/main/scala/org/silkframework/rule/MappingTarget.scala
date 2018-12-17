@@ -41,6 +41,10 @@ case class MappingTarget(propertyUri: Uri,
     val op = if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
     Path(List(op))
   }
+
+  def asTypedPath(): TypedPath = {
+    TypedPath(asPath(), valueType, isAttribute)
+  }
 }
 
 object MappingTarget {
