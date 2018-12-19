@@ -221,7 +221,7 @@ object TransformSpec {
 
   implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
 
-  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
+  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 
   /**
     * Holds a transform rule along with its input and output schema.
@@ -297,7 +297,7 @@ object TransformSpec {
         // Stay compatible with the old format.
         val oldRules = (node \ "TransformRule" ++ node \ "ObjectMapping").map(fromXml[TransformRule])
         if (oldRules.nonEmpty) {
-          RootMappingRule("root", MappingRules.fromSeq(oldRules))
+          RootMappingRule(MappingRules.fromSeq(oldRules))
         } else {
           (node \ "RootMappingRule").headOption match {
             case Some(node) =>
