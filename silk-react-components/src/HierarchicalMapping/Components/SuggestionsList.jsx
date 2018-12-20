@@ -297,8 +297,12 @@ const SuggestionsList = React.createClass({
             <Error>
                 {_.map(
                     this.state.warnings,
-                    warn => (warn.title && warn.detail) ?
-                        <div><b>{warn.title}</b><div>{warn.detail}</div></div>
+                    warn => (
+                        <div>
+                            <b>{warn.title}</b>
+                            <div>{warn.detail}</div>
+                        </div>
+                    ),
                 )}
             </Error>
         );
