@@ -4,6 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
+import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Link, Restriction}
 import org.silkframework.learning.LearningActivity
@@ -13,12 +14,11 @@ import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation._
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, ReferenceEntitiesCache}
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
@@ -59,7 +59,7 @@ class LinkingTaskApi extends Controller {
             outputs = outputs
           )
 
-        proj.addTask(task, linkSpec)
+        proj.addTask(task, linkSpec, MetaData(MetaData.labelFromId(task)))
       }
     }
     Ok

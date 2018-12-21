@@ -123,12 +123,18 @@ object JsonHelpers {
     }
   }
 
-  def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
+  /**
+    * Reads meta data.
+    *
+    * @param json The json to read the meta data from.
+    * @param identifier If no label is provided in the json, use this identifier to generate a label.
+    */
+  def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
     optionalValue(json, METADATA) match {
       case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson)
+        MetaDataJsonFormat.read(metaDataJson, identifier)
       case None =>
-        MetaData.empty
+        MetaData(MetaData.labelFromId(identifier))
     }
   }
 

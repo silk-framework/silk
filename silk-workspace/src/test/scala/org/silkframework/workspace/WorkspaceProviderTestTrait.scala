@@ -138,7 +138,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
       data =
         TransformSpec(
           selection = DatasetSelection(DATASET_ID, "Person"),
-          mappingRule = RootMappingRule("root",
+          mappingRule = RootMappingRule(
             MappingRules(
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData("type"))),

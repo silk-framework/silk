@@ -40,19 +40,12 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
   override def run(context: ActivityContext[ActiveLearningState])
                   (implicit userContext: UserContext): Unit = {
-    val linkSpec = task.data
-    val paths = task.activity[LinkingPathsCache].value.map(_.typedPaths)
-    val referenceEntities = task.activity[ReferenceEntitiesCache].value
-    // Update reference entities cache
-    val entitiesCache = task.activity[ReferenceEntitiesCache].control
-    entitiesCache.waitUntilFinished()
-    entitiesCache.startBlocking()
 
-    // Check if all links have been loaded
-    val entitiesSize = entitiesCache.value().positiveEntities.size + entitiesCache.value().negativeEntities.size
-    val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
-    assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
+    val linkSpec = task.data
     val datasets = task.dataSources
+    val paths = getPaths()
+    val referenceEntities = getReferenceEntities()
+
     // Update unlabeled pool
     val pool = updatePool(linkSpec, datasets, context, paths)
 
@@ -74,6 +67,35 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
     // Clean population
     cleanPopulation(referenceEntities, generator, fitnessFunction, context)
+  }
+
+  // Retrieves available paths
+  private def getPaths() = {
+    val pathsCache = task.activity[LinkingPathsCache].control
+    pathsCache.waitUntilFinished()
+
+    // Check if we got any paths
+    val paths = pathsCache.value().map(_.typedPaths)
+    assert(paths.source.nonEmpty, "No paths have been found in the source dataset (in LinkingPathsCache).")
+    assert(paths.target.nonEmpty, "No paths have been found in the target dataset (in LinkingPathsCache).")
+
+    paths
+  }
+
+  // Retrieves reference entities
+  private def getReferenceEntities()(implicit userContext: UserContext) = {
+    // Update reference entities cache
+    val entitiesCache = task.activity[ReferenceEntitiesCache].control
+    entitiesCache.waitUntilFinished()
+    entitiesCache.startBlocking()
+
+    // Check if all links have been loaded
+    val referenceEntities = entitiesCache.value()
+    val entitiesSize = referenceEntities.positiveLinks.size + referenceEntities.negativeLinks.size
+    val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
+    assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
+
+    referenceEntities
   }
 
   private def updatePool(linkSpec: LinkSpec,

@@ -39,7 +39,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   def runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-  class LinkPoolGenerator(inputs: DPair[DataSource],
+  private class LinkPoolGenerator(inputs: DPair[DataSource],
                           linkSpec: LinkSpec,
                           paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
 
