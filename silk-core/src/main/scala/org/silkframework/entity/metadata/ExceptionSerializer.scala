@@ -52,7 +52,13 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     }
     else {
       arguments = Seq(message)
-      exceptionClass.getConstructor(classOf[String])
+      try {
+        exceptionClass.getConstructor(classOf[String])
+      }
+      catch {
+        case ex: java.lang.NoSuchMethodException => null
+        case _: Throwable => throw new RuntimeException("Construction of exception representation failed for unknown reasons")
+      }
     }
 
     val exception = if (constructor != null) {
