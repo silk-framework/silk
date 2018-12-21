@@ -10,7 +10,7 @@ import {
     CardActions,
     ConfirmationDialog,
     Info,
-    Warning,
+    Error,
     ContextMenu,
     MenuItem,
     Spinner,
@@ -293,13 +293,18 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
-        const warnings = (
-            <Warning>
+        const warnings = _.isEmpty(this.state.warnings) && (
+            <Error>
                 {_.map(
                     this.state.warnings,
-                    warn => <div><b>{warn.title}</b><div>{warn.detail}</div></div>
+                    warn => (
+                        <div>
+                            <b>{warn.title}</b>
+                            <div>{warn.detail}</div>
+                        </div>
+                    ),
                 )}
-            </Warning>
+            </Error>
         );
 
         if (_.size(this.state.data) === 0) {
