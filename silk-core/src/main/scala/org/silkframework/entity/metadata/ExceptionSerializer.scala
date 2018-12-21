@@ -41,24 +41,24 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     val message = (node \ MESSAGE).text.trim
     val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
     var arguments = Seq[Object]()
-    val constructor = if (cause != null) {
-      var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-      arguments = Seq(message, cause)
-      if (zw == null) {
-        zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-        arguments = Seq(cause, message)
+    val constructor = try {
+      if (cause != null) {
+        var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
+        arguments = Seq(message, cause)
+        if (zw == null) {
+          zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
+          arguments = Seq(cause, message)
+        }
+        zw
       }
-      zw
-    }
-    else {
-      arguments = Seq(message)
-      try {
+      else {
+        arguments = Seq(message)
         exceptionClass.getConstructor(classOf[String])
       }
-      catch {
-        case ex: java.lang.NoSuchMethodException => null
-        case _: Throwable => throw new RuntimeException("Construction of exception representation failed for unknown reasons")
-      }
+    }
+    catch {
+      case _: java.lang.NoSuchMethodException => null
+      case _: Throwable => throw new RuntimeException("Construction of exception representation failed for unknown reasons")
     }
 
     val exception = if (constructor != null) {
@@ -77,7 +77,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       val methodName = (ste \ METHODNAME).text.trim
       val fileName = (ste \ FILENAME).text.trim
       val lineNumber = (ste \ LINENUMBER).text.trim
-      new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else 0)
+      new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
   }
