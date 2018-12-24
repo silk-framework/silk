@@ -12,6 +12,7 @@ import scala.util.Try
 
 case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
+  @transient
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   override def read(ex: JsValue)(implicit readContext: ReadContext): Throwable = readException(ex)
@@ -23,54 +24,75 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         val className: String = stringValue(node, ExceptionSerializer.CLASS)
         // FIXME: Many assumptions here, i was instructed to not use null, so guess i need to change the whole method, Really, that might need to redesigned anyway,
         val messageOpt: Option[String] = Try (stringValue(node, ExceptionSerializer.MESSAGE)).toOption
-        val exceptionClassOpt: Option[Class[Throwable]] = getExClass(className)
-        val exceptionCauseOpt: Option[Throwable] = getExCause(node)
-        var arguments = Seq[Object]()
-
-        val constructorOpt: Option[Constructor[Throwable]] = try {
-          if (exceptionCauseOpt.nonEmpty && exceptionClassOpt.nonEmpty) {
-            var constructor = exceptionClassOpt.get.getConstructor(classOf[String], classOf[Throwable])
-            arguments = Seq(messageOpt.orNull, exceptionCauseOpt.get)
-            if (constructor == null) {
-              constructor = exceptionClassOpt.get.getConstructor(classOf[Throwable], classOf[String])
-              arguments = Seq(exceptionCauseOpt.get, messageOpt.orNull)
-            }
-            Some(constructor)
-          }
-          else {
-            if (exceptionCauseOpt.nonEmpty) {
-              arguments = Seq(messageOpt.orNull)
-              Some(exceptionClassOpt.get.getConstructor(classOf[String]))
-            }
-            else {
-              None // no class -> no constructor
-            }
-          }
+        val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClass(className)
+        val exceptionCauseOpt: Option[Throwable] = getExceptionCause(node)
+        val constructorOpt: Option[Constructor[Throwable]] = getExceptionConstructor(
+          exceptionCauseOpt, exceptionClassOpt, messageOpt, className
+        )
+        if (constructorOpt.nonEmpty && exceptionCauseOpt.isEmpty) {
+          val exception = exceptionClassOpt.get.cast(constructorOpt.get.newInstance(Seq[Object](): _*))
+          exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
+          exception
         }
-        catch {
-          case _: java.lang.NoSuchMethodException =>
-            logger.error(s"A constructor for the exception: ${className} could not be found and can not be serialized")
-            None // no constructor
-          case _: Throwable =>
-            throw new RuntimeException(s"Construction of exception class ${className} failed for unknown reasons")
-        }
-
-        if (constructorOpt.nonEmpty) {
-          val exception = exceptionClassOpt.get.cast(constructorOpt.get.newInstance(arguments: _*))
+        else if (constructorOpt.nonEmpty && exceptionCauseOpt.nonEmpty) {
+          val exception = exceptionClassOpt.get.cast(constructorOpt.get.newInstance(exceptionCauseOpt.get, messageOpt.orNull))
           exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
           exception
         }
         else {
-          new Exception("Emulated Exception of class: " + className + ", original message: " +
-            messageOpt.orNull, causeOpt.getOrElse(UnknownCause("Exceptio with an unknown source"))
+          new Exception(
+            "Emulated Exception of class: $className original message: " +  messageOpt.orNull,
+            exceptionCauseOpt.getOrElse(UnknownCauseException("Exception with an unknown source was serialized b/c missing exception information"))
+          )
         }
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
   }
 
 
+  /**
+    * Some method to determine the constructor of a Throwable with out that being necessarily there.
+    * Depending the input, that is largely optional diffrent constructors a searched via reflection.
+    *
+    * @param cause            Optional Throwable
+    * @param exceptionClass   Optional Class
+    * @param message          Message
+    * @param className        className
+    * @return Constructor of a Throwable or None
+    */
+  private def getExceptionConstructor(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]],
+                               message: Option[String], className: String): Option[Constructor[Throwable]] = {
+    try {
+      var arguments = Seq[Object]()
+      if (cause.nonEmpty && exceptionClass.nonEmpty) {
+        var constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String], classOf[Throwable])
+        arguments = Seq(message.orNull, cause.get)
+        if (constructor == null) {
+          constructor = exceptionClass.get.getConstructor(classOf[Throwable], classOf[String])
+        }
+        Some(constructor)
+      }
+      else {
+        if (cause.nonEmpty) {
+          arguments = Seq(message.orNull)
+          Some(exceptionClass.get.getConstructor(classOf[String]))
+        }
+        else {
+          None // no class -> no constructor
+        }
+      }
+    }
+    catch {
+      case _: java.lang.NoSuchMethodException =>
+        logger.error(s"A constructor for the exception: $className could not be found and can not be serialized")
+        None // no constructor
+      case _: Throwable =>
+        throw new RuntimeException(s"Construction of exception class $className failed for unknown reasons")
+    }
+  }
+
   /* Following methods help to get optional classes, causes etc. to make the above readable and usable */
-  private def getExClass(className: String):Option[Class[Throwable]] = {
+  private def getExceptionClass(className: String):Option[Class[Throwable]] = {
     try {
       Some(Class.forName(className).asInstanceOf[Class[Throwable]])
     } catch {
@@ -80,15 +102,11 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     }
   }
 
-  private def getExCause(node: JsValue): Option[Throwable] = {
+  private def getExceptionCause(node: JsValue): Option[Throwable] = {
     (node \ ExceptionSerializer.CAUSE).toOption match {
       case Some(c) => Some(readException(c))
       case None => None
     }
-  }
-
-  private def getExConstructor(): Option[Contructor[Throwable]] = {
-
   }
 
   def readStackTrace(node: JsArray): Array[StackTraceElement] = {

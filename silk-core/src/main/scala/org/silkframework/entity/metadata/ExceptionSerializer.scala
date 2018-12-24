@@ -2,7 +2,6 @@ package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import ExceptionSerializer._
-
 import scala.xml.{Elem, Node}
 
 /**
@@ -14,8 +13,9 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
   def readException(node: Node): Throwable ={
-    if(node == null || node.text.trim.isEmpty)
+    if(node == null || node.text.trim.isEmpty) {
       return null
+    }
 
     val className = (node \ CLASS).text.trim
     val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
