@@ -1,7 +1,11 @@
 package org.silkframework.entity.metadata
 
+import java.lang.reflect.Constructor
+
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import ExceptionSerializer._
+import org.slf4j.LoggerFactory
+
 import scala.xml.{Elem, Node}
 
 /**
@@ -9,6 +13,9 @@ import scala.xml.{Elem, Node}
   * NOTE: use [[readException]] and [[write]] to reference more specific Serializers for subclasses of Throwable
   */
 case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
+
+  @transient
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
@@ -39,37 +46,74 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     */
   def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
     val message = (node \ MESSAGE).text.trim
-    val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
-    var arguments = Seq[Object]()
-    val constructor = try {
-      if (cause != null) {
-        var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-        arguments = Seq(message, cause)
-        if (zw == null) {
-          zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-          arguments = Seq(cause, message)
-        }
-        zw
-      }
-      else {
-        arguments = Seq(message)
-        exceptionClass.getConstructor(classOf[String])
-      }
-    }
-    catch {
-      case _: java.lang.NoSuchMethodException => null
-      case _: Throwable => throw new RuntimeException("Construction of exception representation failed for unknown reasons")
-    }
+    val causeOpt = getExceptionCasue(node)
+    val constructorOpt = getExceptionConstructor(causeOpt, exceptionClass, message, exceptionClass.getSimpleName)
 
-    val exception = if (constructor != null) {
-      exceptionClass.cast(constructor.newInstance(arguments: _*))
+    val exception = if (constructorOpt.nonEmpty) {
+      exceptionClass.cast(constructorOpt.get.newInstance(Seq[Object](): _*))
     }
     else {
-      new Exception("Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message, cause)
+      new Exception(
+        "Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message,
+        causeOpt.getOrElse(null)
+      )
     }
     exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
     exception
   }
+
+
+  /**
+    * Method to help retrieve optional causes.
+    *
+    * @param node
+    * @return
+    */
+  private def getExceptionCasue(node: Node): Option[Throwable] = {
+    val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
+    if (cause == null) {
+      None
+    }
+    else {
+      Some(cause)
+    }
+  }
+
+  /**
+    * Some method to determine the constructor of a Throwable with out that being necessarily there.
+    * Depending the input, that is largely optional different constructors a searched via reflection.
+    *
+    * @param cause            Optional Throwable
+    * @param exceptionClass   Class
+    * @param message          Message
+    * @param className        className
+    * @return Constructor of a Throwable or None
+    */
+  def getExceptionConstructor(cause: Option[Throwable], exceptionClass: Class[Throwable], message: String,
+                              className: String): Option[Constructor[Throwable]] = {
+    try {
+      var arguments = Seq[Object]()
+      if (cause.nonEmpty) {
+        var constructor = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
+        arguments = Seq(message, cause)
+        if (constructor == null) {
+          constructor = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
+          arguments = Seq(cause, message)
+        }
+        Some(constructor)
+      }
+      else {
+        arguments = Seq(message)
+        Some(exceptionClass.getConstructor(classOf[String]))
+      }
+    }
+    catch {
+      case _: java.lang.NoSuchMethodException => None
+      case _: Throwable => throw new RuntimeException(s"Construction of exception $className failed for unknown reasons")
+    }
+  }
+
+
 
   def readStackTrace(node: Node): Array[StackTraceElement] ={
     val stackTrace = for(ste <- node \ STELEMENT) yield{
@@ -77,6 +121,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       val methodName = (ste \ METHODNAME).text.trim
       val fileName = (ste \ FILENAME).text.trim
       val lineNumber = (ste \ LINENUMBER).text.trim
+      // please review: I did not chenge from 0 to -1, That seems better, though
       new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
