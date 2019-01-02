@@ -93,9 +93,10 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
   private def getExceptionClassOption(className: String): Option[Class[Throwable]] = {
     try {
       Some(Class.forName(className).asInstanceOf[Class[Throwable]])
-    } catch {
+    }
+    catch {
       case _: Throwable =>
-        logger.error("The raised exception does not exist as a known class and can't be serialized")
+        logger.error("The raised exception object does not exist as a known class and can't be serialized")
         None
     }
   }
