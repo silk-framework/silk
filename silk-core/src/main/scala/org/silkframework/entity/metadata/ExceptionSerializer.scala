@@ -55,7 +55,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     else {
       new Exception(
         "Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message,
-        causeOpt.getOrElse(null)
+        causeOpt.orNull
       )
     }
     exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
@@ -116,7 +116,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       val methodName = (ste \ METHODNAME).text.trim
       val fileName = (ste \ FILENAME).text.trim
       val lineNumber = (ste \ LINENUMBER).text.trim
-      // please review: I did not chenge from 0 to -1, That seems better, though
+      // please review: I did not change from 0 to -1, That seems better, though.
       new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
