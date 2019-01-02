@@ -46,7 +46,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     */
   def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
     val message = (node \ MESSAGE).text.trim
-    val causeOpt = getExceptionCasue(node)
+    val causeOpt = getExceptionCauseOption(node)
     val constructorOpt = getExceptionConstructor(causeOpt, exceptionClass, message, exceptionClass.getSimpleName)
 
     val exception = if (constructorOpt.nonEmpty) {
@@ -69,14 +69,9 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     * @param node
     * @return
     */
-  private def getExceptionCasue(node: Node): Option[Throwable] = {
+  private def getExceptionCauseOption(node: Node): Option[Throwable] = {
     val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
-    if (cause == null) {
-      None
-    }
-    else {
-      Some(cause)
-    }
+    Option(cause)
   }
 
   /**

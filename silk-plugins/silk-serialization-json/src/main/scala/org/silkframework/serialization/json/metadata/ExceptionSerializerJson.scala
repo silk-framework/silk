@@ -22,11 +22,10 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
       case JsNull => null
       case JsObject(_) =>
         val className: String = stringValue(node, ExceptionSerializer.CLASS)
-        // FIXME: Many assumptions here, i was instructed to not use null, so guess i need to change the whole method, Really, that might need to redesigned anyway,
         val messageOpt: Option[String] = Try (stringValue(node, ExceptionSerializer.MESSAGE)).toOption
-        val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClass(className)
-        val exceptionCauseOpt: Option[Throwable] = getExceptionCause(node)
-        val constructorOpt: Option[Constructor[Throwable]] = getExceptionConstructor(
+        val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClassOption(className)
+        val exceptionCauseOpt: Option[Throwable] = getExceptionCauseOption(node)
+        val constructorOpt: Option[Constructor[Throwable]] = getExceptionConstructorOption(
           exceptionCauseOpt, exceptionClassOpt, messageOpt, className
         )
         if (constructorOpt.nonEmpty && exceptionCauseOpt.isEmpty) {
@@ -39,11 +38,10 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
           exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
           exception
         }
-        else {
-          new Exception(
-            "Emulated Exception of class: $className original message: " +  messageOpt.orNull,
-            exceptionCauseOpt.getOrElse(UnknownCauseException("Exception with an unknown source was serialized b/c missing exception information"))
-          )
+        else { // Either the constructor is missing or the exception has no cause.
+          val message =  "Emulated Exception of class: $className original message: " +  messageOpt.orNull
+          val unknownCause = "Exception with an UnknownCause (@see UnknownCauseException.scala} will be used"
+          new Exception(message, exceptionCauseOpt.getOrElse(UnknownCause(unknownCause)))
         }
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
@@ -60,8 +58,8 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     * @param className        className
     * @return Constructor of a Throwable or None
     */
-  private def getExceptionConstructor(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]],
-                               message: Option[String], className: String): Option[Constructor[Throwable]] = {
+  private def getExceptionConstructorOption(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]],
+                                            message: Option[String], className: String): Option[Constructor[Throwable]] = {
     try {
       var arguments = Seq[Object]()
       if (cause.nonEmpty && exceptionClass.nonEmpty) {
@@ -92,7 +90,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
   }
 
   /* Following methods help to get optional classes, causes etc. to make the above readable and usable */
-  private def getExceptionClass(className: String):Option[Class[Throwable]] = {
+  private def getExceptionClassOption(className: String): Option[Class[Throwable]] = {
     try {
       Some(Class.forName(className).asInstanceOf[Class[Throwable]])
     } catch {
@@ -102,7 +100,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     }
   }
 
-  private def getExceptionCause(node: JsValue): Option[Throwable] = {
+  private def getExceptionCauseOption(node: JsValue): Option[Throwable] = {
     (node \ ExceptionSerializer.CAUSE).toOption match {
       case Some(c) => Some(readException(c))
       case None => None
@@ -114,7 +112,6 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
       val className = stringValue(ste, ExceptionSerializer.CLASSNAME)
       val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
       val fileName: String = stringValue(ste, ExceptionSerializer.FILENAME)
-      //stringValueOption(ste, ExceptionSerializer.FILENAME).getOrElse("unknown")
       val lineNumber = numberValue(ste, ExceptionSerializer.LINENUMBER)
       new StackTraceElement(className, methodName, fileName, if (lineNumber != null) lineNumber.toInt else 0)
     }
