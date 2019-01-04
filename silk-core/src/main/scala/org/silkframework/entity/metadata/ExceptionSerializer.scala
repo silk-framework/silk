@@ -6,6 +6,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import ExceptionSerializer._
 import org.slf4j.LoggerFactory
 
+import scala.Option
 import scala.xml.{Elem, Node}
 
 /**
@@ -20,19 +21,29 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
   def readException(node: Node): Throwable ={
-    if(node == null || node.text.trim.isEmpty) {
-      return null
+
+    node match {
+      case null =>
+        null
+      case _ =>
+        val className = (node \ CLASS).text.trim
+        val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
+
+        //FIXME introduce an automated registry for this switch?
+        exceptionClass match{
+          //NOTE: insert special Exception reading switch here
+          //case ex: SpecialException => readSpecialException(..)
+          case _ => readDefaultThrowable(node, exceptionClass)
+        }
+//      case _ =>
+//        throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
 
-    val className = (node \ CLASS).text.trim
-    val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
+//    if(node == null || node.text.trim.isEmpty) {
+//      return null
+//    }
 
-    //FIXME introduce an automated registry for this switch?
-    exceptionClass match{
-    //NOTE: insert special Exception reading switch here
-    //case ex: SpecialException => readSpecialException(..)
-      case _ => readDefaultThrowable(node, exceptionClass)
-    }
+
   }
 
   /**
