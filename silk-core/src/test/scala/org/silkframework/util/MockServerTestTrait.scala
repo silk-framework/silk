@@ -14,6 +14,7 @@ trait MockServerTestTrait {
   final val START_PORT = 10600
 
   final val OK = 200
+  final val NO_CONTENT = 204
   final val INTERNAL_SERVER_ERROR_CODE = 500
   final val BAD_REQUEST_ERROR_CODE = 400
   final val UNAUTHORIZED = 401
