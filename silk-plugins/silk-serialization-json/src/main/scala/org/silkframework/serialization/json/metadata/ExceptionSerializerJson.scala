@@ -41,7 +41,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         else { // Either the constructor is missing or the exception has no cause.
           val message =  "Emulated Exception of class: $className original message: " +  messageOpt.orNull
           val unknownCause = "Exception with an UnknownCause (@see UnknownCauseException.scala} will be used"
-          new Exception(message, exceptionCauseOpt.getOrElse(UnknownCause(unknownCause)))
+          new Exception(message, exceptionCauseOpt.getOrElse(UnknownCauseException(unknownCause)))
         }
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }

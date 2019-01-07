@@ -8,7 +8,7 @@ import play.api.libs.json.JsValue
 class ExceptionSerializerTest extends FlatSpec with Matchers {
 
   //* test objects //*
-  it should "not fail on exceptions without certain features occur in exception objects (missing string constructor, null values)" in {
+  it should "not fail when exceptions without certain features occur in exception objects (missing string constructor, null values)" in {
 
     val ser = ExceptionSerializer()
     val cau = new Throwable("cause")
@@ -44,13 +44,14 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
         None
     }
 
-//    assert(throwable1.nonEmpty && throwable2.nonEmpty)
-    throwable1.get.getMessage shouldBe ex1.getMessage
-    throwable2.get.getMessage shouldBe ex2.getMessage
+    assert(throwable1.nonEmpty && throwable2.nonEmpty)
+
+    throwable1.get.getMessage shouldBe "Emulated Exception of class: java.lang.Class, original message: Some()"
+    throwable2.get.getMessage shouldBe "Emulated Exception of class: java.lang.Class, original message: Some()"
 
   }
 
-  it should "not fail on exceptions without certain features occur in exception objects (missing string constructor, illegal or wrong number of arguments)" in {
+  it should "not fail when exceptions without certain features occur in exception objects (missing string constructor, illegal or wrong number of arguments)" in {
 
     val ser = ExceptionSerializerJson()
     val cau = new Throwable("cause")
@@ -83,6 +84,9 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
         None
     }
     assert(throwable1.nonEmpty && throwable2.nonEmpty)
+    throwable1.get.getMessage shouldBe "Emulated Exception of class: $className original message: null"
+    throwable2.get.getMessage shouldBe "Emulated Exception of class: $className original message: null"
+
   }
 
   it should "not fail when a stacktrace is missing the class/fileName or message/cause fields" in {
@@ -116,7 +120,6 @@ case class NoConstructorThrowable(ex: Throwable) extends Throwable
 
 case class NullsEveryWereException(s: String) extends Throwable {
   override def getMessage: String = {
-    println("Return null msg")
     "null"
   }
 

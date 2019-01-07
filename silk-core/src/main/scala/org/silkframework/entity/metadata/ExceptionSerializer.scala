@@ -26,8 +26,14 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       case null =>
         null
       case _ =>
-        val className = (node \ CLASS).text.trim
-        val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
+        val className = getExceptionClassOption(node)
+        // FIXME this is strange the class name can be empty but cannot be overwritten with null the unknown cause option
+        val exceptionClass = if (className.isDefined) {
+          className.get.getClass.asInstanceOf[Class[Throwable]]
+        }
+        else {
+          new UnknownError("Exception without an associated class").getClass.asInstanceOf[Class[Throwable]]
+        }
 
         //FIXME introduce an automated registry for this switch?
         exceptionClass match{
@@ -38,10 +44,6 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 //      case _ =>
 //        throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
-
-//    if(node == null || node.text.trim.isEmpty) {
-//      return null
-//    }
 
 
   }
@@ -56,9 +58,10 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     * @return
     */
   def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
-    val message = (node \ MESSAGE).text.trim
+    val message = Option((node \ MESSAGE).text.trim)
     val causeOpt = getExceptionCauseOption(node)
-    val constructorOpt = getExceptionConstructor(causeOpt, exceptionClass, message, exceptionClass.getSimpleName)
+    val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClassOption(node)
+    val constructorOpt = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
 
     val exception = if (constructorOpt.nonEmpty) {
       exceptionClass.cast(constructorOpt.get.newInstance(Seq[Object](): _*))
@@ -69,7 +72,8 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
         causeOpt.orNull
       )
     }
-    exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
+
+    if ((node \ STACKTRACE).nonEmpty) exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
     exception
   }
 
@@ -86,6 +90,29 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   }
 
   /**
+    * Method to help retrieve the exception class, which should not be empty but apparently is sometimes.
+    *
+    * @param node
+    * @return
+    */
+  private def getExceptionClassOption(node: Node): Option[Class[Throwable]] = {
+    val className = (node \ CLASS).text
+    try {
+      if (className.isEmpty) {
+        None
+      }
+      else {
+        Some(className.getClass.asInstanceOf[Class[Throwable]])
+      }
+    }
+    catch {
+      case _: Throwable =>
+        logger.error("The raised exception object does not exist as a known class and can't be serialized")
+        None
+    }
+  }
+
+  /**
     * Some method to determine the constructor of a Throwable with out that being necessarily there.
     * Depending the input, that is largely optional different constructors a searched via reflection.
     *
@@ -95,26 +122,31 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     * @param className        className
     * @return Constructor of a Throwable or None
     */
-  def getExceptionConstructor(cause: Option[Throwable], exceptionClass: Class[Throwable], message: String,
+  def getExceptionConstructorOption(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]], message: Option[String],
                               className: String): Option[Constructor[Throwable]] = {
     try {
       var arguments = Seq[Object]()
-      if (cause.nonEmpty) {
-        var constructor = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-        arguments = Seq(message, cause)
+      if (cause.nonEmpty && exceptionClass.nonEmpty) {
+        var constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String], classOf[Throwable])
+        arguments = Seq(message.orNull, cause.get)
         if (constructor == null) {
-          constructor = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-          arguments = Seq(cause, message)
+          constructor = exceptionClass.get.getConstructor(classOf[Throwable], classOf[String])
         }
         Some(constructor)
       }
       else {
-        arguments = Seq(message)
-        Some(exceptionClass.getConstructor(classOf[String]))
+        if (cause.nonEmpty) {
+          arguments = Seq(message.orNull)
+          Some(exceptionClass.get.getConstructor(classOf[String]))
+        }
+        else {
+          None // no class -> no constructor
+        }
       }
     }
     catch {
       case _: java.lang.NoSuchMethodException => None
+      case _: java.lang.IllegalArgumentException => None
       case _: Throwable => throw new RuntimeException(s"Construction of exception $className failed for unknown reasons")
     }
   }
@@ -127,7 +159,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       val methodName = (ste \ METHODNAME).text.trim
       val fileName = (ste \ FILENAME).text.trim
       val lineNumber = (ste \ LINENUMBER).text.trim
-      // please review: I did not change from 0 to -1, That seems better, though.
+      // please review: I did not change from 0 to -1. That seems better, though.
       new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
