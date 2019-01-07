@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{AbortExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
