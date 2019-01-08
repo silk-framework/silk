@@ -1,5 +1,6 @@
 package org.silkframework.util
 
+import java.io.BufferedInputStream
 import java.net.{BindException, InetSocketAddress}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
@@ -52,6 +53,9 @@ trait MockServerTestTrait {
   }
 
   private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
+    // Consume body if available
+    val is = new BufferedInputStream(httpExchange.getRequestBody)
+    while(is.read() != -1) {}
     val response = responseContent.content
     val responseHeaders = httpExchange.getResponseHeaders
     if(responseContent.statusCode == 204) {
