@@ -54,11 +54,16 @@ trait MockServerTestTrait {
   private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
     val response = responseContent.content
     val responseHeaders = httpExchange.getResponseHeaders
-    responseHeaders.add("content-type", responseContent.contentType)
-    httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
-    val os = httpExchange.getResponseBody
-    os.write(response.getBytes("UTF-8"))
-    os.close()
+    if(responseContent.statusCode == 204) {
+      // No Content
+      httpExchange.sendResponseHeaders(responseContent.statusCode, -1)
+    } else {
+      responseHeaders.add("content-type", responseContent.contentType)
+      httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
+      val os = httpExchange.getResponseBody
+      os.write(response.getBytes("UTF-8"))
+      os.close()
+    }
   }
 
   def stopAllRegisteredServers(): Unit = {

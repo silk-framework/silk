@@ -42,7 +42,9 @@ trait GraphStoreTrait {
     val connectionTimeout = cfg.getInt("graphstore.default.connection.timeout.ms")
     val readTimeout = cfg.getInt("graphstore.default.read.timeout.ms")
     val maxRequestSize = cfg.getLong("graphstore.default.max.request.size")
-    GraphStoreDefaults(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout, maxRequestSize = maxRequestSize)
+    val fileUploadTimeout = cfg.getInt("graphstore.default.fileUpload.timeout.ms")
+    GraphStoreDefaults(connectionTimeoutInMs = connectionTimeout, readTimeoutMs = readTimeout,
+      maxRequestSize = maxRequestSize, fileUploadTimeoutInMs = fileUploadTimeout)
   }
 
   /**
@@ -96,7 +98,7 @@ trait GraphStoreTrait {
     for ((header, headerValue) <- graphStoreHeaders(userContext)) {
       connection.setRequestProperty(header, headerValue)
     }
-    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutInMs)
     connection.setReadTimeout(defaultTimeouts.readTimeoutMs)
     connection
   }
@@ -205,7 +207,10 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
   }
 }
 
-case class GraphStoreDefaults(connectionTimeoutIsMs: Int, readTimeoutMs: Int, maxRequestSize: Long)
+case class GraphStoreDefaults(connectionTimeoutInMs: Int,
+                              readTimeoutMs: Int,
+                              maxRequestSize: Long,
+                              fileUploadTimeoutInMs: Int)
 
 case class ErrorHandler(genericErrorHandler: (HttpURLConnection, String) => Nothing,
                         authenticationErrorHandler: (UserContext) => Boolean = (_) => false)
