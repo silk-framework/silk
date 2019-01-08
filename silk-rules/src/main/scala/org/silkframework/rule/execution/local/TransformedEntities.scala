@@ -21,7 +21,7 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
-  private val report = new TransformReportBuilder(propertyRules)
+  private val report = new TransformReportBuilder(rules)
 
   private var errorFlag = false
 
@@ -35,9 +35,8 @@ class TransformedEntities(entities: Traversable[Entity],
     var count = 0
     for(entity <- entities) {
       errorFlag = false
-
       val uris = subjectRule match {
-        case Some(rule) => rule(entity)
+        case Some(rule) => evaluateRule(entity, rule)
         case None => Seq(entity.uri.toString)
       }
 
@@ -62,16 +61,18 @@ class TransformedEntities(entities: Traversable[Entity],
 
         f(Entity(uri, values, outputSchema))
 
-        report.incrementEntityCounter()
-        if (errorFlag) {
-          report.incrementEntityErrorCounter()
-        }
         count += 1
         if (count % 1000 == 0) {
           context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
         }
       }
+
+      report.incrementEntityCounter()
+      if (errorFlag) {
+        report.incrementEntityErrorCounter()
+      }
+
     }
     context.value() = report.build()
   }

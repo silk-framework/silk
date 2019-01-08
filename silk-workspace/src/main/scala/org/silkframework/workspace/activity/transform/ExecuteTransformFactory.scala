@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 @Plugin(
-  id = "ExecuteTransform",
+  id = ExecuteTransformFactory.ID,
   label = "Execute Transform",
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."
@@ -30,4 +30,10 @@ case class ExecuteTransformFactory(
       )
     }
   }
+}
+
+object ExecuteTransformFactory {
+
+  final val ID = "ExecuteTransform"
+
 }
