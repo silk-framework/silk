@@ -14,6 +14,12 @@ object TransformSerializers {
     final val ENTITY_ERROR_COUNTER = "entityErrorCounter"
     final val RULE_RESULTS = "ruleResults"
 
+    final val ERROR_COUNT = "errorCount"
+    final val SAMPLE_ERRORS = "sampleErrors"
+
+    final val ENTITY = "entity"
+    final val VALUE = "value"
+
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         ENTITY_COUNTER -> value.entityCounter,
@@ -32,15 +38,15 @@ object TransformSerializers {
 
     private def writeRuleResult(ruleResult: RuleResult): JsValue = {
       Json.obj(
-      "errorCount" -> ruleResult.errorCount,
-        "sampleErrors" -> ruleResult.sampleErrors.map(writeRuleError)
+        ERROR_COUNT -> ruleResult.errorCount,
+        SAMPLE_ERRORS -> ruleResult.sampleErrors.map(writeRuleError)
       )
     }
 
     private def writeRuleError(ruleError: RuleError): JsValue = {
       Json.obj(
-      "entity" -> ruleError.entity,
-        "value" -> ruleError.value
+        ENTITY -> ruleError.entity,
+        VALUE -> ruleError.value
       )
     }
 
