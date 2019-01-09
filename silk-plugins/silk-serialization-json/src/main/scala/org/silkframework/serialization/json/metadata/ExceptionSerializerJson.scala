@@ -33,11 +33,6 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
           exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
           exception
         }
-        else if (constructorOpt.nonEmpty && exceptionCauseOpt.nonEmpty) {
-          val exception = exceptionClassOpt.get.cast(constructorOpt.get.newInstance(exceptionCauseOpt.get, messageOpt.orNull))
-          exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
-          exception
-        }
         else { // Either the constructor is missing or the exception has no cause.
           val message =  "Emulated Exception of class: $className original message: " +  messageOpt.orNull
           val unknownCause = "Exception with an UnknownCause (@see UnknownCauseException.scala} will be used"
@@ -49,8 +44,8 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
 
   /**
-    * Some method to determine the constructor of a Throwable with out that being necessarily there.
-    * Depending the input, that is largely optional diffrent constructors a searched via reflection.
+    * Method to determine the constructor of a Throwable.
+    * Returns None and prints a warning in unexpected cases.
     *
     * @param cause            Optional Throwable
     * @param exceptionClass   Optional Class
@@ -71,7 +66,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         Some(constructor)
       }
       else {
-        if (cause.nonEmpty) {
+        if (cause.isEmpty) {
           arguments = Seq(message.orNull)
           Some(exceptionClass.get.getConstructor(classOf[String]))
         }
@@ -82,10 +77,11 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     }
     catch {
       case _: java.lang.NoSuchMethodException =>
-        logger.error(s"A constructor for the exception: $className could not be found and can not be serialized")
-        None // no constructor
+        logger.warn(s"A constructor for the exception: $className could not be found.")
+        None
       case _: Throwable =>
-        throw new RuntimeException(s"Construction of exception class $className failed for unknown reasons")
+        logger.error(s"Determining the constructor for: $className failed for unknown reasons.")
+        None
     }
   }
 
@@ -96,7 +92,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     }
     catch {
       case _: Throwable =>
-        logger.error("The raised exception object does not exist as a known class and can't be serialized")
+        logger.error(s"The raised exception object $className does not exist as a known class and can't be serialized")
         None
     }
   }
