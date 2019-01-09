@@ -2,7 +2,6 @@ package org.silkframework.rule.execution
 
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.execution.TransformReport._
-import org.silkframework.rule.TransformRule
 import org.silkframework.util.Identifier
 
 /**

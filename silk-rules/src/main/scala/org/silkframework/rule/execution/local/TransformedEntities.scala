@@ -21,7 +21,7 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
-  private val report = new TransformReportBuilder(rules, context.value())
+  private val report = new TransformReportBuilder(rules, context.value.get.getOrElse(TransformReport()))
 
   private var errorFlag = false
 
