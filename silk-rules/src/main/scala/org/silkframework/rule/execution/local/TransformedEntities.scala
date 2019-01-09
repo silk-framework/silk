@@ -3,9 +3,9 @@ package org.silkframework.rule.execution.local
 import java.util.logging.Logger
 
 import org.silkframework.entity.{Entity, EntitySchema, UriValueType}
-import org.silkframework.execution.{ExecutionException, ExecutionReport}
+import org.silkframework.execution.ExecutionException
 import org.silkframework.rule.TransformRule
-import org.silkframework.rule.execution.TransformReportBuilder
+import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.runtime.activity.ActivityContext
 
 import scala.util.control.NonFatal
@@ -13,7 +13,7 @@ import scala.util.control.NonFatal
 class TransformedEntities(entities: Traversable[Entity],
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
-                          context: ActivityContext[ExecutionReport]) extends Traversable[Entity] {
+                          context: ActivityContext[TransformReport]) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -21,7 +21,7 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
-  private val report = new TransformReportBuilder(rules)
+  private val report = new TransformReportBuilder(rules, context.value())
 
   private var errorFlag = false
 

@@ -5,6 +5,7 @@ import org.silkframework.entity.{EntitySchema, TypedPath}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
 import org.silkframework.rule._
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 import scala.collection.mutable
@@ -45,7 +46,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
       val entities = inputTables.remove(0).entities
 
-      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context)
+      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context.asInstanceOf[ActivityContext[TransformReport]])
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
       for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {

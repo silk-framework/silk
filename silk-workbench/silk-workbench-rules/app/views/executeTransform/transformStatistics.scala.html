@@ -28,6 +28,7 @@
     </thead>
     <tbody>
 
+    @** Currently, the results are unsorted. We could structure them according to the rule structure instead. *@
     @for((ruleId, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
       <tr class="mdl-color--blue-grey-100">
         <td><b>@task.data.ruleById(ruleId).metaData.formattedLabel(defaultLabel = ruleId, maxLength = 100)</b></td>
