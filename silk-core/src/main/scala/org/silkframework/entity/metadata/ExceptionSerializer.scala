@@ -27,25 +27,19 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
         null
       case _ =>
         val className = getExceptionClassOption(node)
-        // FIXME this is strange the class name can be empty but cannot be overwritten with null the unknown cause option
         val exceptionClass = if (className.isDefined) {
           className.get.getClass.asInstanceOf[Class[Throwable]]
         }
         else {
           new UnknownError("Exception without an associated class").getClass.asInstanceOf[Class[Throwable]]
         }
-
         //FIXME introduce an automated registry for this switch?
         exceptionClass match{
           //NOTE: insert special Exception reading switch here
           //case ex: SpecialException => readSpecialException(..)
           case _ => readDefaultThrowable(node, exceptionClass)
         }
-//      case _ =>
-//        throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
-
-
   }
 
   /**
@@ -68,7 +62,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     }
     else {
       new Exception(
-        "Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message,
+        "Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message.getOrElse("null"),
         causeOpt.orNull
       )
     }
