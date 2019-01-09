@@ -29,17 +29,41 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
           exceptionCauseOpt, exceptionClassOpt, messageOpt, className
         )
         if (constructorOpt.nonEmpty) {
-          val exception = exceptionClassOpt.get.cast(constructorOpt.get.newInstance(Seq[Object](): _*))
+          val arguments = getArgumentsForConstructor(constructorOpt.get, messageOpt, exceptionCauseOpt)
+          val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
+          val exception = exceptionClass.cast(constructorOpt.get.newInstance(arguments: _*))
           exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
           exception
         }
-        else { // constructor is missing or the exception has no cause.
+        else { // constructor is missing
           new Exception(
             s"Emulated Exception of class: ${exceptionClassOpt.get.getCanonicalName} original message: ${messageOpt.orNull}",
             exceptionCauseOpt.orNull
           )
         }
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
+    }
+  }
+
+  private def getArgumentsForConstructor(constructor: Constructor[Throwable], message : Option[String], cause: Option[Throwable]): Seq[Object] = {
+    if (constructor.getParameterCount == 0) {
+      Seq[Object]()
+    }
+    else if(constructor.getParameterCount == 1) {
+      if (constructor.getParameterTypes.head.equals(new java.lang.String().getClass)) {
+        Seq(message.orNull)
+      }
+      else {
+        Seq(cause.orNull)
+      }
+    }
+    else {
+      if (constructor.getParameterTypes.head.equals(new java.lang.String().getClass)) {
+        Seq(message.orNull, cause.orNull)
+      }
+      else {
+        Seq(cause.orNull, message.orNull)
+      }
     }
   }
 
