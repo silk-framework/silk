@@ -23,7 +23,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val ex2 = UnknownCauseException("no known cause") // has been observed to lead to to NPE in situations
     val throwable1 = serializeThrowableJson(ex1)
     val throwable2 = serializeThrowableJson(ex2)
-    throwable1.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NoStringConstructorThrowable original message: NoStringConstructor Test Message"
+    throwable1.getMessage shouldBe "NoStringConstructor Test Message"
     throwable2.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.UnknownCauseException original message: null"
   }
 

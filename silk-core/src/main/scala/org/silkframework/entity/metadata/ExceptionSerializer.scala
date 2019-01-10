@@ -113,32 +113,30 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     * @param exceptionClass   Class
     * @param message          Message
     * @param className        className
-    * @return Constructor of a Throwable or None
+    * @return Constructor of a Throwable and its parameters or None
     */
   def getExceptionConstructorOption(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]], message: Option[String],
                               className: String): Option[(Constructor[Throwable], Seq[Object])] = {
     try {
       val candidates = exceptionClass.get.getConstructors.filter(
         c => c.getParameterTypes.contains(classOf[String]) || c.getParameterTypes.contains(classOf[Throwable])
-      ).sortWith( (c1,c2) =>
-        c1.getParameterCount > c2.getParameterCount
-      )
+      ).sortWith( (c1,c2) => c1.getParameterCount > c2.getParameterCount)
+
       candidates.map(_.getParameterTypes).head match {
         case Array(_, _) =>
           try {
             val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String], classOf[Throwable])
-            val args: Seq[Object] = Seq(message.getOrElse("null"), cause.orNull)
+            val args: Seq[Object] = Seq(message.orNull, cause.orNull)
             Some((constructor, args))
           }
           catch {
             case _: NoSuchElementException =>
               val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[Throwable], classOf[String])
-              val args: Seq[Object]  = Seq(cause.orNull, message.getOrElse("null"))
+              val args: Seq[Object]  = Seq(cause.orNull, message.orNull)
               Some((constructor, args))
             case _: Throwable =>
               None
           }
-
         case Array(_) =>
           try {
             val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[Throwable])
@@ -148,7 +146,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
           catch {
             case _:NoSuchElementException =>
               val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String])
-              val args = Seq(message.getOrElse("null"))
+              val args = Seq(message.orNull)
               Some(constructor, args)
             case _: Throwable => None
           }
@@ -159,11 +157,13 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
         case _ =>
           None
       }
-
     }
     catch {
-      case _: java.lang.IllegalArgumentException => None // handle outside with emulated exception
-      case _: Throwable => throw new RuntimeException(s"Construction of exception $className failed for unknown reasons")
+      case _: java.lang.IllegalArgumentException =>
+        logger.warn(s"A constructor for the exception: $className could not be found because of the given arguments")
+        None
+      case _: Throwable =>
+        throw new RuntimeException(s"Construction of exception $className failed for unknown reasons")
     }
   }
 
