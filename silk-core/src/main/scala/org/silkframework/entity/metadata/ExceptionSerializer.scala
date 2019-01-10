@@ -6,7 +6,6 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import ExceptionSerializer._
 import org.slf4j.LoggerFactory
 
-import scala.Option
 import scala.xml.{Elem, Node}
 
 /**
@@ -22,23 +21,17 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   def readException(node: Node): Throwable ={
 
-    node match {
-      case null =>
-        null
-      case _ =>
-        val className = getExceptionClassOption(node)
-        val exceptionClass = if (className.isDefined) {
-          className.get.getClass.asInstanceOf[Class[Throwable]]
-        }
-        else {
-          new UnknownError("Exception without an associated class").getClass.asInstanceOf[Class[Throwable]]
-        }
-        //FIXME introduce an automated registry for this switch?
-        exceptionClass match{
-          //NOTE: insert special Exception reading switch here
-          //case ex: SpecialException => readSpecialException(..)
-          case _ => readDefaultThrowable(node, exceptionClass)
-        }
+    if(node == null || node.text.trim.isEmpty)
+      return null
+
+    val classOpt = getExceptionClassOption(node)
+    val exceptionClass = classOpt.getOrElse( new UnknownError("Exception without an associated class").getClass.asInstanceOf[Class[Throwable]])
+
+    //FIXME introduce an automated registry for this switch?
+    exceptionClass match{
+      //NOTE: insert special Exception reading switch here
+      //case ex: SpecialException => readSpecialException(..)
+      case _ => readDefaultThrowable(node, exceptionClass)
     }
   }
 
@@ -55,10 +48,11 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
     val message = Option((node \ MESSAGE).text.trim)
     val causeOpt = getExceptionCauseOption(node)
     val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClassOption(node)
-    val constructorOpt = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
+    val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
 
-    val exception = if (constructorOpt.nonEmpty) {
-      exceptionClass.cast(constructorOpt.get.newInstance(Seq[Object](): _*))
+    val exception = if (constructorAndArguments.nonEmpty) {
+      val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
+      constructorAndArguments.get._1.newInstance(constructorAndArguments.get._2: _*)
     }
     else {
       new Exception(
@@ -96,51 +90,80 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
         None
       }
       else {
-        Some(className.getClass.asInstanceOf[Class[Throwable]])
+        val c = java.lang.Class.forName(className)
+        Some(c.asInstanceOf[Class[Throwable]])
       }
     }
     catch {
       case _: Throwable =>
-        logger.error("The raised exception object does not exist as a known class and can't be serialized")
+        logger.error(s"The raised exception object does not exist as a known class and can't be serialized: $className")
         None
     }
   }
 
   /**
-    * Some method to determine the constructor of a Throwable with out that being necessarily there.
-    * Depending the input, that is largely optional different constructors a searched via reflection.
+    * Dtermines the constructor of a Throwable and its arguments as an object set.
+    * Depending on the input, different constructors a searched via reflection.
+    * A (String, Throwable) constructor is prefered, after that (Throwable, String), (Throwable), (String)
+    * and finally a no argument constructor.
     *
-    * @param cause            Optional Throwable
+    * Available parameters are secondary to the order. That means even if there is
+    * no cause we prefer the (Throwable, String) constructor with an empty Throwable.
+    *
+    * @param cause            Throwable
     * @param exceptionClass   Class
     * @param message          Message
     * @param className        className
     * @return Constructor of a Throwable or None
     */
   def getExceptionConstructorOption(cause: Option[Throwable], exceptionClass: Option[Class[Throwable]], message: Option[String],
-                              className: String): Option[Constructor[Throwable]] = {
+                              className: String): Option[(Constructor[Throwable], Seq[Object])] = {
     try {
-      var arguments = Seq[Object]()
-      if (cause.nonEmpty && exceptionClass.nonEmpty) {
-        var constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String], classOf[Throwable])
-        arguments = Seq(message.orNull, cause.get)
-        if (constructor == null) {
-          constructor = exceptionClass.get.getConstructor(classOf[Throwable], classOf[String])
-        }
-        Some(constructor)
+      val candidates = exceptionClass.get.getConstructors.filter(
+        c => c.getParameterTypes.contains(classOf[String]) || c.getParameterTypes.contains(classOf[Throwable])
+      ).sortWith( (c1,c2) =>
+        c1.getParameterCount > c2.getParameterCount
+      )
+      candidates.map(_.getParameterTypes).head match {
+        case Array(_, _) =>
+          try {
+            val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String], classOf[Throwable])
+            val args: Seq[Object] = Seq(message.getOrElse("null"), cause.orNull)
+            Some((constructor, args))
+          }
+          catch {
+            case _: NoSuchElementException =>
+              val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[Throwable], classOf[String])
+              val args: Seq[Object]  = Seq(cause.orNull, message.getOrElse("null"))
+              Some((constructor, args))
+            case _: Throwable =>
+              None
+          }
+
+        case Array(_) =>
+          try {
+            val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[Throwable])
+            val args = Seq(cause.orNull)
+            Some((constructor, args))
+          }
+          catch {
+            case _:NoSuchElementException =>
+              val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor(classOf[String])
+              val args = Seq(message.getOrElse("null"))
+              Some(constructor, args)
+            case _: Throwable => None
+          }
+        case Array() =>
+          val constructor: Constructor[Throwable] = exceptionClass.get.getConstructor()
+          val args = Seq()
+          Some(constructor, args)
+        case _ =>
+          None
       }
-      else {
-        if (cause.nonEmpty) {
-          arguments = Seq(message.orNull)
-          Some(exceptionClass.get.getConstructor(classOf[String]))
-        }
-        else {
-          None // no class -> no constructor
-        }
-      }
+
     }
     catch {
-      case _: java.lang.NoSuchMethodException => None
-      case _: java.lang.IllegalArgumentException => None
+      case _: java.lang.IllegalArgumentException => None // handle outside with emulated exception
       case _: Throwable => throw new RuntimeException(s"Construction of exception $className failed for unknown reasons")
     }
   }
