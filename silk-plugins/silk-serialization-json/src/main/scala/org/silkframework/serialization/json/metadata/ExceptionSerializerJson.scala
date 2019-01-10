@@ -40,19 +40,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         }
         exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
         exception
-//        if (constructorOpt.nonEmpty) {
-//          val arguments = getArgumentsForConstructor(constructorOpt.get, messageOpt, exceptionCauseOpt)
-//          val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
-//          val exception = exceptionClass.cast(constructorOpt.get.newInstance(arguments: _*))
-//          exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
-//          exception
-//        }
-//        else { // constructor is missing
-//          new Exception(
-//            s"Emulated Exception of class: ${exceptionClass.getCanonicalName} original message: ${messageOpt.orNull}",
-//            causeOpt.orNull
-//          )
-//        }
+
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
   }
@@ -146,7 +134,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
       val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
       val fileName: String = stringValue(ste, ExceptionSerializer.FILENAME)
       val lineNumber = numberValue(ste, ExceptionSerializer.LINENUMBER)
-      new StackTraceElement(className, methodName, fileName, if (lineNumber != null) lineNumber.toInt else 0)
+      new StackTraceElement(className, methodName, fileName, if (lineNumber != null) lineNumber.toInt else -1)
     }
     stackTrace.toArray
   }
