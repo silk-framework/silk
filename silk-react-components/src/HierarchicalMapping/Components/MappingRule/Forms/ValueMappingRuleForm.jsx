@@ -74,7 +74,7 @@ const ValueMappingRuleForm = React.createClass({
                             propertyType: _.get(
                                 rule,
                                 'mappingTarget.valueType.nodeType',
-                                'AutoDetectValueType'
+                                'StringValueType'
                             ),
                             sourceProperty: rule.sourcePath,
                             isAttribute: _.get(
@@ -102,7 +102,7 @@ const ValueMappingRuleForm = React.createClass({
                 create: true,
                 loading: false,
                 type: MAPPING_RULE_TYPE_DIRECT,
-                propertyType: 'AutoDetectValueType',
+                propertyType: 'StringValueType',
                 sourceProperty: '',
                 isAttribute: false,
                 initialValues: {},
@@ -194,6 +194,7 @@ const ValueMappingRuleForm = React.createClass({
         const {type, error} = this.state;
 
         if (this.state.loading) {
+            return <Spinner />;
             return <Spinner />;
         }
 
