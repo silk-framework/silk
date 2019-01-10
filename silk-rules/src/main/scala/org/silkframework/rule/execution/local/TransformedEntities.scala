@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.local
 import java.util.logging.Logger
 
 import org.silkframework.entity.{Entity, EntitySchema, UriValueType}
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{ExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.runtime.activity.ActivityContext
@@ -80,6 +80,8 @@ class TransformedEntities(entities: Traversable[Entity],
     try {
       rule(entity)
     } catch {
+      case ex: ExecutionException if ex.abortExecution =>
+        throw ex
       case NonFatal(ex) =>
         log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
         report.addError(rule, entity, ex)

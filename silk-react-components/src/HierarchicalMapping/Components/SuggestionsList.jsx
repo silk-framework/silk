@@ -293,7 +293,7 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
-        const warnings = _.isEmpty(this.state.warnings) && (
+        const warnings = !_.isEmpty(this.state.warnings) && (
             <Error>
                 {_.map(
                     this.state.warnings,

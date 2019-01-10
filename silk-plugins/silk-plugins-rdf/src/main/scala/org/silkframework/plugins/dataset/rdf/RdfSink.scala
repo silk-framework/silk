@@ -39,6 +39,9 @@ trait RdfSink {
     }
   }
 
+  /**
+    * Returns a N-Triples formatted statement string.
+    */
   def buildStatementString(subject: String, property: String, value: String, valueType: ValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value, valueType)
   }

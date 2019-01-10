@@ -1,5 +1,6 @@
 package org.silkframework.util
 
+import java.io.BufferedInputStream
 import java.net.{BindException, InetSocketAddress}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
@@ -14,6 +15,7 @@ trait MockServerTestTrait {
   final val START_PORT = 10600
 
   final val OK = 200
+  final val NO_CONTENT = 204
   final val INTERNAL_SERVER_ERROR_CODE = 500
   final val BAD_REQUEST_ERROR_CODE = 400
   final val UNAUTHORIZED = 401
@@ -51,13 +53,21 @@ trait MockServerTestTrait {
   }
 
   private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
+    // Consume body if available
+    val is = new BufferedInputStream(httpExchange.getRequestBody)
+    while(is.read() != -1) {}
     val response = responseContent.content
     val responseHeaders = httpExchange.getResponseHeaders
-    responseHeaders.add("content-type", responseContent.contentType)
-    httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
-    val os = httpExchange.getResponseBody
-    os.write(response.getBytes("UTF-8"))
-    os.close()
+    if(responseContent.statusCode == 204) {
+      // No Content
+      httpExchange.sendResponseHeaders(responseContent.statusCode, -1)
+    } else {
+      responseHeaders.add("content-type", responseContent.contentType)
+      httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
+      val os = httpExchange.getResponseBody
+      os.write(response.getBytes("UTF-8"))
+      os.close()
+    }
   }
 
   def stopAllRegisteredServers(): Unit = {
