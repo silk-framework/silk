@@ -18,11 +18,24 @@ import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 
 import scala.language.implicitConversions
 import scala.util.Try
+import scala.util.matching.Regex
 
 object StringUtils {
   implicit def toStringUtils(str: String): StringUtils = new StringUtils(str)
 
-  val integerNumber = """^\s*[+-]?(?:(?:[1-9][0-9]*)|(?:0))\s*$""".r
+  val integerNumber: Regex = """^\s*[+-]?(?:(?:[1-9][0-9]*)|(?:0))\s*$""".r
+  val simpleDoubleNumber: Regex =
+    ("""^\s*[+-]?""" + // sign
+        """(?:[1-9][0-9]*|0)?""" + // whole numbers
+        """(?:""" +
+          """\.[0-9]+(?:[eE][-+]?[0-9]+)?""" + // either with point, but optional exponent
+          """|""" +
+          """[eE][-+]?[0-9]+""" + // or without, but obligatory exponent
+        """)""" +
+        """\s*$""").
+      replaceAllLiterally("\n", "").
+      replaceAll("\r", "").
+      r
 
   object IntLiteral {
     def apply(x: Int): String = x.toString
