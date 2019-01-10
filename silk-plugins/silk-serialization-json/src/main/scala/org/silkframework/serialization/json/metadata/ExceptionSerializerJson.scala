@@ -69,8 +69,10 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
 
   /**
-    * Method to determine the constructor of a Throwable.
-    * Returns None and prints a warning in unexpected cases.
+    * Determines the constructor of a Throwable and its arguments as an object set.
+    * Depending on the input, different constructors a searched via reflection.
+    * A (String, Throwable) constructor is preferred, after that (Throwable, String), (Throwable), (String)
+    * and finally a no argument constructor.
     *
     * @param cause            Optional Throwable
     * @param exceptionClass   Optional Class

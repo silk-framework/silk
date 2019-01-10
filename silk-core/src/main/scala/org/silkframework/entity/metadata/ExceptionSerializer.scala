@@ -19,10 +19,11 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
 
-  def readException(node: Node): Throwable ={
+  def readException(node: Node): Throwable = {
 
-    if(node == null || node.text.trim.isEmpty)
+    if(node == null || node.text.trim.isEmpty) {
       return null
+    }
 
     val classOpt = getExceptionClassOption(node)
     val exceptionClass = classOpt.getOrElse( new UnknownError("Exception without an associated class").getClass.asInstanceOf[Class[Throwable]])
@@ -36,27 +37,25 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   }
 
   /**
-    * Here we try to guess the right constructor.
-    * Trying out combinations of String (message) and Throwable (cause), then only String.
-    * NOTE: some exceptions use thusly typed constructors differently or dont have any of such constructors.
-    * Please introduce your own serializer for such exception classes
+    * Finds a fitting constructor and returns the instantiated exception object.
+    *
     * @param node - the XML node
     * @param exceptionClass - the exception class in question
     * @return
     */
   def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
-    val message = Option((node \ MESSAGE).text.trim)
+    val messageOpt = Option((node \ MESSAGE).text.trim)
     val causeOpt = getExceptionCauseOption(node)
-    val exceptionClassOpt: Option[Class[Throwable]] = getExceptionClassOption(node)
-    val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
+    val exceptionClassOpt = getExceptionClassOption(node)
+    val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, messageOpt, exceptionClass.getSimpleName)
 
     val exception = if (constructorAndArguments.nonEmpty) {
-      val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, message, exceptionClass.getSimpleName)
+      val constructorAndArguments = getExceptionConstructorOption(causeOpt, exceptionClassOpt, messageOpt, exceptionClass.getSimpleName)
       constructorAndArguments.get._1.newInstance(constructorAndArguments.get._2: _*)
     }
     else {
       new Exception(
-        "Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message.getOrElse("null"),
+        s"Emulated Exception of class: ${exceptionClass.getCanonicalName} original message: ${messageOpt.orNull}",
         causeOpt.orNull
       )
     }
@@ -69,7 +68,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   /**
     * Method to help retrieve optional causes.
     *
-    * @param node
+    * @param node XML node
     * @return
     */
   private def getExceptionCauseOption(node: Node): Option[Throwable] = {
@@ -80,7 +79,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   /**
     * Method to help retrieve the exception class, which should not be empty but apparently is sometimes.
     *
-    * @param node
+    * @param node XML node
     * @return
     */
   private def getExceptionClassOption(node: Node): Option[Class[Throwable]] = {
@@ -102,9 +101,9 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
   }
 
   /**
-    * Dtermines the constructor of a Throwable and its arguments as an object set.
+    * Determines the constructor of a Throwable and its arguments as an object set.
     * Depending on the input, different constructors a searched via reflection.
-    * A (String, Throwable) constructor is prefered, after that (Throwable, String), (Throwable), (String)
+    * A (String, Throwable) constructor is preferred, after that (Throwable, String), (Throwable), (String)
     * and finally a no argument constructor.
     *
     * Available parameters are secondary to the order. That means even if there is
