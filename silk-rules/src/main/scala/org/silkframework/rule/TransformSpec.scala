@@ -47,7 +47,7 @@ case class TransformSpec(selection: DatasetSelection,
     */
   def ruleById(ruleId: Identifier): TransformRule = {
     nestedRuleAndSourcePath(ruleId)
-      .getOrElse(throw new NoSuchElementException(s"No rule with identifier 'ruleId' has been found."))
+      .getOrElse(throw new NoSuchElementException(s"No rule with identifier '$ruleId' has been found."))
       ._1
   }
 
