@@ -146,6 +146,7 @@ class RulePlugins extends PluginModule {
         classOf[EqualityMetric] ::
         classOf[InequalityMetric] ::
         classOf[LowerThanMetric] ::
+        classOf[GreaterThanMetric] ::
         classOf[NumMetric] ::
         classOf[DateMetric] ::
         classOf[DateTimeMetric] ::

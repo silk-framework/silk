@@ -14,28 +14,63 @@
 
 package org.silkframework.rule.plugins.distance.equality
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.test.PluginTest
-import org.silkframework.testutil.approximatelyEqualTo
-
 
 class LowerThanMetricTest extends PluginTest {
-  lazy val metric = new LowerThanMetric()
+
+  lazy val lower = LowerThanMetric()
+  lazy val lowerOrEqual = LowerThanMetric(orEqual = true)
   val t = 1.0
 
-  "LowerThanMetric" should "return 0.0 if the source number is smaller than the target number and 1.0 otherwise" in {
-    metric.evaluate("1", "2", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("2", "1", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("0.1", "0.2", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("0.2", "0.1", t) should be(approximatelyEqualTo(1.0))
-    metric.evaluate("5", "20", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("20", "5", t) should be(approximatelyEqualTo(1.0))
+  behavior of "LowerThanMetric"
+
+  it should "always return 0.0 if the source number is smaller than the target number" in {
+    lower.evaluate("1", "2", t) shouldBe 0.0
+    lower.evaluate("0.123", "0.223", t) shouldBe 0.0
+    lower.evaluate("5", "20", t) shouldBe 0.0
+    lowerOrEqual.evaluate("1", "2", t) shouldBe 0.0
+    lowerOrEqual.evaluate("0.1", "0.2", t) shouldBe 0.0
+    lowerOrEqual.evaluate("5", "20", t) shouldBe 0.0
   }
 
-  "LowerThanMetric" should "return 0.0 if the source string is lower than the target string and 1.0 otherwise" in {
-    metric.evaluate("aaa", "aab", t) should be(approximatelyEqualTo(0.0))
-    metric.evaluate("aab", "aaa", t) should be(approximatelyEqualTo(1.0))
+  it should "always return 1.0 if the source number is greater than the target number" in {
+    lower.evaluate("2", "1", t) shouldBe 1.0
+    lower.evaluate("0.223", "0.123", t) shouldBe 1.0
+    lower.evaluate("20", "5", t) shouldBe 1.0
+    lowerOrEqual.evaluate("2", "1", t) shouldBe 1.0
+    lowerOrEqual.evaluate("0.2", "0.1", t) shouldBe 1.0
+    lowerOrEqual.evaluate("20", "5", t) shouldBe 1.0
   }
 
-  override def pluginObject = metric
+  it should "return 1.0 if the source number is equal to the target number, provided that orEqual is false" in {
+    lower.evaluate("2", "2", t) shouldBe 1.0
+    lower.evaluate("0.123", "0.123", t) shouldBe 1.0
+    lower.evaluate("20", "20", t) shouldBe 1.0
+  }
+
+  it should "return 0.0 if the source number is equal to the target number, provided that orEqual is true" in {
+    lowerOrEqual.evaluate("2", "2", t) shouldBe 0.0
+    lowerOrEqual.evaluate("0.123", "0.123", t) shouldBe 0.0
+    lowerOrEqual.evaluate("20", "20", t) shouldBe 0.0
+  }
+
+  it should "always return 0.0 if the source string is lower than the target string" in {
+    lower.evaluate("aaa", "aab", t) shouldBe 0.0
+    lowerOrEqual.evaluate("aaa", "aab", t) shouldBe 0.0
+  }
+
+  it should "always return 1.0 if the source string is higher than the target string" in {
+    lower.evaluate("aab", "aaa", t) shouldBe 1.0
+    lowerOrEqual.evaluate("aab", "aaa", t) shouldBe 1.0
+  }
+
+  it should "return 1.0 if the source string is equal to the target number, provided that orEqual is false" in {
+    lower.evaluate("xx-55", "xx-55", t) shouldBe 1.0
+  }
+
+  it should "return 0.0 if the source string is equal to the target number, provided that orEqual is true" in {
+    lowerOrEqual.evaluate("xx-55", "xx-55", t) shouldBe 0.0
+  }
+
+  override def pluginObject: LowerThanMetric = lower
 }
