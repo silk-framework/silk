@@ -5,6 +5,7 @@
 @import org.silkframework.config.Prefixes
 @import org.silkframework.config.Task
 @import org.silkframework.workbench.Context
+@import org.silkframework.rule.TransformRule
 
 @(task: Task[TransformSpec], statistics: TransformReport, prefixes: Prefixes)
 
@@ -27,38 +28,44 @@
       </tr>
     </thead>
     <tbody>
+      @ruleReport(task.data.mappingRule)
+    </tbody>
+  </table>
+}
 
-    @for((ruleId, RuleResult(errorCount, sampleErrors)) <- statistics.ruleResults) {
-      <tr class="mdl-color--blue-grey-100">
-        <td><b>@task.data.ruleById(ruleId).metaData.formattedLabel(defaultLabel = ruleId, maxLength = 100)</b></td>
+@ruleReport(rule: TransformRule) = {
+  @for(ruleResults <- statistics.ruleResults.get(rule.id)) {
+    <tr class="mdl-color--blue-grey-100">
+      <td><b>@rule.metaData.formattedLabel(defaultLabel = rule.id, maxLength = 100)</b></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+
+    @if(ruleResults.sampleErrors.isEmpty) {
+      <tr>
         <td></td>
+        <td>
+          No issues
+        </td>
         <td></td>
         <td></td>
       </tr>
-
-      @if(sampleErrors.isEmpty) {
+    } else {
+      @for(RuleError(entity, values, exception) <- ruleResults.sampleErrors) {
         <tr>
           <td></td>
           <td>
-            No issues
+            <a href="@entity" target="_blank" >@prefixes.shorten(entity)</a>
           </td>
-          <td></td>
-          <td></td>
+          <td>@values.flatten.mkString(", ")</td>
+          <td>@exception.getMessage</td>
         </tr>
-      } else {
-        @for(RuleError(entity, values, exception) <- sampleErrors) {
-          <tr>
-            <td></td>
-            <td>
-              <a href="@entity" target="_blank" >@prefixes.shorten(entity)</a>
-            </td>
-            <td>@values.flatten.mkString(", ")</td>
-            <td>@exception.getMessage</td>
-          </tr>
-        }
       }
     }
+  }
 
-    </tbody>
-  </table>
+  @for(childRule <- rule.rules.allRules) {
+    @ruleReport(childRule)
+  }
 }
