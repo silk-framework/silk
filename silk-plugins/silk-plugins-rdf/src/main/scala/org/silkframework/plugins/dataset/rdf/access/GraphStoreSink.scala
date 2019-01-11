@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.nio.file.Files

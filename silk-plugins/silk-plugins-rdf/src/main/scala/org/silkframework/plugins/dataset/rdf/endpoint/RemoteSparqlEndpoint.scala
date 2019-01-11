@@ -16,8 +16,11 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io.{IOException, InputStream, OutputStreamWriter}
 import java.net._
-import javax.xml.bind.DatatypeConverter
 
+import javax.xml.bind.DatatypeConverter
+import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.riot.RDFLanguages
+import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
@@ -29,6 +32,8 @@ import scala.io.Source
  *
  */
 case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoint {
+
+  private val constructSerialization = RDFLanguages.TURTLE
 
   override def toString: String = sparqlParams.uri
 
@@ -65,11 +70,11 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   }
 
   override def construct(query: String)
-                        (implicit userContext: UserContext): String = {
+                        (implicit userContext: UserContext): QuadIterator = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "text/turtle")
+    httpConnection.setRequestProperty("ACCEPT", constructSerialization.getContentType.getContentType)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
@@ -77,9 +82,19 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
 
     try {
       val inputStream = httpConnection.getInputStream
-      val result = Source.fromInputStream(inputStream).getLines().mkString("\n")
-      inputStream.close()
-      result
+      val reader = new RDFReaderFactoryRIOT().getReader(constructSerialization.getName)
+      val m = ModelFactory.createDefaultModel()
+
+      //NOTE: will load all statements into memory
+      reader.read(m, inputStream, "")
+
+      //NOTE: listStatement() will not produce graph
+      var iterator = m.listStatements()
+      QuadIterator(
+        iterator.hasNext,
+        () => JenaEndpoint.statementToTuple(iterator.nextStatement()),
+        () => iterator = m.listStatements()
+      )
     } catch {
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream

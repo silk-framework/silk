@@ -1,18 +1,17 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlParams}
-import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity._
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * A source for reading from SPARQL endpoints.

@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpoint, SparqlParams, SparqlResults}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 
@@ -50,7 +50,7 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
     * Executes a construct query.
     */
   override def construct(query: String)
-                        (implicit userContext: UserContext): String = jenaEndpoint.construct(query)
+                        (implicit userContext: UserContext): QuadIterator = jenaEndpoint.construct(query)
 
   /**
     * Executes an update query.

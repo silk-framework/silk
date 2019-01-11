@@ -6,6 +6,8 @@ import org.silkframework.config.PlainTask
 import org.silkframework.entity._
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, SparqlUpdateEntitySchema}
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException

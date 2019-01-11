@@ -4,6 +4,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf.Resource
 import org.silkframework.entity.{Path, TypedPath, UriValueType}
+import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.activity.UserContext
 
 /**

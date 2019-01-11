@@ -27,6 +27,7 @@ object SilkVocab {
   // Triple input/output schema vocabulary
 
   val TripleSchemaType: String = namespace + "/TripleSchemaType"
+  val QuadSchemaType: String = namespace + "/QuadSchemaType"
 
   val SparqlEndpointSchemaType: String = namespace + "/SparqlEndpointSchemaType"
 
@@ -36,6 +37,7 @@ object SilkVocab {
   val triplePredicate: String = namespace + "triplePredicate"
   val tripleObject: String = namespace + "tripleObject"
   val tripleObjectValueType: String = namespace + "tripleObjectValueType"
+  val quadContext: String = namespace + "quadContext"
 
   // SPARQL Update query schema vocabulary
   val SparqlUpdateSchemaType: String = namespace + "/SparqlUpdateSchemaType"

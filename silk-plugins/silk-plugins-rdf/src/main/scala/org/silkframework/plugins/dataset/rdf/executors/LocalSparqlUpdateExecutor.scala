@@ -1,9 +1,10 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.Task
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local._
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 

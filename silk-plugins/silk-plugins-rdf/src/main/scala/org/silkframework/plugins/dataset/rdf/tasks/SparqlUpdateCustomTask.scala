@@ -1,10 +1,11 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.graph.NodeFactory
 import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
+import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri

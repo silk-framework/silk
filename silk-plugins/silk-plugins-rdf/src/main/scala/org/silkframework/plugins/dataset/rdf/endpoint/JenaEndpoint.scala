@@ -14,12 +14,14 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.StringWriter
 import java.util.logging.{Level, Logger}
 
+import org.apache.jena.graph.Node
 import org.apache.jena.query._
+import org.apache.jena.rdf.model.Statement
+import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.apache.jena.update.UpdateProcessor
-import org.silkframework.dataset.rdf.{RdfNode, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
@@ -51,7 +53,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
    * Executes a SPARQL SELECT query.
    */
   override def select(sparql: String, limit: Int)
-                     (implicit userContext: UserContext): SilkResultSet = synchronized {
+                     (implicit userContext: UserContext): SparqlResults = synchronized {
     val query = QueryFactory.create(sparql)
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
@@ -76,17 +78,17 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     * Executes a construct query.
     */
   override def construct(query: String)
-                        (implicit userContext: UserContext): String = synchronized {
+                        (implicit userContext: UserContext): QuadIterator = synchronized {
+
     val qe = createQueryExecution(QueryFactory.create(query))
-    try {
-      val resultModel = qe.execConstruct()
-      val writer = new StringWriter()
-      resultModel.write(writer, "Turtle")
-      writer.toString
-    }
-    finally {
-      qe.close()
-    }
+    var quadIterator = qe.execConstructQuads()
+    val results = QuadIterator(
+      quadIterator.hasNext,
+      () => JenaEndpoint.quadToTuple(quadIterator.next()),
+      () => quadIterator = qe.execConstructQuads()
+    )
+    qe.close()
+    results
   }
 
   /**
@@ -108,7 +110,50 @@ abstract class JenaEndpoint extends SparqlEndpoint {
         }
       }
 
-    SilkResultSet(results.toList)
+    SparqlResults(results.toList)
   }
 
+}
+
+object JenaEndpoint{
+
+  private def getObject(n: Node): RdfNode ={
+    if(n.isBlank){
+      BlankNode(n.getBlankNodeLabel)
+    }
+    else if(n.isLiteral) {
+      if(n.getLiteralLanguage != null){
+        LanguageLiteral(n.getLiteral.toString, n.getLiteralLanguage)
+      }
+      else if(n.getLiteralDatatype != null){
+        DataTypeLiteral(n.getLiteral.toString, n.getLiteralDatatypeURI)
+      }
+      else{
+        PlainLiteral(n.getLiteral.toString)
+      }
+    }
+    else{
+      Resource(n.getURI)
+    }
+  }
+
+  private[endpoint] def quadToTuple(q: JenaQuad): Quad = {
+    val subj = q.getSubject
+    if(subj.isBlank){
+      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+    }
+    else{
+      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+    }
+  }
+
+  private[endpoint] def statementToTuple(q: Statement) = {
+    val subj = q.getSubject.asNode()
+    if(subj.isBlank){
+      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()), None)
+    }
+    else{
+      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()), None)
+    }
+  }
 }

@@ -18,10 +18,6 @@ import org.silkframework.util.Uri
 class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
 
-  final val LANGUAGE_ENC_PREFIX = "lg"
-  final val DATA_TYPE_ENC_PREFIX = "dt"
-  final val URI_ENC_PREFIX = "ur"
-  final val BLANK_NODE_ENC_PREFIX = "bn"
 
   /**
     * Reads data from a dataset.
@@ -29,7 +25,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution)
                    (implicit userContext: UserContext): LocalEntities = {
     schema match {
-      case TripleEntitySchema.schema =>
+      case TripleEntityTable.schema =>
         handleTripleEntitySchema(dataset)
       case SparqlEndpointEntitySchema.schema =>
         handleSparqlEndpointSchema(dataset)
@@ -99,19 +95,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
       val p = resultMap("p").value
-      val (value, typ) = resultMap("o") match {
-        case PlainLiteral(v) =>
-          (v, "")
-        case LanguageLiteral(v, l) =>
-          (v, s"$LANGUAGE_ENC_PREFIX=$l")
-        case DataTypeLiteral(v, dt) =>
-          (v, s"$DATA_TYPE_ENC_PREFIX=$dt")
-        case BlankNode(bn) =>
-          (bn, s"$BLANK_NODE_ENC_PREFIX")
-        case Resource(uri) =>
-          (uri, s"$URI_ENC_PREFIX")
-      }
-      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
+      val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
+      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntityTable.schema)
     }
     TripleEntityTable(tripleEntities, dataset)
   }
@@ -124,6 +109,10 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           writeLinks(linkSink, links, linkType)
         }
       case TripleEntityTable(entities, _) =>
+        withEntitySink(dataset) { entitySink =>
+          writeTriples(entitySink, entities)
+        }
+      case QuadEntityTable(entities, _) =>
         withEntitySink(dataset) { entitySink =>
           writeTriples(entitySink, entities)
         }
@@ -144,7 +133,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
 
   private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
                                          sparqlUpdateTable: SparqlUpdateEntityTable)
-                                        (implicit userContext: UserContext) = {
+                                        (implicit userContext: UserContext): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
@@ -241,32 +230,24 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  def convertToValueType(encodedType: String): ValueType = {
-    encodedType.take(2) match {
-      case DATA_TYPE_ENC_PREFIX =>
-        CustomValueType(encodedType.drop(3))
-      case LANGUAGE_ENC_PREFIX =>
-        LanguageValueType(encodedType.drop(3))
-      case URI_ENC_PREFIX =>
-        UriValueType
-      case BLANK_NODE_ENC_PREFIX =>
-        BlankNodeValueType
-      case _ =>
-        StringValueType
-    }
-  }
-
   private def writeTriples(entities: Traversable[Entity], sink: TripleSink)
                           (implicit userContext: UserContext): Unit = {
     sink.init()
     for (entity <- entities) {
-      if (entity.values.size != 4) {
-        throw new scala.RuntimeException("Did not get exactly 4 values for triple entity!")
+      if (entity.values.size < 4 || entity.values.size > 5) {
+        throw new scala.RuntimeException("TripleEntityTable with invalid Entity encountered.")
       }
       try {
-        val Seq(s, p, o, encodedType) = entity.values.map(_.head)
-        val valueType = convertToValueType(encodedType)
-        sink.writeTriple(s, p, o, valueType)
+        entity.schema match{
+          case TripleEntityTable.schema =>
+            val Seq(s, p, o, encodedType) = entity.values.map(_.head)
+            val valueType = TripleEntityTable.convertToValueType(encodedType)
+            sink.writeTriple(s, p, o, valueType)
+          case QuadEntityTable.schema =>
+            val Seq(s, p, o, encodedType, context) = entity.values.map(_.head)
+            val valueType = TripleEntityTable.convertToValueType(encodedType)
+            sink.writeTriple(s, p, o, valueType)  //TODO quad context is ignored for now
+        }
       } catch {
         case e: Exception =>
           throw new scala.RuntimeException("Triple entity with empty values")
