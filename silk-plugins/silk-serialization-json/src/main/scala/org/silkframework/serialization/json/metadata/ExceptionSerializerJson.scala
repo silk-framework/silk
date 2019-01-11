@@ -130,11 +130,11 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
   def readStackTrace(node: JsArray): Array[StackTraceElement] = {
     val stackTrace = for (ste <- node.value) yield {
-      val className = stringValue(ste, ExceptionSerializer.CLASSNAME)
-      val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
-      val fileName: String = stringValue(ste, ExceptionSerializer.FILENAME)
-      val lineNumber = numberValue(ste, ExceptionSerializer.LINENUMBER)
-      new StackTraceElement(className, methodName, fileName, if (lineNumber != null) lineNumber.toInt else -1)
+      val className = stringValueOption(ste, ExceptionSerializer.CLASSNAME).getOrElse("unknown")
+      val methodName = stringValueOption(ste, ExceptionSerializer.METHODNAME).getOrElse("unknown")
+      val fileName = stringValueOption(ste, ExceptionSerializer.FILENAME).getOrElse("unknown")
+      val lineNumber = numberValueOption(ste, ExceptionSerializer.LINENUMBER).map(_.intValue()).getOrElse(-1)
+      new StackTraceElement(className, methodName, fileName, lineNumber)
     }
     stackTrace.toArray
   }

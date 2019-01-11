@@ -175,7 +175,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
       val methodName = (ste \ METHODNAME).text.trim
       val fileName = (ste \ FILENAME).text.trim
       val lineNumber = (ste \ LINENUMBER).text.trim
-      // please review: I did not change from 0 to -1. That seems better, though.
+      // TODO please review: I did not change from 0 to -1. That seems better, though.
       new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
