@@ -36,16 +36,22 @@ case class QuadIterator(
       quad.objectVal match{
         case Resource(value) => sb.append("<").append(value).append("> ")
         case BlankNode(value) => sb.append("_:").append(value).append(" ")   //TODO check blank node syntax
-        case LanguageLiteral(value, lang) => sb.append("\"").append(value).append("\"@").append(lang).append(" ")
-        case DataTypeLiteral(value, typ) => sb.append("\"").append(value).append("\"^^").append(typ).append(" ")
-        case PlainLiteral(value) => sb.append("\"").append(value).append("\" ")
+        case LanguageLiteral(value, lang) =>
+          sb.append("\"").append(value.replace("\"", "\\\""))
+          if(lang != null && lang.nonEmpty) sb.append("\"@").append(lang).append(" ")
+          else sb.append("\" ")
+        case DataTypeLiteral(value, typ) =>
+          sb.append("\"").append(value.replace("\"", "\\\""))
+          if(typ != null && typ.nonEmpty) sb.append("\"^^<").append(typ).append("> ")
+          else sb.append("\" ")
+        case PlainLiteral(value) => sb.append("\"").append(value.replace("\"", "\\\"")).append("\" ")
       }
       // graph
       if(quad.context.nonEmpty){
         sb.append("<").append(quad.context.get).append("> ")
       }
       // line end
-      sb.append(".\n")
+      sb.append(". \n")
     }
     //reset iterator
     reset()

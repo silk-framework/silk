@@ -116,20 +116,20 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 }
 
 object JenaEndpoint{
-
+  // TODO needs test
   private def getObject(n: Node): RdfNode ={
     if(n.isBlank){
       BlankNode(n.getBlankNodeLabel)
     }
     else if(n.isLiteral) {
-      if(n.getLiteralLanguage != null){
-        LanguageLiteral(n.getLiteral.toString, n.getLiteralLanguage)
+      if(n.getLiteralLanguage != null && n.getLiteralLanguage.nonEmpty){
+        LanguageLiteral(n.getLiteral.getLexicalForm, n.getLiteralLanguage)
       }
       else if(n.getLiteralDatatype != null){
-        DataTypeLiteral(n.getLiteral.toString, n.getLiteralDatatypeURI)
+        DataTypeLiteral(n.getLiteral.getLexicalForm, n.getLiteralDatatypeURI)
       }
       else{
-        PlainLiteral(n.getLiteral.toString)
+        PlainLiteral(n.getLiteral.getLexicalForm)
       }
     }
     else{
