@@ -91,7 +91,10 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
 
       //NOTE: listStatement() will not produce graph
       val iterator = m.listStatements()
-      new QuadIterator(iterator.asScala.map(JenaEndpoint.statementToTuple))
+      new QuadIterator(
+        iterator.hasNext,
+        () => JenaEndpoint.statementToTuple(iterator.next())
+      )
     } catch {
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream

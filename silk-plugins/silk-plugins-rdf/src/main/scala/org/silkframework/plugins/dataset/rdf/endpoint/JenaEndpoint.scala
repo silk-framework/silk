@@ -83,9 +83,11 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 
     val qe = createQueryExecution(QueryFactory.create(query))
     val quadIterator = qe.execConstructQuads()
-    val iter = quadIterator.asScala.map(JenaEndpoint.quadToTuple)
-    val results = new QuadIterator(iter)
-    qe.close()
+    val results = new QuadIterator(
+      quadIterator.hasNext,
+      () => JenaEndpoint.quadToTuple(quadIterator.next())
+    )
+    //qe.close()
     results
   }
 

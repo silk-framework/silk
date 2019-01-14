@@ -6,20 +6,21 @@ import org.silkframework.execution.local.{QuadEntityTable, TripleEntityTable}
 
 /**
   * Abstracts the quad interface of a construct query result as Iterator
- *
-  * @param iter - the internal iterator
+  * @param hasQuad - indicating the existence of another quad
+  * @param nextQuad - provisions the next quad
   */
 class QuadIterator(
-   iter: Iterator[Quad]
+   hasQuad: () => Boolean,
+   nextQuad: () => Quad
  ) extends Iterator[Quad] {
 
-  override def hasNext: Boolean = iter.hasNext
+  override def hasNext: Boolean = hasQuad()
 
-  override def next(): Quad = iter.next()
+  override def next(): Quad = nextQuad()
 
-  override def toString(): String = {
-
+  def serialize(asQuads: Boolean = true): String = {
     val sb = new StringBuilder()
+    def replaceQuotes(value: String) = value.replaceAll("(^|[^\\\\])\"", "\\\\\"")
     while(hasNext){
       val quad = next()
       // subject
@@ -34,19 +35,19 @@ class QuadIterator(
         case Resource(value) => sb.append("<").append(value).append("> ")
         case BlankNode(value) => sb.append("_:").append(value).append(" ")   //TODO check blank node syntax
         case LanguageLiteral(value, lang) =>
-          sb.append("\"").append(value.replace("\"", "\\\""))
+          sb.append("\"").append(replaceQuotes(value))
           if(lang != null && lang.nonEmpty) sb.append("\"@").append(lang).append(" ")
           else sb.append("\" ")
         case DataTypeLiteral(value, typ) =>
-          sb.append("\"").append(value.replace("\"", "\\\""))
+          sb.append("\"").append(replaceQuotes(value))
           if(typ != null && typ.nonEmpty) sb.append("\"^^<").append(typ).append("> ")
           else sb.append("\" ")
         case PlainLiteral(value) =>
-          sb.append("\"").append(value.replace("\"", "\\\"")).append("\" ")
+          sb.append("\"").append(replaceQuotes(value)).append("\" ")
       }
       // graph
-      if(quad.context.nonEmpty){
-        sb.append("<").append(quad.context.get).append("> ")
+      if(asQuads && quad.context.nonEmpty){
+        sb.append("<").append(quad.context.get.value).append("> ")
       }
       // line end
       sb.append(". \n")
@@ -54,6 +55,8 @@ class QuadIterator(
     // to string
     sb.toString()
   }
+
+  def serializeTriples: String = serialize(false)
 
   def getQuadEntities: Traversable[Entity] = {
     var count = 0L
