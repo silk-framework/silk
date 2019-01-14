@@ -7,21 +7,18 @@ import org.silkframework.execution.local.{QuadEntityTable, TripleEntityTable}
 /**
   * Abstracts the quad interface of a construct query result as Iterator
  *
-  * @param hasQuad - function indicating if there exists an additional quad
-  * @param nextQuad - function retrieving the next quad
-  * @param reset - function to reset the iterator to its origin (unused) state
+  * @param iter - the internal iterator
   */
-case class QuadIterator(
-   hasQuad: () => Boolean,
-   nextQuad: () => Quad,
-   reset: () => Unit
+class QuadIterator(
+   iter: Iterator[Quad]
  ) extends Iterator[Quad] {
 
-  override def hasNext: Boolean = hasQuad()
+  override def hasNext: Boolean = iter.hasNext
 
-  override def next(): Quad = nextQuad()
+  override def next(): Quad = iter.next()
 
   override def toString(): String = {
+
     val sb = new StringBuilder()
     while(hasNext){
       val quad = next()
@@ -44,7 +41,8 @@ case class QuadIterator(
           sb.append("\"").append(value.replace("\"", "\\\""))
           if(typ != null && typ.nonEmpty) sb.append("\"^^<").append(typ).append("> ")
           else sb.append("\" ")
-        case PlainLiteral(value) => sb.append("\"").append(value.replace("\"", "\\\"")).append("\" ")
+        case PlainLiteral(value) =>
+          sb.append("\"").append(value.replace("\"", "\\\"")).append("\" ")
       }
       // graph
       if(quad.context.nonEmpty){
@@ -53,8 +51,6 @@ case class QuadIterator(
       // line end
       sb.append(". \n")
     }
-    //reset iterator
-    reset()
     // to string
     sb.toString()
   }

@@ -1,12 +1,14 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.DatasetFactory
+import org.apache.jena.query.{DatasetFactory, Query, QueryExecution, QueryExecutionFactory}
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
+import org.apache.jena.sparql.core.DatasetGraphFactory
+import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpoint, SparqlParams, SparqlResults}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 
-class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends SparqlEndpoint {
+class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, format: Option[String] = None) extends JenaEndpoint {
 
   /** The RDF format of the given resource. */
   private val lang = {
@@ -70,6 +72,17 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
     */
   override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
     this // No SPARQL parameters supported
+  }
+
+  override protected def createQueryExecution(query: Query): QueryExecution = {
+    QueryExecutionFactory.create(query, model)
+  }
+
+  override def createUpdateExecution(query: String): UpdateProcessor = {
+    this.synchronized {
+      val graphStore = DatasetGraphFactory.wrap(model.getGraph)
+      UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
+    }
   }
 }
 

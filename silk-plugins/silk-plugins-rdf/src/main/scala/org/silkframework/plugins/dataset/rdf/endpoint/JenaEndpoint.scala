@@ -18,12 +18,13 @@ import java.util.logging.{Level, Logger}
 
 import org.apache.jena.graph.Node
 import org.apache.jena.query._
-import org.apache.jena.rdf.model.Statement
+import org.apache.jena.rdf.model.{Model, Statement}
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 
+import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
 
 /**
@@ -81,14 +82,23 @@ abstract class JenaEndpoint extends SparqlEndpoint {
                         (implicit userContext: UserContext): QuadIterator = synchronized {
 
     val qe = createQueryExecution(QueryFactory.create(query))
-    var quadIterator = qe.execConstructQuads()
-    val results = QuadIterator(
-      quadIterator.hasNext,
-      () => JenaEndpoint.quadToTuple(quadIterator.next()),
-      () => quadIterator = qe.execConstructQuads()
-    )
+    val quadIterator = qe.execConstructQuads()
+    val iter = quadIterator.asScala.map(JenaEndpoint.quadToTuple)
+    val results = new QuadIterator(iter)
     qe.close()
     results
+  }
+
+  /**
+    * Executes a construct query and returns a Jena Model
+    */
+  def constructModel(query: String)
+                    (implicit userContext: UserContext): Model = synchronized {
+
+    val qe = createQueryExecution(QueryFactory.create(query))
+    val model = qe.execConstruct()
+    qe.close()
+    model
   }
 
   /**

@@ -25,6 +25,7 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
+import scala.collection.JavaConverters._
 import scala.io.Source
 
 /**
@@ -89,12 +90,8 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       reader.read(m, inputStream, "")
 
       //NOTE: listStatement() will not produce graph
-      var iterator = m.listStatements()
-      QuadIterator(
-        iterator.hasNext,
-        () => JenaEndpoint.statementToTuple(iterator.nextStatement()),
-        () => iterator = m.listStatements()
-      )
+      val iterator = m.listStatements()
+      new QuadIterator(iterator.asScala.map(JenaEndpoint.statementToTuple))
     } catch {
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
