@@ -28,41 +28,12 @@ case class Quad private(
 
   private def replaceQuotes(value: String) = value.replaceAll("(^|[^\\\\])\"", "\\\\\"")
 
-  def serialize(asQuad: Boolean = true/* FIXME, formatter: QuadFormatter = new NTriplesQuadFormatter*/): String = {
-    // FIXME duplicate code with NTriplesQuadFormatter, the RDF interface should be moved out of silk core
-    val sb = new StringBuilder()
-    this.subject match{
-      case Left(r) => sb.append("<").append(r.value).append("> ")
-      case Right(b) => sb.append("_:").append(b.value).append(" ")
-    }
-    // predicate
-    sb.append("<").append(this.predicate.value).append("> ")
-    // object
-    this.objectVal match{
-      case Resource(value) => sb.append("<").append(value).append("> ")
-      case BlankNode(value) => sb.append("_:").append(value).append(" ")
-      case LanguageLiteral(value, lang) =>
-        sb.append("\"").append(replaceQuotes(value))
-        if(lang != null && lang.nonEmpty) sb.append("\"@").append(lang).append(" ")
-        else sb.append("\" ")
-      case DataTypeLiteral(value, typ) =>
-        sb.append("\"").append(replaceQuotes(value))
-        if(typ != null && typ.nonEmpty) sb.append("\"^^<").append(typ).append("> ")
-        else sb.append("\" ")
-      case PlainLiteral(value) =>
-        sb.append("\"").append(replaceQuotes(value)).append("\" ")
-    }
-    // graph
-    if(asQuad && this.context.nonEmpty){
-      sb.append("<").append(this.context.get.value).append("> ")
-    }
-    // line end
-    sb.append(". ")
-
-    sb.toString()
+  def serialize(asQuad: Boolean = true, formatter: QuadFormatter = new NTriplesQuadFormatter): String = {
+    if(asQuad) formatter.formatQuad(this)
+    else formatter.formatAsTriple(this)
   }
 
-  def serializeTriple(): String = serialize(asQuad = false)
+  def serializeTriple(formatter: QuadFormatter = new NTriplesQuadFormatter): String = serialize(asQuad = false, formatter = formatter)
 
   override def toString: String = this.serialize()
 }

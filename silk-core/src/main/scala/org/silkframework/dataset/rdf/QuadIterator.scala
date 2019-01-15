@@ -17,18 +17,20 @@ class QuadIterator(
 
   override def next(): Quad = nextQuad()
 
-  def serialize(asQuads: Boolean = true): String = {
+  def serialize(asQuads: Boolean = true, formatter: QuadFormatter = new NTriplesQuadFormatter): String = {
     val sb = new StringBuilder()
+    sb.append(formatter.header)
     while(hasNext){
-      sb.append(next().serialize(asQuads))
+      sb.append(next().serialize(asQuads, formatter))
       // line end
       sb.append("\n")
     }
+    sb.append(formatter.footer)
     // to string
     sb.toString()
   }
 
-  def serializeTriples: String = serialize(false)
+  def serializeTriples(formatter: QuadFormatter = new NTriplesQuadFormatter): String = serialize(asQuads = false, formatter = formatter)
 
   def getQuadEntities: Traversable[Entity] = {
     var count = 0L

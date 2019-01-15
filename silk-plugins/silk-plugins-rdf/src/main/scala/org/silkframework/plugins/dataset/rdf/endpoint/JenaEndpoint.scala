@@ -24,7 +24,6 @@ import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
 
 /**
@@ -78,14 +77,14 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes a construct query.
     */
-  override def construct(query: String)
+  override def  construct(query: String)
                         (implicit userContext: UserContext): QuadIterator = synchronized {
 
     val qe = createQueryExecution(QueryFactory.create(query))
     val quadIterator = qe.execConstructQuads()
     val results = new QuadIterator(
       quadIterator.hasNext,
-      () => JenaEndpoint.quadToTuple(quadIterator.next())
+      () => JenaEndpoint.jenaQuadToQuad(quadIterator.next())
     )
     //qe.close()
     results
@@ -149,7 +148,7 @@ object JenaEndpoint{
     }
   }
 
-  private[endpoint] def quadToTuple(q: JenaQuad): Quad = {
+  def jenaQuadToQuad(q: JenaQuad): Quad = {
     val subj = q.getSubject
     if(subj.isBlank){
       Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
@@ -159,13 +158,13 @@ object JenaEndpoint{
     }
   }
 
-  private[endpoint] def statementToTuple(q: Statement) = {
+  def jenaStatementToQuad(q: Statement) = {
     val subj = q.getSubject.asNode()
     if(subj.isBlank){
-      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()), None)
+      Quad.triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
     }
     else{
-      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()), None)
+      Quad.triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
     }
   }
 }

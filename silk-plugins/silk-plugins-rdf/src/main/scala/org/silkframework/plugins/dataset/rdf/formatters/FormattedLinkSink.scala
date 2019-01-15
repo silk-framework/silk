@@ -4,6 +4,7 @@ import java.io._
 import java.util.logging.Logger
 
 import org.silkframework.dataset.LinkSink
+import org.silkframework.dataset.rdf.LinkFormatter
 import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}

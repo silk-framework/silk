@@ -93,7 +93,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       val iterator = m.listStatements()
       new QuadIterator(
         iterator.hasNext,
-        () => JenaEndpoint.statementToTuple(iterator.next())
+        () => JenaEndpoint.jenaStatementToQuad(iterator.next())
       )
     } catch {
       case ex: IOException =>

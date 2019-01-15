@@ -1,5 +1,4 @@
-package org.silkframework.plugins.dataset.rdf.formatters
-import org.silkframework.dataset.rdf.{Quad, _}
+package org.silkframework.dataset.rdf
 
 class NTriplesQuadFormatter() extends QuadFormatter {
 

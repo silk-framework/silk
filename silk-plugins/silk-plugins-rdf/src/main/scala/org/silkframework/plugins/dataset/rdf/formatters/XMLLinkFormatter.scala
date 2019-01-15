@@ -14,6 +14,7 @@
 
 package org.silkframework.plugins.dataset.rdf.formatters
 
+import org.silkframework.dataset.rdf.LinkFormatter
 import org.silkframework.entity.Link
 
 import scala.xml.NodeSeq
