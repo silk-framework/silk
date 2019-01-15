@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import java.io.File
 
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{MetaData, PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
@@ -12,6 +12,7 @@ import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.FileResource
+import org.silkframework.util.Identifier
 
 class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
     override def execute(task: Task[SparqlCopyCustomTask],
@@ -24,18 +25,22 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
             case Seq(sparql: SparqlEndpointEntityTable) =>
                 val internalTaskId = "counstruct_copy_tmp"
                 val results: QuadIterator = sparql.construct(task.selectQuery.str)
-                // if we should safe construct as temp file before propagation
+                // we should safe construct as temp file before propagation
                 val temporaryEntities = if(task.tempFile){
                     val tempFile = File.createTempFile(internalTaskId, "nt")
                     tempFile.delete
                     tempFile.deleteOnExit()
+                    // adding file deletion shutdown hook
+                    execution.addShutdownHook(Identifier.fromAllowed("delete_" + tempFile.getName), () => tempFile.delete)
+
                     val resource = FileResource(tempFile)
                     val nTripleFile = RdfFileDataset(resource, "N-Triples")
                     new LocalDatasetExecutor().execute(
                         PlainTask(internalTaskId, DatasetSpec(nTripleFile)),
                         Seq(QuadEntityTable(results.getQuadEntities, task)),
-                        None,
-                        execution
+                        Some(QuadEntityTable.schema),
+                        execution,
+                        context   // TODO do we need this for an internal execution
                     )
                 }
                 // else we just stream it to the output

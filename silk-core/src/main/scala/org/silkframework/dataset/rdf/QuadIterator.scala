@@ -2,7 +2,6 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
-import org.silkframework.execution.local.{QuadEntityTable, TripleEntityTable}
 
 /**
   * Abstracts the quad interface of a construct query result as Iterator
@@ -20,37 +19,10 @@ class QuadIterator(
 
   def serialize(asQuads: Boolean = true): String = {
     val sb = new StringBuilder()
-    def replaceQuotes(value: String) = value.replaceAll("(^|[^\\\\])\"", "\\\\\"")
     while(hasNext){
-      val quad = next()
-      // subject
-      quad.subject match{
-        case Left(r) => sb.append("<").append(r.value).append("> ")
-        case Right(b) => sb.append("_:").append(b.value).append(" ")   //TODO check blank node syntax
-      }
-      // predicate
-      sb.append("<").append(quad.predicate.value).append("> ")
-      // object
-      quad.objectVal match{
-        case Resource(value) => sb.append("<").append(value).append("> ")
-        case BlankNode(value) => sb.append("_:").append(value).append(" ")   //TODO check blank node syntax
-        case LanguageLiteral(value, lang) =>
-          sb.append("\"").append(replaceQuotes(value))
-          if(lang != null && lang.nonEmpty) sb.append("\"@").append(lang).append(" ")
-          else sb.append("\" ")
-        case DataTypeLiteral(value, typ) =>
-          sb.append("\"").append(replaceQuotes(value))
-          if(typ != null && typ.nonEmpty) sb.append("\"^^<").append(typ).append("> ")
-          else sb.append("\" ")
-        case PlainLiteral(value) =>
-          sb.append("\"").append(replaceQuotes(value)).append("\" ")
-      }
-      // graph
-      if(asQuads && quad.context.nonEmpty){
-        sb.append("<").append(quad.context.get.value).append("> ")
-      }
+      sb.append(next().serialize(asQuads))
       // line end
-      sb.append(". \n")
+      sb.append("\n")
     }
     // to string
     sb.toString()
@@ -61,19 +33,8 @@ class QuadIterator(
   def getQuadEntities: Traversable[Entity] = {
     var count = 0L
     this.toTraversable.map( quad => {
-      val (value, typ) = TripleEntityTable.convertToEncodedType(quad.objectVal)
-      val values = IndexedSeq(
-        quad.subject match{
-          case Left(v) => Seq(v.value)
-          case Right(v) => Seq(v.value)
-        },
-        Seq(quad.predicate.value),
-        Seq(value),
-        Seq(typ),
-        quad.context.toSeq.map(_.value)
-      )
       count += 1
-      Entity(DataSource.URN_NID_PREFIX + count, values, QuadEntityTable.schema)
+      quad.toEntity(Some(DataSource.URN_NID_PREFIX + count))
     })
   }
 }

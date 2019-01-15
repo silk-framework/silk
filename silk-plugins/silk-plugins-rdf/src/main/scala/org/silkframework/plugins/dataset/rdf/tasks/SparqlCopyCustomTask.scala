@@ -46,7 +46,7 @@ case class SparqlCopyCustomTask(
 
   val internalSchema: EntitySchema = {
     val query = QueryFactory.create(selectQuery.str)
-    if (query.isConstructQuad || query.isConstructType || isValidSelect) {
+    if (query.isConstructType || isValidSelect) {
       val typedPaths = query.getResultVars.asScala map { v =>
         TypedPath(Path(v), AutoDetectValueType, isAttribute = false)
       }

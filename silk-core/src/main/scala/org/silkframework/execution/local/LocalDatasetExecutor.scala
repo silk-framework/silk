@@ -25,6 +25,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution)
                    (implicit userContext: UserContext): LocalEntities = {
     schema match {
+      case QuadEntityTable.schema =>
+        handleTripleEntitySchema(dataset)
       case TripleEntityTable.schema =>
         handleTripleEntitySchema(dataset)
       case SparqlEndpointEntitySchema.schema =>
@@ -77,7 +79,6 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
-
   private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
@@ -99,6 +100,19 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntityTable.schema)
     }
     TripleEntityTable(tripleEntities, dataset)
+  }
+
+  private def readQuads(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
+                         (implicit userContext: UserContext)= {
+    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}")
+    val tripleEntities = sparqlResult.bindings.view map { resultMap =>
+      val s = resultMap("s").value
+      val p = resultMap("p").value
+      val g = resultMap("g").value
+      val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
+      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ), Seq(g)), QuadEntityTable.schema)
+    }
+    QuadEntityTable(tripleEntities, dataset)
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)

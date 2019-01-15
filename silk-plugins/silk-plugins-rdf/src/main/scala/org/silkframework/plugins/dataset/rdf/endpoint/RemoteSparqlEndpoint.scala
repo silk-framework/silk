@@ -21,7 +21,7 @@ import javax.xml.bind.DatatypeConverter
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
-import org.silkframework.dataset.rdf._
+import org.silkframework.dataset.rdf.{QuadIterator, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 

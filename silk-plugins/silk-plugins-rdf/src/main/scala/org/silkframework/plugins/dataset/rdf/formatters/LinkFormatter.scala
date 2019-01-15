@@ -20,5 +20,5 @@ import org.silkframework.entity.Link
  * Serializes a link.
  */
 trait LinkFormatter extends Formatter {
-  def format(link: Link, predicate: String): String
+  def formatLink(link: Link, predicate: String): String
 }
