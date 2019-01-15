@@ -102,7 +102,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
 
   /**
     * Determines the constructor of a Throwable and its arguments as an object set.
-    * Depending on the input, different constructors a searched via reflection.
+    * Depending on the input, different constructors are searched via reflection.
     * A (String, Throwable) constructor is preferred, after that (Throwable, String), (Throwable), (String)
     * and finally a no argument constructor.
     *

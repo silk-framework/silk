@@ -6,8 +6,12 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 
 class ExceptionSerializerTest extends FlatSpec with Matchers {
 
+  behavior of "Exception Serializer"
+
+  private val exceptionSerializer = ExceptionSerializer()
+
   //* test objects //*
-  "ExceptionSerializer" should "not fail when exceptions without certain features occur (missing string constructor, empty cause)" in {
+  it should "not fail when exceptions without certain features occur (missing string constructor, empty cause)" in {
     val cau = new Throwable("cause")
     val ex1 = NoStringConstructorThrowable(cau) // see CMEM-1472, lead to trouble with some of Sparks exceptions
     val ex2 = UnknownCauseException("no known cause") // has been observed to lead to to NPE in situations will lead to emulated exception
@@ -15,6 +19,32 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable2 = serializeThrowable(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
     throwable2.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.UnknownCauseException original message: "
+  }
+
+  it should "not fail when an contain null values as messages" in {
+    // but we ca try xml as well
+    val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
+    val throwable = serializeThrowable(exceptionWithNulls)
+    throwable.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NullMessageException original message: "
+  }
+
+  it should "handle exceptions with edge case constructors" in {
+    val edgeCase = new EdgeCaseException1("msg", "no comment", null)
+    val throwable = serializeThrowable(edgeCase)
+    throwable.getMessage shouldBe "msg"
+  }
+
+  it should "deserialize exception without class name" in {
+    val message = "Some message"
+    val throwable = exceptionSerializer.read(<Exception>
+      <Class></Class>
+      <Message>{message}</Message>
+      <Cause>
+      </Cause>
+      <StackTrace>
+      </StackTrace>
+    </Exception>)(ReadContext())
+    throwable.getMessage shouldBe message
   }
 
   "ExceptionSerializerJson" should "not fail when exceptions without certain features occur (missing string constructor, empty cause)" in {
@@ -33,14 +63,6 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable = serializeThrowableJson(exceptionWithNulls)
     throwable.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NullMessageException original message: null"
   }
-
-  "ExceptionSerializer" should "not fail when an contain null values as messages" in {
-    // but we ca try xml as well
-    val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
-    val throwable = serializeThrowable(exceptionWithNulls)
-    throwable.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NullMessageException original message: "
-  }
-
 
   /* Helper methods that serialize and deserialize a Throwable and return it. */
   def serializeThrowable(exception: Throwable): Throwable = {
@@ -77,6 +99,10 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     }
   }
 
+}
+
+class EdgeCaseException1(msg: String, comment: String, cause: Throwable) extends RuntimeException(msg, cause) {
+  def this(msg: String, cause: Throwable) = this(msg, "no comment", cause)
 }
 
 case class NoStringConstructorThrowable(ex: Throwable) extends Throwable {
