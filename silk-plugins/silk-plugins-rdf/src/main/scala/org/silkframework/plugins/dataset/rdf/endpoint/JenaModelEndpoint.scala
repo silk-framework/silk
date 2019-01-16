@@ -35,7 +35,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
   }
 
   override def construct(query: String)
-                        (implicit userContext: UserContext): QuadIterator = {
+                        (implicit userContext: UserContext): QuadIterator= {
     this.synchronized {
       super.construct(query)
     }

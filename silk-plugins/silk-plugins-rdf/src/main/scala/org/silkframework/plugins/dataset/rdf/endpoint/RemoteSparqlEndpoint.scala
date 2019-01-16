@@ -21,7 +21,9 @@ import javax.xml.bind.DatatypeConverter
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
-import org.silkframework.dataset.rdf.{QuadIterator, _}
+import org.silkframework.dataset.rdf._
+import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
@@ -71,7 +73,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   }
 
   override def construct(query: String)
-                        (implicit userContext: UserContext): QuadIterator = {
+                        (implicit userContext: UserContext): QuadIteratorImpl = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
@@ -91,9 +93,11 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
 
       //NOTE: listStatement() will not produce graph
       val iterator = m.listStatements()
-      new QuadIterator(
+      new QuadIteratorImpl(
         iterator.hasNext,
-        () => JenaEndpoint.jenaStatementToQuad(iterator.next())
+        () => JenaEndpoint.jenaStatementToQuad(iterator.next()),
+        iterator.close,
+        new NTriplesQuadFormatter
       )
     } catch {
       case ex: IOException =>

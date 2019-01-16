@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import java.io.File
 
-import org.silkframework.config.{MetaData, PlainTask, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema

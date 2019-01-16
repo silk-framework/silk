@@ -22,6 +22,8 @@ import org.apache.jena.rdf.model.{Model, Statement}
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
+import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
@@ -82,11 +84,12 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 
     val qe = createQueryExecution(QueryFactory.create(query))
     val quadIterator = qe.execConstructQuads()
-    val results = new QuadIterator(
-      quadIterator.hasNext,
-      () => JenaEndpoint.jenaQuadToQuad(quadIterator.next())
+    val results = new QuadIteratorImpl(
+      () => quadIterator.hasNext,
+      () => JenaEndpoint.jenaQuadToQuad(quadIterator.next()),
+      () => qe.close(),
+      new NTriplesQuadFormatter
     )
-    //qe.close()
     results
   }
 
@@ -127,7 +130,6 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 }
 
 object JenaEndpoint{
-  // TODO needs test
   private def getObject(n: Node): RdfNode ={
     if(n.isBlank){
       BlankNode(n.getBlankNodeLabel)
@@ -148,6 +150,11 @@ object JenaEndpoint{
     }
   }
 
+  /**
+    * Converts a Jena Quad to a (Silk) Quad object
+    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the QueryExecution close function
+    * @param q - the Jena Quad object
+    */
   def jenaQuadToQuad(q: JenaQuad): Quad = {
     val subj = q.getSubject
     if(subj.isBlank){
@@ -158,7 +165,12 @@ object JenaEndpoint{
     }
   }
 
-  def jenaStatementToQuad(q: Statement) = {
+  /**
+    * Converts a Jena Statement to a Quad object
+    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the StatementIterator close function
+    * @param q - the Jena Statement
+    */
+  def jenaStatementToQuad(q: Statement): Quad = {
     val subj = q.getSubject.asNode()
     if(subj.isBlank){
       Quad.triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
