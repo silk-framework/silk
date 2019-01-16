@@ -1,9 +1,20 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.config.Task
+import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.{DatasetTaskJsonFormat, TaskJsonFormat}
+import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow._
 import play.api.libs.json.{JsArray, _}
-import JsonHelpers._
+import play.api.mvc.{AnyContentAsJson, AnyContentAsXml}
+
+import scala.xml.NodeSeq
 
 object WorkflowSerializers {
 

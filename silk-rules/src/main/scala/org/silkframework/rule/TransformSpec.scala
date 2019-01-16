@@ -47,7 +47,7 @@ case class TransformSpec(selection: DatasetSelection,
     */
   def ruleById(ruleId: Identifier): TransformRule = {
     nestedRuleAndSourcePath(ruleId)
-      .getOrElse(throw new NoSuchElementException(s"No rule with identifier 'ruleId' has been found."))
+      .getOrElse(throw new NoSuchElementException(s"No rule with identifier '$ruleId' has been found."))
       ._1
   }
 
@@ -221,7 +221,7 @@ object TransformSpec {
 
   implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
 
-  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule("root", MappingRules.empty))
+  def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 
   /**
     * Holds a transform rule along with its input and output schema.
@@ -297,9 +297,14 @@ object TransformSpec {
         // Stay compatible with the old format.
         val oldRules = (node \ "TransformRule" ++ node \ "ObjectMapping").map(fromXml[TransformRule])
         if (oldRules.nonEmpty) {
-          RootMappingRule("root", MappingRules.fromSeq(oldRules))
+          RootMappingRule(MappingRules.fromSeq(oldRules))
         } else {
-          RootMappingRuleFormat.read((node \ "RootMappingRule").head)
+          (node \ "RootMappingRule").headOption match {
+            case Some(node) =>
+              RootMappingRuleFormat.read(node)
+            case None =>
+              RootMappingRule.empty
+          }
         }
       }
 

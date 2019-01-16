@@ -15,4 +15,13 @@ class PasswordParameterTest extends FlatSpec with MustMatchers {
 
     PasswordParameterType.fromString(passwordParameter.toString).decryptedString mustBe password
   }
+
+  it should "not encrypt empty string and null as these represent no password" in {
+    val nullPassword = PasswordParameterType.fromString(null)
+    nullPassword.toString mustBe null
+    nullPassword.decryptedString mustBe null
+    val emptyPassword = PasswordParameterType.fromString("")
+    emptyPassword.toString mustBe ""
+    emptyPassword.decryptedString mustBe ""
+  }
 }

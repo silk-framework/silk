@@ -13,6 +13,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 
 /**
   * Transfers projects between workspaces.
@@ -78,8 +79,13 @@ object WorkspaceIO {
                                                   resources: ResourceManager,
                                                   projectName: Identifier)
                                                  (implicit userContext: UserContext): Unit = {
-    for(task <- inputWorkspace.readTasks[T](projectName, resources)) {
-      outputWorkspace.putTask(projectName, task)
+    for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
+      taskTry match {
+        case Success(task) =>
+          outputWorkspace.putTask(projectName, task)
+        case Failure(ex) =>
+          log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + ex.getMessage)
+      }
     }
   }
 

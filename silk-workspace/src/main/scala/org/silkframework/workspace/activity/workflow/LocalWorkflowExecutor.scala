@@ -36,14 +36,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private val log = Logger.getLogger(getClass.getName)
 
-  @volatile
-  private var canceled = false
-
   override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport())
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
-    canceled = false
+    cancelled = false
 
     implicit val workflowRunContext = WorkflowRunContext(
       activityContext = context,
@@ -65,7 +62,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
     } catch {
       case e: WorkflowException =>
-        if(!canceled) {
+        if(!cancelled) {
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     }
@@ -80,15 +77,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  override def cancelExecution()(implicit userContext: UserContext): Unit = {
-    canceled = true
-  }
-
   def executeWorkflowNode(node: WorkflowDependencyNode,
                           entitySchemaOpt: Option[EntitySchema])
                          (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Execute this node
-    if (!canceled) {
+    if (!cancelled) {
       node.workflowNode match {
         case dataset: WorkflowDataset =>
           executeWorkflowDataset(node, entitySchemaOpt, dataset)

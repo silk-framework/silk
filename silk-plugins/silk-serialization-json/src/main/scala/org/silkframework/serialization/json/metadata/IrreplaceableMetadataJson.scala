@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.IrreplaceableMetadata
+import org.silkframework.entity.metadata.{IrreplaceableMetadata, MetadataSerializer}
 import org.silkframework.runtime.serialization.SerializationFormat
 import play.api.libs.json.JsValue
 
@@ -8,7 +8,7 @@ class IrreplaceableMetadataJson[Typ] private[metadata](
     obj: Option[Typ],
     serial: Option[JsValue],
     string: String,
-    serializer: SerializationFormat[Typ, JsValue]
+    serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer
   )(implicit override val typ: Class[Typ]) extends LazyMetadataJson[Typ](obj, serial, string, serializer) with IrreplaceableMetadata
 
 object IrreplaceableMetadataJson{
@@ -21,13 +21,13 @@ object IrreplaceableMetadataJson{
   def apply[Typ](lm: LazyMetadataJson[Typ])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](lm.obj, lm.serial, lm.str, lm.serializer)
 
-  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
+  def apply[Typ](obj: Typ, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](Option(obj), None, "", serializer)(typ)
 
-  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
+  def apply[Typ](node: JsValue, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](None, Option(node), "", serializer)(typ)
 
-  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue])(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
+  def apply[Typ](ser: String, serializer: SerializationFormat[Typ, JsValue] with MetadataSerializer)(implicit typ: Class[Typ]): IrreplaceableMetadataJson[Typ] =
     new IrreplaceableMetadataJson[Typ](None, None, ser, serializer)(typ)
 
   @throws[IllegalArgumentException]

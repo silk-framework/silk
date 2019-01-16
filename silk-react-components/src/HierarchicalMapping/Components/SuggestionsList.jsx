@@ -10,6 +10,7 @@ import {
     CardActions,
     ConfirmationDialog,
     Info,
+    Error,
     ContextMenu,
     MenuItem,
     Spinner,
@@ -48,6 +49,7 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
+            matchFromDataset: true
         };
     },
     onChecked(v) {
@@ -66,16 +68,18 @@ const SuggestionsList = React.createClass({
                 data: {
                     targetClassUris: this.props.targetClassUris,
                     ruleId: this.props.ruleId,
+                    matchFromDataset: this.state.matchFromDataset,
                 },
             })
             .subscribe(
                 response => {
-                    const rawData = response.suggestions.map(v => ({
+                    const rawData = _.map(response.suggestions, v => ({
                         ...v,
                         checked: this.defaultCheckValue,
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
+                        warnings: response.warnings,
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -289,6 +293,19 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
+        const warnings = !_.isEmpty(this.state.warnings) && (
+            <Error>
+                {_.map(
+                    this.state.warnings,
+                    warn => (
+                        <div>
+                            <b>{warn.title}</b>
+                            <div>{warn.detail}</div>
+                        </div>
+                    ),
+                )}
+            </Error>
+        );
 
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
@@ -297,6 +314,7 @@ const SuggestionsList = React.createClass({
                         No suggestions found for{' '}
                         <ParentElement parent={this.props.parent} />.
                     </Info>
+                    {warnings}
                 </CardContent>
             );
         } else {
@@ -393,6 +411,7 @@ const SuggestionsList = React.createClass({
                         </ContextMenu>
                     </CardMenu>
                 </CardTitle>
+                {warnings}
                 {suggestionsList}
                 <CardActions fixed>
                     <AffirmativeButton

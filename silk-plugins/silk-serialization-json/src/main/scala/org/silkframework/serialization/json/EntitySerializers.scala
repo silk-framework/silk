@@ -5,6 +5,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.util.DPair
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
 object EntitySerializers {
@@ -29,6 +30,16 @@ object EntitySerializers {
       Json.obj(
         "source" -> EntitySchemaJsonFormat.write(value.source),
         "target" -> EntitySchemaJsonFormat.write(value.target)
+      )
+    }
+  }
+
+  implicit object CachedEntitySchemataJsonFormat extends WriteOnlyJsonFormat[CachedEntitySchemata] {
+
+    override def write(value: CachedEntitySchemata)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        "configured" -> EntitySchemaJsonFormat.write(value.configuredSchema),
+        "untyped" -> value.untypedSchema.map(EntitySchemaJsonFormat.write)
       )
     }
   }

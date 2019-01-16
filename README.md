@@ -18,7 +18,7 @@ Community documentation is maintained in the [doc](doc/) folder.
 
 ### Local build
 
-- JDK 8 or later
+- JDK 8
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 - [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (>= 1.3)
 

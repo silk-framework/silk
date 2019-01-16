@@ -349,40 +349,67 @@ hierarchicalMappingChannel
                     topic: 'transform.task.rule.suggestions',
                     data: {...apiDetails, ...data},
                 })
-                .catch(() => Rx.Observable.return(null))
+                .catch(err => {
+                    if (err.status !== 404)
+                        return Rx.Observable.return({error: err})
+                    return Rx.Observable.return(null);
+                })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
+                    const error = _.get(returned, 'error', [])
 
+                    if (error) {
+                        return {
+                            error,
+                        }
+                    }
                     const suggestions = [];
 
-                    _.forEach(body, (sources, target) => {
-                        _.forEach(sources, ({uri, type, confidence}) => {
+                    _.forEach(body, (sources, sourcePathOrUri) => {
+                        _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
+                            let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
+                            let mapTo = candidateUri;
+                            if(!data.matchFromDataset) {
+                                mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
+                                mapTo = sourcePathOrUri;
+                            }
                             suggestions.push(
                                 new Suggestion(
-                                    uri,
+                                    mapFrom,
                                     type,
-                                    target,
+                                    mapTo,
                                     confidence
                                 )
                             );
                         });
                     });
-                    return suggestions;
+                    return {
+                        data: suggestions,
+                    };
                 }),
             silkStore
                 .request({
                     topic: 'transform.task.rule.valueSourcePaths',
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
-                .catch(() => Rx.Observable.return(null))
+                .catch(err =>{
+                    if (err.status !== 404)
+                        return Rx.Observable.return({error: err})
+                    return Rx.Observable.return(null);
+                })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
 
-                    return _.map(body, path => new Suggestion(path));
+                    return {
+                        data: _.map(body, path => new Suggestion(path))
+                    }
                 }),
-            (arg1, arg2) => ({
-                suggestions: _.concat([], arg1, arg2),
-            })
+            (arg1, arg2) => {
+                return {
+                    suggestions: _.filter(_.concat([], arg1.data, arg2.data), d => !_.isUndefined(d)),
+                    warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e))
+                };
+            }
         )
             .multicast(replySubject)
             .connect();

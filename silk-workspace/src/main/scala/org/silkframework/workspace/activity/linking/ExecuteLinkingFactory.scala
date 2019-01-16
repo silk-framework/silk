@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionException, ExecutionType, ExecutorRegistry}
+import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionType, ExecutorRegistry}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.Plugin
@@ -46,7 +46,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     context.status.update("Generating links", 0.4)
     val links = ExecutorRegistry.execute(task, inputs, None, execution) match {
       case Some(result) => result
-      case None => throw ExecutionException("Linking task did not generate any links")
+      case None => throw AbortExecutionException("Linking task did not generate any links")
     }
 
     // Write links to outputs
@@ -70,7 +70,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
           ExecutorRegistry.execute(datasetTask, Seq.empty, Some(entitySchema), execution)
       }
 
-    result.getOrElse(throw ExecutionException(s"The input task ${selection.inputId} did not generate any result"))
+    result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))
   }
 
 }

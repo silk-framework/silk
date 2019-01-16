@@ -5,6 +5,8 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json._
 
+import scala.util.Try
+
 case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
   override def read(ex: JsValue)(implicit readContext: ReadContext): Throwable = readException(ex)
@@ -14,7 +16,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
       case JsNull => null
       case JsObject(_) =>
         val className = stringValue(node, ExceptionSerializer.CLASS)
-        val message = stringValue(node, ExceptionSerializer.MESSAGE)
+        val message = Try{stringValue(node, ExceptionSerializer.MESSAGE)}.toOption
         val cause = (node \ ExceptionSerializer.CAUSE).toOption match {
           case Some(c) => readException(c)
           case None => null
@@ -24,15 +26,15 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
         var arguments = Seq[Object]()
         val constructor = if (cause != null) {
           var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-          arguments = Seq(message, cause)
+          arguments = Seq(message.orNull, cause)
           if (zw == null) {
             zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-            arguments = Seq(cause, message)
+            arguments = Seq(cause, message.orNull)
           }
           zw
         }
         else {
-          arguments = Seq(message)
+          arguments = Seq(message.orNull)
           exceptionClass.getConstructor(classOf[String])
         }
 
@@ -40,7 +42,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
           exceptionClass.cast(constructor.newInstance(arguments: _*))
         }
         else {
-          new Exception("Emulated Exception of class: " + className + ", original message: " + message, cause)
+          new Exception("Emulated Exception of class: " + className + ", original message: " + message.orNull, cause)
         }
         exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
         exception
@@ -54,9 +56,9 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
 
       val className = stringValue(ste, ExceptionSerializer.CLASSNAME)
       val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
-      val fileName = stringValue(ste, ExceptionSerializer.FILENAME)
-      val lineNumber = numberValue(ste, ExceptionSerializer.LINENUMBER)
-      new StackTraceElement(className, methodName, fileName, if(lineNumber != null) lineNumber.toInt else 0)
+      val fileName = Try{stringValue(ste, ExceptionSerializer.FILENAME)}.toOption
+      val lineNumber = Try{numberValue(ste, ExceptionSerializer.LINENUMBER)}.toOption
+      new StackTraceElement(className, methodName, fileName.orNull, lineNumber.map(_.toInt).getOrElse(-1))
     }
     stackTrace.toArray
   }

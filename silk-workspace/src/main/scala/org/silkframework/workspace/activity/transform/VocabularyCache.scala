@@ -22,7 +22,7 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
     if(transform.targetVocabularies.nonEmpty) {
       val vocabManager = VocabularyManager()
       val vocabularies = for (vocab <- transform.targetVocabularies) yield vocabManager.get(vocab, task.project.name)
-      context.value() = new VocabularyCacheValue(vocabularies.toSeq.sortBy(_.info.uri))
+      context.value() = new VocabularyCacheValue(vocabularies.toSeq.flatten.sortBy(_.info.uri))
     }
   }
 

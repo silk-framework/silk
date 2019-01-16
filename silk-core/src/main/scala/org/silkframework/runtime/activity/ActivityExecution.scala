@@ -1,6 +1,7 @@
 package org.silkframework.runtime.activity
 
-import java.util.concurrent.ForkJoinTask
+import java.util.concurrent.ForkJoinPool.ManagedBlocker
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask, TimeUnit}
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 
@@ -31,6 +32,12 @@ private class ActivityExecution[T](activity: Activity[T],
   @volatile
   private var cancelTimestamp: Option[Long] = None
 
+  // Locks the access to the runningThread variable
+  private object ThreadLock
+
+  @volatile
+  private var runningThread: Option[Thread] = None
+
   override def startTime: Option[Long] = startTimestamp
 
   override def start()(implicit user: UserContext): Unit = {
@@ -52,7 +59,7 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startBlocking()(implicit user: UserContext): Unit = synchronized {
     setStartMetaData(user)
-    runActivity()
+    ForkJoinPool.managedBlock(new BlockingRunner())
   }
 
   private def setStartMetaData(user: UserContext) = {
@@ -76,12 +83,18 @@ private class ActivityExecution[T](activity: Activity[T],
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()
+      ThreadLock.synchronized {
+        runningThread foreach { thread =>
+          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+        }
+      }
     }
   }
 
   override def reset()(implicit userContext: UserContext): Unit = {
     activity.initialValue.foreach(value.update)
     activity.reset()
+    activity.resetCancelFlag()
   }
 
   def waitUntilFinished(): Unit = {
@@ -91,7 +104,7 @@ private class ActivityExecution[T](activity: Activity[T],
       } catch {
         case NonFatal(ex) =>
           status() match {
-            case Finished(false, _, Some(cause)) =>
+            case Finished(false, _, _, Some(cause)) =>
               throw cause
             case _ =>
               throw ex
@@ -103,20 +116,28 @@ private class ActivityExecution[T](activity: Activity[T],
   override def underlying: Activity[T] = activity
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
+    ThreadLock.synchronized {
+      runningThread = Some(Thread.currentThread())
+    }
+    activity.resetCancelFlag()
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
       startTimestamp = Some(startTime)
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime))
+        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled()))
       } catch {
         case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, Some(ex)))
-          throw ex
+          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
+          if(!activity.wasCancelled()) {
+            throw ex
+          }
       } finally {
         lastResult = activityExecutionResult
-        resetMetaData()
         forkJoinRunner = None
+        ThreadLock.synchronized {
+          runningThread = None
+        }
       }
     }
   }
@@ -156,6 +177,21 @@ private class ActivityExecution[T](activity: Activity[T],
     override def exec(): Boolean = {
       runActivity()
       true
+    }
+  }
+
+  private class BlockingRunner(implicit userContext: UserContext) extends ManagedBlocker {
+    @volatile
+    private var releasable = false
+
+    override def block(): Boolean = {
+      runActivity()
+      releasable = true
+      true
+    }
+
+    override def isReleasable: Boolean = {
+      releasable
     }
   }
 }

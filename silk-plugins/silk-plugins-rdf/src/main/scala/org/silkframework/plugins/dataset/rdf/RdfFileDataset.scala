@@ -3,10 +3,10 @@ package org.silkframework.plugins.dataset.rdf
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
@@ -63,9 +63,11 @@ case class RdfFileDataset(
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    val inputStream = file.inputStream
-    RDFDataMgr.read(dataset, inputStream, lang)
-    inputStream.close()
+    if(file.exists) {
+      val inputStream = file.inputStream
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
+    }
 
     // Retrieve model
     val model =
@@ -84,7 +86,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource with SchemaExtractionSource with SparqlRestrictionDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -97,12 +99,12 @@ case class RdfFileDataset(
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Seq[Entity] = {
+                              (implicit userContext: UserContext): Traversable[Entity] = {
       if (entities.isEmpty) {
         Seq.empty
       } else {
         load()
-        EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+        EntityRetriever(endpoint).retrieve(entitySchema, entities, None)
       }
     }
 
@@ -139,10 +141,32 @@ case class RdfFileDataset(
 
     /**
       * The dataset task underlying the Datset this source belongs to
-      *
-      * @return
       */
-    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset)) //FIXME CMEM 1352 replace with actual task
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = {
+      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
+    } //FIXME CMEM 1352 replace with actual task
+
+    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).retrievePathsSparqlRestriction(sparqlRestriction, limit)
+    }
+
+    override def sampleValues(typeUri: Option[Uri],
+                              typedPaths: Seq[TypedPath],
+                              valueSampleLimit: Option[Int])
+                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).sampleValues(typeUri, typedPaths, valueSampleLimit)
+    }
+
+    override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                  pathLimit: Int,
+                                  sampleLimit: Option[Int],
+                                  progressFN: Double => Unit)
+                                 (implicit userContext: UserContext): ExtractedSchema[T] = {
+      load()
+      new SparqlSource(SparqlParams(), endpoint).extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
+    }
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)

@@ -7,14 +7,11 @@ import org.apache.jena.rdf.model.{AnonId, ModelFactory}
 import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.vocabulary.XSD
 import org.silkframework.entity._
-import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.{StringUtils, Uri}
 
 import scala.collection.JavaConverters._
 
-/**
-  * Created on 8/31/16.
-  */
+/** Utility methods for serializing to RDF */
 object RdfFormatUtil {
   final val BOOLEAN_JENA_TYPE = NodeFactory.getType(XSD.xboolean.getURI)
   final val DOUBLE_JENA_TYPE = NodeFactory.getType(XSD.xdouble.getURI)
@@ -26,6 +23,7 @@ object RdfFormatUtil {
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
     val objNode = resolveObjectValue(value, valueType)
+    objNode.toString
     val tripleString = serializeTriple(subject, property, objNode)
     valueType match {
       case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
@@ -44,7 +42,7 @@ object RdfFormatUtil {
       // Check if value is a number
       case StringUtils.integerNumber() =>
         model.createTypedLiteral(value, XSD.integer.getURI).asNode
-      case DoubleLiteral(d) =>
+      case StringUtils.simpleDoubleNumber() =>
         model.createTypedLiteral(value, XSD.xdouble.getURI).asNode
       // Write string values
       case _ =>
@@ -100,5 +98,14 @@ object RdfFormatUtil {
     val triple = new Triple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString()
+  }
+
+  def serializeSingleNode(node: Node): String = {
+    val subjectPropertyLength = 8
+    val spaceDotNewLineLength = 3
+    val output = new ByteArrayOutputStream()
+    val triple = new Triple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
+    RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
+    output.toString().drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
   }
 }

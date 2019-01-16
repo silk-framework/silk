@@ -2,22 +2,27 @@ package controllers.workflow
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
-import org.silkframework.config.{MetaData, Task}
+import org.silkframework.config.Task
 import org.silkframework.dataset.Dataset
+import controllers.util.SerializationUtils
+import org.silkframework.config.{MetaData, Task}
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
-import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
 
 import scala.xml.NodeSeq
+import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow._
+import play.api.libs.json._
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
 
 class WorkflowApi extends Controller {
 
@@ -46,9 +51,7 @@ class WorkflowApi extends Controller {
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
-    // The workflow that is sent to this endpoint by the editor does not contain the metadata
-    val metaData = project.anyTaskOption(taskName).map(_.metaData).getOrElse(MetaData.empty)
-    project.updateTask[Workflow](taskName, workflow, metaData)
+    project.updateTask[Workflow](taskName, workflow)
 
     Ok
   }
@@ -99,100 +102,48 @@ class WorkflowApi extends Controller {
     * delivered inside the request.
     */
   def postVariableWorkflowInput(projectName: String,
-                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
-    val variableDatasets = workflowTask.data.variableDatasets(project)
+                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
-    // Create sinks and resources for variable datasets, all resources are returned in the response
-    val variableSinks = variableDatasets.sinks
-    val (dataSources, sinks, resultResourceManager) = request.body match {
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    val id = activity.startBlocking(workflowConfiguration)
+
+    SerializationUtils.serializeCompileTime(activity.instance(id).value())
+  }
+
+  /**
+    * Run a variable workflow in background, where some of the tasks are configured at request time and dataset payload may be
+    * delivered inside the request.
+    */
+  def postVariableWorkflowInputAsynchronous(projectName: String,
+                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    val id = activity.start(workflowConfiguration)
+
+    Created(Json.obj(("activityId", id.toString)))
+        .withHeaders("Location" -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
+  }
+
+  def removeVariableWorkflowExecution(projectName: String,
+                                      workflowTaskName: String,
+                                      workflowExecutionId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContest =>
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    activity.removeActivityInstance(Identifier(workflowExecutionId))
+    NoContent
+  }
+
+  private def workflowConfiguration(implicit request: Request[AnyContent]): Map[String, String] = {
+    request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        createSourcesSinksFromXml(projectName, variableDatasets, variableSinks.toSet, xmlRoot)
+        Map("configuration" -> xmlRoot.toString, "configurationType" -> "application/xml")
       case AnyContentAsJson(json) =>
-        createSourceSinksFromJson(projectName, variableDatasets, variableSinks.toSet, json)
+        Map("configuration" -> json.toString, "configurationType" -> "application/json")
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
-    val sink2ResourceMap = sinkToResourceMapping(sinks, variableSinks)
-    executeVariableWorkflow(workflowTask, dataSources, sinks)
-    variableSinkResult(resultResourceManager, sink2ResourceMap, request)
-  }
-
-  private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {
-    variableSinks.map(s =>
-      s -> sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource")
-    ).toMap
-  }
-
-  private def createSourceSinksFromJson(projectName: String, variableDatasets: AllVariableDatasets, sinkIds: Set[String], json: JsValue)
-                                       (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
-    val workflowJson = json.as[JsObject]
-    val dataSources = {
-      implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
-      createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources")
-    }
-    // Sink
-    val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
-    implicit val resourceManager: ResourceManager = sinkResourceManager
-    val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks")
-    (dataSources, sinks, resultResourceManager)
-  }
-
-  private def createSourcesSinksFromXml(projectName: String, variableDatasets: AllVariableDatasets, sinkIds: Set[String], xmlRoot: NodeSeq)
-                                       (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
-    // Create data sources from request payload
-    val dataSources = {
-      // Allow to read from project resources
-      implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
-      createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources")
-    }
-    // Sink
-    val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
-    implicit val resourceManager: ResourceManager = sinkResourceManager
-    val sinks = createDatasets(xmlRoot, Some(sinkIds), xmlElementTag = "Sinks")
-    (dataSources, sinks, resultResourceManager)
-  }
-
-  /** Generate result XML for all variable sinks in the workflow. */
-  private def variableSinkResult(resourceManager: ResourceManager,
-                                 sink2ResourceMap: Map[String, String],
-                                 request: Request[AnyContent]): Result = {
-    if(request.accepts("application/xml")) {
-      Ok(variableSinkResultXml(resourceManager, sink2ResourceMap))
-    } else if(request.accepts("application/json")) {
-      Ok(variableSinkResultJson(resourceManager, sink2ResourceMap))
-    } else {
-      Ok(variableSinkResultXml(resourceManager, sink2ResourceMap))
-    }
-  }
-
-  private def variableSinkResultXml(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]) = {
-    <WorkflowResults>
-      {for ((sinkId, resourceId) <- sink2ResourceMap if resourceManager.exists(resourceId)) yield {
-      val resource = resourceManager.get(resourceId, mustExist = true)
-      <Result sinkId={sinkId}>{resource.loadAsString}</Result>
-    }}
-    </WorkflowResults>
-  }
-
-  private def variableSinkResultJson(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]) = {
-    JsArray(
-      for ((sinkId, resourceId) <- sink2ResourceMap.toSeq if resourceManager.exists(resourceId)) yield {
-        val resource = resourceManager.get(resourceId, mustExist = true)
-        JsObject(Seq(
-          "sinkId" -> JsString(sinkId),
-          "textContent" -> JsString(resource.loadAsString)
-        ))
-      }
-    )
-  }
-
-  private def executeVariableWorkflow(task: ProjectTask[Workflow],
-                                      replaceDataSources: Map[String, Dataset],
-                                      replaceSinks: Map[String, Dataset])
-                                     (implicit userContext: UserContext): Unit = {
-    val executor = LocalWorkflowExecutorGeneratingProvenance(task, replaceDataSources, replaceSinks, useLocalInternalDatasets = true)
-    val activityExecution = Activity(executor)
-    activityExecution.startBlocking()
   }
 }

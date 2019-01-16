@@ -23,14 +23,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   val noSeparatorSettings: CsvSettings = settings.copy(separator = ' ')
 
-  val source = new CsvSource(resources.get("persons.csv"), settings)
-  val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
-  val dirtyHeaders = new CsvSource(resources.get("dirtyHeaders.csv"), settings)
-  val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
-  val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
-  val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
-  val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
-  val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
+  lazy val source = new CsvSource(resources.get("persons.csv"), settings)
+  lazy val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
+  lazy val dirtyHeaders = new CsvSource(resources.get("dirtyHeaders.csv"), settings)
+  lazy val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
+  lazy val emptyCsv = CsvDataset(ReadOnlyResource(resources.get("empty.csv")), separator = "\t", quote = "")
+  lazy val tabSeparated = CsvDataset(ReadOnlyResource(resources.get("tab_separated.csv")), separator = "\\t")
+  lazy val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
+  lazy val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
+  lazy val iso8859 = CsvDataset(ReadOnlyResource(resources.get("iso8859.csv")))
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -154,6 +155,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
   }
 
+  it should "detect ISO8859 encoding" in {
+    val autoConfigured = iso8859.autoConfigured
+    autoConfigured.charset shouldBe "ISO-8859-1"
+  }
+
   private def getEntities(dataSource: DataSource): Seq[Entity] = {
     val paths = dataSource.retrievePaths(Uri("")).toIndexedSeq.map(_.asStringTypedPath)
     val entities = dataSource.retrieve(EntitySchema(Uri(""), paths)).toSeq
@@ -174,6 +180,13 @@ class CsvSourceTest extends FlatSpec with Matchers {
     top.valueOf("vals2").head shouldBe "val2"
   }
 
+  it should "support #idx special forward path" in {
+    val s = source
+    val schema = EntitySchema("", typedPaths = IndexedSeq(Path("#idx").asStringTypedPath))
+    val entities = s.retrieve(schema, limitOpt = Some(3))
+    entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
+  }
+
   "CsvSourceHelper" should "escape and unescape standard fields correctly" in {
     val input = """I said: "What, It escaped?""""
     val line = CsvSourceHelper.serialize(Seq(input, input, input))
@@ -189,5 +202,12 @@ class CsvSourceTest extends FlatSpec with Matchers {
     emptyHeaderFieldsDataset.propertyList shouldBe Seq(
       "unnamed_col1","field2","unnamed_col3_2","unnamed_col3","unnamed_col6_3","unnamed_col6_4","unnamed_col7"
     )
+  }
+
+  "Csv Source" should "fetch entities by URI" in {
+    val es = EntitySchema("", IndexedSeq())
+    val entities = source.retrieve(es)
+    entities.size shouldBe 3
+    source.retrieveByUri(es, Seq(entities.head.uri)).size shouldBe 1
   }
 }

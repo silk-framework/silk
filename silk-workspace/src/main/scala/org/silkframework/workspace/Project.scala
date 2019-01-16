@@ -19,6 +19,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.HasValue
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -75,8 +76,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def loadingErrors: Seq[ValidationException] = modules.flatMap(_.loadingError) ++ activityLoadingErrors
 
   private val projectActivities = {
-    val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_]].toList
-    var activities = List[ProjectActivity]()
+    val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
+    var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
         activities ::= new ProjectActivity(this, factory()(config.prefixes, resources))
@@ -93,7 +94,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
     * Available activities for this project.
     */
-  def activities: Seq[ProjectActivity] = {
+  def activities: Seq[ProjectActivity[_ <: HasValue]] = {
     projectActivities
   }
 
@@ -104,7 +105,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     * @return The activity control for the requested activity
     * @throws org.silkframework.runtime.validation.NotFoundException
     */
-  def activity(activityName: String): ProjectActivity = {
+  def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
       .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
@@ -215,15 +216,16 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param name The name of the task.
     * @param taskData The task data.
+    * @param metaData The task meta data. If not provided, no changes to the meta data are made.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)
                                           (implicit userContext: UserContext): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
-        task.update(taskData, Some(metaData))
+        task.update(taskData, metaData)
       case None =>
-        addTask[T](name, taskData, metaData)
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty))
     }
   }
 
@@ -232,16 +234,17 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
+    * @param metaData The task meta data. If not provided, no changes to the meta data are made.
     */
-  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None)
                    (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(metaData))
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, metaData)
           case None =>
-            addAnyTask(name, taskData, metaData)
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

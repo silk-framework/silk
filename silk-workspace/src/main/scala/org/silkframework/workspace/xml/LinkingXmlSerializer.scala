@@ -25,6 +25,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
+import scala.util.Try
 import scala.xml.XML
 
 /**
@@ -35,16 +36,6 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   private val logger = Logger.getLogger(classOf[LinkingXmlSerializer].getName)
 
   override def prefix: String = "linking"
-
-  /**
-   * Loads all tasks of this module.
-   */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[LinkSpec]] = {
-    val tasks =
-      for(name <- resources.listChildren) yield
-        loadTask(resources.child(name), projectResources)
-    tasks
-  }
 
   /**
    * Loads a specific task in this module.
@@ -75,5 +66,12 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     val taskResources = resources.child(data.id)
     taskResources.get("linkSpec.xml").write(){ os => toXml(data).write(os) }
     taskResources.get("alignment.xml").write(){ os => data.referenceLinks.toXML.write(os) }
+  }
+
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): List[Try[PlainTask[LinkSpec]]] = {
+    val tasks =
+      for(name <- resources.listChildren) yield
+        Try(loadTask(resources.child(name), projectResources))
+    tasks
   }
 }

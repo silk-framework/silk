@@ -1,5 +1,6 @@
 package org.silkframework.util
 
+import java.io.BufferedInputStream
 import java.net.{BindException, InetSocketAddress}
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
@@ -14,6 +15,7 @@ trait MockServerTestTrait {
   final val START_PORT = 10600
 
   final val OK = 200
+  final val NO_CONTENT = 204
   final val INTERNAL_SERVER_ERROR_CODE = 500
   final val BAD_REQUEST_ERROR_CODE = 400
   final val UNAUTHORIZED = 401
@@ -21,7 +23,7 @@ trait MockServerTestTrait {
   var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
-  def withAdditionalServer(servedContent: Traversable[ServedContent])(withPort: Int => Unit): Unit = {
+  def withAdditionalServer(servedContent: Traversable[ContentHandler])(withPort: Int => Unit): Unit = {
     val port = startServer(servedContent)
     withPort(port)
   }
@@ -32,19 +34,14 @@ trait MockServerTestTrait {
     for (servedContent <- servedContents) {
       val handler = new HttpHandler {
         override def handle(httpExchange: HttpExchange): Unit = {
-          val responseContent = servedContent match {
+          servedContent match {
             case s: ServedContent =>
-              s
+              respond(httpExchange, s)
             case DynamicContent(_, contentFN) =>
-              contentFN(httpExchange)
+              respond(httpExchange, contentFN(httpExchange))
+            case FullControl(_, handleExchange) =>
+              handleExchange(httpExchange)
           }
-          val response = responseContent.content
-          val responseHeaders = httpExchange.getResponseHeaders
-          responseHeaders.add("content-type", responseContent.contentType)
-          httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
-          val os = httpExchange.getResponseBody
-          os.write(response.getBytes("UTF-8"))
-          os.close()
         }
       }
       server.createContext(servedContent.contextPath, handler)
@@ -53,6 +50,24 @@ trait MockServerTestTrait {
     server.start()
     servers ::= server
     server.getAddress.getPort
+  }
+
+  private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
+    // Consume body if available
+    val is = new BufferedInputStream(httpExchange.getRequestBody)
+    while(is.read() != -1) {}
+    val response = responseContent.content
+    val responseHeaders = httpExchange.getResponseHeaders
+    if(responseContent.statusCode == 204) {
+      // No Content
+      httpExchange.sendResponseHeaders(responseContent.statusCode, -1)
+    } else {
+      responseHeaders.add("content-type", responseContent.contentType)
+      httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
+      val os = httpExchange.getResponseBody
+      os.write(response.getBytes("UTF-8"))
+      os.close()
+    }
   }
 
   def stopAllRegisteredServers(): Unit = {
@@ -101,3 +116,11 @@ case class ServedContent(contextPath: String = "/",
   */
 case class DynamicContent(contextPath: String = "/",
                           contentFn: (HttpExchange) => ServedContent) extends ContentHandler
+
+/**
+  * Gives full control over the HTTP Exchange.
+  * @param contextPath     The context path of the endpoint
+  * @param handleRequestFn Handle the HTTP exchange, i.e. send data via output stream and close it, etc.
+  */
+case class FullControl(contextPath: String = "/",
+                       handleRequestFn: (HttpExchange) => Unit) extends ContentHandler

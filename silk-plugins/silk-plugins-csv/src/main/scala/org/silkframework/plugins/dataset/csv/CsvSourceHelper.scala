@@ -52,11 +52,11 @@ object CsvSourceHelper {
   }
 
   /** Converts the field names to a representation that can be used in URIs */
-  def convertHeaderFields(headerFields: Array[String], prefix: String): immutable.IndexedSeq[String] = {
+  def convertHeaderFields(headerFields: Array[String]): immutable.IndexedSeq[String] = {
     val existingUnnamedMap: Map[Int, Int] = unnamedColumnClashes(headerFields)
     headerFields.zipWithIndex
         .map {
-          case (null, idx) =>
+          case (colName, idx) if colName == null || colName.startsWith("_c") =>
             val colIdx = idx + 1
             val columnName = UNNAMED_COLUMN_PREFIX + colIdx
             existingUnnamedMap.get(colIdx) match {

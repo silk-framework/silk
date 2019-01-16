@@ -1,11 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
 
+import org.apache.jena.datatypes.xsd.XSDDatatype
+import org.apache.jena.graph.NodeFactory
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity._
 
-/**
-  * Created on 9/8/16.
-  */
 class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   behavior of "RDFFormatUtil"
 
@@ -21,19 +20,35 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
     RdfFormatUtil.tripleValuesToNTriplesSyntax("s", "p", objectValue, valueType)
   }
 
+  private def expectedTriple(literalLexical: String): String = {
+    s"""$S_P $literalLexical .$NL"""
+  }
+
   it should "serialize double literal triples" in {
     format("3.14") mustBe
         s"""$S_P "3.14"^^<http://www.w3.org/2001/XMLSchema#double> .$NL"""
+    format("12e3") mustBe expectedTriple("\"12e3\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("0.0e2") mustBe expectedTriple("\"0.0e2\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    // Whitespace allowed before and after
+    format("42.1 ") mustBe expectedTriple("\"42.1 \"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format(" 42.1") mustBe expectedTriple("\" 42.1\"^^<http://www.w3.org/2001/XMLSchema#double>")
   }
 
   it should "serialize integer literal triples" in {
     format("33563267326578325683257832") mustBe
         s"""$S_P "33563267326578325683257832"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
+    format("0") mustBe expectedTriple("\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>")
   }
 
   it should "serialize all other to plain literal triples" in {
     format("some string") mustBe
         s"""$S_P "some string" .$NL"""
+    format("41D") mustBe expectedTriple("\"41D\"")
+    format("41d") mustBe expectedTriple("\"41d\"")
+    format("41F") mustBe expectedTriple("\"41F\"")
+    format("41f") mustBe expectedTriple("\"41f\"")
+    format("000") mustBe expectedTriple("\"000\"")
+    format("2ea") mustBe expectedTriple("\"2ea\"")
   }
 
   it should "serialize triples with StringValueType" in {
@@ -58,7 +73,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
 
   it should "serialize triples with BlankNodeValueType" in {
     format("bla45532532532532", BlankNodeValueType) must startWith regex
-        (s"""$S_P _:""") // Jena constructs new blank node ids
+        s"""$S_P _:""" // Jena constructs new blank node ids
   }
 
   it should "serialize triples with BooleanValueType" in {
@@ -114,5 +129,12 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   it should "serialize triples with AutoDetectValueType as String if the value is an invalid URI" in {
     format("example.org/resource", AutoDetectValueType) mustBe
       s"""$S_P "example.org/resource" .$NL"""
+  }
+
+  it should "serialize single RDF nodes" in {
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("some string")) mustBe "\"some string\""
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createURI("urn:test:test1")) mustBe "<urn:test:test1>"
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("value", "en")) mustBe "\"value\"@en"
+    RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral("42.23", XSDDatatype.XSDdecimal)) mustBe "\"42.23\"^^<http://www.w3.org/2001/XMLSchema#decimal>"
   }
 }

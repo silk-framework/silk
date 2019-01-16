@@ -74,7 +74,7 @@ lazy val core = (project in file("silk-core"))
   )
 
 lazy val rules = (project in file("silk-rules"))
-  .dependsOn(core % "test->test;compile->compile")
+  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules"
@@ -115,7 +115,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.2.1"
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.7.6"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -131,7 +131,8 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
@@ -276,7 +277,7 @@ lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"
 
 lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-workflow"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, serializationJson)
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(

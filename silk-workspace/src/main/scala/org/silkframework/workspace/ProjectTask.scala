@@ -18,7 +18,7 @@ import java.time.Instant
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config._
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -147,7 +147,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * All activities that belong to this task.
     */
-  def activities: Seq[TaskActivity[TaskType, _]] = taskActivities
+  def activities: Seq[TaskActivity[TaskType, _ <: HasValue]] = taskActivities
 
   /**
     * Retrieves an activity by type.
@@ -217,25 +217,17 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     if(metaData.label.trim != "") {
       metaDataFields = metaDataFields :+ "Label" -> metaData.label
     }
-    if(metaData.description.trim != "") {
-      metaDataFields = metaDataFields :+ "Description" -> metaData.description
+    metaData.description foreach { description =>
+      metaDataFields = metaDataFields :+ "Description" -> description
     }
     metaDataFields
-  }
-
-  /**
-    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
-    * @param maxLength the max length in characters
-    */
-  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
-    metaData.formattedLabel(id, maxLength)
   }
 }
 
 object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
-  private val writeInterval = 3
+  val writeInterval = 3
 
   private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 }

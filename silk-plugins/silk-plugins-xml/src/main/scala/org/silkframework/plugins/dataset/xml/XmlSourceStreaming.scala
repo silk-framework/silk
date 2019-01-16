@@ -1,7 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
-import javax.xml.stream.{XMLInputFactory, XMLStreamReader}
+import java.util.concurrent.atomic.AtomicInteger
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
@@ -11,13 +12,15 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
+import scala.collection.mutable
+import scala.util.Try
 import scala.xml._
 
 /**
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -55,6 +58,19 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
     reader
   }
+
+  private val basePathParts: List[String] = {
+    val pureBasePath = basePath.stripPrefix("/").trim
+    if (pureBasePath == "") {
+      List.empty[String]
+    } else {
+      pureBasePath.split('/').toList
+    }
+  }
+
+  private val basePathPartsReversed = basePathParts.reverse
+
+  private val basePathLength = basePathParts.length
 
   /**
     * Retrieves the most frequent paths in this source.
@@ -305,6 +321,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     // If this is an empty tag, we return immediately
     if(reader.isEndElement) {
+      reader.next()
       return
     }
 
@@ -337,6 +354,68 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   override def convertToIdPath(path: Path): Option[Path] = {
     Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  }
+
+  private def basePathMatches(currentPath: List[String]) = {
+    basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
+  }
+
+  def collectPaths(limit: Int, collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
+    val paths = mutable.HashMap[List[String], Int]()
+    paths.put(Nil, 0)
+    val idx = new AtomicInteger(1)
+    var currentPath = List[String]()
+
+    val inputStream = file.inputStream
+    try {
+      val reader: XMLStreamReader = initStreamReader(inputStream)
+      var readNext = true
+      var eventId = reader.getEventType
+      while(reader.hasNext && paths.size < limit) {
+        if(readNext) {
+          reader.next()
+          eventId = reader.getEventType
+        } else {
+          eventId = reader.getEventType
+          readNext = true
+        }
+        eventId match {
+          case XMLStreamConstants.START_ELEMENT =>
+            currentPath ::= reader.getLocalName
+            if (basePathMatches(currentPath)) {
+              addIfNotExists(paths, idx, currentPath)
+              for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+                val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
+                addIfNotExists(paths, idx, attributePath)
+                collectValues(attributePath, reader.getAttributeValue(attributeIndex))
+              }
+            }
+            val text = Try(reader.getElementText)
+            text foreach { elemText =>
+              collectValues(currentPath, elemText)
+            }
+            readNext = false // Do not read next event, already placed on the next one
+          case XMLStreamConstants.END_ELEMENT =>
+            if (currentPath.nonEmpty) { // needs to be done since we don't read the root element, but it appears as end element
+              currentPath = currentPath.tail
+            }
+          case _ =>
+          // Nothing to be done for other events
+        }
+      }
+    } finally {
+      inputStream.close()
+    }
+    // Sort paths by first occurrence
+    paths.toSeq.sortBy(_._2).map(p => p._1.reverse)
+  }
+
+  private def addIfNotExists(paths: mutable.HashMap[List[String], Int],
+                             idx: AtomicInteger,
+                             path: List[String]) = {
+    if (!paths.contains(path.dropRight(basePathLength))) {
+      paths.put(if (basePathLength == 0) path else path.dropRight(basePathLength), idx.getAndIncrement())
+    }
   }
 
   /**

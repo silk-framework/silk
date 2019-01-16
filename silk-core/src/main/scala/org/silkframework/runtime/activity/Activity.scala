@@ -16,6 +16,9 @@ import scala.reflect.ClassTag
  */
 trait Activity[T] extends HasValue {
 
+  @volatile
+  protected var cancelled: Boolean = false
+
   /**
    * The name of the activity.
    * By default, the name is generated from the name of the implementing class.
@@ -34,7 +37,11 @@ trait Activity[T] extends HasValue {
   /**
    *  Can be overridden in implementing classes to allow cancellation of the activity.
    */
-  def cancelExecution()(implicit userContext: UserContext): Unit = { }
+  def cancelExecution()(implicit userContext: UserContext): Unit = { cancelled = true }
+
+  def resetCancelFlag()(implicit userContext: UserContext): Unit = { cancelled = false }
+
+  def wasCancelled(): Boolean = cancelled
 
   /**
     * Can be overridden in implementing classes to implement reset behaviour in addition to resetting the activity value to its initial value.
@@ -95,7 +102,15 @@ object Activity {
         currentActivity = None
       }
       override def cancelExecution()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.cancelExecution())
-      override def reset()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.reset())
+
+      override def resetCancelFlag()(implicit userContext: UserContext): Unit = {
+        currentActivity.foreach(_.resetCancelFlag())
+        super.resetCancelFlag()
+      }
+      override def reset()(implicit userContext: UserContext): Unit = {
+        currentActivity.foreach(_.reset())
+        super.reset()
+      }
     }
   }
 

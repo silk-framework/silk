@@ -12,13 +12,14 @@ import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
+import Path.IDX_PATH_IDX
 
 import scala.io.Codec
+import scala.util.Try
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
                 properties: String = "",
-                prefix: String = "",
                 uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
@@ -28,7 +29,8 @@ class CsvSource(file: Resource,
                 detectSkipLinesBeginning: Boolean = false,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
-                maxLinesToDetectCodec: Option[Int] = None) extends DataSource with PathCoverageDataSource with PeakDataSource {
+                maxLinesToDetectCodec: Option[Int] = None,
+                ignoreMalformedInputExceptionInPropertyList: Boolean = false) extends DataSource with PathCoverageDataSource with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -39,7 +41,16 @@ class CsvSource(file: Resource,
     if (!properties.trim.isEmpty) {
       CsvSourceHelper.parse(properties).toIndexedSeq
     } else {
-      CsvSourceHelper.convertHeaderFields(firstLine, prefix)
+      try {
+        CsvSourceHelper.convertHeaderFields(firstLine)
+      } catch {
+        case ex: RuntimeException =>
+          if(ignoreMalformedInputExceptionInPropertyList) {
+            IndexedSeq.empty
+          } else {
+            throw ex
+          }
+      }
     }
   }
 
@@ -85,7 +96,7 @@ class CsvSource(file: Resource,
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(prefix + property)) :: Nil)
+        Path(ForwardOperator(Uri.parse(property)) :: Nil)
       }
     } catch {
       case e: MalformedInputException =>
@@ -108,9 +119,15 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    val entities = retrieveEntities(entitySchema)
-    entities.toSeq
+                            (implicit userContext: UserContext): Traversable[Entity] = {
+    if(entities.isEmpty) {
+      Seq.empty
+    } else {
+      val entitySet = entities.map(_.uri.toString).toSet
+      val entityTraversal = retrieveEntities(entitySchema)
+      val filteredEntities = entityTraversal filter (e => entitySet.contains(e.uri.toString))
+      filteredEntities
+    }
   }
 
 
@@ -121,12 +138,17 @@ class CsvSource(file: Resource,
     // Retrieve the indices of the request paths
     val indices =
       for (path <- entityDesc.typedPaths) yield {
-        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri.stripPrefix(prefix)
+        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          if(property == "#idx") {
+            IDX_PATH_IDX
+          } else {
+            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+          }
+        } else {
+          propertyIndex
         }
-        propertyIndex
       }
 
     // Return new Traversable that generates an entity for each line
@@ -147,13 +169,13 @@ class CsvSource(file: Resource,
           // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
 
           var entryOpt = parser.parseNext()
-          var index = 0
+          var index = 1
           while (entryOpt.isDefined) {
             val entry = entryOpt.get
             if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
               if (propertyList.size <= entry.length) {
                 //Extract requested values
-                val values = indices.map(entry(_))
+                val values = collectValues(indices, entry, index)
                 val entityURI = generateEntityUri(index, entry)
                 //Build entity
                 if (entities.isEmpty || entities.contains(entityURI)) {
@@ -175,6 +197,15 @@ class CsvSource(file: Resource,
           parser.stopParsing()
         }
       }
+    }
+  }
+
+  private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
+    indices map {
+      case IDX_PATH_IDX =>
+        entityIdx.toString
+      case idx: Int if idx >= 0 =>
+        entry(idx)
     }
   }
 
@@ -218,13 +249,25 @@ class CsvSource(file: Resource,
   private def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
-    parser.beginParsing(reader)
-    if(skipFirst) parser.parseNext()
-    parser
+    try {
+      parser.beginParsing(reader)
+      if(skipFirst) parser.parseNext()
+      parser
+    } catch {
+      case e: Throwable =>
+        parser.stopParsing()
+        throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
+    }
   }
 
   private def firstLine: Array[String] = {
-    csvParser().parseNext().getOrElse(Array())
+    var parser: Option[CsvParser] = None
+    try {
+      parser = Some(csvParser())
+      parser.get.parseNext().getOrElse(Array())
+    } finally {
+      parser foreach (_.stopParsing())
+    }
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
@@ -286,7 +329,7 @@ class CsvSource(file: Resource,
     Seq((classUri, 1.0))
   }
 
-  private def classUri = prefix + file.name
+  private def classUri = file.name
 
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
@@ -294,7 +337,7 @@ class CsvSource(file: Resource,
   override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
-    val csvSource = new CsvSource(file, csvSettings, properties, prefix, uriPattern, regexFilter, codec,
+    val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString

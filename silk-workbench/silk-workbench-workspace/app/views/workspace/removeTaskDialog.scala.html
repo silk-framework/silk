@@ -1,10 +1,10 @@
-@(project: String, task: String, dependentTasks: Seq[String])
+@(project: String, task: String, taskLabel: String, dependentTaskLabels: Seq[String])
 
-@if(dependentTasks.isEmpty) {
+@if(dependentTaskLabels.isEmpty) {
 
   @widgets.dialog(title = "Delete task", submitLabel = "Yes, delete it") {
     <p>
-      Delete task: <span class="delete-dialog-resource">@task</span>
+      Delete task: <span class="delete-dialog-resource">@taskLabel</span>
     </p>
 
     <script type="text/javascript">//<![CDATA[
@@ -19,10 +19,10 @@
 
   @widgets.dialog(title = "Cannot delete task", submitLabel = "Ok") {
     <p>
-      Cannot delete task <span class="delete-dialog-resource">@task</span>, because the following tasks depend on it:
+      Cannot delete task <span class="delete-dialog-resource">@taskLabel</span>, because the following tasks depend on it:
       <ul>
-      @for(dependentTask <- dependentTasks) {
-        <li>@dependentTask</li>
+      @for(dependentTaskLabel <- dependentTaskLabels) {
+        <li>@dependentTaskLabel</li>
       }
       </ul>
     </p>

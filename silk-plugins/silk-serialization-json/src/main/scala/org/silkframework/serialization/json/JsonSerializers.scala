@@ -18,6 +18,7 @@ import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.util.StringUtils._
 import play.api.libs.json._
 
 /**
@@ -32,6 +33,22 @@ object JsonSerializers {
   final val URI = "uri"
   final val METADATA = "metadata"
   final val OPERATOR = "operator"
+
+  implicit object StringJsonFormat extends JsonFormat[String] {
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): String = {
+      value.as[JsString].value
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: String)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsString(value)
+    }
+  }
 
   implicit object UriJsonFormat extends JsonFormat[Uri] {
     /**
@@ -56,9 +73,19 @@ object JsonSerializers {
     final val MODIFIED = "modified"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
+      read(value, "")
+    }
+
+    /**
+      * Reads meta data. Generates a label if no label is provided in the json.
+      *
+      * @param json The json to read the meta data from.
+      * @param identifier If no label is provided in the json, use this identifier to generate a label.
+      */
+    def read(value: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
       MetaData(
-        label = stringValueOption(value, LABEL).getOrElse(""),
-        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        label = stringValueOption(value, LABEL).getOrElse(MetaData.labelFromId(identifier)),
+        description = stringValueOption(value, DESCRIPTION),
         modified = stringValueOption(value, MODIFIED).map(Instant.parse)
       )
     }
@@ -66,11 +93,13 @@ object JsonSerializers {
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       var json =
         Json.obj(
-          LABEL -> JsString(value.label),
-          DESCRIPTION -> JsString(value.description)
+          LABEL -> JsString(value.label)
         )
       for(modified <- value.modified) {
         json += MODIFIED -> JsString(modified.toString)
+      }
+      for(description <- value.description if description.nonEmpty) {
+        json += DESCRIPTION -> JsString(description)
       }
       json
     }
@@ -332,7 +361,10 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
-      RootMappingRule(identifier(value, "root"), fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY)), metaData(value))
+      val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
+      val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
+      val id = identifier(value, RootMappingRule.defaultId)
+      RootMappingRule(id = id, rules = mappingRules, metaData = metaData(value, typeName.getOrElse("RootMapping")))
     }
 
     /**
@@ -360,9 +392,10 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): TypeMapping = {
-      val name = identifier(value, "type")
-      val typeUri = stringValue(value, TYPE_PROPERTY)
-      TypeMapping(name, Uri.parse(typeUri, readContext.prefixes), metaData(value))
+      val typeUri =  Uri.parse(stringValue(value, TYPE_PROPERTY), readContext.prefixes)
+      val typeName = typeUri.localName.getOrElse("type")
+      val name = identifier(value, typeName)
+      TypeMapping(name,typeUri, metaData(value, typeName))
     }
 
     /**
@@ -392,7 +425,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      PatternUriMapping(name, pattern, metaData(value))(readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"))(readContext.prefixes)
     }
 
     /**
@@ -422,7 +455,7 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value)
+        metaData(value, "uri")
       )
     }
 
@@ -479,10 +512,11 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): DirectMapping = {
-      val name = identifier(value, "direct")
-      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH_PROPERTY))
       val mappingTarget = fromJson[MappingTarget](requiredValue(value, MAPPING_TARGET_PROPERTY))
-      DirectMapping(name, sourcePath, mappingTarget, metaData(value))
+      val mappingName = mappingTarget.propertyUri.localName.getOrElse("ValueMapping")
+      val id = identifier(value, mappingName)
+      val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH_PROPERTY))
+      DirectMapping(id, sourcePath, mappingTarget, metaData(value, mappingName))
     }
 
     /**
@@ -513,11 +547,12 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
-      val name = identifier(value, "object")
-      val sourcePath = silkPath(name, stringValue(value, SOURCE_PATH))
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      ObjectMapping(name, sourcePath, mappingTarget, children, metaData(value))(readContext.prefixes)
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
+      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
+      val id = identifier(value, mappingName)
+      val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))
+      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName))(readContext.prefixes)
     }
 
     /**
@@ -566,11 +601,13 @@ object JsonSerializers {
       val mappingTarget = (jsValue \ "mappingTarget").
           toOption.
           map(fromJson[MappingTarget])
+      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")
+      val id = identifier(jsValue, mappingName)
       val complex = ComplexMapping(
-        id = identifier(jsValue, "complex"),
+        id = id,
         operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
-        metaData(jsValue)
+        metaData(jsValue, mappingName)
       )
       TransformRule.simplify(complex)(readContext.prefixes)
     }
@@ -961,10 +998,11 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
       // In older serializations the task data has been directly attached to this JSON object
       val dataJson = optionalValue(value, DATA).getOrElse(value)
+      val id = stringValue(value, ID)
       PlainTask(
-        id = stringValue(value, ID),
+        id = id,
         data = fromJson[T](dataJson),
-        metaData = metaData(value)
+        metaData = metaData(value, id)
       )
     }
 

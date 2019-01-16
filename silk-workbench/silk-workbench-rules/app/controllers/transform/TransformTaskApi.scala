@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.rule._
@@ -47,22 +47,23 @@ class TransformTaskApi extends Controller {
         val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
         val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
-        project.tasks[TransformSpec].find(_.id == taskName) match {
+        project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task
           case Some(oldTask) if !createOnly =>
             val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
-            val transformSpec = TransformSpec(input, RootMappingRule("root", MappingRules.empty), outputs, Seq.empty, targetVocabularies)
-            project.addTask(taskName, transformSpec)
+            val rule = RootMappingRule(rules = MappingRules.empty)
+            val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
+            project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
 
         Ok
       case _ =>
         catchExceptions {
           deserializeCompileTime[TransformTask]() { task =>
-            project.updateTask(task.id, task.data)
+            project.updateTask(task.id, task.data, Some(task.metaData))
             Ok
           }
         }

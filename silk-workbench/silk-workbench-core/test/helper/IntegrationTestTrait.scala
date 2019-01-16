@@ -3,16 +3,16 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
-import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
-import org.silkframework.workspace.activity.transform.VocabularyCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.Application
 import play.api.http.Writeable
@@ -26,12 +26,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, NodeSeq, Null, XML}
+import scala.xml.{Elem, XML}
 
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderTestTrait {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -45,14 +45,14 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
 
-  // Assume by default that anonymous access is allowed
-  implicit def userContext: UserContext = UserContext.Empty
+  def workspaceProject(projectId: String)
+                      (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
 
   override implicit lazy val app: Application = {
-    var routerConf = routes.map(r => "play.http.router" -> r).toMap
+    val routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
   }
 
@@ -145,21 +145,25 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
+  def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
+                    .withHeaders("accept" -> contentType)
+    val response = request.get()
+    checkResponse(response)
+  }
+
   /**
     * Creates a CSV dataset from a file resources.
     *
     * @param projectId
     * @param datasetId
     * @param fileResourceId
-    * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
-    *                  the header line.
     */
   def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
-                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
+                           uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
@@ -191,6 +195,18 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
         graphStore.postDataToGraph(graph, contentType)
       case e: Any =>
         fail(s"Not a RDF-enabled GraphStore supporting workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
+  /** Deletes a graph from the RDF store of the workspace, , i.e. this only works if the workspace provider
+    * is RDF-enabled. */
+  def deleteBackendGraph(graph: String): Unit = {
+    WorkspaceFactory.factory.workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider =>
+        val graphStore = rdfStore.endpoint
+        graphStore.update(s"DROP SILENT GRAPH <$graph>")
+      case e: Any =>
+        fail(s"Not a RDF-enabled workspace provider (${e.getClass.getSimpleName})!")
     }
   }
 
@@ -234,11 +250,16 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     *                   application must supply a meaningful resource URI.
     * @return
     */
-  def executeSchemaExtractionAndDataProfiling(projectId: String, datasetId: String, datasetUri: String, uriPrefix: String): WSResponse = {
+  def executeSchemaExtractionAndDataProfiling(projectId: String,
+                                              datasetId: String,
+                                              datasetUri: String,
+                                              uriPrefix: String,
+                                              classProfilingLimit: Int = 10): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri),
-      "uriPrefix" -> Seq(uriPrefix)
+      "uriPrefix" -> Seq(uriPrefix),
+      "classProfilingLimit" -> Seq(classProfilingLimit.toString)
     ))
     checkResponse(response)
   }
@@ -296,8 +317,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     *
     * @param projectId
     * @param datasetId
-    * @param uriPrefix    The URI prefix for the generated target property URIs of the mapping. This should be the same
-    *                     as the prefix used for the schema extraction.
     * @param propertyUris A sequence of URIs to select the properties for the default mapping.
     */
   def createDefaultMapping(projectId: String,
@@ -331,6 +350,28 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
     val response = request.withQueryString("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
     checkResponse(response)
+  }
+
+  /**
+    * Create an empty transform task.
+    * @param projectId
+    * @param transformTaskId ID of the transform task to create.
+    * @param sourceId
+    * @param targetId
+    * @return
+    */
+  def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    checkResponse(response)
+    workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
+  }
+
+  /** Updates the root mapping rule with new mapping rules */
+  def updateTransformRules(projectId: String, transformTaskId: String, mappingRules: MappingRules): Unit = {
+    val oldTransformSpec = workspaceProject(projectId).task[TransformSpec](transformTaskId).data
+    val newTransformTask = oldTransformSpec.copy(mappingRule = oldTransformSpec.mappingRule.copy(rules = mappingRules))
+    workspaceProject(projectId).updateTask(transformTaskId, newTransformTask)
   }
 
   /**
@@ -398,53 +439,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
     checkResponse(response)
   }
 
-  def executeVariableWorkflow(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestXML = {
-      <Workflow>
-        <DataSources>
-          {datasetPayloads.filterNot(_.isSink).map(_.datasetXml)}
-        </DataSources>
-        <Sinks>
-          {datasetPayloads.filter(_.isSink).map(_.datasetXml)}
-        </Sinks>{datasetPayloads.map(_.resourceXml)}
-      </Workflow>
-    }
-    executeVariableWorkflow(projectId, workflowId, requestXML)
-  }
-
-  def executeVariableWorkflowJson(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestJSON = JsObject(Seq(
-      "DataSources" -> {JsArray(datasetPayloads.filterNot(_.isSink).map(_.datasetJson))},
-      "Sinks" -> {JsArray(datasetPayloads.filter(_.isSink).map(_.datasetJson))},
-      "Resources" -> JsObject(datasetPayloads.flatMap(_.resourceJson))
-    ))
-    executeVariableWorkflow(projectId, workflowId, requestJSON, "application/json")
-  }
-
-  def executeVariableWorkflow[T](projectId: String, workflowId: String, requestBody: T, accept: String = "*/*")(implicit wrt: Writeable[T]): WSResponse = {
-    val request: WSRequest = executeOnPayloadUri(projectId, workflowId)
-      .withHeaders("Accept" -> accept)
-    val response = request.post(requestBody)
-    checkResponse(response)
-  }
-
-  private def executeOnPayloadUri(projectId: String, workflowId: String) = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    request
-  }
-
   /**
     * Retrieves a file from the resources directory.
     */
   def file(path: String): File = {
     new File(URLDecoder.decode(getClass.getClassLoader.getResource(path).getFile, "UTF-8"))
-  }
-
-  def checkResponse(futureResponse: Future[WSResponse],
-                    responseCodePrefix: Char = '2'): WSResponse = {
-    val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
-    response
   }
 
   def checkResponseCode(futureResponse: Future[WSResponse],
@@ -477,61 +476,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with TestWorkspaceProviderT
   }
 
   def resourceAsSource(resourceClassPath: String): Source = Source.createBufferedSource(getClass.getClassLoader.getResourceAsStream(resourceClassPath))
-
-  case class VariableDatasetPayload(datasetId: String,
-                                    datasetPluginType: String,
-                                    pluginParams: Map[String, String],
-                                    payLoadOpt: Option[String],
-                                    isSink: Boolean) {
-    var fileResourceId: String = datasetId + "_file_resource"
-
-    private val additionalParam = if(pluginParams.contains("file")) {
-      fileResourceId = pluginParams("file")
-      Map()
-    } else {
-      Map("file" -> fileResourceId)
-    }
-
-    lazy val datasetXml: Elem = {
-      <Dataset id={datasetId}>
-        <DatasetPlugin type={datasetPluginType}>
-          {for ((key, value) <- pluginParams ++ additionalParam) yield {
-            <Param name={key} value={value}/>
-        }}
-        </DatasetPlugin>
-      </Dataset>
-    }
-
-    lazy val datasetJson: JsValue = {
-      JsObject(Seq(
-        "id" -> JsString(datasetId),
-        "data" -> JsObject(Seq(
-          "taskType" -> JsString("Dataset"),
-          "type" -> JsString(datasetPluginType),
-          "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
-              key -> JsString(value)
-          })
-        ))
-      ))
-    }
-
-    lazy val resourceXml = {
-      payLoadOpt match {
-        case Some(payload) =>
-          <resource name={fileResourceId}>
-            {payload}
-          </resource>
-        case None =>
-          Null
-      }
-    }
-
-    lazy val resourceJson: Option[(String, JsValue)] = {
-      payLoadOpt map { payload =>
-        fileResourceId -> JsString(payload)
-      }
-    }
-  }
 
   def reloadVocabularyCache(project: Project, transformTaskId: String)
                            (implicit userContext: UserContext): Unit = {

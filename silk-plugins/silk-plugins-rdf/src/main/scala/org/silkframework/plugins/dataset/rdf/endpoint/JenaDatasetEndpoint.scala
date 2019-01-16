@@ -47,6 +47,11 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
     JenaDatasetWritingOutputStream(dataset, lang, graph)
   }
 
+  override def deleteGraph(graph: String)
+                          (implicit userContext: UserContext): Unit = {
+    dataset.removeNamedModel(graph)
+  }
+
   override def getDataFromGraph(graph: String, acceptType: String)
                                (implicit userContext: UserContext): InputStream = {
     val strippedAccessType = acceptType.split(";").head

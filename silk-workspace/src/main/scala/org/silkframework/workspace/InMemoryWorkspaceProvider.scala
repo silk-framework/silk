@@ -7,6 +7,7 @@ import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceMana
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 @Plugin(
   id = "inMemory",
@@ -59,6 +60,12 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
                                                   (implicit userContext: UserContext): Seq[Task[T]] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
     projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(_.asInstanceOf[Task[T]]).toSeq
+  }
+
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+    val taskClass = implicitly[ClassTag[T]].runtimeClass
+    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Success(task.asInstanceOf[Task[T]])).toSeq
   }
 
   /**
