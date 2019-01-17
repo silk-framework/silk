@@ -40,7 +40,7 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                         Seq(QuadEntityTable(results.getQuadEntities, task)),
                         Some(QuadEntityTable.schema),
                         execution,
-                        context   // TODO do we need this for an internal execution
+                        context
                     )
                 }
                 // else we just stream it to the output

@@ -24,6 +24,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     */
   override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution)
                    (implicit userContext: UserContext): LocalEntities = {
+    //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     schema match {
       case QuadEntityTable.schema =>
         handleTripleEntitySchema(dataset)
@@ -117,6 +118,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
                               (implicit userContext: UserContext): Unit = {
+    //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset.data.plugin) { linkSink =>
@@ -260,7 +262,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           case QuadEntityTable.schema =>
             val Seq(s, p, o, encodedType, context) = entity.values.map(_.head)
             val valueType = TripleEntityTable.convertToValueType(encodedType)
-            sink.writeTriple(s, p, o, valueType)  //TODO quad context is ignored for now
+            sink.writeTriple(s, p, o, valueType)  //FIXME CMEM-1759 quad context is ignored for now, change when quad sink is available
         }
       } catch {
         case e: Exception =>
@@ -276,5 +278,4 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       writeEntities(sink, table)
     }
   }
-
 }
