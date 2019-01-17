@@ -25,9 +25,11 @@ trait PathsCacheTrait {
           case Some(selection) =>
             dataset.plugin.source match {
               case typedDataSource: TypedPathRetrieveDataSource =>
+                // Return typed path, i.e. either UriValueType or StringValueType
                 typedDataSource.retrieveTypedPath(selection.typeUri)
               case ds: DataSource =>
-                ds.retrievePaths(selection.typeUri, Int.MaxValue).map(_.asStringTypedPath)
+                // Always return AutoDetectValueType because we don't know the value type
+                ds.retrievePaths(selection.typeUri, Int.MaxValue).map(_.asAutoDetectTypedPath)
             }
           case None =>
             IndexedSeq()
