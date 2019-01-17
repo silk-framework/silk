@@ -5,6 +5,7 @@ import HierarchicalMappingComponent from './HierarchicalMapping/HierarchicalMapp
 
 // eslint-disable-next-line
 import SilkStore from './SilkStore/silkStore';
+import ExecutionReportView from "./ExecutionReport";
 
 
 
@@ -14,6 +15,12 @@ window.silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(
             <HierarchicalMappingComponent {...apiSettings} />,
+            document.getElementById(containerId)
+        );
+    },
+    executionReportView: (containerId, apiSettings) => {
+        ReactDom.render(
+            <ExecutionReportView {...apiSettings} />,
             document.getElementById(containerId)
         );
     }
