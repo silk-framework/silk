@@ -5,7 +5,7 @@ import org.silkframework.serialization.json.EntitySerializers.{CachedEntitySchem
 import org.silkframework.serialization.json.InputJsonSerializer.InputJsonFormat
 import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskJsonFormat, VocabularyPropertyJsonFormat, _}
 import org.silkframework.serialization.json.LinkingSerializers.LinkingJsonFormat
-import org.silkframework.serialization.json.TransformSerializers.TransformReportJsonFormat
+import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, TransformReportJsonFormat, WorkflowExecutionReportJsonFormat}
 import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
 
 class JsonPluginModule extends PluginModule {
@@ -34,7 +34,9 @@ class JsonPluginModule extends PluginModule {
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::
-      classOf[WorkflowExecutionReportJsonFormat] ::
+      ExecutionReportJsonFormat.getClass ::
+      TransformReportJsonFormat.getClass ::
+      WorkflowExecutionReportJsonFormat.getClass ::
       EntitySchemaJsonFormat.getClass ::
       PairEntitySchemaJsonFormat.getClass ::
       CachedEntitySchemataJsonFormat.getClass ::
