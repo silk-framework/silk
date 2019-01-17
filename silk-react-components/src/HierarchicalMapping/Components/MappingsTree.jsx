@@ -25,6 +25,11 @@ const MappingsTree = React.createClass({
     // define property types
     propTypes: {
         currentRuleId: React.PropTypes.string, // currently selected rule id (tree highlighting)
+        showValueMappings: React.PropTypes.bool // Show value mappings in the tree
+    },
+
+    defaultProps: {
+        showValueMappings: false,
     },
 
     // initilize state
@@ -137,7 +142,7 @@ const MappingsTree = React.createClass({
 
             // get expanded state
             const childs = _.chain(rules.propertyRules)
-                .filter(({type}) => type === MAPPING_RULE_TYPE_OBJECT)
+                .filter(({type}) => this.props.showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
             const element = () => (
