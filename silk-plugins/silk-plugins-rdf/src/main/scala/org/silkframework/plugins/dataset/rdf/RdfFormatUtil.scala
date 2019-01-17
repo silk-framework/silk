@@ -10,14 +10,11 @@ import org.apache.jena.vocabulary.XSD
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
-import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.{StringUtils, Uri}
 
 import scala.collection.JavaConverters._
 
-/**
-  * Created on 8/31/16.
-  */
+/** Utility methods for serializing to RDF */
 object RdfFormatUtil {
   final val BOOLEAN_JENA_TYPE = NodeFactory.getType(XSD.xboolean.getURI)
   final val DOUBLE_JENA_TYPE = NodeFactory.getType(XSD.xdouble.getURI)
@@ -123,7 +120,7 @@ object RdfFormatUtil {
       // Check if value is a number
       case StringUtils.integerNumber() =>
         model.createTypedLiteral(value, XSD.integer.getURI).asNode
-      case DoubleLiteral(d) =>
+      case StringUtils.simpleDoubleNumber() =>
         model.createTypedLiteral(value, XSD.xdouble.getURI).asNode
       // Write string values
       case _ =>
