@@ -2,11 +2,11 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.StringReader
 
-import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.rdf.model.{ModelFactory}
+import org.apache.jena.rdf.model.impl.{StatementImpl}
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
-import org.silkframework.plugins.dataset.rdf.endpoint.JenaEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
@@ -29,16 +29,25 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     oldModel.isEmpty shouldBe false
     oldModel.isIsomorphicWith(model) shouldBe true
 
+    // adding some edge cases
+    oldModel.add(      new StatementImpl(
+      oldModel.createResource("http://example.org/test/test/1"),
+      oldModel.createProperty("http://example.org/prop/1"),
+      oldModel.createLiteral("shdfvjs se\\jdsö\\\\\\nsjhf\"df")
+    ))
+
+    val stmtIter = oldModel.listStatements()
+
     // now we parse the serialized graph back to a QuadIterator
-    val iter = model.listStatements()
     val newQuadIterator = new QuadIteratorImpl(
-      iter.hasNext,
-      () => JenaEndpoint.jenaStatementToQuad(iter.next()),
-      () => iter.close(),
+      () => stmtIter.hasNext,
+      () => RdfFormatUtil.jenaStatementToQuad(stmtIter.next()),
+      () => stmtIter.close(),
       new NTriplesQuadFormatter
     )
 
-    val newSerialization = newQuadIterator.serialize(asQuads = false)
+    val newSerialization = newQuadIterator.serialize(asQuads = false) +
+      "<http://example.org/test/test/1> <http://example.org/prop/1> \"shdfvjs se\\\\jdsö\\\\\\\\\\\\nsjhf\\\"df\"^^<http://www.w3.org/2001/XMLSchema#string> ."
     model = ModelFactory.createDefaultModel()
     model.read(new StringReader(newSerialization), null, "N-Quads")
 

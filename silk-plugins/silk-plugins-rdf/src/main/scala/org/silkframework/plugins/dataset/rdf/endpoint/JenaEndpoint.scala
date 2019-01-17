@@ -16,13 +16,11 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.util.logging.{Level, Logger}
 
-import org.apache.jena.graph.Node
 import org.apache.jena.query._
-import org.apache.jena.rdf.model.{Model, Statement}
-import org.apache.jena.sparql.core.{Quad => JenaQuad}
+import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
+import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil}
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 
@@ -86,7 +84,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     val quadIterator = qe.execConstructQuads()
     val results = new QuadIteratorImpl(
       () => quadIterator.hasNext,
-      () => JenaEndpoint.jenaQuadToQuad(quadIterator.next()),
+      () => RdfFormatUtil.jenaQuadToQuad(quadIterator.next()),
       () => qe.close(),
       new NTriplesQuadFormatter
     )
@@ -127,56 +125,4 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     SparqlResults(results.toList)
   }
 
-}
-
-object JenaEndpoint{
-  private def getObject(n: Node): RdfNode ={
-    if(n.isBlank){
-      BlankNode(n.getBlankNodeLabel)
-    }
-    else if(n.isLiteral) {
-      if(n.getLiteralLanguage != null && n.getLiteralLanguage.nonEmpty){
-        LanguageLiteral(n.getLiteral.getLexicalForm, n.getLiteralLanguage)
-      }
-      else if(n.getLiteralDatatype != null){
-        DataTypeLiteral(n.getLiteral.getLexicalForm, n.getLiteralDatatypeURI)
-      }
-      else{
-        PlainLiteral(n.getLiteral.getLexicalForm)
-      }
-    }
-    else{
-      Resource(n.getURI)
-    }
-  }
-
-  /**
-    * Converts a Jena Quad to a (Silk) Quad object
-    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the QueryExecution close function
-    * @param q - the Jena Quad object
-    */
-  def jenaQuadToQuad(q: JenaQuad): Quad = {
-    val subj = q.getSubject
-    if(subj.isBlank){
-      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
-    }
-    else{
-      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
-    }
-  }
-
-  /**
-    * Converts a Jena Statement to a Quad object
-    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the StatementIterator close function
-    * @param q - the Jena Statement
-    */
-  def jenaStatementToQuad(q: Statement): Quad = {
-    val subj = q.getSubject.asNode()
-    if(subj.isBlank){
-      Quad.triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
-    }
-    else{
-      Quad.triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
-    }
-  }
 }

@@ -22,12 +22,11 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
+import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil}
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
-import scala.collection.JavaConverters._
 import scala.io.Source
 
 /**
@@ -95,7 +94,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       val iterator = m.listStatements()
       new QuadIteratorImpl(
         iterator.hasNext,
-        () => JenaEndpoint.jenaStatementToQuad(iterator.next()),
+        () => RdfFormatUtil.jenaStatementToQuad(iterator.next()),
         iterator.close,
         new NTriplesQuadFormatter
       )

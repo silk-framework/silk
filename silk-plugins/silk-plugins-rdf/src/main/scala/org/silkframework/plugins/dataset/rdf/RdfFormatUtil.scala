@@ -3,9 +3,12 @@ package org.silkframework.plugins.dataset.rdf
 import java.io.ByteArrayOutputStream
 
 import org.apache.jena.graph.{Node, NodeFactory, Triple}
-import org.apache.jena.rdf.model.{AnonId, ModelFactory}
+import org.apache.jena.rdf.model.{AnonId, ModelFactory, Statement}
 import org.apache.jena.riot.RDFDataMgr
+import org.apache.jena.riot.adapters.RDFWriterFactoryRIOT
 import org.apache.jena.vocabulary.XSD
+import org.apache.jena.sparql.core.{Quad => JenaQuad}
+import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.{StringUtils, Uri}
@@ -22,6 +25,81 @@ object RdfFormatUtil {
   final val INT_JENA_TYPE = NodeFactory.getType(XSD.xint.getURI)
   final val INTEGER_JENA_TYPE = NodeFactory.getType(XSD.integer.getURI)
   final val LONG_JENA_TYPE = NodeFactory.getType(XSD.xlong.getURI)
+
+  val WriterFactory = new RDFWriterFactoryRIOT()
+
+
+  /**
+    * Converts a [[Quad]] into a [[JenaQuad]]
+    * @param q - the origin Quad
+    */
+  def quadToJenaQuad(q: Quad): JenaQuad ={
+    val subj = q.subject match{
+      case Left(r) => NodeFactory.createURI(r.value)
+      case Right(b) => NodeFactory.createBlankNode(b.value)
+    }
+    val pred = NodeFactory.createURI(q.predicate.value)
+    val obj = q.objectVal match{
+      case r: Resource => NodeFactory.createURI(r.value)
+      case b: BlankNode => NodeFactory.createBlankNode(b.value)
+      case ll: LanguageLiteral => NodeFactory.createLiteral(ll.value, ll.language)
+      case pl: PlainLiteral => NodeFactory.createLiteral(pl.value)
+      case tl: DataTypeLiteral => NodeFactory.createLiteral(tl.value, NodeFactory.getType(tl.dataType))
+    }
+    val graph = q.context.map(x => NodeFactory.createURI(x.value)).orNull
+
+    new JenaQuad(graph, subj, pred, obj)
+  }
+
+  private def getObject(n: Node): RdfNode ={
+    if(n.isBlank){
+      BlankNode(n.getBlankNodeLabel)
+    }
+    else if(n.isLiteral) {
+      if(n.getLiteralLanguage != null && n.getLiteralLanguage.nonEmpty){
+        LanguageLiteral(n.getLiteral.getLexicalForm, n.getLiteralLanguage)
+      }
+      else if(n.getLiteralDatatype != null){
+        DataTypeLiteral(n.getLiteral.getLexicalForm, n.getLiteralDatatypeURI)
+      }
+      else{
+        PlainLiteral(n.getLiteral.getLexicalForm)
+      }
+    }
+    else{
+      Resource(n.getURI)
+    }
+  }
+
+  /**
+    * Converts a Jena Quad to a (Silk) Quad object
+    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the QueryExecution close function
+    * @param q - the Jena Quad object
+    */
+  def jenaQuadToQuad(q: JenaQuad): Quad = {
+    val subj = q.getSubject
+    if(subj.isBlank){
+      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+    }
+    else{
+      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+    }
+  }
+
+  /**
+    * Converts a Jena Statement to a Quad object
+    * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the StatementIterator close function
+    * @param q - the Jena Statement
+    */
+  def jenaStatementToQuad(q: Statement): Quad = {
+    val subj = q.getSubject.asNode()
+    if(subj.isBlank){
+      Quad.triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
+    }
+    else{
+      Quad.triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
+    }
+  }
 
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {

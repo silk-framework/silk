@@ -8,7 +8,7 @@ case class Quad private(
    subject: Either[Resource, BlankNode],
    predicate: Resource,
    objectVal: RdfNode,
-   context: Option[Resource]
+   context: Option[Resource]    // note no blank nodes allowed as context
  ) {
 
   def toEntity(uri: Option[Uri] = None): Entity ={
