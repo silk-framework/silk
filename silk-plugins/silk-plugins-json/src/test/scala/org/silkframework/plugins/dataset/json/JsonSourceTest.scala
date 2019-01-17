@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset._
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path, StringValueType, UriValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
@@ -102,17 +102,17 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "list all leaf paths of the root" in {
     val paths = jsonExampleSource.retrieveJsonPaths(Uri(""), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_.normalizedSerialization) mustBe Seq("persons/id", "persons/name", "persons/phoneNumbers/type", "persons/phoneNumbers/number", "organizations/name")
+    paths.map(_._1.normalizedSerialization) mustBe Seq("persons/id", "persons/name", "persons/phoneNumbers/type", "persons/phoneNumbers/number", "organizations/name")
   }
 
   it should "list all leaf paths of a sub path" in {
     val paths = jsonExampleSource.retrieveJsonPaths(Uri("persons"), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers/type", "phoneNumbers/number")
+    paths.map(_._1.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers/type", "phoneNumbers/number")
   }
 
   it should "list all leaf paths of depth 1 of a sub path" in {
     val paths = jsonExampleSource.retrieveJsonPaths(Uri("persons"), depth = 1, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_.normalizedSerialization) mustBe Seq("id", "name")
+    paths.map(_._1.normalizedSerialization) mustBe Seq("id", "name")
   }
 
   it should "return valid URIs for resource paths" in {
@@ -250,6 +250,20 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       classes(1) mustBe ExtractedSchemaClass("phoneNumbers",
         Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
     }
+  }
+
+  it should "return typed paths" in {
+    val typedPaths = jsonExampleSource.retrieveTypedPath("")
+    typedPaths.map(tp => (tp.normalizedSerialization, tp.valueType)) mustBe IndexedSeq(
+      "persons" -> UriValueType,
+      "persons/id" -> StringValueType,
+      "persons/name" -> StringValueType,
+      "persons/phoneNumbers" -> UriValueType,
+      "persons/phoneNumbers/type" -> StringValueType,
+      "persons/phoneNumbers/number" -> StringValueType,
+      "organizations" -> UriValueType,
+      "organizations/name" -> StringValueType
+    )
   }
 
   private def jsonSource(json: String): JsonSource = {
