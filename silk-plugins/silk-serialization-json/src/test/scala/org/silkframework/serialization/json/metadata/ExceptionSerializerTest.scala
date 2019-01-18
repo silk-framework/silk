@@ -53,7 +53,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable1 = serializeThrowableJson(ex1)
     val throwable2 = serializeThrowableJson(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.UnknownCauseException original message: null"
+    throwable2.getMessage shouldBe "null"
   }
 
   "ExceptionSerializerJson" should "not fail when an contain null values as messages" in {
