@@ -101,7 +101,6 @@ object RdfFormatUtil {
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
     val objNode = resolveObjectValue(value, valueType)
-    objNode.toString
     val tripleString = serializeTriple(subject, property, objNode)
     valueType match {
       case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>

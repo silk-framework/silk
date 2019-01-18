@@ -10,7 +10,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.{SparqlCopyCustomTask, Sparql
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 /**
-  * Local executor for [[SparqlCopyCustomTask]].
+  * Local executor for [[SparqlSelectCustomTask]].
   */
 case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomTask] {
   override def execute(task: Task[SparqlSelectCustomTask],

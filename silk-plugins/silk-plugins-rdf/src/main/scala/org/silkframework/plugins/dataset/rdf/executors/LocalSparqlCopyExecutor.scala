@@ -12,8 +12,10 @@ import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.FileResource
-import org.silkframework.util.Identifier
 
+/**
+  * Local executor for [[SparqlCopyCustomTask]].
+  */
 class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
     override def execute(task: Task[SparqlCopyCustomTask],
                          inputs: Seq[LocalEntities],
@@ -25,13 +27,13 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
             case Seq(sparql: SparqlEndpointEntityTable) =>
                 val internalTaskId = "counstruct_copy_tmp"
                 val results: QuadIterator = sparql.construct(task.selectQuery.str)
-                // we should safe construct as temp file before propagation
+                // if we have to safe construct graph as temp file before propagation
                 val temporaryEntities = if(task.tempFile){
                     val tempFile = File.createTempFile(internalTaskId, "nt")
                     tempFile.delete
                     tempFile.deleteOnExit()
                     // adding file deletion shutdown hook
-                    execution.addShutdownHook(Identifier.fromAllowed("delete_" + tempFile.getName), () => tempFile.delete)
+                    execution.addShutdownHook(() => tempFile.delete)
 
                     val resource = FileResource(tempFile)
                     val nTripleFile = RdfFileDataset(resource, "N-Triples")
@@ -39,8 +41,7 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                         PlainTask(internalTaskId, DatasetSpec(nTripleFile)),
                         Seq(QuadEntityTable(results.getQuadEntities, task)),
                         Some(QuadEntityTable.schema),
-                        execution,
-                        context
+                        execution
                     )
                 }
                 // else we just stream it to the output

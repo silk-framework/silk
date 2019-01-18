@@ -103,19 +103,6 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     TripleEntityTable(tripleEntities, dataset)
   }
 
-  private def readQuads(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
-                         (implicit userContext: UserContext)= {
-    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}")
-    val tripleEntities = sparqlResult.bindings.view map { resultMap =>
-      val s = resultMap("s").value
-      val p = resultMap("p").value
-      val g = resultMap("g").value
-      val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
-      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ), Seq(g)), QuadEntityTable.schema)
-    }
-    QuadEntityTable(tripleEntities, dataset)
-  }
-
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
                               (implicit userContext: UserContext): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities

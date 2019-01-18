@@ -47,7 +47,8 @@ case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionTy
     uriOpt.orNull // graphUri must be set to null for the default
   }
 
-  def addShutdownHook(id: Identifier, hook: () => Unit): Identifier ={
+  def addShutdownHook(hook: () => Unit): Identifier ={
+    val id = Identifier.random
     this.shutdownHooks.put(id, hook)
     id
   }

@@ -9,6 +9,7 @@ trait QuadIterator extends Iterator[Quad] {
 
   /**
     * A close function, forward any close function of the underlying source of this iterator (such as QueryExecution or closeable StatementIterators) if needed
+    * Call this once after finishing the consumption of Quads.
     */
   val close: () => Unit
 
@@ -35,12 +36,5 @@ trait QuadIterator extends Iterator[Quad] {
 
   override def hasNext: Boolean = hasQuad()
 
-  override def next(): Quad = {
-    val quad = nextQuad()
-    // close if last Quad
-    if(! hasNext)
-      close()
-
-    quad
-  }
+  override def next(): Quad = nextQuad()
 }

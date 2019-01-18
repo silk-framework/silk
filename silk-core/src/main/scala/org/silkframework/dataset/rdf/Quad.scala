@@ -43,6 +43,11 @@ case class Quad private(
     }
     hashCode = hashCode * prime + this.predicate.value.hashCode()
     hashCode = hashCode * prime + this.objectVal.value.hashCode()
+    this.objectVal match {
+      case ll: LanguageLiteral => hashCode = hashCode * prime + ll.language.hashCode()
+      case ll: DataTypeLiteral => hashCode = hashCode * prime + ll.dataType.hashCode()
+      case _ =>
+    }
     this.context.foreach(c =>
       hashCode = hashCode * prime + c.value.hashCode()
     )
@@ -57,7 +62,12 @@ case class Quad private(
           case Right(v) => q.subject.isRight && q.subject.right.get.value == v.value
         }
         val equalPred = this.predicate.value == q.predicate.value
-        val equalObj = this.objectVal.value == q.objectVal.value
+        val equalObj =  this.objectVal.value == q.objectVal.value && (this.objectVal match{
+          case dl: DataTypeLiteral => q.objectVal.isInstanceOf[DataTypeLiteral] && q.objectVal.asInstanceOf[DataTypeLiteral].dataType == dl.dataType
+          case ll: LanguageLiteral => q.objectVal.isInstanceOf[LanguageLiteral] && q.objectVal.asInstanceOf[LanguageLiteral].language == ll.language
+          case _ => true
+        })
+          this.objectVal.value == q.objectVal.value
         val equalContext = this.context match{
           case Some(c) => q.context.nonEmpty && q.context.get.value == c.value
           case None => q.context.isEmpty

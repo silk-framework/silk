@@ -63,10 +63,10 @@ package org.silkframework.plugins.dataset.rdf
         }
       }
 
-      it should "delete temporary files via shutdown hook " + withTempfile in {
-        if(withTempfile){
-          execution.executeShutdownHooks()
-          tempFile.exists() mustBe false
+      if(withTempfile){
+        it should "delete temporary files via shutdown hook " + withTempfile in {
+            execution.executeShutdownHooks()
+            tempFile.exists() mustBe false
         }
       }
     }
