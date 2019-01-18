@@ -1,6 +1,7 @@
 package org.silkframework.failures
 
 import org.silkframework.entity.Path
+import org.silkframework.entity.metadata.ExecutionFailure
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -13,10 +14,10 @@ import org.silkframework.util.{Identifier, Uri}
   */
 //noinspection ScalaStyle
 case class FailureClass private[failures](
-   rootCause: Throwable,
-   originalMessage: String,
-   taskId: Identifier,
-   property: Option[Path]                              //FIXME TypedPath needs JsValue serializer - CMEM-1368
+                                           rootCause: Throwable,
+                                           originalMessage: String,
+                                           taskId: Identifier,
+                                           property: Option[Path] //FIXME TypedPath needs JsValue serializer - CMEM-1368
  ) extends Serializable {
 
   assert(rootCause.getCause == null, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")

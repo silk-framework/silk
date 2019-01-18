@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json.metadata
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.metadata.ExceptionSerializer
+import org.silkframework.entity.metadata.{ExceptionSerializer, ExecutionFailure}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 
 class ExceptionSerializerTest extends FlatSpec with Matchers {
@@ -21,11 +21,10 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     throwable2.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.UnknownCauseException original message: "
   }
 
-  it should "not fail when an contain null values as messages" in {
-    // but we ca try xml as well
+  it should "not fail when an exception contains null values as messages" in {
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowable(exceptionWithNulls)
-    throwable.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NullMessageException original message: "
+    throwable.getMessage shouldBe ""
   }
 
   it should "handle exceptions with edge case constructors" in {
@@ -61,14 +60,14 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     // Specifically test for Json, XML handles that differently
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowableJson(exceptionWithNulls)
-    throwable.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.NullMessageException original message: null"
+    throwable.getMessage shouldBe ""
   }
 
   /* Helper methods that serialize and deserialize a Throwable and return it. */
-  def serializeThrowable(exception: Throwable): Throwable = {
+  def serializeThrowable(exception: Throwable): ExecutionFailure = {
     val serializer = new ExceptionSerializer
     try {
-      val nde = serializer.write(exception)(WriteContext())
+      val nde = serializer.write(ExecutionFailure.fromThrowable(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -82,10 +81,10 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     }
   }
 
-  def serializeThrowableJson(exception: Throwable): Throwable = {
+  def serializeThrowableJson(exception: Throwable): ExecutionFailure = {
     val serializer = new ExceptionSerializerJson
     try {
-      val nde = serializer.write(exception)(WriteContext())
+      val nde = serializer.write(ExecutionFailure.fromThrowable(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }

@@ -28,6 +28,15 @@ case class ExecutionFailure( message: String,
                              className: Option[String]
                            ) {
 
+  def apply(t: Throwable) = {
+    if (t.getCause != null) {
+      ExecutionFailure(t.getMessage, Some(ExecutionFailure.fromThrowable(t.getCause)), Some(t.getClass.getSimpleName))
+    }
+    else {
+      ExecutionFailure(t.getMessage, None, Some(t.getClass.getSimpleName))
+    }
+  }
+
   var stackTrace: Option[Array[StackTraceElement]] = None
 
   def setStackTrace(ste: Array[StackTraceElement]): Unit = {
@@ -40,7 +49,6 @@ case class ExecutionFailure( message: String,
 
   def getExceptionClass: String = className.getOrElse("unknown class")
 
-  /* Use option, since none is valid and needs to be checked by the caller */
   def getCause: Option[ExecutionFailure] = cause
 }
 
@@ -55,7 +63,7 @@ object ExecutionFailure {
     * @param message Error message
     * @return
     */
-  def noInformationFailure(message: String = "The class of the exception can not be found"): ExecutionFailure = {
+  def noInformationFailure(message: String): ExecutionFailure = {
     ExecutionFailure(
       message = message,
       cause = None,
@@ -63,14 +71,21 @@ object ExecutionFailure {
     )
   }
 
-  def asThrowable: Throwable = {
-    new Exception("")
+  def asThrowable(ef: ExecutionFailure): Throwable = {
+    ExecutionException(ef.getMessage, ef.getCause.map(asThrowable))
   }
 
+  def fromThrowable(t: Throwable): ExecutionFailure = {
+    val executionFailure = if (t.getCause == null) {
+      ExecutionFailure(t.getMessage, None, Some(t.getClass.getSimpleName))
+    }
+    else {
+      ExecutionFailure(t.getMessage, Some(fromThrowable(t.getCause)), Some(t.getClass.getSimpleName))
+    }
+    if (t.getStackTrace != null) executionFailure.setStackTrace(t.getStackTrace)
+    executionFailure
+  }
 
-
-
-
-
+  case class ExecutionException(message: String, cause: Option[Throwable]) extends Throwable
 
 }
