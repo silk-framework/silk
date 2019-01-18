@@ -1,14 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
-import org.apache.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
-import org.silkframework.entity.{AutoDetectValueType, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.execution.local.QuadEntityTable
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
-
-import scala.collection.JavaConverters._
 
 @Plugin(
   id = "sparqlCopyOperator",
@@ -18,7 +14,7 @@ import scala.collection.JavaConverters._
 case class SparqlCopyCustomTask(
     @Param(label = "Construct query", value = "A SPARQL 1.1 construct query", example = "construct { ?s ?p ?o } where { ?s ?p ?o }")
       selectQuery: MultilineStringParameter,
-    @Param(label = "Use temporary file", value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True")
+    @Param(label = "Use temporary file", value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True by default")
       tempFile: Boolean = true
   ) extends CustomTask {
 
@@ -35,21 +31,5 @@ case class SparqlCopyCustomTask(
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  override def outputSchemaOpt: Option[EntitySchema] = Some(internalSchema)
-
-  val internalSchema: EntitySchema = {
-    val query = QueryFactory.create(selectQuery.str)
-    if (query.isConstructType) {
-      val typedPaths = query.getResultVars.asScala map { v =>
-        TypedPath(Path(v), AutoDetectValueType, isAttribute = false)
-      }
-      EntitySchema(
-        typeUri = Uri(""),
-        typedPaths = typedPaths.toIndexedSeq
-      )
-    }
-    else{
-      throw new ValidationException("Query is no valid CONSTRUCT query!")
-    }
-  }
+  override def outputSchemaOpt: Option[EntitySchema] = Some(QuadEntityTable.schema)
 }
