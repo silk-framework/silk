@@ -25,11 +25,13 @@ const MappingsTree = React.createClass({
     // define property types
     propTypes: {
         currentRuleId: React.PropTypes.string, // currently selected rule id (tree highlighting)
-        showValueMappings: React.PropTypes.bool // Show value mappings in the tree
+        showValueMappings: React.PropTypes.bool, // Show value mappings in the tree
+        ruleIcons: React.PropTypes.object //
     },
 
     defaultProps: {
         showValueMappings: false,
+        ruleIcons: {}
     },
 
     // initilize state
@@ -151,6 +153,9 @@ const MappingsTree = React.createClass({
                     onClick={this.handleNavigate.bind(null, id, undefined)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
+                        {  this.props.ruleIcons && this.props.ruleIcons.hasOwnProperty(id) &&
+                           <Icon {...this.props.ruleIcons[id]} />
+                        }
                     </span>
                     {parentType === MAPPING_RULE_TYPE_OBJECT ? (
                         <small className="ecc-silk-mapping__treenav--item-subtitle">

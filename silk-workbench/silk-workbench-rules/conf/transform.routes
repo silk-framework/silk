@@ -18,7 +18,7 @@ GET           /:project/:task/evaluate/generatedEntities                        
 
 # Execute Transformation
 GET           /:project/:task/execute                                              controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
-GET           /:project/:task/execute/statistics                                   controllers.transform.ExecuteTransformTab.executeStatistics(project: String, task: String)
+GET           /:project/:task/execute/report                                       controllers.transform.ExecuteTransformTab.executionReport(project: String, task: String)
 GET           /:project/:task/execute/statusStream                                 controllers.transform.ExecuteTransformTab.statusStream(project: String, task: String)
 
 # API

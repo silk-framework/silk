@@ -4,15 +4,17 @@
 @import org.silkframework.rule.TransformSpec
 @import controllers.workspace.routes.TaskApi
 @import org.silkframework.workbench.Context
+@import controllers.core.routes.{Assets => CoreAssets}
 
 @(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <script type="text/javascript">
-    function updateStatistics() {
-      $( "#statistics_wrapper" ).load('@ExecuteTransformTab.executeStatistics(context.project.name, context.task.id).url');
+    function updateReport() {
+      $( "#report_wrapper" ).load('@ExecuteTransformTab.executionReport(context.project.name, context.task.id).url');
     }
   </script>
+  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
 }
 
 @toolbar = {
@@ -21,7 +23,7 @@
       @taskActivityControl(context.task.activity[ExecuteTransform], showButtons = true)
     </li>
     <li>
-      <button id="button_statistics" class="mdl-button mdl-js-button mdl-button--raised" onclick="updateStatistics()">Validation Report</button>
+      <button id="button_statistics" class="mdl-button mdl-js-button mdl-button--raised" onclick="updateReport()">Validation Report</button>
       <div class="mdl-tooltip mdl-tooltip--large" for="button_statistics">
         Loads the validation report about the current transform execution.
       </div>
@@ -35,7 +37,7 @@
 }
 
 @content = {
-  <div id="statistics_wrapper"></div>
+  <div id="report_wrapper"></div>
 }
 
 @main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

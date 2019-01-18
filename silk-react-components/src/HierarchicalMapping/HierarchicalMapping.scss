@@ -334,6 +334,13 @@ ul.ecc-hierarchical-mapping-error-list {
     margin-right: 0.1em;
 }
 
+.ecc-silk-mapping__ruleitem-icon-red {
+    font-size: 1.39em;
+    vertical-align: bottom;
+    margin-right: 0.1em;
+    color: to_color($palette-red-800);
+}
+
 .ecc-silk-mapping__ruleitem-headline {
     font-size: $data-table-font-size;
     letter-spacing: 0;

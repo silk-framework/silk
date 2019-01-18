@@ -15,10 +15,10 @@ class ExecuteTransformTab extends Controller {
     Ok(views.html.executeTransform.executeTransform(context))
   }
 
-  def executeStatistics(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def executionReport(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val report = context.task.activity[ExecuteTransform].value
-    Ok(views.html.executeTransform.transformStatistics(context.task, report, context.project.config.prefixes))
+    Ok(views.html.executeTransform.transformReport(context.task, report, context.project.config.prefixes))
   }
 
   def statusStream(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
