@@ -17,7 +17,7 @@ export default class ExecutionReportView extends React.Component {
       executionReport: {
         summary: []
       },
-      currentRuleId: "direct"
+      currentRuleId: null
     };
 
     // MappingsTree uses the message bus, so we need to set required Silk properties
@@ -62,17 +62,21 @@ export default class ExecutionReportView extends React.Component {
           <td>{v.value}</td>
         </tr>
     );
-    return <table className="mdl-data-table mdl-js-data-table">
-             <thead>
-               <tr>
-                 <th>Summary</th>
-                 <th></th>
-               </tr>
-             </thead>
-             <tbody>
-             { summaryRows }
-             </tbody>
-           </table>
+    return <div className="ecc-silk-mapping__treenav">
+             <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+               <table className="mdl-data-table mdl-js-data-table">
+                 <thead>
+                   <tr>
+                     <th>Summary</th>
+                     <th></th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                 { summaryRows }
+                 </tbody>
+               </table>
+             </div>
+           </div>
   }
 
   renderTransformReport() {
@@ -94,11 +98,17 @@ export default class ExecutionReportView extends React.Component {
   generateIcons() {
     let ruleIcons = {};
     for(let [ruleId, ruleResults] of Object.entries(this.state.executionReport.ruleResults)) {
-      if(ruleResults.errorCount > 0) {
+      if(ruleResults.errorCount === 0) {
+        ruleIcons[ruleId] = {
+          className: "ecc-silk-mapping__ruleitem-icon-green",
+          name: "done",
+          tooltip: "This mapping executed without any issue."
+        }
+      } else {
         ruleIcons[ruleId] = {
           className: "ecc-silk-mapping__ruleitem-icon-red",
           name: "warning",
-          tooltip: "warning"
+          tooltip: "There have been " + ruleResults.errorCount + " issues."
         }
       }
     }
@@ -107,20 +117,32 @@ export default class ExecutionReportView extends React.Component {
 
   renderRuleReport() {
     const ruleResults = this.state.executionReport.ruleResults[this.state.currentRuleId];
-    return <div>
-             Total error count: { ruleResults.errorCount }
-             { ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults) }
+    let title;
+    if(ruleResults === undefined) {
+      title = "Select a mapping for detailed results."
+    } else if(ruleResults.errorCount === 0) {
+      title = "This mapping executed successfully without any issues."
+    } else {
+      title = "This mapping generated  " + ruleResults.errorCount + " validation issues during execution."
+    }
+    return <div className="ecc-silk-mapping__treenav">
+             <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+               <div className="mdl-card__supporting-text">
+                 { title }
+               </div>
+               { ruleResults !== undefined && ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults) }
+             </div>
            </div>
   }
 
   renderRuleErrors(ruleResults) {
-    return  <table className="mdl-data-table mdl-js-data-table">
+    return  <table className="mdl-data-table mdl-js-data-table" style={{width: "100%"}}>
               <thead>
-              <tr>
-                <th>Entity</th>
-                <th>Values</th>
-                <th>Issue</th>
-              </tr>
+                <tr>
+                  <th>Entity</th>
+                  <th>Values</th>
+                  <th>Issue</th>
+                </tr>
               </thead>
               <tbody>
               { ruleResults.sampleErrors.map(this.renderRuleError) }
